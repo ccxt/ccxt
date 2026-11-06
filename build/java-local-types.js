@@ -19314,71 +19314,7 @@ function javaSingleBox (ctx, text) {
     return undefined;
 }
 
-function javaRetypeSingleBoxMember (lines, from, to) {
-    const ctx = javaArithMemberCtx (lines, from, to).ctx;
-    const decl = /^(\s*)Object ([A-Za-z_]\w*) = (.*?);(\s*\/\/.*)?$/;
-    let changed = false;
-    for (let i = from + 1; i < to; i++) {
-        const d = decl.exec (lines[i]);
-        if (d === null) continue;
-        const [ , iden, name ] = d;
-        if (longLimitDeclarations (lines, from, to, name).length !== 1) continue;
-        const operand = new RegExp (`Helpers\\.(?:multiply|subtract|divide|mod|opNeg)\\([^;]*(?<![\\w$.])${name}\\b`);
-        if (!lines.slice (i, to).some ((l) => operand.test (longLimitCodeOnly (l)))) continue;
-        const writeDecl = new RegExp (`^(\\s*)(?:Object )?${name} = (.*?);(\\s*//.*)?$`);
-        const compound = new RegExp (`(?<![\\w$.])${name}\\s*(?:\\+\\+|--|[-+*/%]=)|(?:\\+\\+|--)${name}\\b`);
-        const mention = new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`);
-        const assign = new RegExp (`(?<![\\w$.=!<>])${name}\\s*=(?!=)`);
-        const values = [];
-        let ok = true;
-        for (let j = i; j < to && ok; j++) {
-            const code = longLimitCodeOnly (lines[j]);
-            if (!mention.test (code)) continue;
-            if (compound.test (code) || (/->/.test (code) && assign.test (code))) { ok = false; break; }
-            const w = writeDecl.exec (lines[j]);
-            if (w !== null && (j === i || !/^\s*Object /.test (lines[j]))) {
-                values.push (w[2].trim ());
-                if (!javaRetypeUseOk (j === i ? `${iden}j24w = ${d[3]};` : lines[j], name, false)) ok = false;
-            } else if (assign.test (code)) ok = false;
-            else if (!javaRetypeUseOk (lines[j], name, false)) ok = false;
-        }
-        if (!ok) continue;
-        // a self-referencing write (`x = f(x)`) is classified without x
-        const boxes = values.map ((v) => javaSingleBox (ctx, v));
-        const real = boxes.filter ((b) => b !== 'null');
-        if (boxes.includes (undefined) || real.length === 0 || real.some ((b) => b !== real[0])) continue;
-        lines[i] = `${iden}${real[0]} ${name} = ${d[3]};${d[4] ?? ''}`;
-        changed = true;
-    }
-    return changed;
-}
 
-export function nativeJavaBoxLocalsRetype (content) {
-    if (!JAVA_RETYPE_ARITH_TARGETS.test (content)) return content;
-    const count = (ls) => ls.reduce ((n, l) => n + (longLimitCodeOnly (l).match (/Helpers\.(?:multiply|subtract|divide|mod|opNeg)\(/g) ?? []).length, 0);
-    let out = content;
-    for (let round = 0; round < 4; round++) {
-        const lines = out.split ('\n');
-        const starts = [];
-        for (let i = 0; i < lines.length; i++) if (LONG_LIMIT_MEMBER_START.test (lines[i])) starts.push (i);
-        if (starts.length === 0) return out;
-        const next = lines.slice (0, starts[0]);
-        let changed = false;
-        for (let s = 0; s < starts.length; s++) {
-            const member = lines.slice (starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length);
-            const work = member.slice ();
-            // keep a retype only when it lets at least one target helper go native
-            if (javaRetypeSingleBoxMember (work, 0, work.length)) {
-                const native = nativeJavaNumericLocalsRetype (nativeJavaPrimitiveArithmetic (nativeJavaTypedArithmetic (work.join ('\n')))).split ('\n');
-                if (count (native) < count (member)) { next.push (...native); changed = true; continue; }
-            }
-            next.push (...member);
-        }
-        if (!changed) break;
-        out = next.join ('\n');
-    }
-    return out;
-}
 
 // `Object x = this.sum(<integral>, <integral>)` locals -> `Long x = (Long) this.sum(..)`.
 // Generic.sum maps null to 0 and answers (long) for any whole sum, so integral args always give a Long box.

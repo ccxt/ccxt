@@ -23,7 +23,7 @@ import { installJavaFreshObjectMapWrites } from './java-local-types.js';
 import { nativeJavaEqualTruthy } from './java-local-types.js';
 import { nativeJavaTypedArithmetic } from './java-local-types.js';
 import { nativeJavaParamCompare } from './java-local-types.js';
-import { nativeJavaTypedArithmetic, nativeJavaPrimitiveArithmetic, nativeJavaNumericLocalsRetype, nativeJavaBoxLocalsRetype, nativeJavaSumLongLocals } from './java-local-types.js';
+import { nativeJavaTypedArithmetic, nativeJavaPrimitiveArithmetic, nativeJavaNumericLocalsRetype, nativeJavaSumLongLocals } from './java-local-types.js';
 import { nativeJavaIntegralMultiplySubtract, nativeJavaNumberDivModNeg, nativeJavaInlineDivModNeg } from './java-local-types.js';
 import { installJavaStringCoreArgs } from './java-local-types.js';
 import { nativeJavaToLongOrNull } from './java-local-types.js';
@@ -3065,7 +3065,6 @@ class NewTranspiler {
 
         baseClass = this.addDeprecatedAnnotations(baseClass);
         baseClass = nativeJavaNumericLocalsRetype(nativeJavaPrimitiveArithmetic(baseClass));
-        baseClass = nativeJavaBoxLocalsRetype(baseClass);
         baseClass = nativeJavaIntegralMultiplySubtract(baseClass);
         baseClass = nativeJavaNumberDivModNeg(baseClass, true);
         baseClass = nativeJavaMapLocalOps(baseClass);
@@ -3695,7 +3694,6 @@ class NewTranspiler {
         content = nativeJavaNonNullCompare(nativeJavaOrderedComparisons(nativeJavaLongLimitLocals(content)));
         content = nativeJavaParamCompare(content);
         content = nativeJavaNumericLocalsRetype(nativeJavaPrimitiveArithmetic(content));
-        content = nativeJavaBoxLocalsRetype(content);
         content = nativeJavaSumLongLocals(content);
         content = nativeJavaIntegralMultiplySubtract(content);
         content = nativeJavaNumberDivModNeg(content);
@@ -5809,7 +5807,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaBoxLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest());
+    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest());
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
@@ -7647,26 +7645,6 @@ function javaMapLocalsRetypeSelfTest (): string[] {
 }
 
 // Snippet checks for the Object-local box retype (`--audit-string-types --self-test`)
-function javaBoxLocalsRetypeSelfTest (): string[] {
-    const problems: string[] = [];
-    const member = (body: string) => `    public Object m(Object o, Long since)\n    {\n${body}\n    }\n`;
-    const cases: [string, string, string | undefined][] = [
-        // positives: Double producers under a guard, a Long param copy
-        [ 'guarded double subtract', '        Object a = this.safeNumber(o, "a", (Object) null);\n        Object b = this.safeNumber(o, "b", (Object) null);\n        Object r = null;\n        if ((!java.util.Objects.equals(a, null)) && (!java.util.Objects.equals(b, null)))\n        {\n            r = Helpers.subtract(a, b);\n        }\n        return r;', 'r = (a - b);' ],
-        [ 'long copy divide', '        if (java.util.Objects.equals(since, null))\n        {\n            return null;\n        }\n        Object s = since;\n        return this.parseToInt(Helpers.divide(s, 1000));', 'Long s = since;' ],
-        // negatives: double multiply re-boxes, mixed boxes, unguarded, cast read
-        [ 'double multiply', '        Object a = this.safeNumber(o, "a", (Object) null);\n        if (!java.util.Objects.equals(a, null))\n        {\n            return Helpers.multiply(a, a);\n        }\n        return null;', undefined ],
-        [ 'mixed boxes', '        Object a = this.safeNumber(o, "a", (Object) null);\n        a = this.safeInteger(o, "b");\n        if (!java.util.Objects.equals(a, null))\n        {\n            return Helpers.subtract(a, 1);\n        }\n        return null;', undefined ],
-        [ 'unguarded', '        Object a = this.safeNumber(o, "a", (Object) null);\n        return Helpers.subtract(a, 1);', undefined ],
-        [ 'cast read', '        Object a = this.safeInteger(o, "a");\n        String q = (String) a;\n        if (!java.util.Objects.equals(a, null))\n        {\n            return Helpers.subtract(a, 1);\n        }\n        return null;', undefined ],
-    ];
-    for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaBoxLocalsRetype (member (body));
-        const ok = expect === undefined ? out === member (body) : out.includes (expect);
-        if (!ok) { problems.push (`arithmetic: ${name}\n${out}`); }
-    }
-    return problems;
-}
 
 // ordered compares whose operand is an unwritten TS-`number` parameter printed `Object` (audited table, tier/class/method)
 // or a `this.sum(..)` (Generic.sum: a non-null Long/Double); the other side an int literal, a `var i = <int>` counter or
