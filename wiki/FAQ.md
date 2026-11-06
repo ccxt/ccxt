@@ -409,12 +409,18 @@ instance = new ccxt.interactivebrokers ({
 
 #### Use IBKR with Web-Api with Client-Portal Gateway
 
-If your account is not permitted to generate credentials for WebApi, then you can use local IBKR bridge where you will not need api-keys. At first, download repository https://github.com/ccxt/interactive-brokers-cpg-wrapper/archive/refs/heads/master.zip and run it as noted there. After that, you can use:
+If your account is not permitted to generate credentials for WebApi, then you can use local IBKR bridge where you will not need api-keys. You need to download `Client-Portal Gateway`, either one of the ways:
+- A) Here is a handy dockerized repository https://github.com/ccxt/interactive-brokers-cpg-wrapper/ (append `archive/refs/heads/master.zip` to download it directly) and run it as noted in repo description. 
+- B) You can manually download the files from: https://www.interactivebrokers.com/docs/web-api/authentication/cpgw/installation-authentication and follow instructions shown there. Also note, in this case, you will need to manually re-run gateway after every device restart or alike cases, that's why Dockerized approach is preferred for flexibility.
+
+After you are running CP Gateway, you can use:
 
 ```
 instance = new ccxt.interactivebrokers ({
   "options": {
     "useGateway": true,
+    //  if custom port needed, add the below field
+    // "gatewayUrl": "https://localhost:5000/",
   },
   "validateServerSsl": false, // because the IBRK CP gateway runs at self-signed https://localhost:5000
 })
