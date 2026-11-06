@@ -472,6 +472,23 @@ pub async fn drainWsMessages(exchange: &mut Value, url: Value) -> Value {
     Value::Null
 }
 
+/// Replay trailing frames after the last expected watch result.
+pub async fn drainWsWatchMessages(exchange: &mut Value, url: Value, method: Value, input: Value) -> Value {
+    if matches!(&method, Value::Str(m) if m.starts_with("unWatch")) {
+        return drainWsMessages(exchange, url).await;
+    }
+    for _ in 0..500 {
+        if !ccxt::pro::ws_client::mock_has_queued_messages(&ws_url(&url)) {
+            break;
+        }
+        let call = std::panic::AssertUnwindSafe(callExchangeMethodDynamically(exchange, method.clone(), input.clone()));
+        if futures::FutureExt::catch_unwind(call).await.is_err() {
+            break;
+        }
+    }
+    Value::Null
+}
+
 /// Whether the mock inbound queue still has frames to drain — the
 /// parsedResponse loop keeps re-watching until every frame is consumed so the
 /// asserted structure reflects the final state after all deltas.
