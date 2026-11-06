@@ -2767,7 +2767,7 @@ const CSHARP_FUNNEL_DECLARED_HELPERS = {
     'Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>': 'FromOHLCVDict',
 };
 function csharpFunnelHelper (content, name, core) {
-    // the emitted call site is pascalized (pascalizeTypedCores), the AST holds the TS name, so the
+    // the emitted call site is pascalized (the printer's typedCores), the AST holds the TS name, so the
     // core matches case-insensitively; the helper and the local name must match exactly
     const line = new RegExp ('^[ \\t]*[A-Za-z][\\w<>,. ]* ' + name + ' = ccxt\\.BaseExchange\\.(From\\w+)\\(await this\\.' + core + '\\(', 'i');
     const declared = new RegExp ('^[ \\t]*([A-Za-z][\\w<>,. ]*) ' + name + ' = await this\\.' + core + '\\(', 'i');
@@ -16452,7 +16452,8 @@ for (const [ name, position ] of Object.entries (CORE_LIST_ARGS_LENGTH_READS)) {
 // ===== native Math.Min / Math.Max on a guarded nullable integer parameter =====
 //
 // `Math.min (limit, 1000)` with `limit` a narrowed `Int64?` parameter proven non-null by a
-// dominating null test prints `Math.Min(limit.Value, 1000)`: same value as mathMin, which only
+// dominating null test prints `Math.Min(limit.Value, 1000)` (`Math.max (since - 1, 0)` ->
+// `Math.Max((since.Value - 1), 0)`): same value as mathMin, which only
 // differs by returning the literal's Int32 box. Only request-field writes take the result, and
 // urlencode / json print both boxes identically.
 function minMaxGuardedNullableOperand (csharp, call, node) {
@@ -16460,6 +16461,19 @@ function minMaxGuardedNullableOperand (csharp, call, node) {
         return false;
     }
     return (typeof csharp.csharpNullGuardAdmitsRead === 'function') && csharp.csharpNullGuardAdmitsRead (call, node);
+}
+
+// `x ± n` (parenthesised or not) on a guarded `Int64?` parameter: `(x.Value ± n)`, else undefined
+function minMaxGuardedShiftedText (csharp, call, node) {
+    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        node = node.expression;
+    }
+    const op = node?.operatorToken?.kind;
+    if ((node?.kind !== ts.SyntaxKind.BinaryExpression) || ((op !== ts.SyntaxKind.MinusToken) && (op !== ts.SyntaxKind.PlusToken))
+        || !minMaxIntLiteral (node.right) || !minMaxGuardedNullableOperand (csharp, call, node.left)) {
+        return undefined;
+    }
+    return '(' + csharp.printNode (node.left, 0) + '.Value ' + ((op === ts.SyntaxKind.MinusToken) ? '-' : '+') + ' ' + node.right.text + ')';
 }
 
 function minMaxIntLiteral (node) {
@@ -16492,6 +16506,10 @@ export function installCsharpGuardedMinMax (transpiler) {
         }
         if (minMaxIntLiteral (args[0]) && minMaxGuardedNullableOperand (csharp, node, args[1])) {
             return 'Math.' + name + '(' + parsedArg1 + ', ' + parsedArg2 + '.Value)';
+        }
+        const shifted = minMaxIntLiteral (args[1]) ? minMaxGuardedShiftedText (csharp, node, args[0]) : undefined;
+        if (shifted !== undefined) {
+            return 'Math.' + name + '(' + shifted + ', ' + parsedArg2 + ')';
         }
         return native;
     };
