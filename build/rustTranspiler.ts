@@ -17,13 +17,7 @@ import errorHierarchy from '../js/src/base/errorHierarchy.js';
 // index/length becomes `Vec<Value>`, a never-reassigned marker-free literal dict reads `as_map().get(k)`. Both
 // match the helper exactly (its array arm and marker-free dict arm); anything unproven keeps `get_value(...)`.
 
-const IDENT = '[A-Za-z_][A-Za-z0-9_]*';
 
-// Keys whose presence in a Dict activates a fetch/store routing arm of
-// `get_value` (runtime value.rs): book/cache handle ids and markers.
-const MARKER_KEYS = ['__book_id', '__cache_id', '__cacheKind', '__sideKind', '__live_id'];
-// Keys the Dict branch special-cases on the way through.
-const ROUTED_KEYS = ['cache', 'hashmap', 'subscriptions', 'futures', 'timestamp', 'datetime', 'nonce', 'symbol', 'checksum'];
 
 function maskText(src: string): string {
     let out = '';
@@ -64,45 +58,11 @@ function closeBracket(src: string, open: number): number {
     return -1;
 }
 
-function statementEnd(src: string, from: number): number {
-    let depth = 0;
-    for (let k = from; k < src.length; k++) {
-        const c = src[k];
-        if (c === '(' || c === '[' || c === '{') depth++;
-        else if (c === ')' || c === ']' || c === '}') {
-            if (depth === 0) return -1;
-            depth--;
-        } else if (c === ';' && depth === 0) return k + 1;
-        else if (c === '\n' && depth === 0) return -1;
-    }
-    return -1;
-}
 
-// Initializers the runtime only ever answers with a fresh `Value::Array`.
-// `promise_all` is NOT one (it is `v.clone()`), nor `index_by` (a map for a
-// non-array arg), nor any `safe_value*`.
-const ARRAY_INIT = /^(?:Value::Array\(|Value::from\(\s*vec!\[|Value::from\(\s*std::sync::Arc::new\(\s*vec!\[|split\(|object_keys\(|object_values\(|self\.array_concat\(|self\.safe_list(?:_k|_n)?\()/;
-// A fresh dict literal: `Value::Map({.. let mut m = indexmap::IndexMap::new(); ..})`.
-const DICT_INIT = /^(?:Value::Map\(|Value::Dict\()/;
-const SEQ_TYPE = /^(?:&)?(?:mut )?(?:Vec<(?:crate::)?Value>|\[(?:crate::)?Value\])$/;
-const INDEXED = '.cloned().unwrap_or(Value::Null)';
 
 type Edit = { start: number, end: number, text: string };
 
-function literalIndex(keyText: string): number {
-    const key = keyText.trim().replace(/^&/, '').trim();
-    const int = /^Value::Int\(\s*(\d+)\s*\)$/.exec(key);
-    if (int !== null) return Number(int[1]);
-    const str = /^Value::Str\(\s*"(\d+)"\s*(?:\.into\(\)|\.to_string\(\))?\s*\)$/.exec(key);
-    if (str !== null) return Number(str[1]);
-    return -1;
-}
 
-function literalStrKey(keyText: string): string | undefined {
-    const key = keyText.trim().replace(/^&/, '').trim();
-    const m = /^Value::Str\(\s*"([^"\\]*)"\s*(?:\.into\(\)|\.to_string\(\))?\s*\)$/.exec(key);
-    return m === null ? undefined : m[1];
-}
 
 /** Bare identifier used as a key, or undefined. */
 function identKey(keyText: string): string | undefined {
@@ -121,380 +81,18 @@ function callArgs(masked: string, callStart: number, recv: string): [number, num
     return [afterRecv, close];
 }
 
-/**
- * True when `name` in this region can only ever hold `Value::Int`: one
- * declaration initialised with an int literal, mutated only by the printer's
- * `if let Value::Int(n) = &mut name { *n += 1; }` counter step.
- */
-function intPinned(region: string, name: string): boolean {
-    const declRe = new RegExp('^[ \\t]*let (?:mut )?' + name + ':\\s*(?:crate::)?Value\\s*=\\s*Value::Int\\(\\s*\\d+\\s*\\);', 'm');
-    const decl = declRe.exec(region);
-    if (decl === null) return false;
-    const declEnd = decl.index + decl[0].length;
-    const useRe = new RegExp('(?<![A-Za-z0-9_.])' + name + '(?![A-Za-z0-9_])', 'g');
-    let um: RegExpExecArray | null;
-    while ((um = useRe.exec(region)) !== null) {
-        const at = um.index;
-        if (at >= decl.index && at < declEnd) continue;
-        const before = region.slice(Math.max(0, at - 5), at);
-        const after = region.slice(at + name.length);
-        if (before === '&mut ' && /^\s*\{\s*\*n \+= 1;\s*\}/.test(after)) continue;
-        if (before.endsWith('&')) continue;
-        if (/^\.(?:as_(?:i64|f64)|clone)\(\)/.test(after)) continue;
-        return false;
-    }
-    return true;
-}
 
 type NativeGetValueStats = { seqLocals: number, seqReads: number, dictLocals: number, dictReads: number };
 
-/** Native `get_value` on statically pinned receivers. `stats` counts rewritten locals and reads. */
-function nativeGetValue(content: string, stats?: NativeGetValueStats): string {
-    const masked = maskText(content);
-    const edits: Edit[] = [];
 
-    // Fn regions: a local of one fn is never in scope in another.
-    const headers: number[] = [];
-    const headerRe = /^[ \t]*(?:pub )?(?:async )?fn /gm;
-    let hm: RegExpExecArray | null;
-    while ((hm = headerRe.exec(masked)) !== null) headers.push(hm.index);
-    headers.push(content.length);
 
-    for (let h = 0; h + 1 < headers.length; h++) {
-        const from = headers[h];
-        const to = h + 2 < headers.length ? headers[h + 1] : content.length;
-        const region = masked.slice(from, to);
-
-        // A read's replacement text, or undefined when the receiver/key pair is
-        // not one this rule can prove.
-        const readText = (recv: string, seq: boolean, keyText: string): string | undefined => {
-            if (seq) {
-                const idx = literalIndex(keyText);
-                if (idx >= 0) return recv + '.get(' + idx + ')' + INDEXED;
-                const key = identKey(keyText);
-                if (key !== undefined && intPinned(region, key)) {
-                    return recv + '.get(' + key + '.as_i64().unwrap() as usize)' + INDEXED;
-                }
-                return undefined;
-            }
-            const str = literalStrKey(keyText);
-            if (str === undefined || ROUTED_KEYS.indexOf(str) >= 0) return undefined;
-            return recv + '.as_map().unwrap().get("' + str + '").cloned().unwrap_or(Value::Null)';
-        };
-        const rewriteRead = (recv: string, seq: boolean, callStart: number): Edit | undefined => {
-            const args = callArgs(masked, callStart, recv);
-            if (args === undefined) return undefined;
-            const text = readText(recv, seq, content.slice(args[0] + 1, args[1] - 1));
-            return text === undefined ? undefined : { start: callStart, end: args[1], text };
-        };
-
-        // Receivers already declared as a sequence of `Value`.
-        const declared = new Map<string, string>();
-        const declType = new RegExp('\\blet (?:mut )?(' + IDENT + ')\\s*:\\s*([^=;]+?)\\s*=', 'g');
-        let dm: RegExpExecArray | null;
-        while ((dm = declType.exec(region)) !== null) declared.set(dm[1], dm[2].trim());
-        const headerEnd = region.indexOf('{');
-        const headerText = headerEnd < 0 ? region : region.slice(0, headerEnd);
-        const paramRe = new RegExp('\\b(?:mut )?(' + IDENT + ')\\s*:\\s*([&\\[A-Za-z_][A-Za-z0-9_:<>,\\s&\\[\\]]*)', 'g');
-        while ((dm = paramRe.exec(headerText)) !== null) {
-            if (!declared.has(dm[1])) declared.set(dm[1], dm[2].trim());
-        }
-        for (const [name, type] of declared) {
-            if (!SEQ_TYPE.test(type)) continue;
-            const useRe = new RegExp('get_value\\(&' + name + '(?![A-Za-z0-9_])', 'g');
-            let um: RegExpExecArray | null;
-            while ((um = useRe.exec(region)) !== null) {
-                const read = rewriteRead(name, true, from + um.index);
-                if (read === undefined) continue;
-                edits.push(read);
-                if (stats) stats.seqReads++;
-            }
-        }
-
-        // Locals whose initializer pins the container shape.
-        const declRe = new RegExp('^([ \\t]*)let (mut )?(' + IDENT + '):\\s*(?:crate::)?Value\\s*=\\s*', 'gm');
-        while ((dm = declRe.exec(region)) !== null) {
-            const name = dm[3];
-            const declAt = from + dm.index;
-            const initStart = declAt + dm[0].length;
-            const stmtEnd = statementEnd(masked, initStart);
-            if (stmtEnd < 0) continue;
-            const initText = content.slice(initStart, stmtEnd).trim();
-            const isSeq = ARRAY_INIT.test(initText);
-            const isDict = DICT_INIT.test(initText);
-            if (!isSeq && !isDict) continue;
-            const declCount = (region.match(new RegExp('\\blet (?:mut )?' + name + '\\b', 'g')) ?? []).length;
-            if (declCount !== 1) continue;
-            // A reassignment could hand the local another shape.
-            if (new RegExp('(?<![A-Za-z0-9_.])' + name + '\\s*=[^=]').test(region)) continue;
-            // A dict's key set must be literal and marker-free for the native
-            // read to skip the same routing the helper does.
-            const dictKeys: string[] = [];
-            if (isDict) {
-                const keys = insertedKeys(initText);
-                if (keys === undefined) continue;
-                for (const k of keys) dictKeys.push(k);
-            }
-
-            // Every later use must be one this rule keeps exact.
-            const useRe = new RegExp('(?<![A-Za-z0-9_.])' + name + '(?![A-Za-z0-9_])', 'g');
-            const reads: Edit[] = [];
-            let ok = true;
-            let um: RegExpExecArray | null;
-            while ((um = useRe.exec(region)) !== null) {
-                const at = um.index;
-                if (at >= dm.index && at < dm.index + dm[0].length) continue;
-                const gv = region.lastIndexOf('get_value(', at);
-                if (gv >= 0 && region.slice(gv, at) === 'get_value(&') {
-                    const read = rewriteRead(name, isSeq, from + gv);
-                    if (read === undefined) { ok = false; break; }
-                    reads.push(read);
-                    continue;
-                }
-                // A length sink reads the same on a Vec and on a `Value` array.
-                if (isSeq && /^\.\s*(?:len|is_empty)\s*\(\s*\)/.test(region.slice(at + name.length))) continue;
-                if (isSeq) { ok = false; break; }
-                // A dict keeps its `Value` type, so only writes can change what
-                // the read would have to route: they must land on literal,
-                // non-marker keys. Reads by other means and Value sinks are fine.
-                const before = region.slice(Math.max(0, at - 24), at);
-                const writeHead = /(?:add_element_to_object|set_value)\(\s*&mut\s+$/.exec(before);
-                if (writeHead !== null) {
-                    const keyStart = at + name.length;
-                    const key = /^\s*,\s*&?\s*Value::Str\(\s*"([^"\\]*)"\s*(?:\.into\(\)|\.to_string\(\))?\s*\)\s*,/.exec(region.slice(keyStart));
-                    if (key === null) { ok = false; break; }
-                    if (ROUTED_KEYS.indexOf(key[1]) >= 0 || MARKER_KEYS.indexOf(key[1]) >= 0) { ok = false; break; }
-                    dictKeys.push(key[1]);
-                    continue;
-                }
-                if (/&mut\s+$/.test(before)) { ok = false; break; }
-            }
-            if (!ok || reads.length === 0) continue;
-            if (dictKeys.some((k) => MARKER_KEYS.indexOf(k) >= 0)) continue;
-
-            if (isSeq) {
-                const typeAt = declAt + dm[0].length - 'Value = '.length;
-                edits.push({ start: typeAt, end: typeAt + 'Value'.length, text: 'Vec<Value>' });
-                // The initializer still yields a `Value`; unwrap the array this
-                // rule just proved it holds (same value, no copy for a literal).
-                const initExpr = content.slice(initStart, stmtEnd - 1).replace(/\s+$/, '');
-                const inner = arrayPayload(initExpr);
-                edits.push({
-                    start: initStart,
-                    end: initStart + initExpr.length,
-                    text: inner !== undefined ? inner : initExpr + '.as_array().unwrap().clone()',
-                });
-                if (stats) {
-                    stats.seqLocals++;
-                    stats.seqReads += reads.length;
-                }
-            } else if (stats) {
-                stats.dictLocals++;
-                stats.dictReads += reads.length;
-            }
-            for (const r of reads) edits.push(r);
-        }
-    }
-
-    if (edits.length === 0) return content;
-    edits.sort((a, b) => a.start - b.start);
-    let out = '';
-    let at = 0;
-    for (const e of edits) {
-        if (e.start < at) continue;
-        out += content.slice(at, e.start) + e.text;
-        at = e.end;
-    }
-    return out + content.slice(at);
-}
-
-/**
- * The `Vec<Value>` expression inside an array-valued `Value` constructor, or
- * undefined when the initializer is a call whose result must be unwrapped.
- */
-function arrayPayload(initExpr: string): string | undefined {
-    const strip = (text: string, prefix: string): string | undefined => {
-        if (!text.startsWith(prefix) || !text.endsWith(')')) return undefined;
-        return text.slice(prefix.length, -1).trim();
-    };
-    // `Value::Array(x)` takes the Vec, so the payload is exactly `x`.
-    const direct = strip(initExpr, 'Value::Array(');
-    if (direct !== undefined && direct.length > 0) return direct;
-    let inner = strip(initExpr, 'Value::from(');
-    if (inner !== undefined) inner = strip(inner, 'std::sync::Arc::new(') ?? inner;
-    if (inner === undefined || !inner.startsWith('vec![')) return undefined;
-    return inner;
-}
-
-function insertedKeys(initText: string): string[] | undefined {
-    const keys: string[] = [];
-    const insertRe = /\.insert\(\s*(?:"([^"\\]*)"\s*(?:\.to_string\(\)|\.into\(\))|([^,]+?))\s*,/g;
-    let im: RegExpExecArray | null;
-    while ((im = insertRe.exec(initText)) !== null) {
-        if (im[1] === undefined) return undefined;
-        keys.push(im[1]);
-    }
-    return keys;
-}
 
 // ── self-test ────────────────────────────────────────────────────────────────
 // Each case is a shape the rule must transform (or must leave alone).
 
 type Case = { name: string, src: string, want: string[], gone: string[] };
 
-const CASES: Case[] = [
-    {
-        name: 'seq: Value::from(vec![..]) local retyped, literal int key',
-        src: [
-            'pub fn demo(&mut self) -> Value {',
-            '    let mut rows: Value = Value::from(vec![Value::Int(1), Value::Int(2)]);',
-            '    let mut first: Value = get_value(&rows, &Value::Int(1));',
-            '    return first;',
-            '}',
-        ].join('\n'),
-        want: ['let mut rows: Vec<Value> =', 'rows.get(1).cloned().unwrap_or(Value::Null)'],
-        gone: ['get_value('],
-    },
-    {
-        name: 'seq: safe_list_k local, numeric-string key',
-        src: [
-            'pub fn demo(&mut self) -> Value {',
-            '    let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);',
-            '    let mut head: Value = get_value(&data, &Value::Str("0".into()));',
-            '    return head;',
-            '}',
-        ].join('\n'),
-        want: ['let mut data: Vec<Value> =', 'data.get(0).cloned().unwrap_or(Value::Null)'],
-        gone: ['get_value('],
-    },
-    {
-        name: 'seq: split local read by a Value::Int-pinned counter',
-        src: [
-            'pub fn demo(&mut self) -> Value {',
-            '    let mut parts: Value = split(&raw, &Value::Str("_".into()));',
-            '    let mut i: Value = Value::Int(0);',
-            '    while i.as_f64().unwrap_or(f64::NAN) < 2.0 {',
-            '        let mut part: Value = get_value(&parts, &i);',
-            '        if let Value::Int(n) = &mut i { *n += 1; }',
-            '    }',
-            '    return Value::Null;',
-            '}',
-        ].join('\n'),
-        want: ['let mut parts: Vec<Value> =', 'parts.get(i.as_i64().unwrap() as usize).cloned().unwrap_or(Value::Null)'],
-        gone: ['get_value('],
-    },
-    {
-        name: 'seq: unpinned dynamic key stays a helper call',
-        src: [
-            'pub fn demo(&mut self, mut key: Value) -> Value {',
-            '    let mut parts: Value = split(&raw, &Value::Str("_".into()));',
-            '    return get_value(&parts, &key);',
-            '}',
-        ].join('\n'),
-        want: ['let mut parts: Value =', 'get_value(&parts, &key)'],
-        gone: ['Vec<Value>'],
-    },
-    {
-        name: 'seq: a Value sink keeps the box',
-        src: [
-            'pub fn demo(&mut self) -> Value {',
-            '    let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);',
-            '    let mut first: Value = get_value(&data, &Value::Int(0));',
-            '    return self.parse_trades(data, &[]);',
-            '}',
-        ].join('\n'),
-        want: ['let mut data: Value =', 'get_value(&data, &Value::Int(0))'],
-        gone: [],
-    },
-    {
-        name: 'dict: fresh literal with a literal key',
-        src: [
-            'pub fn demo(&mut self) -> Value {',
-            '    let mut request: Value = Value::Map({',
-            '        let mut m = indexmap::IndexMap::new();',
-            '        m.insert("amount".to_string(), amount);',
-            '        m',
-            '    });',
-            '    let mut amount2: Value = get_value(&request, &Value::Str("amount".into()));',
-            '    return amount2;',
-            '}',
-        ].join('\n'),
-        want: ['let mut request: Value =', 'request.as_map().unwrap().get("amount").cloned().unwrap_or(Value::Null)'],
-        gone: ['get_value('],
-    },
-    {
-        name: 'dict: a routed key stays a helper call',
-        src: [
-            'pub fn demo(&mut self) -> Value {',
-            '    let mut book: Value = Value::Map({',
-            '        let mut m = indexmap::IndexMap::new();',
-            '        m.insert("bids".to_string(), bids);',
-            '        m',
-            '    });',
-            '    return get_value(&book, &Value::Str("cache".into()));',
-            '}',
-        ].join('\n'),
-        want: ['get_value(&book, &Value::Str("cache".into()))'],
-        gone: [],
-    },
-    {
-        name: 'dict: a computed insert key makes the key set dynamic',
-        src: [
-            'pub fn demo(&mut self, mut key: Value) -> Value {',
-            '    let mut request: Value = Value::Map({',
-            '        let mut m = indexmap::IndexMap::new();',
-            '        m.insert(crate::runtime::stringify_param(&key), amount);',
-            '        m',
-            '    });',
-            '    return get_value(&request, &Value::Str("amount".into()));',
-            '}',
-        ].join('\n'),
-        want: ['get_value(&request, &Value::Str("amount".into()))'],
-        gone: [],
-    },
-    {
-        name: 'seq: a reassigned local keeps the box',
-        src: [
-            'pub fn demo(&mut self) -> Value {',
-            '    let mut rows: Value = Value::from(vec![Value::Int(1)]);',
-            '    rows = self.parse_rows();',
-            '    return get_value(&rows, &Value::Int(0));',
-            '}',
-        ].join('\n'),
-        want: ['let mut rows: Value =', 'get_value(&rows, &Value::Int(0))'],
-        gone: [],
-    },
-    {
-        name: 'seq: an already typed receiver goes native as is',
-        src: [
-            'pub fn demo(&mut self, mut rows: &[Value]) -> Value {',
-            '    return get_value(&rows, &Value::Int(2));',
-            '}',
-        ].join('\n'),
-        want: ['rows.get(2).cloned().unwrap_or(Value::Null)'],
-        gone: ['get_value('],
-    },
-];
 
-function rustNativeGetValueSelfTest(): number {
-    let failures = 0;
-    for (const c of CASES) {
-        const out = nativeGetValue(c.src);
-        const misses: string[] = [];
-        for (const w of c.want) if (!out.includes(w)) misses.push('missing: ' + w);
-        for (const g of c.gone) if (out.includes(g)) misses.push('not replaced: ' + g);
-        if (misses.length === 0) {
-            console.log('ok   ' + c.name);
-        } else {
-            failures++;
-            console.log('FAIL ' + c.name);
-            for (const m of misses) console.log('       ' + m);
-            console.log('       ---- output ----\n' + out.split('\n').map((l) => '       ' + l).join('\n'));
-        }
-    }
-    console.log(failures === 0 ? 'self-test: all cases pass' : 'self-test: ' + failures + ' failing');
-    return failures;
-}
 
 // ---- native insert ----
 /**
@@ -5591,38 +5189,6 @@ function narrowStrNullLocals(content: string): string {
     return out;
 }
 
-// ---- sign api str local ----
-// Rust: `let mut apiName: Value = api.get(0)...` whose every later use is `apiName.as_str() == Some("lit")` is a
-// native Option<String>, exactly what the safe_string form was typed as before the element read.
-function rustSignApiStr (content: string): string {
-    // an unbound `api` / `section` read: the bounds-checked nth of the list view, no closure
-    content = content.replace (/\b(api|section)\.as_array\(\)\.and_then\(\|__arr\| __arr\.get\((\d+)\)\)/g, '$1.as_array().into_iter().flatten().nth($2)');
-    if (content.indexOf ('.get(') < 0) { return content; }
-    const lines = content.split ('\n');
-    const decl = /^(\s*)let mut (\w+): Value = (?:api|section)\.get\((\d+)\)\.cloned\(\)\.unwrap_or\(Value::Null\);$/;
-    const fnHead = /^ {4}(?:pub )?(?:async )?fn /;
-    for (let i = 0; i < lines.length; i++) {
-        const m = decl.exec (lines[i]);
-        if (m === null) { continue; }
-        let end = i + 1;
-        while ((end < lines.length) && !fnHead.test (lines[end])) { end++; }
-        const name = new RegExp ('(?<![\\w.])' + m[2] + '(?![\\w])', 'g');
-        const use = new RegExp ('(?<![\\w.])' + m[2] + '\\.as_str\\(\\) (==|!=) Some\\("', 'g');
-        let uses = 0;
-        let others = 0;
-        for (let j = i + 1; j < end; j++) {
-            const masked = lines[j].replace (/"(?:[^"\\]|\\.)*"/g, '""');
-            uses += (lines[j].match (use) ?? []).length;
-            others += (masked.match (name) ?? []).length;
-        }
-        if ((uses === 0) || (uses !== others)) { continue; }
-        lines[i] = m[1] + 'let mut ' + m[2] + ': Option<String> = ' + ((m[0].indexOf ('section') >= 0 ? 'section' : 'api')) + '.get(' + m[3] + ').and_then(Value::as_str).map(str::to_owned);';
-        for (let j = i + 1; j < end; j++) {
-            lines[j] = lines[j].replace (use, (all, op) => m[2] + '.as_deref() ' + op + ' Some("');
-        }
-    }
-    return lines.join ('\n');
-}
 
 // ---- bool_k local -> Option<bool> ----
 /**
@@ -8039,67 +7605,6 @@ export class RustTranspilerBuilder {
         );
     }
 
-    // JS builds a subscribe request by aliasing a local array into a dict
-    // literal and then mutating the array: `const args = []; const req = {
-    // 'params': args }; ... args.push(x); ... this.watch(url, hash, req)`.
-    // In JS `req.params` and `args` are the same reference, so the pushes are
-    // visible; in Rust `m.insert("params", args.clone())` snapshots an *empty*
-    // clone, so the request ships `params: []` (e.g. aster times out). When a
-    // dict-literal field aliases a bare local that is subsequently mutated
-    // (push/set) before the dict is consumed (`req.clone()`), re-materialise
-    // the field with a write-back right before that consumption. Venues that
-    // populate the array *before* the literal (binance) mutate nothing after
-    // the binding, so they match nothing here — no behaviour change.
-    writeBackAliasedArrayMutations(content: string): string {
-        const lines = content.split('\n');
-        const bindStartRe = /^(\s*)let mut ([a-zA-Z_]\w*): Value = Value::Map\(\{\s*$/;
-        const insertRe = /^\s*m\.insert\("([^"]+)"\.to_string\(\), ([a-zA-Z_]\w*)\.clone\(\)\);\s*$/;
-        const litEndRe = /^\s*\}\);\s*$/;
-        const fnRe = /^\s{4}(pub\s+)?(async\s+)?fn /;
-        const inserts = new Map<number, string[]>(); // line index → lines to emit before it
-        let i = 0;
-        while (i < lines.length) {
-            const bm = lines[i].match(bindStartRe);
-            if (!bm) { i++; continue; }
-            const [, indent, req] = bm;
-            const aliases: { key: string; varName: string }[] = [];
-            let j = i + 1;
-            while (j < lines.length && !litEndRe.test(lines[j])) {
-                const im = lines[j].match(insertRe);
-                if (im) aliases.push({ key: im[1], varName: im[2] });
-                j++;
-            }
-            if (j >= lines.length || aliases.length === 0) { i++; continue; }
-            const litEnd = j;
-            const mutated = new Set<string>();
-            let consumeIdx = -1;
-            for (let k = litEnd + 1; k < lines.length; k++) {
-                if (fnRe.test(lines[k])) break; // left the method
-                for (const a of aliases) {
-                    const mre = new RegExp(`\\b(append_to_array|add_element_to_object|set_value|crate::set_value)\\(&mut ${a.varName}[,)]`);
-                    if (mre.test(lines[k])) mutated.add(a.varName);
-                }
-                if (lines[k].includes(`${req}.clone()`)) { consumeIdx = k; break; }
-            }
-            if (consumeIdx >= 0) {
-                const writeBacks = aliases
-                    .filter((a) => mutated.has(a.varName))
-                    .map((a) => `${indent}crate::set_value(&mut ${req}, &crate::Value::Str("${a.key}".to_string()), ${a.varName}.clone());`);
-                if (writeBacks.length) {
-                    inserts.set(consumeIdx, (inserts.get(consumeIdx) || []).concat(writeBacks));
-                }
-            }
-            i = litEnd + 1;
-        }
-        if (inserts.size === 0) return content;
-        const out: string[] = [];
-        for (let k = 0; k < lines.length; k++) {
-            const pre = inserts.get(k);
-            if (pre) out.push(...pre);
-            out.push(lines[k]);
-        }
-        return out.join('\n');
-    }
 
     // Walks Rust source from a `{` to its matching `}` while skipping
     // line and block comments and string literals — an unbalanced `{`
@@ -8610,17 +8115,7 @@ export class RustTranspilerBuilder {
                 const snake = toSnakeCase(n);
                 return `crate::exchange_errors::${snake}`;
             }],
-            // Clean up legacy `crate::exchange_errors::X::new(...)` patterns
-            // (the transpiler emitted `X::new(...)`, our post-proc converted
-            // X to a fn path → drop the trailing `::new`).
-            [/crate::exchange_errors::([a-z_][a-z_0-9]*)::new\(/g,
-                'crate::exchange_errors::$1('],
 
-            // `BadRequest::new(...)` style references that escaped the
-            // earlier regex (because lookahead saw `::` not `(`). Route them
-            // through the runtime constructors.
-            [/\b(NotSupported|ArgumentsRequired|InvalidOrder|InvalidAddress|BadRequest|BadResponse|AuthenticationError|ExchangeError|ExchangeNotAvailable|NetworkError|DDoSProtection|RateLimitExceeded|InsufficientFunds|OrderNotFound|InvalidNonce|PermissionDenied|AccountNotEnabled|AccountSuspended|NotImplemented|OperationFailed|OperationRejected|RequestTimeout|MarginModeAlreadySet|ManualInteractionNeeded|UnsubscribeError|ContractUnavailable|MarketClosed|ExchangeClosedByUser|NullResponse|InvalidProxySettings|ChecksumError|OnMaintenance|BadSymbol|NoChange|CancelPending|OrderNotCached|OrderImmediatelyFillable|OrderNotFillable|DuplicateOrderId|RestrictedLocation|AddressPending|BaseError)::new\(/g,
-                (_: string, n: string) => `crate::exchange_errors::${toSnakeCase(n)}(`],
 
 
             // Mark async methods with async keyword (transpiler strips it)
@@ -8679,19 +8174,6 @@ export class RustTranspilerBuilder {
             [/\bself\.([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([a-z][a-zA-Z0-9_]*)\s*;/g,
                 'self.$1 = $2.clone();'],
 
-            // Implicit API method calls (e.g., `self.sapi_post_margin_borrow_repay(params)`)
-            // — these are exchange-specific endpoints emitted from the
-            // `api` block. Open a `__API__&[` marker; the close-pass
-            // balances the original `)` into `])`.
-            //
-            // Avoid false positives: exclude common helpers that share the
-            // `<word>_<verb>_<word>` shape (e.g. `is_post_only`,
-            // `parse_get_X`). Match only when the scope is a known API
-            // prefix or has 2+ segments.
-            [/\bself\.((?:public|private|web|sapi|dapi|fapi|eapi|papi|cmfutures|vfutures|usdmfutures|wallet|spot|spot2|future|futures|delivery|options|broker|signed|main|sub|tickers|account|margin|lending|mining|subaccount|staking|convert|fiat|c2c|gift|nft|loan|algorithmic|portfolio|uta|api|v1|v2|v3|v4|v5)(?:_[a-z][a-z0-9]*)*_(?:get|post|put|delete|patch)_[a-z0-9_]+)\(/g,
-                (_: string, name: string) =>
-                    `self.call_method(Value::Str("${name}".to_string()), __API__&[`],
-
             // Callback fields are also called as methods in TS. The names
             // collide on Exchange (can't be both field + method). Route call
             // sites to `<name>_fn` methods; bare field reads stay as-is.
@@ -8723,10 +8205,6 @@ export class RustTranspilerBuilder {
             // Trailing `};` after blocks
             [/\};(\s*\n)/g, '}$1'],
 
-            // `let mut x: Value = ...` is fine, but transpiler sometimes emits
-            // `let mut : Value = X;` (missing identifier from spread / destructure).
-            // Strip those broken declarations to keep the file syntactically valid.
-            [/let mut\s+:\s+Value\s*=\s*[^;]+;\s*\n/g, '// stripped: invalid let mut\n'],
 
             // `self.X = self.Y(...)` causes borrow conflicts. Split into a
             // temp + assignment.
@@ -8738,21 +8216,10 @@ export class RustTranspilerBuilder {
             // Make all function parameters `mut` — transpiled bodies reassign
             // params frequently (`params = self.omit(params, ...)` etc).
             [/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*Value\b(?=\s*[,)])/g, 'mut $1: Value'],
-            [/\bmut\s+mut\s+/g, 'mut '],
-            // Don't apply `mut` to slice params (optional_args: &[Value]).
-            [/\bmut\s+optional_args\s*:/g, 'optional_args:'],
 
-            // `let x: Value = ...` → `let mut x: Value = ...` so transpiled
-            // bodies can reassign locals.
-            [/\blet\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*Value\s*=/g, 'let mut $1: Value ='],
             // `let params = get_arg(...)` (no annotation) — also make mut.
             [/\blet\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*get_arg\(/g, 'let mut $1 = get_arg('],
-            [/\blet\s+mut\s+mut\s+/g, 'let mut '],
 
-            // Strip outer parens around bool helper calls used as full-expr
-            // RHS so the wrap below catches them. `(is_X(...))` → `is_X(...)`.
-            [/=\s*\((!?(?:is_true|is_equal|is_greater_than|is_greater_than_or_equal|is_less_than|is_less_than_or_equal|is_array|is_object|is_string|is_number|is_bool|is_integer|is_function|is_instance|starts_with|ends_with|in_op)\([^()]*(?:\([^()]*\)[^()]*)*\))\)\s*;/g,
-                '= $1;'],
 
             // `let mut X: Value = <bool_expr>;` — wrap RHS in Value::Bool(...).
             // Triggers when the RHS starts with one of the bool helpers we
@@ -8773,9 +8240,6 @@ export class RustTranspilerBuilder {
             [/\breturn\s+(!?(?:is_true|is_equal|is_greater_than|is_greater_than_or_equal|is_less_than|is_less_than_or_equal|is_array|is_object|is_string|is_number|is_bool|is_integer|is_function|is_instance|starts_with|ends_with|in_op)\([^;]+);/g,
                 (_: string, e: string) => `return Value::Bool(${e});`],
 
-            // Paren-wrapped `return (is_X(...));`
-            [/\breturn\s+\((!?(?:is_true|is_equal|is_greater_than|is_greater_than_or_equal|is_less_than|is_less_than_or_equal|is_array|is_object|is_string|is_number|is_bool|is_integer|is_function|is_instance|starts_with|ends_with|in_op)\([^;]+)\)\s*;/g,
-                (_: string, e: string) => `return Value::Bool(${e});`],
 
             // Plain assignment `ident = <bool_expr>;` (allows trailing comment)
             [/^(\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(!?(?:is_true|is_equal|is_greater_than|is_greater_than_or_equal|is_less_than|is_less_than_or_equal|is_array|is_object|is_string|is_number|is_bool|is_integer|is_function|is_instance|starts_with|ends_with|in_op)\([^;]+);/gm,
@@ -8797,13 +8261,6 @@ export class RustTranspilerBuilder {
                     return `${indent}let mut ${lhs}: Value = ${rhs}.clone();`;
                 }],
 
-            // `ternary(<cond>, <a>, <bare_ident>)` — clone the trailing
-            // identifier arg.
-            [/\bternary\(([^,]+?,\s*[^,]+?,\s*)([a-zA-Z_][a-zA-Z0-9_]*)\)/g,
-                (whole: string, prefix: string, ident: string) => {
-                    if (ident === 'self') return whole;
-                    return `ternary(${prefix}${ident}.clone())`;
-                }],
 
             // `set_value(...)`, `append_to_array(...)`, and
             // `add_element_to_object(...)` take the value arg by move.
@@ -8822,37 +8279,6 @@ export class RustTranspilerBuilder {
                 (_: string, indent: string, lhs: string, expr: string) =>
                     `${indent}${lhs} = Value::Bool(${expr});`],
 
-            // Bool expressions inside `&[...]` slice literals — wrap each
-            // bool element in `Value::Bool(...)`. Match only after `, &[`
-            // (call-arg position). Element is `is_X(...)`.
-            [/([,(])\s*&\[([^;]*?)\]\)/g,
-                (whole: string, prefix: string, inside: string) => {
-                    // Only operate if inside has any `is_X(` bool call.
-                    if (!/\b(?:is_true|is_equal|is_greater_than|is_greater_than_or_equal|is_less_than|is_less_than_or_equal|is_array|is_object|is_string|is_number|is_bool|is_integer)\(/.test(inside)) {
-                        return whole;
-                    }
-                    // Split by commas at depth 0
-                    const parts: string[] = [];
-                    let depth = 0;
-                    let start = 0;
-                    for (let i = 0; i < inside.length; i++) {
-                        const c = inside[i];
-                        if (c === '(' || c === '[' || c === '{') depth++;
-                        else if (c === ')' || c === ']' || c === '}') depth--;
-                        else if (c === ',' && depth === 0) {
-                            parts.push(inside.slice(start, i).trim());
-                            start = i + 1;
-                        }
-                    }
-                    parts.push(inside.slice(start).trim());
-                    const wrapped = parts.map(p => {
-                        if (/^!?(?:is_true|is_equal|is_greater_than|is_greater_than_or_equal|is_less_than|is_less_than_or_equal|is_array|is_object|is_string|is_number|is_bool|is_integer)\(/.test(p)) {
-                            return `Value::Bool(${p})`;
-                        }
-                        return p;
-                    }).join(', ');
-                    return `${prefix} &[${wrapped}])`;
-                }],
 
             // (Auto-clone in `Value::Array(vec![...])` is done by the
             // paren-balanced `cloneInArrayLiterals` walker below; running a
@@ -8888,34 +8314,12 @@ export class RustTranspilerBuilder {
                     return `${prefix}${ident}.clone()${suffix}`;
                 }],
 
-            // Same pattern for `add_element_to_object(...)` calls whose
-            // value arg is a bare identifier.
-            //   add_element_to_object(..., x); → ... x.clone());
-            [/(\badd_element_to_object\([^,]+,\s*[^,]+,\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*\))/g,
-                (whole: string, prefix: string, ident: string, suffix: string) => {
-                    if (ident === 'self') return whole;
-                    return `${prefix}${ident}.clone()${suffix}`;
-                }],
 
-            // `append_to_array(&mut X, ident)` — clone the second arg.
-            [/(\bappend_to_array\([^,]+,\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*\))/g,
-                (whole: string, prefix: string, ident: string, suffix: string) => {
-                    if (ident === 'self' || ident === 'true' || ident === 'false') return whole;
-                    return `${prefix}${ident}.clone()${suffix}`;
-                }],
 
             // `m.insert("X", is_true(&Y) && ...)` — wrap bool exprs in Value::Bool.
             [/(\bm\.insert\([^,]+,\s*)(!?is_true\([^;]+?)(\)\s*;)/g,
                 '$1Value::Bool($2)$3'],
 
-            // `Value::Int(<float literal>)` — the transpiler emits `1e-8`
-            // as Int but it's a float. Detect scientific or decimal notation
-            // and route to Value::Float.
-            [/Value::Int\(([0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?)\)/g,
-                (_: string, n: string) => {
-                    if (n.includes('.') || /[eE]/.test(n)) return `Value::Float(${n})`;
-                    return `Value::Int(${n})`;
-                }],
 
             // `return self;` (chained methods) — `self` isn't a Value.
             [/^(\s*)return\s+self\s*;/gm, '$1return Value::Null;'],
@@ -8941,24 +8345,7 @@ export class RustTranspilerBuilder {
             // Look-ahead pattern: stop short of `.`, `(`, `=`, or `[`.
             [/(?<!&)\bself\.([a-zA-Z_][a-zA-Z0-9_]*)\b(?![.\(\[]|\s*=[^=])/g,
                 (_: string, name: string) => `self.${name}.clone()`],
-            // Undo double-clone if we accidentally matched again.
-            [/\.clone\(\)\.clone\(\)/g, '.clone()'],
 
-            // Array destructuring assignment: TS `[a, b] = expr` was emitted
-            // by the transpiler as `Value::Array(vec![a, b]) = expr;` which
-            // is invalid Rust. Rewrite to a temp + element-wise reads. We
-            // strip any `.clone()` suffix that earlier passes may have
-            // appended — destructuring targets must be plain identifiers.
-            [/Value::Array\(vec!\[([^\]]+)\]\)\s*=\s*([^;]+);/g,
-                (_: string, names: string, expr: string) => {
-                    const ids = names.split(',')
-                        .map(s => s.trim().replace(/\.clone\(\)$/, ''))
-                        .filter(s => s.length > 0);
-                    const lines = ids.map((n, i) =>
-                        `${n} = crate::get_value(&__ad_tmp, &Value::Int(${i}));`
-                    ).join(' ');
-                    return `{ let __ad_tmp = ${expr.trim()}; ${lines} }`;
-                }],
         ];
 
         return rules;
@@ -9042,7 +8429,6 @@ export class RustTranspilerBuilder {
 
     getWsRegexes(): any[] {
         return [
-            [/new (\w+)Rest\(\)/g, `crate::$1::new()`],
         ];
     }
 
@@ -9637,62 +9023,6 @@ export class RustTranspilerBuilder {
         return out;
     }
 
-    /**
-     * The transpiler lowers a TS `for (i=0; cond; i++)` to a Rust
-     * `while cond { … i = add(&i, 1); }` with a *manual* trailing
-     * increment. A `continue` inside that `while` jumps straight to the
-     * condition, skipping the increment → infinite loop.
-     *
-     * Fix: for every `while` whose body ends with `<v> = add(&<v>, …);`
-     * and contains a `continue`, wrap the body (minus the increment) in
-     * a labelled block and rewrite `continue` → `break '<label>` so the
-     * increment still runs. Processes innermost loops first so a
-     * `continue` always binds to its own loop.
-     */
-    fixForLoopContinue(content: string): string {
-        let label = 0;
-        const fix = (text: string): string => {
-            let out = '';
-            let i = 0;
-            while (i < text.length) {
-                const m = text.slice(i).match(/\bwhile\b[^{]*\{/);
-                if (!m || m.index === undefined) { out += text.slice(i); break; }
-                const absHeader = i + m.index;
-                const bodyStart = absHeader + m[0].length;
-                let depth = 1, j = bodyStart, inStr = false, escape = false;
-                while (j < text.length && depth > 0) {
-                    const c = text[j];
-                    if (escape) { escape = false; j++; continue; }
-                    if (c === '\\') { escape = true; j++; continue; }
-                    if (c === '"') { inStr = !inStr; j++; continue; }
-                    if (!inStr) {
-                        if (c === '{') depth++;
-                        else if (c === '}') depth--;
-                    }
-                    if (depth === 0) break;
-                    j++;
-                }
-                if (depth !== 0) { out += text.slice(i); break; }
-                out += text.slice(i, bodyStart);
-                // Recurse into this loop's body (innermost first).
-                let body = fix(text.slice(bodyStart, j));
-                // Trailing manual increment `<v> = add(&<v>, …);`?
-                const incRe = /\n?[ \t]*([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*add\(&\1\s*,[^;]*\);[ \t]*\n?[ \t]*$/;
-                const incMatch = body.match(incRe);
-                if (incMatch && /\bcontinue\b/.test(body)) {
-                    const inc = incMatch[0];
-                    const main = body.slice(0, body.length - inc.length);
-                    const lbl = `'cont${label++}`;
-                    const wrapped = main.replace(/\bcontinue\b/g, `break ${lbl}`);
-                    body = `\n        ${lbl}: {${wrapped}\n        }${inc}`;
-                }
-                out += body + '}';
-                i = j + 1;
-            }
-            return out;
-        };
-        return fix(content);
-    }
 
     /**
      * The ast printer emits a TS `while (true)` as `while (true) { … }`, which
@@ -9745,232 +9075,6 @@ export class RustTranspilerBuilder {
                 out += content.slice(absStart, j + 1);
             }
             i = j + 1;
-        }
-        return out;
-    }
-
-    /**
-     * The `self.<api_method>(args)` → `self.call_method("name", &[` regex
-     * opens an `&[` slice but leaves the original closing `)` in place.
-     * This pass walks paren-balanced and replaces the matching `)` with `])`.
-     */
-    closeImplicitApiCalls(content: string): string {
-        const marker = '__API__&[';
-        let i = 0;
-        let out = '';
-        while (i < content.length) {
-            const markerIdx = content.indexOf(marker, i);
-            if (markerIdx < 0) { out += content.slice(i); break; }
-            out += content.slice(i, markerIdx);
-            // emit `&[` (drop the `__API__` prefix)
-            out += '&[';
-            // Walk forward from after the `&[` looking for matching `)`.
-            let depth = 1; // we're now "inside" the original call's paren
-            let j = markerIdx + marker.length;
-            let inStr = false;
-            let escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(') depth++;
-                    else if (c === ')') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) { out += content.slice(markerIdx + marker.length); break; }
-            // Emit args verbatim up to but not including the closing `)`,
-            // then close the slice + the call_method.
-            out += content.slice(markerIdx + marker.length, j);
-            out += '])';
-            i = j + 1;
-        }
-        return out;
-    }
-
-    /**
-     * Data-driven implicit-API rewrite. The hardcoded-prefix regex in
-     * getRustRegexes() only catches standard api groupings (public,
-     * private, sapi, fapi, …) and silently misses exchange-specific ones
-     * (alpaca's `trader`, bingx's `swap`, weex's `contract`, …), leaving
-     * `self.trader_private_get_v2_clock(...)` as a call to a method that
-     * doesn't exist.
-     *
-     * This reads the auto-generated `ts/src/abstract/<exchange>.ts` — the
-     * exhaustive list of implicit endpoint methods derived from the
-     * exchange's `api` block — and rewrites every `self.<snake_name>(`
-     * call to one of those methods into the same
-     * `self.call_method(Value::Str("<name>"), __API__&[` marker form that
-     * closeImplicitApiCalls() balances.
-     */
-    rewriteImplicitApiCalls(content: string, className: string, isPrediction = false): string {
-        const abstractPath = `./ts/src/abstract/${isPrediction ? 'prediction/' : ''}${className}.ts`;
-        if (!fs.existsSync(abstractPath)) return content;
-        const abstractSrc = fs.readFileSync(abstractPath, 'utf8');
-        // Generated method heads look like:
-        //   traderPrivateGetV2Clock (params = {}): Promise<Dict> {
-        // The name class must allow `_`: versioned endpoints carry an
-        // underscore in the identifier (coinone's `v2_1PrivatePostOrderLimit`).
-        // Without it the capture stops at `v2`, the full snake name never
-        // enters `names`, the call isn't routed through call_method(), and its
-        // bare arg never gets folded into the `&[Value]` slice the generated
-        // `<id>_api.rs` method expects (E0308: expected `&[Value]`, found `Value`).
-        const names = new Set<string>();
-        const re = /^\s*([a-zA-Z][a-zA-Z0-9_]*)\s*\([^)]*\):\s*Promise<[^>]*>\s*\{/gm;
-        let m: RegExpExecArray | null;
-        while ((m = re.exec(abstractSrc)) !== null) {
-            names.add(toSnakeCase(m[1]));
-        }
-        if (names.size === 0) return content;
-        // Rewrite `self.<name>(` for every known implicit method. Calls
-        // the regex in getRustRegexes() already converted are now
-        // `self.call_method(` and no longer match.
-        return content.replace(/\bself\.([a-z][a-z0-9_]*)\(/g, (full, name) => {
-            if (names.has(name)) {
-                return `self.call_method(Value::Str("${name}".to_string()), __API__&[`;
-            }
-            return full;
-        });
-    }
-
-    /**
-     * The ast-transpiler's methodSignatures map persists across files,
-     * so a later class can pick up an earlier class's "optional param"
-     * shape for a same-named method. E.g. bitget's
-     *   parseFundingHistories(contracts, market = undefined, ...)
-     * makes the rust-port wrap call sites as `self.method(a0, &[a1,a2,a3])`,
-     * but gate's
-     *   parseFundingHistories(response, symbol, since, limit)
-     * has 4 required params. The inherent definition has 4 fixed args,
-     * the call site has 2 (with the trailing 3 in a slice) — mismatch.
-     *
-     * Fix: scan for inherent fixed-arity defs, then walk every call to
-     * `self.X(arg0, &[…])` and expand the slice when X's def has more
-     * fixed args.
-     */
-    expandSliceForFixedAritySelfCalls(content: string): string {
-        // Build name → fixedArity for inherent fixed-shape methods.
-        const fixedArities = new Map<string, number>();
-        const fnRe = /\bpub(?:\s+async)?\s+fn\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(([^)]*)\)/g;
-        let fm: RegExpExecArray | null;
-        while ((fm = fnRe.exec(content)) !== null) {
-            const name = fm[1];
-            const params = fm[2].split(',').map(p => p.trim()).filter(Boolean);
-            const rcvIdx = params.findIndex(p => p === '&self' || p === '&mut self' || p === 'self');
-            const real = rcvIdx >= 0 ? params.slice(rcvIdx + 1) : params;
-            if (real.some(p => /:\s*&\[/.test(p))) continue;  // variadic; skip
-            // The call form `self.X(.., &[rest])` wraps the trailing args
-            // in a slice; any fixed-shape method can have that slice
-            // expanded back into positional args — including a 0-param
-            // method called `self.X(&[])` (collapsed to `self.X()`), the
-            // 1-arg `fetchSpotMarkets(params)`, or the 2-arg
-            // `parseSettlements(settlements, market)`.
-            if (!real.every(p => /:\s*Value\b/.test(p))) continue;
-            fixedArities.set(name, real.length);
-        }
-        if (fixedArities.size === 0) return content;
-        // Walk call sites of form `self.<name>(arg0, &[<inner>])`. Note
-        // we look at the LAST arg being `&[...]` since the rust-port's
-        // wrapper produces exactly two top-level args.
-        const callRe = /\bself\.([a-zA-Z_][a-zA-Z0-9_]*)\(/g;
-        let out = '';
-        let last = 0;
-        let m: RegExpExecArray | null;
-        while ((m = callRe.exec(content)) !== null) {
-            const name = m[1];
-            if (!fixedArities.has(name)) continue;
-            // Find balanced close.
-            const j = balancedCloseIndex(content, m.index + m[0].length);
-            if (j >= content.length) continue;
-            const inside = content.slice(m.index + m[0].length, j);
-            const args = this.splitArgs(inside);
-            if (!args || args.length < 1) continue;
-            const lastArg = args[args.length - 1].trim();
-            if (!lastArg.startsWith('&[') || !lastArg.endsWith(']')) continue;
-            // Expand the slice contents into individual args.
-            const sliceInner = lastArg.slice(2, -1).trim();
-            let sliceArgs = sliceInner === '' ? [] : (this.splitArgs(sliceInner) || []);
-            // An empty `&[]` means the caller omitted the trailing
-            // (defaulted) params — fill with Value::Null so the arity of
-            // the fixed-shape method is still satisfied.
-            if (sliceArgs.length === 0) {
-                const needed = (fixedArities.get(name) as number) - (args.length - 1);
-                if (needed > 0) sliceArgs = Array(needed).fill('Value::Null');
-            }
-            const flat = [...args.slice(0, -1), ...sliceArgs].join(', ');
-            out += content.slice(last, m.index + m[0].length) + flat + ')';
-            last = j + 1;
-            callRe.lastIndex = last;
-        }
-        out += content.slice(last);
-        return out;
-    }
-
-    unwrapCatchUnwind(content: string): string {
-        const marker = 'let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {';
-        let out = '';
-        let i = 0;
-        while (i < content.length) {
-            const idx = content.indexOf(marker, i);
-            if (idx < 0) { out += content.slice(i); break; }
-            out += content.slice(i, idx);
-            // Walk to the matching closing `}` of the closure body.
-            let depth = 1;
-            let j = idx + marker.length;
-            let inStr = false, escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '{') depth++;
-                    else if (c === '}') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) { out += content.slice(idx); break; }
-            // After the closure `}`, find the `;` of the let-stmt.
-            const semi = content.indexOf(';', j);
-            const inner = content.slice(idx + marker.length, j);
-            // Then look for an optional sibling
-            //   `if let Err(<name>) = _try_result { … }`
-            // and consume it as the catch handler so its body doesn't
-            // dangle with undefined `_try_result` / `_e` identifiers.
-            let after = semi + 1;
-            while (after < content.length && /\s/.test(content[after])) after++;
-            const ifLetRx = /^if\s+let\s+Err\(([a-zA-Z_][a-zA-Z0-9_]*)\)\s*=\s*_try_result\s*\{/;
-            const tail = content.slice(after);
-            const ifMatch = tail.match(ifLetRx);
-            let consumeEnd = semi + 1;
-            if (ifMatch) {
-                let d2 = 1;
-                let k = after + ifMatch[0].length;
-                let inStr2 = false, esc2 = false;
-                while (k < content.length && d2 > 0) {
-                    const c = content[k];
-                    if (esc2) { esc2 = false; k++; continue; }
-                    if (c === '\\' && inStr2) { esc2 = true; k++; continue; }
-                    if (c === '"') { inStr2 = !inStr2; k++; continue; }
-                    if (!inStr2) {
-                        if (c === '{') d2++;
-                        else if (c === '}') d2--;
-                    }
-                    if (d2 === 0) break;
-                    k++;
-                }
-                if (d2 === 0) consumeEnd = k + 1;
-            }
-            // Emit the try body as a plain block; drop the catch handler.
-            // Recurse on `inner` so any nested catch_unwind block is also
-            // unwrapped (otherwise it'd be embedded verbatim and the next
-            // outer-loop iteration would skip past it).
-            out += `{${this.unwrapCatchUnwind(inner)}}`;
-            i = consumeEnd;
         }
         return out;
     }
@@ -10251,22 +9355,6 @@ export class RustTranspilerBuilder {
         return out;
     }
 
-    /**
-     * Upstream's Java port introduced a `const finalX = X; // java req`
-     * idiom in ~14 TS files where the alias is later mutated independently
-     * (Java's mutable locals). TS does value-copy semantics so the original
-     * stays live; the Rust transpiler emits `let mut finalX: Value = X;`
-     * which MOVES the value, and subsequent `&X` references then fail to
-     * borrow. The TS author marked these with a trailing `// java req`
-     * comment — append `.clone()` to every emitted `... = <ident>; // java req`
-     * line so the original `X` survives the alias.
-     */
-    rewriteJavaReqAliases(content: string): string {
-        return content.replace(
-            /^(\s*let\s+(?:mut\s+)?\w+\s*:\s*Value\s*=\s*)(\w+)(\s*;\s*\/\/\s*java\s*req\s*)$/gm,
-            (_, lhs, ident, tail) => `${lhs}${ident}.clone()${tail}`,
-        );
-    }
 
     /**
      * rust-05: drop the `.clone()` on the by-value `obj` argument of the five
@@ -10448,41 +9536,6 @@ export class RustTranspilerBuilder {
         return out;
     }
 
-    stripCatchBlocks(content: string): string {
-        const pattern = /\}\s*catch\s+\w+\s+\w+\s*\{/;
-        let i = 0;
-        let out = '';
-        while (i < content.length) {
-            const rest = content.slice(i);
-            const m = rest.match(pattern);
-            if (!m || m.index === undefined) { out += rest; break; }
-            // Emit content up to the `}` that closed the try block.
-            out += rest.slice(0, m.index + 1); // include trailing `}`
-            // Find matching `}` for the catch block.
-            const absStart = i + m.index;
-            const bodyStart = absStart + m[0].length;
-            let depth = 1;
-            let j = bodyStart;
-            let inStr = false;
-            let escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '{') depth++;
-                    else if (c === '}') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) { out += content.slice(absStart + 1); break; }
-            // skip past the catch's closing `}`
-            i = j + 1;
-        }
-        return out;
-    }
 
 
 
@@ -10545,11 +9598,6 @@ export class RustTranspilerBuilder {
                 });
             });
         }
-        // Then `let __be_tmp = EXPR;` pattern.
-        content = content.replace(/(\blet\s+__be_tmp\s*=\s*)([^;]+?)(;)/g,
-            (_, lead, expr, tail) => {
-                return isBoolExpr(expr) ? `${lead}Value::Bool(${expr.trim()})${tail}` : `${lead}${expr}${tail}`;
-            });
         return content;
     }
 
@@ -11206,191 +10254,6 @@ export class RustTranspilerBuilder {
         return out;
     }
 
-    /**
-     * Native-typed `safe_list` locals: `let mut X: Value = self.safe_list_k(..)`
-     * becomes `let mut X: Vec<Value>`, and every index read of X becomes the
-     * `.get()` the runtime's array branch takes.
-     *
-     * `safe_list_k`/`safe_list` yield the stored `Value::Arr` or their default,
-     * so the local holds an array (or the default) on every path. The local is
-     * retyped only when the declaration is its only writer and every later use
-     * is either `.len()` / `.is_empty()` — identical on `Vec<Value>` — or an
-     * index read `get_value(&X, &K)`. Any other use keeps it boxed: a
-     * `.clone()` into a `Value` sink, `as_array()`, `&mut X`, a second
-     * binding of the name, an assignment (the D2 later-write scan).
-     *
-     * A rewritten read keeps the runtime's exact semantics for every key
-     * kind — Int by value (a negative or out-of-range index misses), a numeric
-     * string, anything else misses — and a miss is `Value::Null`.
-     */
-    typeSafeListLocals(content: string): string {
-        const declRe = /^([ \t]*)let mut ([a-zA-Z_][a-zA-Z0-9_]*): Value = (self\.safe_list(?:_k)?\()/gm;
-
-        // Blank strings and line comments; same length as the input, so every
-        // index found below also addresses the original text.
-        const maskText = (src: string): string => {
-            let out = ''; let i = 0;
-            while (i < src.length) {
-                const c = src[i];
-                if (c === '/' && src[i + 1] === '/') {
-                    while (i < src.length && src[i] !== '\n') { out += ' '; i++; }
-                    continue;
-                }
-                if (c === '"') {
-                    out += ' '; i++;
-                    while (i < src.length && src[i] !== '"') {
-                        if (src[i] === '\\') { out += '  '; i += 2; continue; }
-                        out += src[i] === '\n' ? '\n' : ' ';
-                        i++;
-                    }
-                    if (i < src.length) { out += ' '; i++; }
-                    continue;
-                }
-                out += c; i++;
-            }
-            return out;
-        };
-        // Index just past the `)` matching the `(` at `open`, or -1.
-        const closeParen = (src: string, open: number): number => {
-            let depth = 0;
-            for (let k = open; k < src.length; k++) {
-                const c = src[k];
-                if (c === '(') depth++;
-                else if (c === ')') { depth--; if (depth === 0) return k + 1; }
-            }
-            return -1;
-        };
-        // End of the enclosing fn body: the first `}` that takes the depth below 0.
-        const braceEnd = (src: string, from: number): number => {
-            let depth = 0;
-            for (let k = from; k < src.length; k++) {
-                const c = src[k];
-                if (c === '{') depth++;
-                else if (c === '}') { depth--; if (depth < 0) return k; }
-            }
-            return src.length;
-        };
-
-        const masked = maskText(content);
-        const jobs: Array<{
-            declStart: number, callClose: number, stmtEnd: number, indent: string, name: string,
-            reads: Array<{ start: number, end: number, text: string }>,
-        }> = [];
-        let m: RegExpExecArray | null;
-        while ((m = declRe.exec(masked)) !== null) {
-            const declStart = m.index;
-            const name = m[2];
-            const callStart = declStart + m[0].length - m[3].length; // `self.safe_list…(`
-            const callClose = closeParen(masked, callStart + m[3].length - 1);
-            if (callClose < 0) continue;
-            const tail = /^\)?;/.exec(masked.slice(callClose, callClose + 2));
-            if (tail === null) continue; // the call is not the whole initializer
-            const stmtEnd = callClose + tail[0].length;
-            const initText = content.slice(callStart, callClose);
-            // The reader's default must be the empty slice or a list literal:
-            // any other default (a dict, a scalar) would be lost by the
-            // `Vec` conversion, and `safe_list*` returns it verbatim when the
-            // stored value is not an array.
-            if (!/,\s*&\[\s*\]\s*\)$/.test(initText) && !/,\s*&\[\s*Value::List\(/.test(initText)) continue;
-            const body = masked.slice(stmtEnd, braceEnd(masked, stmtEnd));
-
-            let ok = true;
-            // 1. index reads `get_value(&name, &KEY)` — the only rewritable use.
-            const reads: Array<{ start: number, end: number, key: string }> = [];
-            const readRe = new RegExp(`get_value\\(&${name}(?![A-Za-z0-9_])`, 'g');
-            let r: RegExpExecArray | null;
-            while ((r = readRe.exec(body)) !== null) {
-                const gv = r.index;
-                if (body.slice(Math.max(0, gv - 2), gv) === '::') { ok = false; break; } // crate::value::get_value
-                if (/&mut\s*$/.test(body.slice(Math.max(0, gv - 6), gv))) { ok = false; break; } // `&mut get_value(..)`
-                const identEnd = gv + 'get_value(&'.length + name.length;
-                const rest = /^\s*,\s*&/.exec(body.slice(identEnd));
-                if (rest === null) { ok = false; break; }
-                const keyStart = identEnd + rest[0].length;
-                // The key is the call's last argument: walk to the `)` that
-                // closes `get_value(` at depth 0.
-                let depth = 0; let keyEnd = -1;
-                for (let k = keyStart; k < body.length; k++) {
-                    const c = body[k];
-                    if (c === '(' || c === '[' || c === '{') depth++;
-                    else if (c === ')') { if (depth === 0) { keyEnd = k; break; } depth--; }
-                    else if (c === ']' || c === '}') depth--;
-                    else if (depth === 0 && (c === ';' || c === '\n')) break;
-                }
-                if (keyEnd < 0) { ok = false; break; }
-                reads.push({ start: gv, end: keyEnd + 1, key: content.slice(stmtEnd + keyStart, stmtEnd + keyEnd) });
-            }
-            if (!ok) continue;
-
-            // 2. every other use of the name must be a length sink; anything
-            //    else (clone, as_array, &mut, re-binding, assignment) keeps the box.
-            const useRe = new RegExp(`(?<![A-Za-z0-9_.])${name}(?![A-Za-z0-9_])`, 'g');
-            let u: RegExpExecArray | null;
-            while ((u = useRe.exec(body)) !== null) {
-                const s = u.index; const e = s + name.length;
-                if (reads.some(rd => s >= rd.start && e <= rd.end)) continue;
-                if (/^\s*\.\s*(len|is_empty)\s*\(\s*\)/.test(body.slice(e))) continue;
-                ok = false; break;
-            }
-            if (!ok) continue;
-
-            const readText = (rd: { key: string }) =>
-                `match &${rd.key} { Value::Int(__n) => ${name}.get(*__n as usize), `
-                + `Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| ${name}.get(__n)), _ => None }`
-                + `.cloned().unwrap_or(Value::Null)`;
-            jobs.push({
-                declStart,
-                callClose,
-                stmtEnd,
-                indent: m[1],
-                name,
-                reads: reads.map(rd => ({
-                    start: stmtEnd + rd.start,
-                    end: stmtEnd + rd.end,
-                    text: readText(rd),
-                })),
-            });
-        }
-
-        // A read can sit inside another retyped local's initializer
-        // (`self.safe_list_k(get_value(&data, &i), "data", ..)`), so the
-        // declaration text is rebuilt with those reads already spliced in —
-        // otherwise the outer call would keep a `get_value` on a `Vec` local.
-        const rewrites: Array<{ start: number, end: number, text: string }> = [];
-        const allReads = jobs.flatMap(j => j.reads);
-        for (const job of jobs) {
-            let init = content.slice(job.declStart, job.callClose);
-            const inner = allReads
-                .filter(rd => rd.start >= job.declStart && rd.end <= job.callClose)
-                .sort((a, b) => b.start - a.start);
-            for (const rd of inner) {
-                init = init.slice(0, rd.start - job.declStart) + rd.text + init.slice(rd.end - job.declStart);
-            }
-            // `init` still carries the `= ` head; keep everything up to the call.
-            const callIdx = init.indexOf('self.safe_list');
-            rewrites.push({
-                start: job.declStart,
-                end: job.stmtEnd,
-                text: `${job.indent}let mut ${job.name}: Vec<Value> = `
-                    + `${init.slice(callIdx)}.as_array().cloned().unwrap_or_default();`,
-            });
-        }
-        for (const rd of allReads) {
-            // Covered by the retyped declaration that contains it.
-            if (jobs.some(j => rd.start >= j.declStart && rd.end <= j.callClose)) continue;
-            rewrites.push({ start: rd.start, end: rd.end, text: rd.text });
-        }
-        if (rewrites.length === 0) return content;
-        rewrites.sort((a, b) => a.start - b.start);
-        let out = ''; let last = 0;
-        for (const r of rewrites) {
-            if (r.start < last) continue; // overlapping — keep the first
-            out += content.slice(last, r.start) + r.text;
-            last = r.end;
-        }
-        out += content.slice(last);
-        return out;
-    }
 
     /**
      * Drops `is_true(&X)` where `X` is already a native Rust `bool`:
@@ -11882,69 +10745,6 @@ export class RustTranspilerBuilder {
 
     private _rustBoolReturnMethods: { bool: Set<string>, optionBool: Set<string>, src: string[] } | null = null;
 
-    /**
-     * D-32: `is_true(&x)` over a local the printer declares with an `Option`
-     * payload type — the typed shadows the batch-D param/return units emit
-     * (`let x: Option<bool> = …`, `let x: Option<f64> = ….as_f64()`). The
-     * runtime's `is_truthy` on the boxed value is exactly these native tests:
-     *
-     *   Option<bool>  ->  x == Some(true)                (None = Value::Null)
-     *   Option<f64>   ->  x.is_some_and(|v| v != 0.0)    (Float(f) truthy iff f != 0)
-     *   Option<i64>   ->  x.is_some_and(|v| v != 0)
-     *
-     * A name qualifies only with exactly ONE `: Option<…>` declaration in its
-     * fn and no other `let` binding of the name (scope ambiguity keeps the
-     * helper), and only in a proven bool slot. Sites before the declaration are
-     * left alone. Idempotent.
-     */
-    dropOptionShadowIsTrue(content: string): string {
-        if (!content.includes(': Option<')) return content;
-        const masked = this.maskStringsAndComments(content);
-        const headers: number[] = [];
-        const headerRe = /\n[ \t]*(?:pub )?(?:async )?fn /g;
-        let hm: RegExpExecArray | null;
-        while ((hm = headerRe.exec(masked)) !== null) headers.push(hm.index + 1);
-        headers.push(content.length);
-        const rewrites: Array<{ start: number, end: number, text: string }> = [];
-        for (let h = 0; h + 1 < headers.length; h++) {
-            const from = headers[h];
-            const to = headers[h + 1];
-            const region = masked.slice(from, to);
-            const declRe = /let (?:mut )?([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(Option<bool>|Option<f64>|Option<i64>)\s*=/g;
-            const declared = new Map<string, string>();
-            let dm: RegExpExecArray | null;
-            while ((dm = declRe.exec(region)) !== null) declared.set(dm[1], dm[2]);
-            for (const [name, kind] of declared) {
-                const declCount = (region.match(new RegExp(`let (?:mut )?${name}\\b`, 'g')) ?? []).length;
-                if (declCount !== 1) continue;
-                const declAt = region.search(new RegExp(`let (?:mut )?${name}\\s*:`));
-                const siteRe = new RegExp(`is_true\\(&\\s*\\(?\\s*${name}\\s*\\)?\\s*\\)`, 'g');
-                let sm: RegExpExecArray | null;
-                while ((sm = siteRe.exec(region)) !== null) {
-                    if (sm.index < declAt) continue;
-                    const start = from + sm.index;
-                    const end = start + sm[0].length;
-                    const slot = this.rustIsTrueBoolSlot(content, start, end);
-                    if (slot === undefined) continue;
-                    const native = kind === 'Option<bool>'
-                        ? `${name} == Some(true)`
-                        : kind === 'Option<f64>'
-                            ? `${name}.is_some_and(|v| v != 0.0)`
-                            : `${name}.is_some_and(|v| v != 0)`;
-                    rewrites.push({ start, end, text: slot === 'negated' ? `(${native})` : native });
-                }
-            }
-        }
-        if (rewrites.length === 0) return content;
-        rewrites.sort((a, b) => a.start - b.start);
-        let out = ''; let at = 0;
-        for (const r of rewrites) {
-            if (r.start < at) continue;
-            out += content.slice(at, r.start) + r.text;
-            at = r.end;
-        }
-        return out + content.slice(at);
-    }
 
     /**
      * Copies `text[from, to)` while tracking visible `let` bindings, so an
@@ -12669,205 +11469,8 @@ export class RustTranspilerBuilder {
         return out;
     }
 
-    /**
-     * Walks `add_element_to_object(get_value_mut(&mut X, ...), KEY, EXPR);`
-     * statements. When EXPR mentions `&X` or `X.clone()`, splits into a
-     * temp + statement to avoid the same-name &mut + & borrow conflict.
-     */
-    splitGetValueMutAdds(content: string): string {
-        const pattern = /add_element_to_object\(\s*get_value_mut\(&mut\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*,/;
-        let i = 0;
-        let out = '';
-        while (i < content.length) {
-            const rest = content.slice(i);
-            const m = rest.match(pattern);
-            if (!m || m.index === undefined) { out += rest; break; }
-            const absStart = i + m.index;
-            out += rest.slice(0, m.index);
-            const name = m[1];
-            // Walk to the closing `)` of the OUTER add_element_to_object,
-            // brace/paren balanced.
-            const callStart = absStart + 'add_element_to_object('.length;
-            let depth = 1;
-            let j = callStart;
-            let inStr = false;
-            let escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(') depth++;
-                    else if (c === ')') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) { out += content.slice(absStart); break; }
-            // Get the args
-            const inside = content.slice(callStart, j);
-            const args = this.splitArgs(inside) ?? [];
-            // Must be 3 args.
-            const trailingSemi = content[j + 1] === ';';
-            if (args.length !== 3 || !trailingSemi) {
-                out += content.slice(absStart, j + 2);
-                i = j + 2;
-                continue;
-            }
-            const expr = args[2];
-            const refersToName = new RegExp(`\\b${name}\\.clone\\(\\)|&\\s*${name}\\b`).test(expr);
-            if (!refersToName) {
-                out += content.slice(absStart, j + 2);
-                i = j + 2;
-                continue;
-            }
-            out += `{ let __be_tmp = ${expr.trim()}; add_element_to_object(${args[0]}, ${args[1]}, __be_tmp); }`;
-            i = j + 2; // include `;`
-        }
-        return out;
-    }
 
-    /**
-     * `fn` item headers of `content` (offset of the header line, its text and
-     * the offset where its body region starts). Generated code has no nested
-     * `fn` items, so the region between one header and the next is exactly one
-     * fn body — used to attribute a call site to the fn it sits in.
-     */
-    fnItemHeaders(content: string): Array<{ start: number; end: number; header: string }> {
-        const headers: Array<{ start: number; end: number; header: string }> = [];
-        const re = /^[ \t]*(?:pub(?:\s*\([^)]*\))?\s+)?(?:async\s+)?fn\s+[A-Za-z_][A-Za-z0-9_]*\s*[(<]/gm;
-        let m: RegExpExecArray | null;
-        while ((m = re.exec(content)) !== null) {
-            const nl = content.indexOf('\n', m.index);
-            headers.push({ start: m.index, end: -1, header: content.slice(m.index, nl < 0 ? content.length : nl) });
-        }
-        for (let i = 0; i < headers.length; i++) {
-            headers[i].end = i + 1 < headers.length ? headers[i + 1].start : content.length;
-        }
-        return headers;
-    }
 
-    /**
-     * `add_element_to_object(&mut request, &Value::Str("k".to_string()), v)`
-     * → `if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("k".to_string(), v); }`
-     * when `request` is a fresh object-literal dict local: exactly one
-     * `let mut request: Value = Value::Map({…})` declaration in the enclosing
-     * fn, no `request = …` reassignment and no `"__…"` key literal in that fn.
-     *
-     * `Value::Map(…)` builds a new dict, so such a local can never carry the
-     * runtime tag keys (`__book_id` / `__cache_backref` / `__ws_subs_url` /
-     * `__ws_sub_ref` — inserted only into dicts the runtime itself builds),
-     * which makes the helper's four write-through branches provably dead. The
-     * `if let` reproduces the helper's `_ => {}` arm for a non-Dict receiver.
-     * A computed key keeps the helper (`stringify_simple` semantics).
-     */
-    nativeRequestDictInserts(content: string): string {
-        const call = 'add_element_to_object(';
-        const spans = this.fnItemHeaders(content);
-        const verdict = new Map<number, boolean>();
-        const fnAllowsNativeInsert = (span: { start: number; end: number; header: string }): boolean => {
-            const cached = verdict.get(span.start);
-            if (cached !== undefined) return cached;
-            const body = content.slice(span.start, span.end);
-            const ok = !/\bfn\s+\w+\s*\([^)]*\brequest\b/.test(span.header)
-                && (body.match(/^\s*let\s+mut\s+request\s*:\s*Value\s*=\s*Value::Map\(/gm) ?? []).length === 1
-                && !/(^|[^.\w])request\s*=(?!=)/m.test(body.replace(/"(?:[^"\\]|\\.)*"/g, '""'))
-                && !body.includes('"__');
-            verdict.set(span.start, ok);
-            return ok;
-        };
-
-        let out = '';
-        let i = 0;
-        while (i < content.length) {
-            const at = content.indexOf(call, i);
-            if (at < 0) { out += content.slice(i); break; }
-            out += content.slice(i, at);
-            // Paren-balanced walk to the closing `)` of this call.
-            const openParen = at + call.length - 1;
-            let depth = 1;
-            let j = openParen + 1;
-            let inStr = false;
-            let escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(') depth++;
-                    else if (c === ')') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) { out += content.slice(at); break; }
-            const args = this.splitArgs(content.slice(openParen + 1, j));
-            const keyMatch = args && args.length === 3 && args[0].trim() === '&mut request'
-                ? args[1].trim().match(/^&Value::Str\("((?:[^"\\]|\\.)*)"\.to_string\(\)\)$/)
-                : null;
-            const value = args ? args[2].trim() : '';
-            if (!keyMatch || /\brequest\b/.test(value)) {
-                out += content.slice(at, j + 1);
-                i = j + 1;
-                continue;
-            }
-            const span = spans.find(sp => sp.start <= at && at < sp.end);
-            if (!span || !fnAllowsNativeInsert(span)) {
-                out += content.slice(at, j + 1);
-                i = j + 1;
-                continue;
-            }
-            let end = j + 1;
-            let k = end;
-            while (k < content.length && (content[k] === ' ' || content[k] === '\t')) k++;
-            if (content[k] === ';') end = k + 1;
-            out += `if let Value::Dict(__d12) = &mut request { std::sync::Arc::make_mut(__d12).insert("${keyMatch[1]}".to_string(), ${value}); }`;
-            i = end;
-        }
-        return out;
-    }
-
-    /**
-     * `self.call_method(Value::Str("<name>".to_string()), <args>)` →
-     * `self.<name>(<args>)`. Routes implicit-API call sites through the
-     * typed wrapper methods generated by `build/generateImplicitAPI.ts`
-     * (`<id>_api.rs`) instead of the dynamic-dispatch fallback. Compiler
-     * now catches typos and IDE jump-to-def works.
-     * Paren-balanced over the args so nested expressions like
-     * `&[self.extend(request.clone(), &[params.clone()])]` are preserved.
-     */
-    rewriteCallMethodToDirect(content: string): string {
-        const head = /self\.call_method\(\s*Value::Str\("([a-z][a-z0-9_]*)"\.to_string\(\)\)\s*,\s*/g;
-        let out = '';
-        let last = 0;
-        let m: RegExpExecArray | null;
-        while ((m = head.exec(content)) !== null) {
-            const name = m[1];
-            // From end of head match, paren-balance to find the closing `)`
-            // of `call_method(...)`. Args start at re.lastIndex.
-            const argsStart = head.lastIndex;
-            const j = balancedCloseIndex(content, argsStart);
-            if (j >= content.length) {
-                // Unbalanced — bail, keep verbatim.
-                continue;
-            }
-            const args = content.slice(argsStart, j).trim();
-            // All implicit-API wrappers are `pub async fn`. The downstream
-            // `appendAwaitToAsyncCalls` pass keys off `self.call_method(` —
-            // once we rename it that pass won't fire, so we must append
-            // `.await` here. Idempotent if the source already had it.
-            const tail = content.slice(j + 1);
-            const alreadyAwaited = tail.startsWith('.await');
-            const suffix = alreadyAwaited ? '' : '.await';
-            out += content.slice(last, m.index) + `self.${name}(${args})${suffix}`;
-            last = j + 1; // past the closing `)`; `.await` (if present) stays in content
-            head.lastIndex = last;
-        }
-        out += content.slice(last);
-        return out;
-    }
 
     rewriteSelfFieldMutCloneCast(content: string): string {
         return content.replace(
@@ -12876,36 +11479,6 @@ export class RustTranspilerBuilder {
         );
     }
 
-    /**
-     * Paren-balanced walker over `ternary(...)` calls. Clones bare-ident
-     * args (otherwise they get moved).
-     */
-    cloneInTernary(content: string): string {
-        const pattern = /\bternary\(/;
-        let i = 0;
-        let out = '';
-        while (i < content.length) {
-            const rest = content.slice(i);
-            const m = rest.match(pattern);
-            if (!m || m.index === undefined) { out += rest; break; }
-            out += rest.slice(0, m.index);
-            const absStart = i + m.index;
-            const callStart = absStart + m[0].length;
-            const j = balancedCloseIndex(content, callStart);
-            if (j >= content.length) { out += content.slice(absStart); break; }
-            const rawInside = content.slice(callStart, j);
-            const inside = this.cloneInTernary(rawInside);
-            const args = this.splitArgs(inside) ?? [];
-            const cloned = args.map(a => {
-                const t = a.trim();
-                return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(t) && t !== 'self' && t !== 'true' && t !== 'false'
-                    ? `${t}.clone()` : a;
-            }).join(', ');
-            out += `ternary(${cloned})`;
-            i = j + 1;
-        }
-        return out;
-    }
 
     /**
      * Paren-balanced walker over `&[...]` slice literals in call-arg
@@ -13462,42 +12035,6 @@ export class RustTranspilerBuilder {
         return out + content.slice(last);
     }
 
-    /**
-     * Paren-balanced walker. For every call whose head matches one of
-     * the given patterns, clones bare-identifier args *after the first*
-     * (the first arg is left alone — for `shared::*` it's a borrowed
-     * receiver, for `ternary` it's the bool condition). Avoids
-     * "use of moved value" when a local is reused after the call.
-     */
-    cloneNonFirstIdentArgs(content: string, heads: RegExp[]): string {
-        const combined = new RegExp(
-            heads.map(r => `(?:${r.source})`).join('|'),
-        );
-        let i = 0;
-        let out = '';
-        while (i < content.length) {
-            const rest = content.slice(i);
-            const m = rest.match(combined);
-            if (!m || m.index === undefined) { out += rest; break; }
-            out += rest.slice(0, m.index);
-            const absStart = i + m.index;
-            const callStart = absStart + m[0].length;
-            const j = balancedCloseIndex(content, callStart, true);
-            if (j >= content.length) { out += content.slice(absStart); break; }
-            const rawInside = content.slice(callStart, j);
-            const inside = this.cloneNonFirstIdentArgs(rawInside, heads); // recurse
-            const args = this.splitArgs(inside) ?? [];
-            const cloned = args.map((a, idx) => {
-                if (idx === 0) return a;
-                const t = a.trim();
-                return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(t) && t !== 'self'
-                    ? `${t}.clone()` : a;
-            }).join(', ');
-            out += content.slice(absStart, callStart) + cloned + ')';
-            i = j + 1;
-        }
-        return out;
-    }
 
     /**
      * Walks ALL `self.<async_fn>(args)` occurrences, balanced-paren aware,
@@ -14635,16 +13172,7 @@ ${arms.join('\n')}
         // unwind past the parent method and leave its last_request_*
         // unset).
         content = this.rewriteTryCatchAsync(content);
-        // Data-driven implicit-API rewrite for endpoints the hardcoded
-        // prefix regex missed — must run before closeImplicitApiCalls so
-        // its `__API__&[` markers get balanced.
-        content = this.rewriteImplicitApiCalls(content, className, isPrediction);
-        content = this.closeImplicitApiCalls(content);
         content = this.cloneInRefSlices(content);
-        // Recover from the rust-port's stateful methodSignatures leak:
-        // call sites that wrap trailing args in `&[...]` for a method
-        // whose inherent def actually has fixed Value args get re-expanded.
-        content = this.expandSliceForFixedAritySelfCalls(content);
         // `self.super_X(...)` → `self.parent.X(...)`.
         if (parentCore) {
             content = content.replace(/\bself\.super_(\w+)\(/g, 'self.parent.$1(');
@@ -14655,15 +13183,11 @@ ${arms.join('\n')}
         // Must run AFTER rewriteValueFieldAccess so `precise.decimals = X`
         // (now `get_value(&precise, ...) = X`) is rewritten to set_value.
         content = this.rewriteGetValueAssignments(content);
-        content = this.cloneInTernary(content);
         content = this.stripMutSelfFieldClones(content);
         content = this.splitAddElementBorrowConflicts(content);
-        content = this.splitGetValueMutAdds(content);
         content = this.rewriteSelfFieldMutCloneCast(content);
-        content = this.rewriteCallMethodToDirect(content);
         content = this.writeBackIndexedMutations(content);
         content = this.rewriteInlineFieldAppends(content);
-        content = this.writeBackAliasedArrayMutations(content);
         content = this.serializeAwaitedSpawns(content);
         content = this.lowerAwaitedFlights(content);
         // Propagate async-ness through the call graph: keep iterating
@@ -14851,20 +13375,11 @@ ${arms.join('\n')}
             content = this.regexAll(content, this.getWsRegexes());
         }
 
-        // Go-style inheritance: `super.X(...)` (emitted by the ast as
-        // `self.super_x(...)`) on a subclass routes straight to the
-        // embedded parent Core — `self.parent.x(...)`. Method resolution
-        // then finds the parent's `x` (or the parent's parent, …).
-        if (parentCore) {
-            content = content.replace(/\bself\.super_(\w+)\(/g, 'self.parent.$1(');
-        }
-
         // Rename the struct/impl to CoreName convention (BinanceCore)
         content = content
             .replace(new RegExp(`pub struct ${capitalize(className)}\\b`, 'g'), `pub struct ${coreName}`)
             .replace(new RegExp(`pub struct ${className}\\b`, 'gi'), `pub struct ${coreName}`)
-            .replace(new RegExp(`impl ${capitalize(className)}\\b`, 'g'), `impl ${coreName}`)
-            .replace(new RegExp(`impl ${className}\\b`, 'gi'), `impl ${coreName}`);
+            .replace(new RegExp(`impl ${capitalize(className)}\\b`, 'g'), `impl ${coreName}`);
 
         // Strip the transpiler-emitted struct declaration AND its empty
         // `pub fn new() -> Self { <className> { } }` constructor — we
@@ -15131,7 +13646,6 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.createRustExchange(exchangeName, result, ws, isPrediction);
                 rustContent = this.rewriteLiteralKeySafeCalls(rustContent);
                 rustContent = this.dropDeadFirstArgClones(rustContent);
-                rustContent = this.rewriteJavaReqAliases(rustContent);
                 // Then type the `safe_number[_k]` / `safe_integer[_k]` locals
                 // whose every sink is Option-native.
                 rustContent = this.narrowOptionalSafeLocals(rustContent);
@@ -15152,8 +13666,6 @@ impl std::ops::DerefMut for ${coreName} {
                 // locals make the remaining `is_true` sites native.
                 rustContent = this.dropNativeCallIsTrue(rustContent);
                 rustContent = this.dropSelfBoolFieldIsTrue(rustContent);
-                rustContent = this.dropOptionShadowIsTrue(rustContent);
-                rustContent = this.rustBoolParamIsTrue(rustContent);
                 rustContent = this.rustDropBoolBoxedIsTrue(rustContent);
                 rustContent = this.rustNativeBoolEquals(rustContent);
                 rustContent = this.rustNativeBoolIsTrue(rustContent);
@@ -15163,7 +13675,6 @@ impl std::ops::DerefMut for ${coreName} {
                 // afterwards (those callees take the Value by value).
                 rustContent = this.dropDeadLastUseArgClones(rustContent);
                 // Last: element writes into a fresh dict local go native.
-                rustContent = this.nativeRequestDictInserts(rustContent);
                 // Last: payload accessors on a local whose declaration pins its
                 // variant (`Value::Map`/`List`/`Str`/`Bool`, never reassigned).
                 rustContent = this.nativePayloadAccessorDrops(rustContent);
@@ -15171,7 +13682,6 @@ impl std::ops::DerefMut for ${coreName} {
                 // length sink or an index read. Must see the final text (the
                 // write-back pass appends `set_value(&mut X, ..)` lines those
                 // locals must keep the box for).
-                rustContent = this.typeSafeListLocals(rustContent);
                 // `append_to_array` on an Arr-only local is a plain `Vec` push.
                 rustContent = arrOnlyVecPush(rustContent);
                 // append_to_array on a marker-free local receiver is a plain Vec push.
@@ -15187,18 +13697,13 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = this.rustNativeTruthAndEquality(rustContent);
                 rustContent = nativeBoolScalars(rustContent);
                 rustContent = nativeBoolCallee(rustContent);
-                rustContent = this.rustInlineCollectionHelpers(rustContent);
-                rustContent = this.rustInlineStringHelpers(rustContent);
-                rustContent = this.rustNativeObjectHelpers(rustContent);
                 // Last of all: native get_value on a receiver whose container shape
                 // the final text pins (needs the clone/write passes to be done).
-                rustContent = nativeGetValue(rustContent);
                 rustContent = nativeInserts(rustContent);
                 rustContent = nativeContainerOps(rustContent);
                 // Typed locals run last, on the final text.
                 rustContent = rustTypedLocals(rustContent);
                 rustContent = rustStringNatives(rustContent);
-                rustContent = rustSignApiStr(rustContent);
                 rustContent = calleeShapeContainerOps(rustContent);
                 rustContent = fieldChainInserts(rustContent);
                 rustContent = plainDictChains(rustContent);
@@ -15614,16 +14119,12 @@ impl std::ops::DerefMut for ${coreName} {
         basePart = this.rewriteTryCatchAsync(basePart);
 
 
-        // Close implicit API call sites (`self.call_method("X", &[` opened by
-        // the regex above) by replacing their balanced `)` with `])`.
-        basePart = this.closeImplicitApiCalls(basePart);
 
         // Re-apply `&[...]` auto-clone using paren-balanced walker so it
         // handles slices that contain `Value::Str(...)` etc.
         basePart = this.cloneInRefSlices(basePart);
 
         // Clone bare identifier args in `ternary(cond, a, b)` calls.
-        basePart = this.cloneInTernary(basePart);
 
         // Auto-clone simple identifier args in every `self.X(...)` call.
         basePart = this.autoCloneCallArgs(basePart);
@@ -15637,7 +14138,6 @@ impl std::ops::DerefMut for ${coreName} {
         basePart = this.rewriteValueFieldAccess(basePart);
 
         // Clone bare identifier args in `ternary(...)` calls.
-        basePart = this.cloneInTernary(basePart);
 
         // Fix borrow conflicts: `add_element_to_object(&mut X, KEY, EXPR)`
         // where EXPR refers to `X` either via `.clone()`, `&X`, or
@@ -15648,15 +14148,12 @@ impl std::ops::DerefMut for ${coreName} {
 
         // Same pattern but using get_value_mut(&mut X, ...) as the LHS.
         // Paren-balanced walker (the old regex couldn't handle nested parens).
-        basePart = this.splitGetValueMutAdds(basePart);
         basePart = this.rewriteSelfFieldMutCloneCast(basePart);
-        basePart = this.rewriteCallMethodToDirect(basePart);
         // Write COW-detached `let x = get_value(&C,&K); mutate x` back to C[K]
         // (the per-exchange pipeline already does this; the base needs it too for
         // convertOHLCVToTradingView etc. — review P0-C).
         basePart = this.writeBackIndexedMutations(basePart);
         basePart = this.rewriteInlineFieldAppends(basePart);
-        basePart = this.writeBackAliasedArrayMutations(basePart);
         basePart = this.serializeAwaitedSpawns(basePart);
 
         // The prediction tier has many methods that mutate instance state
@@ -15676,7 +14173,6 @@ impl std::ops::DerefMut for ${coreName} {
             // self-field mut-clone cleanup now that they are `&mut self`.
             basePart = this.stripMutSelfFieldClones(basePart);
             basePart = this.splitAddElementBorrowConflicts(basePart);
-            basePart = this.splitGetValueMutAdds(basePart);
             basePart = this.rewriteSelfFieldMutCloneCast(basePart);
             // The prediction base has `self.fetch(url, &[…, self.json(x)])` and
             // `self.send_evm_transaction(url, self.parse_to_int(id), …)` shapes
@@ -15897,7 +14393,6 @@ impl std::ops::DerefMut for ${coreName} {
 
         let finalFile = this.rewriteLiteralKeySafeCalls(file);
         finalFile = this.dropDeadFirstArgClones(finalFile);
-        finalFile = this.rewriteJavaReqAliases(finalFile);
         finalFile = this.narrowOptionalSafeLocals(finalFile);
         finalFile = this.narrowBoolLocals(finalFile);
         finalFile = this.narrowFloatLocals(finalFile);
@@ -15907,15 +14402,11 @@ impl std::ops::DerefMut for ${coreName} {
         // D-32: bool/`Option<bool>` callees and `Option`-typed shadow locals.
         finalFile = this.dropNativeCallIsTrue(finalFile);
         finalFile = this.dropSelfBoolFieldIsTrue(finalFile);
-        finalFile = this.dropOptionShadowIsTrue(finalFile);
-        finalFile = this.rustBoolParamIsTrue(finalFile);
         finalFile = this.rustDropBoolBoxedIsTrue(finalFile);
         finalFile = this.rustNativeBoolEquals(finalFile);
         finalFile = this.rustNativeBoolIsTrue(finalFile);
         finalFile = this.rustInlineLiteralIsEqual(finalFile);
-        finalFile = this.nativeRequestDictInserts(finalFile);
         finalFile = this.nativePayloadAccessorDrops(finalFile);
-        finalFile = this.typeSafeListLocals(finalFile);
         // `append_to_array` on an Arr-only local is a plain `Vec` push.
         finalFile = arrOnlyVecPush(finalFile);
         finalFile = rustVecPushInline(finalFile);
@@ -15928,16 +14419,11 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = this.rustNativeTruthAndEquality(finalFile);
         finalFile = nativeBoolScalars(finalFile);
         finalFile = nativeBoolCallee(finalFile);
-        finalFile = this.rustInlineCollectionHelpers(finalFile);
-        finalFile = this.rustInlineStringHelpers(finalFile);
-        finalFile = this.rustNativeObjectHelpers(finalFile);
         // Last of all: native get_value on a pinned receiver.
-        finalFile = nativeGetValue(finalFile);
         finalFile = nativeInserts(finalFile);
         finalFile = nativeContainerOps(finalFile);
         finalFile = rustTypedLocals(finalFile);
         finalFile = rustStringNatives(finalFile);
-        finalFile = rustSignApiStr(finalFile);
                 finalFile = calleeShapeContainerOps(finalFile);
         finalFile = fieldChainInserts(finalFile);
         finalFile = plainDictChains(finalFile);
@@ -16092,9 +14578,7 @@ impl std::ops::DerefMut for ${coreName} {
                 content = this.rewriteGetValueAssignments(content);
                 content = this.stripMutSelfFieldClones(content);
                 content = this.splitAddElementBorrowConflicts(content);
-                content = this.splitGetValueMutAdds(content);
                 content = this.rewriteSelfFieldMutCloneCast(content);
-        content = this.rewriteCallMethodToDirect(content);
                 // Async propagation — mark fns async when their body
                 // contains `.await`.
                 content = this.markMethodsAsyncIfBodyAwaits(content);
@@ -16145,12 +14629,7 @@ impl std::ops::DerefMut for ${coreName} {
                     // emitted by the per-exchange pipeline above must
                     // be retargeted at the ccxt crate.
                     [/\bcrate::runtime\b/g,           'ccxt::runtime'],
-                    [/\bcrate::Value\b/g,             'ccxt::Value'],
-                    [/\bcrate::get_value\b/g,         'ccxt::get_value'],
                     [/\bcrate::set_value\b/g,         'ccxt::set_value'],
-                    [/\bcrate::value\b/g,             'ccxt::value'],
-                    [/\bcrate::exchange_errors\b/g,   'ccxt::exchange_errors'],
-                    [/\bcrate::exchange::/g,          'ccxt::exchange::'],
                     [/\bcrate::precise\b/g,           'ccxt::precise'],
                     // `new ccxt.Exchange({...})` → `ccxt::Exchange::new(...)`.
                     [/\bccxt\.([A-Z][a-zA-Z]*)\b/g, 'ccxt::$1'],
@@ -16162,13 +14641,10 @@ impl std::ops::DerefMut for ${coreName} {
                     // `crate::tests_support::shared::assert_deep_equal(...)`.
                     [/\btestSharedMethods\.([a-zA-Z_][a-zA-Z0-9_]*)\(/g, (_: string, name: string) =>
                         `crate::tests_support::shared::${toSnakeCase(name)}(`],
-                    // `EqualsMethod` is a TS-only marker we don't need.
-                    [/\bEqualsMethod\b/g, ''],
                     // TS `assert (cond, msg)` → Rust `assert!(cond, "msg")`.
                     // The transpiler emits `assert(cond, Value::Str("…"))`
                     // and we need a string literal as the format arg.
                     [/\bassert\s*\(/g, 'assert!('],
-                    [/assert!!+\(/g,   'assert!('],
                 ]).trim();
                 // `crate::tests_support::shared::assert_X(e, …)` calls
                 // — fold trailing args into `&[…]` to match the unified
@@ -16208,12 +14684,6 @@ impl std::ops::DerefMut for ${coreName} {
                     while ((m = helperRe.exec(content)) !== null) {
                         localHelpers.add(m[1]);
                     }
-                    content = content.replace(
-                        /([a-zA-Z_][a-zA-Z0-9_]*)\(exchange,/g,
-                        (full, name) => localHelpers.has(name)
-                            ? `${name}(exchange.clone(),`
-                            : full,
-                    );
                 }
                 // `crate::tests_support::shared::X(<exchange-var>, ...)`
                 // calls consume the exchange (by-value). Borrow instead
@@ -16229,10 +14699,6 @@ impl std::ops::DerefMut for ${coreName} {
                 // 2nd/3rd args of `ternary(...)` are taken by value and
                 // may be plain locals reused later — clone bare-ident
                 // args so they don't move. Paren-balanced.
-                content = this.cloneNonFirstIdentArgs(content, [
-                    /\bcrate::tests_support::shared::[a-zA-Z_][a-zA-Z0-9_]*\(/,
-                    /\bternary\(/,
-                ]);
                 // `get_value(&exchange, &Value::Str("X"))` — exchange
                 // is the typed Exchange struct, not a Value, so the
                 // generic `get_value` chokes. Route through the
@@ -16266,38 +14732,12 @@ impl std::ops::DerefMut for ${coreName} {
                     /\.get_property\(\s*(exchange\d*|[a-zA-Z_][a-zA-Z0-9_]*[Ee]xchange\d*)\s*,/g,
                     '.get_property(Value::Null,',
                 );
-                // Same for `exchange2`, `exchange3`, … (used in some
-                // tests to compare two Exchange instances).
-                content = content.replace(
-                    /\bget_value\(\s*&(?:mut\s+)?(exchange\d)\s*,\s*([^)]+)\)/g,
-                    '$1.prop(&$2)',
-                );
-                // Drop spurious `mut` on struct fields (rust-port artifact).
-                content = content.replace(/(\bpub\s+)mut\s+/g, '$1');
                 // `ArrayCacheX::new()` (zero-arg) → `::new(Value::Null)`.
                 // TS calls them with no args in some tests; our stubs
                 // take a `Value` max-length param.
                 content = content.replace(
                     /\b(ArrayCache(?:|ByTimestamp|BySymbolById|BySymbolBySide|ByOutcomeById))::new\(\)/g,
                     '$1::new(Value::Null)',
-                );
-                // `load_markets().await` → `load_markets(&[]).await`
-                // (load_markets is variadic in the Rust stub).
-                content = content.replace(
-                    /\.load_markets\(\)\.await/g,
-                    '.load_markets(&[]).await',
-                );
-                // `set_value(&mut <exchange-typed-var>, …)` — set_value
-                // expects `&mut Value`. Drop these calls for now (no-op).
-                // They live in test.handleMethods where the test scaffolds
-                // currencies onto the exchange instance.
-                content = content.replace(
-                    /\{\s*let __sv_tmp = [^;]+;\s*ccxt::set_value\(&mut exchange\d*\s*,[^;]+;\s*\}\s*\/\/[^\n]*\n/g,
-                    '// (set_value on Exchange dropped)\n',
-                );
-                content = content.replace(
-                    /\{\s*let __sv_tmp = [^;]+;\s*ccxt::set_value\(&mut exchange\d*\s*,[^;]+;\s*\}/g,
-                    '/* set_value on Exchange dropped */',
                 );
                 // Clone-on-move: `obj.clone()` already added downstream,
                 // but in tests we sometimes assign a value to a `let`
@@ -16319,10 +14759,6 @@ impl std::ops::DerefMut for ${coreName} {
                 content = content.replace(
                     /\b(tbfe[A-Z][a-zA-Z0-9_]*)\((extended|opts|obj\d*)\b\s*,/g,
                     '$1($2.clone(),',
-                );
-                content = content.replace(
-                    /\bexchange\.extend\((extended|opts|obj\d*)\.clone\(\)\s*,/g,
-                    'exchange.extend($1.clone(),',
                 );
                 // `exchange['field'] = X` / `exchange['field']['k'] = v` on
                 // the typed test exchange resolve to `set_value(&mut
@@ -16542,24 +14978,19 @@ impl std::ops::DerefMut for ${coreName} {
                 );
                 content = this.regexAll(content, this.getRustRegexes(asyncMethods));
                 content = this.wrapBoolValueArgs(content);
-                content = this.stripCatchBlocks(content);
-                content = this.unwrapCatchUnwind(content);
                 content = this.autoCloneCallArgs(content);
                 content = this.cloneInArrayLiterals(content);
                 content = this.rewriteValueFieldAccess(content);
                 content = this.rewriteGetValueAssignments(content);
                 content = this.stripMutSelfFieldClones(content);
                 content = this.splitAddElementBorrowConflicts(content);
-                content = this.splitGetValueMutAdds(content);
                 content = this.rewriteSelfFieldMutCloneCast(content);
-                content = this.rewriteCallMethodToDirect(content);
                 content = this.markMethodsAsyncIfBodyAwaits(content);
                 // `assert (cond, msg)` → `assert!(cond, "msg")` → strip
                 // the second arg → wrap inner in `is_true(&(…))`. Same
                 // sequence as the REST `transpileBaseTests` pipeline.
                 content = content
-                    .replace(/\bassert\s*\(/g, 'assert!(')
-                    .replace(/assert!!+\(/g,    'assert!(');
+                    .replace(/\bassert\s*\(/g, 'assert!(');
                 content = this.stripAssertSecondArg(content);
                 content = this.wrapAssertInIsTrue(content);
 
@@ -17109,7 +15540,6 @@ impl std::ops::DerefMut for ${coreName} {
         // they get moved on the path-taken branch (test.ticker.rs has
         // `ternary(.., symbol, ..)` followed by a later `symbol.clone()`
         // which fails to compile without this).
-        content = this.cloneInTernary(content);
         content = this.rewriteValueFieldAccess(content);
         content = this.rewriteGetValueAssignments(content);
         // MUST run after `rewriteValueFieldAccess` — that pass is what
@@ -17124,9 +15554,7 @@ impl std::ops::DerefMut for ${coreName} {
             'crate::tests_support::shared::market_exists(&exchange, &$1)',
         );
         content = this.splitAddElementBorrowConflicts(content);
-        content = this.splitGetValueMutAdds(content);
         content = this.rewriteSelfFieldMutCloneCast(content);
-        content = this.rewriteCallMethodToDirect(content);
         content = this.markMethodsAsyncIfBodyAwaits(content);
         // Belt + braces: mark a fn async if its body holds `.await`.
         content = content.replace(
@@ -17155,20 +15583,13 @@ impl std::ops::DerefMut for ${coreName} {
             [/^(\s*)fn (test[A-Za-z0-9_]*)\(/gm, '$1pub fn $2('],
             [/^(\s*)async fn (test[A-Za-z0-9_]*)\(/gm, '$1pub async fn $2('],
             [/\bcrate::runtime\b/g,         'ccxt::runtime'],
-            [/\bcrate::Value\b/g,           'ccxt::Value'],
-            [/\bcrate::get_value\b/g,       'ccxt::get_value'],
             [/\bcrate::set_value\b/g,       'ccxt::set_value'],
-            [/\bcrate::value\b/g,           'ccxt::value'],
-            [/\bcrate::exchange_errors\b/g, 'ccxt::exchange_errors'],
-            [/\bcrate::exchange::/g,        'ccxt::exchange::'],
             [/\bcrate::precise\b/g,         'ccxt::precise'],
             [/\bccxt\.([A-Z][a-zA-Z]*)\b/g, 'ccxt::$1'],
             [/ccxt::Exchange::new\(/g, 'crate::tests_support::make_exchange('],
             [/\btestSharedMethods\.([a-zA-Z_][a-zA-Z0-9_]*)\(/g, (_: string, name: string) =>
                 `crate::tests_support::shared::${toSnakeCase(name)}(`],
-            [/\bEqualsMethod\b/g, ''],
             [/\bassert\s*\(/g, 'assert!('],
-            [/assert!!+\(/g,   'assert!('],
         ]).trim();
         content = this.wrapSharedHelperCalls(content);
         // Go-style: retype exchange-method calls to dispatch through
@@ -17512,9 +15933,7 @@ impl std::ops::DerefMut for ${coreName} {
             // `try { createOrder } catch { capture last_request_body }`),
             // so transpile it properly instead of dropping the catch.
             content = this.rewriteTryCatchAsync(content);
-            content = this.closeImplicitApiCalls(content);
             content = this.cloneInRefSlices(content);
-            content = this.expandSliceForFixedAritySelfCalls(content);
             // Go-style interface dispatch: retype `exchange.<live_method>(args)`
             // → `crate::live_dispatch::dispatch(&exchange, "<method>", vec![args])`.
             // Mirrors what runExchangeTestPipeline does for the per-test
@@ -17525,12 +15944,9 @@ impl std::ops::DerefMut for ${coreName} {
             content = this.cloneInArrayLiterals(content);
             content = this.rewriteValueFieldAccess(content);
             content = this.rewriteGetValueAssignments(content);
-            content = this.cloneInTernary(content);
             content = this.stripMutSelfFieldClones(content);
             content = this.splitAddElementBorrowConflicts(content);
-            content = this.splitGetValueMutAdds(content);
             content = this.rewriteSelfFieldMutCloneCast(content);
-        content = this.rewriteCallMethodToDirect(content);
             content = this.appendValueNullToVoidEnds(content);
             // Strip `mut` from struct field declarations — Rust fields
             // don't take `mut`, mutability is part of the binding.
@@ -17542,12 +15958,7 @@ impl std::ops::DerefMut for ${coreName} {
                 // not `ccxt` — retarget bare `crate::` paths emitted by
                 // the per-exchange pipeline at the `ccxt` crate.
                 [/\bcrate::runtime\b/g,         'ccxt::runtime'],
-                [/\bcrate::Value\b/g,           'ccxt::Value'],
-                [/\bcrate::get_value\b/g,       'ccxt::get_value'],
                 [/\bcrate::set_value\b/g,       'ccxt::set_value'],
-                [/\bcrate::value\b/g,           'ccxt::value'],
-                [/\bcrate::exchange_errors\b/g, 'ccxt::exchange_errors'],
-                [/\bcrate::exchange::/g,        'ccxt::exchange::'],
                 [/\bcrate::precise\b/g,         'ccxt::precise'],
                 // The transpiled `new()` emits the lowercase class name
                 // (`testMainClass`) as the struct literal even though
@@ -17556,9 +15967,6 @@ impl std::ops::DerefMut for ${coreName} {
                 // `new ccxt.Exchange(...)` → `ccxt::Exchange`.
                 [/\bccxt\.([A-Z][a-zA-Z]*)\b/g, 'ccxt::$1'],
             ]);
-            // `set_value` / `get_value` are re-exported at the ccxt crate
-            // root — bare references need the `ccxt::` qualifier.
-            content = content.replace(/(^|[^:\w])set_value\(/g, '$1ccxt::set_value(');
             // Fold trailing args of the hand-written test-harness
             // helpers into the `&[Value]` slice their Rust signatures
             // expect.
@@ -17575,24 +15983,11 @@ impl std::ops::DerefMut for ${coreName} {
             // list, so `.await` each async `self.*` call inline — the
             // tests then run sequentially, which is fine offline.
             content = this.appendAwaitToAsyncCalls(content, asyncMethods);
-            // `self.<field> = <bare ident>;` moves the RHS — clone it so
-            // the local stays usable afterwards.
-            content = content.replace(
-                /(\bself\.[a-zA-Z_][a-zA-Z0-9_]*\s*=\s*)([a-zA-Z_][a-zA-Z0-9_]*)(;)/g,
-                '$1$2.clone()$3',
-            );
             // `self.<field> = <boolean expression>;` — the struct fields
             // are `Value`; wrap `||` / `&&` / `is_true(...)` results.
             content = content.replace(
                 /(\bself\.[a-zA-Z_][a-zA-Z0-9_]*\s*=\s*)([^;\n]*(?:\|\||&&)[^;\n]*)(;)/g,
                 '$1Value::Bool($2)$3',
-            );
-            // `vec![<bare ident>]` — clone the element so the local
-            // isn't moved into the list (covers nested list literals
-            // the array-literal pass doesn't reach).
-            content = content.replace(
-                /\bvec!\[([a-zA-Z_][a-zA-Z0-9_]*)\]/g,
-                'vec![$1.clone()]',
             );
             // paradex's broker-id test signs the order via `starknetSign()`,
             // which isn't ported to the Rust runtime yet (it throws
@@ -17607,18 +16002,11 @@ impl std::ops::DerefMut for ${coreName} {
             );
             // `continue` inside a transpiled `for`→`while` must still run
             // the manual loop increment — labelled-block rewrite.
-            content = this.fixForLoopContinue(content);
             // `while (true)` → `loop {` (rustc's `while_true` lint; the file
             // header's `clippy::all` allow does not cover rustc lints).
             content = this.whileTrueToLoop(content);
             // Methods that assign to `self.<field>` need `&mut self`.
             content = this.promoteSelfMutMethods(content);
-            // `init` is a thin wrapper around `init_inner` — drop the
-            // statement-block wrapper so it returns `init_inner`'s value.
-            content = content.replace(
-                /(fn init\s*\([^)]*\)\s*->\s*Value\s*\{)\s*\{\s*(self\.init_inner\([^;]*\.await)\s*;\s*\}\s*\}/,
-                '$1\n        $2\n    }',
-            );
             // `callExchangeMethodDynamically` / `setFetchResponse`
             // mutate the exchange value in place (store `last_request_*`
             // / the mock response) — pass `&mut exchange`.
@@ -17671,16 +16059,6 @@ impl std::ops::DerefMut for ${coreName} {
             // `extend_exchange_options` takes `&mut self` — hoist any arg
             // that also reads the receiver out of the call.
             content = this.hoistExtendExchangeOptionsArg(content);
-            // The try/catch that captured `last_request_*` into
-            // `output` / `requestUrl` is stripped by `stripCatchBlocks`;
-            // `callExchangeMethodDynamically` now stores the request on
-            // the exchange value, so read it back before asserting.
-            content = content.replace(
-                /(\n[ \t]*\{\n[ \t]*let mut callOutput: Value = exchange\.safe_value\(data)/,
-                '\n        output = ccxt::get_value(&exchange, &Value::Str("last_request_body".to_string()));' +
-                '\n        requestUrl = ccxt::get_value(&exchange, &Value::Str("last_request_url".to_string()));' +
-                '$1',
-            );
             // Go's `testExchange{Request,Response}Statically` wraps each
             // per-case call in a try/catch that records the failure and
             // keeps going. `stripCatchBlocks` removed it — re-wrap the
@@ -17703,13 +16081,6 @@ impl std::ops::DerefMut for ${coreName} {
                 },
             );
 
-            // `urlencoded_to_dict` only builds a local dict — it never
-            // mutates `self`. The ast-transpiler over-marks it `&mut self`,
-            // which blocks `&self` callers. Force `&self` (done last so no
-            // later pass — e.g. promoteSelfMutMethods — can undo it).
-            content = content.replace(
-                /\bfn urlencoded_to_dict\(\s*&mut self\b/g,
-                'fn urlencoded_to_dict(&self');
             // `obj['k'] = v` on a Value-typed local (e.g.
             // `exchange.options['uta'] = false`) transpiles to
             // `add_element_to_object(&mut get_value(&obj, k), …)` — but
@@ -18476,76 +16847,6 @@ impl std::ops::DerefMut for ${coreName} {
     /** Snake-case fns the hand-written runtime calls (their callers are outside ts/src). */
     private rustHandRuntimeCallText: string | undefined;
 
-    rustBoolParamIsTrue(content: string): string {
-        if (!content.includes('is_true(&')) return content;
-        if (this.rustHandRuntimeCallText === undefined) {
-            const parts: string[] = [];
-            const walk = (dir: string) => {
-                let entries: fs.Dirent[] = [];
-                try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
-                for (const e of entries) {
-                    if (e.isDirectory()) walk(`${dir}/${e.name}`);
-                    else if (e.name.endsWith('.rs') && !e.name.includes('generated')) parts.push(fs.readFileSync(`${dir}/${e.name}`, 'utf8'));
-                }
-            };
-            walk(RUST_CORE);
-            this.rustHandRuntimeCallText = parts.join('\n');
-        }
-        const hand = this.rustHandRuntimeCallText;
-        const masked = this.maskStringsAndComments(content);
-        const headers: number[] = [];
-        for (const hm of masked.matchAll(/\n[ \t]*(?:pub )?(?:async )?fn /g)) headers.push((hm.index as number) + 1);
-        headers.push(content.length);
-        const rewrites: Array<{ start: number, end: number, text: string }> = [];
-        for (let h = 0; h + 1 < headers.length; h++) {
-            const from = headers[h];
-            const region = masked.slice(from, headers[h + 1]);
-            const fm = /fn ([a-z_][a-z0-9_]*)\s*\(/.exec(region);
-            const brace = region.indexOf('{');
-            if (fm === null || brace < 0) continue;
-            const snake = fm[1];
-            const header = region.slice(0, brace);
-            const body = region.slice(brace);
-            if (new RegExp(`\\b${snake}\\s*\\(`).test(hand)) continue;
-            const method = snake.replace(/_([a-z0-9])/g, (_m, c) => c.toUpperCase());
-            const proven = new Map<string, boolean>();
-            const isParam = (name: string): boolean => {
-                if (proven.has(name)) return proven.get(name) as boolean;
-                const declared = new RegExp(`\\bmut ${name}: Value\\b`).test(header)
-                    || new RegExp(`let mut ${name} = get_arg\\(optional_args, \\d+, Value::(?:Bool\\((?:true|false)\\)|Null)\\);`).test(body);
-                const ok = declared
-                    && (body.match(new RegExp(`\\blet (?:mut )?${name}\\b`, 'g')) ?? []).length <= 1
-                    && !new RegExp(`(?<![A-Za-z0-9_.])${name}\\s*(?:[-+*/%|&^]|<<|>>)?=(?!=)`).test(body.replace(/let mut \w+ = get_arg\(/g, ''))
-                    && !new RegExp(`&mut\\s+${name}\\b`).test(body)
-                    && !new RegExp(`\\|\\s*(?:[A-Za-z_][A-Za-z0-9_]*\\s*,\\s*)*${name}\\s*[,|]`).test(body)
-                    && !new RegExp(`(?:for|if let|while let)\\s+[^=]*\\b${name}\\b[^=]*\\s+(?:in|=)`).test(body)
-                    && !new RegExp(`(?<![A-Za-z0-9_.])${name}\\.(?!clone\\(|as_[a-z0-9]+\\(|is_[a-z_]+\\()[a-z_]+\\(`).test(body)
-                    && this.rustBoolOnlyParam(method, name);
-                proven.set(name, ok);
-                return ok;
-            };
-            for (const sm of region.matchAll(/(?<![A-Za-z0-9_:])is_true\(&([A-Za-z_][A-Za-z0-9_]*)\)/g)) {
-                const start = from + (sm.index as number);
-                const end = start + sm[0].length;
-                if (/^\s*(?:\.|==|!=|<|>|as\b)/.test(content.slice(end, end + 6))) continue;
-                const lead = content.slice(Math.max(0, start - 12), start);
-                const slot = this.rustIsTrueBoolSlot(content, start, end) ??
-                    (/^\s*(?:&&|\|\|)/.test(content.slice(end, end + 4)) &&
-                     /(?:[({;,]|(?:^|[^\w])(?:if|while|return)|[^=!<>]=)\s*$/.test(lead) ? 'bool' : undefined);
-                if (slot === undefined || !isParam(sm[1])) continue;
-                const cmp = `${sm[1]}.as_bool() == Some(true)`;
-                rewrites.push({ start, end, text: slot === 'negated' ? `(${cmp})` : cmp });
-            }
-        }
-        if (rewrites.length === 0) return content;
-        let out = ''; let at = 0;
-        for (const r of rewrites) {
-            if (r.start < at) continue;
-            out += content.slice(at, r.start) + r.text;
-            at = r.end;
-        }
-        return out + content.slice(at);
-    }
 
     // `is_equal(&X, &Value::Bool|Int(lit))` / `&Value::Str("<number>")` prints the helper's
     // dispatch inline: same-variant payload compare, else the f64 coercion (Int/Float, Str parse, Bool 1/0).
@@ -18723,117 +17024,8 @@ impl std::ops::DerefMut for ${coreName} {
         return out + content.slice(at);
     }
 
-    // Collection helpers (`in_op` / `object_keys` / `remove`): only a proven-map `in_op` goes native;
-    // everything else keeps the runtime helper. Not for rust/tests (no `crate::value`); innermost-first.
-    rustInlineCollectionHelpers(content: string): string {
-        const names = [ 'in_op', 'object_keys', 'remove' ];
-        if (!names.some(n => content.includes(n + '('))) return content;
-        const build = (name: string, args: string[]): string | undefined => {
-            const a = args.map(s => s.trim());
-            // in_op: no inline `match`. Native `contains_key` only on a local declared as a
-            // concrete map (`Arc<IndexMap<String, Value>>` / `IndexMap<String, Value>`) with a literal
-            // string key; every other site keeps the `in_op(..)` helper call (Null / non-map / array).
-            if (name === 'in_op') return rustInlineInOp(a, content);
-            // No inline `match` for `object_keys`: every generated receiver is a `Value` (no
-            // typed map binding exists), and the runtime fn also drops the `__ws_subs_url`/`__ws_sub_ref`
-            // tags, so no site is proven; `runtime::object_keys(..)` stays the helper call.
-            if (name === 'object_keys') return undefined;
-            // `get_array_length` is not rewritten: `Value::len` counts chars and the helper also unwraps
-            // book/cache/side markers, so no plain `.len()` on a `&Value` matches it.
-            // `remove` is never inlined. Every generated receiver is a `Value` (no typed
-            // `IndexMap` local exists in emitted Rust), so no site proves a plain map and the native
-            // `shift_remove` would also skip `try_ws_subs_remove`; `remove(...)` stays the helper call.
-            if (name === 'remove') return undefined;
-            return undefined;
-        };
-        const re = /(?<![A-Za-z0-9_:.])(in_op|object_keys|remove)\(/g; // get_array_length is not a target
-        // Repeat until no rewrite applies: each round replaces calls whose args hold no further helper call.
-        for (let round = 0; round < 8; round++) {
-            const masked = this.maskStringsAndComments(content);
-            const rewrites: Array<{ start: number, end: number, text: string }> = [];
-            for (const m of masked.matchAll(re)) {
-                const start = m.index as number;
-                const name = m[1];
-                // `fn remove(` declarations / `.remove(` methods never match (lookbehind + `fn ` check).
-                if (/\bfn\s+$/.test(masked.slice(Math.max(0, start - 8), start))) continue;
-                const open = start + name.length;
-                const close = this.closeParenAt(content, open);
-                if (close < 0) continue;
-                const inner = content.slice(open + 1, close);
-                // A retained `in_op(` / `get_array_length(` helper call inside the args does not block the outer rewrite.
-                if (/(?<![A-Za-z0-9_:.])(object_keys|remove)\(/.test(this.maskStringsAndComments(inner))) continue;
-                const text = build(name, this.splitTopLevelCommas(inner));
-                if (text === undefined) continue;
-                if (name === 'remove' && !/^\s*;/.test(content.slice(close + 1, close + 8))) continue;
-                rewrites.push({ start, end: close + 1, text });
-            }
-            if (rewrites.length === 0) break;
-            let out = ''; let at = 0;
-            for (const r of rewrites) {
-                if (r.start < at) continue;
-                out += content.slice(at, r.start) + r.text;
-                at = r.end;
-            }
-            content = out + content.slice(at);
-        }
-        return content;
-    }
 
-    // string helpers print `runtime.rs`'s own body inline (each arg bound once, innermost-first).
-    // `stringify_simple` is private: scalars inline, the `__precise` dict goes through the public
-    // `runtime::stringify_param` alias, other containers through `Display` exactly like the helper.
-    rustInlineStringHelpers(content: string): string {
-        // pad_start/pad_end/to_fixed (and slice) are not targets: no site has a proven `&str`/number
-        // operand with in-range bounds, so the `runtime::` helper call stays. Never print their bodies inline.
-        const names = [ 'to_string_val', 'join', 'split', 'replace_str' ]; // starts_with/ends_with via x39Affix
-        if (!names.some(n => content.includes(n + '('))) return content;
-        const str = (v: string) => `(match ${v} { Value::Str(__s) => __s.to_string(), Value::Int(__n) => __n.to_string(), Value::Float(__f) => __f.to_string(), Value::Bool(__b) => __b.to_string(), Value::Null => "null".to_string(), Value::Dict(__m) if __m.contains_key("__precise") => crate::runtime::stringify_param(${v}), __o => format!("{}", __o) })`;
-        const build = (name: string, args: string[]): string | undefined => {
-            const a = args.map(s => s.trim());
-            if (name === 'to_string_val') return this.x42ToStr(a); // proven native or helper
-            // split/join/replace_str are never inlined. Every site reaches this pass as a
-            // `&Value` operand that no emitted declaration proves to be a `Value::Str` / `Value::Arr` of
-            // strings (and the runtime differs from a bare `.split`/`.join`/`.replace` on non-Str, null and
-            // element type), so the plain `runtime::*` helper call stays.
-            if (name === 'join' || name === 'split' || name === 'replace_str') return undefined;
-            // starts_with/ends_with are handled by x39Affix (proven Str boxes only).
-            return undefined;
-        };
-        const re = /(?<![A-Za-z0-9_:.])(to_string_val|join|split|replace_str)\(/g;
-        for (let round = 0; round < 8; round++) {
-            const masked = this.maskStringsAndComments(content);
-            const rewrites: Array<{ start: number, end: number, text: string }> = [];
-            for (const m of masked.matchAll(re)) {
-                const start = m.index as number;
-                const name = m[1];
-                if (/\bfn\s+$/.test(masked.slice(Math.max(0, start - 8), start))) continue;
-                const open = start + name.length;
-                const close = this.closeParenAt(content, open);
-                if (close < 0) continue;
-                const inner = content.slice(open + 1, close);
-                if (/(?<![A-Za-z0-9_:.])(to_string_val)\(/.test(this.maskStringsAndComments(inner))) continue; // helper-call args do not block the outer site
-                const text = build(name, this.splitTopLevelCommas(inner));
-                if (text === undefined) continue;
-                rewrites.push({ start, end: close + 1, text });
-            }
-            if (rewrites.length === 0) break;
-            let out = ''; let at = 0;
-            for (const r of rewrites) {
-                if (r.start < at) continue;
-                out += content.slice(at, r.start) + r.text;
-                at = r.end;
-            }
-            content = out + content.slice(at);
-        }
-        return content;
-    }
 
-    // Identity pass: is_instance / is_function / object_values / shift keep the `runtime::*` helper, since no
-    // site proves a native op equivalent (errorHierarchy walk, arg evaluation, ws tag keys, by-value pop).
-    // Kept wired in both pipelines so call sites stay stable.
-    rustNativeObjectHelpers(content: string): string {
-        return content;
-    }
 
     // `is_equal(&A, &B)`: native only where both operands are proven to hold one scalar
     // variant or Null (`S`=Str, `B`=Bool, `I`=Int, `N`=Null). `runtime::is_equal` on such a pair is exactly
@@ -18942,17 +17134,6 @@ impl std::ops::DerefMut for ${coreName} {
         }).join('\n');
     }
 
-    // `to_string_val(&X)`: plain native only when X is a literal `Value::Str(E)` box
-    // (helper = `Value::Str(stringify_simple(..))`, identity on Str, so the box itself is
-    // the result and E is evaluated once). Every other operand keeps the helper call verbatim:
-    // `Display` differs from `stringify_simple` on Arr/Dict and the `__precise` dict.
-    // parse_int/parse_float are emitted as `crate::runtime::parse_*`, never inlined here.
-    x42ToStr(a: string[]): string | undefined {
-        if (a.length !== 1) return undefined;
-        const m = /^&\s*(Value::Str\(([\s\S]*)\))$/.exec(a[0]);
-        if (m === null || this.closeParenAt(m[1], 'Value::Str'.length) !== m[1].length - 1) return undefined;
-        return m[1];
-    }
 }
 
 // ── CLI entry point ───────────────────────────────────────────────────────────
@@ -18965,11 +17146,9 @@ function rustPassesSelfTest(): string[] {
         nativeBoolCalleeSelfTest, rustVecPushInlineSelfTest, rustStringNativesSelfTest, clientHandleSelfTest,
     };
     for (const [name, fn] of Object.entries(lists)) for (const p of fn()) problems.push(`${name}: ${p}`);
-    if (rustNativeGetValueSelfTest() !== 0) problems.push('rustNativeGetValueSelfTest');
     if (mapParamDispatchSelfTest() !== 0) problems.push('mapParamDispatchSelfTest');
     const ok = (cond: boolean, msg: string) => { if (!cond) problems.push(msg); };
     ok(narrowStrSinkLocals('pub fn f(&mut self) -> Value {\n    let mut s: Value = self.safe_string_k(x.clone(), "id", &[]);\n    let t: String = format!("a{}", s);\n    return Value::Null;\n}\n').includes('safe_string_k_opt'), 'narrowStrSinkLocals: format!-only local');
-    ok(rustSignApiStr('fn f() { let x = 1; }\n') === 'fn f() { let x = 1; }\n', 'rustSignApiStr: unrelated text');
     const chain = 'pub fn f(&mut self, symbol: Value) {\n    let mut tf: Value = Value::Null;\n    if let Value::Dict(__r05d) = get_value_mut(&mut self.ohlcvs, &symbol) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&tf), tf.clone()); }\n}\n';
     ok(plainDictChains(chain).includes('.entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null)') && !plainDictChains(chain).includes('get_value_mut'), 'plainDictChains: Value-ident key');
     ok(plainDictChains(chain.replace('symbol: Value', 'symbol: &str')).includes('get_value_mut'), 'plainDictChains: unknown key type');
@@ -19034,19 +17213,3 @@ if (isMainEntry(import.meta.url)) {
     }
 }
 
-// `in_op` arm of rustInlineCollectionHelpers: plain native op on a proven map, else the helper call.
-function rustInlineInOp (a: string[], content: string): string | undefined {
-    if (a.length !== 2) return undefined;
-    const recv = /^&([A-Za-z_][A-Za-z0-9_]*)$/.exec(a[0]);
-    const key = /^&Value::Str\(("(?:[^"\\]|\\.)*")\.into\(\)\)$/.exec(a[1]);
-    if (recv === null || key === null) return undefined;
-    const x = recv[1];
-    const declRe = new RegExp('\\blet\\s+(?:mut\\s+)?' + x + '\\s*:\\s*([^=;]+?)\\s*=', 'g');
-    const types = [ ...content.matchAll(declRe) ].map(m => m[1].replace(/\s+/g, ''));
-    const mapTy = /^(?:(?:std::sync::)?Arc<)?(?:indexmap::)?IndexMap<String,Value>>?$/;
-    if (types.length === 0 || !types.every(t => mapTy.test(t))) return undefined;
-    // A parameter / closure binding of the same name could shadow the proven local: require no `x:` binder outside `let`.
-    const binder = new RegExp('(?<!let\\s(?:mut\\s)?)[(,|]\\s*(?:mut\\s+)?' + x + '\\s*:');
-    if (binder.test(content)) return undefined;
-    return `${x}.contains_key(${key[1]})`;
-}
