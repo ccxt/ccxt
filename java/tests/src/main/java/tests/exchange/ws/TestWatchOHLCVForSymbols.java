@@ -46,7 +46,7 @@ public class TestWatchOHLCVForSymbols extends BaseTest {
             Object startTime = exchange.milliseconds();
             try
             {
-                response = (exchange.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, chosenTimeframeKey)))), Helpers.toLongOrNull(since), Helpers.toLongOrNull(limit), new HashMap<String, Object>() {{}})).join();
+                response = (exchange.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, chosenTimeframeKey)))), Helpers.toLongOrNull(since), Long.valueOf(limit), new HashMap<String, Object>() {{}})).join();
                 if (java.util.Objects.equals(response, null))
                 {
                     throw new RuntimeException((String)(exchange.id + " watch returned undefined response")) ;
