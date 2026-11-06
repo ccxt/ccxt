@@ -4902,7 +4902,7 @@ public partial class BaseExchange
     public virtual List<object> buildOHLCVC(IList<object> trades, string timeframe = null, object since = null, object limit = null)
     {
         string timeframeVar = timeframe;
-        // given a sorted arrays of trades (recent last) and a timeframeVar builds an array of OHLCV candles
+        // given a sorted arrays of trades (recent last) and a timeframe builds an array of OHLCV candles
         // note, default limit value (2147483647) is max int32 value
         timeframeVar ??= "1m";
         since ??= 0;
@@ -4964,11 +4964,11 @@ public partial class BaseExchange
             }
             if (isNewCandle)
             {
-                // moved to a new timeframeVar -> create a new candle from opening trade
+                // moved to a new timeframe -> create a new candle from opening trade
                 ohlcvs.Add(new List<object>() {openingTime, price, price, price, price, (trade != null && trade.ContainsKey("amount") ? trade["amount"] : null), 1});
             } else
             {
-                // still processing the same timeframeVar -> update opening trade
+                // still processing the same timeframe -> update opening trade
                 object prevCandle = this.safeValue(ohlcvs, candle);
                 object prevHigh = this.safeValue(prevCandle, i_high);
                 object prevLow = this.safeValue(prevCandle, i_low);
@@ -6838,7 +6838,7 @@ public partial class BaseExchange
         * @name exchange#fetchMarkOHLCV
         * @description fetches historical mark price candlestick data containing the open, high, low, and close price of a market
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframeVar the length of time each candle represents
+        * @param {string} timeframe the length of time each candle represents
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
         * @param {int} [limit] the maximum amount of candles to fetch
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6866,7 +6866,7 @@ public partial class BaseExchange
         * @name exchange#fetchIndexOHLCV
         * @description fetches historical index price candlestick data containing the open, high, low, and close price of a market
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframeVar the length of time each candle represents
+        * @param {string} timeframe the length of time each candle represents
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
         * @param {int} [limit] the maximum amount of candles to fetch
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6894,7 +6894,7 @@ public partial class BaseExchange
         * @name exchange#fetchPremiumIndexOHLCV
         * @description fetches historical premium index price candlestick data containing the open, high, low, and close price of a market
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-        * @param {string} timeframeVar the length of time each candle represents
+        * @param {string} timeframe the length of time each candle represents
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
         * @param {int} [limit] the maximum amount of candles to fetch
         * @param {object} [params] extra parameters specific to the exchange API endpoint

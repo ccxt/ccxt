@@ -2698,18 +2698,17 @@ public partial class poloniex : Exchange
 
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
-        object idVar = id;
         //
         // @method
         // @name poloniex#cancelOrder
         // @description cancels an open order
-        // @see https://api-docs.poloniex.com/spot/api/private/order#cancel-order-by-idVar
-        // @see https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-order-by-idVar  // trigger orders
-        // @param {string} idVar order idVar
+        // @see https://api-docs.poloniex.com/spot/api/private/order#cancel-order-by-id
+        // @see https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-order-by-id  // trigger orders
+        // @param {string} id order id
         // @param {string} symbol unified symbol of the market the order was made in
         // @param {object} [params] extra parameters specific to the exchange API endpoint
         // @param {boolean} [params.trigger] true if canceling a trigger order
-        // @returns {object} An [order structure]{@link https://docs.ccxt.com/?idVar=order-structure}
+        // @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         //
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2722,7 +2721,7 @@ public partial class poloniex : Exchange
         if (!(this.safeBool(market, "spot", false) == true))
         {
             request["symbol"] = (market.ContainsKey("id") ? market["id"] : null);
-            request["ordId"] = idVar;
+            request["ordId"] = id;
             Dictionary<string, object> raw = await this.swapPrivateDeleteV3TradeOrder(this.extend(request, parameters));
             //
             //    {
@@ -2737,7 +2736,7 @@ public partial class poloniex : Exchange
             return this.parseOrder(this.safeDict(raw, "data", new Dictionary<string, object>() {}));
         }
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
-        object idValue = ((clientOrderId != null)) ? clientOrderId : idVar;
+        object idValue = ((clientOrderId != null)) ? clientOrderId : id;
         request["id"] = idValue;
         bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clientOrderId", "trigger", "stop"}));

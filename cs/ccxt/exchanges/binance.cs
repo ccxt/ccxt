@@ -6900,7 +6900,7 @@ public partial class binance : Exchange
         {
             request["symbol"] = marketId;
         }
-        // const duration = this.parseTimeframe (timeframeVar);
+        // const duration = this.parseTimeframe (timeframe);
         if ((since != null))
         {
             request["startTime"] = since;

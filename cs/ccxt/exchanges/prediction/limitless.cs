@@ -1668,7 +1668,7 @@ public partial class limitless : PredictionExchange
             }
         }
         // the endpoint returns raw price points, not candles - bucket them into
-        // timeframeVar-aligned candles (single points would carry unaligned timestamps)
+        // timeframe-aligned candles (single points would carry unaligned timestamps)
         List<object> pseudoTrades = new List<object>() {};
         for (int i = 0; i < (history?.Count ?? 0); i++)
         {

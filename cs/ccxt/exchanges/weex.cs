@@ -1832,7 +1832,7 @@ public partial class weex : Exchange
         object limitResolved = ((limit == null)) ? null : Math.Min(limit.Value, 1000);
         // the recent-klines endpoints ignore startTime and endTime and only ever return the
         // latest candles, so a request bounded by since or until has to go through the history
-        // endpoint, which honours both (endTime = since + limit * timeframeVar when until is absent)
+        // endpoint, which honours both (endTime = since + limit * timeframe when until is absent)
         bool useHistory = (historical == true) || ((since != null)) || ((until != null));
         if (useHistory)
         {

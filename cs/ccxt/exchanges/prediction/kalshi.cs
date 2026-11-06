@@ -1403,7 +1403,7 @@ public partial class kalshi : PredictionExchange
         Int64? periodMin = this.safeInteger(this.timeframes, timeframeVar);
         if ((periodMin == null))
         {
-            // reject an unsupported timeframeVar locally instead of silently returning 1-minute candles.
+            // reject an unsupported timeframe locally instead of silently returning 1-minute candles.
             // hoist Object.keys(...).join(...) to a local — inline in a throw mangles in PHP
             List<object> tfKeys = new List<object>(this.timeframes.Keys);
             string supported = String.Join(", ", tfKeys.ToArray());

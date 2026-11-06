@@ -1609,7 +1609,7 @@ public partial class tokocrypto : Exchange
         {
             request["symbol"] = this.getMarketIdByType(market);
         }
-        // const duration = this.parseTimeframe (timeframeVar);
+        // const duration = this.parseTimeframe (timeframe);
         if ((since != null))
         {
             request["startTime"] = since;

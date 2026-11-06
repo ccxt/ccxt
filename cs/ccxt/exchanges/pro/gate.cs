@@ -1317,7 +1317,7 @@ public partial class gate : ccxt.gate
         // handleOHLCV keys the cache by findTimeframe (interval), so the
         // exchange interval id is mapped back to the cache key here -
         // this matters for aliased timeframes such as gate's '1w': '7d';
-        // an unsupported timeframeVar falls back to the caller's key, matching
+        // an unsupported timeframe falls back to the caller's key, matching
         // the previous no-op cleanup instead of an undefined cache key
         string? cacheTimeframe = this.findTimeframe(interval);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {

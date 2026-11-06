@@ -6794,11 +6794,11 @@ public partial class bitget : Exchange
         IDictionary<string, object> ohlcOptions = this.safeDict((this.options != null && this.options.ContainsKey("fetchOHLCV") ? this.options["fetchOHLCV"] : null), key, new Dictionary<string, object>() {});
         IDictionary<string, object> maxLimitPerTimeframe = this.safeDict(ohlcOptions, "maxLimitPerTimeframe", new Dictionary<string, object>() {});
         Int64? timeframeLimitValue = this.safeInteger(maxLimitPerTimeframe, timeframeVar);
-        // the per-timeframeVar cap only applies to a user-supplied limit
+        // the per-timeframe cap only applies to a user-supplied limit
         Int64? timeframeLimit = ((timeframeLimitValue == null)) ? maxLimitForRecentEndpoint : timeframeLimitValue;
         Int64? requestedLimit = ((limit == null)) ? defaultLimit : limit;
         Int64? limitCapped = ((requestedLimit > maxLimitForRecentEndpoint)) ? maxLimitForRecentEndpoint : requestedLimit;
-        // the per-timeframeVar cap only applies to a user-supplied limit
+        // the per-timeframe cap only applies to a user-supplied limit
         Int64? recentLimit = (((limit != null)) && ((limitCapped != null && (timeframeLimit == null || limitCapped > timeframeLimit)))) ? timeframeLimit : limitCapped;
         object limitResolved = recentLimit;
         Int64? recentDuration = (recentLimit * duration);

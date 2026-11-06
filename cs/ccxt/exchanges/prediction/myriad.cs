@@ -3112,7 +3112,7 @@ public partial class myriad : PredictionExchange
                 selectedOutcome = oc;
             }
         }
-        // price_charts is a list of { timeframeVar, prices } buckets, with a dict variant on some deployments
+        // price_charts is a list of { timeframe, prices } buckets, with a dict variant on some deployments
         object chart = null;
         List<object> chartsList = this.safeList(selectedOutcome, "price_charts");
         if ((chartsList != null))
