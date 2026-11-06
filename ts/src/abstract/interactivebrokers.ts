@@ -97,7 +97,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('v1/api/trsrv/futures', [ 'webapi' ], 'GET', params, { 'cost': 1 });
     }
 
-    webapiGetV1ApiIserverSecdefSearch (params = {}): Promise<Dict> {
+    webapiGetV1ApiIserverSecdefSearch (params = {}): Promise<List> {
         return this.request ('v1/api/iserver/secdef/search', [ 'webapi' ], 'GET', params, { 'cost': 1 });
     }
 
@@ -449,7 +449,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('v1/api/iserver/contract/rules', [ 'webapi' ], 'POST', params, { 'cost': 1 });
     }
 
-    webapiPostV1ApiIserverSecdefSearch (params = {}): Promise<Dict> {
+    webapiPostV1ApiIserverSecdefSearch (params = {}): Promise<List> {
         return this.request ('v1/api/iserver/secdef/search', [ 'webapi' ], 'POST', params, { 'cost': 1 });
     }
 
