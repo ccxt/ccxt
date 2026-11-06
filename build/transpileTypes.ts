@@ -36,7 +36,7 @@ const TYPES_PATH = path.join ('ts', 'src', 'base', 'types.ts');
 
 async function loadEmitters (only: string | undefined): Promise<LanguageEmitter[]> {
     const all: LanguageEmitter[] = [];
-    const ids = [ 'python', 'csharp', 'go', 'java' ];
+    const ids = [ 'python', 'csharp', 'go', 'java', 'cpp' ];
     for (let i = 0; i < ids.length; i++) {
         const id = ids[i];
         if (only !== undefined && only !== id) {
