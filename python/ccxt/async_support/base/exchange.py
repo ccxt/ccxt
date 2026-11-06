@@ -360,18 +360,16 @@ class BaseExchange(SyncExchange):
             coroutine = self.load_markets_helper(reload, params)
             # coroutines can only be awaited once so we wrap it in a task
             self.markets_loading = asyncio.ensure_future(coroutine)
-        try:
-            result = await self.markets_loading
-        except asyncio.CancelledError as e:  # CancelledError is a base exception so we need to catch it explicitly
-            self.reloading_markets = False
-            self.markets_loading = None
-            raise e
-        except Exception as e:
-            self.reloading_markets = False
-            self.markets_loading = None
-            raise e
-        self.reloading_markets = False
-        return result
+            def _clear_loading(fut):
+                self.reloading_markets = False
+                if fut.cancelled():
+                    self.markets_loading = None
+                else:
+                    exc = fut.exception()
+                    if exc is not None:
+                        self.markets_loading = None
+            self.markets_loading.add_done_callback(_clear_loading)
+        return await asyncio.shield(self.markets_loading)
 
     async def fetch_markets(self, params={}):
         # markets are returned as a list
@@ -513,7 +511,7 @@ class BaseExchange(SyncExchange):
         backoff_delay = self.ws_dial_delay(url)
         client = self.client(url)
         if subscribe_hash is None and message_hash in client.futures:
-            return client.futures[message_hash]
+            return client.future(message_hash)
         future = client.future(message_hash)
 
         subscribed = client.subscriptions.get(subscribe_hash)
