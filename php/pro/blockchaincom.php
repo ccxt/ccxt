@@ -118,7 +118,16 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         if ($event === 'subscribed') {
             return;
         }
-        $result = array( 'info' => $message );
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773)
+        if ($this->balance === null) {
+            $this->balance = array();
+        }
+        $this->balance['info'] = $message;
         $balances = $this->safe_list($message, 'balances', array());
         for ($i = 0; $i < count($balances); $i++) {
             $entry = $this->safe_dict($balances, $i);
@@ -128,11 +137,11 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             $account['free'] = $this->safe_string($entry, 'available');
             $account['total'] = $this->safe_string($entry, 'balance');
             if ($code !== null) {
-                $result[$code] = $account;
+                $this->balance[$code] = $account;
             }
         }
         $messageHash = 'balance';
-        $this->balance = $this->safe_balance($result);
+        $this->balance = $this->safe_balance($this->balance);
         $client->resolve($this->balance, $messageHash);
     }
 
@@ -772,7 +781,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $bookside->storeArray($bookArray);
     }
 
-    public function handle_deltas(mixed $bookside, mixed $deltas) {
+    public function handle_deltas(mixed $bookside, array $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
@@ -834,7 +843,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
                 'channel' => 'auth',
                 'token' => $this->secret,
             );
-            return $this->watch($url, $messageHash, $this->extend($request, $params), $messageHash);
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
         }
         return Async\await($future);
     }

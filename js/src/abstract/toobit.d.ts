@@ -8,9 +8,9 @@ declare abstract class Exchange extends _Exchange {
     commonGetQuoteV1DepthMerged(params?: {}): Promise<Dict>;
     commonGetQuoteV1Trades(params?: {}): Promise<List>;
     commonGetQuoteV1Klines(params?: {}): Promise<List>;
-    commonGetQuoteV1IndexKlines(params?: {}): Promise<List>;
+    commonGetQuoteV1IndexKlines(params?: {}): Promise<Dict>;
     commonGetQuoteV1IndexPriceComponents(params?: {}): Promise<Dict>;
-    commonGetQuoteV1MarkPriceKlines(params?: {}): Promise<List>;
+    commonGetQuoteV1MarkPriceKlines(params?: {}): Promise<Dict>;
     commonGetQuoteV1MarkPrice(params?: {}): Promise<Dict>;
     commonGetQuoteV1Index(params?: {}): Promise<Dict>;
     commonGetQuoteV1Ticker24hr(params?: {}): Promise<List>;

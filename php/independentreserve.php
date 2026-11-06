@@ -396,7 +396,7 @@ class independentreserve extends Exchange {
                         ),
                     ),
                     'created' => null,
-                    'info' => $id,
+                    'info' => array( 'primaryCurrencyCode' => $baseId, 'secondaryCurrencyCode' => $quoteId ),
                 );
             }
         }
@@ -649,7 +649,7 @@ class independentreserve extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'Open' => 'open',
             'PartiallyFilled' => 'open',
@@ -663,7 +663,7 @@ class independentreserve extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_time_in_force(?string $timeInForce) {
+    public function parse_time_in_force(?string $timeInForce): ?string {
         $timeInForces = array(
             'Gtc' => 'GTC',
             'Moc' => 'PO',
@@ -713,10 +713,7 @@ class independentreserve extends Exchange {
             $request['primaryCurrencyCode'] = $market['baseId'];
             $request['secondaryCurrencyCode'] = $market['quoteId'];
         }
-        $limitResolved = $limit;
-        if ($limitResolved === null) {
-            $limitResolved = 50;
-        }
+        $limitResolved = ($limit === null) ? 50 : $limit;
         $request['pageIndex'] = 1;
         $request['pageSize'] = $limitResolved;
         $response = $this->privatePostGetOpenOrders($this->extend($request, $params));
@@ -743,10 +740,7 @@ class independentreserve extends Exchange {
             $request['primaryCurrencyCode'] = $market['baseId'];
             $request['secondaryCurrencyCode'] = $market['quoteId'];
         }
-        $limitResolved = $limit;
-        if ($limitResolved === null) {
-            $limitResolved = 50;
-        }
+        $limitResolved = ($limit === null) ? 50 : $limit;
         $request['pageIndex'] = 1;
         $request['pageSize'] = $limitResolved;
         $response = $this->privatePostGetClosedOrders($this->extend($request, $params));
@@ -1132,7 +1126,7 @@ class independentreserve extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, array $api = array('public'), $method = 'GET', $params = array()): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiName = $api[0];
         $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
@@ -1172,6 +1166,7 @@ class independentreserve extends Exchange {
             $signedHeaders = array( 'Content-Type' => 'application/json' );
             return array( 'url' => $url, 'method' => $method, 'body' => $signedBody, 'headers' => $signedHeaders );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
+        $headers = array();
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => $headers );
     }
 }

@@ -4,7 +4,7 @@ import Client from '../base/ws/Client.js';
 export default class hashkey extends hashkeyRest {
     describe(): any;
     wathPublic(market: Market, topic: string, messageHash: string, params?: Dict): Promise<any>;
-    watchPrivate(messageHash: any): Promise<any>;
+    watchPrivate(messageHash: string): Promise<any>;
     getPrivateUrl(listenKey: Str): string;
     /**
      * @method

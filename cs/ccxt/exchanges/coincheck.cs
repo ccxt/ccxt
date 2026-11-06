@@ -1204,7 +1204,7 @@ public partial class coincheck : Exchange
         //     {"success":false,"error":"invalid authentication"}
         //
         bool? success = this.safeBool(response, "success", true);
-        if ((success != true))
+        if (success != true)
         {
             string? error = this.safeString(response, "error");
             string feedback = ((this.id + " ") + this.json(response));

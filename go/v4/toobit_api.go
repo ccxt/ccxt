@@ -42,9 +42,9 @@ func (this *Toobit) CommonGetQuoteV1Klines(args ...any) <-chan EndpointResult[[]
 	return Fetch2Result[[]any](this, "quote/v1/klines", []string{"common"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// CommonGetQuoteV1IndexKlines returns a channel that yields a JSON array.
-func (this *Toobit) CommonGetQuoteV1IndexKlines(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "quote/v1/index/klines", []string{"common"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+// CommonGetQuoteV1IndexKlines returns a channel that yields a JSON object.
+func (this *Toobit) CommonGetQuoteV1IndexKlines(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "quote/v1/index/klines", []string{"common"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // CommonGetQuoteV1IndexPriceComponents returns a channel that yields a JSON object.
@@ -52,9 +52,9 @@ func (this *Toobit) CommonGetQuoteV1IndexPriceComponents(args ...any) <-chan End
 	return Fetch2Result[map[string]any](this, "quote/v1/indexPriceComponents", []string{"common"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// CommonGetQuoteV1MarkPriceKlines returns a channel that yields a JSON array.
-func (this *Toobit) CommonGetQuoteV1MarkPriceKlines(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "quote/v1/markPrice/klines", []string{"common"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+// CommonGetQuoteV1MarkPriceKlines returns a channel that yields a JSON object.
+func (this *Toobit) CommonGetQuoteV1MarkPriceKlines(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "quote/v1/markPrice/klines", []string{"common"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // CommonGetQuoteV1MarkPrice returns a channel that yields a JSON object.

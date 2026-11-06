@@ -52,7 +52,22 @@
                 "method": "fetchCrossBorrowRate",
                 "url": "https://api.kucoin.com/api/ua/v1/account/interest-limits?currency=ETH",
                 "input": [
-                    "ETH"
+                    "ETH",
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch cross borrow rate classic account",
+                "method": "fetchCrossBorrowRate",
+                "url": "https://api.kucoin.com/api/v3/margin/borrowRate?currency=ETH",
+                "input": [
+                    "ETH",
+                    {
+                        "uta": false
+                    }
                 ],
                 "output": null
             }
@@ -2243,13 +2258,24 @@
             {
                 "description": "uta orderbook",
                 "method": "fetchOrderBook",
-                "url": "https://api.kucoin.com/api/ua/v1/market/orderbook?symbol=BTC-USDT&tradeType=SPOT&limit=20",
+                "url": "https://api.kucoin.com/api/ua/v2/market/orderbook?symbol=BTC-USDT&limit=20&tradeType=SPOT",
                 "input": [
                     "BTC/USDT",
                     20,
                     {
-                        "uta": true,
-                        "tradeType": "SPOT"
+                        "uta": true
+                    }
+                ]
+            },
+            {
+                "description": "uta swap orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.kucoin.com/api/ua/v2/market/orderbook?symbol=XBTUSDTM&limit=5&tradeType=FUTURES",
+                "input": [
+                    "BTC/USDT:USDT",
+                    5,
+                    {
+                        "uta": true
                     }
                 ]
             }

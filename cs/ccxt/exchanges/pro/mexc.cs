@@ -179,7 +179,6 @@ public partial class mexc : ccxt.mexc
         //         "s": "BTCUSDT"
         //     }
         //
-        this.handleBidAsk(client, message);
         IDictionary<string, object> rawTicker = this.safeDictN(message, new List<object>() {"d", "data", "publicAggreBookTicker"});
         string? marketId = this.safeString2(message, "s", "symbol");
         Int64? timestamp = this.safeInteger2(message, "t", "sendTime");
@@ -188,6 +187,7 @@ public partial class mexc : ccxt.mexc
         Dictionary<string, object> ticker = null;
         if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
         {
+            this.handleBidAsk(client, message); // the bids-asks channel is spot only
             ticker = ccxt.BaseExchange.FromTicker(this.parseWsTicker(rawTicker, market));
             ticker["timestamp"] = timestamp;
             ticker["datetime"] = this.iso8601(timestamp);
@@ -344,7 +344,7 @@ public partial class mexc : ccxt.mexc
             {
                 ticker = ccxt.BaseExchange.FromTicker(this.parseTicker(entry));
             }
-            string? symbol = ((string)GetValue(ticker, "symbol"));
+            string? symbol = ((string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null));
             if ((symbol != null))
             {
                 this.tickers[(string)symbol] = ticker;
@@ -480,6 +480,22 @@ public partial class mexc : ccxt.mexc
     public virtual void handleBidAsk(WebSocketClient client, object message)
     {
         //
+        // protobuf
+        //
+        //    {
+        //        "channel": "spot@public.aggre.bookTicker.v3.api.pb@100ms@BTCUSDT",
+        //        "symbol": "BTCUSDT",
+        //        "sendTime": "1792779974344",
+        //        "publicAggreBookTicker": {
+        //            "bidPrice": "81577.79",
+        //            "bidQuantity": "0.11985594",
+        //            "askPrice": "81577.8",
+        //            "askQuantity": "0.12200121"
+        //        }
+        //    }
+        //
+        // retired json channel
+        //
         //    {
         //        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
         //        "d": {
@@ -505,19 +521,19 @@ public partial class mexc : ccxt.mexc
 
     public virtual Dictionary<string, object> parseWsBidAsk(object ticker, IDictionary<string, object> market = null)
     {
-        IDictionary<string, object> data = this.safeDict(ticker, "d");
-        string? marketId = this.safeString(ticker, "s");
+        IDictionary<string, object> data = this.safeDictN(ticker, new List<object>() {"d", "data", "publicAggreBookTicker"});
+        string? marketId = this.safeString2(ticker, "s", "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = this.safeString(marketResolved, "symbol");
-        Int64? timestamp = this.safeInteger(ticker, "t");
+        Int64? timestamp = this.safeInteger2(ticker, "t", "sendTime");
         return ccxt.BaseExchange.FromTicker(this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "ask", this.safeNumber(data, "a") },
-            { "askVolume", this.safeNumber(data, "A") },
-            { "bid", this.safeNumber(data, "b") },
-            { "bidVolume", this.safeNumber(data, "B") },
+            { "ask", this.safeNumber2(data, "a", "askPrice") },
+            { "askVolume", this.safeNumber2(data, "A", "askQuantity") },
+            { "bid", this.safeNumber2(data, "b", "bidPrice") },
+            { "bidVolume", this.safeNumber2(data, "B", "bidQuantity") },
             { "info", ticker },
         }, marketResolved));
     }
@@ -526,7 +542,7 @@ public partial class mexc : ccxt.mexc
     {
         parameters ??= new Dictionary<string, object>();
         bool? unsubscribed = this.safeBool(parameters, "unsubscribed", false);
-        object paramsOmitted = this.omit(parameters, new List<object>() {"unsubscribed"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"unsubscribed"}));
         string? url = ((string)getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), "spot"));
         string method = "SUBSCRIPTION";
         if ((unsubscribed == true))
@@ -537,7 +553,10 @@ public partial class mexc : ccxt.mexc
             { "method", method },
             { "params", new List<object>() {channel} },
         };
-        return await this.watch(url, messageHash, this.extend(request, paramsOmitted), messageHash);
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
+            { "channel", channel },
+        };
+        return await this.watch(url, messageHash, this.extend(request, paramsOmitted), messageHash, subscription);
     }
 
     public async virtual Task<object> watchSpotPrivate(string? channel, string? messageHash, object parameters = null)
@@ -845,12 +864,15 @@ public partial class mexc : ccxt.mexc
 
     public virtual void handleOrderBookSubscription(WebSocketClient client, Dictionary<string, object> message)
     {
-        // spot
+        // the ack echoes the subscribed channel, the market id is always its last segment
+        //
+        //     { id: 0, code: 0, msg: "spot@public.aggre.depth.v3.api.pb@100ms@BTCUSDT" }
         //     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         //
         string? msg = this.safeString(message, "msg", "");
         List<object> parts = msg.Split(new [] {"@"}, StringSplitOptions.None).ToList<object>();
-        string? marketId = this.safeString(parts, 2);
+        int partsLength = parts.Count; // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        string? marketId = this.safeString(parts, (partsLength - 1));
         string? symbol = this.safeSymbol(marketId);
         if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
         {
@@ -871,7 +893,7 @@ public partial class mexc : ccxt.mexc
         {
             return -1;
         }
-        if ((nonce < (firstDeltaNonce - 1)))
+        if (((nonce != null)) && ((firstDeltaNonce != null)) && ((nonce < (firstDeltaNonce - 1))))
         {
             return -1;
         }
@@ -2292,11 +2314,43 @@ public partial class mexc : ccxt.mexc
         //        "code": 0,
         //        "msg": "spot@public.increase.depth.v3.api@BTCUSDT"
         //    }
+        //
+        // a rejected subscription answers with code 0 as well, the failure is only in the text
+        //
+        //    {
+        //        "id": 0,
+        //        "code": 0,
+        //        "msg": "Not Subscribed successfully! [spot@public.aggre.depth.v3.api.pb@999ms@BTCUSDT].  Reason： Blocked! "
+        //    }
+        //
         // Set the default to an empty string if the message is empty during the test.
         string? msg = this.safeString(message, "msg", "");
         if (msg == "PONG")
         {
             this.handlePong(client, message);
+        } else if ((msg?.IndexOf("Not Subscribed successfully", StringComparison.Ordinal) ?? -1) > -1)
+        {
+            // the venue names the refused channel between brackets, reject only that watcher
+            // and drop its subscription so a corrected retry sends a new frame
+            var error = new ExchangeError(((this.id + " ") + msg));
+            List<object> subscriptionHashes = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
+            bool rejected = false;
+            for (int i = 0; i < subscriptionHashes.Count; i++)
+            {
+                string? subscriptionHash = ((string)subscriptionHashes[i]);
+                string? subscribedChannel = this.safeString((client.subscriptions != null && subscriptionHash != null && client.subscriptions.ContainsKey(subscriptionHash) ? client.subscriptions[subscriptionHash] : null), "channel");
+                if (((subscribedChannel != null)) && (getIndexOf(msg, (("[" + subscribedChannel) + "]")) >= 0))
+                {
+                    ((IDictionary<string,object>)client.subscriptions).Remove(subscriptionHash);
+                    client.reject(error, subscriptionHash);
+                    rejected = true;
+                }
+            }
+            if (!rejected)
+            {
+                // nothing matched, the caller would hang otherwise
+                client.reject(error);
+            }
         } else if ((msg?.IndexOf("@", StringComparison.Ordinal) ?? -1) > -1)
         {
             List<object> parts = msg.Split(new [] {"@"}, StringSplitOptions.None).ToList<object>();

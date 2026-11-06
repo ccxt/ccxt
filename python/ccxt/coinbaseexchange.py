@@ -1249,16 +1249,17 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         until = self.safe_value_2(paramsPaginate, 'until', 'end')
         paramsOmitted = self.omit(paramsPaginate, ['until'])
         # https://docs.pro.coinbase.com/#get-historic-rates max = 300
-        cappedLimit = 300 if (limit is None) else min(300, limit)
+        cappedLimit = self.parse_to_int(300 if (limit is None) else min(limit, 300))
         limitResolved = cappedLimit if (since is not None) else limit
         if since is not None:
             request['start'] = self.iso8601(since)
             if until is None:
-                parsedTimeframeMilliseconds = parsedTimeframe * 1000
-                if self.is_round_number(since % parsedTimeframeMilliseconds):
-                    request['end'] = self.iso8601(self.sum((cappedLimit - 1) * parsedTimeframeMilliseconds, since))
-                else:
-                    request['end'] = self.iso8601(self.sum(cappedLimit * parsedTimeframeMilliseconds, since))
+                if parsedTimeframe is not None:
+                    parsedTimeframeMilliseconds = parsedTimeframe * 1000
+                    if self.is_round_number(since % parsedTimeframeMilliseconds):
+                        request['end'] = self.iso8601(self.sum((cappedLimit * parsedTimeframeMilliseconds) - parsedTimeframeMilliseconds, since))
+                    else:
+                        request['end'] = self.iso8601(self.sum(cappedLimit * parsedTimeframeMilliseconds, since))
             else:
                 request['end'] = self.iso8601(until)
         response = self.publicGetProductsIdCandles(self.extend(request, paramsOmitted))
@@ -1286,7 +1287,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         #
         return self.safe_timestamp(response, 'epoch')
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'pending': 'open',
             'active': 'open',
@@ -1533,7 +1534,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         if timeInForce is not None:
             request['time_in_force'] = timeInForce
         postOnly = self.safe_bool_2(params, 'postOnly', 'post_only', False)
-        if postOnly is True:
+        if postOnly:
             request['post_only'] = True
         paramsOmitted = self.omit(params, ['timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice'])
         costParam = self.safe_number_2(paramsOmitted, 'cost', 'funds')
@@ -1975,7 +1976,8 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(transaction, 'created_at'))
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        amount = self.safe_number(transaction, 'amount')
+        amountRaw = self.safe_number(transaction, 'amount')
+        amount = amountRaw
         type = self.safe_string(transaction, 'type')
         address = self.safe_string(details, 'crypto_address')
         address = self.safe_string(transaction, 'crypto_address', address)
@@ -1989,8 +1991,8 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             address = self.safe_string(details, 'sent_to_address', address)
             feeCost = self.safe_number(details, 'fee')
             if feeCost is not None:
-                if amount is not None:
-                    amount -= feeCost
+                if amountRaw is not None:
+                    amount = amountRaw - feeCost
                 fee['cost'] = feeCost
                 fee['currency'] = code
         networkId = self.safe_string(details, 'network')
@@ -2054,7 +2056,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         apiName = api[0]
         requestHeaders = None
         requestBody = None

@@ -348,6 +348,75 @@ impl OrderBook {
     }
 }
 
+/// One level-3 (per-order) book entry: `[price, amount, orderId]`.
+#[derive(Debug, Clone, Default)]
+pub struct OrderBookL3Entry {
+    pub price:    f64,
+    pub amount:   f64,
+    pub order_id: Option<String>,
+}
+
+/// A unified level-3 (per-order, non-aggregated) order-book snapshot.
+#[derive(Debug, Clone, Default)]
+pub struct OrderBookL3 {
+    pub symbol:    Option<String>,
+    pub timestamp: Option<i64>,
+    pub datetime:  Option<String>,
+    pub bids:      Vec<OrderBookL3Entry>,
+    pub asks:      Vec<OrderBookL3Entry>,
+    pub nonce:     Option<i64>,
+    pub raw:       Value,
+}
+
+impl OrderBookL3 {
+    pub fn from_value(v: Value) -> Self {
+        use crate::value::{safe_string, safe_integer, get_value};
+        let mut ob = OrderBookL3::default();
+        ob.symbol    = safe_string(&v, "symbol",    None);
+        ob.timestamp = safe_integer(&v, "timestamp", None);
+        ob.datetime  = safe_string(&v, "datetime",  None);
+        ob.nonce     = safe_integer(&v, "nonce",    None);
+        // Rows are `[price, amount, orderId]`. Rows whose price/amount are not
+        // parseable numbers are dropped (same policy as `OrderBook`).
+        let extract_side = |key: &str| -> Vec<OrderBookL3Entry> {
+            let side = get_value(&v, &Value::Str(key.to_string().into()));
+            match side {
+                Value::Arr(rows) => rows.iter().filter_map(|row| {
+                    let num = |cell: Option<&Value>| -> f64 {
+                        match cell {
+                            Some(Value::Float(f)) => *f,
+                            Some(Value::Int(n))   => *n as f64,
+                            Some(Value::Str(s))   => s.parse().unwrap_or(f64::NAN),
+                            _ => f64::NAN,
+                        }
+                    };
+                    let r = match row {
+                        Value::Arr(r) => r,
+                        _ => return None,
+                    };
+                    let price  = num(r.first());
+                    let amount = num(r.get(1));
+                    if price.is_nan() || amount.is_nan() {
+                        return None;
+                    }
+                    let order_id = match r.get(2) {
+                        Some(Value::Str(s))   => Some(s.to_string()),
+                        Some(Value::Int(n))   => Some(n.to_string()),
+                        Some(Value::Float(f)) => Some(f.to_string()),
+                        _ => None,
+                    };
+                    Some(OrderBookL3Entry { price, amount, order_id })
+                }).collect(),
+                _ => Vec::new(),
+            }
+        };
+        ob.bids = extract_side("bids");
+        ob.asks = extract_side("asks");
+        ob.raw  = v;
+        ob
+    }
+}
+
 /// A unified OHLCV candle: [timestamp, open, high, low, close, volume].
 pub type OHLCV = [f64; 6];
 
@@ -487,6 +556,7 @@ pub struct Position {
     pub liquidation_price: Option<f64>,
     pub unrealized_pnl:   Option<f64>,
     pub realized_pnl:     Option<f64>,
+    pub position_margin: Option<f64>,
     pub collateral:       Option<f64>,
     pub leverage:         Option<f64>,
     /// Unified `marginMode` ("cross" | "isolated").
@@ -524,6 +594,7 @@ impl Position {
         p.liquidation_price = safe_number(&v, "liquidationPrice", None);
         p.unrealized_pnl = safe_number(&v, "unrealizedPnl", None);
         p.realized_pnl   = safe_number(&v, "realizedPnl",   None);
+        p.position_margin = safe_number(&v, "positionMargin", None);
         p.collateral     = safe_number(&v, "collateral",   None);
         p.leverage       = safe_number(&v, "leverage",     None);
         p.margin_mode    = safe_string(&v, "marginMode",   None);

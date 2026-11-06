@@ -49,12 +49,12 @@ func (this *Binanceusdm) Describe() any {
 		},
 	})
 }
-func (this *Binanceusdm) TransferInAsync(code any, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Binanceusdm) TransferInAsync(code any, amount any, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferInBody(ch, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Binanceusdm) transferInBody(ch chan AsyncResult[any], code any, amount any, optionalArgs ...any) any {
+func (this *Binanceusdm) transferInBody(ch chan AsyncResult[TransferEntry], code any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// transfer from spot wallet to usdm futures wallet
@@ -65,15 +65,15 @@ func (this *Binanceusdm) transferInBody(ch chan AsyncResult[any], code any, amou
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- AsyncResult[any]{Value: r.Raw}
+	ch <- AsyncResult[TransferEntry]{Value: r.Value}
 	return nil
 }
-func (this *Binanceusdm) TransferOutAsync(code any, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Binanceusdm) TransferOutAsync(code any, amount any, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferOutBody(ch, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Binanceusdm) transferOutBody(ch chan AsyncResult[any], code any, amount any, optionalArgs ...any) any {
+func (this *Binanceusdm) transferOutBody(ch chan AsyncResult[TransferEntry], code any, amount any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// transfer from usdm futures wallet to spot wallet
@@ -84,7 +84,7 @@ func (this *Binanceusdm) transferOutBody(ch chan AsyncResult[any], code any, amo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- AsyncResult[any]{Value: r.Raw}
+	ch <- AsyncResult[TransferEntry]{Value: r.Value}
 	return nil
 }
 
@@ -112,7 +112,7 @@ func (this *Binanceusdm) TransferIn(code string, amount float64, options ...Tran
 	if r.Err != nil {
 		return TransferEntry{}, r.Err
 	}
-	var res TransferEntry = NewTransferEntry(r.Value)
+	var res TransferEntry = r.Value
 	return res, nil
 }
 func (this *Binanceusdm) TransferOut(code string, amount float64, options ...TransferOutOptions) (TransferEntry, error) {
@@ -126,6 +126,6 @@ func (this *Binanceusdm) TransferOut(code string, amount float64, options ...Tra
 	if r.Err != nil {
 		return TransferEntry{}, r.Err
 	}
-	var res TransferEntry = NewTransferEntry(r.Value)
+	var res TransferEntry = r.Value
 	return res, nil
 }

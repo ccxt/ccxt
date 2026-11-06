@@ -137,9 +137,17 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         {
             return;
         }
-        Map<String, Object> result = new HashMap<String, Object>() {{
-            put( "info", message );
-        }};
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773)
+        if (java.util.Objects.equals(this.balance, null))
+        {
+            this.balance = new HashMap<String, Object>() {{}};
+        }
+        Helpers.addElementToObject(this.balance, "info", message);
         List<Object> balances = (List<Object>) this.safeList(message, "balances", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < ((List<?>)balances).size(); i++)
         {
@@ -151,11 +159,11 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             account.put("total", this.safeString(entry, "balance"));
             if (!java.util.Objects.equals(code, null))
             {
-                result.put(code, account);
+                Helpers.addElementToObject(this.balance, code, account);
             }
         }
         String messageHash = "balance";
-        this.balance = this.safeBalance(result);
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, messageHash);
     }
 
@@ -321,17 +329,17 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         String marketId = this.safeString(message, "symbol");
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
-        Object ticker = null;
+        Map<String, Object> ticker = null;
         if (java.util.Objects.equals(eventVar, "subscribed"))
         {
             return;
         } else if (java.util.Objects.equals(eventVar, "snapshot"))
         {
-            ticker = this.parseTicker(message, market);
+            ticker = (Map<String, Object>) this.parseTicker(message, market);
         } else if (java.util.Objects.equals(eventVar, "updated"))
         {
             Map<String, Object> lastTicker = (Map<String, Object>) this.safeDict(this.tickers, symbol, (Object) null);
-            ticker = this.parseWsUpdatedTicker((Map<String, Object>) (message), lastTicker, market);
+            ticker = (Map<String, Object>) this.parseWsUpdatedTicker((Map<String, Object>) (message), lastTicker, market);
         }
         String messageHash = ("ticker:" + symbol);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
@@ -454,7 +462,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (message), market);
         stored.append(parsed);
         Helpers.addElementToObject(this.trades, symbol, stored);
-        client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
+        client.resolve((symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol)), messageHash);
     }
 
     public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
@@ -848,9 +856,9 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+        for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
-            this.handleDelta(bookside, Helpers.GetValue(deltas, i));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
         }
     }
 
@@ -916,7 +924,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
                     put( "channel", "auth" );
                     put( "token", Blockchaincom.this.secret );
                 }};
-                return this.watch(url, messageHash, this.extend(request, parameters), messageHash, null);
+                return (this.watch(url, messageHash, this.extend(request, parameters), messageHash, null)).join();
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
         });

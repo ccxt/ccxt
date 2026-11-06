@@ -251,7 +251,7 @@ public class Coincheck extends io.github.ccxt.exchanges.Coincheck
 
     public void handleMessage(Client client, Object message)
     {
-        Object data = this.safeValue(message, 0);
+        List<Object> data = (List<Object>) this.safeList(message, 0, (Object) null);
         if (!(data instanceof List))
         {
             this.handleOrderBook(client, message);

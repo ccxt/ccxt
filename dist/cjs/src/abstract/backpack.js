@@ -48,6 +48,15 @@ class Exchange extends Exchange$1["default"] {
     publicGetApiV1MarketHolidays(params = {}) {
         return this.request('api/v1/market-holidays', ['public'], 'GET', params, { 'cost': 1 });
     }
+    publicGetApiV1StockSessions(params = {}) {
+        return this.request('api/v1/stockSessions', ['public'], 'GET', params, { 'cost': 1 });
+    }
+    publicGetApiV1StockHolidays(params = {}) {
+        return this.request('api/v1/stockHolidays', ['public'], 'GET', params, { 'cost': 1 });
+    }
+    publicGetApiV1StockIndicativeQuote(params = {}) {
+        return this.request('api/v1/stockIndicativeQuote', ['public'], 'GET', params, { 'cost': 1 });
+    }
     publicGetApiV1Securities(params = {}) {
         return this.request('api/v1/securities', ['public'], 'GET', params, { 'cost': 1 });
     }
@@ -194,9 +203,6 @@ class Exchange extends Exchange$1["default"] {
     }
     privatePostApiV1RfqAccept(params = {}) {
         return this.request('api/v1/rfq/accept', ['private'], 'POST', params, { 'cost': 1 });
-    }
-    privatePostApiV1RfqRefresh(params = {}) {
-        return this.request('api/v1/rfq/refresh', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostApiV1RfqCancel(params = {}) {
         return this.request('api/v1/rfq/cancel', ['private'], 'POST', params, { 'cost': 1 });

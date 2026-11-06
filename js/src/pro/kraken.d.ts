@@ -128,6 +128,26 @@ export default class kraken extends krakenRest {
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
+     * @name kraken#unWatchTrades
+     * @description stop watching the list of most recent trades for a particular symbol
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+     * @param {string} symbol unified symbol of the market to stop watching the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
+    /**
+     * @method
+     * @name kraken#unWatchTradesForSymbols
+     * @description stop watching the list of most recent trades for a list of symbols
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+     * @param {string[]} symbols unified symbols of the markets to stop watching the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    unWatchTradesForSymbols(symbols: string[], params?: Dict): Promise<any>;
+    /**
+     * @method
      * @name kraken#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/book
@@ -161,6 +181,17 @@ export default class kraken extends krakenRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
+    /**
+     * @method
+     * @name kraken#unWatchOHLCV
+     * @description stop watching historical candlestick data for a market
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ohlc
+     * @param {string} symbol unified symbol of the market to stop watching the candles for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
     loadMarkets(reload?: boolean, params?: Dict): Promise<import("../base/types.js").Dictionary<Market>>;
     ping(client: Client): Dict;
     handlePong(client: Client, message: Dict): Dict;
@@ -213,6 +244,7 @@ export default class kraken extends krakenRest {
     handleBalance(client: Client, message: Dict): void;
     getMessageHash(unifiedElementName: string, subChannelName?: Str, symbol?: Str): string;
     handleSubscriptionStatus(client: Client, message: Dict): void;
+    handleUnsubscriptionStatus(client: Client, message: Dict): Dict;
     handleErrorMessage(client: Client, message: Dict): Bool;
     handleMessage(client: Client, message: Dict): void;
 }

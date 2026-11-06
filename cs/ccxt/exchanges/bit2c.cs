@@ -1203,7 +1203,7 @@ public partial class bit2c : Exchange
         string url = ((apiUrl + "/") + this.implodeParams(path, parameters));
         string? requestBody = null;
         Dictionary<string, object> requestHeaders = null;
-        if (isEqual(getValue(api, 0), "public"))
+        if ((getValue(api, 0) is "public"))
         {
             url = url + ".json";
         } else

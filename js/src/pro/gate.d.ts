@@ -276,6 +276,19 @@ export default class gate extends gateRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
+    /**
+     * @method
+     * @name gate#unWatchOHLCV
+     * @see https://www.gate.com/docs/developers/apiv4/ws/en/#candlesticks-channel
+     * @see https://www.gate.com/docs/developers/futures/ws/en/#candlesticks-api
+     * @see https://www.gate.com/docs/developers/delivery/ws/en/#candlesticks-api
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unsubscription request
+     */
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
     handleOHLCV(client: Client, message: Dict): void;
     /**
      * @method

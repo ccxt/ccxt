@@ -547,7 +547,7 @@
                         "posSide": "long"
                     }
                 ],
-                "output": { "instId": "BTC-USDT-SWAP", "side": "sell", "ordType": "move_order_stop", "sz": "1", "tdMode": "cross", "callbackSpread": "100", "clOrdId": "6b9ad766b55dBCDE7633f9e8e410983c", "tag": "6b9ad766b55dBCDE", "trailingPrice": "100", "reduceOnly": true, "posSide": "long" }
+                "output": { "instId": "BTC-USDT-SWAP", "side": "sell", "ordType": "move_order_stop", "sz": "1", "tdMode": "cross", "callbackSpread": "100", "clOrdId": "6b9ad766b55dBCDE7633f9e8e410983c", "tag": "6b9ad766b55dBCDE", "reduceOnly": true, "posSide": "long" }
             },
             {
                 "description": "spot limit sell with selfTradePrevention",
@@ -2254,10 +2254,33 @@
             {
                 "description": "fetch funding history linear swap",
                 "method": "fetchFundingHistory",
-                "url": "https://www.okx.com/api/v5/account/bills-archive?type=8&ctType=linear&ccy=USDT&instType=SWAP",
+                "url": "https://www.okx.com/api/v5/account/bills-archive?type=8&instId=BTC-USDT-SWAP&ctType=linear&ccy=USDT&instType=SWAP",
                 "input": [
                     "BTC/USDT:USDT",
                     null,
+                    null
+                ]
+            },
+            {
+                "description": "fetch funding history linear swap with since and until",
+                "method": "fetchFundingHistory",
+                "url": "https://www.okx.com/api/v5/account/bills-archive?type=8&instId=BTC-USDT-SWAP&ctType=linear&ccy=USDT&begin=1792368000000&end=1792454400000&instType=SWAP",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1792368000000,
+                    null,
+                    {
+                        "until": 1792454400000
+                    }
+                ]
+            },
+            {
+                "description": "fetch funding history inverse swap with since",
+                "method": "fetchFundingHistory",
+                "url": "https://www.okx.com/api/v5/account/bills-archive?type=8&instId=BTC-USD-SWAP&ctType=inverse&ccy=BTC&begin=1792368000000&instType=SWAP",
+                "input": [
+                    "BTC/USD:BTC",
+                    1792368000000,
                     null
                 ]
             }

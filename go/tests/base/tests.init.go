@@ -18,7 +18,6 @@ func baseTestsInitBody(ch chan ccxt.AsyncResult[any]) any {
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	TestConstants()
 	TestAfterConstructor()
 	TestAggregate()
 	TestExtend()
@@ -38,6 +37,7 @@ func baseTestsInitBody(ch chan ccxt.AsyncResult[any]) any {
 	TestPrecise()
 	TestSafeMethods()
 	TestSafeTicker()
+	TestSafePosition()
 	TestMergeBalanceAccount()
 	TestBase58ToBinary()
 	TestToArray()
@@ -83,14 +83,9 @@ func baseTestsInitBody(ch chan ccxt.AsyncResult[any]) any {
 	TestUnique()
 	TestUrlencodeNested()
 
-	r2 := <-TestSleepAsync()
+	r2 := <-TestFetchHistoryAsync()
 	if r2.Err != nil {
 		panic(r2.Err)
-	}
-
-	r3 := <-TestFetchHistoryAsync()
-	if r3.Err != nil {
-		panic(r3.Err)
 	}
 	TestIo()
 	TestIsJsonEncodedObject()

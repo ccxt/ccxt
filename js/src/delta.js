@@ -349,21 +349,21 @@ export default class delta extends Exchange {
         const quote = 'USDT';
         const optionParts = symbol.split('-');
         const symbolBase = symbol.split('/');
+        const hasSlash = symbol.indexOf('/') > -1;
         let base = undefined;
-        let expiry = undefined;
         let optionType = undefined;
-        if (symbol.indexOf('/') > -1) {
+        if (hasSlash) {
             base = this.safeString(symbolBase, 0);
-            expiry = this.safeString(optionParts, 1);
             optionType = this.safeString(optionParts, 3);
         }
         else {
             base = this.safeString(optionParts, 1);
-            expiry = this.safeString(optionParts, 3);
             optionType = this.safeString(optionParts, 0);
         }
-        if (expiry !== undefined) {
-            expiry = expiry.slice(4) + expiry.slice(2, 4) + expiry.slice(0, 2);
+        const rawExpiry = this.safeString(optionParts, hasSlash ? 1 : 3);
+        let expiry = undefined;
+        if (rawExpiry !== undefined) {
+            expiry = rawExpiry.slice(4) + rawExpiry.slice(2, 4) + rawExpiry.slice(0, 2);
         }
         const settle = quote;
         const strike = this.safeString(optionParts, 2);
@@ -1653,26 +1653,31 @@ export default class delta extends Exchange {
         };
         const duration = this.parseTimeframe(timeframe);
         let limitValue = 2000;
+        let windowSeconds = 2000 * duration;
         if (limit !== undefined && limit !== null && limit !== 0) {
             limitValue = limit; // max 2000
+            windowSeconds = limit * duration;
         }
         let until = this.safeIntegerProduct(params, 'until', 0.001);
-        const untilIsDefined = (until !== undefined);
+        const untilIsDefined = until !== undefined;
         if (untilIsDefined) {
             until = this.parseToInt(until);
         }
         if (since === undefined) {
-            const end = untilIsDefined ? until : this.seconds();
+            let end = this.seconds();
+            if (untilIsDefined) {
+                end = this.parseToInt(until);
+            }
             request['end'] = end;
             if (end === undefined) {
                 throw new ExchangeError(this.id + ' fetchOHLCV() missing end');
             }
-            request['start'] = end - limitValue * duration;
+            request['start'] = end - windowSeconds;
         }
         else {
             const start = this.parseToInt(since / 1000);
             request['start'] = start;
-            request['end'] = untilIsDefined ? until : this.sum(start, limitValue * duration);
+            request['end'] = untilIsDefined ? until : this.sum(start, windowSeconds);
         }
         const price = this.safeString(params, 'price');
         if (price === 'mark') {
@@ -1850,10 +1855,10 @@ export default class delta extends Exchange {
         let side = undefined;
         if (sizeString !== undefined) {
             if (Precise.stringGt(sizeString, '0')) {
-                side = 'buy';
+                side = 'long';
             }
             else if (Precise.stringLt(sizeString, '0')) {
-                side = 'sell';
+                side = 'short';
             }
         }
         return this.safePosition({
@@ -1861,7 +1866,7 @@ export default class delta extends Exchange {
             'id': undefined,
             'symbol': symbol,
             'notional': undefined,
-            'marginMode': undefined,
+            'marginMode': this.safeString(position, 'margin_mode'),
             'liquidationPrice': this.safeNumber(position, 'liquidation_price'),
             'entryPrice': this.safeNumber(position, 'entry_price'),
             'unrealizedPnl': undefined, // todo - realized_pnl ?
@@ -1875,6 +1880,7 @@ export default class delta extends Exchange {
             'datetime': this.iso8601(timestamp),
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
+            'positionMargin': this.safeNumber(position, 'margin'),
             'collateral': undefined,
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,

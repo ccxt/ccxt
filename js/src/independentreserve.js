@@ -404,7 +404,7 @@ export default class independentreserve extends Exchange {
                         },
                     },
                     'created': undefined,
-                    'info': id,
+                    'info': { 'primaryCurrencyCode': baseId, 'secondaryCurrencyCode': quoteId },
                 });
             }
         }
@@ -724,10 +724,7 @@ export default class independentreserve extends Exchange {
             request['primaryCurrencyCode'] = market['baseId'];
             request['secondaryCurrencyCode'] = market['quoteId'];
         }
-        let limitResolved = limit;
-        if (limitResolved === undefined) {
-            limitResolved = 50;
-        }
+        const limitResolved = (limit === undefined) ? 50 : limit;
         request['pageIndex'] = 1;
         request['pageSize'] = limitResolved;
         const response = await this.privatePostGetOpenOrders(this.extend(request, params));
@@ -755,10 +752,7 @@ export default class independentreserve extends Exchange {
             request['primaryCurrencyCode'] = market['baseId'];
             request['secondaryCurrencyCode'] = market['quoteId'];
         }
-        let limitResolved = limit;
-        if (limitResolved === undefined) {
-            limitResolved = 50;
-        }
+        const limitResolved = (limit === undefined) ? 50 : limit;
         request['pageIndex'] = 1;
         request['pageSize'] = limitResolved;
         const response = await this.privatePostGetClosedOrders(this.extend(request, params));
@@ -1184,6 +1178,7 @@ export default class independentreserve extends Exchange {
             const signedHeaders = { 'Content-Type': 'application/json' };
             return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
-        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
+        const headers = {};
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': headers };
     }
 }

@@ -14,26 +14,26 @@ pub fn testIsEmpty() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    assert!(ccxt::runtime::is_true(&((exchange.is_empty(Value::Null).as_bool() == Some(true)))));
-    assert!(ccxt::runtime::is_true(&((exchange.is_empty(Value::Null).as_bool() == Some(true)))));
-    assert!(ccxt::runtime::is_true(&((exchange.is_empty(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})).as_bool() == Some(true)))));
-    assert!(ccxt::runtime::is_true(&((exchange.is_empty(Value::from(vec![])).as_bool() == Some(true)))));
-    assert!(ccxt::runtime::is_true(&((exchange.is_empty(Value::Map({
+    assert!(ccxt::runtime::is_true(&(exchange.is_empty(Value::Null))));
+    assert!(ccxt::runtime::is_true(&(exchange.is_empty(Value::Null))));
+    assert!(ccxt::runtime::is_true(&(exchange.is_empty(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+        m
+    })))));
+    assert!(ccxt::runtime::is_true(&(exchange.is_empty(Value::from(vec![])))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.is_empty(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("foo".to_string(), Value::Int(1));
     m
-})).as_bool() == Some(false)))));
-    assert!(ccxt::runtime::is_true(&((exchange.is_empty(Value::from(vec![Value::Int(1), Value::Int(2)])).as_bool() == Some(false)))));
+})))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.is_empty(Value::from(vec![Value::Int(1), Value::Int(2)])))))));
     // below are scalars, so they are not checked.
     // @ts-expect-error
-    assert!(ccxt::runtime::is_true(&((exchange.is_empty(Value::Str("".into())).as_bool() == Some(false)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.is_empty(Value::Str("".into())))))));
     // @ts-expect-error
-    assert!(ccxt::runtime::is_true(&((exchange.is_empty(Value::Int(0)).as_bool() == Some(false)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.is_empty(Value::Int(0)))))));
     // @ts-expect-error
-    assert!(ccxt::runtime::is_true(&((exchange.is_empty(Value::Bool(false)).as_bool() == Some(false)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.is_empty(Value::Bool(false)))))));
     // @ts-expect-error
-    assert!(ccxt::runtime::is_true(&((exchange.is_empty(Value::Str("non-empty string".into())).as_bool() == Some(false)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&exchange.is_empty(Value::Str("non-empty string".into())))))));
 }

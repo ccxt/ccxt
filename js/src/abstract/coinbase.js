@@ -226,18 +226,6 @@ class Exchange extends _Exchange {
     v3PrivateGetBrokerageCfmIntradayMarginSetting(params = {}) {
         return this.request('brokerage/cfm/intraday/margin_setting', ['v3', 'private'], 'GET', params, { 'cost': 1 });
     }
-    v3PrivateGetBrokerageIntxBalancesPortfolioUuid(params = {}) {
-        return this.request('brokerage/intx/balances/{portfolio_uuid}', ['v3', 'private'], 'GET', params, { 'cost': 1 });
-    }
-    v3PrivateGetBrokerageIntxPortfolioPortfolioUuid(params = {}) {
-        return this.request('brokerage/intx/portfolio/{portfolio_uuid}', ['v3', 'private'], 'GET', params, { 'cost': 1 });
-    }
-    v3PrivateGetBrokerageIntxPositionsPortfolioUuid(params = {}) {
-        return this.request('brokerage/intx/positions/{portfolio_uuid}', ['v3', 'private'], 'GET', params, { 'cost': 1 });
-    }
-    v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(params = {}) {
-        return this.request('brokerage/intx/positions/{portfolio_uuid}/{symbol}', ['v3', 'private'], 'GET', params, { 'cost': 1 });
-    }
     v3PrivateGetBrokeragePaymentMethods(params = {}) {
         return this.request('brokerage/payment_methods', ['v3', 'private'], 'GET', params, { 'cost': 1 });
     }
@@ -279,12 +267,6 @@ class Exchange extends _Exchange {
     }
     v3PrivatePostBrokerageCfmIntradayMarginSetting(params = {}) {
         return this.request('brokerage/cfm/intraday/margin_setting', ['v3', 'private'], 'POST', params, { 'cost': 1 });
-    }
-    v3PrivatePostBrokerageIntxAllocate(params = {}) {
-        return this.request('brokerage/intx/allocate', ['v3', 'private'], 'POST', params, { 'cost': 1 });
-    }
-    v3PrivatePostBrokerageIntxMultiAssetCollateral(params = {}) {
-        return this.request('brokerage/intx/multi_asset_collateral', ['v3', 'private'], 'POST', params, { 'cost': 1 });
     }
     v3PrivatePostBrokerageOrdersClosePosition(params = {}) {
         return this.request('brokerage/orders/close_position', ['v3', 'private'], 'POST', params, { 'cost': 1 });

@@ -187,8 +187,8 @@ declare abstract class Exchange extends _Exchange {
     apiV3PrivateGetCapitalDepositHisrec(params?: {}): Promise<Dict>;
     apiV3PrivateGetCapitalWithdrawHistory(params?: {}): Promise<Dict>;
     apiV3PrivatePostPostAssetTransfer(params?: {}): Promise<Dict>;
+    apiAssetV1PrivateGetTransferSupportCoins(params?: {}): Promise<Dict>;
     apiAssetV1PrivatePostTransfer(params?: {}): Promise<Dict>;
-    apiAssetV1PublicGetTransferSupportCoins(params?: {}): Promise<Dict>;
     agentV1PrivateGetAccountInviteAccountList(params?: {}): Promise<Dict>;
     agentV1PrivateGetRewardCommissionDataList(params?: {}): Promise<Dict>;
     agentV1PrivateGetAccountInviteRelationCheck(params?: {}): Promise<Dict>;

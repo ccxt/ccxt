@@ -230,7 +230,7 @@ export default class independentreserve extends independentreserveRest {
             orderbook['datetime'] = this.iso8601 (timestamp);
         }
         const checksum: boolean = this.handleOption ('watchOrderBook', 'checksum', true);
-        if ((checksum === true) && (receivedSnapshot === true)) {
+        if ((checksum) && (receivedSnapshot)) {
             const storedAsks = orderbook['asks'];
             const storedBids = orderbook['bids'];
             const asksLength = storedAsks.length;
@@ -256,7 +256,7 @@ export default class independentreserve extends independentreserveRest {
                 return;
             }
         }
-        if (receivedSnapshot === true) {
+        if (receivedSnapshot) {
             client.resolve (orderbook, messageHash);
         }
     }
@@ -278,7 +278,7 @@ export default class independentreserve extends independentreserveRest {
         bookside.storeArray (bidAsk);
     }
 
-    override handleDeltas (bookside: any, deltas: any) {
+    override handleDeltas (bookside: any, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }

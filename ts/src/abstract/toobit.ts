@@ -37,7 +37,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('quote/v1/klines', [ 'common' ], 'GET', params, { 'cost': 1 });
     }
 
-    commonGetQuoteV1IndexKlines (params = {}): Promise<List> {
+    commonGetQuoteV1IndexKlines (params = {}): Promise<Dict> {
         return this.request ('quote/v1/index/klines', [ 'common' ], 'GET', params, { 'cost': 1 });
     }
 
@@ -45,7 +45,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('quote/v1/indexPriceComponents', [ 'common' ], 'GET', params, { 'cost': 1 });
     }
 
-    commonGetQuoteV1MarkPriceKlines (params = {}): Promise<List> {
+    commonGetQuoteV1MarkPriceKlines (params = {}): Promise<Dict> {
         return this.request ('quote/v1/markPrice/klines', [ 'common' ], 'GET', params, { 'cost': 1 });
     }
 

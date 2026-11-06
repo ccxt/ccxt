@@ -148,15 +148,15 @@ func AssertTimestamp(exchange ccxt.ICoreExchange, skippedProperties any, method 
 		Assert(!(IsEqual(GetValue(entry, keyNameOrIndex), nil)), Add(Add(Add("timestamp index ", StringValue(keyNameOrIndex)), " is undefined"), logText))
 	}
 	var ts any = GetValue(entry, keyNameOrIndex)
-	Assert(!IsEqual(ts, nil) || (allowNull == true), Add("timestamp is null", logText))
-	if !IsEqual(ts, nil) {
+	Assert((ts != nil) || (allowNull == true), Add("timestamp is null", logText))
+	if ts != nil {
 		Assert(IsNumber(ts), Add("timestamp is not numeric", logText))
 		Assert(IsInt(ts), Add("timestamp should be an integer", logText))
 		var minTs int = 1230940800000                                                                                               // 03 Jan 2009 - first block
 		var maxTs int = 2147483648000                                                                                               // 19 Jan 2038 - max int
 		Assert(IsGreaterThan(ts, minTs), Add("timestamp is impossible to be before "+strconv.Itoa(minTs)+" (03.01.2009)", logText)) // 03 Jan 2009 - first block
 		Assert(IsLessThan(ts, maxTs), Add("timestamp more than "+strconv.Itoa(maxTs)+" (19.01.2038)", logText))                     // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
-		if !IsEqual(nowToCheck, nil) {
+		if nowToCheck != nil {
 			var maxMsOffset int = 60000 // 1 min
 			Assert(IsLessThan(ts, Add(nowToCheck, maxMsOffset)), Add(Add(Add(Add(Add("returned item timestamp (", exchange.Iso8601(ts)), ") is ahead of the current time ("), exchange.Iso8601(nowToCheck)), ")"), logText))
 		}
@@ -181,8 +181,8 @@ func AssertTimestampAndDatetime(exchange ccxt.ICoreExchange, skippedProperties a
 		// we also test 'datetime' here because it's certain sibling of 'timestamp'
 		Assert((InOp(entry, "datetime")), Add("\"datetime\" key is missing from structure", logText))
 		var dt any = GetValue(entry, "datetime")
-		Assert(!IsEqual(dt, nil) || (allowNull == true), Add("timestamp is null", logText))
-		if !IsEqual(dt, nil) {
+		Assert((dt != nil) || (allowNull == true), Add("timestamp is null", logText))
+		if dt != nil {
 			Assert(IsString(dt), Add("\"datetime\" key does not have a string value", logText))
 			// there are exceptional cases, like getting microsecond-targeted string '2022-08-08T22:03:19.014680Z', so parsed unified timestamp, which carries only 13 digits (millisecond precision) can not be stringified back to microsecond accuracy, causing the bellow Assertion to fail
 			//    Assert (dt === exchange.Getiso8601() (entry['timestamp']))
@@ -398,7 +398,7 @@ func AssertTimestampOrder(exchange ccxt.ICoreExchange, method any, codeOrSymbol 
 		if i > 0 {
 			var currentTs any = GetValue(GetValue(items, i-1), "timestamp")
 			var nextTs any = GetValue(GetValue(items, i), "timestamp")
-			if !IsEqual(currentTs, nil) && !IsEqual(nextTs, nil) {
+			if (currentTs != nil) && (nextTs != nil) {
 				var ascendingOrDescending string = func() string {
 					if ascending == true {
 						return "ascending"
@@ -477,13 +477,13 @@ func fetchBestBidAskBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 	if (!IsEqual(GetValue(exchange.GetHas(), "fetchOrderBook"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchOrderBook"), false)) {
 		usedMethod = SafeStringPtr("fetchOrderBook")
 
-		r := <-exchange.FetchOrderBookAsync(StringArg(symbol))
+		r := <-exchange.(ccxt.IFetchOrderBook).FetchOrderBookAsync(StringArg(symbol))
 		if r.Err != nil {
 			panic(r.Err)
 		}
 		var orderbook any = nil
-		if r.Value != nil {
-			orderbook = r.Value
+		if !ccxt.StructAbsent(r.Value) {
+			orderbook = ccxt.StructBox(r.Value, ccxt.OrderBookToMap)
 		}
 		var bids any = exchange.SafeList(orderbook, "bids")
 		var asks any = exchange.SafeList(orderbook, "asks")
@@ -498,7 +498,10 @@ func fetchBestBidAskBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		tickers := r1.Value
+		var tickers any = nil
+		if !ccxt.StructAbsent(r1.Value) {
+			tickers = ccxt.StructBox(r1.Value, ccxt.TickerMapToMap)
+		}
 		var ticker any = exchange.SafeDict(tickers, symbol)
 		bestBid = exchange.SafeNumber(ticker, "bid")
 		bestAsk = exchange.SafeNumber(ticker, "ask")
@@ -510,8 +513,8 @@ func fetchBestBidAskBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 			panic(r2.Err)
 		}
 		var ticker any = nil
-		if r2.Value != nil {
-			ticker = r2.Value
+		if !ccxt.StructAbsent(r2.Value) {
+			ticker = ccxt.StructBox(r2.Value, ccxt.TickerToMap)
 		}
 		bestBid = exchange.SafeNumber(ticker, "bid")
 		bestAsk = exchange.SafeNumber(ticker, "ask")
@@ -522,13 +525,16 @@ func fetchBestBidAskBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExcha
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
-		tickers := r3.Value
+		var tickers any = nil
+		if !ccxt.StructAbsent(r3.Value) {
+			tickers = ccxt.StructBox(r3.Value, ccxt.TickerMapToMap)
+		}
 		var ticker any = exchange.SafeDict(tickers, symbol)
 		bestBid = exchange.SafeNumber(ticker, "bid")
 		bestAsk = exchange.SafeNumber(ticker, "ask")
 	}
 	//
-	Assert(!IsEqual(bestBid, nil) && !IsEqual(bestAsk, nil), Add(Add(Add(Add(Add(Add(Add(Add(logText, " "), exchange.GetId()), " could not get best bid/ask for "), symbol), " using "), usedMethod), " while testing "), method))
+	Assert((bestBid != nil) && (bestAsk != nil), Add(Add(Add(Add(Add(Add(Add(Add(logText, " "), exchange.GetId()), " could not get best bid/ask for "), symbol), " using "), usedMethod), " while testing "), method))
 
 	ch <- ccxt.AsyncResult[any]{Value: []any{bestBid, bestAsk}}
 	return nil
@@ -804,7 +810,7 @@ func TickerExceptionNeedsOhlcv(ex any, exchange ccxt.ICoreExchange, ticker any) 
 	var eMessage any = exchange.ExceptionMessage(ex, false) // typed string so the php transpile uses mb_strpos, not in_array
 	if (GetIndexOf(eMessage, "percentage should be above") >= 0) || (GetIndexOf(eMessage, "percentage should be below") >= 0) {
 		var symbol any = GetValue(ticker, "symbol")
-		if !IsEqual(symbol, nil) {
+		if symbol != nil {
 			if (!IsEqual(exchange.GetMarkets(), nil)) && (InOp(exchange.GetMarkets(), symbol)) {
 				if !IsEqual(exchange.FeatureValue(symbol, "fetchOHLCV"), nil) {
 					return true
@@ -823,12 +829,12 @@ func ValidateTickerExceptionForPercentage(ex any, exchange ccxt.ICoreExchange, t
 	var eMessage any = exchange.ExceptionMessage(ex, false) // typed string so the php transpile uses mb_strpos, not in_array
 	if (GetIndexOf(eMessage, "percentage should be above") >= 0) || (GetIndexOf(eMessage, "percentage should be below") >= 0) {
 		var symbol any = GetValue(ticker, "symbol")
-		if !IsEqual(symbol, nil) {
+		if symbol != nil {
 			// if it's not in markets, then maybe newly added symbol, so can can compromise there
 			if (IsEqual(exchange.GetMarkets(), nil)) || !(InOp(exchange.GetMarkets(), symbol)) {
 				return
 			}
-			if !IsEqual(ohlcv, nil) {
+			if ohlcv != nil {
 				var ohlcvLength int = GetArrayLength(ohlcv)
 				if ohlcvLength <= 1 {
 					// if only 1 day of listing, then allow it

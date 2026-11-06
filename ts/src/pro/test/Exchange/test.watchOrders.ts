@@ -23,7 +23,7 @@ async function testWatchOrders (exchange: Exchange, skippedProperties: object, s
             // continue;
             success = false;
         }
-        if (success === true) {
+        if (success) {
             if (response === undefined) {
                 throw new Error (exchange.id + ' watch returned undefined response');
             }

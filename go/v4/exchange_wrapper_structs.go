@@ -2484,6 +2484,25 @@ func WithUnWatchBidsAsksParams(params map[string]any) UnWatchBidsAsksOptions {
 	}
 }
 
+type ClosePositionOptionsStruct struct {
+	Side   *string
+	Params *map[string]any
+}
+
+type ClosePositionOptions func(opts *ClosePositionOptionsStruct)
+
+func WithClosePositionSide(side string) ClosePositionOptions {
+	return func(opts *ClosePositionOptionsStruct) {
+		opts.Side = &side
+	}
+}
+
+func WithClosePositionParams(params map[string]any) ClosePositionOptions {
+	return func(opts *ClosePositionOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type EditOrdersOptionsStruct struct {
 	Params *map[string]any
 }
@@ -4899,6 +4918,37 @@ func WithFetchAccountPositionsSymbols(symbols []string) FetchAccountPositionsOpt
 
 func WithFetchAccountPositionsParams(params map[string]any) FetchAccountPositionsOptions {
 	return func(opts *FetchAccountPositionsOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
+type FetchStockIndicativeQuoteOptionsStruct struct {
+	Params *map[string]any
+}
+
+type FetchStockIndicativeQuoteOptions func(opts *FetchStockIndicativeQuoteOptionsStruct)
+
+func WithFetchStockIndicativeQuoteParams(params map[string]any) FetchStockIndicativeQuoteOptions {
+	return func(opts *FetchStockIndicativeQuoteOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
+type CreateRfqOrderOptionsStruct struct {
+	Price  *float64
+	Params *map[string]any
+}
+
+type CreateRfqOrderOptions func(opts *CreateRfqOrderOptionsStruct)
+
+func WithCreateRfqOrderPrice(price float64) CreateRfqOrderOptions {
+	return func(opts *CreateRfqOrderOptionsStruct) {
+		opts.Price = &price
+	}
+}
+
+func WithCreateRfqOrderParams(params map[string]any) CreateRfqOrderOptions {
+	return func(opts *CreateRfqOrderOptionsStruct) {
 		opts.Params = &params
 	}
 }

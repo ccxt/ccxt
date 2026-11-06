@@ -86,7 +86,7 @@ class cex extends \ccxt\async\cex {
         $subscribe = array(
             'e' => 'get-balance',
             'data' => array(),
-            'oid' => $this->request_id(),
+            'oid' => $messageHash,
         );
         $request = $this->deep_extend($subscribe, $params);
         return Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
@@ -113,12 +113,18 @@ class cex extends \ccxt\async\cex {
         //         "ok": "ok"
         //     }
         //
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance, and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make responses landing in that
+        // window invisible to the consumer forever (same class as issue #26773)
         $data = $this->safe_dict($message, 'data', array());
         $freeBalance = $this->safe_dict($data, 'balance', array());
         $usedBalance = $this->safe_dict($data, 'obalance', array());
-        $result = array(
-            'info' => $data,
-        );
+        if ($this->balance === null) {
+            $this->balance = array();
+        }
+        $this->balance['info'] = $data;
         $currencyIds = is_array($freeBalance) ? array_keys($freeBalance) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
@@ -127,10 +133,10 @@ class cex extends \ccxt\async\cex {
             $account['used'] = $this->safe_string($usedBalance, $currencyId);
             $code = $this->safe_currency_code($currencyId);
             if ($code !== null) {
-                $result[$code] = $account;
+                $this->balance[$code] = $account;
             }
         }
-        $this->balance = $this->safe_balance($result);
+        $this->balance = $this->safe_balance($this->balance);
         $messageHash = $this->safe_string($message, 'oid');
         $client->resolve($this->balance, $messageHash);
     }
@@ -408,9 +414,9 @@ class cex extends \ccxt\async\cex {
         $messageHash = 'ticker:' . $symbol;
         $client->resolve($ticker, $messageHash);
         $client->resolve($ticker, 'tickers');
-        $messageHash = $this->safe_string($message, 'oid');
-        if ($messageHash !== null) {
-            $client->resolve($ticker, $messageHash);
+        $oid = $this->safe_string($message, 'oid');
+        if ($oid !== null) {
+            $client->resolve($ticker, $oid);
         }
     }
 
@@ -453,10 +459,7 @@ class cex extends \ccxt\async\cex {
         if (($base !== null) && ($quote !== null)) {
             $symbol = $base . '/' . $quote;
         }
-        $timestamp = $this->safe_integer($ticker, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($ticker, 'timestamp');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -829,7 +832,7 @@ class cex extends \ccxt\async\cex {
         }
         $order['remaining'] = $remains;
         $canceled = $this->safe_bool($data, 'cancel', false);
-        if ($canceled === true) {
+        if ($canceled) {
             $order['status'] = 'canceled';
         }
         if ($isTransaction) {
@@ -926,7 +929,7 @@ class cex extends \ccxt\async\cex {
         }
         $canceled = $this->safe_bool($order, 'cancel', false);
         $status = 'open';
-        if ($canceled === true) {
+        if ($canceled) {
             $status = 'canceled';
         } elseif ($isTransaction) {
             $status = 'closed';
@@ -965,7 +968,7 @@ class cex extends \ccxt\async\cex {
         return $this->safe_order($parsedOrder, $marketResolved);
     }
 
-    public function from_precision(mixed $amount, mixed $scale) {
+    public function from_precision(mixed $amount, mixed $scale): ?string {
         if ($amount === null) {
             return null;
         }
@@ -975,7 +978,7 @@ class cex extends \ccxt\async\cex {
         return (string) $precise;
     }
 
-    public function currency_from_precision(mixed $currency, mixed $amount) {
+    public function currency_from_precision(string $currency, mixed $amount): ?string {
         $scale = $this->safe_integer($this->currencies[$currency], 'precision', 0);
         return $this->from_precision($amount, $scale);
     }
@@ -1091,14 +1094,19 @@ class cex extends \ccxt\async\cex {
         $messageHash = 'orderbook:' . $symbol;
         $timestamp = $this->safe_integer_2($data, 'timestamp_ms', 'timestamp');
         $incrementalId = $this->safe_integer($data, 'id');
-        $orderbook = $this->order_book(array());
+        // reset the existing orderbook instead of replacing it: a consumer
+        // holds a reference to the old object and would never see updates
+        // after a re-subscription snapshot
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book(array());
+        }
+        $orderbook = $this->orderbooks[$symbol];
         $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks');
         $snapshot['nonce'] = $incrementalId;
         $orderbook->reset($snapshot);
         $this->options['orderbook'][$symbol] = array(
             'incrementalId' => $incrementalId,
         );
-        $this->orderbooks[$symbol] = $orderbook;
         $client->resolve($orderbook, $messageHash);
     }
 
@@ -1162,7 +1170,7 @@ class cex extends \ccxt\async\cex {
         $bookside->storeArray($bidAsk);
     }
 
-    public function handle_deltas(mixed $bookside, mixed $deltas) {
+    public function handle_deltas(mixed $bookside, array $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
@@ -1241,16 +1249,23 @@ class cex extends \ccxt\async\cex {
         $market = $this->safe_market($symbol);
         $messageHash = 'ohlcv:' . $symbol;
         $data = $this->safe_list($message, 'data', array());
-        $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-        $stored = new ArrayCacheByTimestamp($limit);
-        $sorted = $this->sort_by($data, 0);
-        for ($i = 0; $i < count($sorted); $i++) {
-            $stored->append($this->parse_ohlcv($sorted[$i], $market));
-        }
         if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
-        $this->ohlcvs[$symbol]['unknown'] = $stored;
+        // fill the existing cache when there is one: replacing it would orphan
+        // consumers holding a reference to the old cache (they would never see
+        // candles appended after a re-subscription)
+        $stored = $this->safe_value($this->ohlcvs[$symbol], 'unknown');
+        if ($stored === null) {
+            $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
+            $stored = new ArrayCacheByTimestamp($limit);
+            $this->ohlcvs[$symbol]['unknown'] = $stored;
+        }
+        $sorted = $this->sort_by($data, 0);
+        for ($i = 0; $i < count($sorted); $i++) {
+            $parsed = $this->parse_ohlcv($sorted[$i], $market);
+            $stored->append($parsed);
+        }
         $client->resolve($stored, $messageHash);
     }
 

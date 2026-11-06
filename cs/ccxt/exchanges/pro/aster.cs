@@ -1467,7 +1467,7 @@ public partial class aster : ccxt.aster
         {
             this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
         }
-        if (isEqual(this.safeValue(ohlcvsByTimeframe, timeframe), null))
+        if ((this.safeValue(ohlcvsByTimeframe, timeframe) == null))
         {
             Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             ((IDictionary<string,object>)(this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null))[timeframe] = new ArrayCacheByTimestamp(limit);
@@ -1494,7 +1494,7 @@ public partial class aster : ccxt.aster
         Int64? lastAuthenticatedTime = this.safeInteger(lastAuthenticatedTimeOptions, type, 0);
         IDictionary<string, object> listenKeyRefreshRateOptions = this.safeDict(this.options, "listenKeyRefreshRate", new Dictionary<string, object>() {});
         Int64? listenKeyRefreshRate = this.safeInteger(listenKeyRefreshRateOptions, type, 3600000); // 1 hour
-        if (isGreaterThan((time - lastAuthenticatedTime), listenKeyRefreshRate))
+        if (((time - lastAuthenticatedTime) > listenKeyRefreshRate))
         {
             // single-flight leader election on a never-dialed client, see
             // https://github.com/ccxt/ccxt/issues/29393: concurrent watch
@@ -1633,7 +1633,7 @@ public partial class aster : ccxt.aster
         IDictionary<string, object> options = this.safeDict(this.options, "watchBalance");
         bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         bool? awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
-        if (((fetchBalanceSnapshot == true)) && ((awaitBalanceSnapshot == true)))
+        if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
         {
             await client.future(add(typeMarketType, ":fetchBalanceSnapshot"));
         }
@@ -1653,7 +1653,7 @@ public partial class aster : ccxt.aster
         if ((fetchBalanceSnapshot == true))
         {
             object messageHash = add(type, ":fetchBalanceSnapshot");
-            if (!(inOp(client.futures, messageHash)))
+            if (!((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadBalanceSnapshot, new object[] { client, messageHash, type});
@@ -1672,11 +1672,11 @@ public partial class aster : ccxt.aster
         Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(parameters));
         this.balance[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve();
-            client.resolve(getValue(this.balance, type), add(type, ":balance"));
+            client.resolve((this.balance != null && type != null && this.balance.ContainsKey((string)type) ? this.balance[(string)type] : null), add(type, ":balance"));
         }
     }
 
@@ -1737,7 +1737,7 @@ public partial class aster : ccxt.aster
         //
         string accountType = this.getAccountTypeFromUrl(client.url);
         string messageHash = (accountType + ":balance");
-        if (isEqual((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null), null))
+        if (((this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null) == null))
         {
             this.balance[accountType] = new Dictionary<string, object>() {};
         }
@@ -1754,7 +1754,7 @@ public partial class aster : ccxt.aster
             account["free"] = this.safeString(entry, "f");
             account["used"] = this.safeString(entry, "l");
             account["total"] = this.safeString(entry, wallet);
-            if (((accountType != null)) && ((code != null)))
+            if ((code != null))
             {
                 ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(accountType) ? this.balance[accountType] : null))[(string)code] = account;
             }
@@ -1855,7 +1855,7 @@ public partial class aster : ccxt.aster
             }
         }
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash)))
         {
             Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
@@ -2149,24 +2149,24 @@ public partial class aster : ccxt.aster
                                 object orderFee = fees[i];
                                 if ((this.safeString(orderFee, "currency") == this.safeString(tradeFee, "currency")))
                                 {
-                                    object feeCost = this.sum(GetValue(tradeFee, "cost"), getValue(orderFee, "cost"));
-                                    string? feeCostString = this.currencyToPrecision(((string)GetValue(tradeFee, "currency")), feeCost);
-                                    ((IDictionary<string,object>)getValue(GetValue(order, "fees"), i))["cost"] = ((feeCostString == null)) ? null : parseFloat(feeCostString);
+                                    object feeCost = this.sum((tradeFee != null && tradeFee.ContainsKey("cost") ? tradeFee["cost"] : null), getValue(orderFee, "cost"));
+                                    string? feeCostString = this.currencyToPrecision(((string)(tradeFee != null && tradeFee.ContainsKey("currency") ? tradeFee["currency"] : null)), feeCost);
+                                    ((IDictionary<string,object>)getValue((order != null && order.ContainsKey("fees") ? order["fees"] : null), i))["cost"] = ((feeCostString == null)) ? null : parseFloat(feeCostString);
                                     insertNewFeeCurrency = false;
                                     break;
                                 }
                             }
                             if (insertNewFeeCurrency)
                             {
-                                ((IList<object>)GetValue(order, "fees")).Add(tradeFee);
+                                ((IList<object>)(order != null && order.ContainsKey("fees") ? order["fees"] : null)).Add(tradeFee);
                             }
                         } else if ((fee != null))
                         {
                             if ((this.safeString(fee, "currency") == this.safeString(tradeFee, "currency")))
                             {
-                                object feeCost = this.sum(GetValue(fee, "cost"), GetValue(tradeFee, "cost"));
-                                string? feeCostString = this.currencyToPrecision(((string)GetValue(tradeFee, "currency")), feeCost);
-                                ((IDictionary<string,object>)GetValue(order, "fee"))["cost"] = ((feeCostString == null)) ? null : parseFloat(feeCostString);
+                                object feeCost = this.sum((fee != null && fee.ContainsKey("cost") ? fee["cost"] : null), (tradeFee != null && tradeFee.ContainsKey("cost") ? tradeFee["cost"] : null));
+                                string? feeCostString = this.currencyToPrecision(((string)(tradeFee != null && tradeFee.ContainsKey("currency") ? tradeFee["currency"] : null)), feeCost);
+                                ((IDictionary<string,object>)(order != null && order.ContainsKey("fee") ? order["fee"] : null))["cost"] = ((feeCostString == null)) ? null : parseFloat(feeCostString);
                             } else if ((this.safeString(fee, "currency") == null))
                             {
                                 order["fee"] = tradeFee;

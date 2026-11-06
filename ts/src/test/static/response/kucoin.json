@@ -10,7 +10,10 @@
                 "description": "cross borrow rate parses the current rate and leaves timestamp undefined - the response carries no createdAt/timestamp",
                 "method": "fetchCrossBorrowRate",
                 "input": [
-                    "USDT"
+                    "USDT",
+                    {
+                        "uta": true
+                    }
                 ],
                 "httpResponse": {
                     "code": "200000",
@@ -651,7 +654,7 @@
                         "datetime": "2026-03-26T13:50:45.758Z",
                         "lastUpdateTimestamp": 1774536389515,
                         "initialMargin": null,
-                        "initialMarginPercentage": null,
+                        "initialMarginPercentage": 0.3333333333333333,
                         "maintenanceMargin": null,
                         "maintenanceMarginPercentage": null,
                         "entryPrice": 0.0918,
@@ -665,6 +668,7 @@
                         "liquidationPrice": null,
                         "markPrice": null,
                         "lastPrice": 0.09154,
+                        "positionMargin": null,
                         "collateral": null,
                         "marginMode": "cross",
                         "side": "short",
@@ -757,7 +761,7 @@
                         "datetime": null,
                         "lastUpdateTimestamp": 1774195447551,
                         "initialMargin": null,
-                        "initialMarginPercentage": null,
+                        "initialMarginPercentage": 0.3333333333333333,
                         "maintenanceMargin": null,
                         "maintenanceMarginPercentage": null,
                         "entryPrice": 57.63,
@@ -771,6 +775,7 @@
                         "liquidationPrice": null,
                         "markPrice": null,
                         "lastPrice": 54.18,
+                        "positionMargin": null,
                         "collateral": null,
                         "marginMode": "cross",
                         "side": "long",
@@ -851,6 +856,7 @@
                     "liquidationPrice": null,
                     "markPrice": 0.09181,
                     "lastPrice": null,
+                    "positionMargin": null,
                     "collateral": null,
                     "marginMode": "cross",
                     "side": "long",
@@ -1030,7 +1036,7 @@
                     "symbol": "ETH/USDT:USDT",
                     "type": null,
                     "marginMode": "isolated",
-                    "amount": "1",
+                    "amount": 1,
                     "total": null,
                     "code": "USDT",
                     "status": null,
@@ -1203,6 +1209,7 @@
                         "liquidationPrice": 0.01,
                         "markPrice": 1883.29,
                         "lastPrice": null,
+                        "positionMargin": null,
                         "collateral": null,
                         "marginMode": "cross",
                         "side": "long",
@@ -3922,16 +3929,16 @@
                   "timestamp": null,
                   "datetime": null,
                   "network": null,
-                  "address": null,
-                  "addressTo": null,
+                  "address": "0x62d35481cb74fa959aec61d33a5d4507a1234567",
+                  "addressTo": "0x62d35481cb74fa959aec61d33a5d4507a1234567",
                   "addressFrom": null,
                   "tag": null,
                   "tagTo": null,
                   "tagFrom": null,
                   "currency": "USDT",
-                  "amount": null,
+                  "amount": 3,
                   "txid": null,
-                  "type": "deposit",
+                  "type": "withdrawal",
                   "status": null,
                   "comment": null,
                   "internal": null,
@@ -4276,6 +4283,359 @@
             }
         ],
         "fetchOrderBook": [
+            {
+                "description": "uta orderbook",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USDT",
+                    20,
+                    {
+                        "uta": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "tradeType": "SPOT",
+                        "symbol": "BTC-USDT",
+                        "sequence": 39702261314,
+                        "bids": [
+                            [
+                                "77992.3",
+                                "0.0000309"
+                            ],
+                            [
+                                "77992.2",
+                                "0.0000309"
+                            ],
+                            [
+                                "77992",
+                                "0.0000618"
+                            ],
+                            [
+                                "77991.9",
+                                "0.0225309"
+                            ],
+                            [
+                                "77991.8",
+                                "0.0000309"
+                            ],
+                            [
+                                "77991.7",
+                                "0.0130309"
+                            ],
+                            [
+                                "77991.5",
+                                "0.0030618"
+                            ],
+                            [
+                                "77991.4",
+                                "0.0000309"
+                            ],
+                            [
+                                "77991.3",
+                                "0.0000309"
+                            ],
+                            [
+                                "77991.2",
+                                "0.0000309"
+                            ],
+                            [
+                                "77991",
+                                "0.0000618"
+                            ],
+                            [
+                                "77990.9",
+                                "0.0225309"
+                            ],
+                            [
+                                "77990.8",
+                                "0.0000309"
+                            ],
+                            [
+                                "77990.7",
+                                "0.0130309"
+                            ],
+                            [
+                                "77990.6",
+                                "0.007"
+                            ],
+                            [
+                                "77990.5",
+                                "0.0030618"
+                            ],
+                            [
+                                "77990.4",
+                                "0.0000309"
+                            ],
+                            [
+                                "77990.3",
+                                "0.0000309"
+                            ],
+                            [
+                                "77990.2",
+                                "0.0000309"
+                            ],
+                            [
+                                "77990",
+                                "0.0000618"
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                "77992.4",
+                                "1.76372042"
+                            ],
+                            [
+                                "77992.9",
+                                "0.59529224"
+                            ],
+                            [
+                                "77993",
+                                "0.97043866"
+                            ],
+                            [
+                                "77993.4",
+                                "0.46194541"
+                            ],
+                            [
+                                "77995.3",
+                                "0.0928346"
+                            ],
+                            [
+                                "77996",
+                                "0.0840502"
+                            ],
+                            [
+                                "77996.3",
+                                "0.03209605"
+                            ],
+                            [
+                                "77996.5",
+                                "0.52313578"
+                            ],
+                            [
+                                "77996.7",
+                                "0.06761539"
+                            ],
+                            [
+                                "77997",
+                                "0.06694797"
+                            ],
+                            [
+                                "77997.3",
+                                "0.04101316"
+                            ],
+                            [
+                                "77997.7",
+                                "0.14687653"
+                            ],
+                            [
+                                "77997.8",
+                                "0.0075"
+                            ],
+                            [
+                                "77998",
+                                "0.06869805"
+                            ],
+                            [
+                                "77998.3",
+                                "0.0000309"
+                            ],
+                            [
+                                "77998.8",
+                                "0.0025309"
+                            ],
+                            [
+                                "77999.1",
+                                "0.02742322"
+                            ],
+                            [
+                                "77999.2",
+                                "1.37123629"
+                            ],
+                            [
+                                "77999.3",
+                                "0.00502094"
+                            ],
+                            [
+                                "77999.8",
+                                "0.0025309"
+                            ]
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "bids": [
+                        [
+                            77992.3,
+                            0.0000309
+                        ],
+                        [
+                            77992.2,
+                            0.0000309
+                        ],
+                        [
+                            77992,
+                            0.0000618
+                        ],
+                        [
+                            77991.9,
+                            0.0225309
+                        ],
+                        [
+                            77991.8,
+                            0.0000309
+                        ],
+                        [
+                            77991.7,
+                            0.0130309
+                        ],
+                        [
+                            77991.5,
+                            0.0030618
+                        ],
+                        [
+                            77991.4,
+                            0.0000309
+                        ],
+                        [
+                            77991.3,
+                            0.0000309
+                        ],
+                        [
+                            77991.2,
+                            0.0000309
+                        ],
+                        [
+                            77991,
+                            0.0000618
+                        ],
+                        [
+                            77990.9,
+                            0.0225309
+                        ],
+                        [
+                            77990.8,
+                            0.0000309
+                        ],
+                        [
+                            77990.7,
+                            0.0130309
+                        ],
+                        [
+                            77990.6,
+                            0.007
+                        ],
+                        [
+                            77990.5,
+                            0.0030618
+                        ],
+                        [
+                            77990.4,
+                            0.0000309
+                        ],
+                        [
+                            77990.3,
+                            0.0000309
+                        ],
+                        [
+                            77990.2,
+                            0.0000309
+                        ],
+                        [
+                            77990,
+                            0.0000618
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            77992.4,
+                            1.76372042
+                        ],
+                        [
+                            77992.9,
+                            0.59529224
+                        ],
+                        [
+                            77993,
+                            0.97043866
+                        ],
+                        [
+                            77993.4,
+                            0.46194541
+                        ],
+                        [
+                            77995.3,
+                            0.0928346
+                        ],
+                        [
+                            77996,
+                            0.0840502
+                        ],
+                        [
+                            77996.3,
+                            0.03209605
+                        ],
+                        [
+                            77996.5,
+                            0.52313578
+                        ],
+                        [
+                            77996.7,
+                            0.06761539
+                        ],
+                        [
+                            77997,
+                            0.06694797
+                        ],
+                        [
+                            77997.3,
+                            0.04101316
+                        ],
+                        [
+                            77997.7,
+                            0.14687653
+                        ],
+                        [
+                            77997.8,
+                            0.0075
+                        ],
+                        [
+                            77998,
+                            0.06869805
+                        ],
+                        [
+                            77998.3,
+                            0.0000309
+                        ],
+                        [
+                            77998.8,
+                            0.0025309
+                        ],
+                        [
+                            77999.1,
+                            0.02742322
+                        ],
+                        [
+                            77999.2,
+                            1.37123629
+                        ],
+                        [
+                            77999.3,
+                            0.00502094
+                        ],
+                        [
+                            77999.8,
+                            0.0025309
+                        ]
+                    ],
+                    "timestamp": null,
+                    "datetime": null,
+                    "nonce": 39702261314
+                }
+            },
             {
                 "description": "fetch order book for swap",
                 "method": "fetchOrderBook",

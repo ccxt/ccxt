@@ -74,6 +74,8 @@ declare class testMainClass {
     assertNewAndStoredOutput(exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck?: boolean, assertingKey?: Str): boolean;
     varToString(obj?: any): string;
     assertStaticRequestOutput(exchange: any, type: Str, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput: any, newOutput: any): boolean;
+    assertStaticIsolatedPosition(exchange: Exchange, entry: any): boolean;
+    assertStaticIsolatedPositions(exchange: Exchange, method: string, output: any): boolean;
     assertStaticResponseOutput(exchange: Exchange, skipKeys: string[], computedResult: any, storedResult: any): void;
     sanitizeDataInput(input: any): List | undefined;
     testRequestStatically(exchange: any, method: string, data: Dict, type: Str, skipKeys: string[]): Promise<boolean>;

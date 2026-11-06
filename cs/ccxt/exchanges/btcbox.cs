@@ -835,17 +835,14 @@ public partial class btcbox : Exchange
         //      },
         // ]
         //
-        IList<object> orders = ccxt.BaseExchange.FromOrderList(this.parseOrders(response, market, since, limit));
         // status (open/closed/canceled) is undefined
         // btcbox does not return status, but we know it's 'open' as we queried for open orders
+        Dictionary<string, object> extra = new Dictionary<string, object>() {};
         if ((type == "open"))
         {
-            for (int i = 0; i < (orders?.Count ?? 0); i++)
-            {
-                ((IDictionary<string,object>)orders[i])["status"] = "open";
-            }
+            extra["status"] = "open";
         }
-        return ccxt.BaseExchange.ToOrderList(orders);
+        return this.parseOrders(response, market, since, limit, extra);
     }
 
     /**
@@ -945,7 +942,7 @@ public partial class btcbox : Exchange
             return null;  // resort to defaultErrorHandler
         }
         // typical error response: {"result":false,"code":"401"}
-        if (isGreaterThanOrEqual(httpCode, 400))
+        if ((Convert.ToInt64(httpCode) >= 400))
         {
             return null;  // resort to defaultErrorHandler
         }

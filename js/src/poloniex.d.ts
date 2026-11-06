@@ -1,5 +1,5 @@
 import Exchange from './abstract/poloniex.js';
-import type { TransferEntry, Int, Leverage, OrderSide, OrderType, OrderRequest, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, DepositWithdrawFees, PositionModeInfo } from './base/types.js';
+import type { TransferEntry, Int, Leverage, OrderSide, OrderType, OrderRequest, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict, DepositWithdrawFees, PositionModeInfo } from './base/types.js';
 /**
  * @class poloniex
  * @augments Exchange
@@ -232,7 +232,7 @@ export default class poloniex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
-    fetchOrderStatus(id: string, symbol?: Str, params?: Dict): Promise<"closed" | "open">;
+    fetchOrderStatus(id: string, symbol?: Str, params?: Dict): Promise<Str>;
     /**
      * @method
      * @name poloniex#fetchOrderTrades
@@ -313,6 +313,31 @@ export default class poloniex extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: Dict): Promise<TransferEntry>;
+    /**
+     * @method
+     * @name poloniex#fetchTransfer
+     * @description fetch a transfer
+     * @see https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer-record
+     * @param {string} id transfer id
+     * @param {string} [code] not used by poloniex fetchTransfer
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    fetchTransfer(id: string, code?: Str, params?: Dict): Promise<TransferEntry>;
+    /**
+     * @method
+     * @name poloniex#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer-records
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfer structures to retrieve, default 100, max 1000
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<TransferEntry[]>;
+    parseTransferStatus(status: Str): Str;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     /**
      * @method
@@ -363,7 +388,7 @@ export default class poloniex extends Exchange {
      */
     fetchDepositWithdrawFees(codes?: Strings, params?: Dict): Promise<DepositWithdrawFees>;
     parseDepositWithdrawFees(response: any, codes?: Strings, currencyIdKey?: Str): any;
-    parseDepositWithdrawFee(fee: any, currency?: Currency): any;
+    parseDepositWithdrawFee(fee: NullableDict, currency?: Currency): any;
     /**
      * @method
      * @name poloniex#fetchDeposits
@@ -434,7 +459,7 @@ export default class poloniex extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
-    modifyMarginHelper(symbol: string, amount: any, type: string, params?: Dict): Promise<MarginModification>;
+    modifyMarginHelper(symbol: string, amount: Num, type: string, params?: Dict): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     /**
      * @method

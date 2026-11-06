@@ -729,7 +729,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
             $missingLength = count($missing);
             $wasWarm = ($this->outcomes !== null) && !$this->is_empty($this->outcomes);
             $loadAll = $this->safe_bool($this->options, 'loadAllOutcomes', false);
-            if (($missingLength > 0) && ($loadAll === true) && !$wasWarm && !$reload) {
+            if (($missingLength > 0) && ($loadAll) && !$wasWarm && !$reload) {
                 // same trade-off as loadOutcome: on venues where the whole universe is one cheap
                 // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
                 Async\await($this->load_outcomes());
@@ -802,7 +802,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
                 }
             }
             $loadAll = $this->safe_bool($this->options, 'loadAllOutcomes', false);
-            if (($loadAll === true) && !$wasWarm) {
+            if (($loadAll) && !$wasWarm) {
                 // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
                 // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
                 // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
@@ -1549,7 +1549,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         }
         $results = $this->sort_by_2($results, 'timestamp', 'id');
         $outcomeHandle = $this->safe_string($outcomeObj, 'outcome');
-        return $this->filter_by_outcome_since_limit($results, $outcomeHandle, $since, $limit);
+        return $this->filter_by_value_since_limit($results, 'outcome', $outcomeHandle, $since, $limit, 'timestamp', false);
     }
 
     public function parse_prediction_orders(array $orders, mixed $outcomeObj = null, ?int $since = null, ?int $limit = null, $params = array()) {

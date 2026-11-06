@@ -1823,7 +1823,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         return self.parse_trades(response, market, since, limit)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'INIT': 'open',
             'PENDING_CREATE': 'open',
@@ -2449,8 +2449,9 @@ class bitrue(Exchange, ImplicitAPI):
         request = {}
         if since is not None:
             request['startTime'] = since
-        limitResolved = None if (limit is None) else min(limit, 1000)
-        if limitResolved is not None:
+        limitResolved = None
+        if limit is not None:
+            limitResolved = 1000 if (limit > 1000) else limit
             request['limit'] = limitResolved
         if market['swap'] is True:
             request['contractName'] = market['id']
@@ -2827,7 +2828,7 @@ class bitrue(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
+    def parse_deposit_withdraw_fee(self, fee: dict, currency: Currency = None) -> object:
         #
         #   {
         #       "coin": "adx",
@@ -2945,8 +2946,9 @@ class bitrue(Exchange, ImplicitAPI):
             request['coinSymbol'] = currency['id']
         if since is not None:
             request['beginTime'] = since
-        limitResolved = None if (limit is None) else min(limit, 200)
-        if limitResolved is not None:
+        limitResolved = None
+        if limit is not None:
+            limitResolved = 200 if (limit > 200) else limit
             request['limit'] = limitResolved
         until = self.safe_integer(params, 'until')
         if until is not None:
@@ -3095,7 +3097,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         return self.parse_margin_modification(response, market)
 
-    def sign(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         requestBody = None
         requestHeaders = None
         type = self.safe_string(api, 0)
@@ -3174,7 +3176,8 @@ class bitrue(Exchange, ImplicitAPI):
         # error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         # following block contains legacy checks against message patterns in "msg" property
         # will switch "code" checks eventually, when we know all of them
-        if code >= 400:
+        statusCode = self.parse_to_int(code)
+        if statusCode >= 400:
             if body.find('Price * QTY is zero or less') >= 0:
                 raise InvalidOrder(self.id + ' order cost = amount * price is zero or less ' + body)
             if body.find('LOT_SIZE') >= 0:
@@ -3187,7 +3190,7 @@ class bitrue(Exchange, ImplicitAPI):
         # response in format {'msg': 'The coin does not exist.', 'success': true/false}
         success = self.safe_bool(response, 'success', True)
         parsedMessage = None
-        if success is not True:
+        if not success:
             messageInner = self.safe_string(response, 'msg')
             if messageInner is not None:
                 try:
@@ -3215,7 +3218,7 @@ class bitrue(Exchange, ImplicitAPI):
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
             raise ExchangeError(feedback)
-        if success is not True:
+        if not success:
             raise ExchangeError(self.id + ' ' + body)
         return None
 
@@ -3223,10 +3226,11 @@ class bitrue(Exchange, ImplicitAPI):
         if ('noSymbol' in config) and not ('symbol' in params):
             return config['noSymbol']
         elif ('byLimit' in config) and ('limit' in params):
-            limit = params['limit']
+            limit = self.safe_integer(params, 'limit')
             byLimit = self.safe_list(config, 'byLimit', [])
             for i in range(0, len(byLimit)):
                 entry = byLimit[i]
-                if limit <= entry[0]:
+                threshold = self.safe_integer(entry, 0)
+                if limit is not None and threshold is not None and limit <= threshold:
                     return entry[1]
         return self.safe_value(config, 'cost', 1)

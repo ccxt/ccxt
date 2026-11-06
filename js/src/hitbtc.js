@@ -852,8 +852,9 @@ export default class hitbtc extends Exchange {
             if (contract) {
                 contractSize = this.parseNumber('1');
                 settleId = feeCurrencyId;
-                settle = this.safeCurrencyCode(settleId);
-                linear = ((quote !== undefined) && (quote === settle));
+                const settleCode = this.safeCurrencyCode(settleId);
+                settle = settleCode;
+                linear = (quote === settleCode);
                 inverse = !linear;
                 symbol = symbol + ':' + settle;
                 if (future) {
@@ -987,9 +988,9 @@ export default class hitbtc extends Exchange {
         for (let j = 0; j < rawNetworks.length; j++) {
             const rawNetwork = rawNetworks[j];
             const networkId = this.safeString2(rawNetwork, 'protocol', 'network');
-            let networkCode = this.networkIdToCode(networkId, code);
-            const networkCodeUpper = (networkCode !== undefined) ? networkCode.toUpperCase() : undefined;
-            networkCode = (networkCodeUpper !== undefined) ? this.safeString(this.networkAliases, networkCodeUpper, networkCodeUpper) : code; // as hitbtc is white label, ensure we safeguard from possible bugs
+            const rawNetworkCode = this.networkIdToCode(networkId, code);
+            const networkCodeUpper = (rawNetworkCode !== undefined) ? rawNetworkCode.toUpperCase() : undefined;
+            const networkCode = (networkCodeUpper !== undefined) ? this.safeString(this.networkAliases, networkCodeUpper, networkCodeUpper) : code; // as hitbtc is white label, ensure we safeguard from possible bugs
             if (networkCode !== undefined) {
                 networks[networkCode] = {
                     'info': rawNetwork,
@@ -1460,7 +1461,7 @@ export default class hitbtc extends Exchange {
         const taker = this.safeBool(trade, 'taker');
         let takerOrMaker = undefined;
         if (taker !== undefined) {
-            takerOrMaker = (taker === true) ? 'taker' : 'maker';
+            takerOrMaker = (taker) ? 'taker' : 'maker';
         }
         else {
             takerOrMaker = 'taker'; // the only case when `taker` field is missing, is public fetchTrades and it must be taker
@@ -1660,7 +1661,8 @@ export default class hitbtc extends Exchange {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsHelper('DEPOSIT,WITHDRAW', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper('DEPOSIT,WITHDRAW', code, since, limit, params);
+        return this.toArray(transactions);
     }
     /**
      * @method
@@ -1674,7 +1676,8 @@ export default class hitbtc extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsHelper('DEPOSIT', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper('DEPOSIT', code, since, limit, params);
+        return this.toArray(transactions);
     }
     /**
      * @method
@@ -1688,7 +1691,8 @@ export default class hitbtc extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchTransactionsHelper('WITHDRAW', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper('WITHDRAW', code, since, limit, params);
+        return this.toArray(transactions);
     }
     /**
      * @method
@@ -2017,7 +2021,14 @@ export default class hitbtc extends Exchange {
             }
         }
         const parsed = this.parseOrders(response, market, since, limit);
-        return this.filterByArray(parsed, 'status', ['closed', 'canceled'], false);
+        const result = [];
+        for (let i = 0; i < parsed.length; i++) {
+            const status = this.safeString(parsed[i], 'status');
+            if ((status === 'closed') || (status === 'canceled')) {
+                result.push(parsed[i]);
+            }
+        }
+        return result;
     }
     /**
      * @method
@@ -2875,7 +2886,7 @@ export default class hitbtc extends Exchange {
         }
         const withdrawOptions = this.safeDict(this.options, 'withdraw', {});
         const includeFee = this.safeBool(withdrawOptions, 'includeFee', false);
-        if (includeFee === true) {
+        if (includeFee) {
             request['include_fee'] = true;
         }
         const response = await this.privatePostWalletCryptoWithdraw(this.extend(request, paramsOmitted));
@@ -2942,7 +2953,7 @@ export default class hitbtc extends Exchange {
             const fundingRate = this.parseFundingRate(rawFundingRate, marketInner);
             fundingRates[symbol] = fundingRate;
         }
-        return this.filterByArray(fundingRates, 'symbol', symbolsNormalized);
+        return this.indexBy(this.filterByArray(fundingRates, 'symbol', symbolsNormalized, false), 'symbol');
     }
     /**
      * @method
@@ -3333,7 +3344,7 @@ export default class hitbtc extends Exchange {
             const openInterest = this.safeDict(response, marketId, {});
             results.push(this.parseOpenInterest(openInterest, marketInner));
         }
-        return this.filterByArray(results, 'symbol', symbolsNormalized);
+        return this.indexBy(this.filterByArray(results, 'symbol', symbolsNormalized, false), 'symbol');
     }
     /**
      * @method
@@ -3771,9 +3782,9 @@ export default class hitbtc extends Exchange {
             const networkEntry = this.safeDict(networks, j);
             const networkId = this.safeString(networkEntry, 'network');
             const code = this.safeString(currency, 'code');
-            let networkCode = this.networkIdToCode(networkId, code);
-            const networkCodeUpper = (networkCode !== undefined) ? networkCode.toUpperCase() : undefined;
-            networkCode = (networkCodeUpper !== undefined) ? this.safeString(this.networkAliases, networkCodeUpper, networkCodeUpper) : undefined;
+            const rawNetworkCode = this.networkIdToCode(networkId, code);
+            const networkCodeUpper = (rawNetworkCode !== undefined) ? rawNetworkCode.toUpperCase() : undefined;
+            const networkCode = (networkCodeUpper !== undefined) ? this.safeString(this.networkAliases, networkCodeUpper, networkCodeUpper) : undefined;
             const withdrawFee = this.safeNumber(networkEntry, 'payout_fee');
             const isDefault = this.safeBool(networkEntry, 'default');
             const withdrawResult = {
@@ -3846,7 +3857,7 @@ export default class hitbtc extends Exchange {
         const defaultType = this.safeString(this.options, 'defaultType');
         const isMargin = this.safeBool(params, 'margin', false);
         const [marginMode, paramsMarginMode] = super.handleMarginModeAndParams(methodName, params, defaultValue);
-        if ((marginMode === undefined) && ((defaultType === 'margin') || (isMargin === true))) {
+        if ((marginMode === undefined) && ((defaultType === 'margin') || (isMargin))) {
             return ['isolated', paramsMarginMode];
         }
         return [marginMode, paramsMarginMode];

@@ -826,6 +826,31 @@ public struct OrderBook
     }
 }
 
+public struct OrderBookL3
+{
+    // each row is [ price (double), amount (double), orderId (string) ]
+    public List<List<object>>? bids;
+    public List<List<object>>? asks;
+
+    public string? symbol;
+    public Int64? timestamp;
+    public string? datetime;
+    public Int64? nonce;
+    // the raw exchange response, when the parser kept one
+    public Dictionary<string, object>? info;
+    public OrderBookL3(object orderbook2)
+    {
+        var orderbook = (IDictionary<string, object>)orderbook2;
+        bids = orderbook.ContainsKey("bids") ? ((IEnumerable<object>)orderbook["bids"]).Select(x => ((IEnumerable<object>)x).ToList()).ToList() : null;
+        asks = orderbook.ContainsKey("asks") ? ((IEnumerable<object>)orderbook["asks"]).Select(x => ((IEnumerable<object>)x).ToList()).ToList() : null;
+        symbol = Exchange.SafeString(orderbook, "symbol");
+        timestamp = Exchange.SafeInteger(orderbook, "timestamp");
+        datetime = Exchange.SafeString(orderbook, "datetime");
+        nonce = Exchange.SafeInteger(orderbook, "nonce");
+        info = Helper.GetInfo(orderbook);
+    }
+}
+
 public struct OrderBooks
 {
     public Dictionary<string, object> info;
@@ -1475,6 +1500,7 @@ public struct Position
     public bool? isolated;
     public double? exitPrice;
 
+    public double? positionMargin;
     public Position(object position)
     {
         symbol = Exchange.SafeString(position, "symbol");
@@ -1507,6 +1533,7 @@ public struct Position
         stopLossPrice = Exchange.SafeFloat(position, "stopLossPrice");
         isolated = Exchange.SafeValue(position, "isolated") != null ? (bool)Exchange.SafeValue(position, "isolated") : null;
         exitPrice = Exchange.SafeFloat(position, "exitPrice");
+        positionMargin = Exchange.SafeFloat(position, "positionMargin");
     }
 
 }

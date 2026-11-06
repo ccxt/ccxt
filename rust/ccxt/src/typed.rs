@@ -868,11 +868,11 @@ pub trait TypedExchangeExt: TypedExchange {
         }
     }
     /// Typed `fetchL3OrderBook`.
-    fn fetch_l3_order_book<'a>(&'a mut self, symbol: &str, limit: Option<i64>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<OrderBook>> + Send + 'a {
+    fn fetch_l3_order_book<'a>(&'a mut self, symbol: &str, limit: Option<i64>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<OrderBookL3>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_l3_order_book", __args).await?;
-            Ok(OrderBook::from_value(v))
+            Ok(OrderBookL3::from_value(v))
         }
     }
     /// Typed `fetchTrades`.
@@ -1356,8 +1356,6 @@ pub use crate::exchanges::bybit_typed::Bybit;
 pub use crate::exchanges::bybiteu_typed::Bybiteu;
 #[cfg(feature = "bybitid")]
 pub use crate::exchanges::bybitid_typed::Bybitid;
-#[cfg(feature = "bydfi")]
-pub use crate::exchanges::bydfi_typed::Bydfi;
 #[cfg(feature = "cex")]
 pub use crate::exchanges::cex_typed::Cex;
 #[cfg(feature = "coinbase")]
@@ -1470,6 +1468,8 @@ pub use crate::exchanges::paymium_typed::Paymium;
 pub use crate::exchanges::phemex_typed::Phemex;
 #[cfg(feature = "poloniex")]
 pub use crate::exchanges::poloniex_typed::Poloniex;
+#[cfg(feature = "polymarket")]
+pub use crate::exchanges::polymarket_typed::Polymarket;
 #[cfg(feature = "revolutx")]
 pub use crate::exchanges::revolutx_typed::Revolutx;
 #[cfg(feature = "tokocrypto")]
@@ -1569,8 +1569,6 @@ pub fn from_id(id: &str, config: Option<crate::Value>) -> Option<Box<dyn TypedEx
         "bybiteu" => Some(Box::new(Bybiteu::new(config))),
         #[cfg(feature = "bybitid")]
         "bybitid" => Some(Box::new(Bybitid::new(config))),
-        #[cfg(feature = "bydfi")]
-        "bydfi" => Some(Box::new(Bydfi::new(config))),
         #[cfg(feature = "cex")]
         "cex" => Some(Box::new(Cex::new(config))),
         #[cfg(feature = "coinbase")]
@@ -1683,6 +1681,8 @@ pub fn from_id(id: &str, config: Option<crate::Value>) -> Option<Box<dyn TypedEx
         "phemex" => Some(Box::new(Phemex::new(config))),
         #[cfg(feature = "poloniex")]
         "poloniex" => Some(Box::new(Poloniex::new(config))),
+        #[cfg(feature = "polymarket")]
+        "polymarket" => Some(Box::new(Polymarket::new(config))),
         #[cfg(feature = "revolutx")]
         "revolutx" => Some(Box::new(Revolutx::new(config))),
         #[cfg(feature = "tokocrypto")]

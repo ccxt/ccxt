@@ -103,9 +103,10 @@ SPLAT_KEY = re.compile(
     r'\s*(?:this\.)?(?P=f)\.Add\((?P=v)\.Key, new (?P=t)\((?P=v)\.Value\)\);\s*\n'
     r'\s*\}\s*\n\s*\}\s*$', re.M)
 
-# order-book sides: List<List<double>> built from the raw [price, amount] rows
+# order-book sides: List<List<double>> built from the raw [price, amount] rows, or
+# List<List<object>> for mixed rows such as the L3 [price, amount, orderId] entries
 LEVELS = re.compile(ASSIGN + r'\w+\.ContainsKey\("(?P<k>[^"]+)"\) \? \(\(IEnumerable<object>\)\w+\["(?P=k)"\]\)'
-                    r'\.Select\(x => \(\(IEnumerable<object>\)x\)\.Select\(y => Convert\.ToDouble\(y\)\)'
+                    r'\.Select\(x => \(\(IEnumerable<object>\)x\)(?:\.Select\(y => Convert\.ToDouble\(y\)\))?'
                     r'\.ToList\(\)\)\.ToList\(\) : null;$')
 
 # `info = <ctorParam>;` keeps the WHOLE source dict, so the struct inverts to it exactly

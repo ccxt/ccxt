@@ -15,11 +15,14 @@ func testFetchMyTradesBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICoreExc
 	defer ReturnPanicError(ch)
 	var method string = "fetchMyTrades"
 
-	r := <-exchange.FetchMyTradesAsync(symbol)
+	r := <-exchange.(ccxt.IFetchMyTrades).FetchMyTradesAsync(symbol)
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	trades := r.Value
+	var trades any = nil
+	if r.Value != nil {
+		trades = ccxt.TradesToList(r.Value)
+	}
 	AssertNonEmtpyArray(exchange, skippedProperties, method, trades, symbol)
 	var now int64 = exchange.Milliseconds()
 	for i := 0; i < GetArrayLength(trades); i++ {

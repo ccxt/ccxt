@@ -873,7 +873,7 @@ export default class zebpay extends Exchange {
 
     /**
      * @method
-     * @name zebpatspot#fetchOrderTrades
+     * @name zebpay#fetchOrderTrades
      * @description fetch all the trades made from a single order
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-order-fills
      * @param {string} id order id
@@ -1801,12 +1801,20 @@ export default class zebpay extends Exchange {
         const datetime = this.safeString (position, 'datetime');
         const marketId = this.safeString (position, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        return {
+        const marginMode = this.safeStringLower (position, 'marginMode', 'isolated');
+        const initialMargin = this.safeNumber (position, 'initialMargin');
+        // isolated positions hold exactly the initial margin posted for them
+        let positionMargin = undefined;
+        if (marginMode === 'isolated') {
+            positionMargin = initialMargin;
+        }
+        return this.safePosition ({
             'info': position,
-            'symbol': marketId,
+            'id': this.safeString (position, 'id'),
+            'symbol': marketResolved['symbol'],
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
-            'initialMargin': this.safeNumber (position, 'initialMargin'),
+            'initialMargin': initialMargin,
             'initialMarginPercentage': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
@@ -1819,11 +1827,12 @@ export default class zebpay extends Exchange {
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
             'markPrice': undefined,
+            'positionMargin': positionMargin,
             'collateral': undefined,
-            'marginMode': 'isolated',
-            'side': this.safeString (position, 'side'),
+            'marginMode': marginMode,
+            'side': this.safeStringLower (position, 'side'),
             'percentage': undefined,
-        };
+        });
     }
 
     override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
@@ -1930,7 +1939,7 @@ export default class zebpay extends Exchange {
         };
     }
 
-    override sign (path: string, api: string[] = [ 'public' ], method = 'GET', params: Dict = {}): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         let bodySigned: Str = undefined;
         let headersSigned: NullableDict = undefined;
         const paramsOmitted: Dict = this.omit (params, 'defaultType');

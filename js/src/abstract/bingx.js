@@ -565,11 +565,11 @@ class Exchange extends _Exchange {
     apiV3PrivatePostPostAssetTransfer(params = {}) {
         return this.request('post/asset/transfer', ['api', 'v3', 'private'], 'POST', params, { 'cost': 1 });
     }
+    apiAssetV1PrivateGetTransferSupportCoins(params = {}) {
+        return this.request('transfer/supportCoins', ['api', 'asset', 'v1', 'private'], 'GET', params, { 'cost': 5 });
+    }
     apiAssetV1PrivatePostTransfer(params = {}) {
         return this.request('transfer', ['api', 'asset', 'v1', 'private'], 'POST', params, { 'cost': 5 });
-    }
-    apiAssetV1PublicGetTransferSupportCoins(params = {}) {
-        return this.request('transfer/supportCoins', ['api', 'asset', 'v1', 'public'], 'GET', params, { 'cost': 5 });
     }
     agentV1PrivateGetAccountInviteAccountList(params = {}) {
         return this.request('account/inviteAccountList', ['agent', 'v1', 'private'], 'GET', params, { 'cost': 5 });

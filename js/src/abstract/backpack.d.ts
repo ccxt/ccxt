@@ -15,6 +15,9 @@ declare abstract class Exchange extends _Exchange {
     publicGetApiV1PredictionTags(params?: {}): Promise<List>;
     publicGetApiV1MarketSessions(params?: {}): Promise<List>;
     publicGetApiV1MarketHolidays(params?: {}): Promise<List>;
+    publicGetApiV1StockSessions(params?: {}): Promise<List>;
+    publicGetApiV1StockHolidays(params?: {}): Promise<List>;
+    publicGetApiV1StockIndicativeQuote(params?: {}): Promise<Dict>;
     publicGetApiV1Securities(params?: {}): Promise<List>;
     publicGetApiV1Klines(params?: {}): Promise<List>;
     publicGetApiV1MarkPrices(params?: {}): Promise<List>;
@@ -64,7 +67,6 @@ declare abstract class Exchange extends _Exchange {
     privatePostApiV1Orders(params?: {}): Promise<List>;
     privatePostApiV1Rfq(params?: {}): Promise<Dict>;
     privatePostApiV1RfqAccept(params?: {}): Promise<Dict>;
-    privatePostApiV1RfqRefresh(params?: {}): Promise<Dict>;
     privatePostApiV1RfqCancel(params?: {}): Promise<Dict>;
     privatePostApiV1RfqQuote(params?: {}): Promise<Dict>;
     privatePostApiV1Strategy(params?: {}): Promise<Dict>;

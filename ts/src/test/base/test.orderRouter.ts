@@ -1845,6 +1845,30 @@ test ('a keyless client sends no x-api-key header at all, rather than an empty o
     }
 });
 
+test ('userAgent is sent as User-Agent only when configured', async () => {
+    //  the default must leave the runtime's own User-Agent alone, never send a blank one
+    const stub = stubFetch (200, JSON.stringify ({ 'hops': [] }), {});
+    try {
+        const router = new OrderRouter ({ 'baseUrl': 'https://example.test/api' });
+        assert.strictEqual (router.userAgent, '');
+        await router.fetchRoute ('USDT', 'BTC', { 'amountIn': 10 });
+        const headers = stub.calls[0]['options']['headers'];
+        assert.strictEqual ('User-Agent' in headers, false, 'no User-Agent override by default');
+    } finally {
+        stub.restore ();
+    }
+    const uaStub = stubFetch (200, JSON.stringify ({ 'hops': [] }), {});
+    try {
+        const router = new OrderRouter ({ 'baseUrl': 'https://example.test/api', 'userAgent': 'ccxt-mcp/1.0.0 (ccxt 4.0.0)' });
+        assert.strictEqual (router.userAgent, 'ccxt-mcp/1.0.0 (ccxt 4.0.0)');
+        await router.fetchRoute ('USDT', 'BTC', { 'amountIn': 10 });
+        const headers = uaStub.calls[0]['options']['headers'];
+        assert.strictEqual (headers['User-Agent'], 'ccxt-mcp/1.0.0 (ccxt 4.0.0)');
+    } finally {
+        uaStub.restore ();
+    }
+});
+
 test ('a POST carries a JSON body and the key, a GET carries no body at all', async () => {
     const stub = stubFetch (200, JSON.stringify ({ 'hops': [] }), {});
     try {
@@ -1938,6 +1962,23 @@ test ('streamUrl upgrades the scheme and carries the route grammar unchanged', (
     //  includeQuotes is NOT defaulted: the endpoint's own default is false, and sending
     //  nothing is how the caller gets it
     assert.strictEqual (url.indexOf ('includeQuotes'), -1);
+});
+
+test ('the stream handshake carries userAgent only when configured', async () => {
+    const plain = streamingRouter ();
+    const watchingPlain = plain.watchRoute ('USDT', 'BTC', { 'amountIn': 10 }, () => 'stop');
+    const plainSocket = await socketOpened ();
+    assert.strictEqual ('User-Agent' in plainSocket.options['headers'], false, 'no User-Agent override by default');
+    plainSocket.onopen ();
+    plainSocket.deliver ({ 'hops': [] });
+    await watchingPlain;
+    const configured = streamingRouter ({ 'userAgent': 'ccxt-mcp/1.0.0 (ccxt 4.0.0)' });
+    const watching = configured.watchRoute ('USDT', 'BTC', { 'amountIn': 10 }, () => 'stop');
+    const socket = await socketOpened ();
+    assert.strictEqual (socket.options['headers']['User-Agent'], 'ccxt-mcp/1.0.0 (ccxt 4.0.0)');
+    socket.onopen ();
+    socket.deliver ({ 'hops': [] });
+    await watching;
 });
 
 test ('the stream refuses what the endpoint refuses, before opening a socket', () => {

@@ -144,11 +144,11 @@ public partial class revolutx : Exchange
                     { "sandbox", false },
                     { "createOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
-                        { "triggerPrice", false },
+                        { "triggerPrice", true },
                         { "triggerPriceType", null },
                         { "triggerDirection", false },
-                        { "stopLossPrice", false },
-                        { "takeProfitPrice", false },
+                        { "stopLossPrice", true },
+                        { "takeProfitPrice", true },
                         { "attachedStopLossTakeProfit", null },
                         { "timeInForce", new Dictionary<string, object>() {
                             { "GTC", true },
@@ -182,7 +182,7 @@ public partial class revolutx : Exchange
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 300 },
-                        { "trigger", false },
+                        { "trigger", true },
                         { "trailing", false },
                         { "symbolRequired", false },
                     } },
@@ -191,7 +191,7 @@ public partial class revolutx : Exchange
                         { "limit", 1900 },
                         { "daysBack", 30 },
                         { "untilDays", null },
-                        { "trigger", false },
+                        { "trigger", true },
                         { "trailing", false },
                         { "symbolRequired", false },
                     } },
@@ -201,7 +201,7 @@ public partial class revolutx : Exchange
                         { "daysBack", 30 },
                         { "daysBackCanceled", null },
                         { "untilDays", null },
-                        { "trigger", false },
+                        { "trigger", true },
                         { "trailing", false },
                         { "symbolRequired", false },
                     } },
@@ -456,12 +456,12 @@ public partial class revolutx : Exchange
         string? id = this.safeString2(currency, "id", "symbol", "");
         string? code = this.safeCurrencyCode(id);
         string? name = this.safeString(currency, "name");
-        object scale = this.safeInteger(currency, "scale");
+        Int64? scale = this.safeInteger(currency, "scale");
         string? status = this.safeString(currency, "status");
         bool active = (status == "active");
         string? assetType = this.safeString(currency, "asset_type");
         string type = (assetType == "crypto") ? "crypto" : "fiat";
-        double? precision = (!(scale == null)) ? Math.Pow(Convert.ToDouble(10), Convert.ToDouble(prefixUnaryNeg(ref scale))) : null;
+        double? precision = (!(scale == null)) ? Math.Pow(Convert.ToDouble(10), Convert.ToDouble((-scale))) : null;
         return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {
             { "info", currency },
             { "id", id },
@@ -836,14 +836,16 @@ public partial class revolutx : Exchange
         string? id = this.safeString(trade, "id");
         string? tradeSymbol = this.safeString(trade, "symbol");
         string? symbol = this.safeSymbol(tradeSymbol, market, "/");
-        double? price = this.safeNumber(trade, "price");
-        double? amount = this.safeNumber(trade, "quantity");
+        string? priceString = this.safeString(trade, "price");
+        string? amountString = this.safeString(trade, "quantity");
+        double? price = this.parseNumber(priceString);
+        double? amount = this.parseNumber(amountString);
         string? side = this.safeStringLower(trade, "side");
         Int64? timestamp = this.safeInteger(trade, "timestamp");
-        object cost = null;
-        if ((price != null) && (amount != null))
+        double? cost = null;
+        if ((priceString != null) && (amountString != null))
         {
-            cost = multiply(price, amount);
+            cost = this.parseNumber(Precise.stringMul(priceString, amountString));
         }
         return new ccxt.Trade(new Dictionary<string, object>() {
             { "info", trade },
@@ -1030,6 +1032,46 @@ public partial class revolutx : Exchange
         string? leavesQuantity = this.safeString(order, "leaves_quantity");
         string? price = this.safeString(order, "price");
         string? averageFillPrice = this.safeString(order, "average_fill_price");
+        //
+        // conditional and TP/SL orders carry their triggers, e.g.
+        //
+        //     "conditional": { "trigger_price": "118000.00", "type": "limit", "trigger_direction": "le", "limit_price": "117900.00", ... }
+        //     "take_profit": { "trigger_price": "125000.00", "type": "limit", "trigger_direction": "ge", "limit_price": "124900.00", ... }
+        //     "stop_loss": { "trigger_price": "115000.00", "type": "market", "trigger_direction": "le", ... }
+        //
+        IDictionary<string, object> conditional = this.safeDict(order, "conditional");
+        IDictionary<string, object> takeProfit = this.safeDict(order, "take_profit");
+        IDictionary<string, object> stopLoss = this.safeDict(order, "stop_loss");
+        string? triggerPrice = null;
+        if (orderType == "conditional")
+        {
+            triggerPrice = this.safeString(conditional, "trigger_price");
+            orderType = this.safeStringLower(conditional, "type");
+            if ((price == null))
+            {
+                price = this.safeString(conditional, "limit_price");
+            }
+        } else if (orderType == "tpsl")
+        {
+            // a single leg tells us the order type and limit price, with both legs they can differ
+            IDictionary<string, object> leg = null;
+            if (((takeProfit != null)) && ((stopLoss == null)))
+            {
+                leg = takeProfit;
+            } else if (((stopLoss != null)) && ((takeProfit == null)))
+            {
+                leg = stopLoss;
+            }
+            orderType = null;
+            if ((leg != null))
+            {
+                orderType = this.safeStringLower(leg, "type");
+                if ((price == null))
+                {
+                    price = this.safeString(leg, "limit_price");
+                }
+            }
+        }
         string? amount = this.safeString(order, "amount");
         string? filledAmount = this.safeString(order, "filled_amount");
         string? totalFee = this.safeString(order, "total_fee");
@@ -1080,6 +1122,9 @@ public partial class revolutx : Exchange
             { "remaining", this.parseNumber(remainingValue) },
             { "status", status },
             { "timeInForce", timeInForce },
+            { "triggerPrice", this.parseNumber(triggerPrice) },
+            { "stopLossPrice", this.parseNumber(this.safeString(stopLoss, "trigger_price")) },
+            { "takeProfitPrice", this.parseNumber(this.safeString(takeProfit, "trigger_price")) },
             { "timestamp", createdDate },
             { "datetime", this.iso8601(createdDate) },
             { "lastUpdateTimestamp", updatedDate },
@@ -1103,6 +1148,11 @@ public partial class revolutx : Exchange
      * @param {float} [params.cost] the order cost in units of the quote currency (alternative to amount)
      * @param {string} [params.timeInForce] 'gtc' or 'ioc' for limit orders
      * @param {string[]} [params.executionInstructions] limit order instructions, e.g. ['post_only'] or ['allow_taker']
+     * @param {float} [params.triggerPrice] place a conditional order that is submitted once the market reaches this price, as a limit order at `price` for type 'limit' or as a market order for type 'market'
+     * @param {float} [params.stopLossPrice] place a Take Profit/Stop Loss order with a stop loss leg that triggers at this price
+     * @param {float} [params.takeProfitPrice] place a Take Profit/Stop Loss order with a take profit leg that triggers at this price
+     * @param {object} [params.stopLoss] stop loss leg as *{ triggerPrice, price }*, a leg `price` makes it a limit leg
+     * @param {object} [params.takeProfit] take profit leg as *{ triggerPrice, price }*, a leg `price` makes it a limit leg; with a single leg, type 'limit' and `price` do the same
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
@@ -1117,8 +1167,69 @@ public partial class revolutx : Exchange
         string? cost = this.safeString2(parameters, "cost", "quote_size");
         string? timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
         List<object> executionInstructions = this.safeList(parameters, "executionInstructions", this.safeList(parameters, "execution_instructions"));
+        string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
+        string? stopLossPrice = this.safeString(parameters, "stopLossPrice");
+        string? takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
+        IDictionary<string, object> stopLoss = this.safeDict(parameters, "stopLoss");
+        IDictionary<string, object> takeProfit = this.safeDict(parameters, "takeProfit");
+        bool hasStopLoss = ((stopLossPrice != null)) || ((stopLoss != null));
+        bool hasTakeProfit = ((takeProfitPrice != null)) || ((takeProfit != null));
+        bool isTpsl = hasStopLoss || hasTakeProfit;
+        if (((triggerPrice != null)) || isTpsl)
+        {
+            if (((type != "limit")) && ((type != "market")))
+            {
+                throw new InvalidOrder (((this.id + " createOrder() does not support order type ") + type)) ;
+            }
+            if (((timeInForce != null)) || ((executionInstructions != null)))
+            {
+                throw new InvalidOrder ((this.id + " createOrder() timeInForce and executionInstructions are not supported for trigger and TP/SL orders")) ;
+            }
+        }
         Dictionary<string, object> orderConfiguration = new Dictionary<string, object>() {};
-        if ((type == "limit"))
+        if (((triggerPrice != null)) && isTpsl)
+        {
+            throw new InvalidOrder ((this.id + " createOrder() triggerPrice cannot be combined with stopLossPrice or takeProfitPrice")) ;
+        } else if ((triggerPrice != null))
+        {
+            Dictionary<string, object> conditionalConfig = new Dictionary<string, object>() {};
+            if ((cost != null))
+            {
+                conditionalConfig["quote_size"] = this.costToPrecision(symbol, cost);
+            } else
+            {
+                conditionalConfig["base_size"] = this.amountToPrecision(symbol, amount);
+            }
+            if ((type == "limit"))
+            {
+                if ((price == null))
+                {
+                    throw new ArgumentsRequired ((this.id + " createOrder() requires a price argument for limit trigger orders")) ;
+                }
+                conditionalConfig["limit_price"] = this.priceToPrecision(symbol, price);
+            }
+            conditionalConfig["trigger_price"] = this.priceToPrecision(symbol, triggerPrice);
+            orderConfiguration["conditional"] = conditionalConfig;
+        } else if (isTpsl)
+        {
+            if ((cost != null))
+            {
+                throw new InvalidOrder ((this.id + " createOrder() TP/SL orders are sized in the base currency only, cost is not supported")) ;
+            }
+            bool singleLeg = !(hasStopLoss && hasTakeProfit);
+            Dictionary<string, object> tpslConfig = new Dictionary<string, object>() {
+                { "base_size", this.amountToPrecision(symbol, amount) },
+            };
+            if (hasTakeProfit)
+            {
+                tpslConfig["take_profit"] = this.createTriggerLegRequest(symbol, type, price, takeProfitPrice, takeProfit, singleLeg);
+            }
+            if (hasStopLoss)
+            {
+                tpslConfig["stop_loss"] = this.createTriggerLegRequest(symbol, type, price, stopLossPrice, stopLoss, singleLeg);
+            }
+            orderConfiguration["tpsl"] = tpslConfig;
+        } else if ((type == "limit"))
         {
             Dictionary<string, object> limitConfig = new Dictionary<string, object>() {};
             if ((cost != null))
@@ -1167,7 +1278,7 @@ public partial class revolutx : Exchange
             { "side", side },
             { "order_configuration", orderConfiguration },
         };
-        Dictionary<string, object> response = await this.privatePost10Orders(this.extend(request, this.omit(parameters, new List<object>() {"cost", "quote_size", "clientOrderId", "client_order_id", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions"})));
+        Dictionary<string, object> response = await this.privatePost10Orders(this.extend(request, this.omit(parameters, new List<object>() {"cost", "quote_size", "clientOrderId", "client_order_id", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit"})));
         //
         //     {
         //         "data": [
@@ -1187,6 +1298,45 @@ public partial class revolutx : Exchange
             { "type", type },
         }), market);
         return order;
+    }
+
+    /**
+     * @method
+     * @name revolutx#createTriggerLegRequest
+     * @description builds the take profit or stop loss leg of a TP/SL order request
+     * @ignore
+     * @param {string} symbol unified market symbol
+     * @param {string} type 'limit' or 'market'
+     * @param {float} [price] the createOrder price, used as the limit price of a single limit leg
+     * @param {string} [triggerPrice] the stopLossPrice or takeProfitPrice param
+     * @param {object} [leg] the stopLoss or takeProfit param, *{ triggerPrice, price }*
+     * @param {boolean} singleLeg whether the order has only this leg
+     * @returns {object} the leg request
+     */
+    public virtual object createTriggerLegRequest(object symbol, object type, object price, object triggerPrice, object leg, object singleLeg)
+    {
+        string? legTriggerPrice = this.safeString2(leg, "triggerPrice", "stopPrice", triggerPrice);
+        if ((legTriggerPrice == null))
+        {
+            throw new ArgumentsRequired ((this.id + " createOrder() requires a triggerPrice for each stopLoss and takeProfit leg")) ;
+        }
+        Dictionary<string, object> result = new Dictionary<string, object>() {
+            { "trigger_price", this.priceToPrecision(symbol, legTriggerPrice) },
+        };
+        string? legPrice = this.safeString(leg, "price");
+        if (((legPrice == null)) && ((type is "limit")))
+        {
+            if (!isTrue(singleLeg) || ((price == null)))
+            {
+                throw new ArgumentsRequired ((this.id + " createOrder() limit TP/SL legs require a price, pass it as params.stopLoss.price and params.takeProfit.price when both legs are set")) ;
+            }
+            legPrice = this.numberToString(price);
+        }
+        if ((legPrice != null))
+        {
+            result["limit_price"] = this.priceToPrecision(symbol, legPrice);
+        }
+        return result;
     }
 
     /**
@@ -1288,6 +1438,7 @@ public partial class revolutx : Exchange
      * @param {string} [params.cursor] pagination cursor from the previous response
      * @param {string[]} [params.orderStates] filter by order states, e.g. ['new', 'partially_filled']
      * @param {string[]} [params.orderTypes] filter by order types, e.g. ['limit', 'market']
+     * @param {boolean} [params.trigger] set to true to fetch only conditional and TP/SL orders
      * @param {string} [params.side] filter by side, 'buy' or 'sell'
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1318,7 +1469,12 @@ public partial class revolutx : Exchange
         {
             request["order_states"] = String.Join(",", orderStates.ToArray());
         }
+        bool? trigger = this.safeBool(parameters, "trigger", false);
         List<object> orderTypes = this.safeList2(parameters, "orderTypes", "order_types");
+        if (((orderTypes == null)) && (trigger == true))
+        {
+            orderTypes = new List<object>() {"conditional", "tpsl"};
+        }
         if ((orderTypes != null))
         {
             request["order_types"] = String.Join(",", orderTypes.ToArray());
@@ -1328,7 +1484,7 @@ public partial class revolutx : Exchange
         {
             request["side"] = side;
         }
-        Dictionary<string, object> response = await this.privateGet10OrdersActive(this.extend(request, this.omit(parameters, new List<object>() {"cursor", "orderStates", "order_states", "orderTypes", "order_types", "side"})));
+        Dictionary<string, object> response = await this.privateGet10OrdersActive(this.extend(request, this.omit(parameters, new List<object>() {"cursor", "orderStates", "order_states", "orderTypes", "order_types", "side", "trigger"})));
         //
         //     {
         //         "data": [ { "id": "uuid", "client_order_id": "uuid", "symbol": "BTC/USD", ... } ],
@@ -1358,6 +1514,7 @@ public partial class revolutx : Exchange
      * @param {string} [params.cursor] pagination cursor from the previous response
      * @param {string[]} [params.orderStates] filter by order states, e.g. ['filled', 'cancelled', 'rejected']
      * @param {string[]} [params.orderTypes] filter by order types, e.g. ['limit', 'market']
+     * @param {boolean} [params.trigger] set to true to fetch only conditional and TP/SL orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -1373,7 +1530,7 @@ public partial class revolutx : Exchange
             Dictionary<string, object> market = this.market(symbol);
             request["symbols"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        Int64 thirtyDays = 2592000000;
+        Int64 thirtyDays = ((((30L * 24L) * 60) * 60) * 1000);
         Int64? until = this.safeInteger2(parameters, "until", "until");
         if ((since != null))
         {
@@ -1388,8 +1545,8 @@ public partial class revolutx : Exchange
         } else if ((since != null))
         {
             Int64 now = this.milliseconds();
-            Int64? defaultEnd = (since + thirtyDays);
-            request["end_date"] = (((defaultEnd == null || defaultEnd < now))) ? defaultEnd : now;
+            Int64 thirtyDaysAgo = (now - thirtyDays);
+            request["end_date"] = ((since < thirtyDaysAgo)) ? (since + thirtyDays) : now;
         }
         if ((limit != null))
         {
@@ -1405,12 +1562,17 @@ public partial class revolutx : Exchange
         {
             request["order_states"] = String.Join(",", orderStates.ToArray());
         }
+        bool? trigger = this.safeBool(parameters, "trigger", false);
         List<object> orderTypes = this.safeList2(parameters, "orderTypes", "order_types");
+        if (((orderTypes == null)) && (trigger == true))
+        {
+            orderTypes = new List<object>() {"conditional", "tpsl"};
+        }
         if ((orderTypes != null))
         {
             request["order_types"] = String.Join(",", orderTypes.ToArray());
         }
-        Dictionary<string, object> response = await this.privateGet10OrdersHistorical(this.extend(request, this.omit(parameters, new List<object>() {"until", "cursor", "orderStates", "order_states", "orderTypes", "order_types"})));
+        Dictionary<string, object> response = await this.privateGet10OrdersHistorical(this.extend(request, this.omit(parameters, new List<object>() {"until", "cursor", "orderStates", "order_states", "orderTypes", "order_types", "trigger"})));
         List<object> data = this.safeList(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
@@ -1455,16 +1617,18 @@ public partial class revolutx : Exchange
     {
         string? id = this.safeString(trade, "tid");
         string? orderId = this.safeString(trade, "oid");
-        double? price = this.safeNumber(trade, "p");
-        double? amount = this.safeNumber(trade, "q");
+        string? priceString = this.safeString(trade, "p");
+        string? amountString = this.safeString(trade, "q");
+        double? price = this.parseNumber(priceString);
+        double? amount = this.parseNumber(amountString);
         string? side = this.safeStringLower(trade, "s");
         Int64? timestamp = this.safeInteger2(trade, "tdt", "pdt");
         bool? isMaker = this.safeBool(trade, "im", false);
         string takerOrMaker = isMaker == true ? "maker" : "taker";
-        object cost = null;
-        if ((price != null) && (amount != null))
+        double? cost = null;
+        if ((priceString != null) && (amountString != null))
         {
-            cost = multiply(price, amount);
+            cost = this.parseNumber(Precise.stringMul(priceString, amountString));
         }
         string? symbol = this.safeSymbol(null, market);
         return new Dictionary<string, object>() {
@@ -1513,7 +1677,7 @@ public partial class revolutx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        Int64 thirtyDays = 2592000000;
+        Int64 thirtyDays = ((((30L * 24L) * 60) * 60) * 1000);
         Int64? until = this.safeInteger2(parameters, "until", "until");
         if ((since != null))
         {
@@ -1528,8 +1692,8 @@ public partial class revolutx : Exchange
         } else if ((since != null))
         {
             Int64 now = this.milliseconds();
-            Int64? defaultEnd = (since + thirtyDays);
-            request["end_date"] = (((defaultEnd == null || defaultEnd < now))) ? defaultEnd : now;
+            Int64 thirtyDaysAgo = (now - thirtyDays);
+            request["end_date"] = ((since < thirtyDaysAgo)) ? (since + thirtyDays) : now;
         }
         if ((limit != null))
         {
@@ -1639,7 +1803,8 @@ public partial class revolutx : Exchange
 
     public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
-        if (isGreaterThanOrEqual(code, 400))
+        Int64? statusCode = this.parseToInt(code);
+        if ((statusCode >= 400))
         {
             if ((response == null))
             {

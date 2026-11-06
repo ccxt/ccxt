@@ -19,7 +19,10 @@ func testFetchLeverageTiersBody(ch chan ccxt.AsyncResult[any], exchange ccxt.ICo
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	tiers := r.Value
+	var tiers any = nil
+	if !ccxt.StructAbsent(r.Value) {
+		tiers = ccxt.StructBox(r.Value, ccxt.LeverageTiersToMap)
+	}
 	// const format = {
 	//     'RAY/USDT': [
 	//       {},

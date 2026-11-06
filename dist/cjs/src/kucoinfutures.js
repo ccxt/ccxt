@@ -28,6 +28,7 @@ class kucoinfutures extends kucoinfutures$1["default"] {
                 'swap': true,
                 'future': true,
                 'option': undefined,
+                'editOrder': false,
                 'fetchBidsAsks': true,
                 'transfer': true,
             },

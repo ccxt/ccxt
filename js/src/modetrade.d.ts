@@ -1,5 +1,5 @@
 import Exchange from './abstract/modetrade.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, Market, FeeString, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, TradingFees, Transaction, int, Status } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LedgerEntry, Leverage, Market, NullableDict, FeeString, Num, OHLCV, OpenInterest, OpenInterests, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, Status } from './base/types.js';
 /**
  * @class modetrade
  * @augments Exchange
@@ -105,6 +105,48 @@ export default class modetrade extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
+    parseTicker(ticker: Dict, market?: Market): Ticker;
+    /**
+     * @method
+     * @name modetrade#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    fetchTicker(symbol: string, params?: Dict): Promise<Ticker>;
+    /**
+     * @method
+     * @name modetrade#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    fetchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
+    /**
+     * @method
+     * @name modetrade#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    fetchOpenInterest(symbol: string, params?: Dict): Promise<OpenInterest>;
+    /**
+     * @method
+     * @name modetrade#fetchOpenInterests
+     * @description retrieves the open interest for a list of contract trading pairs
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    fetchOpenInterests(symbols?: Strings, params?: Dict): Promise<OpenInterests>;
     parseIncome(income: Dict, market?: Market): Dict;
     /**
      * @method
@@ -155,7 +197,7 @@ export default class modetrade extends Exchange {
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     parseOrder(order: Dict, market?: Market): Order;
     parseTimeInForce(timeInForce: Str): Str;
-    parseOrderStatus(status: Str): string | undefined;
+    parseOrderStatus(status: Str): Str;
     parseOrderType(type: Str): Str;
     createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Dict;
     /**
@@ -361,7 +403,7 @@ export default class modetrade extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    getAssetHistoryRows(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    getAssetHistoryRows(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<any>;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     parseLedgerEntryType(type: Str): Str;
     /**
@@ -377,7 +419,7 @@ export default class modetrade extends Exchange {
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatus(status: Str): string | undefined;
+    parseTransactionStatus(status: Str): Str;
     /**
      * @method
      * @name modetrade#fetchDeposits

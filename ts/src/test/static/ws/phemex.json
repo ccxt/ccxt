@@ -354,6 +354,143 @@
                         "symbol": "BTC/USDT"
                     }
                 ]
+            },
+            {
+                "description": "resubscription snapshot resets the held orderbook in place - a consumer holding the old object must see post-resnapshot updates",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://ws.phemex.com",
+                "messages": [
+                    {
+                        "error": null,
+                        "id": 1,
+                        "result": {
+                            "status": "success"
+                        }
+                    },
+                    {
+                        "book": {
+                            "asks": [
+                                [
+                                    6337934000000,
+                                    8462600
+                                ],
+                                [
+                                    6338355000000,
+                                    20829000
+                                ]
+                            ],
+                            "bids": [
+                                [
+                                    6337933000000,
+                                    3179000
+                                ],
+                                [
+                                    6337312000000,
+                                    5687100
+                                ]
+                            ]
+                        },
+                        "depth": 30,
+                        "sequence": 40389359374,
+                        "symbol": "sBTCUSDT",
+                        "timestamp": "1786563252520140151",
+                        "type": "snapshot"
+                    },
+                    {
+                        "book": {
+                            "asks": [
+                                [
+                                    6337934000000,
+                                    5000000
+                                ]
+                            ],
+                            "bids": []
+                        },
+                        "depth": 30,
+                        "sequence": 40389359379,
+                        "symbol": "sBTCUSDT",
+                        "timestamp": "1786563253055996208",
+                        "type": "incremental"
+                    },
+                    {
+                        "book": {
+                            "asks": [
+                                [
+                                    6350000000000,
+                                    10000000
+                                ],
+                                [
+                                    6350100000000,
+                                    5000000
+                                ]
+                            ],
+                            "bids": [
+                                [
+                                    6349900000000,
+                                    20000000
+                                ],
+                                [
+                                    6349800000000,
+                                    2500000
+                                ]
+                            ]
+                        },
+                        "depth": 30,
+                        "sequence": 40389360000,
+                        "symbol": "sBTCUSDT",
+                        "timestamp": "1786563260000000000",
+                        "type": "snapshot"
+                    },
+                    {
+                        "book": {
+                            "asks": [],
+                            "bids": [
+                                [
+                                    6349800000000,
+                                    0
+                                ]
+                            ]
+                        },
+                        "depth": 30,
+                        "sequence": 40389360005,
+                        "symbol": "sBTCUSDT",
+                        "timestamp": "1786563261000000000",
+                        "type": "incremental"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "orderbook.subscribe",
+                        "id": 1,
+                        "params": [
+                            "sBTCUSDT"
+                        ]
+                    }
+                ],
+                "parsedResponse": {
+                    "bids": [
+                        [
+                            63499,
+                            0.2
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            63500,
+                            0.1
+                        ],
+                        [
+                            63501,
+                            0.05
+                        ]
+                    ],
+                    "timestamp": 1786563261000,
+                    "datetime": "2026-08-12T19:34:21.000Z",
+                    "nonce": 40389360005,
+                    "symbol": "BTC/USDT"
+                }
             }
         ]
     }

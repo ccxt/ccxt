@@ -52,7 +52,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         ));
     }
 
-    public function authenticate() {
+    public function authenticate(): array {
         $this->check_required_credentials();
         $path = '/users/self/verify';
         $nonce = $this->nonce();
@@ -939,7 +939,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         $bookside->store($price, $amount);
     }
 
-    public function handle_deltas(mixed $bookside, mixed $deltas) {
+    public function handle_deltas(mixed $bookside, array $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
@@ -1068,8 +1068,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
             'done' => array($this, 'handle_order'),
             'error' => array($this, 'handle_error_message'),
         );
-        $length = strlen($client->url) - 0;
-        $authenticated = $client->url[$length - 1] === '?';
+        $authenticated = str_ends_with($client->url, '?');
         $method = $this->safe_value($methods, $type);
         if ($method === null) {
             if ($type === 'match') {

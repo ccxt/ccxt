@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official backpack API documentation:** [docs.backpack.exchange](https://docs.backpack.exchange/)
 
-> 72 implicit endpoints across 2 access groups.
+> 74 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -77,6 +77,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetApiV1PredictionTags` | GET | `api/v1/prediction/tags` | 1 |
 | `publicGetApiV1MarketSessions` | GET | `api/v1/market-sessions` | 1 |
 | `publicGetApiV1MarketHolidays` | GET | `api/v1/market-holidays` | 1 |
+| `publicGetApiV1StockSessions` | GET | `api/v1/stockSessions` | 1 |
+| `publicGetApiV1StockHolidays` | GET | `api/v1/stockHolidays` | 1 |
+| `publicGetApiV1StockIndicativeQuote` | GET | `api/v1/stockIndicativeQuote` | 1 |
 | `publicGetApiV1Securities` | GET | `api/v1/securities` | 1 |
 | `publicGetApiV1Klines` | GET | `api/v1/klines` | 1 |
 | `publicGetApiV1MarkPrices` | GET | `api/v1/markPrices` | 1 |
@@ -133,7 +136,6 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostApiV1Orders` | POST | `api/v1/orders` | 1 |
 | `privatePostApiV1Rfq` | POST | `api/v1/rfq` | 1 |
 | `privatePostApiV1RfqAccept` | POST | `api/v1/rfq/accept` | 1 |
-| `privatePostApiV1RfqRefresh` | POST | `api/v1/rfq/refresh` | 1 |
 | `privatePostApiV1RfqCancel` | POST | `api/v1/rfq/cancel` | 1 |
 | `privatePostApiV1RfqQuote` | POST | `api/v1/rfq/quote` | 1 |
 | `privatePostApiV1Strategy` | POST | `api/v1/strategy` | 1 |

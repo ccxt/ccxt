@@ -103,7 +103,7 @@ export default class upbit extends upbitRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    parseWsOrderStatus(status: Str): string | undefined;
+    parseWsOrderStatus(status: Str): Str;
     parseWsOrder(order: Dict, market?: Market): Order;
     parseWsTrade(trade: Dict, market?: Market): Trade;
     handleMyOrder(client: Client, message: Dict): void;

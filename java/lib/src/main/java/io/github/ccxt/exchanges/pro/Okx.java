@@ -215,7 +215,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             if (!java.util.Objects.equals(symbol, null))
             {
                 Map<String, Object> market = this.market(symbol);
-                messageHashResolved = Helpers.add(messageHashResolved, (":" + market.get("id")));
+                messageHashResolved = ((Object) (switch ((Object) (messageHashResolved)) { case null -> (Object) ("null" + ((":" + market.get("id")))); case Double hx4J40v7 -> (Object) (hx4J40v7 + 0.0); case Object hx4J40v7 -> (Object) (String.valueOf(hx4J40v7) + ((":" + market.get("id")))); }));
                 firstArgument.put("instId", market.get("id"));
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -379,7 +379,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), Helpers.toMapArg(parameters))).join();
+            return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })))).join();
         });
 
     }
@@ -460,6 +460,10 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
         return BaseExchange.supplyAsync(() -> {
 
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
             String symbolValue = this.symbol(symbol);
             FundingRates fr = (this.watchFundingRates(new ArrayList<String>(Arrays.asList(symbolValue)), parameters)).join();
             return (fr == null || symbolValue == null ? null : fr.get(symbolValue));
@@ -574,6 +578,10 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
         return BaseExchange.supplyAsync(() -> {
 
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
             Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTicker", "channel", "tickers");
             String channel = channelparamsChannelVariable.first();
             Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
@@ -601,7 +609,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchTickers(new ArrayList<String>(Arrays.asList(symbol)), Helpers.toMapArg(parameters))).join();
+            return (this.unWatchTickers(new ArrayList<String>(Arrays.asList(symbol)), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })))).join();
         });
 
     }
@@ -658,6 +666,10 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
         return BaseExchange.supplyAsync(() -> {
 
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
             Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchMarkPrice", "channel", "mark-price");
             String channel = channelparamsChannelVariable.first();
             Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
@@ -904,8 +916,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-        Object parsedTicker = this.parseWsBidAsk((Map<String, Object>) (ticker), market);
-        String symbol = (String) ((Map<String, Object>)parsedTicker).get("symbol");
+        Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWsBidAsk((Map<String, Object>) (ticker), market);
+        String symbol = (String) parsedTicker.get("symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
             Helpers.addElementToObject(this.bidsasks, symbol, parsedTicker);
@@ -1051,7 +1063,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         for (var i = 0; i < ((List<?>)rawLiquidations).size(); i++)
         {
             Object rawLiquidation = (rawLiquidations == null || i < 0 || i >= rawLiquidations.size() ? null : rawLiquidations.get(i));
-            Object liquidation = this.parseWsLiquidation((Map<String, Object>) (rawLiquidation), (Map<String, Object>) null);
+            Map<String, Object> liquidation = (Map<String, Object>) this.parseWsLiquidation((Map<String, Object>) (rawLiquidation), (Map<String, Object>) null);
             String symbol = this.safeString(liquidation, "symbol");
             if (java.util.Objects.equals(this.liquidations, null))
             {
@@ -1088,7 +1100,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
             String accessType = "private";
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 accessType = "business";
             }
@@ -1172,7 +1184,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 return;
             }
-            Object liquidation = this.parseWsMyLiquidation((Map<String, Object>) (rawLiquidation), (Map<String, Object>) null);
+            Map<String, Object> liquidation = (Map<String, Object>) this.parseWsMyLiquidation((Map<String, Object>) (rawLiquidation), (Map<String, Object>) null);
             String symbol = this.safeString(liquidation, "symbol");
             if (java.util.Objects.equals(this.liquidations, null))
             {
@@ -1325,7 +1337,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), Helpers.toMapArg(parameters))).join();
+            return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })))).join();
         });
 
     }
@@ -1704,7 +1716,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), Helpers.toMapArg(parameters))).join();
+            return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
         });
 
     }
@@ -1730,9 +1742,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
     public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+        for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
-            this.handleDelta(bookside, Helpers.GetValue(deltas, i));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
         }
     }
 
@@ -1768,13 +1780,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         Long seqId = this.safeInteger(message, "seqId");
         Long prevSeqId = this.safeInteger(message, "prevSeqId");
         Object nonce = Helpers.GetValue(orderbook, "nonce");
-        Object error = null;
         if (!java.util.Objects.equals(prevSeqId, null) && (prevSeqId == null || prevSeqId != -1) && !Helpers.isEqual(nonce, prevSeqId))
         {
-            error = new InvalidNonce((this.id + " watchOrderBook received invalid nonce"));
-        }
-        if (!java.util.Objects.equals(error, null))
-        {
+            var error = new InvalidNonce((this.id + " watchOrderBook received invalid nonce"));
             ((Map<String,Object>)client.subscriptions).remove((String)messageHash);
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -1899,10 +1907,21 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             for (var i = 0; i < ((List<?>)data).size(); i++)
             {
                 Object update = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-                io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(new HashMap<String, Object>() {{}}, limit);
-                Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
-                orderbook.put("symbol", symbol);
-                this.handleOrderBookMessage(client, (Map<String, Object>) (update), orderbook, messageHash, market);
+                // reset the existing orderbook instead of replacing it: a consumer
+                // holds a reference to the old object and would never see updates
+                // after a re-subscription snapshot
+                if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+                {
+                    Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+                }
+                io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
+                Long timestamp = this.safeInteger(update, "ts");
+                // rows are [ price, amount, liquidatedOrders, numOrders ] - store
+                // price and amount only, matching handleDelta, so countOrIdKey
+                // points past the row on purpose
+                Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1, 4);
+                snapshot.put("nonce", this.safeInteger(update, "seqId"));
+                orderbook.reset(snapshot);
                 if (!(((Map<?, ?>)client.subscriptions).containsKey(messageHash)))
                 {
                     break;
@@ -2118,9 +2137,30 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         //
         Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg", new HashMap<String, Object>() {{}});
         String channel = this.safeString(arg, "channel");
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773); the free/used/total aggregates are rebuilt from the
+        // merged currencies by safeBalance
         Object balance = this.parseTradingBalance((Map<String, Object>) (message));
-        Map<String,Object> newBalance = this.deepExtend(this.balance, balance);
-        this.balance = this.safeBalance(newBalance);
+        if (java.util.Objects.equals(this.balance, null))
+        {
+            this.balance = new HashMap<String, Object>() {{}};
+        }
+        List<String> reserved = new ArrayList<String>(Arrays.asList("free", "used", "total"));
+        List<String> keys = new ArrayList<String>(((Map<String, Object>)balance).keySet());
+        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        {
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            if (this.inArray(key, reserved))
+            {
+                continue;
+            }
+            Helpers.addElementToObject(this.balance, key, Helpers.GetValue(balance, key));
+        }
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, channel);
     }
 
@@ -2180,7 +2220,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String access = "private";
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 access = "business";
             }
@@ -2188,7 +2228,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             mapLiteral6.put("access", access);
             (this.authenticate(mapLiteral6)).join();
             String channel = "orders";
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 channel = "orders-algo";
             }
@@ -2230,7 +2270,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
             }
-            return this.filterBySymbolSinceLimit(orders, Helpers.toStringArg(symbolResolved), since, limitResolved, true);
+            return this.filterBySymbolSinceLimit(orders, java.util.Objects.toString(symbolResolved, null), since, limitResolved, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -2421,7 +2461,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String accessType = "private";
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 accessType = "business";
             }
@@ -2459,7 +2499,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("instType", uppercaseType);
             String channel = "orders";
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 channel = "orders-algo";
             }
@@ -2802,7 +2842,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             Pair<String, Map<String, Object>> opparamsOpVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "editOrderWs", "op", "amend-order");
             String op = opparamsOpVariable.first();
             Map<String, Object> paramsOp = opparamsOpVariable.second();
-            Object args = this.editOrderRequest(id, (String) (symbol), (String) (type), (String) (side), amount, price, paramsOp);
+            Object args = this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, paramsOp);
             Map<String, Object> market = this.market(symbol);
             Long instIdCode = this.safeInteger(market, "instIdCode");
             if (!java.util.Objects.equals(instIdCode, null))
@@ -2910,9 +2950,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }};
             for (var i = 0; (idsLength != null && i < idsLength); i++)
             {
-                Map<String, Object> arg = this.extend(instParams, Helpers.newMap(
-                    "ordId", (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i))
-                ));
+                Map<String, Object> arg = this.extend(instParams, (switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>(); j39v1.put("ordId", (ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i))); yield j39v1; } }));
                 ((List<Object>)args).add(arg);
             }
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2966,6 +3004,37 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             return (this.watch(url, messageHash, request, messageHash, null)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
+    }
+
+    public void handleCancelOrders(Client client, Map<String, Object> message)
+    {
+        //
+        //    {
+        //        "id": "1512",
+        //        "op": "batch-cancel-orders",
+        //        "data": [
+        //            {
+        //                "clOrdId": "",
+        //                "ordId": "2510789768709120",
+        //                "sCode": "0",
+        //                "sMsg": ""
+        //            }
+        //        ],
+        //        "code": "0",
+        //        "msg": ""
+        //    }
+        //
+        String messageHash = this.safeString(message, "id");
+        List<Object> args = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
+        args = this.filterBy(args, "sCode", "0");
+        if (this.isEmpty(args))
+        {
+            String method = this.safeString(message, "op");
+            String stringMsg = this.json(message);
+            this.handleErrors(1, "", client.url, ((String)method), new HashMap<String, Object>() {{}}, stringMsg, message, new HashMap<String, Object>() {{}}, new HashMap<String, Object>() {{}});
+        }
+        List<Object> orders = this.parseOrders(args, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        client.resolve(orders, messageHash);
     }
 
     public void handleCancelAllOrders(Client client, Map<String, Object> message)
@@ -3155,6 +3224,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "amend-order", "handlePlaceOrders");
                 put( "batch-amend-orders", "handlePlaceOrders");
                 put( "cancel-order", "handlePlaceOrders");
+                put( "batch-cancel-orders", "handleCancelOrders");
                 put( "mass-cancel", "handleCancelAllOrders");
             }};
             Object method = this.safeValue(methods, eventVar);
@@ -3230,7 +3300,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
 
     public void handleUnsubscriptionOHLCV(Client client, String symbol, Object channel)
     {
-        String tf = Helpers.replace(((String)channel), "candle", "");
+        String tf = (channel == null ? null : ((String)channel).replaceFirst("candle", ""));
         String timeframe = this.findTimeframe(tf, (Object) null);
         if (java.util.Objects.equals(timeframe, null))
         {
@@ -3239,6 +3309,11 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         String subMessageHash = ((("multi:" + channel) + ":") + symbol);
         String messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash, false);
+        // watchOHLCV subscribes through subscribe () under channel:marketId
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            this.cleanUnsubscription(client, (String) (((channel + ":") + this.marketId((String) (symbol)))), (String) (null), false);
+        }
         if ((!java.util.Objects.equals(symbol, null)) && (!java.util.Objects.equals(timeframe, null)) && (((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(timeframe)))
         {
             ((Map<String,Object>)((Map<?, ?>)this.ohlcvs).get(symbol)).remove((String)timeframe);

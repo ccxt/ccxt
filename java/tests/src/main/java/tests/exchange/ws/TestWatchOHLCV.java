@@ -57,7 +57,7 @@ public class TestWatchOHLCV extends BaseTest {
                 success = false;
             }
             now = exchange.milliseconds();
-            if ((java.util.Objects.equals(success, true)) && (!java.util.Objects.equals(response, null)))
+            if (Boolean.TRUE.equals(success) && (!java.util.Objects.equals(response, null)))
             {
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
                 for (var i = 0; i < Helpers.getArrayLength(response); i++)

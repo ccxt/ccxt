@@ -280,7 +280,7 @@ export default class okx extends okxRest {
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
+    handleDeltas(bookside: any, deltas: any[]): void;
     handleOrderBookMessage(client: Client, message: Dict, orderbook: WsOrderBook, messageHash: string, market?: Market): WsOrderBook;
     handleOrderBook(client: Client, message: Dict): Dict;
     authenticate(params?: Dict): Promise<any>;
@@ -407,6 +407,7 @@ export default class okx extends okxRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelAllOrdersWs(symbol?: Str, params?: Dict): Promise<Order[]>;
+    handleCancelOrders(client: Client, message: Dict): void;
     handleCancelAllOrders(client: Client, message: Dict): void;
     handleSubscriptionStatus(client: Client, message: Dict): Dict;
     handleAuthenticate(client: Client, message: Dict): void;

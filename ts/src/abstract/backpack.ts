@@ -65,6 +65,18 @@ abstract class Exchange extends _Exchange {
         return this.request ('api/v1/market-holidays', [ 'public' ], 'GET', params, { 'cost': 1 });
     }
 
+    publicGetApiV1StockSessions (params = {}): Promise<List> {
+        return this.request ('api/v1/stockSessions', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetApiV1StockHolidays (params = {}): Promise<List> {
+        return this.request ('api/v1/stockHolidays', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetApiV1StockIndicativeQuote (params = {}): Promise<Dict> {
+        return this.request ('api/v1/stockIndicativeQuote', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
     publicGetApiV1Securities (params = {}): Promise<List> {
         return this.request ('api/v1/securities', [ 'public' ], 'GET', params, { 'cost': 1 });
     }
@@ -259,10 +271,6 @@ abstract class Exchange extends _Exchange {
 
     privatePostApiV1RfqAccept (params = {}): Promise<Dict> {
         return this.request ('api/v1/rfq/accept', [ 'private' ], 'POST', params, { 'cost': 1 });
-    }
-
-    privatePostApiV1RfqRefresh (params = {}): Promise<Dict> {
-        return this.request ('api/v1/rfq/refresh', [ 'private' ], 'POST', params, { 'cost': 1 });
     }
 
     privatePostApiV1RfqCancel (params = {}): Promise<Dict> {

@@ -476,7 +476,7 @@ class bitrue extends \ccxt\async\bitrue {
         return $result;
     }
 
-    public function convert_from_raw_quantity(string $symbol, ?float $rawQuantity) {
+    public function convert_from_raw_quantity(string $symbol, ?float $rawQuantity): ?float {
         if ($rawQuantity === null) {
             return null;
         }
@@ -485,6 +485,9 @@ class bitrue extends \ccxt\async\bitrue {
             return $rawQuantity;
         }
         $contractSize = $this->safe_number($market, 'contractSize', 1);
+        if ($contractSize === null) {
+            return $rawQuantity;
+        }
         return $rawQuantity * $contractSize;
     }
 

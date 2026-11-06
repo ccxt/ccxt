@@ -18,7 +18,7 @@ func TestCurrency(exchange ccxt.ICoreExchange, skippedProperties any, method any
 	// todo: info key needs to be added in base, when exchange does not have fetchCurrencies
 	var isNative bool = (!IsEqual(GetValue(exchange.GetHas(), "fetchCurrencies"), nil)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchCurrencies"), false)) && (!IsEqual(GetValue(exchange.GetHas(), "fetchCurrencies"), "emulated"))
 	var currencyType any = ccxt.DerefScalar(exchange.SafeString(entry, "type"))
-	if isNative == true {
+	if isNative {
 		format["info"] = map[string]any{}
 		// todo: 'name': 'Bitcoin', // uppercase string, base currency, 2 or more letters
 		format["withdraw"] = true                            // withdraw enabled

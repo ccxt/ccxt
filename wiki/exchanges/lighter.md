@@ -17,6 +17,7 @@
 * [fetchTickers](#fetchtickers)
 * [fetchOHLCV](#fetchohlcv)
 * [fetchFundingRates](#fetchfundingrates)
+* [fetchBalance](#fetchbalance)
 * [fetchPosition](#fetchposition)
 * [fetchPositions](#fetchpositions)
 * [fetchAccounts](#fetchaccounts)
@@ -27,6 +28,7 @@
 * [fetchDeposits](#fetchdeposits)
 * [fetchWithdrawals](#fetchwithdrawals)
 * [withdraw](#withdraw)
+* [fetchTrades](#fetchtrades)
 * [fetchMyTrades](#fetchmytrades)
 * [setLeverage](#setleverage)
 * [setMarginMode](#setmarginmode)
@@ -325,6 +327,29 @@ lighter.fetchFundingRates (symbols?, params?)
 ```
 
 
+<a name="fetchBalance" id="fetchbalance"></a>
+
+### fetchBalance{docsify-ignore}
+query for balance and get the amount of funds available for trading or funds locked in orders
+
+**Kind**: instance method of [<code>lighter</code>](#lighter)  
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
+
+**See**: https://apidocs.lighter.xyz/reference/account-1  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.by | <code>string</code> | No | fetch balance by 'index' or 'l1_address', defaults to 'index' |
+| params.value | <code>string</code> | No | fetch balance value, account index or l1 address |
+| params.type | <code>string</code> | No | 'spot', 'swap', default is 'swap' |
+
+
+```javascript
+lighter.fetchBalance (params?)
+```
+
+
 <a name="fetchPosition" id="fetchposition"></a>
 
 ### fetchPosition{docsify-ignore}
@@ -567,6 +592,29 @@ make a withdrawal
 
 ```javascript
 lighter.withdraw (code, amount, address, params?)
+```
+
+
+<a name="fetchTrades" id="fetchtrades"></a>
+
+### fetchTrades{docsify-ignore}
+get the list of most recent trades for a particular symbol
+
+**Kind**: instance method of [<code>lighter</code>](#lighter)  
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
+
+**See**: https://apidocs.lighter.xyz/reference/recenttrades  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch, default 100, max 100 |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+lighter.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
