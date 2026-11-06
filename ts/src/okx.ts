@@ -2716,11 +2716,12 @@ export default class okx extends Exchange {
         }
         const market = this.market (symbol);
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
-        if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 200) as OHLCV[];
-        }
         const priceType = this.safeString (paramsPaginate, 'price');
         const isMarkOrIndex = this.inArray (priceType, [ 'mark', 'index' ]);
+        if (paginate) {
+            const maxEntriesPerRequest = (isMarkOrIndex) ? 100 : 200;
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxEntriesPerRequest) as OHLCV[];
+        }
         const paramsPrice: Dict = this.omit (paramsPaginate, 'price');
         const options = this.safeDict (this.options, 'fetchOHLCV', {});
         const timezone = this.safeString (options, 'timezone', 'UTC');
@@ -2760,7 +2761,10 @@ export default class okx extends Exchange {
         }
         const until = this.safeInteger (paramsPrice, 'until');
         if (until !== undefined) {
-            request['after'] = until;
+            const afterSince = this.safeInteger (request, 'after');
+            if ((afterSince === undefined) || (until < afterSince)) {
+                request['after'] = until;
+            }
         }
         const paramsUntil: Dict = (until !== undefined) ? this.omit (paramsPrice, 'until') : paramsPrice;
         defaultType = this.safeString (options, 'type', defaultType); // Candles or HistoryCandles
