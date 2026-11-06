@@ -3626,7 +3626,7 @@ class testMainClass {
         $token_expires = $exchange->milliseconds() + 100000;
         $exchange->options['v2TokenExpires'] = $token_expires;
         $exchange->options['portfolio'] = 'random';
-        $id = 'nfqkvdjp';
+        $id = 'ccxt';
         assert($exchange->options['brokerId'] === $id, 'id not in options');
         $client_order_id = null;
         try {
@@ -3639,7 +3639,8 @@ class testMainClass {
             $query = $this->urlencoded_to_dict($url_parts[1]);
             $client_order_id = $query['label'];
         }
-        assert($client_order_id !== null && str_starts_with($client_order_id, ((string) $id)) === true, 'clientOrderId does not start with id');
+        // the label is built as "<brokerId>-<uuid22>", so assert the hyphenated prefix to ensure the uuid suffix was appended after the ccxt broker id
+        assert($client_order_id !== null && str_starts_with($client_order_id, $id . '-') === true, 'clientOrderId ' . $client_order_id . ' does not start with the brokerId prefix ' . $id . '-');
         if (!is_sync()) {
             close($exchange);
         }

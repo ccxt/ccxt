@@ -134,11 +134,11 @@ class revolutx(Exchange, ImplicitAPI):
                     'sandbox': False,
                     'createOrder': {
                         'marginMode': False,
-                        'triggerPrice': False,
+                        'triggerPrice': True,
                         'triggerPriceType': None,
                         'triggerDirection': False,
-                        'stopLossPrice': False,
-                        'takeProfitPrice': False,
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
                         'attachedStopLossTakeProfit': None,
                         'timeInForce': {
                             'GTC': True,
@@ -172,7 +172,7 @@ class revolutx(Exchange, ImplicitAPI):
                     'fetchOpenOrders': {
                         'marginMode': False,
                         'limit': 300,
-                        'trigger': False,
+                        'trigger': True,
                         'trailing': False,
                         'symbolRequired': False,
                     },
@@ -181,7 +181,7 @@ class revolutx(Exchange, ImplicitAPI):
                         'limit': 1900,
                         'daysBack': 30,
                         'untilDays': None,
-                        'trigger': False,
+                        'trigger': True,
                         'trailing': False,
                         'symbolRequired': False,
                     },
@@ -191,7 +191,7 @@ class revolutx(Exchange, ImplicitAPI):
                         'daysBack': 30,
                         'daysBackCanceled': None,
                         'untilDays': None,
-                        'trigger': False,
+                        'trigger': True,
                         'trailing': False,
                         'symbolRequired': False,
                     },
@@ -850,6 +850,34 @@ class revolutx(Exchange, ImplicitAPI):
         leavesQuantity = self.safe_string(order, 'leaves_quantity')
         price = self.safe_string(order, 'price')
         averageFillPrice = self.safe_string(order, 'average_fill_price')
+        #
+        # conditional and TP/SL orders carry their triggers, e.g.
+        #
+        #     "conditional": { "trigger_price": "118000.00", "type": "limit", "trigger_direction": "le", "limit_price": "117900.00", ... }
+        #     "take_profit": { "trigger_price": "125000.00", "type": "limit", "trigger_direction": "ge", "limit_price": "124900.00", ... }
+        #     "stop_loss": { "trigger_price": "115000.00", "type": "market", "trigger_direction": "le", ... }
+        #
+        conditional = self.safe_dict(order, 'conditional')
+        takeProfit = self.safe_dict(order, 'take_profit')
+        stopLoss = self.safe_dict(order, 'stop_loss')
+        triggerPrice = None
+        if orderType == 'conditional':
+            triggerPrice = self.safe_string(conditional, 'trigger_price')
+            orderType = self.safe_string_lower(conditional, 'type')
+            if price is None:
+                price = self.safe_string(conditional, 'limit_price')
+        elif orderType == 'tpsl':
+            # a single leg tells us the order type and limit price, with both legs they can differ
+            leg = None
+            if (takeProfit is not None) and (stopLoss is None):
+                leg = takeProfit
+            elif (stopLoss is not None) and (takeProfit is None):
+                leg = stopLoss
+            orderType = None
+            if leg is not None:
+                orderType = self.safe_string_lower(leg, 'type')
+                if price is None:
+                    price = self.safe_string(leg, 'limit_price')
         amount = self.safe_string(order, 'amount')
         filledAmount = self.safe_string(order, 'filled_amount')
         totalFee = self.safe_string(order, 'total_fee')
@@ -890,6 +918,9 @@ class revolutx(Exchange, ImplicitAPI):
             'remaining': self.parse_number(remainingValue),
             'status': status,
             'timeInForce': timeInForce,
+            'triggerPrice': self.parse_number(triggerPrice),
+            'stopLossPrice': self.parse_number(self.safe_string(stopLoss, 'trigger_price')),
+            'takeProfitPrice': self.parse_number(self.safe_string(takeProfit, 'trigger_price')),
             'timestamp': createdDate,
             'datetime': self.iso8601(createdDate),
             'lastUpdateTimestamp': updatedDate,
@@ -913,6 +944,11 @@ class revolutx(Exchange, ImplicitAPI):
         :param float [params.cost]: the order cost in units of the quote currency(alternative to amount)
         :param str [params.timeInForce]: 'gtc' or 'ioc' for limit orders
         :param str[] [params.executionInstructions]: limit order instructions, e.g. ['post_only'] or ['allow_taker']
+        :param float [params.triggerPrice]: place a conditional order that is submitted once the market reaches self price, as a limit order at `price` for type 'limit' or as a market order for type 'market'
+        :param float [params.stopLossPrice]: place a Take Profit/Stop Loss order with a stop loss leg that triggers at self price
+        :param float [params.takeProfitPrice]: place a Take Profit/Stop Loss order with a take profit leg that triggers at self price
+        :param dict [params.stopLoss]: stop loss leg as *{triggerPrice, price}*, a leg `price` makes it a limit leg
+        :param dict [params.takeProfit]: take profit leg as *{triggerPrice, price}*, a leg `price` makes it a limit leg; with a single leg, type 'limit' and `price` do the same
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -922,8 +958,47 @@ class revolutx(Exchange, ImplicitAPI):
         cost = self.safe_string_2(params, 'cost', 'quote_size')
         timeInForce = self.safe_string_lower_2(params, 'timeInForce', 'time_in_force')
         executionInstructions = self.safe_list(params, 'executionInstructions', self.safe_list(params, 'execution_instructions'))
+        triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
+        stopLossPrice = self.safe_string(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
+        stopLoss = self.safe_dict(params, 'stopLoss')
+        takeProfit = self.safe_dict(params, 'takeProfit')
+        hasStopLoss = (stopLossPrice is not None) or (stopLoss is not None)
+        hasTakeProfit = (takeProfitPrice is not None) or (takeProfit is not None)
+        isTpsl = hasStopLoss or hasTakeProfit
+        if (triggerPrice is not None) or isTpsl:
+            if (type != 'limit') and (type != 'market'):
+                raise InvalidOrder(self.id + ' createOrder() does not support order type ' + type)
+            if (timeInForce is not None) or (executionInstructions is not None):
+                raise InvalidOrder(self.id + ' createOrder() timeInForce and executionInstructions are not supported for trigger and TP/SL orders')
         orderConfiguration = {}
-        if type == 'limit':
+        if (triggerPrice is not None) and isTpsl:
+            raise InvalidOrder(self.id + ' createOrder() triggerPrice cannot be combined with stopLossPrice or takeProfitPrice')
+        elif triggerPrice is not None:
+            conditionalConfig = {}
+            if cost is not None:
+                conditionalConfig['quote_size'] = self.cost_to_precision(symbol, cost)
+            else:
+                conditionalConfig['base_size'] = self.amount_to_precision(symbol, amount)
+            if type == 'limit':
+                if price is None:
+                    raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for limit trigger orders')
+                conditionalConfig['limit_price'] = self.price_to_precision(symbol, price)
+            conditionalConfig['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
+            orderConfiguration['conditional'] = conditionalConfig
+        elif isTpsl:
+            if cost is not None:
+                raise InvalidOrder(self.id + ' createOrder() TP/SL orders are sized in the base currency only, cost is not supported')
+            singleLeg = not (hasStopLoss and hasTakeProfit)
+            tpslConfig = {
+                'base_size': self.amount_to_precision(symbol, amount),
+            }
+            if hasTakeProfit:
+                tpslConfig['take_profit'] = self.create_trigger_leg_request(symbol, type, price, takeProfitPrice, takeProfit, singleLeg)
+            if hasStopLoss:
+                tpslConfig['stop_loss'] = self.create_trigger_leg_request(symbol, type, price, stopLossPrice, stopLoss, singleLeg)
+            orderConfiguration['tpsl'] = tpslConfig
+        elif type == 'limit':
             limitConfig = {}
             if cost is not None:
                 limitConfig['quote_size'] = self.cost_to_precision(symbol, cost)
@@ -954,7 +1029,7 @@ class revolutx(Exchange, ImplicitAPI):
             'side': side,
             'order_configuration': orderConfiguration,
         }
-        response = await self.privatePost10Orders(self.extend(request, self.omit(params, ['cost', 'quote_size', 'clientOrderId', 'client_order_id', 'timeInForce', 'time_in_force', 'executionInstructions', 'execution_instructions'])))
+        response = await self.privatePost10Orders(self.extend(request, self.omit(params, ['cost', 'quote_size', 'clientOrderId', 'client_order_id', 'timeInForce', 'time_in_force', 'executionInstructions', 'execution_instructions', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit'])))
         #
         #     {
         #         "data": [
@@ -974,6 +1049,33 @@ class revolutx(Exchange, ImplicitAPI):
             'type': type,
         }), market)
         return order
+
+    def create_trigger_leg_request(self, symbol: str, type: OrderType, price: Num, triggerPrice: Str, leg: dict, singleLeg: bool) -> dict:
+        """
+        builds the take profit or stop loss leg of a TP/SL order request
+ @ignore
+        :param str symbol: unified market symbol
+        :param str type: 'limit' or 'market'
+        :param float [price]: the createOrder price, used as the limit price of a single limit leg
+        :param str [triggerPrice]: the stopLossPrice or takeProfitPrice param
+        :param dict [leg]: the stopLoss or takeProfit param, *{triggerPrice, price}*
+        :param boolean singleLeg: whether the order has only self leg
+        :returns dict: the leg request
+        """
+        legTriggerPrice = self.safe_string_2(leg, 'triggerPrice', 'stopPrice', triggerPrice)
+        if legTriggerPrice is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice for each stopLoss and takeProfit leg')
+        result = {
+            'trigger_price': self.price_to_precision(symbol, legTriggerPrice),
+        }
+        legPrice = self.safe_string(leg, 'price')
+        if (legPrice is None) and (type == 'limit'):
+            if not singleLeg or (price is None):
+                raise ArgumentsRequired(self.id + ' createOrder() limit TP/SL legs require a price, pass it as params.stopLoss.price and params.takeProfit.price when both legs are set')
+            legPrice = self.number_to_string(price)
+        if legPrice is not None:
+            result['limit_price'] = self.price_to_precision(symbol, legPrice)
+        return result
 
     async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -1062,6 +1164,7 @@ class revolutx(Exchange, ImplicitAPI):
         :param str [params.cursor]: pagination cursor from the previous response
         :param str[] [params.orderStates]: filter by order states, e.g. ['new', 'partially_filled']
         :param str[] [params.orderTypes]: filter by order types, e.g. ['limit', 'market']
+        :param boolean [params.trigger]: set to True to fetch only conditional and TP/SL orders
         :param str [params.side]: filter by side, 'buy' or 'sell'
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1079,13 +1182,16 @@ class revolutx(Exchange, ImplicitAPI):
         orderStates = self.safe_list_2(params, 'orderStates', 'order_states')
         if orderStates is not None:
             request['order_states'] = ','.join(orderStates)
+        trigger = self.safe_bool(params, 'trigger', False)
         orderTypes = self.safe_list_2(params, 'orderTypes', 'order_types')
+        if (orderTypes is None) and trigger:
+            orderTypes = ['conditional', 'tpsl']
         if orderTypes is not None:
             request['order_types'] = ','.join(orderTypes)
         side = self.safe_string(params, 'side')
         if side is not None:
             request['side'] = side
-        response = await self.privateGet10OrdersActive(self.extend(request, self.omit(params, ['cursor', 'orderStates', 'order_states', 'orderTypes', 'order_types', 'side'])))
+        response = await self.privateGet10OrdersActive(self.extend(request, self.omit(params, ['cursor', 'orderStates', 'order_states', 'orderTypes', 'order_types', 'side', 'trigger'])))
         #
         #     {
         #         "data": [ { "id": "uuid", "client_order_id": "uuid", "symbol": "BTC/USD", ... } ],
@@ -1113,6 +1219,7 @@ class revolutx(Exchange, ImplicitAPI):
         :param str [params.cursor]: pagination cursor from the previous response
         :param str[] [params.orderStates]: filter by order states, e.g. ['filled', 'cancelled', 'rejected']
         :param str[] [params.orderTypes]: filter by order types, e.g. ['limit', 'market']
+        :param boolean [params.trigger]: set to True to fetch only conditional and TP/SL orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -1141,10 +1248,13 @@ class revolutx(Exchange, ImplicitAPI):
         orderStates = self.safe_list_2(params, 'orderStates', 'order_states')
         if orderStates is not None:
             request['order_states'] = ','.join(orderStates)
+        trigger = self.safe_bool(params, 'trigger', False)
         orderTypes = self.safe_list_2(params, 'orderTypes', 'order_types')
+        if (orderTypes is None) and trigger:
+            orderTypes = ['conditional', 'tpsl']
         if orderTypes is not None:
             request['order_types'] = ','.join(orderTypes)
-        response = await self.privateGet10OrdersHistorical(self.extend(request, self.omit(params, ['until', 'cursor', 'orderStates', 'order_states', 'orderTypes', 'order_types'])))
+        response = await self.privateGet10OrdersHistorical(self.extend(request, self.omit(params, ['until', 'cursor', 'orderStates', 'order_states', 'orderTypes', 'order_types', 'trigger'])))
         data = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(data)):

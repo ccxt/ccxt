@@ -127,11 +127,11 @@ export default class revolutx extends Exchange {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': false,
+                        'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'GTC': true,
@@ -165,7 +165,7 @@ export default class revolutx extends Exchange {
                     'fetchOpenOrders': {
                         'marginMode': false,
                         'limit': 300,
-                        'trigger': false,
+                        'trigger': true,
                         'trailing': false,
                         'symbolRequired': false,
                     },
@@ -174,7 +174,7 @@ export default class revolutx extends Exchange {
                         'limit': 1900,
                         'daysBack': 30,
                         'untilDays': undefined,
-                        'trigger': false,
+                        'trigger': true,
                         'trailing': false,
                         'symbolRequired': false,
                     },
@@ -184,7 +184,7 @@ export default class revolutx extends Exchange {
                         'daysBack': 30,
                         'daysBackCanceled': undefined,
                         'untilDays': undefined,
-                        'trigger': false,
+                        'trigger': true,
                         'trailing': false,
                         'symbolRequired': false,
                     },
@@ -914,12 +914,45 @@ export default class revolutx extends Exchange {
         const orderSymbol = this.safeString (order, 'symbol');
         const symbol = this.safeSymbol (orderSymbol, market, '/');
         const side = this.safeStringLower (order, 'side');
-        const orderType = this.safeStringLower (order, 'type');
+        let orderType = this.safeStringLower (order, 'type');
         const quantity = this.safeString (order, 'quantity');
         const filledQuantity = this.safeString (order, 'filled_quantity');
         const leavesQuantity = this.safeString (order, 'leaves_quantity');
-        const price = this.safeString (order, 'price');
+        let price = this.safeString (order, 'price');
         const averageFillPrice = this.safeString (order, 'average_fill_price');
+        //
+        // conditional and TP/SL orders carry their triggers, e.g.
+        //
+        //     "conditional": { "trigger_price": "118000.00", "type": "limit", "trigger_direction": "le", "limit_price": "117900.00", ... }
+        //     "take_profit": { "trigger_price": "125000.00", "type": "limit", "trigger_direction": "ge", "limit_price": "124900.00", ... }
+        //     "stop_loss": { "trigger_price": "115000.00", "type": "market", "trigger_direction": "le", ... }
+        //
+        const conditional = this.safeDict (order, 'conditional');
+        const takeProfit = this.safeDict (order, 'take_profit');
+        const stopLoss = this.safeDict (order, 'stop_loss');
+        let triggerPrice: Str = undefined;
+        if (orderType === 'conditional') {
+            triggerPrice = this.safeString (conditional, 'trigger_price');
+            orderType = this.safeStringLower (conditional, 'type');
+            if (price === undefined) {
+                price = this.safeString (conditional, 'limit_price');
+            }
+        } else if (orderType === 'tpsl') {
+            // a single leg tells us the order type and limit price, with both legs they can differ
+            let leg: NullableDict = undefined;
+            if ((takeProfit !== undefined) && (stopLoss === undefined)) {
+                leg = takeProfit;
+            } else if ((stopLoss !== undefined) && (takeProfit === undefined)) {
+                leg = stopLoss;
+            }
+            orderType = undefined;
+            if (leg !== undefined) {
+                orderType = this.safeStringLower (leg, 'type');
+                if (price === undefined) {
+                    price = this.safeString (leg, 'limit_price');
+                }
+            }
+        }
         const amount = this.safeString (order, 'amount');
         const filledAmount = this.safeString (order, 'filled_amount');
         const totalFee = this.safeString (order, 'total_fee');
@@ -964,6 +997,9 @@ export default class revolutx extends Exchange {
             'remaining': this.parseNumber (remainingValue),
             'status': status,
             'timeInForce': timeInForce,
+            'triggerPrice': this.parseNumber (triggerPrice),
+            'stopLossPrice': this.parseNumber (this.safeString (stopLoss, 'trigger_price')),
+            'takeProfitPrice': this.parseNumber (this.safeString (takeProfit, 'trigger_price')),
             'timestamp': createdDate,
             'datetime': this.iso8601 (createdDate),
             'lastUpdateTimestamp': updatedDate,
@@ -987,6 +1023,11 @@ export default class revolutx extends Exchange {
      * @param {float} [params.cost] the order cost in units of the quote currency (alternative to amount)
      * @param {string} [params.timeInForce] 'gtc' or 'ioc' for limit orders
      * @param {string[]} [params.executionInstructions] limit order instructions, e.g. ['post_only'] or ['allow_taker']
+     * @param {float} [params.triggerPrice] place a conditional order that is submitted once the market reaches this price, as a limit order at `price` for type 'limit' or as a market order for type 'market'
+     * @param {float} [params.stopLossPrice] place a Take Profit/Stop Loss order with a stop loss leg that triggers at this price
+     * @param {float} [params.takeProfitPrice] place a Take Profit/Stop Loss order with a take profit leg that triggers at this price
+     * @param {object} [params.stopLoss] stop loss leg as *{ triggerPrice, price }*, a leg `price` makes it a limit leg
+     * @param {object} [params.takeProfit] take profit leg as *{ triggerPrice, price }*, a leg `price` makes it a limit leg; with a single leg, type 'limit' and `price` do the same
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
@@ -998,8 +1039,56 @@ export default class revolutx extends Exchange {
         const cost = this.safeString2 (params, 'cost', 'quote_size');
         const timeInForce = this.safeStringLower2 (params, 'timeInForce', 'time_in_force');
         const executionInstructions = this.safeList (params, 'executionInstructions', this.safeList (params, 'execution_instructions'));
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        const stopLoss = this.safeDict (params, 'stopLoss');
+        const takeProfit = this.safeDict (params, 'takeProfit');
+        const hasStopLoss = (stopLossPrice !== undefined) || (stopLoss !== undefined);
+        const hasTakeProfit = (takeProfitPrice !== undefined) || (takeProfit !== undefined);
+        const isTpsl = hasStopLoss || hasTakeProfit;
+        if ((triggerPrice !== undefined) || isTpsl) {
+            if ((type !== 'limit') && (type !== 'market')) {
+                throw new InvalidOrder (this.id + ' createOrder() does not support order type ' + type);
+            }
+            if ((timeInForce !== undefined) || (executionInstructions !== undefined)) {
+                throw new InvalidOrder (this.id + ' createOrder() timeInForce and executionInstructions are not supported for trigger and TP/SL orders');
+            }
+        }
         const orderConfiguration: Dict = {};
-        if (type === 'limit') {
+        if ((triggerPrice !== undefined) && isTpsl) {
+            throw new InvalidOrder (this.id + ' createOrder() triggerPrice cannot be combined with stopLossPrice or takeProfitPrice');
+        } else if (triggerPrice !== undefined) {
+            const conditionalConfig: Dict = {};
+            if (cost !== undefined) {
+                conditionalConfig['quote_size'] = this.costToPrecision (symbol, cost);
+            } else {
+                conditionalConfig['base_size'] = this.amountToPrecision (symbol, amount);
+            }
+            if (type === 'limit') {
+                if (price === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for limit trigger orders');
+                }
+                conditionalConfig['limit_price'] = this.priceToPrecision (symbol, price);
+            }
+            conditionalConfig['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
+            orderConfiguration['conditional'] = conditionalConfig;
+        } else if (isTpsl) {
+            if (cost !== undefined) {
+                throw new InvalidOrder (this.id + ' createOrder() TP/SL orders are sized in the base currency only, cost is not supported');
+            }
+            const singleLeg = !(hasStopLoss && hasTakeProfit);
+            const tpslConfig: Dict = {
+                'base_size': this.amountToPrecision (symbol, amount),
+            };
+            if (hasTakeProfit) {
+                tpslConfig['take_profit'] = this.createTriggerLegRequest (symbol, type, price, takeProfitPrice, takeProfit, singleLeg);
+            }
+            if (hasStopLoss) {
+                tpslConfig['stop_loss'] = this.createTriggerLegRequest (symbol, type, price, stopLossPrice, stopLoss, singleLeg);
+            }
+            orderConfiguration['tpsl'] = tpslConfig;
+        } else if (type === 'limit') {
             const limitConfig: Dict = {};
             if (cost !== undefined) {
                 limitConfig['quote_size'] = this.costToPrecision (symbol, cost);
@@ -1037,7 +1126,7 @@ export default class revolutx extends Exchange {
             'side': side,
             'order_configuration': orderConfiguration,
         };
-        const response = await this.privatePost10Orders (this.extend (request, this.omit (params, [ 'cost', 'quote_size', 'clientOrderId', 'client_order_id', 'timeInForce', 'time_in_force', 'executionInstructions', 'execution_instructions' ])));
+        const response = await this.privatePost10Orders (this.extend (request, this.omit (params, [ 'cost', 'quote_size', 'clientOrderId', 'client_order_id', 'timeInForce', 'time_in_force', 'executionInstructions', 'execution_instructions', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit' ])));
         //
         //     {
         //         "data": [
@@ -1057,6 +1146,40 @@ export default class revolutx extends Exchange {
             'type': type,
         }), market);
         return order;
+    }
+
+    /**
+     * @method
+     * @name revolutx#createTriggerLegRequest
+     * @description builds the take profit or stop loss leg of a TP/SL order request
+     * @ignore
+     * @param {string} symbol unified market symbol
+     * @param {string} type 'limit' or 'market'
+     * @param {float} [price] the createOrder price, used as the limit price of a single limit leg
+     * @param {string} [triggerPrice] the stopLossPrice or takeProfitPrice param
+     * @param {object} [leg] the stopLoss or takeProfit param, *{ triggerPrice, price }*
+     * @param {boolean} singleLeg whether the order has only this leg
+     * @returns {object} the leg request
+     */
+    createTriggerLegRequest (symbol: string, type: OrderType, price: Num, triggerPrice: Str, leg: NullableDict, singleLeg: boolean): Dict {
+        const legTriggerPrice = this.safeString2 (leg, 'triggerPrice', 'stopPrice', triggerPrice);
+        if (legTriggerPrice === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerPrice for each stopLoss and takeProfit leg');
+        }
+        const result: Dict = {
+            'trigger_price': this.priceToPrecision (symbol, legTriggerPrice),
+        };
+        let legPrice = this.safeString (leg, 'price');
+        if ((legPrice === undefined) && (type === 'limit')) {
+            if (!singleLeg || (price === undefined)) {
+                throw new ArgumentsRequired (this.id + ' createOrder() limit TP/SL legs require a price, pass it as params.stopLoss.price and params.takeProfit.price when both legs are set');
+            }
+            legPrice = this.numberToString (price);
+        }
+        if (legPrice !== undefined) {
+            result['limit_price'] = this.priceToPrecision (symbol, legPrice);
+        }
+        return result;
     }
 
     /**
@@ -1152,6 +1275,7 @@ export default class revolutx extends Exchange {
      * @param {string} [params.cursor] pagination cursor from the previous response
      * @param {string[]} [params.orderStates] filter by order states, e.g. ['new', 'partially_filled']
      * @param {string[]} [params.orderTypes] filter by order types, e.g. ['limit', 'market']
+     * @param {boolean} [params.trigger] set to true to fetch only conditional and TP/SL orders
      * @param {string} [params.side] filter by side, 'buy' or 'sell'
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1175,7 +1299,11 @@ export default class revolutx extends Exchange {
         if (orderStates !== undefined) {
             request['order_states'] = orderStates.join (',');
         }
-        const orderTypes = this.safeList2 (params, 'orderTypes', 'order_types');
+        const trigger = this.safeBool (params, 'trigger', false);
+        let orderTypes = this.safeList2 (params, 'orderTypes', 'order_types');
+        if ((orderTypes === undefined) && trigger) {
+            orderTypes = [ 'conditional', 'tpsl' ];
+        }
         if (orderTypes !== undefined) {
             request['order_types'] = orderTypes.join (',');
         }
@@ -1183,7 +1311,7 @@ export default class revolutx extends Exchange {
         if (side !== undefined) {
             request['side'] = side;
         }
-        const response = await this.privateGet10OrdersActive (this.extend (request, this.omit (params, [ 'cursor', 'orderStates', 'order_states', 'orderTypes', 'order_types', 'side' ])));
+        const response = await this.privateGet10OrdersActive (this.extend (request, this.omit (params, [ 'cursor', 'orderStates', 'order_states', 'orderTypes', 'order_types', 'side', 'trigger' ])));
         //
         //     {
         //         "data": [ { "id": "uuid", "client_order_id": "uuid", "symbol": "BTC/USD", ... } ],
@@ -1212,6 +1340,7 @@ export default class revolutx extends Exchange {
      * @param {string} [params.cursor] pagination cursor from the previous response
      * @param {string[]} [params.orderStates] filter by order states, e.g. ['filled', 'cancelled', 'rejected']
      * @param {string[]} [params.orderTypes] filter by order types, e.g. ['limit', 'market']
+     * @param {boolean} [params.trigger] set to true to fetch only conditional and TP/SL orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
@@ -1248,11 +1377,15 @@ export default class revolutx extends Exchange {
         if (orderStates !== undefined) {
             request['order_states'] = orderStates.join (',');
         }
-        const orderTypes = this.safeList2 (params, 'orderTypes', 'order_types');
+        const trigger = this.safeBool (params, 'trigger', false);
+        let orderTypes = this.safeList2 (params, 'orderTypes', 'order_types');
+        if ((orderTypes === undefined) && trigger) {
+            orderTypes = [ 'conditional', 'tpsl' ];
+        }
         if (orderTypes !== undefined) {
             request['order_types'] = orderTypes.join (',');
         }
-        const response = await this.privateGet10OrdersHistorical (this.extend (request, this.omit (params, [ 'until', 'cursor', 'orderStates', 'order_states', 'orderTypes', 'order_types' ])));
+        const response = await this.privateGet10OrdersHistorical (this.extend (request, this.omit (params, [ 'until', 'cursor', 'orderStates', 'order_states', 'orderTypes', 'order_types', 'trigger' ])));
         const data: Dict[] = this.safeList (response, 'data', []);
         const result: Order[] = [];
         for (let i = 0; i < data.length; i++) {

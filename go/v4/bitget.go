@@ -3988,10 +3988,10 @@ func (this *Bitget) fetchDefaultMarketsBody(ch chan AsyncResult[[]MarketInterfac
 			var marketId *string = SafeStringPtr(GetValue(parsedMarket, "id"))
 			var instrument map[string]any = SafeMapTyped(spotInstruments, marketId)
 			if instrument != nil {
-				var parsedInstrument any = this.ParseMarket(instrument)
-				if !IsEqual(parsedInstrument, nil) {
-					AddElementToObject(parsedMarket, "stock", GetValue(parsedInstrument, "stock"))
-				}
+				// only the stock flag is needed, read it directly instead of re-parsing the whole instrument
+				var assetType *string = this.SafeStringLower(instrument, "symbolType")
+				var isReality bool = (this.SafeStringLower(instrument, "isReality") != nil && *this.SafeStringLower(instrument, "isReality") == "yes")
+				AddElementToObject(parsedMarket, "stock", (assetType != nil && *assetType == "stock") || ((assetType == nil) && isReality))
 			}
 		}
 		result = append(result, parsedMarket)

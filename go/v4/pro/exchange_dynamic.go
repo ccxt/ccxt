@@ -79,9 +79,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 	case "bybitid":
 		bybitidItf := NewBybitid(exchangeArgs)
 		return bybitidItf, true
-	case "bydfi":
-		bydfiItf := NewBydfi(exchangeArgs)
-		return bydfiItf, true
 	case "cex":
 		cexItf := NewCex(exchangeArgs)
 		return cexItf, true
