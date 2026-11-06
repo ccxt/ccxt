@@ -359,8 +359,8 @@ export default class interactivebrokers extends Exchange {
             'precisionMode': TICK_SIZE,
             'requiredCredentials': {
                 // oauth 1.0a credentials
-                'apiKey': true, // access token
-                'secret': true, // encrypted access token secret
+                'apiKey': false, // access token
+                'secret': false, // encrypted access token secret
             },
             'options': {
                 'accountId': undefined, // default account used by private methods, filled by fetchAccounts
