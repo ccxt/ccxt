@@ -995,7 +995,7 @@ export default class htx extends Exchange {
                     'FLOW': 'FLOW',
                     'IOTX': 'IOTX',
                     'LAT': 'LAT',
-                    'APT': 'APT',
+                    'APT': 'APTOS',
                     'XCH': 'XCH',
                     'MINA': 'MINA',
                     'XEC': 'ECASH',
@@ -1214,6 +1214,10 @@ export default class htx extends Exchange {
                     },
                     'fetchOHLCV': {
                         'limit': 1000, // 2000 for non-historical
+                    },
+                    'withdraw': {
+                        // 'selectableFeeInclusion': false,
+                        'feeIncluded': false,
                     },
                 },
                 'forDerivatives': {
@@ -6745,6 +6749,8 @@ export default class htx extends Exchange {
      * @param {string} address the address to withdraw to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
+     * @param {boolean} [params.includeFee] true if the amount should include the withdrawal fee, false if the fee should be charged on top of the amount (default is exchange's native behaviour)
+     * @param {float} [params.fee] the withdrawal fee, used when includeFee is set, fetched from the exchange if not provided
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
@@ -6765,20 +6771,19 @@ export default class htx extends Exchange {
         if (networkCode !== undefined) {
             request['chain'] = this.networkCodeToId (networkCode, code);
         }
-        let amountPrecision = this.currencyToPrecision (code, amount, networkCode);
-        if (amountPrecision === undefined) {
-            amountPrecision = '0';
-        }
-        let amountValue = parseFloat (amountPrecision);
-        const withdrawOptions = this.safeDict (this.options, 'withdraw', {});
-        const includeFee = this.safeBool (withdrawOptions, 'includeFee', false);
-        let paramsFee: Dict = paramsNetwork;
-        if (includeFee) {
-            paramsFee = this.omit (paramsNetwork, 'fee');
-        }
-        if (includeFee) {
-            let fee = this.safeNumber (paramsNetwork, 'fee');
+        const [ includeFee, paramsWithoutIncludeFee ] = this.handleOptionBoolAndParams (paramsNetwork, 'withdraw', 'includeFee');
+        let feeString: Str = undefined;
+        let paramsFee: Dict = paramsWithoutIncludeFee;
+        if (includeFee === true) {
+            // htx charges the fee on top of the amount, so it is deducted in advance
+            let fee = this.safeNumber (paramsWithoutIncludeFee, 'fee');
+            paramsFee = this.omit (paramsWithoutIncludeFee, 'fee');
             if (fee === undefined) {
+                const cachedNetwork = this.safeDict (currency['networks'], networkCode, {});
+                fee = this.safeNumber (cachedNetwork, 'fee');
+            }
+            if (fee === undefined) {
+                // the fee is not cached, so refresh currencies before adjusting the amount
                 const currencies = await this.fetchCurrencies ();
                 this.currencies = this.mapToSafeMap (this.deepExtend (this.currencies, currencies));
                 const targetNetwork = this.safeDict (currency['networks'], networkCode, {});
@@ -6787,27 +6792,11 @@ export default class htx extends Exchange {
                     throw new ArgumentsRequired (this.id + ' withdraw() function can not find withdraw fee for chosen network. You need to re-load markets with "exchange.loadMarkets(true)", or provide the "fee" parameter');
                 }
             }
-            // fee needs to be deducted from whole amount
-            const feeString = this.currencyToPrecision (code, fee, networkCode);
-            const amountString = this.numberToString (amountValue);
-            const amountSubtractedString = Precise.stringSub (amountString, feeString);
-            let amountSubtractedParsed = amountSubtractedString;
-            if (amountSubtractedParsed === undefined) {
-                amountSubtractedParsed = '0';
-            }
-            const amountSubtracted = parseFloat (amountSubtractedParsed);
-            let feeParsed = feeString;
-            if (feeParsed === undefined) {
-                feeParsed = '0';
-            }
-            request['fee'] = parseFloat (feeParsed);
-            let amountAfterFee = this.currencyToPrecision (code, amountSubtracted, networkCode);
-            if (amountAfterFee === undefined) {
-                amountAfterFee = '0';
-            }
-            amountValue = parseFloat (amountAfterFee);
+            feeString = this.currencyToPrecision (code, fee, networkCode);
+            request['fee'] = this.parseNumber (feeString);
         }
-        request['amount'] = amountValue;
+        const amountAdjusted = this.withdrawAmountByFeeInclusion (code, amount, networkCode, includeFee, feeString);
+        request['amount'] = this.parseNumber (amountAdjusted);
         const response = await this.spotPrivatePostV1DwWithdrawApiCreate (this.extend (request, paramsFee));
         //
         //     {

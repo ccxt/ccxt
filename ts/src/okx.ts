@@ -1464,6 +1464,10 @@ export default class okx extends Exchange {
                     'fetchCurrencies': {
                         'private': true,
                     },
+                    'withdraw': {
+                        // 'selectableFeeInclusion': false,
+                        'feeIncluded': false,
+                    },
                 },
                 'swap': {
                     'linear': {
@@ -5695,6 +5699,7 @@ export default class okx extends Exchange {
      * @param {string} address the address to withdraw to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
+     * @param {boolean} [params.includeFee] true if the amount should include the withdrawal fee, false if the fee should be charged on top of the amount (default is exchange's native behaviour)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
@@ -5709,13 +5714,13 @@ export default class okx extends Exchange {
         if (hasTag) {
             addressWithTag = address + ':' + tagWithdrawTag;
         }
+        const [ includeFee, paramsWithoutIncludeFee ] = this.handleOptionBoolAndParams (paramsWithdrawTag, 'withdraw', 'includeFee');
         const request: Dict = {
             'ccy': currency['id'],
             'toAddr': addressWithTag,
             'dest': '4', // 2 = OKCoin International, 3 = OKX 4 = others
-            'amt': this.numberToString (amount),
         };
-        let network = this.safeString (paramsWithdrawTag, 'network'); // this line allows the user to specify either ERC20 or ETH
+        let network = this.safeString (paramsWithoutIncludeFee, 'network'); // this line allows the user to specify either ERC20 or ETH
         if (network !== undefined) {
             const networks = this.safeDict (this.options, 'networks', {});
             const networkUpper = network.toUpperCase ();
@@ -5727,17 +5732,19 @@ export default class okx extends Exchange {
         if (network !== undefined) {
             omitKeys.push ('network');
         }
-        let fee = this.safeString (paramsWithdrawTag, 'fee');
+        let fee = this.safeString (paramsWithoutIncludeFee, 'fee');
+        const networkCodeResolved = this.networkIdToCode (network, this.safeString (currency, 'code'));
         if (fee === undefined) {
             // the network fee comes from currencies cached by loadMarkets, the endpoint does not require it
-            const networkCodeResolved = this.networkIdToCode (network, this.safeString (currency, 'code'));
             const targetNetwork = (networkCodeResolved === undefined) ? {} : this.safeDict (this.safeDict (currency, 'networks', {}), networkCodeResolved, {});
             fee = this.safeString (targetNetwork, 'fee');
         }
         if (fee !== undefined) {
             request['fee'] = this.numberToString (fee);
         }
-        const query = this.omit (paramsWithdrawTag, omitKeys);
+        const amountAdjusted = this.withdrawAmountByFeeInclusion (code, amount, networkCodeResolved, includeFee, fee);
+        request['amt'] = amountAdjusted;
+        const query = this.omit (paramsWithoutIncludeFee, omitKeys);
         const response = await this.privatePostAssetWithdrawal (this.extend (request, query));
         //
         //     {

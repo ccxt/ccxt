@@ -2011,6 +2011,36 @@
         ],
         "withdraw": [
             {
+                "description": "with includeFee false",
+                "method": "withdraw",
+                "url": "https://api.kucoin.com/api/v3/withdrawals",
+                "input": [
+                    "USDT",
+                    1.05,
+                    "0x5338d8f171fa27b310538236966071e5a38550d61c03853d77a42dade7804a5f",
+                    {
+                        "network": "APT",
+                        "includeFee": false
+                    }
+                ],
+                "output": "{\"currency\":\"USDT\",\"toAddress\":\"0x5338d8f171fa27b310538236966071e5a38550d61c03853d77a42dade7804a5f\",\"withdrawType\":\"ADDRESS\",\"chain\":\"aptos\",\"amount\":1.05,\"feeDeductType\":\"EXTERNAL\"}"
+            },
+            {
+                "description": "with includeFee true",
+                "method": "withdraw",
+                "url": "https://api.kucoin.com/api/v3/withdrawals",
+                "input": [
+                    "USDT",
+                    1.05,
+                    "0x5338d8f171fa27b310538236966071e5a38550d61c03853d77a42dade7804a5f",
+                    {
+                        "network": "APT",
+                        "includeFee": true
+                    }
+                ],
+                "output": "{\"currency\":\"USDT\",\"toAddress\":\"0x5338d8f171fa27b310538236966071e5a38550d61c03853d77a42dade7804a5f\",\"withdrawType\":\"ADDRESS\",\"chain\":\"aptos\",\"amount\":1.05,\"feeDeductType\":\"INTERNAL\"}"
+            },
+            {
                 "description": "with network",
                 "method": "withdraw",
                 "url": "https://api.kucoin.com/api/v3/withdrawals",
@@ -2022,7 +2052,7 @@
                     "networkCode": "OP"
                   }
                 ],
-                "output": { "currency": "USDT", "toAddress": "0x123456789123456789123456789", "withdrawType": "ADDRESS", "chain": "optimism", "amount": 5.5 }
+                "output": { "currency": "USDT", "toAddress": "0x123456789123456789123456789", "withdrawType": "ADDRESS", "chain": "optimism", "amount": 5.5, "feeDeductType": "EXTERNAL" }
               }
         ],
         "fetchLedger": [

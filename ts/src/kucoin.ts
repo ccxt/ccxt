@@ -1419,6 +1419,10 @@ export default class kucoin extends Exchange {
                     'fetchOHLCV': {
                         'limit': 1500,
                     },
+                    'withdraw': {
+                        // 'selectableFeeInclusion': true,
+                        'feeIncluded': false,
+                    },
                 },
                 'forDerivs': {
                     'sandbox': false,
@@ -7688,11 +7692,13 @@ export default class kucoin extends Exchange {
         if (amountString !== undefined) {
             request['amount'] = parseFloat (amountString);
         }
-        const [ includeFee, paramsIncludeFee ] = this.handleOptionBoolAndParams (paramsNetworkCode, 'withdraw', 'includeFee', false);
-        if (includeFee) {
+        const [ includeFee, paramsWithoutIncludeFee ] = this.handleOptionBoolAndParams (paramsNetworkCode, 'withdraw', 'includeFee', false);
+        if (includeFee === true) {
             request['feeDeductType'] = 'INTERNAL';
+        } else {
+            request['feeDeductType'] = 'EXTERNAL';
         }
-        const response = await this.privatePostWithdrawals (this.extend (request, paramsIncludeFee));
+        const response = await this.privatePostWithdrawals (this.extend (request, paramsWithoutIncludeFee));
         //
         // the id is inside "data"
         //

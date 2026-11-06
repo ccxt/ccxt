@@ -819,6 +819,10 @@ export default class bingx extends Exchange {
                         'limit': 100,
                         'untilDays': undefined,
                     },
+                    'withdraw': {
+                        // 'selectableFeeInclusion': false,
+                        'feeIncluded': true,
+                    },
                 },
                 'swap': {
                     'linear': {
@@ -6439,6 +6443,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {int} [params.walletType] 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account
+     * @param {boolean} [params.includeFee] true if the amount should include the withdrawal fee, false if the fee should be charged on top of the amount (default is exchange's native behaviour)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
@@ -6458,20 +6463,22 @@ export default class bingx extends Exchange {
             'spot': 15,
         };
         const walletType = this.safeInteger (walletTypes, walletTypeOption, defaultWalletType);
+        const network = this.safeStringUpper (paramsWalletType, 'network');
+        const [ includeFee, paramsWithoutIncludeFee ] = this.handleOptionBoolAndParams (paramsWalletType, 'withdraw', 'includeFee');
+        const amountAdjusted = this.withdrawAmountByFeeInclusion (code, amount, network, includeFee);
         const request: Dict = {
             'coin': currency['id'],
             'address': address,
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': amountAdjusted,
             'walletType': walletType,
         };
-        const network = this.safeStringUpper (paramsWalletType, 'network');
         if (network !== undefined) {
             request['network'] = this.networkCodeToId (network, this.safeString (currency, 'code'));
         }
         if (tagWithdrawTag !== undefined) {
             request['addressTag'] = tagWithdrawTag;
         }
-        const paramsOmitted = this.omit (paramsWalletType, [ 'walletType', 'network' ]);
+        const paramsOmitted = this.omit (paramsWithoutIncludeFee, [ 'walletType', 'network' ]);
         const response = await this.walletsV1PrivatePostCapitalWithdrawApply (this.extend (request, paramsOmitted));
         const data = this.safeDict (response, 'data') as Dict;
         //    {
