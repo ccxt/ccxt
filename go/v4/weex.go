@@ -5987,7 +5987,7 @@ func (this *Weex) FromSandboxMarketId(marketId *string) any {
 	if (!(sandboxMode != nil && *sandboxMode)) || (marketId == nil) {
 		return marketId
 	}
-	if _, ok := this.Markets_by_id[*marketId]; (this.Markets_by_id != nil) && ok {
+	if _, ok := this.Markets_by_id[*marketId]; ok {
 		return marketId // a live market id, not a demo one
 	}
 	if strings.HasSuffix(*marketId, "SUSDT") {

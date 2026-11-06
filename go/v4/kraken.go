@@ -798,13 +798,7 @@ func (this *Kraken) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 		var precisionAmount *float64 = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "lot_decimals")))
 		var spot bool = true
 		// fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
-		if spot && (func() bool {
-			if base == nil {
-				return false
-			}
-			_, ok := cachedCurrencies[*base]
-			return ok
-		}()) {
+		if _, ok := cachedCurrencies[*base]; spot && ok {
 			var currency map[string]any = SafeMapTyped(cachedCurrencies, base)
 			var currencyPrecision *float64 = this.SafeNumber(currency, "precision")
 			// if currency precision is greater (e.g. 0.01) than market precision (e.g. 0.001)

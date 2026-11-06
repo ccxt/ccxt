@@ -975,7 +975,7 @@ func (this *PredictionExchange) OutcomeSearchQuery(outcomeSymbol any) any {
 		var wordHasLetters bool = false
 		var chars []string = this.StringToCharsArray(word)
 		for ci := 0; ci < len(chars); ci++ {
-			if GetIndexOf(letters, chars[ci]) >= 0 {
+			if strings.Index(letters, chars[ci]) >= 0 {
 				wordHasLetters = true
 				break
 			}
