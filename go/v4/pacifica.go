@@ -5164,7 +5164,7 @@ func (this *Pacifica) HandleErrors(code int64, reason string, url string, method
 		error = true
 	}
 	var nonEmptyMessage bool = ((message != nil) && (message == nil || *message != ""))
-	if (error == true) || nonEmptyMessage {
+	if error || nonEmptyMessage {
 		var feedback string = this.Id + " " + body
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorId, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback) // documented message prefixes are more specific than the http-status echo

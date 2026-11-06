@@ -880,7 +880,7 @@ func (this *Bitget) HandleOHLCV(client any, message map[string]any) {
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	var messageHash string
-	if isUta == true {
+	if isUta {
 		messageHash = "kline:" + symbol
 	} else {
 		messageHash = "candles:" + *timeframe + ":" + symbol
@@ -3795,7 +3795,7 @@ func (this *Bitget) HandleOHLCVUnSubscription(client any, message map[string]any
 	var symbol string = *this.SafeString(market, "symbol", "")
 	var messageHash any = nil
 	var subMessageHash any = nil
-	if isUta == true {
+	if isUta {
 		messageHash = "unsubscribe:kline:" + symbol
 		subMessageHash = "kline:" + symbol
 	} else if timeframe != nil {

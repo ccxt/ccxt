@@ -238,13 +238,13 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan ccxt.AsyncResult[*string], opt
 		var unified []any = r.Value
 		var isUnifiedMargin *bool = this.SafeBool(unified, 0, false)
 		var isUnifiedAccount *bool = this.SafeBool(unified, 1, false)
-		if (isUsdcSettled == true) && (!(isUnifiedMargin != nil && *isUnifiedMargin)) && (!(isUnifiedAccount != nil && *isUnifiedAccount)) {
+		if isUsdcSettled && (!(isUnifiedMargin != nil && *isUnifiedMargin)) && (!(isUnifiedAccount != nil && *isUnifiedAccount)) {
 			url = accessibilityUrls["usdc"]
 		} else {
 			url = accessibilityUrls["contract"]
 		}
 	} else {
-		if isSpot == true {
+		if isSpot {
 			url = accessibilityUrls["spot"]
 		} else if (typeVar != nil && *typeVar == "swap") || (typeVar != nil && *typeVar == "future") {
 			subType, _ := this.HandleSubTypeAndParams(methodValue, market, params, "linear")

@@ -9840,7 +9840,7 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side *string, a
 		postOnly = this.IsPostOnly(isMarketOrder, (initialUppercaseType == "LIMIT_MAKER"), paramsPapi)
 		if (*this.SafeBool(market, "spot", false)) || (marketType != nil && *marketType == "margin") {
 			// only supported for spot/margin api (all margin markets are spot markets)
-			if postOnly == true {
+			if postOnly {
 				uppercaseType = "LIMIT_MAKER"
 			}
 			if marginMode != nil && *marginMode == "isolated" {
@@ -9849,7 +9849,7 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side *string, a
 		}
 	} else {
 		postOnly = this.IsPostOnly(isMarketOrder, (initialUppercaseType == "LIMIT_MAKER"), paramsPapi)
-		if postOnly == true {
+		if postOnly {
 			if !(*this.SafeBool(market, "contract", false)) {
 				uppercaseType = "LIMIT_MAKER"
 			} else {
@@ -10032,7 +10032,7 @@ func (this *Binance) CreateOrderRequest(symbol any, typeVar any, side *string, a
 	if timeInForceIsRequired && (this.SafeString(paramsPapi, "timeInForce") == nil) && (this.SafeString(request, "timeInForce") == nil) {
 		request["timeInForce"] = this.HandleOption("createOrder", "timeInForce") // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
 	}
-	if !isPortfolioMargin && (*this.SafeBool(market, "contract", false)) && (postOnly == true) {
+	if !isPortfolioMargin && (*this.SafeBool(market, "contract", false)) && postOnly {
 		request["timeInForce"] = "GTX"
 	}
 	// remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance

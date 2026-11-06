@@ -1472,7 +1472,7 @@ func (this *Binance) HandleOrderBook(client any, message map[string]any) {
 							// 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
 							conditional = (ccxt.IsEqual((*U - 1), nonce))
 						}
-						if conditional == true {
+						if conditional {
 							this.HandleOrderBookMessage(client, message, orderbook)
 							var newNonce *int64 = this.SafeInteger(orderbook, "nonce", 0)
 							if newNonce != nil && (nonce == nil || *nonce < *newNonce) {

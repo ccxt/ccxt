@@ -3019,7 +3019,7 @@ func (this *BaseExchange) CalculateFeeWithRate(symbol any, typeVar any, side any
 	}
 	var cost *string = this.NumberToString(amount)
 	var key string
-	if useQuote == true {
+	if useQuote {
 		var priceString *string = this.NumberToString(price)
 		cost = Precise.StringMul(cost, priceString)
 		key = "quote"
