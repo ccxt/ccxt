@@ -13574,10 +13574,8 @@ function longLimitLongArm (lines, from, to, arm) {
 }
 
 // the printed initializer with `L` literals, or undefined; `boxChanges` = the old box was Integer
+// (a bare int literal local fed to Long slots is typed by the printer: javaLongLimitLiteralLocal)
 function longLimitInitializer (lines, from, to, type, value) {
-    if (LONG_LIMIT_INT.test (value)) {
-        return (type === 'Integer' || type === 'Object') ? { text: value + 'L', boxChanges: true } : undefined;
-    }
     // a copy of a Long name (or Math.min/max over one) already holds a Long box
     if (type === 'Object' && longLimitLongArm (lines, from, to, value)) {
         return { text: value, boxChanges: false };
