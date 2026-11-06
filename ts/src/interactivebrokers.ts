@@ -1056,7 +1056,9 @@ export default class interactivebrokers extends Exchange {
         };
         if (withPositions || withOpenOrders) {
             // the conids of the positions and orders are resolved to currencies via the markets
-            await this.loadMarkets ();
+            if (this.markets === undefined) {
+                await this.loadMarkets ();
+            }
         }
         const promises = [];
         promises.push (this.webapiGetV1ApiPortfolioAccountIdLedger (this.extend (request, query)));
@@ -1881,7 +1883,9 @@ export default class interactivebrokers extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const tickers = await this.fetchTickers ([ market['symbol'] ], params);
         return this.safeDict (tickers, market['symbol']) as Ticker;
@@ -1901,7 +1905,9 @@ export default class interactivebrokers extends Exchange {
         if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTickers() requires a symbols argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const symbolsNormalized = this.marketSymbols (symbols);
         const [ fields, query ] = this.handleOptionAndParams (params, 'fetchTickers', 'fields') as List;
         const fieldsString = fields.join (',');
@@ -2001,7 +2007,9 @@ export default class interactivebrokers extends Exchange {
         if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchBidsAsks() requires a symbols argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const symbolsNormalized = this.marketSymbols (symbols);
         const fields = this.safeString (params, 'fields', '84,85,86,88');
         const query = this.omit (params, 'fields');
@@ -2025,7 +2033,9 @@ export default class interactivebrokers extends Exchange {
         if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchLastPrices() requires a symbols argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const symbolsNormalized = this.marketSymbols (symbols);
         const response = await this.ibkrFetchSnapshot (symbolsNormalized, '31', params, [ '31' ]);
         //
@@ -2061,7 +2071,9 @@ export default class interactivebrokers extends Exchange {
         if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMarkPrices() requires a symbols argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const symbolsNormalized = this.marketSymbols (symbols);
         const response = await this.ibkrFetchSnapshot (symbolsNormalized, '7635', params, [ '7635' ]);
         //
@@ -2083,7 +2095,9 @@ export default class interactivebrokers extends Exchange {
         if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenInterests() requires a symbols argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const symbolsNormalized = this.marketSymbols (symbols);
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const market = this.market (symbolsNormalized[i]);
@@ -2130,7 +2144,9 @@ export default class interactivebrokers extends Exchange {
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
     override async fetchGreeks (symbol: string, params: Dict = {}): Promise<Greeks> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         // 7308 delta, 7309 gamma, 7310 theta, 7311 vega, 7633 implied vol %, 7635 mark, 31 last, 84/86 bid/ask, 88/85 bid/ask size
         const fields = '31,84,85,86,88,7308,7309,7310,7311,7633,7635';
@@ -2292,7 +2308,9 @@ export default class interactivebrokers extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const maxLimit = this.safeInteger (this.safeDict (this.options, 'fetchOHLCV', {}), 'limit', 1000);
         let requestLimit = (limit === undefined) ? maxLimit : Math.min (limit, maxLimit);
@@ -2618,7 +2636,9 @@ export default class interactivebrokers extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const [ accountId, paramsWithoutAccoundId ] = await this.loadAccountId (params);
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, paramsWithoutAccoundId);
@@ -2636,7 +2656,9 @@ export default class interactivebrokers extends Exchange {
     }
 
     async createTestOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Dict> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const [ accountId, paramsWithoutAccoundId ] = await this.loadAccountId (params);
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, paramsWithoutAccoundId);
         orderRequest['acctId'] = accountId;
@@ -2811,7 +2833,9 @@ export default class interactivebrokers extends Exchange {
         if (amount === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const [ accountId, query ] = await this.loadAccountId (params);
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, query);
@@ -2840,7 +2864,9 @@ export default class interactivebrokers extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2868,7 +2894,9 @@ export default class interactivebrokers extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2925,7 +2953,9 @@ export default class interactivebrokers extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2995,7 +3025,9 @@ export default class interactivebrokers extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -3031,7 +3063,9 @@ export default class interactivebrokers extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrdersByStatusFilter (status: string, defaultFilters: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -3056,7 +3090,9 @@ export default class interactivebrokers extends Exchange {
      * @returns {object[]} the raw orders
      */
     async fetchLiveOrdersRaw (params: Dict = {}): Promise<Dict[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const retryDelay = this.safeInteger (this.safeDict (this.options, 'fetchOrders', {}), 'retryDelay', 500);
         let response = await this.webapiGetV1ApiIserverAccountOrders (params);
         if (!this.safeBool (response, 'snapshot', true)) {
@@ -3243,7 +3279,9 @@ export default class interactivebrokers extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -3491,7 +3529,9 @@ export default class interactivebrokers extends Exchange {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const [ accountId, query ] = await this.loadAccountId (params);
         const request: Dict = {
             'accountId': accountId,
@@ -3534,7 +3574,9 @@ export default class interactivebrokers extends Exchange {
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     override async fetchPositionsForSymbol (symbol: string, params: Dict = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const [ accountId, query ] = await this.loadAccountId (params);
         const request: Dict = {
