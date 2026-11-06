@@ -1590,7 +1590,8 @@
                             "leverage": 5,
                             "liquidationPrice": 61000.2,
                             "marginRatio": null,
-                            "marginMode": null,
+                            "realizedPnl": null,
+                            "marginMode": "cross",
                             "percentage": -3.75
                         }
                     ],
@@ -1639,7 +1640,8 @@
                             "leverage": 5,
                             "liquidationPrice": 61000.2,
                             "marginRatio": null,
-                            "marginMode": null,
+                            "realizedPnl": null,
+                            "marginMode": "cross",
                             "percentage": -1.18
                         }
                     ],
@@ -1688,7 +1690,8 @@
                             "leverage": 5,
                             "liquidationPrice": 61000.2,
                             "marginRatio": null,
-                            "marginMode": null,
+                            "realizedPnl": null,
+                            "marginMode": "cross",
                             "percentage": -3.75
                         },
                         {
@@ -1735,7 +1738,8 @@
                             "leverage": 5,
                             "liquidationPrice": 61000.2,
                             "marginRatio": null,
-                            "marginMode": null,
+                            "realizedPnl": null,
+                            "marginMode": "cross",
                             "percentage": -2.5
                         }
                     ],
@@ -1784,7 +1788,8 @@
                             "leverage": 5,
                             "liquidationPrice": null,
                             "marginRatio": null,
-                            "marginMode": null,
+                            "realizedPnl": null,
+                            "marginMode": "cross",
                             "percentage": null
                         }
                     ]
@@ -1944,7 +1949,8 @@
                         "leverage": 5,
                         "liquidationPrice": null,
                         "marginRatio": null,
-                        "marginMode": null,
+                        "realizedPnl": null,
+                        "marginMode": "cross",
                         "percentage": -1.84
                     }
                 ]
