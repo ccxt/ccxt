@@ -392,7 +392,7 @@ As opposed to typical exchanges in CCXT, InteractiveBrokers has a different kind
 
 #### Use IBKR Web-Api with Oauth 1.0
 
-The access to the Web-API seems not available to all retail users. You should visit https://ndcdyn.interactivebrokers.com/oauth/ where you can generate credenials. If that page shows that your account is not eligible, then you might need at first to go through [this process](https://www.interactivebrokers.com/docs/web-api/authentication/oauth-1a/first-party-oauth/registration-process) and mail them that you want to use programmatic access. If you are rejected for Oauth access, then skip to the next paragraph, but if you are approved, then you will be able to generate api-keys. However after generation it might up to 24 hours to become activated by IBKR system. Then set these credentials for exchange instance:
+The access to the Web-API seems not available to all retail users. You should visit https://ndcdyn.interactivebrokers.com/oauth/ where you can generate credenials. If that page shows error message like `Oauth1.0 is only available to institutional clients` (![example screenshot](https://i.imgur.com/vu8JXK9.png)), then you might need at first to go through [this process](https://www.interactivebrokers.com/docs/web-api/authentication/oauth-1a/first-party-oauth/registration-process) and mail them that you want to use programmatic access. If you are rejected for Oauth access, then skip to the next paragraph, but if you are approved, then you will be able to generate api-keys (![example screenshot](https://i.imgur.com/pSHadxF.png)). However after generation it might up to 24 hours to become activated by IBKR system. Then set these credentials for exchange instance:
 
 ```
 instance = new ccxt.interactivebrokers ({
