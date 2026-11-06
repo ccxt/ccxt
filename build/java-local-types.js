@@ -10747,7 +10747,7 @@ export function installJavaDeclaredLocalTypes (transpiler) {
     // sections installed after this observer retype the declaration after it records: they answer first
     const earlier = (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).length;
     printer.javaDeclaredLocalTypeResolver = (declaration) => javaPublishedLocalType (printer, declaration, earlier)
-        ?? declaredTypes.get (declaration);
+        ?? declaredTypes.get (declaration) ?? (AWAITED_LIST_ACCUMULATORS.has (declaration) ? JAVA_ARRAY_TYPE : undefined);
     // a typed destructuring element passed to a core parameter of its own type needs no conversion
     const upstreamDeclaredAs = printer.javaLocalDeclaredAs?.bind (printer);
     if (upstreamDeclaredAs !== undefined) {
@@ -10825,6 +10825,9 @@ const JAVA_EMITTED_TYPE_TEXT = /^[A-Za-z_$][\w$.]*(?:\s*<[^\n;=]*>)?(?:\s*\[\s*\
 // `x = await this.<endpoint>(...)` with one Map/List CompletableFuture<T> in the generated api file.
 // Returns, ternary arms and nested-function reads keep Object (they move javac's inferred types).
 const AWAITED_ACCUMULATOR_TYPES = new Set ([ JAVA_STRUCTURE_TYPE, JAVA_ARRAY_TYPE, ORDERBOOK_TYPE ]);
+// the List accumulators section 11 printed: the declared-local resolver answers them, so the
+// printer's declared-List `.length` arm prints `(x == null ? 0 : x.size())`
+const AWAITED_LIST_ACCUMULATORS = new WeakSet ();
 
 function isNullishInitializer (initializer) {
     const value = unwrapParens (initializer);
@@ -10929,6 +10932,7 @@ export function patchJavaAwaitedAccumulatorTypes (transpiler) {
         if (at === -1 || printed.slice (at + marker.length).trim ().replace (/;$/, '') !== '') {
             return printed;
         }
+        if (type === JAVA_ARRAY_TYPE) AWAITED_LIST_ACCUMULATORS.add (declarations[0]);
         return printed.slice (0, at) + `${iden}${type} ${printedName} = null` + printed.slice (at + marker.length);
     };
 }
@@ -13633,7 +13637,7 @@ function longLimitUseOk (line, name, boxChanges) {
     while ((m = re.exec (code)) !== null) {
         const before = code.slice (0, m.index);
         const after = code.slice (m.index + name.length);
-        if (/Helpers\.toLongOrNull\($/.test (before) && /^\)/.test (after)) continue;
+        if (/(?:Helpers\.toLongOrNull|Long\.valueOf)\($/.test (before) && /^\)/.test (after)) continue;
         if (/java\.util\.Objects\.equals\($/.test (before) && /^, null\)/.test (after)) continue;
         if (/\(long\) $/.test (before) && /^\)/.test (after)) continue;
         // a map value: request.put("k", x) / put( "k", x ); / newMap(..., "k", x
@@ -13688,7 +13692,7 @@ function longLimitRetypeMember (lines, from, to) {
                 why = lines[j].trim ();
                 break;
             }
-            if (/\b(?:catch|->)\b/.test (code) && !code.includes (`toLongOrNull(${name})`)) { ok = false; break; }
+            if (/\b(?:catch|->)\b/.test (code) && !code.includes (`toLongOrNull(${name})`) && !code.includes (`Long.valueOf(${name})`)) { ok = false; break; }
             if (!longLimitUseOk (lines[j], name, boxChanges)) { ok = false; why = lines[j].trim (); break; }
             if (longLimitFeeds (code, name)) fed = true;
         }
@@ -13703,9 +13707,9 @@ function longLimitRetypeMember (lines, from, to) {
     if (longLimitRetypeGroups (lines, from, to)) changed = true;
     // a Long-declared name needs no toLongOrNull conversion
     for (let j = from; j < to; j++) {
-        if (!lines[j].includes ('Helpers.toLongOrNull(')) continue;
+        if (!lines[j].includes ('Helpers.toLongOrNull(') && !lines[j].includes ('Long.valueOf(')) continue;
         // BaseExchange declares `Long milliseconds()` / `Long seconds()`
-        const next = lines[j].replace (/Helpers\.toLongOrNull\(([A-Za-z_]\w*)\)/g, (whole, n) =>
+        const next = lines[j].replace (/(?:Helpers\.toLongOrNull|Long\.valueOf)\(([A-Za-z_]\w*)\)/g, (whole, n) =>
             (longLimitIsLong (lines, from, to, n) ? n : whole))
             .replace (/Helpers\.toLongOrNull\((this\.(?:milliseconds|seconds)\(\))\)/g, '$1');
         if (next !== lines[j]) { lines[j] = next; changed = true; }
@@ -13833,7 +13837,7 @@ function longLimitPromotes (a, b) {
 }
 
 function longLimitRetypeGroups (lines, from, to) {
-    if (!lines.slice (from, to).some ((l) => l.includes ('Helpers.toLongOrNull(') || l.includes ('Helpers.multiply('))) return false;
+    if (!lines.slice (from, to).some ((l) => l.includes ('Helpers.toLongOrNull(') || l.includes ('Long.valueOf(') || l.includes ('Helpers.multiply('))) return false;
     const declRe = /^(\s*)(Integer|Object) ([A-Za-z_]\w*) = (.*?);(\s*\/\/.*)?$/;
     const typeCache = new Map ();
     const ctx = {
@@ -13937,7 +13941,7 @@ function longLimitRetypeGroups (lines, from, to) {
                     if (rhsCount === 0) continue;
                 }
                 let ok = false;
-                if (/\b(?:catch|->)\b/.test (code) && !code.includes (`toLongOrNull(${name})`)) ok = false;
+                if (/\b(?:catch|->)\b/.test (code) && !code.includes (`toLongOrNull(${name})`) && !code.includes (`Long.valueOf(${name})`)) ok = false;
                 else if (w !== undefined && w.name !== name) {
                     const atoms = w.n.atoms.filter ((a) => a === name).length;
                     const condUses = w.n.conds.map ((c) => (longLimitCodeOnly (c).match (mention (name)) ?? []).length).reduce ((x, y) => x + y, 0);
@@ -13976,7 +13980,7 @@ function longLimitRetypeGroups (lines, from, to) {
 
 // a Long slot: a toLongOrNull argument or a bare Helpers.multiply operand (section 56)
 function longLimitFeeds (code, name) {
-    if (code.includes (`Helpers.toLongOrNull(${name})`)) return true;
+    if (code.includes (`Helpers.toLongOrNull(${name})`) || code.includes (`Long.valueOf(${name})`)) return true;
     // section 57: an operand of a native Math.min must print long
     if (new RegExp (`Math\\.min\\((?:${name}, [^()]*|[^()]*, ${name})\\)`).test (code)) return true;
     const re = new RegExp (`(?<![\\w$.])${name}\\b(?!\\s*\\()`, 'g');
@@ -13990,7 +13994,7 @@ function longLimitFeeds (code, name) {
 }
 
 export function nativeJavaLongLimitLocals (content) {
-    if (!content.includes ('Helpers.toLongOrNull(') && !content.includes ('Helpers.multiply(') && !content.includes ('Helpers.mathMin(')) {
+    if (!content.includes ('Helpers.toLongOrNull(') && !content.includes ('Long.valueOf(') && !content.includes ('Helpers.multiply(') && !content.includes ('Helpers.mathMin(')) {
         return content;
     }
     const lines = content.split ('\n');
@@ -16876,79 +16880,6 @@ export function installJavaStringCoreArgs (transpiler) {
         }
         return ok ? printed : out;
     };
-}
-
-// ===== Helpers.toLongOrNull over proven non-null integral values =====
-// toLongOrNull(Long) is identity and toLongOrNull(Integer/long) is Long.valueOf; only
-// provably non-null operands go native (the helper returns null for null).
-const JAVA_TO_LONG_MEMBER_START = /^    (?:public|private|protected)\b/;
-
-function javaRegexEscape (s) {
-    return s.replace (/[$]/g, '\\$');
-}
-
-// kind of a local: 'Long' | 'Integer' when declared once with a non-null integral
-// initializer and never written again, else undefined
-function javaToLongLocalKind (lines, from, to, name) {
-    const n = javaRegexEscape (name);
-    const decl = new RegExp (`^\\s*(?:final\\s+)?(Long|Integer|Object) ${n} = (.*?);(\\s*//.*)?$`);
-    const write = new RegExp (`(?<![\\w$.])${n}\\s*(?:=(?!=)|\\+\\+|--|[-+*/%]=)|(?:\\+\\+|--)${n}\\b`);
-    let kind;
-    let count = 0;
-    for (let i = from; i < to; i++) {
-        const line = lines[i];
-        const m = decl.exec (line);
-        if (m !== null) {
-            count++;
-            const init = m[2].trim ();
-            if (/^-?\d+L$/.test (init) && m[1] === 'Long') kind = 'Long';
-            else if (/^-?\d+$/.test (init) && m[1] === 'Integer') kind = 'Integer';
-            else if (/^\(\(List<\?>\)\w+\)\.size\(\)$/.test (init) && m[1] === 'Integer') kind = 'Integer';
-            else return undefined;
-            continue;
-        }
-        // any other write (incl. a shadowing declaration) or a lambda touching the name
-        if (write.test (line)) return undefined;
-        if (line.includes ('->') && new RegExp (`(?<![\\w$.])${n}(?![\\w$])`).test (line)) return undefined;
-    }
-    return count === 1 ? kind : undefined;
-}
-
-function javaToLongMember (lines, from, to) {
-    let changed = false;
-    for (let i = from; i < to; i++) {
-        if (!lines[i].includes ('Helpers.toLongOrNull(')) continue;
-        let line = lines[i];
-        // toLongOrNull(Helpers.parseInt(<no nested parens>)): parseInt already returns Long or null
-        line = line.replace (/Helpers\.toLongOrNull\(((?:Helpers\.parseInt|Long\.parseLong)\(\([^()]*\)\))\)/g, '$1');
-        // a primitive long difference/sum over a cast local and a long literal
-        line = line.replace (/Helpers\.toLongOrNull\((\(\(\(long\) \w+\) [-+] \d+L\))\)/g, 'Long.valueOf$1');
-        line = line.replace (/Helpers\.toLongOrNull\(([A-Za-z_]\w*)\)/g, (all, name) => {
-            const kind = javaToLongLocalKind (lines, from, to, name);
-            if (kind === 'Long') return name;
-            if (kind === 'Integer') return `Long.valueOf(${name})`;
-            return all;
-        });
-        if (line !== lines[i]) {
-            lines[i] = line;
-            changed = true;
-        }
-    }
-    return changed;
-}
-
-export function nativeJavaToLongOrNull (content) {
-    if (!content.includes ('Helpers.toLongOrNull(')) return content;
-    const lines = content.split ('\n');
-    const starts = [];
-    for (let i = 0; i < lines.length; i++) {
-        if (JAVA_TO_LONG_MEMBER_START.test (lines[i])) starts.push (i);
-    }
-    let changed = false;
-    for (let s = 0; s < starts.length; s++) {
-        if (javaToLongMember (lines, starts[s], s + 1 < starts.length ? starts[s + 1] : lines.length)) changed = true;
-    }
-    return changed ? lines.join ('\n') : content;
 }
 
 // ===== native padStart ahead of the SS-12 receiver rebuild =====
