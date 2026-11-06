@@ -239,7 +239,14 @@ public static class Program
                 instance.verbose = true;
             }
             // instance.verbose = true; // hardcoded verboe log
-            var method = instance.GetType().GetMethod(methodName);
+            // exchanges expose PascalCase typed methods (FetchBalance), so resolve
+            // case-insensitively like DynamicallyCallMethod does
+            var method = BaseExchange.ResolveMethod(instance.GetType(), methodName);
+            if (method == null)
+            {
+                Helper.Red($"Method {methodName} not found on {exchangeName}!");
+                return;
+            }
             var parametersNumber = method.GetParameters().Length;
             var missing = parametersNumber - parameters.Count;
             if (missing > 0)
@@ -252,7 +259,7 @@ public static class Program
             while (true)
             {
 
-                var result = method.Invoke(instance, parameters.ToArray());
+                var result = method.Invoke(instance, BaseExchange.coerceArgs(method, parameters.ToArray()));
                 var resultNew = result.GetType().GetProperty("Result").GetValue(result, null);
                 // var resultNew = instance.watchOrders("LTC/USDT");
                 // resultNew.Wait();
