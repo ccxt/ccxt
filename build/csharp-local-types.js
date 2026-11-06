@@ -12504,7 +12504,7 @@ export function installCsharpMethodReturnTypes (csharp) {
         // a return whose expression already carries the retyped box (a call whose generated
         // signature names it, or a local declared with it) needs no boundary cast:
         // `((T)((object)(x)))` would box and unbox the same value
-        if (callReturnIsMapped (csharp, node.expression, retype)) {
+        if (callReturnIsMapped (csharp, node.expression, retype) || (retype.startsWith ('ccxt.pro.') && (csharp.csharpPrintedParamType (node.expression) ?? '').startsWith (retype))) {
             return upstreamReturnStatement (node, identation);
         }
         // the printed expression is the `object` box the rest of the printer produces;

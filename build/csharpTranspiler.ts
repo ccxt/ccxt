@@ -984,41 +984,6 @@ function csharpWsCacheReceiverDeclared (lines: string[], lineIndex: number, rece
     return false
 }
 
-// ts/src/pro declares these params as ws cache classes, which the printer spells `object`.
-// Every C# caller passes that class (a `new ArrayCacheBySymbolById` local / this.orders), so the
-// declaration takes the class and the receiver binds the instance `append` below.
-const WS_CACHE_CLASS_PARAMS: { [venue: string]: { [method: string]: { [param: string]: string } } } = {
-    bitstamp: { pruneCachedBySymbols: { newCache: 'ccxt.pro.ArrayCacheBySymbolById', cache: 'ccxt.pro.ArrayCache' } },
-}
-
-export function retypeWsCacheClassParams (content: string): string {
-    const venue = /public partial class (\w+)\s*:/.exec (content)
-    const methods = venue === null ? undefined : WS_CACHE_CLASS_PARAMS[venue[1]]
-    if (methods === undefined) {
-        return content
-    }
-    const lines = content.split ('\n')
-    for (let i = 0; i < lines.length; i++) {
-        const sig = /^(\s+public virtual ccxt\.pro\.ArrayCache )(\w+)\((.*)\)\s*$/.exec (lines[i])
-        if (sig === null || methods[sig[2]] === undefined) {
-            continue
-        }
-        const params = methods[sig[2]]
-        let args = sig[3]
-        for (const name of Object.keys (params)) {
-            args = args.replace ('object ' + name + ',', params[name] + ' ' + name + ',')
-        }
-        lines[i] = sig[1] + sig[2] + '(' + args + ')'
-        for (let j = i + 1; j < lines.length && !CSHARP_MEMBER_START_RE.test (lines[j]); j++) {
-            const ret = /^(\s+)return \(\(ccxt\.pro\.ArrayCache\)\(\(object\)\((\w+)\)\)\);$/.exec (lines[j])
-            if (ret !== null && params[ret[2]] !== undefined) {
-                lines[j] = ret[1] + 'return ' + ret[2] + ';'
-            }
-        }
-    }
-    return lines.join ('\n')
-}
-
 export function nativeWsCacheCalls (content: string): string {
     const lines = content.split ('\n')
     const call = /callDynamically\(((?:this\.)?\w+), "(append|getLimit)", new object\[\] \{/g
@@ -8649,7 +8614,7 @@ class NewTranspiler {
         // the copies retyped above are declarations the native helper pass could not see yet
         content = nativeDeclaredHelperCalls (retypeOrderBookCacheLocals (content));
         if (ws || this.isPrediction) {
-            content = nativeWsCacheCalls (retypeWsCacheClassParams (content));
+            content = nativeWsCacheCalls (content);
         }
         this.currentVenue = '';
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
