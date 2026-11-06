@@ -30,7 +30,7 @@ class Precise {
         if (decimals === undefined) {
             let str = number as string;
             let modifier = 0;
-            // scientific notation is rare — only locate an exponent marker
+            // scientific notation is uncommon — only locate an exponent marker
             // when one is present, instead of lowercasing every input
             let eIndex = str.indexOf ('e');
             if (eIndex === -1) {
