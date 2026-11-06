@@ -7374,131 +7374,6 @@ export class RustTranspilerBuilder {
         return out;
     }
 
-    // JS `this.spawn(this.method, ...args)` returns an awaitable that resolves
-    // to `method`'s result. The port lowers a bare `this.spawn(...)` statement
-    // to a fire-and-forget enqueue (correct for background loaders), but when
-    // the spawn result is *used as a value* and later awaited — kucoin's
-    // `negotiate` caches `this.spawn(this.negotiateHelper, …)` in options.urls
-    // and returns `await future` to hand back the WS token URL — the enqueue
-    // form yields Null, so kucoin connects to `null`. Rust can't hold a Future
-    // in a Value, so serialise: run the spawn inline via call_dynamic().await
-    // (matching the port's "await eagerly" philosophy) and, within that same
-    // function, rewrite the broken await-on-value `get_value(&x, "await")`
-    // (how `await <ident>` transpiles) to plain `x`. Scoped to functions that
-    // actually inline a spawn, so `authenticate` bodies that `await` a live
-    // client `reusable_future` handle are left untouched.
-    serializeAwaitedSpawns(content: string): string {
-        const spawnMarker = 'self.spawn(&[Value::Str("';
-        const matchParen = (s: string, openIdx: number): number => {
-            let depth = 0;
-            for (let i = openIdx; i < s.length; i++) {
-                if (s[i] === '(') depth++;
-                else if (s[i] === ')') { depth--; if (depth === 0) return i; }
-            }
-            return -1;
-        };
-        const topComma = (s: string): number => {
-            let depth = 0;
-            for (let i = 0; i < s.length; i++) {
-                const c = s[i];
-                if (c === '(' || c === '[' || c === '{') depth++;
-                else if (c === ')' || c === ']' || c === '}') depth--;
-                else if (c === ',' && depth === 0) return i;
-            }
-            return -1;
-        };
-        // Collect the char spans of functions that get an inlined spawn, so the
-        // await-on-value rewrite stays scoped to them.
-        const touchedFns: Array<[number, number]> = [];
-        let out = '';
-        let idx = 0;
-        while (true) {
-            const p = content.indexOf(spawnMarker, idx);
-            if (p < 0) { out += content.slice(idx); break; }
-            // Expression position? Look back past whitespace for ',' or '('.
-            let b = p - 'self.spawn(&['.length - 1;
-            while (b >= 0 && /\s/.test(content[b])) b--;
-            const prev = b >= 0 ? content[b] : '';
-            const spawnCallOpen = p + 'self.spawn'.length; // index of '('
-            const spawnCallEnd = matchParen(content, spawnCallOpen);
-            if ((prev !== ',' && prev !== '(') || spawnCallEnd < 0) {
-                // Fire-and-forget statement (or unbalanced): leave as-is.
-                out += content.slice(idx, p + spawnMarker.length);
-                idx = p + spawnMarker.length;
-                continue;
-            }
-            // inner = contents of the `&[ ... ]`
-            const arrOpen = content.indexOf('[', spawnCallOpen);
-            const inner = content.slice(arrOpen + 1, spawnCallEnd - 1); // strip `]` too
-            // First element: Value::Str("METHOD".to_string())[.clone()], rest = args.
-            const firstComma = topComma(inner);
-            const head = firstComma < 0 ? inner : inner.slice(0, firstComma);
-            const argsPart = firstComma < 0 ? '' : inner.slice(firstComma + 1).trim();
-            const nameM = head.match(/Value::Str\("([^"]+)"\.to_string\(\)\)/);
-            if (!nameM) {
-                out += content.slice(idx, spawnCallEnd + 1);
-                idx = spawnCallEnd + 1;
-                continue;
-            }
-            const method = nameM[1];
-            const replacement = `self.call_dynamic("${method}", vec![${argsPart}]).await`;
-            out += content.slice(idx, p) + replacement;
-            idx = spawnCallEnd + 1;
-            // Record the enclosing function span in the ORIGINAL content for the
-            // await-on-value rewrite below.
-            const fnStart = content.lastIndexOf('\n    pub ', p) >= 0
-                ? Math.max(
-                    content.lastIndexOf('\n    pub fn ', p),
-                    content.lastIndexOf('\n    pub async fn ', p),
-                    content.lastIndexOf('\n    fn ', p),
-                    content.lastIndexOf('\n    async fn ', p),
-                  )
-                : content.lastIndexOf('\n    fn ', p);
-            // Next function declaration after the spawn = end of this one.
-            const nextCandidates = [
-                content.indexOf('\n    pub fn ', spawnCallEnd),
-                content.indexOf('\n    pub async fn ', spawnCallEnd),
-                content.indexOf('\n    fn ', spawnCallEnd),
-                content.indexOf('\n    async fn ', spawnCallEnd),
-            ].filter((x) => x >= 0);
-            const fnEnd = nextCandidates.length ? Math.min(...nextCandidates) : content.length;
-            if (fnStart >= 0) touchedFns.push([fnStart, fnEnd]);
-        }
-        if (touchedFns.length === 0) return out;
-        // Re-run over the rewritten text, rewriting await-on-value only inside the
-        // touched function spans. Spans were computed on the pre-rewrite content;
-        // recompute against `out` by re-locating each function's `fn NAME(`.
-        // Simpler: rewrite every `get_value(&IDENT, &..Value::Str("await"..))`
-        // that sits inside a touched-fn's text, matched by re-scanning `out`.
-        const awaitRe = /get_value\(&(\w+),\s*&(?:crate::)?Value::Str\("await"\.to_string\(\)\)\)/g;
-        // Build the set of function names that were touched.
-        const touchedNames = new Set<string>();
-        for (const [s] of touchedFns) {
-            const decl = content.slice(s, s + 120).match(/fn\s+(\w+)\s*[<(]/);
-            if (decl) touchedNames.add(decl[1]);
-        }
-        // Walk `out` function-by-function; rewrite await-on-value only in touched ones.
-        const fnSplit = /\n    (?:pub )?(?:async )?fn\s+(\w+)/g;
-        let result = '';
-        let last = 0;
-        let mm: RegExpExecArray | null;
-        const bounds: Array<{ name: string; start: number }> = [];
-        while ((mm = fnSplit.exec(out)) !== null) bounds.push({ name: mm[1], start: mm.index });
-        for (let i = 0; i < bounds.length; i++) {
-            const segStart = bounds[i].start;
-            const segEnd = i + 1 < bounds.length ? bounds[i + 1].start : out.length;
-            result += out.slice(last, segStart);
-            let seg = out.slice(segStart, segEnd);
-            if (touchedNames.has(bounds[i].name)) {
-                seg = seg.replace(awaitRe, '$1');
-            }
-            result += seg;
-            last = segEnd;
-        }
-        result += out.slice(last);
-        return result;
-    }
-
     /**
      * Wrap an error constructor that appears directly as a `&[Value]` slice
      * element in `Value::from(...)`.
@@ -7560,9 +7435,8 @@ export class RustTranspilerBuilder {
      * await is a no-op, so every caller races ahead of the credential the
      * flight is fetching.
      *
-     * Runs AFTER `serializeAwaitedSpawns`, which claims the await-on-value
-     * sites belonging to inlined spawns (kucoin's `negotiate`); whatever it
-     * leaves behind is a real client flight handle.
+     * The printer already drops the await on locals of methods that inline a
+     * spawn (kucoin's `negotiate`); whatever is left is a real client flight handle.
      */
     lowerAwaitedFlights(content: string): string {
         // 1. `<ident>.future(…).await` / `<ident>.reusable_future(…).await`.
@@ -8157,16 +8031,6 @@ export class RustTranspilerBuilder {
             // but takes `&str`. Route to `parse_json_value`.
             [/\bself\.parse_json\(/g, 'self.parse_json_value('],
 
-            // `binaryConcat()` with no args — the base method is shaped
-            // `(first, ...rest)`; supply an empty first chunk.
-            [/\bself\.binary_concat\(\s*\)/g, 'self.binary_concat(Value::Null, &[])'],
-
-            // `setProperty(this, key, value)` transpiles to
-            // `self.set_property(self, key, value)` — but `self` is a typed
-            // `&Core`, not a `Value`. Drop the redundant receiver arg; the
-            // base `set_property` always mutates `self`.
-            [/\bself\.set_property\(\s*self\s*,/g, 'self.set_property('],
-
             // `self.<field> = <localVar>;` moves the variable, which then
             // can't be used again (e.g. bullish `self.token = token;
             // return token;`). Clone on field assignment — the extra copy
@@ -8174,11 +8038,6 @@ export class RustTranspilerBuilder {
             [/\bself\.([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([a-z][a-zA-Z0-9_]*)\s*;/g,
                 'self.$1 = $2.clone();'],
 
-            // Callback fields are also called as methods in TS. The names
-            // collide on Exchange (can't be both field + method). Route call
-            // sites to `<name>_fn` methods; bare field reads stay as-is.
-            [/\bself\.(proxy|proxy_url_callback|http_proxy_callback|https_proxy_callback|socks_proxy_callback|ws_proxy_callback|wss_proxy_callback|ws_socks_proxy_callback)\(/g,
-                'self.$1_fn('],
 
 
 
@@ -8320,9 +8179,6 @@ export class RustTranspilerBuilder {
             [/(\bm\.insert\([^,]+,\s*)(!?is_true\([^;]+?)(\)\s*;)/g,
                 '$1Value::Bool($2)$3'],
 
-
-            // `return self;` (chained methods) — `self` isn't a Value.
-            [/^(\s*)return\s+self\s*;/gm, '$1return Value::Null;'],
 
             // Last statement in a Value-returning method is a bare expression
             // with `;` — that returns `()`. Wrap the body so a Value::Null
@@ -13188,7 +13044,6 @@ ${arms.join('\n')}
         content = this.rewriteSelfFieldMutCloneCast(content);
         content = this.writeBackIndexedMutations(content);
         content = this.rewriteInlineFieldAppends(content);
-        content = this.serializeAwaitedSpawns(content);
         content = this.lowerAwaitedFlights(content);
         // Propagate async-ness through the call graph: keep iterating
         // mark-async-if-body-awaits + append-await-to-callers until fixed.
@@ -14154,7 +14009,6 @@ impl std::ops::DerefMut for ${coreName} {
         // convertOHLCVToTradingView etc. — review P0-C).
         basePart = this.writeBackIndexedMutations(basePart);
         basePart = this.rewriteInlineFieldAppends(basePart);
-        basePart = this.serializeAwaitedSpawns(basePart);
 
         // The prediction tier has many methods that mutate instance state
         // (set_events/set_outcomes/load_outcomes/index_market_outcomes/…). The
@@ -15338,173 +15192,6 @@ impl std::ops::DerefMut for ${coreName} {
         return out;
     }
 
-    // Names of every `async function NAME (...)` free function in a TS test
-    // source. The AST drops `async` and the body-scan passes only re-add it
-    // when the body itself awaits, so an async helper with no inner await
-    // (test.fetchTrades' helperTestFetchTradesSideSequence) is emitted as a
-    // sync `fn` while its caller keeps the `.await` -> E0277 `Value` is not
-    // a future.
-    detectFreeAsyncFns(tsSrc: string): Set<string> {
-        const out = new Set<string>();
-        const re = /\basync\s+function\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g;
-        let m: RegExpExecArray | null;
-        while ((m = re.exec(tsSrc)) !== null) out.add(m[1]);
-        return out;
-    }
-
-    // Mark the given free functions `async fn` when the emitted signature
-    // lost the keyword; the declaration is left alone if already async.
-    markFreeFnsAsync(content: string, names: Set<string>): string {
-        for (const name of names) {
-            content = content.replace(
-                new RegExp(`(^|\\n)(\\s*)((?:pub\\s+)?)fn\\s+${name}\\s*\\(`),
-                (_full, before, indent, pub_) => `${before}${indent}${pub_}async fn ${name}(`,
-            );
-        }
-        return content;
-    }
-
-    // Scans a TS source for `function NAME (p1, p2, ..., pK = default, ...)`
-    // declarations and returns a map of `NAME → firstDefaultParamIdx`.
-    // Used in test-file transpilation: the AST drops defaults from the
-    // emitted Rust signature, but call sites omit the trailing args —
-    // we need to know where the variadic tail starts.
-    detectFreeFnDefaultArgs(tsSrc: string): Map<string, number> {
-        const out = new Map<string, number>();
-        // Match `(async )?function NAME (params)` — only free functions,
-        // not class methods (those don't have the `function` keyword).
-        const re = /\b(?:async\s+)?function\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(([^)]*)\)/g;
-        let m: RegExpExecArray | null;
-        while ((m = re.exec(tsSrc)) !== null) {
-            const name = m[1];
-            const params = m[2].split(',').map(s => s.trim()).filter(Boolean);
-            for (let i = 0; i < params.length; i++) {
-                if (params[i].includes('=')) {
-                    out.set(name, i);
-                    break;
-                }
-            }
-        }
-        return out;
-    }
-
-    // For each function in `defaultFns`, rewrite the Rust signature so
-    // params from `firstDefaultIdx` onwards collapse into a single
-    // `optional_args: &[Value]` slice (mirrors how exchange methods are
-    // transpiled). Inserts `let mut <pname> = get_arg(optional_args, k,
-    // Value::Null);` declarations at the top of the body for each
-    // collapsed param, and pads every call site to the new arity.
-    //
-    // Limitation: defaults emitted as `Value::Null`. The TS default
-    // value isn't preserved through the AST output we have here, but
-    // every site that *omitted* the arg in TS was passing the moral
-    // equivalent of `undefined` anyway, so Null is the right read.
-    foldDefaultArgsIntoOptional(content: string, defaultFns: Map<string, number>): string {
-        for (const [name, firstDefault] of defaultFns) {
-            // Match the fn signature: `(pub )?(async )?fn NAME(params) -> Value {`
-            // `pub` is optional — file-private helpers (`async function foo`
-            // without an `export`) get transpiled without `pub`, but they
-            // still take default args we need to collapse. Pre-upstream the
-            // helpers were named `test*` and got `pub`; upstream's rename
-            // dropped both the `test` prefix and the `pub`.
-            const sigRe = new RegExp(
-                `(\\b(?:pub\\s+)?(?:async\\s+)?fn\\s+${name}\\s*\\()([^)]*)(\\)\\s*->\\s*[^\\{]+\\{)`,
-            );
-            const sigMatch = content.match(sigRe);
-            if (!sigMatch) continue;
-            const params = sigMatch[2].split(',').map(s => s.trim()).filter(Boolean);
-            if (params.length <= firstDefault) continue;
-            const fixed = params.slice(0, firstDefault);
-            const collapsed = params.slice(firstDefault);
-            // Extract param names from the collapsed params for the
-            // `let mut x = get_arg(...)` decls.
-            const collapsedNames = collapsed.map(p => {
-                const m = p.match(/^(?:mut\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*:/);
-                return m ? m[1] : '';
-            });
-            const newSig = `${sigMatch[1]}${fixed.join(', ')}${fixed.length ? ', ' : ''}optional_args: &[Value]${sigMatch[3]}`;
-            // Locate the opening `{` to insert the get_arg lines right
-            // after it. Walk via findMatchingBrace to stay safe in
-            // comments/strings.
-            content = content.replace(sigRe, newSig);
-            // Now insert the decls.
-            const reAfter = new RegExp(`(\\b(?:pub\\s+)?(?:async\\s+)?fn\\s+${name}\\s*\\([^)]*\\)\\s*->\\s*[^\\{]+\\{)`);
-            const decls = collapsedNames.map((nm, i) =>
-                `\n    let mut ${nm}: Value = get_arg(optional_args, ${i}, Value::Null);`,
-            ).join('');
-            content = content.replace(reAfter, `$1${decls}`);
-            // Rewrite call sites: `NAME(a, b, c)` → if it has fewer args
-            // than the new arity (fixed.length + 1 for &[]), append `&[]`
-            // or wrap trailing args in `&[...]`.
-            const newArity = fixed.length + 1; // +1 for optional_args slice
-            content = this.padCallsForVariadicFn(content, name, fixed.length, newArity);
-        }
-        return content;
-    }
-
-    // For free function `name`, find every `NAME(args)` call and pad it
-    // so the trailing args (those past `fixedCount`) are wrapped in a
-    // `&[ ... ]` slice. Calls already at the correct arity get a `&[]`
-    // appended. If the function is `pub async fn`, also append `.await`
-    // when the call site doesn't already have it.
-    padCallsForVariadicFn(content: string, name: string, fixedCount: number, newArity: number): string {
-        const isAsync = new RegExp(`\\b(?:pub\\s+)?async\\s+fn\\s+${name}\\b`).test(content);
-        const callRe = new RegExp(`\\b${name}\\s*\\(`, 'g');
-        let out = '';
-        let last = 0;
-        let m: RegExpExecArray | null;
-        while ((m = callRe.exec(content)) !== null) {
-            // Skip the declaration line itself.
-            const beforeStart = content.lastIndexOf('\n', m.index) + 1;
-            const lineSoFar = content.slice(beforeStart, m.index);
-            if (/\bpub(\s+async)?\s+fn\s*$|\basync\s+fn\s*$|\bfn\s*$/.test(lineSoFar.trim())) {
-                out += content.slice(last, m.index + m[0].length);
-                last = m.index + m[0].length;
-                continue;
-            }
-            const openIdx = m.index + m[0].length - 1; // pointing at `(`
-            // Walk to the matching `)`, splitting top-level args.
-            let depth = 1;
-            let j = openIdx + 1;
-            let inStr = false;
-            let escape = false;
-            const argStarts: number[] = [j];
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(' || c === '[' || c === '{') depth++;
-                    else if (c === ')' || c === ']' || c === '}') depth--;
-                    else if (c === ',' && depth === 1) argStarts.push(j + 1);
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            const closeIdx = j;
-            const args = [];
-            for (let k = 0; k < argStarts.length; k++) {
-                const s = argStarts[k];
-                const e = k + 1 < argStarts.length ? argStarts[k + 1] - 1 : closeIdx;
-                args.push(content.slice(s, e).trim());
-            }
-            // Drop empty-only-trailing arg (caused by trailing comma).
-            while (args.length && args[args.length - 1] === '') args.pop();
-            const fixedArgs = args.slice(0, fixedCount);
-            const trailing = args.slice(fixedCount);
-            const slice = trailing.length === 0 ? '&[]' : `&[${trailing.join(', ')}]`;
-            const alreadyAwaited = content.slice(closeIdx + 1).startsWith('.await');
-            const suffix = (isAsync && !alreadyAwaited) ? '.await' : '';
-            const newCall = `${name}(${[...fixedArgs, slice].join(', ')})${suffix}`;
-            out += content.slice(last, m.index) + newCall;
-            last = closeIdx + 1;
-            callRe.lastIndex = closeIdx + 1;
-        }
-        out += content.slice(last);
-        return out;
-    }
-
     /// "test.safeMethods" → "test_safe_methods" (a valid Rust ident).
     private modIdentFor(testFileName: string): string {
         return testFileName
@@ -15654,21 +15341,7 @@ impl std::ops::DerefMut for ${coreName} {
                             .filter((m: any) => m.async)
                             .map((m: any) => m.name),
                     );
-                    // Scan TS source for free-function declarations whose
-                    // trailing params have default values. The AST drops
-                    // those defaults; without compensation the Rust call
-                    // sites pass too few args (e.g. test.fetchTickers'
-                    // inner helper `testFetchTickersHelper(... argParams =
-                    // {})` is called with 3 args but the Rust signature
-                    // has 4). Convert trailing defaults to a variadic
-                    // `optional_args: &[Value]` slice.
-                    const tsSrc = fs.readFileSync(tsFile, 'utf8');
-                    const defaultArgFns = this.detectFreeFnDefaultArgs(tsSrc);
                     let content = this.runExchangeTestPipeline(result.content ?? '', asyncMethods);
-                    content = this.markFreeFnsAsync(content, this.detectFreeAsyncFns(tsSrc));
-                    if (defaultArgFns.size > 0) {
-                        content = this.foldDefaultArgsIntoOptional(content, defaultArgFns);
-                    }
                     // Locate the entry fn: `test<Stem>`, else the first `test*`.
                     const stem = testName.replace(/^test\./, '');
                     const cand = 'test' + stem.charAt(0).toUpperCase() + stem.slice(1);
@@ -15796,12 +15469,7 @@ impl std::ops::DerefMut for ${coreName} {
                 const asyncMethods = new Set<string>(
                     (result.methodsTypes || []).filter((m: any) => m.async).map((m: any) => m.name),
                 );
-                const tsSrc = fs.readFileSync(tsFile, 'utf8');
-                const defaultArgFns = this.detectFreeFnDefaultArgs(tsSrc);
                 let content = this.runExchangeTestPipeline(result.content ?? '', asyncMethods);
-                if (defaultArgFns.size > 0) {
-                    content = this.foldDefaultArgsIntoOptional(content, defaultArgFns);
-                }
                 const stem = testName.replace(/^test\./, '');
                 const cand = 'test' + stem.charAt(0).toUpperCase() + stem.slice(1);
                 let entry = cand;
