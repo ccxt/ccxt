@@ -326,7 +326,7 @@ export function registerRouteExecuteTool (server: McpServer, ctx: ServerContext)
             'allowMarketOrders': z.boolean ().optional ().describe ('let a venue that cannot do IOC take a market order instead of failing the step (default false)'),
             'maxPlanAgeMs': z.number ().int ().positive ().optional ().describe ('refuse to execute if the quote is older than this'),
             'dryRun': z.boolean ().optional ().describe ('build, check and report the plan without placing anything'),
-            'options': z.record (z.string (), z.any ()).optional ().describe ('further OrderRouter.execute options: ' + PASSTHROUGH_OPTIONS.join (', ')),
+            'options': z.record (z.any ()).optional ().describe ('further OrderRouter.execute options: ' + PASSTHROUGH_OPTIONS.join (', ')),
             'confirm': z.string ().optional ().describe ('confirmation token from the preview response — repeat the identical call with this token to execute'),
         },
         'annotations': { 'destructiveHint': true, 'openWorldHint': true },

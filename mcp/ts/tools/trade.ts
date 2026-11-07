@@ -375,7 +375,7 @@ export function registerTradeTools (server: McpServer, ctx: ServerContext): void
         'inputSchema': {
             'account': accountParam,
             'method': z.string ().describe ('one of the allowlisted method names'),
-            'args': z.array (z.union ([ z.string (), z.number (), z.boolean (), z.null (), z.array (z.any ()), z.record (z.string (), z.any ()) ])).optional ().describe ('positional arguments per describe_method; null skips an optional argument'),
+            'args': z.array (z.union ([ z.string (), z.number (), z.boolean (), z.null (), z.array (z.any ()), z.record (z.any ()) ])).optional ().describe ('positional arguments per describe_method; null skips an optional argument'),
             'params': paramsParam,
             'confirm': confirmParam,
         },
