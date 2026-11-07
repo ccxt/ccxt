@@ -584,6 +584,7 @@ impl From<f64>     for Value { fn from(f: f64)    -> Self { Value::Float(f) } }
 impl From<bool>    for Value { fn from(b: bool)   -> Self { Value::Bool(b) } }
 impl From<Option<i64>> for Value { fn from(n: Option<i64>) -> Self { n.map_or(Value::Null, Value::Int) } }
 impl From<Option<f64>> for Value { fn from(n: Option<f64>) -> Self { n.map_or(Value::Null, Value::Float) } }
+impl From<Option<&str>> for Value { fn from(s: Option<&str>) -> Self { s.map_or(Value::Null, Value::from) } }
 impl From<Option<Vec<String>>> for Value {
     fn from(l: Option<Vec<String>>) -> Self { l.map_or(Value::Null, |l| Value::from(l.into_iter().map(Value::from).collect::<Vec<Value>>())) }
 }

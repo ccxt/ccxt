@@ -246,7 +246,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.currency] currency code to watch, default is any
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
-    override async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
         const paramsResolved = this.handleRouteAndParams ('watchBalance', params);
         const [ currency, paramsCurrency ] = this.handleOptionStringAndParams (paramsResolved, 'watchBalance', 'currency', 'any');
         const channel = 'user.portfolio.' + currency;
@@ -346,7 +346,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.interval] notification interval, default raw
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const paramsResolved = this.handleRouteAndParams ('watchOrders', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();

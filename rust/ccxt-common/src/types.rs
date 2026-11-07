@@ -427,6 +427,8 @@ pub struct Balances {
     pub free:  HashMap<String, f64>,
     pub used:  HashMap<String, f64>,
     pub total: HashMap<String, f64>,
+    /// The full unified balance dict this was decoded from.
+    pub raw:   Value,
 }
 
 impl Balances {
@@ -454,6 +456,7 @@ impl Balances {
         b.free  = extract("free");
         b.used  = extract("used");
         b.total = extract("total");
+        b.raw = v;
         b
     }
 }
@@ -1912,7 +1915,24 @@ macro_rules! raw_struct {
         impl IntoRaw for $t { fn into_raw(self) -> Value { self.raw } }
     )* };
 }
-raw_struct!(Ticker, Trade, OrderBook);
+raw_struct!(Ticker, Trade, OrderBook, Order, Balances, Market, Currency, Position);
+
+/// A candle row `[timestamp, open, high, low, close, volume]`; a missing or non-numeric field reads `0.0`.
+impl FromRaw for OHLCV {
+    fn from_raw(v: Value) -> Self {
+        let mut out = [0.0f64; 6];
+        if let Value::Arr(fields) = v {
+            for (slot, f) in out.iter_mut().zip(fields.iter()) { *slot = f.as_f64().unwrap_or(0.0); }
+        }
+        out
+    }
+}
+/// Integral fields (the timestamp, whole-number prices) lower to `Value::Int`, as the transpiled bodies build them.
+impl IntoRaw for OHLCV {
+    fn into_raw(self) -> Value {
+        Value::from(self.iter().map(|&f| if f.fract() == 0.0 && f.abs() < 9.0e15 { Value::Int(f as i64) } else { Value::Float(f) }).collect::<Vec<Value>>())
+    }
+}
 
 impl<T: FromRaw> FromRaw for Vec<T> {
     fn from_raw(v: Value) -> Self {

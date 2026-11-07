@@ -443,8 +443,8 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override watchMarkPrice (symbol: string, params: Dict = {}): Promise<Ticker> {
-        return this.watchTicker (symbol, params);
+    override async watchMarkPrice (symbol: string, params: Dict = {}): Promise<Ticker> {
+        return await this.watchTicker (symbol, params);
     }
 
     /**
@@ -456,8 +456,8 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override watchMarkPrices (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
-        return this.watchTickers (symbols, params);
+    override async watchMarkPrices (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
+        return await this.watchTickers (symbols, params);
     }
 
     /**

@@ -56,7 +56,8 @@ pub trait PredictionRuntime: crate::prediction_exchange_generated::PredictionBas
     } }
     /// Base `super.fetchOHLCV(...)` → the shared `Exchange` implementation.
     fn super_fetch_ohlcv(&mut self, symbol: Value, timeframe: Value, since: Value, limit: Value, params: Value) -> impl ::std::future::Future<Output = Value> + Send { async move {
-        <Self as crate::exchange_generated::ExchangeBase>::fetch_ohlcv(self, symbol, &[timeframe, since, limit, params]).await
+        let typed = <Self as crate::exchange_generated::ExchangeBase>::fetch_ohlcv(self, symbol.as_str().unwrap_or_default(), timeframe.as_str(), since.as_i64(), limit.as_i64(), params).await;
+        crate::types::IntoRaw::into_raw(typed)
     } }
     // NB: `super_set_markets` / `super_set_sandbox_mode` are inherited from
     // `ExchangeRuntime` (identical forwarding to the base) — not redefined here,
