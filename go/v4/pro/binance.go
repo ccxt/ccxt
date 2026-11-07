@@ -2559,7 +2559,6 @@ func (this *Binance) HandleOHLCV(client any, message map[string]any) {
 	var interval *string = this.SafeString(kline, "i")
 	// use a reverse lookup in a static map instead
 	var unifiedTimeframe *string = this.FindTimeframe(interval)
-	var parsed []any = []any{this.SafeInteger(kline, "t"), this.SafeFloat(kline, "o"), this.SafeFloat(kline, "h"), this.SafeFloat(kline, "l"), this.SafeFloat(kline, "c"), this.SafeFloat(kline, "v")}
 	// resolve the market from the transport url — an ambiguous id like
 	// BTCUSDT maps to both the spot and the linear swap market
 	var isSpot bool = this.IsSpotUrl(client)
@@ -2567,7 +2566,17 @@ func (this *Binance) HandleOHLCV(client any, message map[string]any) {
 	if isSpot {
 		marketType = "spot"
 	}
-	var symbol *string = this.SafeSymbol(marketId, nil, nil, marketType)
+	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
+	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
+	// coin-margined contracts count "v" in contracts, "q" is the base asset volume that fetchOHLCV returns
+	var inverse *bool = this.SafeBool(market, "inverse")
+	var volumeKey string = func() string {
+		if inverse != nil && *inverse == true {
+			return "q"
+		}
+		return "v"
+	}()
+	var parsed []any = []any{this.SafeInteger(kline, "t"), this.SafeFloat(kline, "o"), this.SafeFloat(kline, "h"), this.SafeFloat(kline, "l"), this.SafeFloat(kline, "c"), this.SafeFloat(kline, volumeKey)}
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv::"+*symbol+"::", unifiedTimeframe))
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
@@ -4708,11 +4717,11 @@ func (this *Binance) fetchPositionWsBody(ch chan ccxt.AsyncResult[[]ccxt.Positio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes349815 []any = ccxt.PositionsToList(r.Value)
-	if retRes349815 == nil {
+	var retRes350215 []any = ccxt.PositionsToList(r.Value)
+	if retRes350215 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(retRes349815)}
+		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(retRes350215)}
 	}
 	return nil
 }
@@ -6349,7 +6358,7 @@ func (this *Binance) ParseWsOrder(order any, optionalArgs ...any) map[string]any
 		"amount":              this.SafeString(order, "q"),
 		"cost":                this.SafeString(order, "Z"),
 		"average":             this.SafeString(order, "ap"),
-		"filled":              this.SafeString(order, "z"),
+		"filled":              this.SafeString2(order, "z", "aq"),
 		"remaining":           nil,
 		"status":              status,
 		"fee":                 fee,
@@ -7392,9 +7401,9 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 							}
 						}
 						if insertNewFeeCurrency {
-							retRes568532 := ccxt.GetValue(order, "fees")
-							ccxt.AppendToArray(&retRes568532, tradeFee)
-							ccxt.AddElementToObject(order, "fees", retRes568532)
+							retRes568932 := ccxt.GetValue(order, "fees")
+							ccxt.AppendToArray(&retRes568932, tradeFee)
+							ccxt.AddElementToObject(order, "fees", retRes568932)
 						}
 					} else if fee != nil {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {

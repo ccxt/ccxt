@@ -944,7 +944,7 @@ func (this *Blofin) ParseWsBalance(message map[string]any) any {
 
 /**
  * @method
- * @name biofin#watchOrders
+ * @name blofin#watchOrders
  * @description watches information on multiple orders made by the user
  * @see https://docs.blofin.com/index.html#ws-order-channel
  * @see https://docs.blofin.com/index.html#ws-algo-orders-channel
@@ -1890,6 +1890,20 @@ func (this *Blofin) WatchBalance(params ...any) (ccxt.Balances, error) {
 	var res ccxt.Balances = r.Value
 	return res, nil
 }
+
+/**
+ * @method
+ * @name blofin#watchOrders
+ * @description watches information on multiple orders made by the user
+ * @see https://docs.blofin.com/index.html#ws-order-channel
+ * @see https://docs.blofin.com/index.html#ws-algo-orders-channel
+ * @param {string} symbol unified market symbol of the market orders were made in
+ * @param {int} [since] the earliest time in ms to fetch orders for
+ * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.trigger] set to true for trigger orders
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure
+ */
 func (this *Blofin) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order, error) {
 
 	opts := ccxt.WatchOrdersOptionsStruct{}

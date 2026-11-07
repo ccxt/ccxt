@@ -5307,7 +5307,7 @@ func (this *Coinbase) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
 
-		r1 := <-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limitValue, timeframe, paramsPaginate, 299)
+		r1 := <-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, 299)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
@@ -5336,11 +5336,16 @@ func (this *Coinbase) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		sinceString = Precise.StringSub(now, strconv.FormatInt(requestedDuration, 10))
 	}
 	request["start"] = sinceString
+	// 300 candles max
+	var windowEnd *string = Precise.StringAdd(sinceString, strconv.FormatInt(requestedDuration, 10))
 	if until != nil {
-		request["end"] = this.NumberToString(this.ParseToInt(float64(*until) / 1000))
+		var endString *string = this.NumberToString(this.ParseToInt(float64(*until) / 1000))
+		if (since != nil) && Precise.StringLt(windowEnd, endString) {
+			endString = windowEnd
+		}
+		request["end"] = endString
 	} else {
-		// 300 candles max
-		request["end"] = Precise.StringAdd(sinceString, strconv.FormatInt(requestedDuration, 10))
+		request["end"] = windowEnd
 	}
 	var response map[string]any = nil
 	usePrivate, paramsUsePrivate := this.HandleOptionBoolAndParams(paramsOmitted, "fetchOHLCV", "usePrivate", false)
@@ -5533,11 +5538,11 @@ func (this *Coinbase) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes412019 []any = r1.Value
-		if retRes412019 == nil {
+		var retRes412519 []any = r1.Value
+		if retRes412519 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes412019)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes412519)}
 		}
 		return nil
 	}
