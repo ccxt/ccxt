@@ -1456,17 +1456,17 @@ impl CoinsphCore {
             m
         });
         if (symbols != Value::Null) {
-            let mut ids: Value = Value::from(vec![]);
+            let mut ids: Vec<Value> = vec![];
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_575: bool = true;
                 while { if !__for_first_575 { i += 1; } __for_first_575 = false; i < (symbols.len() as i64) } {
                 let mut market: indexmap::IndexMap<String, Value> = self.market(symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
                 let mut id: Value = market.get("id").cloned().unwrap_or(Value::Null);
-                if let Value::Arr(__a) = &mut ids { std::sync::Arc::make_mut(__a).push(id); }
+                ids.push(id);
             }
             }
-            request.insert("symbols".into(), ids);
+            request.insert("symbols".into(), Value::Array(ids));
         }
         let mut defaultMethod: String = "publicGetOpenapiQuoteV1Ticker24hr".to_string();
         let mut options: Value = self.safe_dict_k(self.options.clone(), "fetchTickers", &[Value::Map({

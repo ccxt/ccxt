@@ -1402,20 +1402,20 @@ impl UpbitCore {
             }
             }
             let mut sortedQuoteIds: Value = self.sort(quoteIds, &[]); // market iteration order differs per language
-            let mut quoteCurrencies: Value = Value::Str("".into());
+            let mut quoteCurrencies: String = "".to_string();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1130: bool = true;
                 while { if !__for_first_1130 { i += 1; } __for_first_1130 = false; i < (sortedQuoteIds.len() as i64) } {
-                if (quoteCurrencies.as_str() != Some("")) {
-                    quoteCurrencies = Value::Str(format!("{}{}", quoteCurrencies, Value::Str(",".into())).into());
+                if ((quoteCurrencies != "")) {
+                    quoteCurrencies = format!("{}{}", quoteCurrencies, Value::Str(",".into())).into();
                 }
-                quoteCurrencies = Value::Str(format!("{}{}", quoteCurrencies, self.safe_string(sortedQuoteIds.clone(), Value::Int(i), &[Value::Str("".into())])).into());
+                quoteCurrencies = format!("{}{}", quoteCurrencies, self.safe_string(sortedQuoteIds.clone(), Value::Int(i), &[Value::Str("".into())])).into();
             }
             }
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("quote_currencies".to_string(), quoteCurrencies);
+                    m.insert("quote_currencies".to_string(), Value::str(quoteCurrencies));
                 m
             });
             let __ws_arg_3 = self.extend(Value::Map(request), &[params.clone()]);

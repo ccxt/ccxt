@@ -1388,16 +1388,16 @@ impl ExtendedCore {
             m
         });
         if (symbolsNormalized != Value::Null) {
-            let mut marketIds: Value = Value::from(vec![]);
+            let mut marketIds: Vec<Value> = vec![];
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_660: bool = true;
                 while { if !__for_first_660 { i += 1; } __for_first_660 = false; i < (symbolsNormalized.len() as i64) } {
                 let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
-                if let Value::Arr(__a) = &mut marketIds { std::sync::Arc::make_mut(__a).push(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
+                marketIds.push(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
             }
-            request.insert("market".into(), marketIds);
+            request.insert("market".into(), Value::Array(marketIds));
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.v1_public_get_info_markets(&[__ws_arg_1]).await;
