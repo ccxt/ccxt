@@ -9,7 +9,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import phemexRest from '../phemex.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { AuthenticationError } from '../base/errors.js';
+import { AuthenticationError, ExchangeError } from '../base/errors.js';
 //  ---------------------------------------------------------------------------
 export default class phemex extends phemexRest {
     describe() {
@@ -23,6 +23,8 @@ export default class phemex extends phemexRest {
                 'watchOrders': true,
                 'watchOrderBook': true,
                 'watchOHLCV': true,
+                'unWatchTrades': true,
+                'unWatchOHLCV': true,
                 'watchPositions': undefined, // TODO
                 // multi-endpoints are not supported: https://github.com/ccxt/ccxt/pull/21490
                 'watchOrderBookForSymbols': false,
@@ -718,6 +720,108 @@ export default class phemex extends phemexRest {
             limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
         return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
+    }
+    async unSubscribePublic(method, subMessageHash, marketParams, subscription, params = {}) {
+        const url = this.urls['api']['ws'];
+        const requestId = this.requestId();
+        const messageHash = 'unsubscribe:' + subMessageHash;
+        const request = {
+            'method': method,
+            'id': requestId,
+            'params': marketParams,
+        };
+        const unsubscription = this.extend(subscription, {
+            'id': requestId,
+            'unsubscribe': true,
+            'subMessageHash': subMessageHash,
+            'messageHash': messageHash,
+        });
+        return await this.watch(url, messageHash, this.deepExtend(request, params), messageHash, unsubscription);
+    }
+    /**
+     * @method
+     * @name phemex#unWatchTrades
+     * @description unWatches from the stream channel
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#unsubscribe-trade
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#unsubscribe-trade
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#unsubscribe-trade
+     * @param {string} symbol unified symbol of the market to unwatch the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchTrades(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const symbolValue = market['symbol'];
+        const isUsdtSwap = (market['swap'] === true) && (market['settle'] === 'USDT');
+        let name = 'trade';
+        if (isUsdtSwap) {
+            name = 'trade_p';
+        }
+        const subscription = {
+            'topic': 'trades',
+            'symbols': [symbolValue],
+        };
+        return await this.unSubscribePublic(name + '.unsubscribe', 'trade:' + symbolValue, [market['id']], subscription, params);
+    }
+    /**
+     * @method
+     * @name phemex#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#unsubscribe-kline
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#unsubscribe-kline
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#unsubscribe-kline
+     * @param {string} symbol unified symbol of the market to unwatch the candles for
+     * @param {string} [timeframe] the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const symbolValue = market['symbol'];
+        const isUsdtSwap = (market['swap'] === true) && (market['settle'] === 'USDT');
+        let name = 'kline';
+        if (isUsdtSwap) {
+            name = 'kline_p';
+        }
+        const subscription = {
+            'topic': 'ohlcv',
+            'symbolsAndTimeframes': [[symbolValue, timeframe]],
+        };
+        // phemex drops only the given interval when it is sent along with the symbol
+        const marketParams = [market['id'], this.safeInteger(this.timeframes, timeframe)];
+        return await this.unSubscribePublic(name + '.unsubscribe', 'kline:' + timeframe + ':' + symbolValue, marketParams, subscription, params);
+    }
+    handleUnSubscription(client, message) {
+        //
+        // phemex answers subscribe and unsubscribe requests alike, so the answer is matched to a pending unsubscribe by id
+        //
+        //     { "error": null, "id": 3, "result": { "status": "success" } }
+        //     { "error": { "code": 6001, "message": "invalid argument" }, "id": 2, "result": null }
+        //
+        const id = this.safeString(message, 'id');
+        const subscriptionHashes = Object.keys(client.subscriptions);
+        for (let i = 0; i < subscriptionHashes.length; i++) {
+            const subscriptionHash = subscriptionHashes[i];
+            const subscription = client.subscriptions[subscriptionHash];
+            const isUnSubscription = this.safeBool(subscription, 'unsubscribe', false);
+            const subscriptionId = this.safeString(subscription, 'id');
+            if (isUnSubscription && (subscriptionId !== undefined) && (subscriptionId === id)) {
+                const subMessageHash = this.safeString(subscription, 'subMessageHash');
+                const messageHash = this.safeString(subscription, 'messageHash');
+                const error = this.safeDict(message, 'error');
+                if (error !== undefined) {
+                    // the stream stays subscribed, so drop only the pending unsubscribe
+                    delete client.subscriptions[subscriptionHash];
+                    client.reject(new ExchangeError(this.id + ' ' + this.json(error)), subscriptionHash);
+                    return;
+                }
+                this.cleanUnsubscription(client, subMessageHash, messageHash);
+                this.cleanCache(subscription);
+                return;
+            }
+        }
     }
     customHandleDelta(bookside, delta, market = undefined) {
         const bidAsk = this.customParseBidAsk(delta, 0, 1, market);
@@ -1525,6 +1629,10 @@ export default class phemex extends phemexRest {
                 method.call(this, client, message);
                 return;
             }
+        }
+        if (('result' in message) || ('error' in message)) {
+            this.handleUnSubscription(client, message);
+            return;
         }
         const methodName = this.safeString(message, 'method', '');
         if (('market24h' in message) || ('spot_market24h' in message) || (methodName.indexOf('perp_market24h_pack_p') >= 0)) {

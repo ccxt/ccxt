@@ -7808,6 +7808,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 [nado](/exchanges/nado.md#unwatchohlcv)
 [okx](/exchanges/okx.md#unwatchohlcv)
 [pacifica](/exchanges/pacifica.md#unwatchohlcv)
+[phemex](/exchanges/phemex.md#unwatchohlcv)
 [weex](/exchanges/weex.md#unwatchohlcv)
 [woo](/exchanges/woo.md#unwatchohlcv)
 
@@ -8073,6 +8074,7 @@ unsubscribe from the trades channel
 [nado](/exchanges/nado.md#unwatchtrades)
 [okx](/exchanges/okx.md#unwatchtrades)
 [pacifica](/exchanges/pacifica.md#unwatchtrades)
+[phemex](/exchanges/phemex.md#unwatchtrades)
 [weex](/exchanges/weex.md#unwatchtrades)
 [woo](/exchanges/woo.md#unwatchtrades)
 

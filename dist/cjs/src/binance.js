@@ -6876,7 +6876,7 @@ class binance extends binance$1["default"] {
         }
         const marketResolved = this.safeMarket(marketId, market, undefined, marketType);
         const symbol = marketResolved['symbol'];
-        const filled = this.safeString2(order, 'executedQty', 'filledQty', '0');
+        const filled = this.safeStringN(order, ['executedQty', 'filledQty', 'actualQty'], '0'); // actualQty: algo orders
         const timestamp = this.safeIntegerN(order, ['time', 'createTime', 'workingTime', 'transactTime', 'updateTime', 'createdAt']); // order of the keys matters here
         let lastTradeTimestamp = undefined;
         if (('transactTime' in order) || ('updateTime' in order) || ('updatedAt' in order)) {
