@@ -1105,8 +1105,7 @@
                         ]
                     }
                 ],
-                "parsedResponse": true,
-                "disabledCS": "the csharp base cleanUnsubscription never resolves the unsubscribe future, its final client.resolve is commented out in Exchange.BaseMethods.cs - recheck when the port catches up"
+                "parsedResponse": true
             }
         ],
         "unWatchTicker": [
@@ -1136,8 +1135,7 @@
                         ]
                     }
                 ],
-                "parsedResponse": true,
-                "disabledCS": "the csharp base cleanUnsubscription never resolves the unsubscribe future, its final client.resolve is commented out in Exchange.BaseMethods.cs - recheck when the port catches up"
+                "parsedResponse": true
             }
         ],
         "unWatchTrades": [
@@ -1167,8 +1165,7 @@
                         ]
                     }
                 ],
-                "parsedResponse": true,
-                "disabledCS": "the csharp base cleanUnsubscription never resolves the unsubscribe future, its final client.resolve is commented out in Exchange.BaseMethods.cs - recheck when the port catches up"
+                "parsedResponse": true
             }
         ],
         "unWatchOHLCV": [
@@ -1199,8 +1196,7 @@
                         ]
                     }
                 ],
-                "parsedResponse": true,
-                "disabledCS": "the csharp base cleanUnsubscription never resolves the unsubscribe future, its final client.resolve is commented out in Exchange.BaseMethods.cs - recheck when the port catches up"
+                "parsedResponse": true
             }
         ],
         "watchOrders": [
