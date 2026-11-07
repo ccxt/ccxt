@@ -679,10 +679,30 @@ public partial class BaseExchange
 
     public static object parseInt(object a)
     {
+        if (a == null)
+        {
+            return null;
+        }
+        if (a is Int64 i64)
+        {
+            return i64;
+        }
+        if (a is int i32)
+        {
+            return (Int64)i32;
+        }
+        if (a is uint u32)
+        {
+            return (Int64)u32;
+        }
+        if (a is string s && Int64.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed))
+        {
+            return parsed;
+        }
         object parsedValue = null;
         try
         {
-            var floored = Math.Floor(Convert.ToDouble(a));
+            var floored = Math.Floor(Convert.ToDouble(a, CultureInfo.InvariantCulture));
             parsedValue = (Convert.ToInt64(floored));
         }
         catch (Exception e)
