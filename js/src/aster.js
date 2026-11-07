@@ -3030,7 +3030,12 @@ export default class aster extends Exchange {
             request['origClientOrderIdList'] = clientOrderIdList;
         }
         else {
-            request['orderIdList'] = ids;
+            // the api takes LONG[] order ids
+            const orderIdList = [];
+            for (let i = 0; i < ids.length; i++) {
+                orderIdList.push(this.parseToNumeric(ids[i]));
+            }
+            request['orderIdList'] = orderIdList;
         }
         let response;
         if (this.safeBool(market, 'swap', false)) {
