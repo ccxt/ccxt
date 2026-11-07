@@ -1087,7 +1087,7 @@ public partial class BaseExchange
         parameters ??= new Dictionary<string, object>();
         if (!((this.has.ContainsKey("watchMyLiquidationsForSymbols") ? this.has["watchMyLiquidationsForSymbols"] : null) == null) && (((this.has.ContainsKey("watchMyLiquidationsForSymbols") ? this.has["watchMyLiquidationsForSymbols"] : null) as bool?) != false))
         {
-            return ccxt.BaseExchange.ToLiquidationList(this.WatchMyLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters));
+            return await this.WatchMyLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
         }
         throw new NotSupported ((this.id + " watchMyLiquidations() is not supported yet")) ;
     }
