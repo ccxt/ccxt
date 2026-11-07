@@ -107,7 +107,7 @@ impl crate::exchange_generated::ExchangeBase for CoinsphCore {
                 "fetch_open_orders" => crate::types::IntoRaw::into_raw(self.fetch_open_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
-                "fetch_order_trades" => self.fetch_order_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_order_trades" => crate::types::IntoRaw::into_raw(self.fetch_order_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "fetch_status" => crate::types::IntoRaw::into_raw(self.fetch_status(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -1104,8 +1104,8 @@ impl CoinsphCore {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_571: bool = true;
-            while { if !__for_first_571 { j += 1; } __for_first_571 = false; j < (networkList.len() as i64) } {
+            let mut __for_first_572: bool = true;
+            while { if !__for_first_572 { j += 1; } __for_first_572 = false; j < (networkList.len() as i64) } {
             let mut networkItem: Value = networkList.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut network: Option<String> = self.safe_string_k_opt(networkItem.clone(), "network", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[network.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
@@ -1185,8 +1185,8 @@ impl CoinsphCore {
             let mut byNumberOfSymbols: Vec<Value> = (match config.get("byNumberOfSymbols") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_572: bool = true;
-                while { if !__for_first_572 { i += 1; } __for_first_572 = false; i < (byNumberOfSymbols.len() as i64) } {
+                let mut __for_first_573: bool = true;
+                while { if !__for_first_573 { i += 1; } __for_first_573 = false; i < (byNumberOfSymbols.len() as i64) } {
                 let mut entry: Value = byNumberOfSymbols.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut threshold: Value = self.safe_integer(entry.clone(), Value::Int(0), &[]);
                 if (threshold != Value::Null) && symbolsAmount >= threshold.as_f64().unwrap_or(f64::NAN) {
@@ -1198,8 +1198,8 @@ impl CoinsphCore {
             let mut byLimit: Vec<Value> = (match config.get("byLimit") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_573: bool = true;
-                while { if !__for_first_573 { i += 1; } __for_first_573 = false; i < (byLimit.len() as i64) } {
+                let mut __for_first_574: bool = true;
+                while { if !__for_first_574 { i += 1; } __for_first_574 = false; i < (byLimit.len() as i64) } {
                 let mut entry: Value = byLimit.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut threshold: Value = self.safe_integer(entry.clone(), Value::Int(0), &[]);
                 if (threshold != Value::Null) && limit.as_f64().unwrap_or(f64::NAN) >= threshold.as_f64().unwrap_or(f64::NAN) {
@@ -1351,8 +1351,8 @@ impl CoinsphCore {
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_574: bool = true;
-            while { if !__for_first_574 { i += 1; } __for_first_574 = false; i < (markets.len() as i64) } {
+            let mut __for_first_575: bool = true;
+            while { if !__for_first_575 { i += 1; } __for_first_575 = false; i < (markets.len() as i64) } {
             let mut market: Value = markets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
             let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "baseAsset", &[]);
@@ -1481,8 +1481,8 @@ impl CoinsphCore {
             let mut ids: Vec<Value> = vec![];
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_575: bool = true;
-                while { if !__for_first_575 { i += 1; } __for_first_575 = false; i < (symbols.len() as i64) } {
+                let mut __for_first_576: bool = true;
+                while { if !__for_first_576 { i += 1; } __for_first_576 = false; i < (symbols.len() as i64) } {
                 let mut market: indexmap::IndexMap<String, Value> = self.market(symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
                 let mut id: Value = market.get("id").cloned().unwrap_or(Value::Null);
                 ids.push(id);
@@ -1912,7 +1912,13 @@ impl CoinsphCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-    pub async fn fetch_order_trades(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_order_trades(&mut self, id: &str, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Trade>> {
+        let __args: Vec<Value> = vec![Value::from(id), symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut id = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -1930,9 +1936,9 @@ impl CoinsphCore {
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
         return crate::types::IntoRaw::into_raw(self.fetch_my_trades(symbol.as_str(), since.as_i64(), limit.as_i64(), __ws_arg_10).await);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
@@ -2069,8 +2075,8 @@ impl CoinsphCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_576: bool = true;
-            while { if !__for_first_576 { i += 1; } __for_first_576 = false; i < (balances.len() as i64) } {
+            let mut __for_first_577: bool = true;
+            while { if !__for_first_577 { i += 1; } __for_first_577 = false; i < (balances.len() as i64) } {
             let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -2718,8 +2724,8 @@ impl CoinsphCore {
         let mut fees: Value = self.to_array(response);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_577: bool = true;
-            while { if !__for_first_577 { i += 1; } __for_first_577 = false; i < (fees.len() as i64) } {
+            let mut __for_first_578: bool = true;
+            while { if !__for_first_578 { i += 1; } __for_first_578 = false; i < (fees.len() as i64) } {
             let mut fee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(fees.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[]).as_map().cloned().unwrap_or_default();
             let mut symbol: Value = fee.get("symbol").cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
@@ -3114,8 +3120,8 @@ impl CoinsphCore {
         let mut keys: Vec<Value> = Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_578: bool = true;
-            while { if !__for_first_578 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_578 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+            let mut __for_first_579: bool = true;
+            while { if !__for_first_579 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_579 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
             let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             if (matches!(&(if let (Some(__m), Some(__k)) = (query.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Arr(_))) {
                 if (i.as_f64() != Some(0.0)) {

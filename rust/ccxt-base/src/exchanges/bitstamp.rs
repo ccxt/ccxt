@@ -1987,8 +1987,8 @@ impl BitstampCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_428: bool = true;
-            while { if !__for_first_428 { i += 1; } __for_first_428 = false; i < (response.len() as i64) } {
+            let mut __for_first_429: bool = true;
+            while { if !__for_first_429 { i += 1; } __for_first_429 = false; i < (response.len() as i64) } {
             let mut market: Value = self.safe_dict(response.clone(), Value::Int(i), &[]);
             let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "base_currency", &[]);
             let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "counter_currency", &[]);
@@ -2241,8 +2241,8 @@ impl BitstampCore {
         let mut arr: Value = self.to_array(rawCurrencies);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_429: bool = true;
-            while { if !__for_first_429 { i += 1; } __for_first_429 = false; i < (arr.len() as i64) } {
+            let mut __for_first_430: bool = true;
+            while { if !__for_first_430 { i += 1; } __for_first_430 = false; i < (arr.len() as i64) } {
             let mut market: Value = self.safe_dict(arr.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2480,8 +2480,8 @@ impl BitstampCore {
         let mut ids: Vec<Value> = Value::Array(transactionOmitted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_430: bool = true;
-            while { if !__for_first_430 { i += 1; } __for_first_430 = false; i < (ids.len() as i64) } {
+            let mut __for_first_431: bool = true;
+            while { if !__for_first_431 { i += 1; } __for_first_431 = false; i < (ids.len() as i64) } {
             let mut id: Value = ids.get(i as usize).cloned().unwrap_or(Value::Null);
             if !id.as_str().unwrap_or("").contains("_") {
                 let mut value: Option<i64> = self.safe_integer(transactionOmitted.clone(), id.clone(), &[]).as_i64();
@@ -2573,8 +2573,8 @@ impl BitstampCore {
             let mut keys: Vec<Value> = Value::Array(trade.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_431: bool = true;
-                while { if !__for_first_431 { i += 1; } __for_first_431 = false; i < (keys.len() as i64) } {
+                let mut __for_first_432: bool = true;
+                while { if !__for_first_432 { i += 1; } __for_first_432 = false; i < (keys.len() as i64) } {
                 let mut currentKey: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
                 if (currentKey.as_str() != Some("order_id")) && currentKey.as_str().unwrap_or("").contains("_") {
                     rawMarketId = currentKey.clone();
@@ -2851,8 +2851,8 @@ impl BitstampCore {
         let mut responseEntries: Value = self.to_array(response);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_432: bool = true;
-            while { if !__for_first_432 { i += 1; } __for_first_432 = false; i < (responseEntries.len() as i64) } {
+            let mut __for_first_433: bool = true;
+            while { if !__for_first_433 { i += 1; } __for_first_433 = false; i < (responseEntries.len() as i64) } {
             let mut currencyBalance: Value = self.safe_dict(responseEntries.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(currencyBalance.clone(), "currency", &[]);
             let mut currencyCode: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -2985,8 +2985,8 @@ impl BitstampCore {
         let mut feesList: Value = self.to_array(fees);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_433: bool = true;
-            while { if !__for_first_433 { i += 1; } __for_first_433 = false; i < (feesList.len() as i64) } {
+            let mut __for_first_434: bool = true;
+            while { if !__for_first_434 { i += 1; } __for_first_434 = false; i < (feesList.len() as i64) } {
             let mut fee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(feesList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[]).as_map().cloned().unwrap_or_default();
             let mut symbol: Value = fee.get("symbol").cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
@@ -3061,8 +3061,8 @@ impl BitstampCore {
         let mut ids: Vec<Value> = Value::Array(currencies.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_434: bool = true;
-            while { if !__for_first_434 { i += 1; } __for_first_434 = false; i < (ids.len() as i64) } {
+            let mut __for_first_435: bool = true;
+            while { if !__for_first_435 { i += 1; } __for_first_435 = false; i < (ids.len() as i64) } {
             let mut id: Value = ids.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut fees: Value = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3140,8 +3140,8 @@ impl BitstampCore {
         let mut feeEntries: Value = self.to_array(fee);
         {
                         let mut j: i64 = 0;
-            let mut __for_first_435: bool = true;
-            while { if !__for_first_435 { j += 1; } __for_first_435 = false; j < (feeEntries.len() as i64) } {
+            let mut __for_first_436: bool = true;
+            while { if !__for_first_436 { j += 1; } __for_first_436 = false; j < (feeEntries.len() as i64) } {
             let mut networkEntry: Value = self.safe_dict(feeEntries.clone(), Value::Int(j), &[]);
             let mut networkCode: Value = self.network_id_to_code(&[self.safe_string_k(networkEntry.clone(), "network", &[]), code.clone()]);
             let mut withdrawFee: Value = self.safe_number_k(networkEntry, "fee", &[]);
@@ -4074,8 +4074,8 @@ impl BitstampCore {
             let mut keys: Vec<Value> = Value::Array(item.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_436: bool = true;
-                while { if !__for_first_436 { i += 1; } __for_first_436 = false; i < (keys.len() as i64) } {
+                let mut __for_first_437: bool = true;
+                while { if !__for_first_437 { i += 1; } __for_first_437 = false; i < (keys.len() as i64) } {
                 let mut currentKey: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
                 if currentKey.as_str().unwrap_or("").contains("_") {
                     let mut marketId: Value = currentKey.as_str().map(|__s| Value::Str(__s.replace("_", "").into())).unwrap_or_else(|| currentKey.clone());
@@ -4641,8 +4641,8 @@ impl BitstampCore {
                 let mut keys: Vec<Value> = Value::Array(error.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_437: bool = true;
-                    while { if !__for_first_437 { i += 1; } __for_first_437 = false; i < (keys.len() as i64) } {
+                    let mut __for_first_438: bool = true;
+                    while { if !__for_first_438 { i += 1; } __for_first_438 = false; i < (keys.len() as i64) } {
                     let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
                     let mut value: Value = self.safe_value(error.clone(), key, &[]);
                     if (matches!(&value, Value::Arr(_))) {
@@ -4663,8 +4663,8 @@ impl BitstampCore {
                 let mut all: Vec<Value> = self.safe_list_k(reasonInner, "__all__", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_438: bool = true;
-                    while { if !__for_first_438 { i += 1; } __for_first_438 = false; i < (all.len() as i64) } {
+                    let mut __for_first_439: bool = true;
+                    while { if !__for_first_439 { i += 1; } __for_first_439 = false; i < (all.len() as i64) } {
                     if let Value::Arr(__a) = &mut errors { std::sync::Arc::make_mut(__a).push(all.get(i as usize).cloned().unwrap_or(Value::Null)); }
                 }
                 }
@@ -4676,8 +4676,8 @@ impl BitstampCore {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_439: bool = true;
-                while { if !__for_first_439 { i += 1; } __for_first_439 = false; i < (errors.len() as i64) } {
+                let mut __for_first_440: bool = true;
+                while { if !__for_first_440 { i += 1; } __for_first_440 = false; i < (errors.len() as i64) } {
                 let mut value: Option<String> = self.safe_string_opt(errors.clone(), Value::Int(i), &[]);
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), value.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), value.map(Value::from).unwrap_or(Value::Null), feedback.clone());

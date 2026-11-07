@@ -2054,13 +2054,13 @@ impl ParadexCore {
         let mut flags: Vec<Value> = Vec::new();
         let mut bits: Value = self.parse_to_int(self.sbe_read_uint(frameHex, offset, Value::Int(1)));
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_592: bool = true;
-            while { if !__for_first_592 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_592 = false; i.as_f64().unwrap_or(f64::NAN) < ((names.len() as i64) as f64) } {
+            while { if !__for_first_592 { i += 1; } __for_first_592 = false; i < (names.len() as i64) } {
             let mut bit: Value = self.parse_to_int((match (&(bits), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x),
                 Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null }));
-            if (bit.as_f64() == Some(1.0)) && (names.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null).as_str() != Some("")) {
-                flags.push(names.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
+            if (bit.as_f64() == Some(1.0)) && (names.get(i as usize).cloned().unwrap_or(Value::Null).as_str() != Some("")) {
+                flags.push(names.get(i as usize).cloned().unwrap_or(Value::Null));
             }
             bits = self.parse_to_int((match ((bits).as_f64(), (Value::Int(2)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         }

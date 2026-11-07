@@ -114,11 +114,11 @@ impl crate::exchange_generated::ExchangeBase for PoloniexCore {
                 "add_margin" => crate::types::IntoRaw::into_raw(self.add_margin(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
-                "cancel_orders" => self.cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "create_deposit_address" => self.create_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_orders" => self.create_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_str).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
@@ -136,7 +136,7 @@ impl crate::exchange_generated::ExchangeBase for PoloniexCore {
                 "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_status" => self.fetch_order_status(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "fetch_order_trades" => self.fetch_order_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_order_trades" => crate::types::IntoRaw::into_raw(self.fetch_order_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "fetch_position_mode" => self.fetch_position_mode(&args[..]).await,
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_spot_markets" => self.fetch_spot_markets(&args[..]).await,
@@ -2032,8 +2032,8 @@ impl PoloniexCore {
         let mut chainsLength: f64 = ((chains.len() as i64) as f64);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1074: bool = true;
-            while { if !__for_first_1074 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1074 = false; j.as_f64().unwrap_or(f64::NAN) < chainsLength } {
+            let mut __for_first_1075: bool = true;
+            while { if !__for_first_1075 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1075 = false; j.as_f64().unwrap_or(f64::NAN) < chainsLength } {
             let mut chain: Value = self.safe_dict(chains.clone(), j.clone(), &[]);
             let mut chainId: Option<String> = self.safe_string_k_opt(chain.clone(), "blockchain", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[chainId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
@@ -2660,8 +2660,8 @@ impl PoloniexCore {
     pub fn parse_open_orders(&self, mut orders: Value, mut market: Value, mut result: Value) -> Value {
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1075: bool = true;
-            while { if !__for_first_1075 { i += 1; } __for_first_1075 = false; i < (orders.len() as i64) } {
+            let mut __for_first_1076: bool = true;
+            while { if !__for_first_1076 { i += 1; } __for_first_1076 = false; i < (orders.len() as i64) } {
             let mut order: Value = self.safe_dict(orders.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2995,7 +2995,13 @@ impl PoloniexCore {
  * @param {string} [params.posSide] *swap only* 'LONG', 'SHORT' or 'BOTH', defaults to 'BOTH', the batch endpoint requires it explicitly
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_orders(&mut self, orders: Vec<crate::types::OrderRequest>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(orders), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut orders = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3008,10 +3014,10 @@ impl PoloniexCore {
         let mut market: Value = Value::Null;
         let mut isContract: bool = false;
         {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_1076: bool = true;
-            while { if !__for_first_1076 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1076 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
-            let mut rawOrder: Value = orders.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                        let mut i: i64 = 0;
+            let mut __for_first_1077: bool = true;
+            while { if !__for_first_1077 { i += 1; } __for_first_1077 = false; i < (orders.len() as i64) } {
+            let mut rawOrder: Value = orders.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut symbol: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[Value::Str("".into())]);
             let mut marketInner: Value = self.market(symbol.clone());
             let mut marketInnerType: Value = self.safe_string_k(marketInner.clone(), "type", &[]);
@@ -3081,8 +3087,8 @@ impl PoloniexCore {
         let mut dataLength: f64 = ((data.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1077: bool = true;
-            while { if !__for_first_1077 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1077 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength } {
+            let mut __for_first_1078: bool = true;
+            while { if !__for_first_1078 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1078 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength } {
             let mut entry: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3092,9 +3098,9 @@ impl PoloniexCore {
         }
         }
         return Value::from(results);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn order_request(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, mut request: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
@@ -3362,7 +3368,13 @@ impl PoloniexCore {
  * @param {string[]} [params.clientOrderIds] alternative to ids, cancel by client order ids
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
+    pub async fn cancel_orders(&mut self, ids: Vec<String>, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![Value::from(Some(ids)), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut ids = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3418,9 +3430,9 @@ impl PoloniexCore {
         let __ws_arg_21 = self.extend(Value::Map(request), &[query]);
         let mut response: Value = self.private_delete_orders_cancel_by_ids(&[__ws_arg_21]).await;
         return self.parse_orders(response, &[market]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -3611,7 +3623,13 @@ impl PoloniexCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-    pub async fn fetch_order_trades(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_order_trades(&mut self, id: &str, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Trade>> {
+        let __args: Vec<Value> = vec![Value::from(id), symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut id = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -3628,9 +3646,9 @@ impl PoloniexCore {
         let __ws_arg_27 = self.extend(Value::Map(request), &[params]);
         let mut trades: Value = self.private_get_orders_id_trades(&[__ws_arg_27]).await;
         return self.parse_trades(trades, &[]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn parse_balance_list(&self, mut response: Value) -> Value {
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -3648,8 +3666,8 @@ impl PoloniexCore {
             let mut details: Value = self.safe_list_k(response.clone(), "details", &[Value::from(vec![])]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1078: bool = true;
-                while { if !__for_first_1078 { i += 1; } __for_first_1078 = false; i < (details.len() as i64) } {
+                let mut __for_first_1079: bool = true;
+                while { if !__for_first_1079 { i += 1; } __for_first_1079 = false; i < (details.len() as i64) } {
                 let mut balance: Value = self.safe_dict(details.clone(), Value::Int(i), &[]);
                 let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "ccy", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -3665,8 +3683,8 @@ impl PoloniexCore {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1080: bool = true;
-            while { if !__for_first_1080 { i += 1; } __for_first_1080 = false; i < (response.len() as i64) } {
+            let mut __for_first_1081: bool = true;
+            while { if !__for_first_1081 { i += 1; } __for_first_1081 = false; i < (response.len() as i64) } {
             let mut account: Value = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3674,8 +3692,8 @@ impl PoloniexCore {
             let mut balances: Value = self.safe_list_k(account.clone(), "balances", &[Value::from(vec![])]);
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_1079: bool = true;
-                while { if !__for_first_1079 { j += 1; } __for_first_1079 = false; j < (balances.len() as i64) } {
+                let mut __for_first_1080: bool = true;
+                while { if !__for_first_1080 { j += 1; } __for_first_1080 = false; j < (balances.len() as i64) } {
                 let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(j), &[]);
                 let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "currency", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -3809,8 +3827,8 @@ impl PoloniexCore {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1081: bool = true;
-            while { if !__for_first_1081 { i += 1; } __for_first_1081 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_1082: bool = true;
+            while { if !__for_first_1082 { i += 1; } __for_first_1082 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3905,8 +3923,8 @@ impl PoloniexCore {
         let mut bidsResult: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1082: bool = true;
-            while { if !__for_first_1082 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1082 = false; i.as_f64().unwrap_or(f64::NAN) < ((asks.len() as i64) as f64) } {
+            let mut __for_first_1083: bool = true;
+            while { if !__for_first_1083 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1083 = false; i.as_f64().unwrap_or(f64::NAN) < ((asks.len() as i64) as f64) } {
             if (((match (&(i), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x), Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null })).as_f64() == Some(0.0)) {
                 let mut price: Value = self.safe_number(asks.clone(), i.clone(), &[]);
                 let mut amount: Value = self.safe_number(asks.clone(), self.sum(&[i.clone(), Value::Int(1)]), &[]);
@@ -3916,8 +3934,8 @@ impl PoloniexCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1083: bool = true;
-            while { if !__for_first_1083 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1083 = false; i.as_f64().unwrap_or(f64::NAN) < ((bids.len() as i64) as f64) } {
+            let mut __for_first_1084: bool = true;
+            while { if !__for_first_1084 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1084 = false; i.as_f64().unwrap_or(f64::NAN) < ((bids.len() as i64) as f64) } {
             if (((match (&(i), &(Value::Int(2))) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x), Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null })).as_f64() == Some(0.0)) {
                 let mut price: Value = self.safe_number(bids.clone(), i.clone(), &[]);
                 let mut amount: Value = self.safe_number(bids.clone(), self.sum(&[i.clone(), Value::Int(1)]), &[]);
@@ -4496,8 +4514,8 @@ impl PoloniexCore {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1084: bool = true;
-            while { if !__for_first_1084 { i += 1; } __for_first_1084 = false; i < (entries.len() as i64) } {
+            let mut __for_first_1085: bool = true;
+            while { if !__for_first_1085 { i += 1; } __for_first_1085 = false; i < (entries.len() as i64) } {
             let mut entry: Value = self.safe_dict(entries.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4544,8 +4562,8 @@ impl PoloniexCore {
         let mut responseKeys: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1086: bool = true;
-            while { if !__for_first_1086 { i += 1; } __for_first_1086 = false; i < (responseKeys.len() as i64) } {
+            let mut __for_first_1087: bool = true;
+            while { if !__for_first_1087 { i += 1; } __for_first_1087 = false; i < (responseKeys.len() as i64) } {
             let mut currencyId: Value = responseKeys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut feeInfo: Value = self.safe_dict(response.clone(), currencyId, &[]);
@@ -4561,8 +4579,8 @@ impl PoloniexCore {
                 if chainsLength > ((0i64) as f64) {
                     {
                                                 let mut j: i64 = 0;
-                        let mut __for_first_1085: bool = true;
-                        while { if !__for_first_1085 { j += 1; } __for_first_1085 = false; j < (childChains.len() as i64) } {
+                        let mut __for_first_1086: bool = true;
+                        while { if !__for_first_1086 { j += 1; } __for_first_1086 = false; j < (childChains.len() as i64) } {
                         let mut rawNetworkId: Value = self.safe_string(childChains.clone(), Value::Int(j), &[Value::Str("".into())]);
                         let mut networkId: Value = rawNetworkId.as_str().zip(code.as_str()).map(|(__s, __p)| Value::Str(__s.replace(__p, "").into())).unwrap_or_else(|| rawNetworkId.clone());
                         let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), self.safe_string_k(currency.clone(), "code", &[])]);
@@ -4908,8 +4926,8 @@ impl PoloniexCore {
         let mut data: Value = self.safe_list_k(leverage.clone(), "data", &[Value::from(vec![])]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1087: bool = true;
-            while { if !__for_first_1087 { i += 1; } __for_first_1087 = false; i < (data.len() as i64) } {
+            let mut __for_first_1088: bool = true;
+            while { if !__for_first_1088 { i += 1; } __for_first_1088 = false; i < (data.len() as i64) } {
             let mut entry: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
             marketId = self.safe_string_k(entry.clone(), "symbol", &[]);
             // mgnMode arrives upper case; parseOrder and parsePosition read the

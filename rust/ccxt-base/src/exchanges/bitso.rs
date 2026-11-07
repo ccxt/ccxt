@@ -99,7 +99,7 @@ impl crate::exchange_generated::ExchangeBase for BitsoCore {
             match method {
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
-                "cancel_orders" => self.cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
@@ -115,7 +115,7 @@ impl crate::exchange_generated::ExchangeBase for BitsoCore {
                 "fetch_open_orders" => crate::types::IntoRaw::into_raw(self.fetch_open_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
-                "fetch_order_trades" => self.fetch_order_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_order_trades" => crate::types::IntoRaw::into_raw(self.fetch_order_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_trading_fees" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees(args.get(0).cloned().unwrap_or_default()).await),
@@ -898,8 +898,8 @@ impl BitsoCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_419: bool = true;
-            while { if !__for_first_419 { i += 1; } __for_first_419 = false; i < (markets.len() as i64) } {
+            let mut __for_first_420: bool = true;
+            while { if !__for_first_420 { i += 1; } __for_first_420 = false; i < (markets.len() as i64) } {
             let mut market: Value = markets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "book", &[]);
             let mut parts: Value = Value::Array(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
@@ -935,8 +935,8 @@ impl BitsoCore {
             let mut makerFees: Vec<Value> = Vec::new();
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_418: bool = true;
-                while { if !__for_first_418 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_418 = false; j.as_f64().unwrap_or(f64::NAN) < ((feeTiers.len() as i64) as f64) } {
+                let mut __for_first_419: bool = true;
+                while { if !__for_first_419 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_419 = false; j.as_f64().unwrap_or(f64::NAN) < ((feeTiers.len() as i64) as f64) } {
                 let mut tier: Value = self.safe_dict(feeTiers.clone(), j.clone(), &[]);
                 let mut volume: Value = self.safe_number_k(tier.clone(), "volume", &[]);
                 let mut takerFee: Value = self.safe_number_k(tier.clone(), "taker", &[]);
@@ -1139,8 +1139,8 @@ impl BitsoCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_420: bool = true;
-            while { if !__for_first_420 { i += 1; } __for_first_420 = false; i < (balances.len() as i64) } {
+            let mut __for_first_421: bool = true;
+            while { if !__for_first_421 { i += 1; } __for_first_421 = false; i < (balances.len() as i64) } {
             let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -1627,8 +1627,8 @@ impl BitsoCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_421: bool = true;
-            while { if !__for_first_421 { i += 1; } __for_first_421 = false; i < (fees.len() as i64) } {
+            let mut __for_first_422: bool = true;
+            while { if !__for_first_422 { i += 1; } __for_first_422 = false; i < (fees.len() as i64) } {
             let mut fee: Value = fees.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(fee.clone(), "book", &[]);
             let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("_".into())]);
@@ -1830,7 +1830,13 @@ impl BitsoCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
+    pub async fn cancel_orders(&mut self, ids: Vec<String>, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![Value::from(Some(ids)), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut ids = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1861,16 +1867,16 @@ impl BitsoCore {
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_422: bool = true;
-            while { if !__for_first_422 { i += 1; } __for_first_422 = false; i < (payload.len() as i64) } {
+            let mut __for_first_423: bool = true;
+            while { if !__for_first_423 { i += 1; } __for_first_423 = false; i < (payload.len() as i64) } {
             let mut id: Value = payload.get(i as usize).cloned().unwrap_or(Value::Null);
             orders.push(self.parse_order(id, &[market.clone()]));
         }
         }
         return Value::from(orders);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -1906,8 +1912,8 @@ impl BitsoCore {
         let mut canceledOrders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_423: bool = true;
-            while { if !__for_first_423 { i += 1; } __for_first_423 = false; i < (payload.len() as i64) } {
+            let mut __for_first_424: bool = true;
+            while { if !__for_first_424 { i += 1; } __for_first_424 = false; i < (payload.len() as i64) } {
             let mut order: Value = self.parse_order(payload.get(i as usize).cloned().unwrap_or(Value::Null), &[]);
             canceledOrders.push(order);
         }
@@ -2094,7 +2100,13 @@ impl BitsoCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-    pub async fn fetch_order_trades(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_order_trades(&mut self, id: &str, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Trade>> {
+        let __args: Vec<Value> = vec![Value::from(id), symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut id = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -2115,9 +2127,9 @@ impl BitsoCore {
         let mut response: Value = self.private_get_order_trades_oid(&[__ws_arg_13]).await;
         let mut payload: Value = self.safe_list_k(response, "payload", &[Value::from(vec![])]);
         return self.parse_trades(payload, &[market]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -2368,8 +2380,8 @@ impl BitsoCore {
         let mut depositFees: Vec<Value> = self.safe_list_k(payload.clone(), "deposit_fees", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_424: bool = true;
-            while { if !__for_first_424 { i += 1; } __for_first_424 = false; i < (depositFees.len() as i64) } {
+            let mut __for_first_425: bool = true;
+            while { if !__for_first_425 { i += 1; } __for_first_425 = false; i < (depositFees.len() as i64) } {
             let mut depositFee: Value = depositFees.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currencyId: Option<String> = self.safe_string_k_opt(depositFee.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -2399,8 +2411,8 @@ impl BitsoCore {
         let mut currencyIds: Vec<Value> = Value::Array(withdrawalFees.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_425: bool = true;
-            while { if !__for_first_425 { i += 1; } __for_first_425 = false; i < (currencyIds.len() as i64) } {
+            let mut __for_first_426: bool = true;
+            while { if !__for_first_426 { i += 1; } __for_first_426 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Value = currencyIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             if (codes != Value::Null) && !(self.in_array(code.clone(), codes.clone()).as_bool() == Some(true)) {
@@ -2554,8 +2566,8 @@ impl BitsoCore {
 })]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_426: bool = true;
-            while { if !__for_first_426 { i += 1; } __for_first_426 = false; i < (depositResponse.len() as i64) } {
+            let mut __for_first_427: bool = true;
+            while { if !__for_first_427 { i += 1; } __for_first_427 = false; i < (depositResponse.len() as i64) } {
             let mut entry: Value = depositResponse.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currencyId: Option<String> = self.safe_string_k_opt(entry.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -2589,8 +2601,8 @@ impl BitsoCore {
         let mut withdrawalKeys: Vec<Value> = Value::Array(withdrawalResponse.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_427: bool = true;
-            while { if !__for_first_427 { i += 1; } __for_first_427 = false; i < (withdrawalKeys.len() as i64) } {
+            let mut __for_first_428: bool = true;
+            while { if !__for_first_428 { i += 1; } __for_first_428 = false; i < (withdrawalKeys.len() as i64) } {
             let mut currencyId: Value = withdrawalKeys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             if (code != Value::Null) && ((codes == Value::Null) || self.in_array(code.clone(), codes.clone()).as_bool() == Some(true)) {

@@ -97,7 +97,7 @@ impl crate::exchange_generated::ExchangeBase for BigoneCore {
             match method {
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
-                "create_market_buy_order_with_cost" => self.create_market_buy_order_with_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
+                "create_market_buy_order_with_cost" => crate::types::IntoRaw::into_raw(self.create_market_buy_order_with_cost(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
@@ -934,8 +934,8 @@ impl BigoneCore {
         let mut currencyMaxPrecision: Value = self.parse_precision(&[self.safe_string2(rawCurrency.clone(), Value::Str("withdrawal_scale".into()), Value::Str("scale".into()), &[])]);
         {
                         let mut j: i64 = 0;
-            let mut __for_first_262: bool = true;
-            while { if !__for_first_262 { j += 1; } __for_first_262 = false; j < (chains.len() as i64) } {
+            let mut __for_first_263: bool = true;
+            while { if !__for_first_263 { j += 1; } __for_first_263 = false; j < (chains.len() as i64) } {
             let mut chain: Value = chains.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Option<String> = self.safe_string_k_opt(chain.clone(), "gateway_name", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
@@ -1104,8 +1104,8 @@ impl BigoneCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_263: bool = true;
-            while { if !__for_first_263 { i += 1; } __for_first_263 = false; i < (markets.len() as i64) } {
+            let mut __for_first_264: bool = true;
+            while { if !__for_first_264 { i += 1; } __for_first_264 = false; i < (markets.len() as i64) } {
             let mut market: Value = markets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut baseAsset: Value = self.safe_dict_k(market.clone(), "base_asset", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1191,8 +1191,8 @@ impl BigoneCore {
         let mut contractMarkets: Value = self.to_array(contractResponse);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_264: bool = true;
-            while { if !__for_first_264 { i += 1; } __for_first_264 = false; i < (contractMarkets.len() as i64) } {
+            let mut __for_first_265: bool = true;
+            while { if !__for_first_265 { i += 1; } __for_first_265 = false; i < (contractMarkets.len() as i64) } {
             let mut market: Value = contractMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "baseCurrency", &[]);
             let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quoteCurrency", &[]);
@@ -1630,8 +1630,8 @@ impl BigoneCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_265: bool = true;
-            while { if !__for_first_265 { i += 1; } __for_first_265 = false; i < (bidsAsksKeys.len() as i64) } {
+            let mut __for_first_266: bool = true;
+            while { if !__for_first_266 { i += 1; } __for_first_266 = false; i < (bidsAsksKeys.len() as i64) } {
             let mut price: Value = bidsAsksKeys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut amount: Value = (if let (Some(__m), Some(__k)) = (bidsAsks.as_map(), price.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             result.push(Value::from(vec![self.parse_number(price, &[]), self.parse_number(amount, &[])]));
@@ -2009,8 +2009,8 @@ impl BigoneCore {
         let mut balances: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_266: bool = true;
-            while { if !__for_first_266 { i += 1; } __for_first_266 = false; i < (balances.len() as i64) } {
+            let mut __for_first_267: bool = true;
+            while { if !__for_first_267 { i += 1; } __for_first_267 = false; i < (balances.len() as i64) } {
             let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(balance.clone(), "asset_symbol", &[]);
             let mut code: Value = self.safe_currency_code(symbol.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -2164,7 +2164,14 @@ impl BigoneCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_market_buy_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_market_buy_order_with_cost(&mut self, symbol: &str, cost: f64, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Order> {
+        let __args: Vec<Value> = vec![Value::from(symbol), Value::from(cost), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut symbol = __it.next().unwrap_or_default();
+        let mut cost = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2178,9 +2185,9 @@ impl BigoneCore {
         }
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("createMarketBuyOrderRequiresPrice".into(), Value::Bool(false)); }
         return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "buy", cost.as_f64().unwrap_or_default(), None, params).await);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -2421,8 +2428,8 @@ impl BigoneCore {
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_267: bool = true;
-            while { if !__for_first_267 { i += 1; } __for_first_267 = false; i < (cancelled.len() as i64) } {
+            let mut __for_first_268: bool = true;
+            while { if !__for_first_268 { i += 1; } __for_first_268 = false; i < (cancelled.len() as i64) } {
             let mut orderId: Value = cancelled.get(i as usize).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2435,8 +2442,8 @@ impl BigoneCore {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_268: bool = true;
-            while { if !__for_first_268 { i += 1; } __for_first_268 = false; i < (failed.len() as i64) } {
+            let mut __for_first_269: bool = true;
+            while { if !__for_first_269 { i += 1; } __for_first_269 = false; i < (failed.len() as i64) } {
             let mut orderId: Value = failed.get(i as usize).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();

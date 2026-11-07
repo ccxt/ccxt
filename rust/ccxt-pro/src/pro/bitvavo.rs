@@ -1018,10 +1018,10 @@ impl BitvavoCore {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_150: bool = true;
-            while { if !__for_first_150 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_150 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbolsAndTimeframes.len() as i64) as f64) } {
-            let mut symbolAndTimeframe: Value = symbolsAndTimeframes.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_150 { i += 1; } __for_first_150 = false; i < (symbolsAndTimeframes.len() as i64) } {
+            let mut symbolAndTimeframe: Value = symbolsAndTimeframes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(self.safe_string(symbolAndTimeframe.clone(), Value::Int(0), &[Value::Str("".into())]));
             let mut timeframeString: Value = self.safe_string(symbolAndTimeframe, Value::Int(1), &[Value::Str("".into())]);
             let mut interval: Value = self.safe_string(self.timeframes.clone(), timeframeString.clone(), &[timeframeString.clone()]);
@@ -1386,10 +1386,10 @@ impl BitvavoCore {
         let __deltas_empty = Vec::new();
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_156: bool = true;
-            while { if !__for_first_156 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_156 = false; i.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
-            self.handle_delta(bookside.clone(), deltas.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
+            while { if !__for_first_156 { i += 1; } __for_first_156 = false; i < (deltas.len() as i64) } {
+            self.handle_delta(bookside.clone(), deltas.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
 }

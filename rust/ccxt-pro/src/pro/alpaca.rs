@@ -1100,10 +1100,10 @@ impl AlpacaCore {
         let __message_empty = Vec::new();
         let message = message.as_array().unwrap_or(&__message_empty);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
-            while { if !__for_first_0 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_0 = false; i.as_f64().unwrap_or(f64::NAN) < ((message.len() as i64) as f64) } {
-            let mut data: Value = message.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (message.len() as i64) } {
+            let mut data: Value = message.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut T: Option<String> = self.safe_string_k_opt(data.clone(), "T", &[]);
             let mut msg: Option<String> = self.safe_string_k(data.clone(), "msg", &[]).as_str().map(str::to_owned);
             if (T.as_deref() == Some("subscription")) {

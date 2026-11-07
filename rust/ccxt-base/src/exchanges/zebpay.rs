@@ -107,7 +107,7 @@ impl crate::exchange_generated::ExchangeBase for ZebpayCore {
                 "fetch_open_orders" => crate::types::IntoRaw::into_raw(self.fetch_open_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
-                "fetch_order_trades" => self.fetch_order_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_order_trades" => crate::types::IntoRaw::into_raw(self.fetch_order_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_spot_markets" => self.fetch_spot_markets(&args[..]).await,
                 "fetch_status" => crate::types::IntoRaw::into_raw(self.fetch_status(args.get(0).cloned().unwrap_or_default()).await),
@@ -785,8 +785,8 @@ impl ZebpayCore {
         let mut types: Value = self.safe_list_k(fetchMarketsOptions, "types", &[defaultMarkets]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1191: bool = true;
-            while { if !__for_first_1191 { i += 1; } __for_first_1191 = false; i < (types.len() as i64) } {
+            let mut __for_first_1192: bool = true;
+            while { if !__for_first_1192 { i += 1; } __for_first_1192 = false; i < (types.len() as i64) } {
             let mut type_var: Value = self.safe_string(types.clone(), Value::Int(i), &[Value::Str("".into())]);
             if (type_var.as_str() == Some("spot")) {
                 promisesUnresolved.push(self.fetch_spot_markets(&[params.clone()]).await);
@@ -878,8 +878,8 @@ impl ZebpayCore {
         let mut withdraw: bool = false;
         {
                         let mut j: i64 = 0;
-            let mut __for_first_1192: bool = true;
-            while { if !__for_first_1192 { j += 1; } __for_first_1192 = false; j < (chains.len() as i64) } {
+            let mut __for_first_1193: bool = true;
+            while { if !__for_first_1193 { j += 1; } __for_first_1193 = false; j < (chains.len() as i64) } {
             let mut chain: Value = chains.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Option<String> = self.safe_string_k_opt(chain.clone(), "chainId", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
@@ -1116,8 +1116,8 @@ impl ZebpayCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1193: bool = true;
-            while { if !__for_first_1193 { i += 1; } __for_first_1193 = false; i < (fees.len() as i64) } {
+            let mut __for_first_1194: bool = true;
+            while { if !__for_first_1194 { i += 1; } __for_first_1194 = false; i < (fees.len() as i64) } {
             let mut fee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(fees.get(i as usize).cloned().unwrap_or(Value::Null), &[]).as_map().cloned().unwrap_or_default();
             let mut symbol: Value = fee.get("symbol").cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
@@ -1537,7 +1537,13 @@ impl ZebpayCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-    pub async fn fetch_order_trades(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_order_trades(&mut self, id: &str, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Trade>> {
+        let __args: Vec<Value> = vec![Value::from(id), symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut id = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -1584,9 +1590,9 @@ impl ZebpayCore {
 })]);
         let mut trades: Value = Value::from(vec![data]);
         return self.parse_trades(trades, &[]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
@@ -2522,8 +2528,8 @@ impl ZebpayCore {
         let mut markets: Vec<Value> = self.safe_list_k(data, "symbols", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1194: bool = true;
-            while { if !__for_first_1194 { i += 1; } __for_first_1194 = false; i < (markets.len() as i64) } {
+            let mut __for_first_1195: bool = true;
+            while { if !__for_first_1195 { i += 1; } __for_first_1195 = false; i < (markets.len() as i64) } {
             let mut market: Value = markets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
             let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "baseAsset", &[]);
@@ -2629,8 +2635,8 @@ impl ZebpayCore {
         let mut markets: Vec<Value> = self.safe_list_k(data, "symbols", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1195: bool = true;
-            while { if !__for_first_1195 { i += 1; } __for_first_1195 = false; i < (markets.len() as i64) } {
+            let mut __for_first_1196: bool = true;
+            while { if !__for_first_1196 { i += 1; } __for_first_1196 = false; i < (markets.len() as i64) } {
             let mut market: Value = markets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
             let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "baseAsset", &[]);
@@ -2699,8 +2705,8 @@ impl ZebpayCore {
         let mut currencyList: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1196: bool = true;
-            while { if !__for_first_1196 { i += 1; } __for_first_1196 = false; i < (currencyList.len() as i64) } {
+            let mut __for_first_1197: bool = true;
+            while { if !__for_first_1197 { i += 1; } __for_first_1197 = false; i < (currencyList.len() as i64) } {
             let mut entry: Value = self.safe_dict(currencyList.clone(), Value::Int(i), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string_k(entry.clone(), "total", &[]));

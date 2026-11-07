@@ -964,8 +964,8 @@ impl BitbankCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_335: bool = true;
-            while { if !__for_first_335 { i += 1; } __for_first_335 = false; i < (pairs.len() as i64) } {
+            let mut __for_first_336: bool = true;
+            while { if !__for_first_336 { i += 1; } __for_first_336 = false; i < (pairs.len() as i64) } {
             let mut pair: Value = pairs.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(pair.clone(), "name", &[]);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
@@ -1092,8 +1092,8 @@ impl BitbankCore {
         let mut assets: Value = self.safe_list_k(data, "assets", &[Value::from(vec![])]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_336: bool = true;
-            while { if !__for_first_336 { i += 1; } __for_first_336 = false; i < (assets.len() as i64) } {
+            let mut __for_first_337: bool = true;
+            while { if !__for_first_337 { i += 1; } __for_first_337 = false; i < (assets.len() as i64) } {
             let mut balance: Value = self.safe_dict(assets.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);

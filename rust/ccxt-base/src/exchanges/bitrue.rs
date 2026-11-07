@@ -110,7 +110,7 @@ impl crate::exchange_generated::ExchangeBase for BitrueCore {
                 "calculate_rate_limiter_cost" => self.calculate_rate_limiter_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
-                "create_market_buy_order_with_cost" => self.create_market_buy_order_with_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
+                "create_market_buy_order_with_cost" => crate::types::IntoRaw::into_raw(self.create_market_buy_order_with_cost(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
@@ -1340,8 +1340,8 @@ impl BitrueCore {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_412: bool = true;
-            while { if !__for_first_412 { j += 1; } __for_first_412 = false; j < (networkDetails.len() as i64) } {
+            let mut __for_first_413: bool = true;
+            while { if !__for_first_413 { j += 1; } __for_first_413 = false; j < (networkDetails.len() as i64) } {
             let mut entry: Value = networkDetails.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Option<String> = self.safe_string_k_opt(entry.clone(), "chain", &[]);
             let mut network: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
@@ -1433,8 +1433,8 @@ impl BitrueCore {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_413: bool = true;
-            while { if !__for_first_413 { i += 1; } __for_first_413 = false; i < (types.len() as i64) } {
+            let mut __for_first_414: bool = true;
+            while { if !__for_first_414 { i += 1; } __for_first_414 = false; i < (types.len() as i64) } {
             let mut marketType: Value = types.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if (marketType.as_str() == Some("spot")) {
                 promisesRaw.push(self.spot_v1_public_get_exchange_info(&[params.clone()]).await);
@@ -1714,8 +1714,8 @@ impl BitrueCore {
         let mut balances: Value = self.safe_list2(response, Value::Str("balances".into()), Value::Str("account".into()), &[Value::from(vec![])]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_414: bool = true;
-            while { if !__for_first_414 { i += 1; } __for_first_414 = false; i < (balances.len() as i64) } {
+            let mut __for_first_415: bool = true;
+            while { if !__for_first_415 { i += 1; } __for_first_415 = false; i < (balances.len() as i64) } {
             let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string2_opt(balance.clone(), Value::Str("asset".into()), Value::Str("marginCoin".into()), &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -2339,8 +2339,8 @@ impl BitrueCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_415: bool = true;
-            while { if !__for_first_415 { i += 1; } __for_first_415 = false; i < (data.len() as i64) } {
+            let mut __for_first_416: bool = true;
+            while { if !__for_first_416 { i += 1; } __for_first_416 = false; i < (data.len() as i64) } {
             let mut ticker: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2659,7 +2659,14 @@ impl BitrueCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_market_buy_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_market_buy_order_with_cost(&mut self, symbol: &str, cost: f64, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Order> {
+        let __args: Vec<Value> = vec![Value::from(symbol), Value::from(cost), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut symbol = __it.next().unwrap_or_default();
+        let mut cost = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2673,9 +2680,9 @@ impl BitrueCore {
         }
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("createMarketBuyOrderRequiresPrice".into(), Value::Bool(false)); }
         return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "buy", cost.as_f64().unwrap_or_default(), None, params).await);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -3650,8 +3657,8 @@ impl BitrueCore {
         if (chainDetailLength != 0.0) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_416: bool = true;
-                while { if !__for_first_416 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_416 = false; i.as_f64().unwrap_or(f64::NAN) < chainDetailLength } {
+                let mut __for_first_417: bool = true;
+                while { if !__for_first_417 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_417 = false; i.as_f64().unwrap_or(f64::NAN) < chainDetailLength } {
                 let mut chainDetail: Value = self.safe_dict(chainDetails.clone(), i.clone(), &[]);
                 let mut networkId: Option<String> = self.safe_string_k_opt(chainDetail.clone(), "chain", &[]);
                 let mut currencyCode: Value = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
@@ -4215,8 +4222,8 @@ impl BitrueCore {
             let mut byLimit: Vec<Value> = (match config.get("byLimit") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_417: bool = true;
-                while { if !__for_first_417 { i += 1; } __for_first_417 = false; i < (byLimit.len() as i64) } {
+                let mut __for_first_418: bool = true;
+                while { if !__for_first_418 { i += 1; } __for_first_418 = false; i < (byLimit.len() as i64) } {
                 let mut entry: Value = byLimit.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut threshold: Value = self.safe_integer(entry.clone(), Value::Int(0), &[]);
                 if (limit != Value::Null) && (threshold != Value::Null) && limit.as_f64().unwrap_or(f64::NAN) <= threshold.as_f64().unwrap_or(f64::NAN) {

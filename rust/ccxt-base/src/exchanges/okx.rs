@@ -151,28 +151,28 @@ impl crate::exchange_generated::ExchangeBase for OkxCore {
                 "borrow_cross_margin" => self.borrow_cross_margin(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "cancel_all_orders_after" => self.cancel_all_orders_after(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
-                "cancel_orders" => self.cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders_for_symbols" => self.cancel_orders_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "close_position" => crate::types::IntoRaw::into_raw(self.close_position(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "create_convert_trade" => self.create_convert_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 "create_expired_option_market" => self.create_expired_option_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "create_market_buy_order_with_cost" => self.create_market_buy_order_with_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
-                "create_market_sell_order_with_cost" => self.create_market_sell_order_with_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
+                "create_market_buy_order_with_cost" => crate::types::IntoRaw::into_raw(self.create_market_buy_order_with_cost(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
+                "create_market_sell_order_with_cost" => crate::types::IntoRaw::into_raw(self.create_market_sell_order_with_cost(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_order_request" => self.create_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
-                "create_orders" => self.create_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_str).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "edit_order_request" => self.edit_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
-                "edit_orders" => self.edit_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "edit_orders" => crate::types::IntoRaw::into_raw(self.edit_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_accounts" => self.fetch_accounts(&args[..]).await,
                 "fetch_all_greeks" => self.fetch_all_greeks(&args[..]).await,
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_borrow_interest" => self.fetch_borrow_interest(&args[..]).await,
                 "fetch_borrow_rate_histories" => self.fetch_borrow_rate_histories(&args[..]).await,
                 "fetch_borrow_rate_history" => self.fetch_borrow_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "fetch_canceled_orders" => self.fetch_canceled_orders(&args[..]).await,
+                "fetch_canceled_orders" => crate::types::IntoRaw::into_raw(self.fetch_canceled_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_convert_currencies" => self.fetch_convert_currencies(&args[..]).await,
                 "fetch_convert_quote" => self.fetch_convert_quote(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
@@ -212,7 +212,7 @@ impl crate::exchange_generated::ExchangeBase for OkxCore {
                 "fetch_option_chain" => crate::types::IntoRaw::into_raw(self.fetch_option_chain(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
-                "fetch_order_trades" => self.fetch_order_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_order_trades" => crate::types::IntoRaw::into_raw(self.fetch_order_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "fetch_position" => crate::types::IntoRaw::into_raw(self.fetch_position(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_position_mode" => self.fetch_position_mode(&args[..]).await,
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -3929,8 +3929,8 @@ impl OkxCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_996: bool = true;
-            while { if !__for_first_996 { i += 1; } __for_first_996 = false; i < (data.len() as i64) } {
+            let mut __for_first_997: bool = true;
+            while { if !__for_first_997 { i += 1; } __for_first_997 = false; i < (data.len() as i64) } {
             let mut event: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
             let mut state: Option<String> = self.safe_string_k(event.clone(), "state", &[]).as_str().map(str::to_owned);
             update.insert("eta".into(), self.safe_integer_k(event.clone(), "end", &[]));
@@ -4045,8 +4045,8 @@ impl OkxCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_997: bool = true;
-            while { if !__for_first_997 { i += 1; } __for_first_997 = false; i < (data.len() as i64) } {
+            let mut __for_first_998: bool = true;
+            while { if !__for_first_998 { i += 1; } __for_first_998 = false; i < (data.len() as i64) } {
             let mut account: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut accountId: Option<String> = self.safe_string_k_opt(account.clone(), "uid", &[]);
             let mut type_var: Option<String> = self.safe_string_k_opt(account.clone(), "acctLv", &[]);
@@ -4108,16 +4108,16 @@ impl OkxCore {
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_998: bool = true;
-            while { if !__for_first_998 { i += 1; } __for_first_998 = false; i < (types.len() as i64) } {
+            let mut __for_first_999: bool = true;
+            while { if !__for_first_999 { i += 1; } __for_first_999 = false; i < (types.len() as i64) } {
             promises.push(self.fetch_markets_by_type(self.safe_string(types.clone(), Value::Int(i), &[Value::Str("".into())]), &[params.clone()]).await);
         }
         }
         let mut responses: Vec<Value> = promise_all(&Value::from(promises)).await.as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_999: bool = true;
-            while { if !__for_first_999 { i += 1; } __for_first_999 = false; i < (responses.len() as i64) } {
+            let mut __for_first_1000: bool = true;
+            while { if !__for_first_1000 { i += 1; } __for_first_1000 = false; i < (responses.len() as i64) } {
             result = self.array_concat(result.clone(), responses.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
@@ -4350,8 +4350,8 @@ impl OkxCore {
             let mut promises: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1000: bool = true;
-                while { if !__for_first_1000 { i += 1; } __for_first_1000 = false; i < (optionsUnderlying.len() as i64) } {
+                let mut __for_first_1001: bool = true;
+                while { if !__for_first_1001 { i += 1; } __for_first_1001 = false; i < (optionsUnderlying.len() as i64) } {
                 let mut underlying: Value = optionsUnderlying.get(i as usize).cloned().unwrap_or(Value::Null);
                 request.insert("uly".into(), underlying);
                 let __ws_arg_10 = self.extend(Value::Map(request.clone()), &[params.clone()]);
@@ -4362,8 +4362,8 @@ impl OkxCore {
             let mut markets: Value = Value::from(vec![]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1001: bool = true;
-                while { if !__for_first_1001 { i += 1; } __for_first_1001 = false; i < (promisesResult.len() as i64) } {
+                let mut __for_first_1002: bool = true;
+                while { if !__for_first_1002 { i += 1; } __for_first_1002 = false; i < (promisesResult.len() as i64) } {
                 let mut res: Value = self.safe_dict(promisesResult.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4413,8 +4413,8 @@ impl OkxCore {
         let mut marketsWithoutTest: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1002: bool = true;
-            while { if !__for_first_1002 { i += 1; } __for_first_1002 = false; i < (dataResponse.len() as i64) } {
+            let mut __for_first_1003: bool = true;
+            while { if !__for_first_1003 { i += 1; } __for_first_1003 = false; i < (dataResponse.len() as i64) } {
             let mut data: Value = dataResponse.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut instId: Option<String> = self.safe_string_k(data.clone(), "instId", &[Value::Str("".into())]).as_str().map(str::to_owned);
             if (instId.as_deref() == Some("")) {
@@ -4537,8 +4537,8 @@ impl OkxCore {
         let mut chainsLength: f64 = ((chains.len() as i64) as f64);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_1003: bool = true;
-            while { if !__for_first_1003 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1003 = false; j.as_f64().unwrap_or(f64::NAN) < chainsLength } {
+            let mut __for_first_1004: bool = true;
+            while { if !__for_first_1004 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1004 = false; j.as_f64().unwrap_or(f64::NAN) < chainsLength } {
             let mut chain: Value = self.safe_dict(chains.clone(), j.clone(), &[]);
             // allow empty string for rare fiat-currencies, e.g. TRY
             let mut networkId: Value = self.safe_string_k(chain.clone(), "chain", &[Value::Str("".into())]); // USDT-BEP20, USDT-Avalance-C, etc
@@ -5478,8 +5478,8 @@ impl OkxCore {
         let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1004: bool = true;
-            while { if !__for_first_1004 { i += 1; } __for_first_1004 = false; i < (data.len() as i64) } {
+            let mut __for_first_1005: bool = true;
+            while { if !__for_first_1005 { i += 1; } __for_first_1005 = false; i < (data.len() as i64) } {
             let mut rate: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Option<i64> = self.safe_integer_k(rate.clone(), "fundingTime", &[]).as_i64();
             rates.push(Value::Map({
@@ -5524,8 +5524,8 @@ impl OkxCore {
         let mut details: Value = self.safe_list_k(first, "details", &[Value::from(vec![])]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1005: bool = true;
-            while { if !__for_first_1005 { i += 1; } __for_first_1005 = false; i < (details.len() as i64) } {
+            let mut __for_first_1006: bool = true;
+            while { if !__for_first_1006 { i += 1; } __for_first_1006 = false; i < (details.len() as i64) } {
             let mut balance: Value = self.safe_dict(details.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "ccy", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -5561,8 +5561,8 @@ impl OkxCore {
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1006: bool = true;
-            while { if !__for_first_1006 { i += 1; } __for_first_1006 = false; i < (data.len() as i64) } {
+            let mut __for_first_1007: bool = true;
+            while { if !__for_first_1007 { i += 1; } __for_first_1007 = false; i < (data.len() as i64) } {
             let mut balance: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "ccy", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -5716,7 +5716,14 @@ impl OkxCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_market_buy_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_market_buy_order_with_cost(&mut self, symbol: &str, cost: f64, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Order> {
+        let __args: Vec<Value> = vec![Value::from(symbol), Value::from(cost), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut symbol = __it.next().unwrap_or_default();
+        let mut cost = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5736,9 +5743,9 @@ impl OkxCore {
         });
         let __ws_arg_32 = self.extend(Value::Map(req), &[params]);
         return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "buy", cost.as_f64().unwrap_or_default(), None, __ws_arg_32).await);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -5750,7 +5757,14 @@ impl OkxCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_market_sell_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_market_sell_order_with_cost(&mut self, symbol: &str, cost: f64, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Order> {
+        let __args: Vec<Value> = vec![Value::from(symbol), Value::from(cost), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut symbol = __it.next().unwrap_or_default();
+        let mut cost = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5770,9 +5784,9 @@ impl OkxCore {
         });
         let __ws_arg_33 = self.extend(Value::Map(req), &[params]);
         return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "sell", cost.as_f64().unwrap_or_default(), None, __ws_arg_33).await);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn create_order_request(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
@@ -6224,7 +6238,13 @@ impl OkxCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_orders(&mut self, orders: Vec<crate::types::OrderRequest>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(orders), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut orders = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6235,8 +6255,8 @@ impl OkxCore {
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1007: bool = true;
-            while { if !__for_first_1007 { i += 1; } __for_first_1007 = false; i < (orders.len() as i64) } {
+            let mut __for_first_1008: bool = true;
+            while { if !__for_first_1008 { i += 1; } __for_first_1008 = false; i < (orders.len() as i64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             if (marketId.is_none()) {
@@ -6280,9 +6300,9 @@ impl OkxCore {
         // }
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_orders(data, &[]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn edit_order_request(&self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
         let mut amount = get_arg(optional_args, 0, Value::Null);
@@ -6495,7 +6515,13 @@ impl OkxCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn edit_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    pub async fn edit_orders(&mut self, orders: Vec<crate::types::OrderRequest>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(orders), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut orders = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6506,8 +6532,8 @@ impl OkxCore {
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1008: bool = true;
-            while { if !__for_first_1008 { i += 1; } __for_first_1008 = false; i < (orders.len() as i64) } {
+            let mut __for_first_1009: bool = true;
+            while { if !__for_first_1009 { i += 1; } __for_first_1009 = false; i < (orders.len() as i64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             if (symbol.is_none()) {
@@ -6555,9 +6581,9 @@ impl OkxCore {
         //
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_orders(data, &[]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -6591,7 +6617,7 @@ impl OkxCore {
         let mut trailing: bool = self.safe_bool_k_opt(params.clone(), "trailing", &[Value::Bool(false)]).unwrap_or(false);
         let mut isTrigger: bool = trigger == Some(true);
         if isTrigger || trailing {
-            let mut orderInner: Value = self.cancel_orders(Value::from(vec![id.clone()]), &[symbol.clone(), params.clone()]).await;
+            let mut orderInner: Value = crate::types::IntoRaw::into_raw(self.cancel_orders((Value::from(vec![id.clone()])).to_str_vec(), symbol.as_str(), params.clone()).await);
             let mut canceledInner: Value = self.safe_dict(orderInner, Value::Int(0), &[]);
             return canceledInner;
         }
@@ -6651,7 +6677,13 @@ impl OkxCore {
  * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
+    pub async fn cancel_orders(&mut self, ids: Vec<String>, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![Value::from(Some(ids)), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut ids = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6684,8 +6716,8 @@ impl OkxCore {
             if (algoIds != Value::Null) {
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_1009: bool = true;
-                    while { if !__for_first_1009 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1009 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(algoIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                    let mut __for_first_1010: bool = true;
+                    while { if !__for_first_1010 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1010 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(algoIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("algoId".to_string(), self.safe_string(algoIds.clone(), i.clone(), &[]));
@@ -6697,8 +6729,8 @@ impl OkxCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1010: bool = true;
-                while { if !__for_first_1010 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1010 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orderIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_1011: bool = true;
+                while { if !__for_first_1011 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1011 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orderIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 if trailing || isTrigger {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -6719,8 +6751,8 @@ impl OkxCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1011: bool = true;
-                while { if !__for_first_1011 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1011 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(clientOrderIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_1012: bool = true;
+                while { if !__for_first_1012 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1012 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(clientOrderIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 if trailing || isTrigger {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -6779,9 +6811,9 @@ impl OkxCore {
         // request would otherwise come back as a list under the unified string field
         let mut orderParams: Value = self.omit(params, Value::from(vec![Value::Str("clOrdId".into()), Value::Str("clientOrderId".into()), Value::Str("algoId".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("trailing".into()), Value::Str("method".into())]), &[]);
         return self.parse_orders(ordersData, &[market, Value::Null, Value::Null, orderParams]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -6818,8 +6850,8 @@ impl OkxCore {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1012: bool = true;
-            while { if !__for_first_1012 { i += 1; } __for_first_1012 = false; i < (orders.len() as i64) } {
+            let mut __for_first_1013: bool = true;
+            while { if !__for_first_1013 { i += 1; } __for_first_1013 = false; i < (orders.len() as i64) } {
             let mut order: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut id: Value = self.safe_string_k(order.clone(), "id", &[]);
             let mut clientOrderId: Value = self.safe_string2(order.clone(), Value::Str("clOrdId".into()), Value::Str("clientOrderId".into()), &[]);
@@ -7198,8 +7230,8 @@ impl OkxCore {
         let mut attachAlgoOrds: Vec<Value> = self.safe_list_k(order.clone(), "attachAlgoOrds", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1013: bool = true;
-            while { if !__for_first_1013 { i += 1; } __for_first_1013 = false; i < (attachAlgoOrds.len() as i64) } {
+            let mut __for_first_1014: bool = true;
+            while { if !__for_first_1014 { i += 1; } __for_first_1014 = false; i < (attachAlgoOrds.len() as i64) } {
             let mut attached: Value = attachAlgoOrds.get(i as usize).cloned().unwrap_or(Value::Null);
             if (stopLossPrice == Value::Null) {
                 stopLossPrice = self.safe_number_k(attached.clone(), "slTriggerPx", &[]);
@@ -7619,7 +7651,12 @@ impl OkxCore {
  * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
  * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn fetch_canceled_orders(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_canceled_orders(&mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -7795,9 +7832,9 @@ impl OkxCore {
         //
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_orders(data, &[market, since, limit]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -8107,7 +8144,13 @@ impl OkxCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-    pub async fn fetch_order_trades(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_order_trades(&mut self, id: &str, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Trade>> {
+        let __args: Vec<Value> = vec![Value::from(id), symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut id = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -8122,9 +8165,9 @@ impl OkxCore {
         });
         let __ws_arg_48 = self.extend(Value::Map(request), &[params]);
         return crate::types::IntoRaw::into_raw(self.fetch_my_trades(symbol.as_str(), since.as_i64(), limit.as_i64(), __ws_arg_48).await);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -9205,8 +9248,8 @@ impl OkxCore {
         let mut shortLeverage: Value = Value::Null;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1014: bool = true;
-            while { if !__for_first_1014 { i += 1; } __for_first_1014 = false; i < (leverage.len() as i64) } {
+            let mut __for_first_1015: bool = true;
+            while { if !__for_first_1015 { i += 1; } __for_first_1015 = false; i < (leverage.len() as i64) } {
             let mut entry: Value = self.safe_dict(leverage.clone(), Value::Int(i), &[]);
             marginMode = self.safe_string_lower_k(entry.clone(), "mgnMode", &[]);
             marketId = self.safe_string_k(entry.clone(), "instId", &[]);
@@ -9361,8 +9404,8 @@ impl OkxCore {
             let mut marketIds: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1015: bool = true;
-                while { if !__for_first_1015 { i += 1; } __for_first_1015 = false; i < (symbols.len() as i64) } {
+                let mut __for_first_1016: bool = true;
+                while { if !__for_first_1016 { i += 1; } __for_first_1016 = false; i < (symbols.len() as i64) } {
                 let mut entry: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut market: indexmap::IndexMap<String, Value> = self.market(entry).as_map().cloned().unwrap_or_default();
                 marketIds.push(market.get("id").cloned().unwrap_or(Value::Null));
@@ -9436,8 +9479,8 @@ impl OkxCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1016: bool = true;
-            while { if !__for_first_1016 { i += 1; } __for_first_1016 = false; i < (positions.len() as i64) } {
+            let mut __for_first_1017: bool = true;
+            while { if !__for_first_1017 { i += 1; } __for_first_1017 = false; i < (positions.len() as i64) } {
             result.push(self.parse_position(positions.get(i as usize).cloned().unwrap_or(Value::Null), &[]));
         }
         }
@@ -10005,8 +10048,8 @@ impl OkxCore {
                 if (matches!(&params, Value::Arr(_))) {
                     {
                                                 let mut i: Value = Value::Int(0);
-                        let mut __for_first_1017: bool = true;
-                        while { if !__for_first_1017 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1017 = false; i.as_f64().unwrap_or(f64::NAN) < ((params.len() as i64) as f64) } {
+                        let mut __for_first_1018: bool = true;
+                        while { if !__for_first_1018 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1018 = false; i.as_f64().unwrap_or(f64::NAN) < ((params.len() as i64) as f64) } {
                         let mut entry: Value = params.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                         let mut clientOrderId: Option<String> = self.safe_string_k_opt(entry.clone(), "clOrdId", &[]);
                         if (clientOrderId.is_none()) {
@@ -10257,8 +10300,8 @@ impl OkxCore {
         if (symbolsNormalized != Value::Null) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1018: bool = true;
-                while { if !__for_first_1018 { i += 1; } __for_first_1018 = false; i < (symbolsNormalized.len() as i64) } {
+                let mut __for_first_1019: bool = true;
+                while { if !__for_first_1019 { i += 1; } __for_first_1019 = false; i < (symbolsNormalized.len() as i64) } {
                 let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                 let mut marketInfo: Value = self.safe_dict_k(market.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10395,8 +10438,8 @@ impl OkxCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1019: bool = true;
-            while { if !__for_first_1019 { i += 1; } __for_first_1019 = false; i < (data.len() as i64) } {
+            let mut __for_first_1020: bool = true;
+            while { if !__for_first_1020 { i += 1; } __for_first_1020 = false; i < (data.len() as i64) } {
             let mut entry: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "ts", &[]).as_i64();
             let mut instId: Option<String> = self.safe_string_k_opt(entry.clone(), "instId", &[]);
@@ -10668,8 +10711,8 @@ impl OkxCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1020: bool = true;
-            while { if !__for_first_1020 { i += 1; } __for_first_1020 = false; i < (data.len() as i64) } {
+            let mut __for_first_1021: bool = true;
+            while { if !__for_first_1021 { i += 1; } __for_first_1021 = false; i < (data.len() as i64) } {
             let mut rate: Value = self.parse_borrow_rate(data.get(i as usize).cloned().unwrap_or(Value::Null), &[]);
             let mut code: Option<String> = self.safe_string_k_opt(rate.clone(), "currency", &[]);
             if (code.is_some()) {
@@ -10774,8 +10817,8 @@ impl OkxCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1021: bool = true;
-            while { if !__for_first_1021 { i += 1; } __for_first_1021 = false; i < (response.len() as i64) } {
+            let mut __for_first_1022: bool = true;
+            while { if !__for_first_1022 { i += 1; } __for_first_1022 = false; i < (response.len() as i64) } {
             let mut item: Value = self.safe_dict(response.clone(), Value::Int(i), &[]);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(item.clone(), "ccy", &[]), &[]);
             if (code != Value::Null) && ((codes == Value::Null) || self.in_array(code.clone(), codes.clone()).as_bool() == Some(true)) {
@@ -10794,8 +10837,8 @@ impl OkxCore {
         let mut keys: Vec<Value> = Value::Array(borrowRateHistories.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1022: bool = true;
-            while { if !__for_first_1022 { i += 1; } __for_first_1022 = false; i < (keys.len() as i64) } {
+            let mut __for_first_1023: bool = true;
+            while { if !__for_first_1023 { i += 1; } __for_first_1023 = false; i < (keys.len() as i64) } {
             let mut code: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             { let __be_tmp = self.filter_by_currency_since_limit((if let (Some(__m), Some(__k)) = (borrowRateHistories.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[code.clone(), since.clone(), limit.clone()]);
                 if let Value::Dict(__d) = &mut borrowRateHistories { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), __be_tmp); } }
@@ -11206,8 +11249,8 @@ impl OkxCore {
         let mut tiers: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1023: bool = true;
-            while { if !__for_first_1023 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1023 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1024: bool = true;
+            while { if !__for_first_1024 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1024 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
             let mut tier: Value = self.safe_dict(info.clone(), i.clone(), &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(tier.clone(), "instId", &[]);
             if let Value::Arr(__a) = &mut tiers { std::sync::Arc::make_mut(__a).push(Value::Map({
@@ -12007,8 +12050,8 @@ impl OkxCore {
         let mut codesValue: Value = self.market_codes(&[codes]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1024: bool = true;
-            while { if !__for_first_1024 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1024 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1025: bool = true;
+            while { if !__for_first_1025 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1025 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
             let mut feeInfo: Value = get_value(&response, &i);
             let mut currencyId: Option<String> = self.safe_string_k_opt(feeInfo.clone(), "ccy", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
@@ -12057,8 +12100,8 @@ impl OkxCore {
         let mut depositWithdrawCodes: Vec<Value> = Value::Array(depositWithdrawFees.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1025: bool = true;
-            while { if !__for_first_1025 { i += 1; } __for_first_1025 = false; i < (depositWithdrawCodes.len() as i64) } {
+            let mut __for_first_1026: bool = true;
+            while { if !__for_first_1026 { i += 1; } __for_first_1026 = false; i < (depositWithdrawCodes.len() as i64) } {
             let mut code: Value = depositWithdrawCodes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currency: Value = self.currency(code.clone());
             { let __be_tmp = self.assign_default_deposit_withdraw_fees((if let (Some(__m), Some(__k)) = (depositWithdrawFees.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[currency]); if let Value::Dict(__d) = &mut depositWithdrawFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), __be_tmp); } }
@@ -12208,8 +12251,8 @@ impl OkxCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1026: bool = true;
-            while { if !__for_first_1026 { i += 1; } __for_first_1026 = false; i < (data.len() as i64) } {
+            let mut __for_first_1027: bool = true;
+            while { if !__for_first_1027 { i += 1; } __for_first_1027 = false; i < (data.len() as i64) } {
             result.push(self.parse_settlement(data.get(i as usize).cloned().unwrap_or(Value::Null), market.clone()));
         }
         }
@@ -12273,15 +12316,15 @@ impl OkxCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1028: bool = true;
-            while { if !__for_first_1028 { i += 1; } __for_first_1028 = false; i < (settlements.len() as i64) } {
+            let mut __for_first_1029: bool = true;
+            while { if !__for_first_1029 { i += 1; } __for_first_1029 = false; i < (settlements.len() as i64) } {
             let mut entry: Value = self.safe_dict(settlements.clone(), Value::Int(i), &[]);
             let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "ts", &[]).as_i64();
             let mut details: Vec<Value> = self.safe_list_k(entry, "details", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_1027: bool = true;
-                while { if !__for_first_1027 { j += 1; } __for_first_1027 = false; j < (details.len() as i64) } {
+                let mut __for_first_1028: bool = true;
+                while { if !__for_first_1028 { j += 1; } __for_first_1028 = false; j < (details.len() as i64) } {
                 let mut settlement: Value = self.parse_settlement(details.get(j as usize).cloned().unwrap_or(Value::Null), market.clone());
                 let __ws_arg_89 = self.iso8601(Value::from(timestamp));
                 result.push(self.extend(settlement, &[Value::Map({
@@ -12423,8 +12466,8 @@ impl OkxCore {
         let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1029: bool = true;
-            while { if !__for_first_1029 { i += 1; } __for_first_1029 = false; i < (data.len() as i64) } {
+            let mut __for_first_1030: bool = true;
+            while { if !__for_first_1030 { i += 1; } __for_first_1030 = false; i < (data.len() as i64) } {
             let mut entry: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut entryMarketId: Value = self.safe_string_k(entry.clone(), "instId", &[]);
             if (entryMarketId == marketId) {
@@ -13237,8 +13280,8 @@ impl OkxCore {
         let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1030: bool = true;
-            while { if !__for_first_1030 { i += 1; } __for_first_1030 = false; i < (data.len() as i64) } {
+            let mut __for_first_1031: bool = true;
+            while { if !__for_first_1031 { i += 1; } __for_first_1031 = false; i < (data.len() as i64) } {
             let mut entry: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut id: Option<String> = self.safe_string_k_opt(entry.clone(), "ccy", &[]);
             let mut code: Value = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
@@ -13319,8 +13362,8 @@ impl OkxCore {
             let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1031: bool = true;
-                while { if !__for_first_1031 { i += 1; } __for_first_1031 = false; i < (data.len() as i64) } {
+                let mut __for_first_1032: bool = true;
+                while { if !__for_first_1032 { i += 1; } __for_first_1032 = false; i < (data.len() as i64) } {
                 let mut error: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
                 let mut errorCode: Option<String> = self.safe_string_k_opt(error.clone(), "sCode", &[]);
                 let mut message: Option<String> = self.safe_string_k_opt(error, "sMsg", &[]);
@@ -13612,8 +13655,8 @@ impl OkxCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1032: bool = true;
-            while { if !__for_first_1032 { i += 1; } __for_first_1032 = false; i < (data.len() as i64) } {
+            let mut __for_first_1033: bool = true;
+            while { if !__for_first_1033 { i += 1; } __for_first_1033 = false; i < (data.len() as i64) } {
             let mut entry: Value = self.safe_list(data.clone(), Value::Int(i), &[]);
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();

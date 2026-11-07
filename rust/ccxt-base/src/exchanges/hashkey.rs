@@ -134,12 +134,12 @@ impl crate::exchange_generated::ExchangeBase for HashkeyCore {
                 "add_margin" => crate::types::IntoRaw::into_raw(self.add_margin(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
-                "cancel_orders" => self.cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "create_market_buy_order_with_cost" => self.create_market_buy_order_with_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
+                "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
+                "create_market_buy_order_with_cost" => crate::types::IntoRaw::into_raw(self.create_market_buy_order_with_cost(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_order_request" => self.create_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
-                "create_orders" => self.create_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "create_spot_order" => self.create_spot_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 "create_spot_order_request" => self.create_spot_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
                 "create_swap_order" => self.create_swap_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
@@ -148,7 +148,7 @@ impl crate::exchange_generated::ExchangeBase for HashkeyCore {
                 "encode_flow_type" => self.encode_flow_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "fetch_accounts" => self.fetch_accounts(&args[..]).await,
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
-                "fetch_canceled_and_closed_orders" => self.fetch_canceled_and_closed_orders(&args[..]).await,
+                "fetch_canceled_and_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_canceled_and_closed_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_currencies" => crate::types::IntoRaw::into_raw(self.fetch_currencies(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_deposit_address" => crate::types::IntoRaw::into_raw(self.fetch_deposit_address(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_deposits" => crate::types::IntoRaw::into_raw(self.fetch_deposits(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -1803,8 +1803,8 @@ impl HashkeyCore {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_724: bool = true;
-            while { if !__for_first_724 { j += 1; } __for_first_724 = false; j < (networks.len() as i64) } {
+            let mut __for_first_725: bool = true;
+            while { if !__for_first_725 { j += 1; } __for_first_725 = false; j < (networks.len() as i64) } {
             let mut network: Value = networks.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Option<String> = self.safe_string_k_opt(network.clone(), "chainType", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
@@ -2558,8 +2558,8 @@ impl HashkeyCore {
         let mut balances: Value = self.safe_list_k(balance, "balances", &[Value::from(vec![])]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_725: bool = true;
-            while { if !__for_first_725 { i += 1; } __for_first_725 = false; i < (balances.len() as i64) } {
+            let mut __for_first_726: bool = true;
+            while { if !__for_first_726 { i += 1; } __for_first_726 = false; i < (balances.len() as i64) } {
             let mut balanceEntry: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balanceEntry.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -3360,7 +3360,14 @@ impl HashkeyCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_market_buy_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_market_buy_order_with_cost(&mut self, symbol: &str, cost: f64, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Order> {
+        let __args: Vec<Value> = vec![Value::from(symbol), Value::from(cost), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut symbol = __it.next().unwrap_or_default();
+        let mut cost = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3379,9 +3386,9 @@ impl HashkeyCore {
         });
         let __ws_arg_16 = self.extend(Value::Map(req), &[params]);
         return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "buy", cost.as_f64().unwrap_or_default(), None, __ws_arg_16).await);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -3657,7 +3664,13 @@ impl HashkeyCore {
  * @param {object} [params] extra parameters specific to the api endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_orders(&mut self, orders: Vec<crate::types::OrderRequest>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(orders), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut orders = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3668,8 +3681,8 @@ impl HashkeyCore {
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_726: bool = true;
-            while { if !__for_first_726 { i += 1; } __for_first_726 = false; i < (orders.len() as i64) } {
+            let mut __for_first_727: bool = true;
+            while { if !__for_first_727 { i += 1; } __for_first_727 = false; i < (orders.len() as i64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             let mut type_var: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "type", &[]);
@@ -3711,8 +3724,8 @@ impl HashkeyCore {
         let mut responseOrders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_727: bool = true;
-            while { if !__for_first_727 { i += 1; } __for_first_727 = false; i < (result.len() as i64) } {
+            let mut __for_first_728: bool = true;
+            while { if !__for_first_728 { i += 1; } __for_first_728 = false; i < (result.len() as i64) } {
             let mut responseEntry: Value = self.safe_dict(result.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3725,9 +3738,9 @@ impl HashkeyCore {
         }
         }
         return self.parse_orders(Value::from(responseOrders), &[]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -3872,7 +3885,13 @@ impl HashkeyCore {
  * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
+    pub async fn cancel_orders(&mut self, ids: Vec<String>, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![Value::from(Some(ids)), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut ids = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3906,9 +3925,9 @@ impl HashkeyCore {
         let mut order: Value = self.safe_order(response.clone(), &[]);
         add_element_to_object(&mut order, &Value::Str("info".into()), response);
         return Value::from(vec![order]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -4193,7 +4212,12 @@ impl HashkeyCore {
  * @param {string} [params.accountId] account id to fetch the orders from
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn fetch_canceled_and_closed_orders(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_canceled_and_closed_orders(&mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -4267,9 +4291,9 @@ impl HashkeyCore {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() is not supported for ".into())).into()), marketType).into()), Value::Str(" type of markets".into()))));
         }
         return self.parse_orders(response, &[market, since, limit]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn check_type_param(&self, mut methodName: Value, mut params: Value) {
         let __params_empty = indexmap::IndexMap::new();
@@ -4713,8 +4737,8 @@ impl HashkeyCore {
         let mut rows: Value = self.to_array(response);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_728: bool = true;
-            while { if !__for_first_728 { i += 1; } __for_first_728 = false; i < (rows.len() as i64) } {
+            let mut __for_first_729: bool = true;
+            while { if !__for_first_729 { i += 1; } __for_first_729 = false; i < (rows.len() as i64) } {
             let mut entry: Value = rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "settleTime", &[]).as_i64();
             rates.push(Value::Map({
@@ -5257,8 +5281,8 @@ impl HashkeyCore {
         let mut tiers: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_729: bool = true;
-            while { if !__for_first_729 { i += 1; } __for_first_729 = false; i < (riskLimits.len() as i64) } {
+            let mut __for_first_730: bool = true;
+            while { if !__for_first_730 { i += 1; } __for_first_730 = false; i < (riskLimits.len() as i64) } {
             let mut tier: Value = riskLimits.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut initialMarginRate: Option<String> = self.safe_string_k_opt(tier.clone(), "initialMargin", &[]);
             if let Value::Arr(__a) = &mut tiers { std::sync::Arc::make_mut(__a).push(Value::Map({
@@ -5378,8 +5402,8 @@ impl HashkeyCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_730: bool = true;
-            while { if !__for_first_730 { i += 1; } __for_first_730 = false; i < (data.len() as i64) } {
+            let mut __for_first_731: bool = true;
+            while { if !__for_first_731 { i += 1; } __for_first_731 = false; i < (data.len() as i64) } {
             let mut fee: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5540,8 +5564,8 @@ impl HashkeyCore {
             let mut result: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]); // for batch methods
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_731: bool = true;
-                while { if !__for_first_731 { i += 1; } __for_first_731 = false; i < (result.len() as i64) } {
+                let mut __for_first_732: bool = true;
+                while { if !__for_first_732 { i += 1; } __for_first_732 = false; i < (result.len() as i64) } {
                 let mut entry: Value = self.safe_dict(result.clone(), Value::Int(i), &[]);
                 let mut entryCodeInteger: Option<i64> = self.safe_integer_k(entry.clone(), "code", &[]).as_i64();
                 if (entryCodeInteger != Some(0)) {

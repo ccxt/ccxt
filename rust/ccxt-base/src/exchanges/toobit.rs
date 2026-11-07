@@ -121,7 +121,7 @@ impl crate::exchange_generated::ExchangeBase for ToobitCore {
             match method {
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
-                "cancel_orders" => self.cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "create_contract_order_request" => self.create_contract_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
@@ -1395,8 +1395,8 @@ impl ToobitCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1119: bool = true;
-            while { if !__for_first_1119 { i += 1; } __for_first_1119 = false; i < (coins.len() as i64) } {
+            let mut __for_first_1120: bool = true;
+            while { if !__for_first_1120 { i += 1; } __for_first_1120 = false; i < (coins.len() as i64) } {
             let mut coin: Value = coins.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_currency(coin);
             if (parsed != Value::Null) {
@@ -1420,8 +1420,8 @@ impl ToobitCore {
         let mut rawNetworks: Vec<Value> = self.safe_list_k(rawCurrency.clone(), "chainTypes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut j: i64 = 0;
-            let mut __for_first_1120: bool = true;
-            while { if !__for_first_1120 { j += 1; } __for_first_1120 = false; j < (rawNetworks.len() as i64) } {
+            let mut __for_first_1121: bool = true;
+            while { if !__for_first_1121 { j += 1; } __for_first_1121 = false; j < (rawNetworks.len() as i64) } {
             let mut rawNetwork: Value = rawNetworks.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Option<String> = self.safe_string_k_opt(rawNetwork.clone(), "chainType", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
@@ -1653,8 +1653,8 @@ impl ToobitCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1121: bool = true;
-            while { if !__for_first_1121 { i += 1; } __for_first_1121 = false; i < (all.len() as i64) } {
+            let mut __for_first_1122: bool = true;
+            while { if !__for_first_1122 { i += 1; } __for_first_1122 = false; i < (all.len() as i64) } {
             let mut market: Value = self.safe_dict(all.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2160,8 +2160,8 @@ impl ToobitCore {
         let mut rows: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1122: bool = true;
-            while { if !__for_first_1122 { i += 1; } __for_first_1122 = false; i < (response.len() as i64) } {
+            let mut __for_first_1123: bool = true;
+            while { if !__for_first_1123 { i += 1; } __for_first_1123 = false; i < (response.len() as i64) } {
             let mut ticker: Value = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "s", &[]);
             if (marketId.is_some()) && (self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, &marketId.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -2326,10 +2326,10 @@ impl ToobitCore {
         let tickers = tickers.as_array().unwrap_or(&__tickers_empty);
         let mut results: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_1123: bool = true;
-            while { if !__for_first_1123 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1123 = false; i.as_f64().unwrap_or(f64::NAN) < ((tickers.len() as i64) as f64) } {
-            let mut parsedTicker: Value = self.parse_bid_ask_custom(tickers.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
+                        let mut i: i64 = 0;
+            let mut __for_first_1124: bool = true;
+            while { if !__for_first_1124 { i += 1; } __for_first_1124 = false; i < (tickers.len() as i64) } {
+            let mut parsedTicker: Value = self.parse_bid_ask_custom(tickers.get(i as usize).cloned().unwrap_or(Value::Null));
             let mut ticker: Value = self.extend(parsedTicker, &[params.clone()]);
             results.push(ticker);
         }
@@ -2552,8 +2552,8 @@ impl ToobitCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "balances", &[response.clone()]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1124: bool = true;
-            while { if !__for_first_1124 { i += 1; } __for_first_1124 = false; i < (balances.len() as i64) } {
+            let mut __for_first_1125: bool = true;
+            while { if !__for_first_1125 { i += 1; } __for_first_1125 = false; i < (balances.len() as i64) } {
             let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "asset", &[]), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -3041,7 +3041,13 @@ impl ToobitCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
+    pub async fn cancel_orders(&mut self, ids: Vec<String>, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![Value::from(Some(ids)), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut ids = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3075,9 +3081,9 @@ impl ToobitCore {
         }
         let mut result: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]);
         return self.parse_orders(result, &[market]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -3300,8 +3306,8 @@ impl ToobitCore {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1125: bool = true;
-            while { if !__for_first_1125 { i += 1; } __for_first_1125 = false; i < (responseList.len() as i64) } {
+            let mut __for_first_1126: bool = true;
+            while { if !__for_first_1126 { i += 1; } __for_first_1126 = false; i < (responseList.len() as i64) } {
             ordersList.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), responseList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
@@ -3733,8 +3739,8 @@ impl ToobitCore {
         let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1126: bool = true;
-            while { if !__for_first_1126 { i += 1; } __for_first_1126 = false; i < (response.len() as i64) } {
+            let mut __for_first_1127: bool = true;
+            while { if !__for_first_1127 { i += 1; } __for_first_1127 = false; i < (response.len() as i64) } {
             let __ws_arg_30 = self.parse_transaction_with_type(response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[currency.clone(), transactType.clone()]);
             results.push(self.extend(__ws_arg_30, &[paramsUntil.clone()]));
         }

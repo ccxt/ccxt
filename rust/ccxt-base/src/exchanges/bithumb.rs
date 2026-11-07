@@ -89,17 +89,17 @@ impl crate::exchange_generated::ExchangeBase for BithumbCore {
             match method {
                 "amount_to_precision" => self.amount_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
-                "cancel_orders" => self.cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_unified_order" => self.cancel_unified_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "create_deposit_address" => self.create_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "create_market_buy_order_with_cost" => self.create_market_buy_order_with_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
+                "create_market_buy_order_with_cost" => crate::types::IntoRaw::into_raw(self.create_market_buy_order_with_cost(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_order_request" => self.create_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
-                "create_orders" => self.create_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "create_twap_order" => self.create_twap_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+                "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
+                "create_twap_order" => crate::types::IntoRaw::into_raw(self.create_twap_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
-                "fetch_canceled_orders" => self.fetch_canceled_orders(&args[..]).await,
+                "fetch_canceled_orders" => crate::types::IntoRaw::into_raw(self.fetch_canceled_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_deposit" => self.fetch_deposit(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_deposit_address" => crate::types::IntoRaw::into_raw(self.fetch_deposit_address(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -939,8 +939,8 @@ impl BithumbCore {
             let mut response: Value = self.public_get_v1_market_all(&[__ws_arg_0]).await;
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_389: bool = true;
-                while { if !__for_first_389 { i += 1; } __for_first_389 = false; i < (response.len() as i64) } {
+                let mut __for_first_390: bool = true;
+                while { if !__for_first_390 { i += 1; } __for_first_390 = false; i < (response.len() as i64) } {
                 let mut entry: Value = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "market", &[]);
                 let mut baseId: Value = Value::Null;
@@ -1032,8 +1032,8 @@ impl BithumbCore {
             let mut promises: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_390: bool = true;
-                while { if !__for_first_390 { i += 1; } __for_first_390 = false; i < (quotes.len() as i64) } {
+                let mut __for_first_391: bool = true;
+                while { if !__for_first_391 { i += 1; } __for_first_391 = false; i < (quotes.len() as i64) } {
                 request.insert("quoteId".into(), quotes.get(i as usize).cloned().unwrap_or(Value::Null));
                 let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[paramsGeneration.clone()]);
                 promises.push(self.public_get_public_ticker_all_quote_id(&[__ws_arg_1]).await);
@@ -1042,8 +1042,8 @@ impl BithumbCore {
             let mut results: Value = promise_all(&Value::from(promises)).await;
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_392: bool = true;
-                while { if !__for_first_392 { i += 1; } __for_first_392 = false; i < (quotes.len() as i64) } {
+                let mut __for_first_393: bool = true;
+                while { if !__for_first_393 { i += 1; } __for_first_393 = false; i < (quotes.len() as i64) } {
                 let mut quote: Value = quotes.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut quoteId: Value = quote.clone();
                 let mut response: Value = self.safe_dict(results.clone(), Value::Int(i), &[]);
@@ -1058,8 +1058,8 @@ impl BithumbCore {
                 let mut currencyIds: Vec<Value> = Value::Array(data.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_391: bool = true;
-                    while { if !__for_first_391 { j += 1; } __for_first_391 = false; j < (currencyIds.len() as i64) } {
+                    let mut __for_first_392: bool = true;
+                    while { if !__for_first_392 { j += 1; } __for_first_392 = false; j < (currencyIds.len() as i64) } {
                     let mut currencyId: Value = currencyIds.get(j as usize).cloned().unwrap_or(Value::Null);
                     if (currencyId.as_str() == Some("date")) {
                         continue;
@@ -1184,8 +1184,8 @@ impl BithumbCore {
             let mut codes: Vec<Value> = Value::Array(self.currencies.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_393: bool = true;
-                while { if !__for_first_393 { i += 1; } __for_first_393 = false; i < (codes.len() as i64) } {
+                let mut __for_first_394: bool = true;
+                while { if !__for_first_394 { i += 1; } __for_first_394 = false; i < (codes.len() as i64) } {
                 let mut code: Value = codes.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut account: Value = self.account();
                 let mut currency: Value = self.currency(code.clone());
@@ -1199,8 +1199,8 @@ impl BithumbCore {
         }  else {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_394: bool = true;
-                while { if !__for_first_394 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_394 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_395: bool = true;
+                while { if !__for_first_395 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_395 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
                 let mut entry: Value = self.safe_dict(response.clone(), i.clone(), &[]);
                 let mut account: Value = self.account();
                 let mut currencyId: Option<String> = self.safe_string_k_opt(entry.clone(), "currency", &[]);
@@ -1332,8 +1332,8 @@ impl BithumbCore {
             let mut asks: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_395: bool = true;
-                while { if !__for_first_395 { i += 1; } __for_first_395 = false; i < (orderBookUnits.len() as i64) } {
+                let mut __for_first_396: bool = true;
+                while { if !__for_first_396 { i += 1; } __for_first_396 = false; i < (orderBookUnits.len() as i64) } {
                 let mut entry: Value = self.safe_dict(orderBookUnits.clone(), Value::Int(i), &[]);
                 bids.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -1572,8 +1572,8 @@ impl BithumbCore {
             let mut symbolsForMarketIdsLength: f64 = ((symbolsForMarketIds.len() as i64) as f64);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_396: bool = true;
-                while { if !__for_first_396 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_396 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsForMarketIdsLength } {
+                let mut __for_first_397: bool = true;
+                while { if !__for_first_397 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_397 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsForMarketIdsLength } {
                 let mut market: Value = self.market(symbolsForMarketIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
                 marketIds.push(self.get_gen2_market_id(market.clone()).map(Value::from).unwrap_or(Value::Null));
             }
@@ -1590,8 +1590,8 @@ impl BithumbCore {
             let mut marketIdsChunk: Value = Value::from(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_397: bool = true;
-                while { if !__for_first_397 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_397 = false; i.as_f64().unwrap_or(f64::NAN) < marketIdsLength.as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_398: bool = true;
+                while { if !__for_first_398 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_398 = false; i.as_f64().unwrap_or(f64::NAN) < marketIdsLength.as_f64().unwrap_or(f64::NAN) } {
                 if let Value::Arr(__a) = &mut marketIdsChunk { std::sync::Arc::make_mut(__a).push(marketIds.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)); }
                 let mut marketIdsChunkLength: f64 = ((marketIdsChunk.len() as i64) as f64);
                 let mut isLastMarketId: bool = i.as_f64() == ((match (&(marketIdsLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64();
@@ -1640,8 +1640,8 @@ impl BithumbCore {
             let mut responsesLength: f64 = ((responses.len() as i64) as f64);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_400: bool = true;
-                while { if !__for_first_400 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_400 = false; i.as_f64().unwrap_or(f64::NAN) < responsesLength } {
+                let mut __for_first_401: bool = true;
+                while { if !__for_first_401 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_401 = false; i.as_f64().unwrap_or(f64::NAN) < responsesLength } {
                 let mut response: Value = self.safe_value(responses.clone(), i.clone(), &[]);
                 if self.is_dictionary(response.clone()).as_bool() == Some(true) && (self.safe_value_k(response.clone(), "data", &[]) != Value::Null) {
                     response = self.safe_value_k(response.clone(), "data", &[]);
@@ -1662,8 +1662,8 @@ impl BithumbCore {
                         let mut ids: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                         {
                                                         let mut j: i64 = 0;
-                            let mut __for_first_398: bool = true;
-                            while { if !__for_first_398 { j += 1; } __for_first_398 = false; j < (ids.len() as i64) } {
+                            let mut __for_first_399: bool = true;
+                            while { if !__for_first_399 { j += 1; } __for_first_399 = false; j < (ids.len() as i64) } {
                             let mut id: Value = ids.get(j as usize).cloned().unwrap_or(Value::Null);
                             let mut ticker: Value = self.safe_dict(response.clone(), id.clone(), &[]);
                             if (ticker != Value::Null) {
@@ -1676,8 +1676,8 @@ impl BithumbCore {
                 }
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_399: bool = true;
-                    while { if !__for_first_399 { j += 1; } __for_first_399 = false; j < (tickers.len() as i64) } {
+                    let mut __for_first_400: bool = true;
+                    while { if !__for_first_400 { j += 1; } __for_first_400 = false; j < (tickers.len() as i64) } {
                     let mut entry: Value = tickers.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
                     let mut marketId: Value = self.safe_string_k(entry.clone(), "market", &[expectedMarketId.clone()]);
                     if (marketId == Value::Null) {
@@ -1706,8 +1706,8 @@ impl BithumbCore {
                 });
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_401: bool = true;
-                    while { if !__for_first_401 { i += 1; } __for_first_401 = false; i < (symbols.len() as i64) } {
+                    let mut __for_first_402: bool = true;
+                    while { if !__for_first_402 { i += 1; } __for_first_402 = false; i < (symbols.len() as i64) } {
                     let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                     let mut market: Value = self.market(symbol.clone());
                     let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quoteId", &[]);
@@ -1725,8 +1725,8 @@ impl BithumbCore {
             let mut promises: Value = Value::from(vec![]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_402: bool = true;
-                while { if !__for_first_402 { i += 1; } __for_first_402 = false; i < (quotes.len() as i64) } {
+                let mut __for_first_403: bool = true;
+                while { if !__for_first_403 { i += 1; } __for_first_403 = false; i < (quotes.len() as i64) } {
                 request.insert("quoteId".into(), quotes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                 let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[paramsGeneration.clone()]);
                 if let Value::Arr(__a) = &mut promises { std::sync::Arc::make_mut(__a).push(self.public_get_public_ticker_all_quote_id(&[__ws_arg_6]).await); }
@@ -1735,8 +1735,8 @@ impl BithumbCore {
             let mut responses: Value = promise_all(&promises).await;
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_404: bool = true;
-                while { if !__for_first_404 { i += 1; } __for_first_404 = false; i < (quotes.len() as i64) } {
+                let mut __for_first_405: bool = true;
+                while { if !__for_first_405 { i += 1; } __for_first_405 = false; i < (quotes.len() as i64) } {
                 let mut quote: Value = quotes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut response: Value = self.safe_dict(responses.clone(), Value::Int(i), &[]);
                 let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(response, "data", &[Value::Map({
@@ -1748,8 +1748,8 @@ impl BithumbCore {
                 let mut currencyIds: Vec<Value> = Value::Array(tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_403: bool = true;
-                    while { if !__for_first_403 { j += 1; } __for_first_403 = false; j < (currencyIds.len() as i64) } {
+                    let mut __for_first_404: bool = true;
+                    while { if !__for_first_404 { j += 1; } __for_first_404 = false; j < (currencyIds.len() as i64) } {
                     let mut currencyId: Value = currencyIds.get(j as usize).cloned().unwrap_or(Value::Null);
                     let mut ticker: Value = data.get(currencyId.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
                     let mut base: Value = self.safe_currency_code(currencyId, &[]);
@@ -2299,7 +2299,13 @@ impl BithumbCore {
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_orders(&mut self, orders: Vec<crate::types::OrderRequest>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(orders), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut orders = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2321,8 +2327,8 @@ impl BithumbCore {
         let mut orderSymbols: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_405: bool = true;
-            while { if !__for_first_405 { i += 1; } __for_first_405 = false; i < (orders.len() as i64) } {
+            let mut __for_first_406: bool = true;
+            while { if !__for_first_406 { i += 1; } __for_first_406 = false; i < (orders.len() as i64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             if (symbol.is_none()) {
@@ -2372,9 +2378,9 @@ impl BithumbCore {
         //
         let mut data: Value = self.safe_list_k(response, "batch_orders_response", &[Value::from(vec![])]);
         return self.parse_orders(data, &[market]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn create_order_request(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
@@ -2571,7 +2577,14 @@ impl BithumbCore {
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_market_buy_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_market_buy_order_with_cost(&mut self, symbol: &str, cost: f64, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Order> {
+        let __args: Vec<Value> = vec![Value::from(symbol), Value::from(cost), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut symbol = __it.next().unwrap_or_default();
+        let mut cost = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2591,9 +2604,9 @@ impl BithumbCore {
     m
 })]);
         return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "buy", cost.as_f64().unwrap_or_default(), None, __ws_arg_21).await);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -2610,7 +2623,16 @@ impl BithumbCore {
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_twap_order(&mut self, mut symbol: Value, mut side: Value, mut amount: Value, mut duration: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_twap_order(&mut self, symbol: &str, side: &str, amount: f64, duration: f64, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Order> {
+        let __args: Vec<Value> = vec![Value::from(symbol), Value::from(side), Value::from(amount), Value::from(duration), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut symbol = __it.next().unwrap_or_default();
+        let mut side = __it.next().unwrap_or_default();
+        let mut amount = __it.next().unwrap_or_default();
+        let mut duration = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2646,9 +2668,9 @@ impl BithumbCore {
         let __ws_arg_22 = self.extend(Value::Map(request), &[paramsGeneration]);
         let mut response: Value = self.private_post_v1_twap(&[__ws_arg_22]).await;
         return self.parse_order(response, &[market]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -3313,7 +3335,12 @@ impl BithumbCore {
  * @param {bool} [params.twap] if you want to fetch generation 2 twap orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn fetch_canceled_orders(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_canceled_orders(&mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -3324,9 +3351,9 @@ impl BithumbCore {
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("state".into(), Value::Str("cancel".into())); }
         let mut orders: Value = crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), params).await);
         return self.filter_by_since_limit(orders, &[since, limit]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -3445,7 +3472,13 @@ impl BithumbCore {
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
+    pub async fn cancel_orders(&mut self, ids: Vec<String>, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![Value::from(Some(ids)), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut ids = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3490,9 +3523,9 @@ impl BithumbCore {
         //
         let mut data: Value = self.safe_list_k(response, "success", &[Value::from(vec![])]);
         return self.parse_orders(data, &[market]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub async fn cancel_unified_order(&mut self, mut order: Value, optional_args: &[Value]) -> Value {
         let mut params = get_arg(optional_args, 0, Value::Map({
@@ -4191,16 +4224,16 @@ impl BithumbCore {
         let mut result: Value = Value::Str("".into());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_407: bool = true;
-            while { if !__for_first_407 { i += 1; } __for_first_407 = false; i < (keys.len() as i64) } {
+            let mut __for_first_408: bool = true;
+            while { if !__for_first_408 { i += 1; } __for_first_408 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut value: Value = self.safe_value(query.clone(), key.clone(), &[]);
             if (matches!(&value, Value::Arr(_))) {
                 let mut encodedKey: Value = Value::Str(format!("{}{}", self.encode_uri_component(key.clone()), Value::Str("[]".into())).into());
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_406: bool = true;
-                    while { if !__for_first_406 { j += 1; } __for_first_406 = false; j < (value.len() as i64) } {
+                    let mut __for_first_407: bool = true;
+                    while { if !__for_first_407 { j += 1; } __for_first_407 = false; j < (value.len() as i64) } {
                     let mut item: Value = value.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
                     let mut valueString: Value = self.safe_string(value.clone(), Value::Int(j), &[]);
                     if (valueString == Value::Null) {

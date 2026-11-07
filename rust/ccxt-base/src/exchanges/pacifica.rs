@@ -116,13 +116,13 @@ impl crate::exchange_generated::ExchangeBase for PacificaCore {
                 "cancel_all_orders_request" => self.cancel_all_orders_request(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_order_request" => self.cancel_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "cancel_orders" => self.cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders_request" => self.cancel_orders_request(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "create_api_key" => self.create_api_key(&args[..]).await,
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_order_request" => self.create_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
-                "create_orders" => self.create_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "create_orders_request" => self.create_orders_request(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "create_sub_account" => self.create_sub_account(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_str).unwrap_or_default(),
@@ -133,8 +133,8 @@ impl crate::exchange_generated::ExchangeBase for PacificaCore {
                 "fetch_api_keys" => self.fetch_api_keys(&args[..]).await,
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_builder_approvals" => self.fetch_builder_approvals(args.get(0).cloned().unwrap_or(crate::Value::Null)).await,
-                "fetch_canceled_and_closed_orders" => self.fetch_canceled_and_closed_orders(&args[..]).await,
-                "fetch_canceled_orders" => self.fetch_canceled_orders(&args[..]).await,
+                "fetch_canceled_and_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_canceled_and_closed_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+                "fetch_canceled_orders" => crate::types::IntoRaw::into_raw(self.fetch_canceled_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_deposits" => crate::types::IntoRaw::into_raw(self.fetch_deposits(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_funding_history" => crate::types::IntoRaw::into_raw(self.fetch_funding_history(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -1538,8 +1538,8 @@ if _try_result.is_err() {
         let mut spotBalances: Value = self.safe_list_k(data.clone(), "spot_balances", &[Value::from(vec![])]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1040: bool = true;
-            while { if !__for_first_1040 { i += 1; } __for_first_1040 = false; i < (spotBalances.len() as i64) } {
+            let mut __for_first_1041: bool = true;
+            while { if !__for_first_1041 { i += 1; } __for_first_1041 = false; i < (spotBalances.len() as i64) } {
             let mut balance: Value = self.safe_dict(spotBalances.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "symbol", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -1723,8 +1723,8 @@ if _try_result.is_err() {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1041: bool = true;
-            while { if !__for_first_1041 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1041 = false; i.as_f64().unwrap_or(f64::NAN) < settingsLen } {
+            let mut __for_first_1042: bool = true;
+            while { if !__for_first_1042 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1042 = false; i.as_f64().unwrap_or(f64::NAN) < settingsLen } {
             let mut setting: Value = settings.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(setting.clone(), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
@@ -2636,8 +2636,8 @@ if _try_result.is_err() {
         let mut timestamp: Value = self.milliseconds(); // unified sequence
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1042: bool = true;
-            while { if !__for_first_1042 { i += 1; } __for_first_1042 = false; i < (orders.len() as i64) } {
+            let mut __for_first_1043: bool = true;
+            while { if !__for_first_1043 { i += 1; } __for_first_1043 = false; i < (orders.len() as i64) } {
             let mut order: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(order.clone(), "symbol", &[]);
             let mut side: Option<String> = self.safe_string_k_opt(order.clone(), "side", &[]);
@@ -2678,7 +2678,13 @@ if _try_result.is_err() {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_orders(&mut self, orders: Vec<crate::types::OrderRequest>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(orders), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut orders = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2716,8 +2722,8 @@ if _try_result.is_err() {
         let mut ordersToReturn: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1043: bool = true;
-            while { if !__for_first_1043 { i += 1; } __for_first_1043 = false; i < (results.len() as i64) } {
+            let mut __for_first_1044: bool = true;
+            while { if !__for_first_1044 { i += 1; } __for_first_1044 = false; i < (results.len() as i64) } {
             let mut order: Value = results.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut error: Option<String> = self.safe_string_k(order.clone(), "error", &[]).as_str().map(str::to_owned);
             let mut success: bool = self.safe_bool_k_opt(order.clone(), "success", &[Value::Bool(false)]).unwrap_or(false);
@@ -2738,9 +2744,9 @@ if _try_result.is_err() {
         }
         }
         return ordersToReturn;
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -2754,7 +2760,13 @@ if _try_result.is_err() {
  * @param {int} [params.expiryWindow] time to live in milliseconds
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
+    pub async fn cancel_orders(&mut self, ids: Vec<String>, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![Value::from(Some(ids)), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut ids = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2798,8 +2810,8 @@ if _try_result.is_err() {
         let mut ordersToReturn: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1044: bool = true;
-            while { if !__for_first_1044 { i += 1; } __for_first_1044 = false; i < (results.len() as i64) } {
+            let mut __for_first_1045: bool = true;
+            while { if !__for_first_1045 { i += 1; } __for_first_1045 = false; i < (results.len() as i64) } {
             let mut order: Value = results.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut error: Option<String> = self.safe_string_k(order.clone(), "error", &[]).as_str().map(str::to_owned);
             let mut success: bool = self.safe_bool_k_opt(order.clone(), "success", &[Value::Bool(false)]).unwrap_or(false);
@@ -2819,9 +2831,9 @@ if _try_result.is_err() {
         }
         }
         return ordersToReturn;
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn cancel_orders_request(&self, mut ids: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
@@ -2832,8 +2844,8 @@ if _try_result.is_err() {
         let mut actions: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1045: bool = true;
-            while { if !__for_first_1045 { i += 1; } __for_first_1045 = false; i < (ids.len() as i64) } {
+            let mut __for_first_1046: bool = true;
+            while { if !__for_first_1046 { i += 1; } __for_first_1046 = false; i < (ids.len() as i64) } {
             let mut id: Option<String> = self.safe_string_opt(ids.clone(), Value::Int(i), &[]);
             let mut request: Value = self.cancel_order_request(id.map(Value::from).unwrap_or(Value::Null), &[symbol.clone(), params.clone()]);
             let mut action: Value = Value::Map({
@@ -2849,8 +2861,8 @@ if _try_result.is_err() {
         let mut paramsOmitted: Value = self.omit(params, Value::Str("clientOrderIds".into()), &[]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1046: bool = true;
-            while { if !__for_first_1046 { i += 1; } __for_first_1046 = false; i < (clientOrderIds.len() as i64) } {
+            let mut __for_first_1047: bool = true;
+            while { if !__for_first_1047 { i += 1; } __for_first_1047 = false; i < (clientOrderIds.len() as i64) } {
             let mut cloid: Value = clientOrderIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut cloidParams: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -3211,8 +3223,8 @@ if _try_result.is_err() {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1047: bool = true;
-            while { if !__for_first_1047 { i += 1; } __for_first_1047 = false; i < (data.len() as i64) } {
+            let mut __for_first_1048: bool = true;
+            while { if !__for_first_1048 { i += 1; } __for_first_1048 = false; i < (data.len() as i64) } {
             let mut entry: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "created_at", &[]).as_i64();
             result.push(Value::Map({
@@ -3285,8 +3297,8 @@ if _try_result.is_err() {
         };
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1048: bool = true;
-            while { if !__for_first_1048 { i += 1; } __for_first_1048 = false; i < (data.len() as i64) } {
+            let mut __for_first_1049: bool = true;
+            while { if !__for_first_1049 { i += 1; } __for_first_1049 = false; i < (data.len() as i64) } {
             let mut info: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut ticker: Value = self.parse_ticker(info, &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
@@ -3384,7 +3396,12 @@ if _try_result.is_err() {
  * @param {string} [params.account] will default to walletAddress if not provided
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn fetch_canceled_orders(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_canceled_orders(&mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -3398,9 +3415,9 @@ if _try_result.is_err() {
         let mut orders: Value = crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), None, None, params).await); // don't filter here because we don't want to catch open orders
         let mut closedOrders: Value = self.filter_by_array(orders, Value::Str("status".into()), &[Value::from(vec![Value::Str("canceled".into())]), Value::Bool(false)]);
         return self.filter_by_symbol_since_limit(closedOrders, &[symbol, since, limit]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -3414,7 +3431,12 @@ if _try_result.is_err() {
  * @param {string} [params.account] will default to walletAddress if not provided
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn fetch_canceled_and_closed_orders(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_canceled_and_closed_orders(&mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -3428,9 +3450,9 @@ if _try_result.is_err() {
         let mut orders: Value = crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), None, None, params).await); // don't filter here because we don't want to catch open orders
         let mut closedOrders: Value = self.filter_by_array(orders, Value::Str("status".into()), &[Value::from(vec![Value::Str("canceled".into()), Value::Str("closed".into()), Value::Str("rejected".into())]), Value::Bool(false)]);
         return self.filter_by_symbol_since_limit(closedOrders, &[symbol, since, limit]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -3992,8 +4014,8 @@ if _try_result.is_err() {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1049: bool = true;
-            while { if !__for_first_1049 { i += 1; } __for_first_1049 = false; i < (data.len() as i64) } {
+            let mut __for_first_1050: bool = true;
+            while { if !__for_first_1050 { i += 1; } __for_first_1050 = false; i < (data.len() as i64) } {
             result.push(self.parse_position(data.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Null]));
         }
         }
@@ -4310,8 +4332,8 @@ if _try_result.is_err() {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1050: bool = true;
-            while { if !__for_first_1050 { i += 1; } __for_first_1050 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_1051: bool = true;
+            while { if !__for_first_1051 { i += 1; } __for_first_1051 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), self.parse_trading_fee(data.clone(), &[self.market(symbol)])); }
         }
@@ -5366,8 +5388,8 @@ if _try_result.is_err() {
             let mut sortedKeys: Value = self.sort(keys, &[]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1051: bool = true;
-                while { if !__for_first_1051 { i += 1; } __for_first_1051 = false; i < (sortedKeys.len() as i64) } {
+                let mut __for_first_1052: bool = true;
+                while { if !__for_first_1052 { i += 1; } __for_first_1052 = false; i < (sortedKeys.len() as i64) } {
                 let mut key: Value = self.safe_string(sortedKeys.clone(), Value::Int(i), &[Value::Str("".into())]);
                 result.insert(crate::runtime::stringify_param(&key), self.sort_json_keys(get_value(&value, &key)));
             }
@@ -5377,8 +5399,8 @@ if _try_result.is_err() {
             let mut sortedList: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1052: bool = true;
-                while { if !__for_first_1052 { i += 1; } __for_first_1052 = false; i < (value.len() as i64) } {
+                let mut __for_first_1053: bool = true;
+                while { if !__for_first_1053 { i += 1; } __for_first_1053 = false; i < (value.len() as i64) } {
                 sortedList.push(self.sort_json_keys(value.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)));
             }
             }

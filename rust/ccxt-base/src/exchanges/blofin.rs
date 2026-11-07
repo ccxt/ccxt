@@ -128,12 +128,12 @@ impl crate::exchange_generated::ExchangeBase for BlofinCore {
         Box::pin(async move {
             match method {
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
-                "cancel_orders" => self.cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "close_position" => crate::types::IntoRaw::into_raw(self.close_position(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_order_request" => self.create_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
-                "create_orders" => self.create_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "create_tpsl_order_request" => self.create_tpsl_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -2004,8 +2004,8 @@ impl BlofinCore {
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_459: bool = true;
-            while { if !__for_first_459 { i += 1; } __for_first_459 = false; i < (data.len() as i64) } {
+            let mut __for_first_460: bool = true;
+            while { if !__for_first_460 { i += 1; } __for_first_460 = false; i < (data.len() as i64) } {
             let mut rate: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2190,8 +2190,8 @@ impl BlofinCore {
         let mut details: Value = self.safe_list_k(data, "details", &[Value::from(vec![])]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_460: bool = true;
-            while { if !__for_first_460 { i += 1; } __for_first_460 = false; i < (details.len() as i64) } {
+            let mut __for_first_461: bool = true;
+            while { if !__for_first_461 { i += 1; } __for_first_461 = false; i < (details.len() as i64) } {
             let mut balance: Value = self.safe_dict(details.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -2240,8 +2240,8 @@ impl BlofinCore {
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_461: bool = true;
-            while { if !__for_first_461 { i += 1; } __for_first_461 = false; i < (data.len() as i64) } {
+            let mut __for_first_462: bool = true;
+            while { if !__for_first_462 { i += 1; } __for_first_462 = false; i < (data.len() as i64) } {
             let mut balance: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -2756,7 +2756,7 @@ impl BlofinCore {
         }
         let mut query: Value = self.omit(params.clone(), Value::from(vec![Value::Str("orderId".into()), Value::Str("clientOrderId".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("tpsl".into())]), &[]);
         if isTpsl {
-            let mut tpslResponse: Value = self.cancel_orders(Value::from(vec![id]), &[symbol, params]).await;
+            let mut tpslResponse: Value = crate::types::IntoRaw::into_raw(self.cancel_orders((Value::from(vec![id])).to_str_vec(), symbol.as_str(), params).await);
             let mut first: Value = self.safe_dict(tpslResponse, Value::Int(0), &[]);
             return first;
         }  else if isTrigger {
@@ -2783,7 +2783,13 @@ impl BlofinCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_orders(&mut self, orders: Vec<crate::types::OrderRequest>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(orders), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut orders = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2794,8 +2800,8 @@ impl BlofinCore {
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_462: bool = true;
-            while { if !__for_first_462 { i += 1; } __for_first_462 = false; i < (orders.len() as i64) } {
+            let mut __for_first_463: bool = true;
+            while { if !__for_first_463 { i += 1; } __for_first_463 = false; i < (orders.len() as i64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             let mut type_var: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "type", &[]);
@@ -2814,9 +2820,9 @@ impl BlofinCore {
         let mut response: Value = self.private_post_trade_batch_orders(&[Value::from(ordersRequests)]).await;
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_orders(data, &[]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -3315,8 +3321,8 @@ impl BlofinCore {
         let mut chainsLength: f64 = ((chains.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_463: bool = true;
-            while { if !__for_first_463 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_463 = false; i.as_f64().unwrap_or(f64::NAN) < chainsLength } {
+            let mut __for_first_464: bool = true;
+            while { if !__for_first_464 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_464 = false; i.as_f64().unwrap_or(f64::NAN) < chainsLength } {
             let mut chain: Value = self.safe_dict(chains.clone(), i.clone(), &[]);
             let mut networkId: Option<String> = self.safe_string_k_opt(chain.clone(), "chain", &[]);
             let mut networkCode: Value = self.chain_id_to_network_code(networkId.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
@@ -3522,8 +3528,8 @@ impl BlofinCore {
         let mut chainsLength: f64 = ((fee.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_464: bool = true;
-            while { if !__for_first_464 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_464 = false; i.as_f64().unwrap_or(f64::NAN) < chainsLength } {
+            let mut __for_first_465: bool = true;
+            while { if !__for_first_465 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_465 = false; i.as_f64().unwrap_or(f64::NAN) < chainsLength } {
             let mut chain: Value = self.safe_dict(fee.clone(), i.clone(), &[]);
             let mut networkCode: Value = self.chain_id_to_network_code(self.safe_string_k(chain.clone(), "chain", &[])).map(Value::from).unwrap_or(Value::Null);
             if (networkCode == Value::Null) {
@@ -3603,8 +3609,8 @@ impl BlofinCore {
         let mut dataLength: f64 = ((data.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_465: bool = true;
-            while { if !__for_first_465 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_465 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength } {
+            let mut __for_first_466: bool = true;
+            while { if !__for_first_466 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_466 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength } {
             let mut entry: Value = self.safe_value(data.clone(), i.clone(), &[]);
             if (self.safe_string_k(entry.clone(), "depositId", &[]).as_str() == id.as_str()) {
                 return self.parse_transaction(entry, &[currency.clone()]);
@@ -3658,8 +3664,8 @@ impl BlofinCore {
         let mut dataLength: f64 = ((data.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_466: bool = true;
-            while { if !__for_first_466 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_466 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength } {
+            let mut __for_first_467: bool = true;
+            while { if !__for_first_467 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_467 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength } {
             let mut entry: Value = self.safe_value(data.clone(), i.clone(), &[]);
             let mut matches: bool = false;
             if (id != Value::Null) {
@@ -4045,7 +4051,13 @@ impl BlofinCore {
  * @param {boolean} [params.trigger] whether the order is a stop/trigger order
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
+    pub async fn cancel_orders(&mut self, ids: Vec<String>, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![Value::from(Some(ids)), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut ids = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4072,8 +4084,8 @@ impl BlofinCore {
             if (tpslIds != Value::Null) {
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_467: bool = true;
-                    while { if !__for_first_467 { i += 1; } __for_first_467 = false; i < (tpslIds.len() as i64) } {
+                    let mut __for_first_468: bool = true;
+                    while { if !__for_first_468 { i += 1; } __for_first_468 = false; i < (tpslIds.len() as i64) } {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("tpslId".to_string(), self.safe_string(tpslIds.clone(), Value::Int(i), &[]));
@@ -4085,8 +4097,8 @@ impl BlofinCore {
             }
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_468: bool = true;
-                while { if !__for_first_468 { i += 1; } __for_first_468 = false; i < (orderIds.len() as i64) } {
+                let mut __for_first_469: bool = true;
+                while { if !__for_first_469 { i += 1; } __for_first_469 = false; i < (orderIds.len() as i64) } {
                 if (trigger == Some(true)) {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -4107,8 +4119,8 @@ impl BlofinCore {
         }  else {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_469: bool = true;
-                while { if !__for_first_469 { i += 1; } __for_first_469 = false; i < (clientOrderIds.len() as i64) } {
+                let mut __for_first_470: bool = true;
+                while { if !__for_first_470 { i += 1; } __for_first_470 = false; i < (clientOrderIds.len() as i64) } {
                 request.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("instId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -4126,9 +4138,9 @@ impl BlofinCore {
         }
         let mut ordersData: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_orders(ordersData, &[market, Value::Null, Value::Null, params]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method

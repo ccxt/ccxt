@@ -137,10 +137,10 @@ impl crate::exchange_generated::ExchangeBase for BtseCore {
                 "fetch_ohlcv" => crate::types::IntoRaw::into_raw(self.fetch_ohlcv(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "fetch_open_interest" => crate::types::IntoRaw::into_raw(self.fetch_open_interest(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_open_interests" => self.fetch_open_interests(&args[..]).await,
-                "fetch_open_order" => self.fetch_open_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_open_order" => crate::types::IntoRaw::into_raw(self.fetch_open_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_open_orders" => crate::types::IntoRaw::into_raw(self.fetch_open_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
-                "fetch_order_trades" => self.fetch_order_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_order_trades" => crate::types::IntoRaw::into_raw(self.fetch_order_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "fetch_position_mode" => self.fetch_position_mode(&args[..]).await,
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_positions_for_symbol" => self.fetch_positions_for_symbol(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -1550,8 +1550,8 @@ impl BtseCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_477: bool = true;
-            while { if !__for_first_477 { i += 1; } __for_first_477 = false; i < (rates.len() as i64) } {
+            let mut __for_first_478: bool = true;
+            while { if !__for_first_478 { i += 1; } __for_first_478 = false; i < (rates.len() as i64) } {
             let mut rate: Value = rates.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_k(rate.clone(), "timestamp", &[]);
             if (timestamp == Value::Null) || (timestamp.as_f64().unwrap_or(f64::NAN) <= until.as_f64().unwrap_or(f64::NAN)) {
@@ -1670,8 +1670,8 @@ impl BtseCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_480: bool = true;
-            while { if !__for_first_480 { i += 1; } __for_first_480 = false; i < (response.len() as i64) } {
+            let mut __for_first_481: bool = true;
+            while { if !__for_first_481 { i += 1; } __for_first_481 = false; i < (response.len() as i64) } {
             let mut row: Value = self.safe_dict(response.clone(), Value::Int(i), &[]);
             let mut assets: Value = self.safe_list_k(row.clone(), "assets", &[]);
             if (assets != Value::Null) {
@@ -1680,8 +1680,8 @@ impl BtseCore {
                 let mut inUse: Value = self.safe_list_k(row.clone(), "assetsInUse", &[Value::from(vec![])]);
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_478: bool = true;
-                    while { if !__for_first_478 { j += 1; } __for_first_478 = false; j < (inUse.len() as i64) } {
+                    let mut __for_first_479: bool = true;
+                    while { if !__for_first_479 { j += 1; } __for_first_479 = false; j < (inUse.len() as i64) } {
                     let mut usedRow: Value = self.safe_dict(inUse.clone(), Value::Int(j), &[]);
                     let mut usedCode: Value = self.safe_currency_code(self.safe_string_k(usedRow.clone(), "currency", &[]), &[]);
                     if (usedCode == Value::Null) {
@@ -1692,8 +1692,8 @@ impl BtseCore {
                 }
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_479: bool = true;
-                    while { if !__for_first_479 { j += 1; } __for_first_479 = false; j < (assets.len() as i64) } {
+                    let mut __for_first_480: bool = true;
+                    while { if !__for_first_480 { j += 1; } __for_first_480 = false; j < (assets.len() as i64) } {
                     let mut assetRow: Value = self.safe_dict(assets.clone(), Value::Int(j), &[]);
                     let mut code: Value = self.safe_currency_code(self.safe_string_k(assetRow.clone(), "currency", &[]), &[]);
                     if (code == Value::Null) {
@@ -1718,8 +1718,8 @@ impl BtseCore {
         let mut codes: Vec<Value> = Value::Array(totals.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_481: bool = true;
-            while { if !__for_first_481 { i += 1; } __for_first_481 = false; i < (codes.len() as i64) } {
+            let mut __for_first_482: bool = true;
+            while { if !__for_first_482 { i += 1; } __for_first_482 = false; i < (codes.len() as i64) } {
             let mut code: Value = codes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string(Value::Map(totals.clone()), code.clone(), &[]));
@@ -1799,8 +1799,8 @@ impl BtseCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_483: bool = true;
-            while { if !__for_first_483 { i += 1; } __for_first_483 = false; i < (data.len() as i64) } {
+            let mut __for_first_484: bool = true;
+            while { if !__for_first_484 { i += 1; } __for_first_484 = false; i < (data.len() as i64) } {
             let mut entry: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -1812,8 +1812,8 @@ impl BtseCore {
                 let mut minNotional: Value = Value::Null;
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_482: bool = true;
-                    while { if !__for_first_482 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_482 = false; j.as_f64().unwrap_or(f64::NAN) < ((levels.len() as i64) as f64) } {
+                    let mut __for_first_483: bool = true;
+                    while { if !__for_first_483 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_483 = false; j.as_f64().unwrap_or(f64::NAN) < ((levels.len() as i64) as f64) } {
                     let mut level: Value = levels.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                     let mut maxNotional: Value = self.safe_number_k(level.clone(), "value", &[]);
                     // the endpoint only reports the notional ladder, the
@@ -2090,8 +2090,8 @@ impl BtseCore {
         let mut rows: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_484: bool = true;
-            while { if !__for_first_484 { i += 1; } __for_first_484 = false; i < (data.len() as i64) } {
+            let mut __for_first_485: bool = true;
+            while { if !__for_first_485 { i += 1; } __for_first_485 = false; i < (data.len() as i64) } {
             let mut row: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             // spot rows do not carry an open interest
             if (self.safe_string_k(row.clone(), "openInterest", &[]) != Value::Null) {
@@ -2195,8 +2195,8 @@ impl BtseCore {
         let mut rows: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_485: bool = true;
-            while { if !__for_first_485 { i += 1; } __for_first_485 = false; i < (data.len() as i64) } {
+            let mut __for_first_486: bool = true;
+            while { if !__for_first_486 { i += 1; } __for_first_486 = false; i < (data.len() as i64) } {
             let mut row: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             // spot rows do not carry a funding rate
             if (self.safe_string_k(row.clone(), "fundingRate", &[]) != Value::Null) {
@@ -2344,8 +2344,8 @@ impl BtseCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_486: bool = true;
-            while { if !__for_first_486 { i += 1; } __for_first_486 = false; i < (trades.len() as i64) } {
+            let mut __for_first_487: bool = true;
+            while { if !__for_first_487 { i += 1; } __for_first_487 = false; i < (trades.len() as i64) } {
             let mut trade: Value = trades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
             if (timestamp == Value::Null) || (timestamp.as_f64().unwrap_or(f64::NAN) <= until.as_f64().unwrap_or(f64::NAN)) {
@@ -2511,7 +2511,13 @@ impl BtseCore {
  * @param {string} [params.type] 'spot' or 'swap' or 'future', default is 'spot'
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-    pub async fn fetch_order_trades(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_order_trades(&mut self, id: &str, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Trade>> {
+        let __args: Vec<Value> = vec![Value::from(id), symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut id = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -2543,9 +2549,9 @@ impl BtseCore {
         }
         let __ws_arg_11 = self.extend(params, &[Value::Map(orderIdParams)]);
         return crate::types::IntoRaw::into_raw(self.fetch_my_trades(symbol.as_str(), since.as_i64(), limit.as_i64(), __ws_arg_11).await);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
@@ -3180,7 +3186,13 @@ impl BtseCore {
  * @param {bool} [params.includeCancelled] *contract markets only* if true, cancelled orders are included in the lookup
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn fetch_open_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_open_order(&mut self, id: &str, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Order> {
+        let __args: Vec<Value> = vec![Value::from(id), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut id = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3226,9 +3238,9 @@ impl BtseCore {
 })]);
         }
         return self.parse_order(order, &[market]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -3787,8 +3799,8 @@ impl BtseCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_487: bool = true;
-            while { if !__for_first_487 { i += 1; } __for_first_487 = false; i < (responseList.len() as i64) } {
+            let mut __for_first_488: bool = true;
+            while { if !__for_first_488 { i += 1; } __for_first_488 = false; i < (responseList.len() as i64) } {
             let mut feeInfo: Value = self.safe_dict(responseList.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3899,8 +3911,8 @@ impl BtseCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_488: bool = true;
-            while { if !__for_first_488 { i += 1; } __for_first_488 = false; i < (typesList.len() as i64) } {
+            let mut __for_first_489: bool = true;
+            while { if !__for_first_489 { i += 1; } __for_first_489 = false; i < (typesList.len() as i64) } {
             let mut historyType: Value = self.safe_string(typesList.clone(), Value::Int(i), &[Value::Str("".into())]);
             if let Value::Dict(__d) = &mut allowed { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&historyType), Value::Bool(true)); }
             add_element_to_object(&mut allowed, &self.capitalize((if let Some(__s) = historyType.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })), Value::Bool(true));
@@ -3909,8 +3921,8 @@ impl BtseCore {
         let mut rows: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_489: bool = true;
-            while { if !__for_first_489 { i += 1; } __for_first_489 = false; i < (rawRows.len() as i64) } {
+            let mut __for_first_490: bool = true;
+            while { if !__for_first_490 { i += 1; } __for_first_490 = false; i < (rawRows.len() as i64) } {
             let mut entry: Value = self.safe_dict(rawRows.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4874,8 +4886,8 @@ impl BtseCore {
         let mut marginMode: Value = Value::Null;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_490: bool = true;
-            while { if !__for_first_490 { i += 1; } __for_first_490 = false; i < (safeResponse.len() as i64) } {
+            let mut __for_first_491: bool = true;
+            while { if !__for_first_491 { i += 1; } __for_first_491 = false; i < (safeResponse.len() as i64) } {
             let mut entrty: Value = self.safe_dict(safeResponse.clone(), Value::Int(i), &[]);
             let mut leverageValue: Value = self.safe_integer_k(entrty.clone(), "leverage", &[]);
             let mut positionDirection: Option<String> = self.safe_string_k(entrty.clone(), "positionDirection", &[]).as_str().map(str::to_owned);
@@ -5011,8 +5023,8 @@ impl BtseCore {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_491: bool = true;
-            while { if !__for_first_491 { i += 1; } __for_first_491 = false; i < (rows.len() as i64) } {
+            let mut __for_first_492: bool = true;
+            while { if !__for_first_492 { i += 1; } __for_first_492 = false; i < (rows.len() as i64) } {
             let mut row: Value = self.safe_dict(rows.clone(), Value::Int(i), &[]);
             let mut status: Option<String> = self.safe_string_k_opt(row.clone(), "status", &[]);
             if (status.is_some()) {

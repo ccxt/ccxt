@@ -83,7 +83,7 @@ impl crate::exchange_generated::ExchangeBase for CryptomusCore {
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
-                "fetch_canceled_and_closed_orders" => self.fetch_canceled_and_closed_orders(&args[..]).await,
+                "fetch_canceled_and_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_canceled_and_closed_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_currencies" => crate::types::IntoRaw::into_raw(self.fetch_currencies(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_markets" => crate::types::IntoRaw::into_raw(self.fetch_markets(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_open_orders" => crate::types::IntoRaw::into_raw(self.fetch_open_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -760,8 +760,8 @@ impl CryptomusCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_600: bool = true;
-            while { if !__for_first_600 { i += 1; } __for_first_600 = false; i < (rawCurrency.len() as i64) } {
+            let mut __for_first_601: bool = true;
+            while { if !__for_first_601 { i += 1; } __for_first_601 = false; i < (rawCurrency.len() as i64) } {
             let mut networkEntry: Value = self.safe_dict(rawCurrency.clone(), Value::Int(i), &[]);
             // set ID on first loop
             if (id == Value::Null) {
@@ -1123,8 +1123,8 @@ impl CryptomusCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_601: bool = true;
-            while { if !__for_first_601 { i += 1; } __for_first_601 = false; i < (balance.len() as i64) } {
+            let mut __for_first_602: bool = true;
+            while { if !__for_first_602 { i += 1; } __for_first_602 = false; i < (balance.len() as i64) } {
             let mut balanceEntry: Value = self.safe_dict(balance.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balanceEntry.clone(), "ticker", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -1291,7 +1291,12 @@ impl CryptomusCore {
  * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn fetch_canceled_and_closed_orders(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_canceled_and_closed_orders(&mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -1359,15 +1364,15 @@ impl CryptomusCore {
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_602: bool = true;
-            while { if !__for_first_602 { i += 1; } __for_first_602 = false; i < (result.len() as i64) } {
+            let mut __for_first_603: bool = true;
+            while { if !__for_first_603 { i += 1; } __for_first_603 = false; i < (result.len() as i64) } {
             orders.push(self.parse_order(result.get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]));
         }
         }
         return Value::from(orders);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -1665,8 +1670,8 @@ impl CryptomusCore {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_603: bool = true;
-            while { if !__for_first_603 { i += 1; } __for_first_603 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_604: bool = true;
+            while { if !__for_first_604 { i += 1; } __for_first_604 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1692,8 +1697,8 @@ impl CryptomusCore {
         let mut makerFees: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_604: bool = true;
-            while { if !__for_first_604 { i += 1; } __for_first_604 = false; i < (feeTiers.len() as i64) } {
+            let mut __for_first_605: bool = true;
+            while { if !__for_first_605 { i += 1; } __for_first_605 = false; i < (feeTiers.len() as i64) } {
             let mut tier: Value = self.safe_dict(feeTiers.clone(), Value::Int(i), &[]);
             let mut turnover: Value = self.safe_number_k(tier.clone(), "from_turnover", &[]);
             let mut taker: Value = self.safe_string_k(tier.clone(), "taker_percent", &[]);

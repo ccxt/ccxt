@@ -99,11 +99,11 @@ impl crate::exchange_generated::ExchangeBase for FoxbitCore {
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_orders" => self.create_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_str).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
-                "fetch_canceled_orders" => self.fetch_canceled_orders(&args[..]).await,
+                "fetch_canceled_orders" => crate::types::IntoRaw::into_raw(self.fetch_canceled_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_currencies" => crate::types::IntoRaw::into_raw(self.fetch_currencies(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_deposit_address" => crate::types::IntoRaw::into_raw(self.fetch_deposit_address(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -720,8 +720,8 @@ impl FoxbitCore {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_673: bool = true;
-            while { if !__for_first_673 { j += 1; } __for_first_673 = false; j < (networks.len() as i64) } {
+            let mut __for_first_674: bool = true;
+            while { if !__for_first_674 { j += 1; } __for_first_674 = false; j < (networks.len() as i64) } {
             let mut network: Value = self.safe_dict(networks.clone(), Value::Int(j), &[]);
             let mut networkId: Option<String> = self.safe_string_k_opt(network.clone(), "code", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
@@ -1088,8 +1088,8 @@ impl FoxbitCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_674: bool = true;
-            while { if !__for_first_674 { i += 1; } __for_first_674 = false; i < (data.len() as i64) } {
+            let mut __for_first_675: bool = true;
+            while { if !__for_first_675 { i += 1; } __for_first_675 = false; i < (data.len() as i64) } {
             let mut entry: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "market_symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
@@ -1316,8 +1316,8 @@ impl FoxbitCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_675: bool = true;
-            while { if !__for_first_675 { i += 1; } __for_first_675 = false; i < (accounts.len() as i64) } {
+            let mut __for_first_676: bool = true;
+            while { if !__for_first_676 { i += 1; } __for_first_676 = false; i < (accounts.len() as i64) } {
             let mut account: Value = self.safe_dict(accounts.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(account.clone(), "currency_symbol", &[]);
             let mut currencyCode: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -1399,7 +1399,12 @@ impl FoxbitCore {
         }).await?))
     }
 
-    pub async fn fetch_canceled_orders(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_canceled_orders(&mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -1408,9 +1413,9 @@ impl FoxbitCore {
     m
 }));
         return self.fetch_orders_by_status(Value::Str("CANCELED".into()), &[symbol, since, limit, params]).await;
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub async fn fetch_orders_by_status(&mut self, mut status: Value, optional_args: &[Value]) -> Value {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
@@ -1548,7 +1553,13 @@ impl FoxbitCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_orders(&mut self, orders: Vec<crate::types::OrderRequest>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(orders), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut orders = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1559,8 +1570,8 @@ impl FoxbitCore {
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_676: bool = true;
-            while { if !__for_first_676 { i += 1; } __for_first_676 = false; i < (orders.len() as i64) } {
+            let mut __for_first_677: bool = true;
+            while { if !__for_first_677 { i += 1; } __for_first_677 = false; i < (orders.len() as i64) } {
             let mut order: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(order.clone(), "symbol", &[]);
             let mut market: indexmap::IndexMap<String, Value> = self.market(symbol.clone().map(Value::from).unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
@@ -1638,9 +1649,9 @@ impl FoxbitCore {
         // }
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         return self.parse_orders(data, &[]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -2893,8 +2904,8 @@ impl FoxbitCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_677: bool = true;
-                while { if !__for_first_677 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_677 = false; i.as_f64().unwrap_or(f64::NAN) < ((paramKeys.len() as i64) as f64) } {
+                let mut __for_first_678: bool = true;
+                while { if !__for_first_678 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_678 = false; i.as_f64().unwrap_or(f64::NAN) < ((paramKeys.len() as i64) as f64) } {
                 let mut key: Value = paramKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                 let mut value: Option<String> = self.safe_string_opt(paramsOmitted.clone(), key.clone(), &[]);
                 if (value.is_some()) {
@@ -2953,8 +2964,8 @@ impl FoxbitCore {
         if (details != Value::Null) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_678: bool = true;
-                while { if !__for_first_678 { i += 1; } __for_first_678 = false; i < (details.len() as i64) } {
+                let mut __for_first_679: bool = true;
+                while { if !__for_first_679 { i += 1; } __for_first_679 = false; i < (details.len() as i64) } {
                 detailsString = Value::Str(format!("{}{}", Value::Str(format!("{}{}", detailsString, self.safe_string(details.clone(), Value::Int(i), &[Value::Str("".into())])).into()), Value::Str(" ".into())).into());
             }
             }

@@ -2102,15 +2102,15 @@ impl NadoCore {
         let mut client: Value = self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_509: bool = true;
-            while { if !__for_first_509 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_509 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-            let mut messageHash: Value = self.safe_string(messageHashes.clone(), i.clone(), &[Value::Str("".into())]);
+            while { if !__for_first_509 { i += 1; } __for_first_509 = false; i < (messageHashes.len() as i64) } {
+            let mut messageHash: Value = self.safe_string(messageHashes.clone(), Value::Int(i), &[Value::Str("".into())]);
             let mut clientSubscription: Value = self.safe_value(__ch.subscriptions.clone(), messageHash, &[]);
             if (clientSubscription == Value::Null) {
-                let mut market: Value = markets.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                let mut market: Value = markets.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut id: Value = self.request_id();
-                let mut requestParams: Value = (if (subscriptionParams == Value::Null) { params.clone() } else { subscriptionParams.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null) });
+                let mut requestParams: Value = (if (subscriptionParams == Value::Null) { params.clone() } else { subscriptionParams.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null) });
                 let mut request: indexmap::IndexMap<String, Value> = self.create_public_subscription_request(Value::Str("subscribe".into()), streamType.clone(), &[market.clone(), id, requestParams]).as_map().cloned().unwrap_or_default();
                 let mut subscribeHash: Value = Value::Str(format!("{}{}", Value::Str("subscribe:".into()), json_stringify(&request.get("stream").cloned().unwrap_or(Value::Null))).into());
                 let mut streamSubscription: Value = self.safe_value(__ch.subscriptions.clone(), subscribeHash.clone(), &[]);
@@ -2176,14 +2176,14 @@ impl NadoCore {
         let mut client: Value = self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_510: bool = true;
-            while { if !__for_first_510 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_510 = false; i.as_f64().unwrap_or(f64::NAN) < ((messageHashes.len() as i64) as f64) } {
-            let mut messageHash: Value = self.safe_string(messageHashes.clone(), i.clone(), &[Value::Str("".into())]);
+            while { if !__for_first_510 { i += 1; } __for_first_510 = false; i < (messageHashes.len() as i64) } {
+            let mut messageHash: Value = self.safe_string(messageHashes.clone(), Value::Int(i), &[Value::Str("".into())]);
             let mut id: Value = self.request_id();
             let mut unsubscribeHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), messageHash).into());
-            let mut requestParams: Value = (if (subscriptionParams == Value::Null) { params.clone() } else { subscriptionParams.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null) });
-            let mut request: Value = self.create_public_subscription_request(Value::Str("unsubscribe".into()), streamType.clone(), &[markets.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), id.clone(), requestParams]);
+            let mut requestParams: Value = (if (subscriptionParams == Value::Null) { params.clone() } else { subscriptionParams.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null) });
+            let mut request: Value = self.create_public_subscription_request(Value::Str("unsubscribe".into()), streamType.clone(), &[markets.get(i as usize).cloned().unwrap_or(Value::Null), id.clone(), requestParams]);
             let mut subscription: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id);

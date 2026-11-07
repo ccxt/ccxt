@@ -89,7 +89,7 @@ impl crate::exchange_generated::ExchangeBase for BtcmarketsCore {
             match method {
                 "calculate_fee" => self.calculate_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..]),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
-                "cancel_orders" => self.cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
@@ -1037,8 +1037,8 @@ impl BtcmarketsCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_472: bool = true;
-            while { if !__for_first_472 { i += 1; } __for_first_472 = false; i < (response.len() as i64) } {
+            let mut __for_first_473: bool = true;
+            while { if !__for_first_473 { i += 1; } __for_first_473 = false; i < (response.len() as i64) } {
             let mut balance: Value = self.safe_dict(response.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "assetName", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -1530,7 +1530,13 @@ impl BtcmarketsCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
+    pub async fn cancel_orders(&mut self, ids: Vec<String>, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![Value::from(Some(ids)), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut ids = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1542,8 +1548,8 @@ impl BtcmarketsCore {
         let mut numericIds: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_473: bool = true;
-            while { if !__for_first_473 { i += 1; } __for_first_473 = false; i < (ids.len() as i64) } {
+            let mut __for_first_474: bool = true;
+            while { if !__for_first_474 { i += 1; } __for_first_474 = false; i < (ids.len() as i64) } {
             // numericIds[i] = parseInt (ids[i]);
             numericIds.push(self.parse_to_int(self.safe_string(ids.clone(), Value::Int(i), &[])));
         }
@@ -1577,9 +1583,9 @@ impl BtcmarketsCore {
         let mut unprocessedRequests: Value = self.safe_list_k(response, "unprocessedRequests", &[Value::from(vec![])]);
         let mut orders: Value = self.array_concat(cancelOrders, unprocessedRequests);
         return self.parse_orders(orders, &[]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method

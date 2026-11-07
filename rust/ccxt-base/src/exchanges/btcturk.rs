@@ -603,8 +603,8 @@ impl BtcturkCore {
         let mut minCost: Value = Value::Null;
         {
                         let mut j: i64 = 0;
-            let mut __for_first_474: bool = true;
-            while { if !__for_first_474 { j += 1; } __for_first_474 = false; j < (filters.len() as i64) } {
+            let mut __for_first_475: bool = true;
+            while { if !__for_first_475 { j += 1; } __for_first_475 = false; j < (filters.len() as i64) } {
             let mut filter: Value = self.safe_dict(filters.clone(), Value::Int(j), &[]);
             let mut filterType: Option<String> = self.safe_string_k(filter.clone(), "filterType", &[]).as_str().map(str::to_owned);
             if (filterType.as_deref() == Some("PRICE_FILTER")) {
@@ -695,8 +695,8 @@ impl BtcturkCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_475: bool = true;
-            while { if !__for_first_475 { i += 1; } __for_first_475 = false; i < (data.len() as i64) } {
+            let mut __for_first_476: bool = true;
+            while { if !__for_first_476 { i += 1; } __for_first_476 = false; i < (data.len() as i64) } {
             let mut entry: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(entry.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -1156,8 +1156,8 @@ impl BtcturkCore {
         let mut volume: Value = self.safe_list_k(ohlcvs, "v", &[Value::from(vec![])]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_476: bool = true;
-            while { if !__for_first_476 { i += 1; } __for_first_476 = false; i < (timestamp.len() as i64) } {
+            let mut __for_first_477: bool = true;
+            while { if !__for_first_477 { i += 1; } __for_first_477 = false; i < (timestamp.len() as i64) } {
             let mut ohlcv: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("timestamp".to_string(), self.safe_integer(timestamp.clone(), Value::Int(i), &[]));

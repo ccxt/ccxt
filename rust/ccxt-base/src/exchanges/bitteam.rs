@@ -96,7 +96,7 @@ impl crate::exchange_generated::ExchangeBase for BitteamCore {
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
-                "fetch_canceled_orders" => self.fetch_canceled_orders(&args[..]).await,
+                "fetch_canceled_orders" => crate::types::IntoRaw::into_raw(self.fetch_canceled_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_currencies" => crate::types::IntoRaw::into_raw(self.fetch_currencies(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_deposits_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_deposits_withdrawals(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -1059,8 +1059,8 @@ impl BitteamCore {
         let mut typeRaw: Option<String> = self.safe_string_k_opt(currency.clone(), "type", &[]);
         {
                         let mut j: i64 = 0;
-            let mut __for_first_440: bool = true;
-            while { if !__for_first_440 { j += 1; } __for_first_440 = false; j < (networkIds.len() as i64) } {
+            let mut __for_first_441: bool = true;
+            while { if !__for_first_441 { j += 1; } __for_first_441 = false; j < (networkIds.len() as i64) } {
             let mut networkId: Value = networkIds.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
             let mut networkFee: Value = self.safe_number(feesByNetworkId.clone(), networkId.clone(), &[]);
@@ -1598,7 +1598,12 @@ impl BitteamCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
-    pub async fn fetch_canceled_orders(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_canceled_orders(&mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -1616,9 +1621,9 @@ impl BitteamCore {
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), __ws_arg_6).await);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -2051,8 +2056,8 @@ impl BitteamCore {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_441: bool = true;
-            while { if !__for_first_441 { i += 1; } __for_first_441 = false; i < (rawTickers.len() as i64) } {
+            let mut __for_first_442: bool = true;
+            while { if !__for_first_442 { i += 1; } __for_first_442 = false; i < (rawTickers.len() as i64) } {
             let mut rawTicker: Value = rawTickers.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut ticker: Value = self.parse_ticker(rawTicker, &[]);
             tickers.push(ticker);
@@ -2857,8 +2862,8 @@ impl BitteamCore {
         let mut rawCurrencyIds: Vec<Value> = Value::Array(balanceByCurrencies.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_442: bool = true;
-            while { if !__for_first_442 { i += 1; } __for_first_442 = false; i < (rawCurrencyIds.len() as i64) } {
+            let mut __for_first_443: bool = true;
+            while { if !__for_first_443 { i += 1; } __for_first_443 = false; i < (rawCurrencyIds.len() as i64) } {
             let mut rawCurrencyId: Value = rawCurrencyIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currencyBalance: Value = self.safe_dict(result.clone(), rawCurrencyId.clone(), &[]);
             let mut free: Option<String> = self.safe_string_k_opt(currencyBalance.clone(), "free", &[]);

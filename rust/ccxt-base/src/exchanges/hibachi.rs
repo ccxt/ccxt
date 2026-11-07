@@ -102,18 +102,18 @@ impl crate::exchange_generated::ExchangeBase for HibachiCore {
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_order_request" => self.cancel_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "cancel_orders" => self.cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_order_request" => self.create_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..]),
-                "create_orders" => self.create_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_str).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "edit_order_request" => self.edit_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..]),
-                "edit_orders" => self.edit_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "edit_orders" => crate::types::IntoRaw::into_raw(self.edit_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "encode_withdraw_message" => self.encode_withdraw_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
-                "fetch_canceled_orders" => self.fetch_canceled_orders(&args[..]).await,
+                "fetch_canceled_orders" => crate::types::IntoRaw::into_raw(self.fetch_canceled_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_deposit_address" => crate::types::IntoRaw::into_raw(self.fetch_deposit_address(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_deposits" => crate::types::IntoRaw::into_raw(self.fetch_deposits(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -1305,8 +1305,8 @@ impl HibachiCore {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_732: bool = true;
-            while { if !__for_first_732 { i += 1; } __for_first_732 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_733: bool = true;
+            while { if !__for_first_733 { i += 1; } __for_first_733 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1492,7 +1492,13 @@ impl HibachiCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_orders(&mut self, orders: Vec<crate::types::OrderRequest>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(orders), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut orders = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1505,8 +1511,8 @@ impl HibachiCore {
         let mut requestOrders: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_733: bool = true;
-            while { if !__for_first_733 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_733 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut __for_first_734: bool = true;
+            while { if !__for_first_734 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_734 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             let mut type_var: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "type", &[]);
@@ -1538,8 +1544,8 @@ impl HibachiCore {
         let mut responseOrders: Vec<Value> = self.safe_list_k(response, "orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_734: bool = true;
-            while { if !__for_first_734 { i += 1; } __for_first_734 = false; i < (responseOrders.len() as i64) } {
+            let mut __for_first_735: bool = true;
+            while { if !__for_first_735 { i += 1; } __for_first_735 = false; i < (responseOrders.len() as i64) } {
             let mut responseOrder: Value = responseOrders.get(i as usize).cloned().unwrap_or(Value::Null);
             ret.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1551,9 +1557,9 @@ impl HibachiCore {
         }
         }
         return Value::from(ret);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn edit_order_request(&self, mut nonce: Value, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
         let mut amount = get_arg(optional_args, 0, Value::Null);
@@ -1647,7 +1653,13 @@ impl HibachiCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn edit_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    pub async fn edit_orders(&mut self, orders: Vec<crate::types::OrderRequest>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(orders), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut orders = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1660,8 +1672,8 @@ impl HibachiCore {
         let mut requestOrders: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_735: bool = true;
-            while { if !__for_first_735 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_735 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
+            let mut __for_first_736: bool = true;
+            while { if !__for_first_736 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_736 = false; i.as_f64().unwrap_or(f64::NAN) < ((orders.len() as i64) as f64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
             let mut id: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "id", &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
@@ -1694,8 +1706,8 @@ impl HibachiCore {
         let mut responseOrders: Vec<Value> = self.safe_list_k(response, "orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_736: bool = true;
-            while { if !__for_first_736 { i += 1; } __for_first_736 = false; i < (responseOrders.len() as i64) } {
+            let mut __for_first_737: bool = true;
+            while { if !__for_first_737 { i += 1; } __for_first_737 = false; i < (responseOrders.len() as i64) } {
             let mut responseOrder: Value = responseOrders.get(i as usize).cloned().unwrap_or(Value::Null);
             ret.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1707,9 +1719,9 @@ impl HibachiCore {
         }
         }
         return Value::from(ret);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn cancel_order_request(&self, mut id: Value) -> Value {
         let mut bigid: Value = self.convert_to_big_int(id.clone());
@@ -1774,7 +1786,13 @@ impl HibachiCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
+    pub async fn cancel_orders(&mut self, ids: Vec<String>, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![Value::from(Some(ids)), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut ids = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1783,8 +1801,8 @@ impl HibachiCore {
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_737: bool = true;
-            while { if !__for_first_737 { i += 1; } __for_first_737 = false; i < (ids.len() as i64) } {
+            let mut __for_first_738: bool = true;
+            while { if !__for_first_738 { i += 1; } __for_first_738 = false; i < (ids.len() as i64) } {
             let mut orderRequest: Value = self.cancel_order_request(self.safe_string(ids.clone(), Value::Int(i), &[Value::Str("".into())]));
             if let Value::Dict(__d) = &mut orderRequest { std::sync::Arc::make_mut(__d).insert("action".into(), Value::Str("cancel".into())); }
             orders.push(orderRequest);
@@ -1805,8 +1823,8 @@ impl HibachiCore {
         let mut responseOrders: Vec<Value> = self.safe_list_k(response, "orders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_738: bool = true;
-            while { if !__for_first_738 { i += 1; } __for_first_738 = false; i < (responseOrders.len() as i64) } {
+            let mut __for_first_739: bool = true;
+            while { if !__for_first_739 { i += 1; } __for_first_739 = false; i < (responseOrders.len() as i64) } {
             let mut responseOrder: Value = responseOrders.get(i as usize).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut ret { std::sync::Arc::make_mut(__a).push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1818,9 +1836,9 @@ impl HibachiCore {
         }
         }
         return ret;
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -2304,7 +2322,12 @@ impl HibachiCore {
  * @param {string} [params.cursorOrderId] pagination cursor, returns orders with orderId strictly less than this value
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn fetch_canceled_orders(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_canceled_orders(&mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -2315,9 +2338,9 @@ impl HibachiCore {
         let mut orders: Value = self.fetch_orders_by_status(Value::Null, &[symbol, since.clone(), limit.clone(), params]).await;
         let mut filtered: Value = self.filter_by(orders, Value::Str("status".into()), Value::Str("canceled".into()), &[]);
         return self.filter_by_since_limit(filtered, &[since, limit]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -3053,10 +3076,10 @@ impl HibachiCore {
         let settlements = settlements.as_array().unwrap_or(&__settlements_empty);
         let mut result: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_739: bool = true;
-            while { if !__for_first_739 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_739 = false; i.as_f64().unwrap_or(f64::NAN) < ((settlements.len() as i64) as f64) } {
-            result.push(self.parse_settlement(settlements.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[market.clone()]));
+                        let mut i: i64 = 0;
+            let mut __for_first_740: bool = true;
+            while { if !__for_first_740 { i += 1; } __for_first_740 = false; i < (settlements.len() as i64) } {
+            result.push(self.parse_settlement(settlements.get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]));
         }
         }
         return Value::from(result);
@@ -3335,8 +3358,8 @@ impl HibachiCore {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_740: bool = true;
-            while { if !__for_first_740 { i += 1; } __for_first_740 = false; i < (data.len() as i64) } {
+            let mut __for_first_741: bool = true;
+            while { if !__for_first_741 { i += 1; } __for_first_741 = false; i < (data.len() as i64) } {
             let mut entry: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.safe_integer_product_k(entry.clone(), "fundingTimestamp", Value::Int(1000), &[]);
             rates.push(Value::Map({

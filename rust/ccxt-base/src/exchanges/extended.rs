@@ -118,7 +118,7 @@ impl crate::exchange_generated::ExchangeBase for ExtendedCore {
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_all_orders_after" => self.cancel_all_orders_after(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
-                "cancel_orders" => self.cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "create_extended_order_request" => self.create_extended_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
@@ -130,7 +130,7 @@ impl crate::exchange_generated::ExchangeBase for ExtendedCore {
                 "fetch_account" => self.fetch_account(&args[..]).await,
                 "fetch_accounts" => self.fetch_accounts(&args[..]).await,
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
-                "fetch_canceled_orders" => self.fetch_canceled_orders(&args[..]).await,
+                "fetch_canceled_orders" => crate::types::IntoRaw::into_raw(self.fetch_canceled_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_currencies" => crate::types::IntoRaw::into_raw(self.fetch_currencies(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_deposits" => crate::types::IntoRaw::into_raw(self.fetch_deposits(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -894,8 +894,8 @@ impl ExtendedCore {
         let mut keys: Vec<Value> = Value::Array(input.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_659: bool = true;
-            while { if !__for_first_659 { i += 1; } __for_first_659 = false; i < (keys.len() as i64) } {
+            let mut __for_first_660: bool = true;
+            while { if !__for_first_660 { i += 1; } __for_first_660 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut item: Value = self.safe_dict(input.clone(), key, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1406,8 +1406,8 @@ impl ExtendedCore {
             let mut marketIds: Vec<Value> = vec![];
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_660: bool = true;
-                while { if !__for_first_660 { i += 1; } __for_first_660 = false; i < (symbolsNormalized.len() as i64) } {
+                let mut __for_first_661: bool = true;
+                while { if !__for_first_661 { i += 1; } __for_first_661 = false; i < (symbolsNormalized.len() as i64) } {
                 let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                 marketIds.push(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             }
@@ -1440,8 +1440,8 @@ impl ExtendedCore {
         };
         {
                         let mut i: i64 = 0;
-            let mut __for_first_661: bool = true;
-            while { if !__for_first_661 { i += 1; } __for_first_661 = false; i < (data.len() as i64) } {
+            let mut __for_first_662: bool = true;
+            while { if !__for_first_662 { i += 1; } __for_first_662 = false; i < (data.len() as i64) } {
             let mut marketData: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(marketData.clone(), "name", &[]);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
@@ -1733,8 +1733,8 @@ impl ExtendedCore {
         let mut dataLength: Value = Value::Int(data.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_662: bool = true;
-            while { if !__for_first_662 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_662 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_663: bool = true;
+            while { if !__for_first_663 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_663 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
             let mut entry: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1837,8 +1837,8 @@ impl ExtendedCore {
         let mut dataLength: Value = Value::Int(data.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_663: bool = true;
-            while { if !__for_first_663 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_663 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_664: bool = true;
+            while { if !__for_first_664 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_664 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
             let mut entry: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1901,8 +1901,8 @@ impl ExtendedCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_664: bool = true;
-            while { if !__for_first_664 { i += 1; } __for_first_664 = false; i < (histories.len() as i64) } {
+            let mut __for_first_665: bool = true;
+            while { if !__for_first_665 { i += 1; } __for_first_665 = false; i < (histories.len() as i64) } {
             result.push(self.parse_funding_history(self.safe_dict(histories.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2160,8 +2160,8 @@ impl ExtendedCore {
         let mut dataLength: Value = Value::Int(data.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_665: bool = true;
-            while { if !__for_first_665 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_665 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_666: bool = true;
+            while { if !__for_first_666 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_666 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
             let mut entry: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2368,8 +2368,8 @@ impl ExtendedCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_666: bool = true;
-            while { if !__for_first_666 { i += 1; } __for_first_666 = false; i < (response.len() as i64) } {
+            let mut __for_first_667: bool = true;
+            while { if !__for_first_667 { i += 1; } __for_first_667 = false; i < (response.len() as i64) } {
             let mut balance: Value = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2547,8 +2547,8 @@ impl ExtendedCore {
         let mut dataLength: Value = Value::Int(data.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_667: bool = true;
-            while { if !__for_first_667 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_667 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_668: bool = true;
+            while { if !__for_first_668 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_668 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
             let mut entry: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2702,8 +2702,8 @@ impl ExtendedCore {
         let mut dataLength: Value = Value::Int(data.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_668: bool = true;
-            while { if !__for_first_668 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_668 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_669: bool = true;
+            while { if !__for_first_669 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_669 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
             let mut entry: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2940,8 +2940,8 @@ impl ExtendedCore {
         let mut dataLength: Value = Value::Int(data.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_669: bool = true;
-            while { if !__for_first_669 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_669 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_670: bool = true;
+            while { if !__for_first_670 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_670 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
             let mut entry: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3295,8 +3295,8 @@ impl ExtendedCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_670: bool = true;
-            while { if !__for_first_670 { i += 1; } __for_first_670 = false; i < (data.len() as i64) } {
+            let mut __for_first_671: bool = true;
+            while { if !__for_first_671 { i += 1; } __for_first_671 = false; i < (data.len() as i64) } {
             let mut fee: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3637,8 +3637,8 @@ impl ExtendedCore {
         let mut dataLength: Value = Value::Int(data.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_671: bool = true;
-            while { if !__for_first_671 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_671 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_672: bool = true;
+            while { if !__for_first_672 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_672 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
             let mut entry: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4462,7 +4462,13 @@ impl ExtendedCore {
  * @param {string} [params.clientOrderId] single client order id
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
+    pub async fn cancel_orders(&mut self, ids: Vec<String>, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![Value::from(Some(ids)), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut ids = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4500,9 +4506,9 @@ impl ExtendedCore {
         let __ws_arg_25 = self.extend(Value::Map(request), &[paramsOmitted]);
         self.v1_private_post_user_order_mass_cancel(&[__ws_arg_25]).await;
         return Value::from(vec![]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -4797,8 +4803,8 @@ impl ExtendedCore {
         let mut dataLength: Value = Value::Int(data.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_672: bool = true;
-            while { if !__for_first_672 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_672 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_673: bool = true;
+            while { if !__for_first_673 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_673 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength.as_f64().unwrap_or(f64::NAN) } {
             let mut entry: Value = self.safe_dict(data.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4863,7 +4869,12 @@ impl ExtendedCore {
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn fetch_canceled_orders(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_canceled_orders(&mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -4874,9 +4885,9 @@ impl ExtendedCore {
         let mut orders: Value = crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since.as_i64(), None, params).await);
         let mut canceledOrders: Value = self.filter_by(orders, Value::Str("status".into()), Value::Str("canceled".into()), &[]);
         return self.filter_by_symbol_since_limit(canceledOrders, &[symbol, since, limit]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: indexmap::IndexMap<String, Value> = ({

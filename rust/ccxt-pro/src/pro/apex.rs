@@ -609,11 +609,11 @@ impl ApexCore {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut newTopics: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
-            while { if !__for_first_4 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_4 = false; i.as_f64().unwrap_or(f64::NAN) < ((topics.len() as i64) as f64) } {
-            if !(in_op(&__ch.subscriptions.clone(), &messageHashes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null))) {
-                newTopics.push(topics.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
+            while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (topics.len() as i64) } {
+            if !(in_op(&__ch.subscriptions.clone(), &messageHashes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null))) {
+                newTopics.push(topics.get(i as usize).cloned().unwrap_or(Value::Null));
             }
         }
         }
@@ -734,10 +734,10 @@ impl ApexCore {
         let __deltas_empty = Vec::new();
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
-            while { if !__for_first_5 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_5 = false; i.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
-            self.handle_delta(bookside.clone(), deltas.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
+            while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (deltas.len() as i64) } {
+            self.handle_delta(bookside.clone(), deltas.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
 }

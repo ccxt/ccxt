@@ -5246,10 +5246,10 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let subscriptions = subscriptions.as_array().unwrap_or(&__subscriptions_empty);
         let mut accountType: Value = Value::Str("".into());
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_78: bool = true;
-            while { if !__for_first_78 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_78 = false; i.as_f64().unwrap_or(f64::NAN) < ((subscriptions.len() as i64) as f64) } {
-            let mut subscription: Value = subscriptions.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_78 { i += 1; } __for_first_78 = false; i < (subscriptions.len() as i64) } {
+            let mut subscription: Value = subscriptions.get(i as usize).cloned().unwrap_or(Value::Null);
             if (subscription.as_str() == Some("spot")) || (subscription.as_str() == Some("margin")) || (subscription.as_str() == Some("linear")) || (subscription.as_str() == Some("inverse")) || (subscription.as_str() == Some("option")) {
                 accountType = subscription;
                 break;

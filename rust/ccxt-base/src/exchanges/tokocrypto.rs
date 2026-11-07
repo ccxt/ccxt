@@ -1146,8 +1146,8 @@ impl TokocryptoCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1116: bool = true;
-            while { if !__for_first_1116 { i += 1; } __for_first_1116 = false; i < (list.len() as i64) } {
+            let mut __for_first_1117: bool = true;
+            while { if !__for_first_1117 { i += 1; } __for_first_1117 = false; i < (list.len() as i64) } {
             let mut market: Value = list.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "baseAsset", &[]);
             let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quoteAsset", &[]);
@@ -1168,8 +1168,8 @@ impl TokocryptoCore {
             let mut permissions: Value = self.safe_list_k(market.clone(), "permissions", &[Value::from(vec![])]);
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_1115: bool = true;
-                while { if !__for_first_1115 { j += 1; } __for_first_1115 = false; j < (permissions.len() as i64) } {
+                let mut __for_first_1116: bool = true;
+                while { if !__for_first_1116 { j += 1; } __for_first_1116 = false; j < (permissions.len() as i64) } {
                 if (self.safe_string(permissions.clone(), Value::Int(j), &[]).as_str() == Some("TRD_GRP_003")) {
                     active = Value::Bool(false);
                     break;
@@ -2091,8 +2091,8 @@ impl TokocryptoCore {
         let mut balances: Value = self.safe_list_k(data, "accountAssets", &[Value::from(vec![])]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1117: bool = true;
-            while { if !__for_first_1117 { i += 1; } __for_first_1117 = false; i < (balances.len() as i64) } {
+            let mut __for_first_1118: bool = true;
+            while { if !__for_first_1118 { i += 1; } __for_first_1118 = false; i < (balances.len() as i64) } {
             let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -3624,8 +3624,8 @@ if _try_result.is_err() {
             let mut limit: Value = self.safe_integer_k(paramsDict.clone(), "limit", &[]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1118: bool = true;
-                while { if !__for_first_1118 { i += 1; } __for_first_1118 = false; i < (byLimit.len() as i64) } {
+                let mut __for_first_1119: bool = true;
+                while { if !__for_first_1119 { i += 1; } __for_first_1119 = false; i < (byLimit.len() as i64) } {
                 let mut entry: Value = byLimit.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut entryLimit: Value = self.safe_integer(entry.clone(), Value::Int(0), &[]);
                 if (limit != Value::Null) && (entryLimit != Value::Null) && (limit.as_f64().unwrap_or(f64::NAN) <= entryLimit.as_f64().unwrap_or(f64::NAN)) {

@@ -130,11 +130,11 @@ impl crate::exchange_generated::ExchangeBase for WoofiproCore {
                 "add_margin" => crate::types::IntoRaw::into_raw(self.add_margin(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
-                "cancel_orders" => self.cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_order_request" => self.create_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
-                "create_orders" => self.create_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_str).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
@@ -159,7 +159,7 @@ impl crate::exchange_generated::ExchangeBase for WoofiproCore {
                 "fetch_open_orders" => crate::types::IntoRaw::into_raw(self.fetch_open_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
-                "fetch_order_trades" => self.fetch_order_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_order_trades" => crate::types::IntoRaw::into_raw(self.fetch_order_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "fetch_orders" => crate::types::IntoRaw::into_raw(self.fetch_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_position" => crate::types::IntoRaw::into_raw(self.fetch_position(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -1693,8 +1693,8 @@ impl WoofiproCore {
         let mut indexedChains: Value = self.index_by(chainRows, Value::Str("chain_id".into()));
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1166: bool = true;
-            while { if !__for_first_1166 { i += 1; } __for_first_1166 = false; i < (tokenRows.len() as i64) } {
+            let mut __for_first_1167: bool = true;
+            while { if !__for_first_1167 { i += 1; } __for_first_1167 = false; i < (tokenRows.len() as i64) } {
             let mut token: Value = tokenRows.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_currency(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1733,8 +1733,8 @@ impl WoofiproCore {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_1167: bool = true;
-            while { if !__for_first_1167 { j += 1; } __for_first_1167 = false; j < (networks.len() as i64) } {
+            let mut __for_first_1168: bool = true;
+            while { if !__for_first_1168 { j += 1; } __for_first_1168 = false; j < (networks.len() as i64) } {
             let mut networkEntry: Value = networks.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Option<String> = self.safe_string_k_opt(networkEntry.clone(), "chain_id", &[]);
             let mut networkRow: Value = self.safe_dict(indexedChains.clone(), networkId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
@@ -2318,8 +2318,8 @@ impl WoofiproCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1168: bool = true;
-            while { if !__for_first_1168 { i += 1; } __for_first_1168 = false; i < (rows.len() as i64) } {
+            let mut __for_first_1169: bool = true;
+            while { if !__for_first_1169 { i += 1; } __for_first_1169 = false; i < (rows.len() as i64) } {
             let mut row: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(row.clone(), "symbol", &[Value::Str("".into())]);
             if (self.markets_by_id.clone() == Value::Null) || !(matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -2472,8 +2472,8 @@ impl WoofiproCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1169: bool = true;
-            while { if !__for_first_1169 { i += 1; } __for_first_1169 = false; i < (rows.len() as i64) } {
+            let mut __for_first_1170: bool = true;
+            while { if !__for_first_1170 { i += 1; } __for_first_1170 = false; i < (rows.len() as i64) } {
             let mut row: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Value = self.safe_string_k(row.clone(), "symbol", &[Value::Str("".into())]);
             if (self.markets_by_id.clone() == Value::Null) || !(matches!((&self.markets_by_id, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -2572,8 +2572,8 @@ impl WoofiproCore {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1170: bool = true;
-            while { if !__for_first_1170 { i += 1; } __for_first_1170 = false; i < (result.len() as i64) } {
+            let mut __for_first_1171: bool = true;
+            while { if !__for_first_1171 { i += 1; } __for_first_1171 = false; i < (result.len() as i64) } {
             let mut entry: Value = result.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "symbol", &[]);
             let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "funding_rate_timestamp", &[]).as_i64();
@@ -2783,8 +2783,8 @@ impl WoofiproCore {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1171: bool = true;
-            while { if !__for_first_1171 { i += 1; } __for_first_1171 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_1172: bool = true;
+            while { if !__for_first_1172 { i += 1; } __for_first_1172 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3309,7 +3309,13 @@ impl WoofiproCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_orders(&mut self, orders: Vec<crate::types::OrderRequest>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(orders), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut orders = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3320,8 +3326,8 @@ impl WoofiproCore {
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1172: bool = true;
-            while { if !__for_first_1172 { i += 1; } __for_first_1172 = false; i < (orders.len() as i64) } {
+            let mut __for_first_1173: bool = true;
+            while { if !__for_first_1173 { i += 1; } __for_first_1173 = false; i < (orders.len() as i64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             let mut type_var: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "type", &[]);
@@ -3374,9 +3380,9 @@ impl WoofiproCore {
 })]);
         let mut rows: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
         return self.parse_orders(rows, &[]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -3612,7 +3618,13 @@ impl WoofiproCore {
  * @param {string[]} [params.client_order_ids] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
+    pub async fn cancel_orders(&mut self, ids: Vec<String>, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![Value::from(Some(ids)), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut ids = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3642,9 +3654,9 @@ impl WoofiproCore {
         m.insert("info".to_string(), response);
     m
 }), &[])]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -4012,7 +4024,13 @@ impl WoofiproCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-    pub async fn fetch_order_trades(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_order_trades(&mut self, id: &str, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Trade>> {
+        let __args: Vec<Value> = vec![Value::from(id), symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut id = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -4061,9 +4079,9 @@ impl WoofiproCore {
 })]);
         let mut trades: Value = self.safe_list_k(data, "rows", &[Value::from(vec![])]);
         return self.parse_trades(trades, &[market, since, limit, params]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -4167,8 +4185,8 @@ impl WoofiproCore {
         let mut balances: Value = self.safe_list_k(response, "holding", &[Value::from(vec![])]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1173: bool = true;
-            while { if !__for_first_1173 { i += 1; } __for_first_1173 = false; i < (balances.len() as i64) } {
+            let mut __for_first_1174: bool = true;
+            while { if !__for_first_1174 { i += 1; } __for_first_1174 = false; i < (balances.len() as i64) } {
             let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "token", &[]), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -5372,8 +5390,8 @@ impl WoofiproCore {
                         let mut ordersList: Vec<Value> = self.safe_list(Value::Map(requestParams.clone()), Value::Str("orders".into()), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                         {
                                                         let mut i: Value = Value::Int(0);
-                            let mut __for_first_1174: bool = true;
-                            while { if !__for_first_1174 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1174 = false; i.as_f64().unwrap_or(f64::NAN) < ((ordersList.len() as i64) as f64) } {
+                            let mut __for_first_1175: bool = true;
+                            while { if !__for_first_1175 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1175 = false; i.as_f64().unwrap_or(f64::NAN) < ((ordersList.len() as i64) as f64) } {
                             add_element_to_object(get_value_mut(requestParams.entry("orders".into()).or_default(), &i), &Value::Str("order_tag".into()), brokerId.clone());
                         }
                         }

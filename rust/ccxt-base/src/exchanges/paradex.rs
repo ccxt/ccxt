@@ -122,11 +122,11 @@ impl crate::exchange_generated::ExchangeBase for ParadexCore {
                 "authenticate_rest" => self.authenticate_rest(&args[..]).await,
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
-                "cancel_orders" => self.cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_order_request" => self.create_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
-                "create_orders" => self.create_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_str).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "fetch_all_greeks" => self.fetch_all_greeks(&args[..]).await,
@@ -1731,8 +1731,8 @@ impl ParadexCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1053: bool = true;
-            while { if !__for_first_1053 { i += 1; } __for_first_1053 = false; i < (fees.len() as i64) } {
+            let mut __for_first_1054: bool = true;
+            while { if !__for_first_1054 { i += 1; } __for_first_1054 = false; i < (fees.len() as i64) } {
             let mut fee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(fees.get(i as usize).cloned().unwrap_or(Value::Null), &[]).as_map().cloned().unwrap_or_default();
             let mut symbol: Value = fee.get("symbol").cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map(fee)); }
@@ -2298,8 +2298,8 @@ impl ParadexCore {
         let mut trades: Value = self.safe_list_k(response.clone(), "results", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1054: bool = true;
-            while { if !__for_first_1054 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1054 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
+            let mut __for_first_1055: bool = true;
+            while { if !__for_first_1055 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1055 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
             add_element_to_object(get_value_mut(&mut trades, &i), &Value::Str("next".into()), self.safe_string_k(response.clone(), "next", &[]));
         }
         }
@@ -3154,7 +3154,13 @@ impl ParadexCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_orders(&mut self, orders: Vec<crate::types::OrderRequest>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(orders), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut orders = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3166,8 +3172,8 @@ impl ParadexCore {
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1055: bool = true;
-            while { if !__for_first_1055 { i += 1; } __for_first_1055 = false; i < (orders.len() as i64) } {
+            let mut __for_first_1056: bool = true;
+            while { if !__for_first_1056 { i += 1; } __for_first_1056 = false; i < (orders.len() as i64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             let mut type_var: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "type", &[]);
@@ -3215,8 +3221,8 @@ impl ParadexCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1056: bool = true;
-            while { if !__for_first_1056 { i += 1; } __for_first_1056 = false; i < (orders.len() as i64) } {
+            let mut __for_first_1057: bool = true;
+            while { if !__for_first_1057 { i += 1; } __for_first_1057 = false; i < (orders.len() as i64) } {
             let mut responseOrder: Value = self.safe_dict(responseOrders.clone(), Value::Int(i), &[]);
             if (responseOrder != Value::Null) {
                 result.push(self.parse_order(responseOrder, &[]));
@@ -3232,9 +3238,9 @@ impl ParadexCore {
         }
         }
         return Value::from(result);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -3295,7 +3301,13 @@ impl ParadexCore {
  * @param {string[]} [params.clientOrderIds] client order ids
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
+    pub async fn cancel_orders(&mut self, ids: Vec<String>, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![Value::from(Some(ids)), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut ids = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3307,7 +3319,7 @@ impl ParadexCore {
         }
         let mut clientOrderIds: Value = self.safe_list_n(params.clone(), Value::from(vec![Value::Str("clOrdIDs".into()), Value::Str("clientOrderIds".into()), Value::Str("client_order_ids".into())]), &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("clOrdIDs".into()), Value::Str("clientOrderIds".into()), Value::Str("client_order_ids".into())]), &[]);
-        let mut hasOrderIds: bool = matches!(&ids, Value::Arr(_));
+        let mut hasOrderIds: bool = ids != Value::Null;
         let mut hasClientOrderIds: bool = (clientOrderIds != Value::Null) && (matches!(&clientOrderIds, Value::Arr(_)));
         if !hasOrderIds && !hasClientOrderIds {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter".into()))));
@@ -3352,8 +3364,8 @@ impl ParadexCore {
         let mut orders: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1057: bool = true;
-            while { if !__for_first_1057 { i += 1; } __for_first_1057 = false; i < (results.len() as i64) } {
+            let mut __for_first_1058: bool = true;
+            while { if !__for_first_1058 { i += 1; } __for_first_1058 = false; i < (results.len() as i64) } {
             let mut result: Value = results.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(result.clone(), "market", &[]);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
@@ -3378,9 +3390,9 @@ impl ParadexCore {
         }
         }
         return orders;
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -3704,8 +3716,8 @@ impl ParadexCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1058: bool = true;
-            while { if !__for_first_1058 { i += 1; } __for_first_1058 = false; i < (response.len() as i64) } {
+            let mut __for_first_1059: bool = true;
+            while { if !__for_first_1059 { i += 1; } __for_first_1059 = false; i < (response.len() as i64) } {
             let mut balance: Value = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3806,8 +3818,8 @@ impl ParadexCore {
         let mut trades: Value = self.safe_list_k(response.clone(), "results", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1059: bool = true;
-            while { if !__for_first_1059 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1059 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
+            let mut __for_first_1060: bool = true;
+            while { if !__for_first_1060 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1060 = false; i.as_f64().unwrap_or(f64::NAN) < ((trades.len() as i64) as f64) } {
             add_element_to_object(get_value_mut(&mut trades, &i), &Value::Str("next".into()), self.safe_string_k(response.clone(), "next", &[]));
         }
         }
@@ -4142,8 +4154,8 @@ impl ParadexCore {
         let mut deposits: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1060: bool = true;
-            while { if !__for_first_1060 { i += 1; } __for_first_1060 = false; i < (rows.len() as i64) } {
+            let mut __for_first_1061: bool = true;
+            while { if !__for_first_1061 { i += 1; } __for_first_1061 = false; i < (rows.len() as i64) } {
             let mut row: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
             if (self.safe_string_k(row.clone(), "kind", &[]).as_str() == Some("DEPOSIT")) {
                 deposits.push(row);
@@ -4231,8 +4243,8 @@ impl ParadexCore {
         let mut deposits: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1061: bool = true;
-            while { if !__for_first_1061 { i += 1; } __for_first_1061 = false; i < (rows.len() as i64) } {
+            let mut __for_first_1062: bool = true;
+            while { if !__for_first_1062 { i += 1; } __for_first_1062 = false; i < (rows.len() as i64) } {
             let mut row: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
             if (self.safe_string_k(row.clone(), "kind", &[]).as_str() == Some("WITHDRAWAL")) {
                 deposits.push(row);
@@ -5077,8 +5089,8 @@ impl ParadexCore {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1062: bool = true;
-            while { if !__for_first_1062 { i += 1; } __for_first_1062 = false; i < (results.len() as i64) } {
+            let mut __for_first_1063: bool = true;
+            while { if !__for_first_1063 { i += 1; } __for_first_1063 = false; i < (results.len() as i64) } {
             let mut rate: Value = results.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Option<i64> = self.safe_integer_k(rate.clone(), "created_at", &[]).as_i64();
             let mut datetime: Value = self.iso8601(Value::from(timestamp));
@@ -5223,8 +5235,8 @@ impl ParadexCore {
             let mut batchErrors: Vec<Value> = self.safe_list_k(response, "errors", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1063: bool = true;
-                while { if !__for_first_1063 { i += 1; } __for_first_1063 = false; i < (batchErrors.len() as i64) } {
+                let mut __for_first_1064: bool = true;
+                while { if !__for_first_1064 { i += 1; } __for_first_1064 = false; i < (batchErrors.len() as i64) } {
                 let mut batchErrorCode: Option<String> = self.safe_string_k_opt(batchErrors.get(i as usize).cloned().unwrap_or(Value::Null), "error", &[]);
                 if (batchErrorCode.is_some()) {
                     errorCode = batchErrorCode.map(Value::from).unwrap_or(Value::Null);

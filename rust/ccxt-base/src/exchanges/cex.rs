@@ -113,7 +113,7 @@ impl crate::exchange_generated::ExchangeBase for CexCore {
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "fetch_accounts" => self.fetch_accounts(&args[..]).await,
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
-                "fetch_closed_order" => self.fetch_closed_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_closed_order" => crate::types::IntoRaw::into_raw(self.fetch_closed_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_currencies" => crate::types::IntoRaw::into_raw(self.fetch_currencies(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_deposit_address" => crate::types::IntoRaw::into_raw(self.fetch_deposit_address(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -121,7 +121,7 @@ impl crate::exchange_generated::ExchangeBase for CexCore {
                 "fetch_ledger" => crate::types::IntoRaw::into_raw(self.fetch_ledger(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_markets" => crate::types::IntoRaw::into_raw(self.fetch_markets(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_ohlcv" => crate::types::IntoRaw::into_raw(self.fetch_ohlcv(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
-                "fetch_open_order" => self.fetch_open_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_open_order" => crate::types::IntoRaw::into_raw(self.fetch_open_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_open_orders" => crate::types::IntoRaw::into_raw(self.fetch_open_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_orders_by_status" => self.fetch_orders_by_status(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -718,8 +718,8 @@ impl CexCore {
         let mut keys: Vec<Value> = Value::Array(rawNetworks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut j: i64 = 0;
-            let mut __for_first_525: bool = true;
-            while { if !__for_first_525 { j += 1; } __for_first_525 = false; j < (keys.len() as i64) } {
+            let mut __for_first_526: bool = true;
+            while { if !__for_first_526 { j += 1; } __for_first_526 = false; j < (keys.len() as i64) } {
             let mut networkId: Value = keys.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut rawNetwork: Value = self.safe_dict(rawNetworks.clone(), networkId.clone(), &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
@@ -1405,8 +1405,8 @@ impl CexCore {
         let mut keys: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_526: bool = true;
-            while { if !__for_first_526 { i += 1; } __for_first_526 = false; i < (keys.len() as i64) } {
+            let mut __for_first_527: bool = true;
+            while { if !__for_first_527 { i += 1; } __for_first_527 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = Value::Null;
             if useKeyAsId.as_bool() == Some(true) {
@@ -1422,8 +1422,8 @@ impl CexCore {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_527: bool = true;
-            while { if !__for_first_527 { i += 1; } __for_first_527 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_528: bool = true;
+            while { if !__for_first_528 { i += 1; } __for_first_528 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if !(matches!((&result, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut market: Value = self.market(symbol.clone());
@@ -1595,8 +1595,8 @@ impl CexCore {
         let mut keys: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_528: bool = true;
-            while { if !__for_first_528 { i += 1; } __for_first_528 = false; i < (keys.len() as i64) } {
+            let mut __for_first_529: bool = true;
+            while { if !__for_first_529 { i += 1; } __for_first_529 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut balance: Value = self.safe_dict(response.clone(), key.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1791,7 +1791,13 @@ impl CexCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn fetch_open_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_open_order(&mut self, id: &str, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Order> {
+        let __args: Vec<Value> = vec![Value::from(id), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut id = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1809,9 +1815,9 @@ impl CexCore {
         let mut result: Value = crate::types::IntoRaw::into_raw(self.fetch_open_orders(symbol.as_str(), None, None, __ws_arg_5).await);
         let mut order: Value = self.safe_dict(result, Value::Int(0), &[]);
         return order;
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -1823,7 +1829,13 @@ impl CexCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn fetch_closed_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_closed_order(&mut self, id: &str, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Order> {
+        let __args: Vec<Value> = vec![Value::from(id), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut id = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1841,9 +1853,9 @@ impl CexCore {
         let mut result: Value = crate::types::IntoRaw::into_raw(self.fetch_closed_orders(symbol.as_str(), None, None, __ws_arg_6).await);
         let mut order: Value = self.safe_dict(result, Value::Int(0), &[]);
         return order;
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: indexmap::IndexMap<String, Value> = ({
@@ -2164,8 +2176,8 @@ impl CexCore {
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_529: bool = true;
-            while { if !__for_first_529 { i += 1; } __for_first_529 = false; i < (ids.len() as i64) } {
+            let mut __for_first_530: bool = true;
+            while { if !__for_first_530 { i += 1; } __for_first_530 = false; i < (ids.len() as i64) } {
             let mut id: Value = ids.get(i as usize).cloned().unwrap_or(Value::Null);
             orders.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();

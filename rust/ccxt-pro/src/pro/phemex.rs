@@ -1149,10 +1149,10 @@ impl PhemexCore {
         let __deltas_empty = Vec::new();
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_601: bool = true;
-            while { if !__for_first_601 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_601 = false; i.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
-            self.custom_handle_delta(bookside.clone(), deltas.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
+            while { if !__for_first_601 { i += 1; } __for_first_601 = false; i < (deltas.len() as i64) } {
+            self.custom_handle_delta(bookside.clone(), deltas.get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
         }
         }
 }

@@ -126,12 +126,12 @@ impl crate::exchange_generated::ExchangeBase for AsterCore {
                 "add_margin" => crate::types::IntoRaw::into_raw(self.add_margin(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
-                "cancel_orders" => self.cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "capitalize_keys" => self.capitalize_keys(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_order_request" => self.create_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
-                "create_orders" => self.create_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_account_positions" => self.fetch_account_positions(&args[..]).await,
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_bids_asks" => crate::types::IntoRaw::into_raw(self.fetch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -149,7 +149,7 @@ impl crate::exchange_generated::ExchangeBase for AsterCore {
                 "fetch_markets" => crate::types::IntoRaw::into_raw(self.fetch_markets(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_my_trades" => crate::types::IntoRaw::into_raw(self.fetch_my_trades(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_ohlcv" => crate::types::IntoRaw::into_raw(self.fetch_ohlcv(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
-                "fetch_open_order" => self.fetch_open_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_open_order" => crate::types::IntoRaw::into_raw(self.fetch_open_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_open_orders" => crate::types::IntoRaw::into_raw(self.fetch_open_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
@@ -3548,7 +3548,13 @@ impl AsterCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn fetch_open_order(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_open_order(&mut self, id: &str, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Order> {
+        let __args: Vec<Value> = vec![Value::from(id), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut id = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3580,9 +3586,9 @@ impl AsterCore {
             response = self.fapi_private_get_v3_open_order(&[__ws_arg_25]).await;
         }
         return self.parse_order(response, &[market]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -3767,7 +3773,13 @@ impl AsterCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_orders(&mut self, orders: Vec<crate::types::OrderRequest>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(orders), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut orders = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3812,9 +3824,9 @@ impl AsterCore {
         let __ws_arg_30 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.fapi_private_post_v3_batch_orders(&[__ws_arg_30]).await;
         return self.parse_orders(response, &[]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn create_order_request(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
@@ -4114,12 +4126,20 @@ impl AsterCore {
  * @param {int[]} [params.recvWindow]
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
+    pub async fn cancel_orders(&mut self, ids: Vec<String>, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![Value::from(Some(ids)), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut ids = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        let __ids_empty = Vec::new();
+        let ids = ids.as_array().unwrap_or(&__ids_empty);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires a symbol argument".into()))));
         }
@@ -4134,7 +4154,16 @@ impl AsterCore {
         if (clientOrderIdList != Value::Null) {
             request.insert("origClientOrderIdList".into(), clientOrderIdList);
         }  else {
-            request.insert("orderIdList".into(), ids);
+            // the api takes LONG[] order ids
+            let mut orderIdList: Vec<Value> = vec![];
+            {
+                                let mut i: i64 = 0;
+                let mut __for_first_233: bool = true;
+                while { if !__for_first_233 { i += 1; } __for_first_233 = false; i < (ids.len() as i64) } {
+                orderIdList.push(self.parse_to_numeric(ids.get(i as usize).cloned().unwrap_or(Value::Null)));
+            }
+            }
+            request.insert("orderIdList".into(), Value::Array(orderIdList));
         }
         let mut response: Value = Value::Null;
         if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
@@ -4145,9 +4174,9 @@ impl AsterCore {
             response = self.sapi_private_delete_v3_all_open_orders(&[__ws_arg_36]).await;
         }
         return self.parse_orders(response, &[market]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -4756,8 +4785,8 @@ impl AsterCore {
         let mut maintenanceMarginPercentageString: Value = Value::Null;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_233: bool = true;
-            while { if !__for_first_233 { i += 1; } __for_first_233 = false; i < (leverageBracket.len() as i64) } {
+            let mut __for_first_234: bool = true;
+            while { if !__for_first_234 { i += 1; } __for_first_234 = false; i < (leverageBracket.len() as i64) } {
             let mut bracket: Value = leverageBracket.get(i as usize).cloned().unwrap_or(Value::Null);
             if crate::precise::Precise::stringLt(&notionalStringAbs, &self.safe_string(bracket.clone(), Value::Int(0), &[])).as_bool() == Some(true) {
                 break;
@@ -4963,8 +4992,8 @@ impl AsterCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_234: bool = true;
-            while { if !__for_first_234 { i += 1; } __for_first_234 = false; i < (rawPositions.len() as i64) } {
+            let mut __for_first_235: bool = true;
+            while { if !__for_first_235 { i += 1; } __for_first_235 = false; i < (rawPositions.len() as i64) } {
             let mut rawPosition: Value = rawPositions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut entryPriceString: Option<String> = self.safe_string_k_opt(rawPosition.clone(), "entryPrice", &[]);
             if crate::precise::Precise::stringGt(&entryPriceString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
@@ -5034,8 +5063,8 @@ impl AsterCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_235: bool = true;
-            while { if !__for_first_235 { i += 1; } __for_first_235 = false; i < (assets.len() as i64) } {
+            let mut __for_first_236: bool = true;
+            while { if !__for_first_236 { i += 1; } __for_first_236 = false; i < (assets.len() as i64) } {
             let mut entry: Value = self.safe_dict(assets.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(entry.clone(), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -5054,8 +5083,8 @@ impl AsterCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_236: bool = true;
-            while { if !__for_first_236 { i += 1; } __for_first_236 = false; i < (positions.len() as i64) } {
+            let mut __for_first_237: bool = true;
+            while { if !__for_first_237 { i += 1; } __for_first_237 = false; i < (positions.len() as i64) } {
             let mut position: Value = positions.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(position.clone(), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::Str("contract".into())]);
@@ -5128,8 +5157,8 @@ impl AsterCore {
         let mut maintenanceMarginPercentageString: Value = Value::Null;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_237: bool = true;
-            while { if !__for_first_237 { i += 1; } __for_first_237 = false; i < (leverageBracket.len() as i64) } {
+            let mut __for_first_238: bool = true;
+            while { if !__for_first_238 { i += 1; } __for_first_238 = false; i < (leverageBracket.len() as i64) } {
             let mut bracket: Value = leverageBracket.get(i as usize).cloned().unwrap_or(Value::Null);
             if crate::precise::Precise::stringLt(&notionalStringAbs, &self.safe_string(bracket.clone(), Value::Int(0), &[])).as_bool() == Some(true) {
                 break;
@@ -5341,8 +5370,8 @@ impl AsterCore {
             let mut entries: Value = self.to_array(response);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_239: bool = true;
-                while { if !__for_first_239 { i += 1; } __for_first_239 = false; i < (entries.len() as i64) } {
+                let mut __for_first_240: bool = true;
+                while { if !__for_first_240 { i += 1; } __for_first_240 = false; i < (entries.len() as i64) } {
                 let mut entry: Value = self.safe_dict(entries.clone(), Value::Int(i), &[]);
                 let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "symbol", &[]);
                 let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Null, Value::Str("contract".into())]);
@@ -5350,8 +5379,8 @@ impl AsterCore {
                 let mut result: Value = Value::from(vec![]);
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_238: bool = true;
-                    while { if !__for_first_238 { j += 1; } __for_first_238 = false; j < (brackets.len() as i64) } {
+                    let mut __for_first_239: bool = true;
+                    while { if !__for_first_239 { j += 1; } __for_first_239 = false; j < (brackets.len() as i64) } {
                     let mut bracket: Value = self.safe_dict(brackets.clone(), Value::Int(j), &[]);
                     let mut floorValue: Option<String> = self.safe_string_k_opt(bracket.clone(), "notionalFloor", &[]);
                     let mut maintenanceMarginPercentage: Option<String> = self.safe_string_k_opt(bracket, "maintMarginRatio", &[]);
@@ -5813,8 +5842,8 @@ impl AsterCore {
         let mut keys: Vec<Value> = Value::Array(values.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_240: bool = true;
-            while { if !__for_first_240 { i += 1; } __for_first_240 = false; i < (keys.len() as i64) } {
+            let mut __for_first_241: bool = true;
+            while { if !__for_first_241 { i += 1; } __for_first_241 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut value: Value = (if let (Some(__m), Some(__k)) = (values.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             let mut isObj: bool = (matches!(&value, Value::Arr(_))) || self.is_dictionary(value.clone()).as_bool() == Some(true);
@@ -5834,8 +5863,8 @@ impl AsterCore {
         let mut keys: Vec<Value> = Value::Array(dict.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_241: bool = true;
-            while { if !__for_first_241 { i += 1; } __for_first_241 = false; i < (keys.len() as i64) } {
+            let mut __for_first_242: bool = true;
+            while { if !__for_first_242 { i += 1; } __for_first_242 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut value: Value = (if let (Some(__m), Some(__k)) = (dict.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             let mut capitalizedKey: Value = self.capitalize(key);
@@ -5911,8 +5940,8 @@ impl AsterCore {
         let mut builderAddress: Value = self.safe_string_k(self.options.clone(), "builder", &[]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_242: bool = true;
-            while { if !__for_first_242 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_242 = false; i.as_f64().unwrap_or(f64::NAN) < length } {
+            let mut __for_first_243: bool = true;
+            while { if !__for_first_243 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_243 = false; i.as_f64().unwrap_or(f64::NAN) < length } {
             let mut builderInfo: Value = self.safe_dict(approvedBuilders.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

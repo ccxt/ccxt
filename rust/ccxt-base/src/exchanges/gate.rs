@@ -148,15 +148,15 @@ impl crate::exchange_generated::ExchangeBase for GateCore {
                 "borrow_isolated_margin" => self.borrow_isolated_margin(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
-                "cancel_orders" => self.cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders_for_symbols" => self.cancel_orders_for_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "close_position" => crate::types::IntoRaw::into_raw(self.close_position(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "create_expired_option_market" => self.create_expired_option_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "create_market_buy_order_with_cost" => self.create_market_buy_order_with_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
+                "create_market_buy_order_with_cost" => crate::types::IntoRaw::into_raw(self.create_market_buy_order_with_cost(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_order_request" => self.create_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
-                "create_orders" => self.create_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "create_orders_request" => self.create_orders_request(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_str).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
@@ -197,7 +197,7 @@ impl crate::exchange_generated::ExchangeBase for GateCore {
                 "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_request" => self.fetch_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-                "fetch_order_trades" => self.fetch_order_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_order_trades" => crate::types::IntoRaw::into_raw(self.fetch_order_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "fetch_orders_by_status" => self.fetch_orders_by_status(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_position" => crate::types::IntoRaw::into_raw(self.fetch_position(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -3514,8 +3514,8 @@ if _try_result.is_err() {
         let mut types: Value = self.safe_list_k(fetchMarketsOptions, "types", &[Value::from(vec![Value::Str("spot".into()), Value::Str("swap".into()), Value::Str("future".into()), Value::Str("option".into())])]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_679: bool = true;
-            while { if !__for_first_679 { i += 1; } __for_first_679 = false; i < (types.len() as i64) } {
+            let mut __for_first_680: bool = true;
+            while { if !__for_first_680 { i += 1; } __for_first_680 = false; i < (types.len() as i64) } {
             let mut marketType: Option<String> = self.safe_string(types.clone(), Value::Int(i), &[]).as_str().map(str::to_owned);
             if (marketType.as_deref() == Some("spot")) {
                 // if (!sandboxMode) {
@@ -3588,8 +3588,8 @@ if _try_result.is_err() {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_680: bool = true;
-            while { if !__for_first_680 { i += 1; } __for_first_680 = false; i < (spotMarketsResponse.len() as i64) } {
+            let mut __for_first_681: bool = true;
+            while { if !__for_first_681 { i += 1; } __for_first_681 = false; i < (spotMarketsResponse.len() as i64) } {
             let mut spotMarket: Value = self.safe_dict(spotMarketsResponse.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3699,8 +3699,8 @@ if _try_result.is_err() {
         }
         {
                         let mut c: i64 = 0;
-            let mut __for_first_682: bool = true;
-            while { if !__for_first_682 { c += 1; } __for_first_682 = false; c < (swapSettlementCurrencies.len() as i64) } {
+            let mut __for_first_683: bool = true;
+            while { if !__for_first_683 { c += 1; } __for_first_683 = false; c < (swapSettlementCurrencies.len() as i64) } {
             let mut settleId: Option<String> = self.safe_string_opt(swapSettlementCurrencies.clone(), Value::Int(c), &[]);
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -3711,8 +3711,8 @@ if _try_result.is_err() {
             let mut response: Value = self.public_futures_get_settle_contracts(&[__ws_arg_0]).await;
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_681: bool = true;
-                while { if !__for_first_681 { i += 1; } __for_first_681 = false; i < (response.len() as i64) } {
+                let mut __for_first_682: bool = true;
+                while { if !__for_first_682 { i += 1; } __for_first_682 = false; i < (response.len() as i64) } {
                 let mut contract: Value = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3742,8 +3742,8 @@ if _try_result.is_err() {
         let mut futureSettlementCurrencies: Value = self.get_settlement_currencies(Value::Str("future".into()), Value::Str("fetchMarkets".into()));
         {
                         let mut c: i64 = 0;
-            let mut __for_first_684: bool = true;
-            while { if !__for_first_684 { c += 1; } __for_first_684 = false; c < (futureSettlementCurrencies.len() as i64) } {
+            let mut __for_first_685: bool = true;
+            while { if !__for_first_685 { c += 1; } __for_first_685 = false; c < (futureSettlementCurrencies.len() as i64) } {
             let mut settleId: Option<String> = self.safe_string_opt(futureSettlementCurrencies.clone(), Value::Int(c), &[]);
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -3754,8 +3754,8 @@ if _try_result.is_err() {
             let mut response: Value = self.public_delivery_get_settle_contracts(&[__ws_arg_1]).await;
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_683: bool = true;
-                while { if !__for_first_683 { i += 1; } __for_first_683 = false; i < (response.len() as i64) } {
+                let mut __for_first_684: bool = true;
+                while { if !__for_first_684 { i += 1; } __for_first_684 = false; i < (response.len() as i64) } {
                 let mut contract: Value = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3997,8 +3997,8 @@ if _try_result.is_err() {
         let mut underlyings: Vec<Value> = self.fetch_option_underlyings().await.as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_686: bool = true;
-            while { if !__for_first_686 { i += 1; } __for_first_686 = false; i < (underlyings.len() as i64) } {
+            let mut __for_first_687: bool = true;
+            while { if !__for_first_687 { i += 1; } __for_first_687 = false; i < (underlyings.len() as i64) } {
             let mut underlying: Value = underlyings.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut query: Value = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -4008,8 +4008,8 @@ if _try_result.is_err() {
             let mut response: Value = self.public_options_get_contracts(&[query]).await;
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_685: bool = true;
-                while { if !__for_first_685 { j += 1; } __for_first_685 = false; j < (response.len() as i64) } {
+                let mut __for_first_686: bool = true;
+                while { if !__for_first_686 { j += 1; } __for_first_686 = false; j < (response.len() as i64) } {
                 let mut market: Value = self.safe_dict(response.clone(), Value::Int(j), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4134,8 +4134,8 @@ if _try_result.is_err() {
         let mut underlyings: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_687: bool = true;
-            while { if !__for_first_687 { i += 1; } __for_first_687 = false; i < (underlyingsResponse.len() as i64) } {
+            let mut __for_first_688: bool = true;
+            while { if !__for_first_688 { i += 1; } __for_first_688 = false; i < (underlyingsResponse.len() as i64) } {
             let mut underlying: Value = self.safe_dict(underlyingsResponse.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4376,8 +4376,8 @@ if _try_result.is_err() {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_688: bool = true;
-            while { if !__for_first_688 { j += 1; } __for_first_688 = false; j < (chains.len() as i64) } {
+            let mut __for_first_689: bool = true;
+            while { if !__for_first_689 { j += 1; } __for_first_689 = false; j < (chains.len() as i64) } {
             let mut chain: Value = chains.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Option<String> = self.safe_string_k_opt(chain.clone(), "name", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
@@ -4625,8 +4625,8 @@ if _try_result.is_err() {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_689: bool = true;
-            while { if !__for_first_689 { i += 1; } __for_first_689 = false; i < (addresses.len() as i64) } {
+            let mut __for_first_690: bool = true;
+            while { if !__for_first_690 { i += 1; } __for_first_690 = false; i < (addresses.len() as i64) } {
             let mut entry: Value = addresses.get(i as usize).cloned().unwrap_or(Value::Null);
             //
             //    {
@@ -4829,8 +4829,8 @@ if _try_result.is_err() {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_690: bool = true;
-            while { if !__for_first_690 { i += 1; } __for_first_690 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_691: bool = true;
+            while { if !__for_first_691 { i += 1; } __for_first_691 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), self.parse_trading_fee(response.clone(), &[market])); }
@@ -4936,8 +4936,8 @@ if _try_result.is_err() {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_692: bool = true;
-            while { if !__for_first_692 { i += 1; } __for_first_692 = false; i < (response.len() as i64) } {
+            let mut __for_first_693: bool = true;
+            while { if !__for_first_693 { i += 1; } __for_first_693 = false; i < (response.len() as i64) } {
             withdrawFees = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -4958,8 +4958,8 @@ if _try_result.is_err() {
                 let mut networkIds: Vec<Value> = Value::Array(withdrawFixOnChains.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_691: bool = true;
-                    while { if !__for_first_691 { j += 1; } __for_first_691 = false; j < (networkIds.len() as i64) } {
+                    let mut __for_first_692: bool = true;
+                    while { if !__for_first_692 { j += 1; } __for_first_692 = false; j < (networkIds.len() as i64) } {
                     let mut networkId: Value = networkIds.get(j as usize).cloned().unwrap_or(Value::Null);
                     let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
                     if (networkCode != Value::Null) {
@@ -5056,8 +5056,8 @@ if _try_result.is_err() {
             let mut chainKeys: Vec<Value> = Value::Array(withdrawFixOnChains.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_693: bool = true;
-                while { if !__for_first_693 { i += 1; } __for_first_693 = false; i < (chainKeys.len() as i64) } {
+                let mut __for_first_694: bool = true;
+                while { if !__for_first_694 { i += 1; } __for_first_694 = false; i < (chainKeys.len() as i64) } {
                 let mut chainKey: Value = chainKeys.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut currencyId: Option<String> = self.safe_string_k_opt(fee.clone(), "currency", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency.clone()]);
@@ -5155,8 +5155,8 @@ if _try_result.is_err() {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_694: bool = true;
-            while { if !__for_first_694 { i += 1; } __for_first_694 = false; i < (response.len() as i64) } {
+            let mut __for_first_695: bool = true;
+            while { if !__for_first_695 { i += 1; } __for_first_695 = false; i < (response.len() as i64) } {
             let mut entry: Value = self.safe_dict(response.clone(), Value::Int(i), &[]);
             let mut funding: Value = self.parse_funding_history(entry, &[]);
             result.push(funding);
@@ -5396,8 +5396,8 @@ if _try_result.is_err() {
             let mut optionMarketId: Value = self.safe_string_k(market.clone(), "id", &[]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_695: bool = true;
-                while { if !__for_first_695 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_695 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
+                let mut __for_first_696: bool = true;
+                while { if !__for_first_696 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_696 = false; i.as_f64().unwrap_or(f64::NAN) < ((response.len() as i64) as f64) } {
                 let mut entry: Value = get_value(&response, &i);
                 let mut entryName: Value = self.safe_string_k(entry.clone(), "name", &[]);
                 if (entryName == optionMarketId) {
@@ -5913,8 +5913,8 @@ if _try_result.is_err() {
             let mut keys: Vec<Value> = Value::Array(balances.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_696: bool = true;
-                while { if !__for_first_696 { i += 1; } __for_first_696 = false; i < (keys.len() as i64) } {
+                let mut __for_first_697: bool = true;
+                while { if !__for_first_697 { i += 1; } __for_first_697 = false; i < (keys.len() as i64) } {
                 let mut currencyId: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut content: Value = get_value(&balances, &currencyId);
                 add_element_to_object(&mut content, &Value::Str("currency".into()), currencyId.clone());
@@ -5926,8 +5926,8 @@ if _try_result.is_err() {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_697: bool = true;
-            while { if !__for_first_697 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_697 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_698: bool = true;
+            while { if !__for_first_698 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_698 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             let mut entry: Value = get_value(&data, &i);
             if isolated {
                 let mut base: Value = self.safe_dict_k(entry.clone(), "base", &[Value::Map({
@@ -6148,8 +6148,8 @@ if _try_result.is_err() {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_698: bool = true;
-            while { if !__for_first_698 { i += 1; } __for_first_698 = false; i < (response.len() as i64) } {
+            let mut __for_first_699: bool = true;
+            while { if !__for_first_699 { i += 1; } __for_first_699 = false; i < (response.len() as i64) } {
             let mut entry: Value = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6316,7 +6316,13 @@ if _try_result.is_err() {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-    pub async fn fetch_order_trades(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_order_trades(&mut self, id: &str, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Trade>> {
+        let __args: Vec<Value> = vec![Value::from(id), symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut id = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -6335,9 +6341,9 @@ if _try_result.is_err() {
         m.insert("order_id".to_string(), id);
     m
 })).await);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -7071,8 +7077,8 @@ if _try_result.is_err() {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_699: bool = true;
-            while { if !__for_first_699 { i += 1; } __for_first_699 = false; i < (orders.len() as i64) } {
+            let mut __for_first_700: bool = true;
+            while { if !__for_first_700 { i += 1; } __for_first_700 = false; i < (orders.len() as i64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             orderSymbols.push(marketId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -7114,7 +7120,13 @@ if _try_result.is_err() {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_orders(&mut self, orders: Vec<crate::types::OrderRequest>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(orders), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut orders = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -7133,9 +7145,9 @@ if _try_result.is_err() {
             response = self.private_futures_post_settle_batch_orders(&[ordersRequests]).await;
         }
         return self.parse_orders(response, &[]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn is_gate_futures_contract_with_decimal_size(&self, mut market: Value) -> Value {
         let __market_empty = indexmap::IndexMap::new();
@@ -7459,7 +7471,14 @@ if _try_result.is_err() {
  * @param {bool} [params.unifiedAccount] set to true for creating a unified account order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_market_buy_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_market_buy_order_with_cost(&mut self, symbol: &str, cost: f64, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Order> {
+        let __args: Vec<Value> = vec![Value::from(symbol), Value::from(cost), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut symbol = __it.next().unwrap_or_default();
+        let mut cost = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -7478,9 +7497,9 @@ if _try_result.is_err() {
             m
         })]);
         return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "buy", cost.as_f64().unwrap_or_default(), None, paramsExtended).await);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn edit_order_request(&self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
         let mut amount = get_arg(optional_args, 0, Value::Null);
@@ -8481,8 +8500,8 @@ if _try_result.is_err() {
             let mut spotResult: Value = Value::from(vec![]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_700: bool = true;
-                while { if !__for_first_700 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_700 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_701: bool = true;
+                while { if !__for_first_701 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_701 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
                 let mut responseEntry: Value = self.safe_dict(response.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -8594,7 +8613,13 @@ if _try_result.is_err() {
  * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
+    pub async fn cancel_orders(&mut self, ids: Vec<String>, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![Value::from(Some(ids)), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut ids = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -8626,8 +8651,8 @@ if _try_result.is_err() {
             let mut ordersRequests: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_701: bool = true;
-                while { if !__for_first_701 { i += 1; } __for_first_701 = false; i < (ids.len() as i64) } {
+                let mut __for_first_702: bool = true;
+                while { if !__for_first_702 { i += 1; } __for_first_702 = false; i < (ids.len() as i64) } {
                 let mut id: Value = self.safe_string(ids.clone(), Value::Int(i), &[Value::Str("".into())]);
                 let mut orderItem: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -8648,16 +8673,16 @@ if _try_result.is_err() {
         let mut finalList: Vec<Value> = vec![request]; // hacky but needs to be done here
         {
                         let mut i: i64 = 0;
-            let mut __for_first_702: bool = true;
-            while { if !__for_first_702 { i += 1; } __for_first_702 = false; i < (ids.len() as i64) } {
+            let mut __for_first_703: bool = true;
+            while { if !__for_first_703 { i += 1; } __for_first_703 = false; i < (ids.len() as i64) } {
             finalList.push(self.safe_string(ids.clone(), Value::Int(i), &[Value::Str("".into())]));
         }
         }
         let mut response: Value = self.private_futures_post_settle_batch_cancel_orders(&[Value::from(finalList)]).await;
         return self.parse_orders(response, &[]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -8682,8 +8707,8 @@ if _try_result.is_err() {
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_703: bool = true;
-            while { if !__for_first_703 { i += 1; } __for_first_703 = false; i < (orders.len() as i64) } {
+            let mut __for_first_704: bool = true;
+            while { if !__for_first_704 { i += 1; } __for_first_704 = false; i < (orders.len() as i64) } {
             let mut order: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(order.clone(), "symbol", &[]);
             let mut market: Value = self.market(symbol.map(Value::from).unwrap_or(Value::Null));
@@ -9548,8 +9573,8 @@ if _try_result.is_err() {
         let mut tiers: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_704: bool = true;
-            while { if !__for_first_704 { i += 1; } __for_first_704 = false; i < (info.len() as i64) } {
+            let mut __for_first_705: bool = true;
+            while { if !__for_first_705 { i += 1; } __for_first_705 = false; i < (info.len() as i64) } {
             let mut item: Value = self.safe_dict(info.clone(), Value::Int(i), &[]);
             let mut maxNotional: Value = self.safe_number_k(item.clone(), "risk_limit", &[]);
             if let Value::Arr(__a) = &mut tiers { std::sync::Arc::make_mut(__a).push(Value::Map({
@@ -9940,8 +9965,8 @@ if _try_result.is_err() {
             let mut anyParams: Value = self.to_array(params.clone());
             {
                                 let mut i: Value = Value::Int(1);
-                let mut __for_first_705: bool = true;
-                while { if !__for_first_705 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_705 = false; i.as_f64().unwrap_or(f64::NAN) < ((anyParams.len() as i64) as f64) } {
+                let mut __for_first_706: bool = true;
+                while { if !__for_first_706 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_706 = false; i.as_f64().unwrap_or(f64::NAN) < ((anyParams.len() as i64) as f64) } {
                 if let Value::Arr(__a) = &mut newParams { std::sync::Arc::make_mut(__a).push(get_value(&params, &i)); }
             }
             }
@@ -10547,10 +10572,10 @@ if _try_result.is_err() {
         //
         let mut result: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_706: bool = true;
-            while { if !__for_first_706 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_706 = false; i.as_f64().unwrap_or(f64::NAN) < ((settlements.len() as i64) as f64) } {
-            result.push(self.parse_settlement(settlements.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[market.clone()]));
+                        let mut i: i64 = 0;
+            let mut __for_first_707: bool = true;
+            while { if !__for_first_707 { i += 1; } __for_first_707 = false; i < (settlements.len() as i64) } {
+            result.push(self.parse_settlement(settlements.get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]));
         }
         }
         return Value::from(result);
@@ -10863,8 +10888,8 @@ if _try_result.is_err() {
         let mut underlyings: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_707: bool = true;
-            while { if !__for_first_707 { i += 1; } __for_first_707 = false; i < (response.len() as i64) } {
+            let mut __for_first_708: bool = true;
+            while { if !__for_first_708 { i += 1; } __for_first_708 = false; i < (response.len() as i64) } {
             let mut underlying: Value = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -11145,8 +11170,8 @@ if _try_result.is_err() {
         let mut marketId: Value = market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_708: bool = true;
-            while { if !__for_first_708 { i += 1; } __for_first_708 = false; i < (response.len() as i64) } {
+            let mut __for_first_709: bool = true;
+            while { if !__for_first_709 { i += 1; } __for_first_709 = false; i < (response.len() as i64) } {
             let mut entry: Value = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

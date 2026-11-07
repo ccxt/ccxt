@@ -439,12 +439,6 @@ impl Hashkey {
         Ok(dict_from_value(&v, OrderBook::from_value))
     }
 
-    /// Typed wrapper around `createTwapOrder`.
-    pub async fn create_twap_order(&mut self, symbol: &str, side: &str, amount: f64, duration: f64, params: impl Into<Params>) -> crate::Result<Order> {
-        let v = crate::runtime::call_typed(self.core_mut().create_twap_order(Value::from(symbol), Value::from(side), Value::Float(amount), Value::Float(duration), &[params.into().into_value()])).await?;
-        Ok(Order::from_value(v))
-    }
-
     /// Typed wrapper around `createConvertTrade`.
     pub async fn create_convert_trade(&mut self, id: &str, from_code: &str, to_code: &str, amount: Option<f64>, params: impl Into<Params>) -> crate::Result<Conversion> {
         let v = crate::runtime::call_typed(self.core_mut().create_convert_trade(Value::from(id), Value::from(from_code), Value::from(to_code), &[amount.map(Value::Float).unwrap_or(Value::Null), params.into().into_value()])).await?;
@@ -583,18 +577,6 @@ impl Hashkey {
         Ok(Transfer::from_value(v))
     }
 
-    /// Typed wrapper around `editOrders`.
-    pub async fn edit_orders(&mut self, orders: Value, params: impl Into<Params>) -> crate::Result<Vec<Order>> {
-        let v = crate::runtime::call_typed(self.core_mut().edit_orders(orders, &[params.into().into_value()])).await?;
-        Ok(vec_from_value(&v, Order::from_value))
-    }
-
-    /// Typed wrapper around `fetchCanceledAndClosedOrders`.
-    pub async fn fetch_canceled_and_closed_orders(&mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<Order>> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_canceled_and_closed_orders(&[symbol.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(vec_from_value(&v, Order::from_value))
-    }
-
     /// Typed wrapper around `fetchPositionHistory`.
     pub async fn fetch_position_history(&mut self, symbol: &str, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<Position>> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_position_history(Value::from(symbol), &[since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
@@ -661,76 +643,10 @@ impl Hashkey {
         Ok(Order::from_value(v))
     }
 
-    /// Typed wrapper around `createTrailingAmountOrder`.
-    pub async fn create_trailing_amount_order(&mut self, symbol: &str, type_: &str, side: &str, amount: f64, price: Option<f64>, trailing_amount: Option<f64>, trailing_trigger_price: Option<f64>, params: impl Into<Params>) -> crate::Result<Order> {
-        let v = crate::runtime::call_typed(self.core_mut().create_trailing_amount_order(Value::from(symbol), Value::from(type_), Value::from(side), Value::Float(amount), &[price.map(Value::Float).unwrap_or(Value::Null), trailing_amount.map(Value::Float).unwrap_or(Value::Null), trailing_trigger_price.map(Value::Float).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(Order::from_value(v))
-    }
-
-    /// Typed wrapper around `createTrailingPercentOrder`.
-    pub async fn create_trailing_percent_order(&mut self, symbol: &str, type_: &str, side: &str, amount: f64, price: Option<f64>, trailing_percent: Option<f64>, trailing_trigger_price: Option<f64>, params: impl Into<Params>) -> crate::Result<Order> {
-        let v = crate::runtime::call_typed(self.core_mut().create_trailing_percent_order(Value::from(symbol), Value::from(type_), Value::from(side), Value::Float(amount), &[price.map(Value::Float).unwrap_or(Value::Null), trailing_percent.map(Value::Float).unwrap_or(Value::Null), trailing_trigger_price.map(Value::Float).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(Order::from_value(v))
-    }
-
-    /// Typed wrapper around `createMarketOrderWithCost`.
-    pub async fn create_market_order_with_cost(&mut self, symbol: &str, side: &str, cost: f64, params: impl Into<Params>) -> crate::Result<Order> {
-        let v = crate::runtime::call_typed(self.core_mut().create_market_order_with_cost(Value::from(symbol), Value::from(side), Value::Float(cost), &[params.into().into_value()])).await?;
-        Ok(Order::from_value(v))
-    }
-
-    /// Typed wrapper around `createMarketBuyOrderWithCost`.
-    pub async fn create_market_buy_order_with_cost(&mut self, symbol: &str, cost: f64, params: impl Into<Params>) -> crate::Result<Order> {
-        let v = crate::runtime::call_typed(self.core_mut().create_market_buy_order_with_cost(Value::from(symbol), Value::Float(cost), &[params.into().into_value()])).await?;
-        Ok(Order::from_value(v))
-    }
-
-    /// Typed wrapper around `createMarketSellOrderWithCost`.
-    pub async fn create_market_sell_order_with_cost(&mut self, symbol: &str, cost: f64, params: impl Into<Params>) -> crate::Result<Order> {
-        let v = crate::runtime::call_typed(self.core_mut().create_market_sell_order_with_cost(Value::from(symbol), Value::Float(cost), &[params.into().into_value()])).await?;
-        Ok(Order::from_value(v))
-    }
-
-    /// Typed wrapper around `createTriggerOrder`.
-    pub async fn create_trigger_order(&mut self, symbol: &str, type_: &str, side: &str, amount: f64, price: Option<f64>, trigger_price: Option<f64>, params: impl Into<Params>) -> crate::Result<Order> {
-        let v = crate::runtime::call_typed(self.core_mut().create_trigger_order(Value::from(symbol), Value::from(type_), Value::from(side), Value::Float(amount), &[price.map(Value::Float).unwrap_or(Value::Null), trigger_price.map(Value::Float).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(Order::from_value(v))
-    }
-
-    /// Typed wrapper around `createStopLossOrder`.
-    pub async fn create_stop_loss_order(&mut self, symbol: &str, type_: &str, side: &str, amount: f64, price: Option<f64>, stop_loss_price: Option<f64>, params: impl Into<Params>) -> crate::Result<Order> {
-        let v = crate::runtime::call_typed(self.core_mut().create_stop_loss_order(Value::from(symbol), Value::from(type_), Value::from(side), Value::Float(amount), &[price.map(Value::Float).unwrap_or(Value::Null), stop_loss_price.map(Value::Float).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(Order::from_value(v))
-    }
-
-    /// Typed wrapper around `createTakeProfitOrder`.
-    pub async fn create_take_profit_order(&mut self, symbol: &str, type_: &str, side: &str, amount: f64, price: Option<f64>, take_profit_price: Option<f64>, params: impl Into<Params>) -> crate::Result<Order> {
-        let v = crate::runtime::call_typed(self.core_mut().create_take_profit_order(Value::from(symbol), Value::from(type_), Value::from(side), Value::Float(amount), &[price.map(Value::Float).unwrap_or(Value::Null), take_profit_price.map(Value::Float).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(Order::from_value(v))
-    }
-
-    /// Typed wrapper around `createOrderWithTakeProfitAndStopLoss`.
-    pub async fn create_order_with_take_profit_and_stop_loss(&mut self, symbol: &str, type_: &str, side: &str, amount: f64, price: Option<f64>, take_profit: Option<f64>, stop_loss: Option<f64>, params: impl Into<Params>) -> crate::Result<Order> {
-        let v = crate::runtime::call_typed(self.core_mut().create_order_with_take_profit_and_stop_loss(Value::from(symbol), Value::from(type_), Value::from(side), Value::Float(amount), &[price.map(Value::Float).unwrap_or(Value::Null), take_profit.map(Value::Float).unwrap_or(Value::Null), stop_loss.map(Value::Float).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(Order::from_value(v))
-    }
-
-    /// Typed wrapper around `createOrders`.
-    pub async fn create_orders(&mut self, orders: Value, params: impl Into<Params>) -> crate::Result<Vec<Order>> {
-        let v = crate::runtime::call_typed(self.core_mut().create_orders(orders, &[params.into().into_value()])).await?;
-        Ok(vec_from_value(&v, Order::from_value))
-    }
-
     /// Typed wrapper around `cancelOrderWithClientOrderId`.
     pub async fn cancel_order_with_client_order_id(&mut self, client_order_id: &str, symbol: Option<&str>, params: impl Into<Params>) -> crate::Result<Order> {
         let v = crate::runtime::call_typed(self.core_mut().cancel_order_with_client_order_id(Value::from(client_order_id), &[symbol.map(Value::from).unwrap_or(Value::Null), params.into().into_value()])).await?;
         Ok(Order::from_value(v))
-    }
-
-    /// Typed wrapper around `cancelOrders`.
-    pub async fn cancel_orders(&mut self, ids: Vec<String>, symbol: Option<&str>, params: impl Into<Params>) -> crate::Result<Vec<Order>> {
-        let v = crate::runtime::call_typed(self.core_mut().cancel_orders(Value::Arr(std::sync::Arc::new(ids.into_iter().map(Value::from).collect())), &[symbol.map(Value::from).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(vec_from_value(&v, Order::from_value))
     }
 
     /// Typed wrapper around `cancelOrdersWithClientOrderIds`.
@@ -742,84 +658,6 @@ impl Hashkey {
     /// Typed wrapper around `cancelUnifiedOrder`.
     pub async fn cancel_unified_order(&mut self, order: Value, params: impl Into<Params>) -> crate::Result<Order> {
         let v = crate::runtime::call_typed(self.core_mut().cancel_unified_order(order, &[params.into().into_value()])).await?;
-        Ok(Order::from_value(v))
-    }
-
-    /// Typed wrapper around `fetchOrderTrades`.
-    pub async fn fetch_order_trades(&mut self, id: &str, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<Trade>> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_order_trades(Value::from(id), &[symbol.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(vec_from_value(&v, Trade::from_value))
-    }
-
-    /// Typed wrapper around `fetchCanceledOrders`.
-    pub async fn fetch_canceled_orders(&mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<Order>> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_canceled_orders(&[symbol.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(vec_from_value(&v, Order::from_value))
-    }
-
-    /// Typed wrapper around `createLimitOrder`.
-    pub async fn create_limit_order(&mut self, symbol: &str, side: &str, amount: f64, price: f64, params: impl Into<Params>) -> crate::Result<Order> {
-        let v = crate::runtime::call_typed(self.core_mut().create_limit_order(Value::from(symbol), Value::from(side), Value::Float(amount), Value::Float(price), &[params.into().into_value()])).await?;
-        Ok(Order::from_value(v))
-    }
-
-    /// Typed wrapper around `createMarketOrder`.
-    pub async fn create_market_order(&mut self, symbol: &str, side: &str, amount: f64, price: Option<f64>, params: impl Into<Params>) -> crate::Result<Order> {
-        let v = crate::runtime::call_typed(self.core_mut().create_market_order(Value::from(symbol), Value::from(side), Value::Float(amount), &[price.map(Value::Float).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(Order::from_value(v))
-    }
-
-    /// Typed wrapper around `createLimitBuyOrder`.
-    pub async fn create_limit_buy_order(&mut self, symbol: &str, amount: f64, price: f64, params: impl Into<Params>) -> crate::Result<Order> {
-        let v = crate::runtime::call_typed(self.core_mut().create_limit_buy_order(Value::from(symbol), Value::Float(amount), Value::Float(price), &[params.into().into_value()])).await?;
-        Ok(Order::from_value(v))
-    }
-
-    /// Typed wrapper around `createLimitSellOrder`.
-    pub async fn create_limit_sell_order(&mut self, symbol: &str, amount: f64, price: f64, params: impl Into<Params>) -> crate::Result<Order> {
-        let v = crate::runtime::call_typed(self.core_mut().create_limit_sell_order(Value::from(symbol), Value::Float(amount), Value::Float(price), &[params.into().into_value()])).await?;
-        Ok(Order::from_value(v))
-    }
-
-    /// Typed wrapper around `createMarketBuyOrder`.
-    pub async fn create_market_buy_order(&mut self, symbol: &str, amount: f64, params: impl Into<Params>) -> crate::Result<Order> {
-        let v = crate::runtime::call_typed(self.core_mut().create_market_buy_order(Value::from(symbol), Value::Float(amount), &[params.into().into_value()])).await?;
-        Ok(Order::from_value(v))
-    }
-
-    /// Typed wrapper around `createMarketSellOrder`.
-    pub async fn create_market_sell_order(&mut self, symbol: &str, amount: f64, params: impl Into<Params>) -> crate::Result<Order> {
-        let v = crate::runtime::call_typed(self.core_mut().create_market_sell_order(Value::from(symbol), Value::Float(amount), &[params.into().into_value()])).await?;
-        Ok(Order::from_value(v))
-    }
-
-    /// Typed wrapper around `createPostOnlyOrder`.
-    pub async fn create_post_only_order(&mut self, symbol: &str, type_: &str, side: &str, amount: f64, price: Option<f64>, params: impl Into<Params>) -> crate::Result<Order> {
-        let v = crate::runtime::call_typed(self.core_mut().create_post_only_order(Value::from(symbol), Value::from(type_), Value::from(side), Value::Float(amount), &[price.map(Value::Float).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(Order::from_value(v))
-    }
-
-    /// Typed wrapper around `createReduceOnlyOrder`.
-    pub async fn create_reduce_only_order(&mut self, symbol: &str, type_: &str, side: &str, amount: f64, price: Option<f64>, params: impl Into<Params>) -> crate::Result<Order> {
-        let v = crate::runtime::call_typed(self.core_mut().create_reduce_only_order(Value::from(symbol), Value::from(type_), Value::from(side), Value::Float(amount), &[price.map(Value::Float).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(Order::from_value(v))
-    }
-
-    /// Typed wrapper around `createStopOrder`.
-    pub async fn create_stop_order(&mut self, symbol: &str, type_: &str, side: &str, amount: f64, price: Option<f64>, trigger_price: Option<f64>, params: impl Into<Params>) -> crate::Result<Order> {
-        let v = crate::runtime::call_typed(self.core_mut().create_stop_order(Value::from(symbol), Value::from(type_), Value::from(side), Value::Float(amount), &[price.map(Value::Float).unwrap_or(Value::Null), trigger_price.map(Value::Float).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(Order::from_value(v))
-    }
-
-    /// Typed wrapper around `createStopLimitOrder`.
-    pub async fn create_stop_limit_order(&mut self, symbol: &str, side: &str, amount: f64, price: f64, trigger_price: f64, params: impl Into<Params>) -> crate::Result<Order> {
-        let v = crate::runtime::call_typed(self.core_mut().create_stop_limit_order(Value::from(symbol), Value::from(side), Value::Float(amount), Value::Float(price), Value::Float(trigger_price), &[params.into().into_value()])).await?;
-        Ok(Order::from_value(v))
-    }
-
-    /// Typed wrapper around `createStopMarketOrder`.
-    pub async fn create_stop_market_order(&mut self, symbol: &str, side: &str, amount: f64, trigger_price: f64, params: impl Into<Params>) -> crate::Result<Order> {
-        let v = crate::runtime::call_typed(self.core_mut().create_stop_market_order(Value::from(symbol), Value::from(side), Value::Float(amount), Value::Float(trigger_price), &[params.into().into_value()])).await?;
         Ok(Order::from_value(v))
     }
 }

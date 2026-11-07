@@ -151,22 +151,22 @@ impl crate::exchange_generated::ExchangeBase for BingxCore {
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_all_orders_after" => self.cancel_all_orders_after(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
-                "cancel_orders" => self.cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "close_all_positions" => crate::types::IntoRaw::into_raw(self.close_all_positions(args.get(0).cloned().unwrap_or_default()).await),
                 "close_position" => crate::types::IntoRaw::into_raw(self.close_position(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
-                "create_market_buy_order_with_cost" => self.create_market_buy_order_with_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
-                "create_market_order_with_cost" => self.create_market_order_with_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
-                "create_market_sell_order_with_cost" => self.create_market_sell_order_with_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
+                "create_market_buy_order_with_cost" => crate::types::IntoRaw::into_raw(self.create_market_buy_order_with_cost(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
+                "create_market_order_with_cost" => crate::types::IntoRaw::into_raw(self.create_market_order_with_cost(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
+                "create_market_sell_order_with_cost" => crate::types::IntoRaw::into_raw(self.create_market_sell_order_with_cost(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_order_request" => self.create_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
-                "create_orders" => self.create_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_str).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_bids_asks" => crate::types::IntoRaw::into_raw(self.fetch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_canceled_and_closed_orders" => self.fetch_canceled_and_closed_orders(&args[..]).await,
-                "fetch_canceled_orders" => self.fetch_canceled_orders(&args[..]).await,
+                "fetch_canceled_and_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_canceled_and_closed_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+                "fetch_canceled_orders" => crate::types::IntoRaw::into_raw(self.fetch_canceled_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_currencies" => crate::types::IntoRaw::into_raw(self.fetch_currencies(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_deposit_address" => crate::types::IntoRaw::into_raw(self.fetch_deposit_address(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -2307,8 +2307,8 @@ impl BingxCore {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_316: bool = true;
-            while { if !__for_first_316 { j += 1; } __for_first_316 = false; j < (networkList.len() as i64) } {
+            let mut __for_first_317: bool = true;
+            while { if !__for_first_317 { j += 1; } __for_first_317 = false; j < (networkList.len() as i64) } {
             let mut rawNetwork: Value = networkList.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut network: Option<String> = self.safe_string_k_opt(rawNetwork.clone(), "network", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[network.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
@@ -3901,8 +3901,8 @@ impl BingxCore {
         let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_317: bool = true;
-            while { if !__for_first_317 { i += 1; } __for_first_317 = false; i < (rows.len() as i64) } {
+            let mut __for_first_318: bool = true;
+            while { if !__for_first_318 { i += 1; } __for_first_318 = false; i < (rows.len() as i64) } {
             results.push(self.parse_ticker(rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[rowMarket.clone()]));
         }
         }
@@ -4393,8 +4393,8 @@ impl BingxCore {
         if isContract {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_318: bool = true;
-                while { if !__for_first_318 { i += 1; } __for_first_318 = false; i < (contractBalances.len() as i64) } {
+                let mut __for_first_319: bool = true;
+                while { if !__for_first_319 { i += 1; } __for_first_319 = false; i < (contractBalances.len() as i64) } {
                 let mut balance: Value = self.safe_dict(contractBalances.clone(), Value::Int(i), &[]);
                 let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "asset", &[]);
                 if (currencyId.is_none()) {
@@ -4413,8 +4413,8 @@ impl BingxCore {
         }  else {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_319: bool = true;
-                while { if !__for_first_319 { i += 1; } __for_first_319 = false; i < (spotBalances.len() as i64) } {
+                let mut __for_first_320: bool = true;
+                while { if !__for_first_320 { i += 1; } __for_first_320 = false; i < (spotBalances.len() as i64) } {
                 let mut balance: Value = self.safe_dict(spotBalances.clone(), Value::Int(i), &[]);
                 let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "asset", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -4775,16 +4775,24 @@ impl BingxCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_market_order_with_cost(&mut self, mut symbol: Value, mut side: Value, mut cost: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_market_order_with_cost(&mut self, symbol: &str, side: &str, cost: f64, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Order> {
+        let __args: Vec<Value> = vec![Value::from(symbol), Value::from(side), Value::from(cost), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut symbol = __it.next().unwrap_or_default();
+        let mut side = __it.next().unwrap_or_default();
+        let mut cost = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("quoteOrderQty".into(), cost.clone()); }
         return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", side.as_str().unwrap_or_default(), cost.as_f64().unwrap_or_default(), None, params).await);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -4795,16 +4803,23 @@ impl BingxCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_market_buy_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_market_buy_order_with_cost(&mut self, symbol: &str, cost: f64, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Order> {
+        let __args: Vec<Value> = vec![Value::from(symbol), Value::from(cost), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut symbol = __it.next().unwrap_or_default();
+        let mut cost = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("quoteOrderQty".into(), cost.clone()); }
         return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "buy", cost.as_f64().unwrap_or_default(), None, params).await);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -4815,16 +4830,23 @@ impl BingxCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_market_sell_order_with_cost(&mut self, mut symbol: Value, mut cost: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_market_sell_order_with_cost(&mut self, symbol: &str, cost: f64, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Order> {
+        let __args: Vec<Value> = vec![Value::from(symbol), Value::from(cost), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut symbol = __it.next().unwrap_or_default();
+        let mut cost = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("quoteOrderQty".into(), cost.clone()); }
         return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "sell", cost.as_f64().unwrap_or_default(), None, params).await);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn create_order_request(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut price = get_arg(optional_args, 0, Value::Null);
@@ -5290,7 +5312,13 @@ impl BingxCore {
  * @param {boolean} [params.sync] *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_orders(&mut self, mut orders: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_orders(&mut self, orders: Vec<crate::types::OrderRequest>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(orders), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut orders = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5304,8 +5332,8 @@ impl BingxCore {
         let mut marketIds: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_320: bool = true;
-            while { if !__for_first_320 { i += 1; } __for_first_320 = false; i < (orders.len() as i64) } {
+            let mut __for_first_321: bool = true;
+            while { if !__for_first_321 { i += 1; } __for_first_321 = false; i < (orders.len() as i64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut marketId: Value = self.safe_string_k(rawOrder.clone(), "symbol", &[Value::Str("".into())]);
             let mut type_var: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "type", &[]);
@@ -5405,9 +5433,9 @@ impl BingxCore {
 })]);
         let mut result: Value = self.safe_list_k(data, "orders", &[Value::from(vec![])]);
         return self.parse_orders(result, &[market]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub fn parse_order_side(&self, mut side: Value) -> Option<String> {
         let mut sides: indexmap::IndexMap<String, Value> = ({
@@ -6120,7 +6148,13 @@ impl BingxCore {
  * @param {string[]} [params.clientOrderIds] client order ids
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
+    pub async fn cancel_orders(&mut self, ids: Vec<String>, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![Value::from(Some(ids)), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut ids = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6151,8 +6185,8 @@ impl BingxCore {
         let mut parsedIds: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_321: bool = true;
-            while { if !__for_first_321 { i += 1; } __for_first_321 = false; i < (idsToParse.len() as i64) } {
+            let mut __for_first_322: bool = true;
+            while { if !__for_first_322 { i += 1; } __for_first_322 = false; i < (idsToParse.len() as i64) } {
             let id: String = self.safe_string_opt(idsToParse.clone(), Value::Int(i), &[Value::Str("".into())]).unwrap_or_default();
             let mut stringId: Value = Value::Str(format!("{}", id).into());
             if let Value::Arr(__a) = &mut parsedIds { std::sync::Arc::make_mut(__a).push(stringId); }
@@ -6182,9 +6216,9 @@ impl BingxCore {
 })]);
         let mut success: Value = self.safe_list2(data, Value::Str("success".into()), Value::Str("orders".into()), &[Value::from(vec![])]);
         return self.parse_orders(success, &[]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -6697,7 +6731,7 @@ impl BingxCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut orders: Value = self.fetch_canceled_and_closed_orders(&[symbol, since, limit, params]).await;
+        let mut orders: Value = crate::types::IntoRaw::into_raw(self.fetch_canceled_and_closed_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), params).await);
         return self.filter_by(orders, Value::Str("status".into()), Value::Str("closed".into()), &[]);
         Value::Null
         }).await?))
@@ -6719,7 +6753,12 @@ impl BingxCore {
  * @param {boolean} [params.standard] whether to fetch standard contract orders
  * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn fetch_canceled_orders(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_canceled_orders(&mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -6730,11 +6769,11 @@ impl BingxCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut orders: Value = self.fetch_canceled_and_closed_orders(&[symbol, since, limit, params]).await;
+        let mut orders: Value = crate::types::IntoRaw::into_raw(self.fetch_canceled_and_closed_orders(symbol.as_str(), since.as_i64(), limit.as_i64(), params).await);
         return self.filter_by(orders, Value::Str("status".into()), Value::Str("canceled".into()), &[]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -6754,7 +6793,12 @@ impl BingxCore {
  * @param {boolean} [params.twap] if fetching twap orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn fetch_canceled_and_closed_orders(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_canceled_and_closed_orders(&mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -6827,9 +6871,9 @@ impl BingxCore {
 })]);
         let mut orders: Value = self.safe_list2(data, Value::Str("orders".into()), Value::Str("list".into()), &[Value::from(vec![])]);
         return self.parse_orders(orders, &[market, since, limit]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -7914,8 +7958,8 @@ impl BingxCore {
         if (networksLength != 0.0) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_322: bool = true;
-                while { if !__for_first_322 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_322 = false; i.as_f64().unwrap_or(f64::NAN) < networksLength } {
+                let mut __for_first_323: bool = true;
+                while { if !__for_first_323 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_323 = false; i.as_f64().unwrap_or(f64::NAN) < networksLength } {
                 let mut networkCode: Value = self.safe_string(networkCodes.clone(), i.clone(), &[Value::Str("".into())]);
                 let mut network: Value = self.safe_dict(networks.clone(), networkCode.clone(), &[]);
                 if let Value::Dict(__d) = result.entry("networks".into()).or_default() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
@@ -7981,8 +8025,8 @@ impl BingxCore {
         let mut responseCodes: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_323: bool = true;
-            while { if !__for_first_323 { i += 1; } __for_first_323 = false; i < (responseCodes.len() as i64) } {
+            let mut __for_first_324: bool = true;
+            while { if !__for_first_324 { i += 1; } __for_first_324 = false; i < (responseCodes.len() as i64) } {
             let mut code: Value = responseCodes.get(i as usize).cloned().unwrap_or(Value::Null);
             if (codes == Value::Null) || self.in_array(code.clone(), codes.clone()).as_bool() == Some(true) {
                 let mut entry: Value = self.safe_dict(response.clone(), code.clone(), &[]);
@@ -8074,16 +8118,16 @@ impl BingxCore {
         let mut rawKeysLength: f64 = ((rawKeys.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_325: bool = true;
-            while { if !__for_first_325 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_325 = false; i.as_f64().unwrap_or(f64::NAN) < rawKeysLength } {
+            let mut __for_first_326: bool = true;
+            while { if !__for_first_326 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_326 = false; i.as_f64().unwrap_or(f64::NAN) < rawKeysLength } {
             let mut key: Value = rawKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut value: Value = sortedParams.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
             if (matches!(&value, Value::Arr(_))) {
                 let mut arrStr: Value = Value::Str("[".into());
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_324: bool = true;
-                    while { if !__for_first_324 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_324 = false; j.as_f64().unwrap_or(f64::NAN) < ((value.len() as i64) as f64) } {
+                    let mut __for_first_325: bool = true;
+                    while { if !__for_first_325 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_325 = false; j.as_f64().unwrap_or(f64::NAN) < ((value.len() as i64) as f64) } {
                     let mut arrayElement: Value = value.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                     if j.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
                         arrStr = Value::Str(format!("{}{}", arrStr, Value::Str(",".into())).into());
@@ -8390,8 +8434,8 @@ impl BingxCore {
         let mut positions: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_326: bool = true;
-            while { if !__for_first_326 { i += 1; } __for_first_326 = false; i < (success.len() as i64) } {
+            let mut __for_first_327: bool = true;
+            while { if !__for_first_327 { i += 1; } __for_first_327 = false; i < (success.len() as i64) } {
             let mut position: Value = self.parse_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("positionId".to_string(), success.get(i as usize).cloned().unwrap_or(Value::Null));
@@ -8784,16 +8828,16 @@ impl BingxCore {
         let mut result: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_328: bool = true;
-            while { if !__for_first_328 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_328 = false; i.as_f64().unwrap_or(f64::NAN) < rawKeysLength } {
+            let mut __for_first_329: bool = true;
+            while { if !__for_first_329 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_329 = false; i.as_f64().unwrap_or(f64::NAN) < rawKeysLength } {
             let mut key: Value = rawKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut value: Value = get_value(&sortedParams, &key);
             if (matches!(&value, Value::Arr(_))) {
                 let mut arrStr: Value = Value::Null;
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_327: bool = true;
-                    while { if !__for_first_327 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_327 = false; j.as_f64().unwrap_or(f64::NAN) < ((value.len() as i64) as f64) } {
+                    let mut __for_first_328: bool = true;
+                    while { if !__for_first_328 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_328 = false; j.as_f64().unwrap_or(f64::NAN) < ((value.len() as i64) as f64) } {
                     let mut arrayElement: Value = value.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                     let mut isString: bool = matches!(&arrayElement, Value::Str(_));
                     if isString {
@@ -8901,8 +8945,8 @@ impl BingxCore {
         let mut tiers: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_329: bool = true;
-            while { if !__for_first_329 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_329 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_330: bool = true;
+            while { if !__for_first_330 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_330 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
             let mut tier: Value = self.safe_dict(info.clone(), i.clone(), &[]);
             let mut tierString: Option<String> = self.safe_string_k_opt(tier.clone(), "tier", &[]);
             let mut tierParts: Value = Value::Array(if let Some(__s) = tierString.as_deref() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });

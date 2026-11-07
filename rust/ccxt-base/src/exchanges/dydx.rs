@@ -100,7 +100,7 @@ impl crate::exchange_generated::ExchangeBase for DydxCore {
         Box::pin(async move {
             match method {
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
-                "cancel_orders" => self.cancel_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_order_request" => self.create_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
@@ -1388,8 +1388,8 @@ impl DydxCore {
         let mut rows: Vec<Value> = self.safe_list_k(response, "historicalFunding", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_656: bool = true;
-            while { if !__for_first_656 { i += 1; } __for_first_656 = false; i < (rows.len() as i64) } {
+            let mut __for_first_657: bool = true;
+            while { if !__for_first_657 { i += 1; } __for_first_657 = false; i < (rows.len() as i64) } {
             let mut entry: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.parse8601(self.safe_string_k(entry.clone(), "effectiveAt", &[]));
             let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "ticker", &[]);
@@ -2020,8 +2020,8 @@ impl DydxCore {
         let mut c: Value = self.parse_to_int(m);
         {
                         let mut i: Value = Value::Int(1);
-            let mut __for_first_657: bool = true;
-            while { if !__for_first_657 { if let Value::Int(__n) = &mut i { *__n += 1; } } __for_first_657 = false; i.as_f64().unwrap_or(f64::NAN) < c.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_658: bool = true;
+            while { if !__for_first_658 { if let Value::Int(__n) = &mut i { *__n += 1; } } __for_first_658 = false; i.as_f64().unwrap_or(f64::NAN) < c.as_f64().unwrap_or(f64::NAN) } {
             r = crate::precise::Precise::stringMul(&r, &n);
         }
         }
@@ -2480,7 +2480,13 @@ impl DydxCore {
  * @param {int} [params.subAccountId] sub account id, default is 0
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn cancel_orders(&mut self, mut ids: Value, optional_args: &[Value]) -> Value {
+    pub async fn cancel_orders(&mut self, ids: Vec<String>, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
+        let __args: Vec<Value> = vec![Value::from(Some(ids)), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut ids = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2561,9 +2567,9 @@ impl DydxCore {
         m.insert("info".to_string(), Value::Map(result));
     m
 }), &[])]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -3388,8 +3394,8 @@ impl DydxCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_658: bool = true;
-            while { if !__for_first_658 { i += 1; } __for_first_658 = false; i < (rows.len() as i64) } {
+            let mut __for_first_659: bool = true;
+            while { if !__for_first_659 { i += 1; } __for_first_659 = false; i < (rows.len() as i64) } {
             let mut account: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut accountId: Option<String> = self.safe_string_k_opt(account.clone(), "subaccountNumber", &[]);
             result.push(Value::Map({

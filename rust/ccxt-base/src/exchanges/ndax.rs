@@ -122,7 +122,7 @@ impl crate::exchange_generated::ExchangeBase for NdaxCore {
                 "fetch_open_orders" => crate::types::IntoRaw::into_raw(self.fetch_open_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
-                "fetch_order_trades" => self.fetch_order_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_order_trades" => crate::types::IntoRaw::into_raw(self.fetch_order_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "fetch_orders" => crate::types::IntoRaw::into_raw(self.fetch_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_status" => crate::types::IntoRaw::into_raw(self.fetch_status(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -1350,8 +1350,8 @@ impl NdaxCore {
         let mut asks: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_993: bool = true;
-            while { if !__for_first_993 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_993 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&orderbook).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_994: bool = true;
+            while { if !__for_first_994 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_994 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&orderbook).as_f64().unwrap_or(f64::NAN) } {
             let mut level: Value = self.safe_value(orderbook.clone(), i.clone(), &[]);
             let mut newTimestamp: Value = self.safe_integer(level.clone(), Value::Int(2), &[]);
             if (newTimestamp != Value::Null) && ((latestTimestamp == Value::Null) || (newTimestamp.as_f64().unwrap_or(f64::NAN) > latestTimestamp.as_f64().unwrap_or(f64::NAN))) {
@@ -1935,8 +1935,8 @@ impl NdaxCore {
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_994: bool = true;
-            while { if !__for_first_994 { i += 1; } __for_first_994 = false; i < (response.len() as i64) } {
+            let mut __for_first_995: bool = true;
+            while { if !__for_first_995 { i += 1; } __for_first_995 = false; i < (response.len() as i64) } {
             let mut accountId: Option<String> = self.safe_string_opt(response.clone(), Value::Int(i), &[]);
             if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1963,8 +1963,8 @@ impl NdaxCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_995: bool = true;
-            while { if !__for_first_995 { i += 1; } __for_first_995 = false; i < (response.len() as i64) } {
+            let mut __for_first_996: bool = true;
+            while { if !__for_first_996 { i += 1; } __for_first_996 = false; i < (response.len() as i64) } {
             let mut balance: Value = self.safe_dict(response.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "ProductId", &[]);
             if (currencyId.is_some()) && (self.currencies_by_id.clone() != Value::Null) && (matches!((&self.currencies_by_id, &currencyId.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -2775,7 +2775,13 @@ impl NdaxCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-    pub async fn fetch_order_trades(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_order_trades(&mut self, id: &str, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Trade>> {
+        let __args: Vec<Value> = vec![Value::from(id), symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut id = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut since = get_arg(optional_args, 1, Value::Null);
         let mut limit = get_arg(optional_args, 2, Value::Null);
@@ -2856,9 +2862,9 @@ impl NdaxCore {
         let mut grouped: Value = self.group_by(response, Value::Str("ChangeReason".into()), &[]);
         let mut trades: Value = self.safe_list_k(grouped, "Trade", &[Value::from(vec![])]);
         return self.parse_trades(trades, &[market, since, limit]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
