@@ -227,14 +227,14 @@ type MarketInterface struct {
 	QuoteId         *string
 	Active          *bool
 	Type            *string
-	Spot            *bool
+	Spot            bool
 	Margin          *bool
-	Swap            *bool
-	Future          *bool
-	Option          *bool
+	Swap            bool
+	Future          bool
+	Option          bool
 	Index           *bool
 	Stock           *bool
-	Contract        *bool
+	Contract        bool
 	Settle          *string
 	SettleId        *string
 	ContractSize    *float64
@@ -311,14 +311,14 @@ func NewMarketInterface(data any) MarketInterface {
 		QuoteId:         SafeStringTyped(m, "quoteId"),
 		Active:          SafeBoolTyped(m, "active"),
 		Type:            SafeStringTyped(m, "type"),
-		Spot:            SafeBoolTyped(m, "spot"),
+		Spot:            SafeBoolTyped(m, "spot") != nil && *SafeBoolTyped(m, "spot"),
 		Margin:          SafeBoolTyped(m, "margin"),
-		Swap:            SafeBoolTyped(m, "swap"),
-		Future:          SafeBoolTyped(m, "future"),
-		Option:          SafeBoolTyped(m, "option"),
+		Swap:            SafeBoolTyped(m, "swap") != nil && *SafeBoolTyped(m, "swap"),
+		Future:          SafeBoolTyped(m, "future") != nil && *SafeBoolTyped(m, "future"),
+		Option:          SafeBoolTyped(m, "option") != nil && *SafeBoolTyped(m, "option"),
 		Index:           SafeBoolTyped(m, "index"),
 		Stock:           SafeBoolTyped(m, "stock"),
-		Contract:        SafeBoolTyped(m, "contract"),
+		Contract:        SafeBoolTyped(m, "contract") != nil && *SafeBoolTyped(m, "contract"),
 		Settle:          SafeStringTyped(m, "settle"),
 		SettleId:        SafeStringTyped(m, "settleId"),
 		ContractSize:    SafeFloatTyped(m, "contractSize"),

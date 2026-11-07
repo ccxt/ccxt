@@ -1,6 +1,5 @@
 import { Transpiler, installCcxtGoLocalTypes, installCcxtGoIndexableTypes, installCcxtGoParamTypes, installCcxtGoDictParams, installCcxtGoGb05ParamTypes, installCcxtGoGb11HandleErrorsCode, installCcxtGoSignTyping, installRfGo5OwnedTables, installFmGo5G01, installFmGo5G04, installCcxtGoTupleSlotReads, installFmGo5GP08, installFmGo5OG02 } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
-import { installCcxtGoMarketBoolReads } from './goTranspiler.js';
 import log from 'ololog'
 
 // task payload posted by goTranspiler.ts#webworkerTranspile (structured clone)
@@ -34,6 +33,59 @@ function transformLeadingComment (comment: string): string {
     }
     exchangeMethods[methodName] = comment;
     return comment;
+}
+
+// `if (market['spot'])` on a local written only by `this.market (...)` / `this.safeMarket (...)`: both
+// return MarketTyped rows (plain values) and the flag is a MarketInterface boolean, so `== true` is EvalTruthy
+const GO_MARKET_BOOL_FLAGS = [ 'spot', 'swap', 'future', 'option', 'contract' ];
+function goIsMarketRowWrite (n: any): boolean {
+    if ((n === undefined) || (n.getText () === 'undefined')) {
+        return true;
+    }
+    return /^this\.(?:market|safeMarket) \(/.test (n.getText ());
+}
+export function installCcxtGoMarketBoolReads (printer: any) {
+    const original = printer.goNativeCondition.bind (printer);
+    printer.goNativeCondition = function (node: any) {
+        const native = original (node);
+        while ((native === undefined) && (node?.kind !== undefined) && (node.expression !== undefined) && (node.argumentExpression === undefined) && /^\(.*\)$/s.test (node.getText ())) {
+            node = node.expression;
+        }
+        if ((native !== undefined) || (node?.argumentExpression === undefined) || (typeof node.expression?.text !== 'string')) {
+            return native;
+        }
+        const key = /^'(\w+)'$/.exec (node.argumentExpression.getText ())?.[1];
+        if ((key === undefined) || !GO_MARKET_BOOL_FLAGS.includes (key)) {
+            return native;
+        }
+        const receiver = node.expression;
+        const declaration = this.goDeclarationOfIdentifier (receiver);
+        const scope = (declaration === undefined) ? undefined : this.goEnclosingFunction (declaration);
+        // the read must already print as a native map index (the local is a Go map, not an any box)
+        const read = `${this.printNode (receiver, 0)}["${key}"]`;
+        if ((scope === undefined) || (declaration.parent?.declarations === undefined) || (this.printNode (node, 0) !== read) || !goIsMarketRowWrite (declaration.initializer)) {
+            return native;
+        }
+        // every later write of the local, whole or by key, must be another market row
+        const name = receiver.text;
+        let ok = true;
+        const visit = (n: any) => {
+            if (!ok) {
+                return;
+            }
+            const isAssign = (n.operatorToken !== undefined) && (n.operatorToken.getText () === '=');
+            if (isAssign && (n.left.getText () === name) && this.goIdentifierRefersToDeclaration (n.left, declaration)) {
+                ok = goIsMarketRowWrite (n.right);
+            } else if (isAssign && (n.left.expression?.getText () === name)) {
+                ok = false;
+            } else if ((n.elements !== undefined) && (n.parent?.left === n) && n.elements.some ((e: any) => e.getText () === name)) {
+                ok = false;
+            }
+            n.forEachChild (visit);
+        };
+        scope.forEachChild (visit);
+        return ok ? `(${read} == true)` : native;
+    };
 }
 
 const verbose = !!process.env['CCXT_TRANSPILE_VERBOSE'];
