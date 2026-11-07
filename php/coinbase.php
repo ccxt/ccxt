@@ -1851,7 +1851,7 @@ class coinbase extends Exchange {
             return null;
         }
         $isDisabled = $this->safe_bool($market, 'is_disabled', false);
-        $tradingDisabled = ($isDisabled === true) || ($this->safe_bool($market, 'trading_disabled') === true);
+        $tradingDisabled = $isDisabled || ($this->safe_bool($market, 'trading_disabled') === true);
         $symbol = $base . '/' . $quote;
         $type = null;
         if ($isSwap) {

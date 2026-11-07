@@ -1042,7 +1042,7 @@ class latoken extends Exchange {
             }
         }
         $isBuy = ($side === 'buy');
-        $isMaker = ($makerBuyer === true) && $isBuy;
+        $isMaker = $makerBuyer && $isBuy;
         $takerOrMaker = $isMaker ? 'maker' : 'taker';
         $baseId = $this->safe_string($trade, 'baseCurrency');
         $quoteId = $this->safe_string($trade, 'quoteCurrency');

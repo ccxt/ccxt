@@ -6706,7 +6706,7 @@ class bitget extends Exchange {
         $uta = null;
         list($uta, $paramsMarginMode) = $this->handle_uta_and_params($paramsMarginMode, 'cancelOrder', false);
         $isStockOrUta = ($isStockSpot || ($uta === true));
-        $isPlanOrder = ($trigger === true) || ($trailing === true);
+        $isPlanOrder = ($trigger === true) || $trailing;
         $isContract = ($market['swap'] === true) || ($market['future'] === true);
         $isContractTriggerEndpoint = $isContract && $isPlanOrder && !$isStockOrUta;
         $clientOrderId = $this->safe_string_2($paramsMarginMode, 'clientOrderId', 'clientOid');

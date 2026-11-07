@@ -1201,7 +1201,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $isUnifiedEnabled = $this->safe_bool($unifiedResult, 0, false);
         $paramsValue2 = $this->safe_dict($unifiedResult, 1, $paramsMarketType);
         $dex = $this->safe_string($paramsValue2, 'dex');
-        $isSpot = (($type === 'spot') || ($isUnifiedEnabled === true)) && ($dex === null);
+        $isSpot = (($type === 'spot') || $isUnifiedEnabled) && ($dex === null);
         $topic = 'clearinghouseState';
         if ($isSpot) {
             $topic = 'spotState';
@@ -1257,7 +1257,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $isUnifiedEnabled = $this->safe_bool($unifiedResult, 0, false);
         $paramsValue2 = $this->safe_dict($unifiedResult, 1, $paramsMarketType);
         $dex = $this->safe_string($paramsValue2, 'dex');
-        $isSpot = (($type === 'spot') || ($isUnifiedEnabled === true)) && ($dex === null);
+        $isSpot = (($type === 'spot') || $isUnifiedEnabled) && ($dex === null);
         $topic = 'clearinghouseState';
         if ($isSpot) {
             $topic = 'spotState';

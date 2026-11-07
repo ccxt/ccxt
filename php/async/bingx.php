@@ -3460,7 +3460,7 @@ class bingx extends Exchange {
             }
             $reduceOnlyParam = $this->safe_bool($paramsTakeProfit, 'reduceOnly', false);
             // stop loss / take profit price orders are always reduce only
-            $reduceOnly = ($reduceOnlyParam === true) || (!$isTriggerOrder && ($isStopLossPriceOrder || $isTakeProfitPriceOrder));
+            $reduceOnly = $reduceOnlyParam || (!$isTriggerOrder && ($isStopLossPriceOrder || $isTakeProfitPriceOrder));
             if ($isTriggerOrder) {
                 $request['stopPrice'] = $this->parse_to_numeric($this->price_to_precision($symbol, $triggerPrice));
                 if ($isMarketOrder || ($typeValue === 'TRIGGER_MARKET')) {

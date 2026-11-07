@@ -3815,7 +3815,7 @@ class bybit extends Exchange {
         $unifiedEnabled = Async\await($this->is_unified_enabled());
         $enableUnifiedMargin = $this->safe_bool($unifiedEnabled, 0, false);
         $enableUnifiedAccount = $this->safe_bool($unifiedEnabled, 1, false);
-        $isUnifiedAccount = ($enableUnifiedMargin === true) || ($enableUnifiedAccount === true);
+        $isUnifiedAccount = $enableUnifiedMargin || $enableUnifiedAccount;
         // don't use getBybitType here
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $type = $marketType;
@@ -5327,7 +5327,7 @@ class bybit extends Exchange {
         $unifiedEnabled = Async\await($this->is_unified_enabled());
         $enableUnifiedMargin = $this->safe_bool($unifiedEnabled, 0, false);
         $enableUnifiedAccount = $this->safe_bool($unifiedEnabled, 1, false);
-        $isUnifiedAccount = ($enableUnifiedMargin === true) || ($enableUnifiedAccount === true);
+        $isUnifiedAccount = $enableUnifiedMargin || $enableUnifiedAccount;
         $market = null;
         $request = array();
         if ($symbol !== null) {
@@ -5452,7 +5452,7 @@ class bybit extends Exchange {
         $unifiedEnabled = Async\await($this->is_unified_enabled());
         $enableUnifiedMargin = $this->safe_bool($unifiedEnabled, 0, false);
         $enableUnifiedAccount = $this->safe_bool($unifiedEnabled, 1, false);
-        $isUnifiedAccount = ($enableUnifiedMargin === true) || ($enableUnifiedAccount === true);
+        $isUnifiedAccount = $enableUnifiedMargin || $enableUnifiedAccount;
         if (!$isUnifiedAccount) {
             return Async\await($this->fetch_order_classic($id, $symbol, $params));
         }
@@ -7413,7 +7413,7 @@ class bybit extends Exchange {
         $unifiedEnabled = Async\await($this->is_unified_enabled());
         $enableUnifiedMargin = $this->safe_bool($unifiedEnabled, 0, false);
         $enableUnifiedAccount = $this->safe_bool($unifiedEnabled, 1, false);
-        $isUnifiedAccount = ($enableUnifiedMargin === true) || ($enableUnifiedAccount === true);
+        $isUnifiedAccount = $enableUnifiedMargin || $enableUnifiedAccount;
         $market = null;
         $marginModes = array(
             'isolated' => 'ISOLATED_MARGIN',
@@ -9774,7 +9774,7 @@ class bybit extends Exchange {
         $unifiedEnabled = Async\await($this->is_unified_enabled());
         $enableUnifiedMargin = $this->safe_bool($unifiedEnabled, 0, false);
         $enableUnifiedAccount = $this->safe_bool($unifiedEnabled, 1, false);
-        $isUnifiedAccount = ($enableUnifiedMargin === true) || ($enableUnifiedAccount === true);
+        $isUnifiedAccount = $enableUnifiedMargin || $enableUnifiedAccount;
         $accountTypeDefault = 'eb_convert_spot';
         if ($isUnifiedAccount) {
             $accountTypeDefault = 'eb_convert_uta';
@@ -9825,7 +9825,7 @@ class bybit extends Exchange {
             $id = $this->safe_string($entry, 'coin');
             $disableFrom = $this->safe_bool($entry, 'disableFrom', false);
             $disableTo = $this->safe_bool($entry, 'disableTo', false);
-            $inactive = ($disableFrom === true) || ($disableTo === true);
+            $inactive = $disableFrom || $disableTo;
             $code = $this->safe_currency_code($id);
             if ($code !== null) {
                 $result[$code] = array(
@@ -9884,7 +9884,7 @@ class bybit extends Exchange {
         $unifiedEnabled = Async\await($this->is_unified_enabled());
         $enableUnifiedMargin = $this->safe_bool($unifiedEnabled, 0, false);
         $enableUnifiedAccount = $this->safe_bool($unifiedEnabled, 1, false);
-        $isUnifiedAccount = ($enableUnifiedMargin === true) || ($enableUnifiedAccount === true);
+        $isUnifiedAccount = $enableUnifiedMargin || $enableUnifiedAccount;
         $accountTypeDefault = 'eb_convert_spot';
         if ($isUnifiedAccount) {
             $accountTypeDefault = 'eb_convert_uta';
@@ -9988,7 +9988,7 @@ class bybit extends Exchange {
         $unifiedEnabled = Async\await($this->is_unified_enabled());
         $enableUnifiedMargin = $this->safe_bool($unifiedEnabled, 0, false);
         $enableUnifiedAccount = $this->safe_bool($unifiedEnabled, 1, false);
-        $isUnifiedAccount = ($enableUnifiedMargin === true) || ($enableUnifiedAccount === true);
+        $isUnifiedAccount = $enableUnifiedMargin || $enableUnifiedAccount;
         $accountTypeDefault = 'eb_convert_spot';
         if ($isUnifiedAccount) {
             $accountTypeDefault = 'eb_convert_uta';

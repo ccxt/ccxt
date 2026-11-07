@@ -3252,7 +3252,7 @@ class okx extends Exchange {
             $marginMode = $defaultMarginMode;
         }
         $marginParam = $this->safe_bool($params, 'margin', false);
-        $margin = $marginModeIsExplicit || ($marginParam === true);
+        $margin = $marginModeIsExplicit || $marginParam;
         // position side / hedged options only apply to swap and future orders
         $isSwapOrFuture = ($contract === true) && (($market['swap'] === true) || ($market['future'] === true));
         list($positionSide, $paramsPositionSide) = $this->handle_option_string_and_params($params, 'createOrder', 'positionSide');

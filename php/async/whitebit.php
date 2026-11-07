@@ -540,7 +540,7 @@ class whitebit extends Exchange {
         $settleId = null;
         $symbol = $base . '/' . $quote;
         $swap = ($typeId === 'futures') || ($typeId === 'tradfiFutures');
-        $margin = ($isCollateral === true) && !$swap;
+        $margin = $isCollateral && !$swap;
         $contract = false;
         $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'stockPrec')));
         $linear = null;

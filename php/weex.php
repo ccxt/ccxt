@@ -2370,7 +2370,7 @@ class weex extends Exchange {
             throw new BadRequest($this->id . ' createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters');
         }
         $reduceOnly = $this->safe_bool($query, 'reduceOnly', false);
-        $isReduceOnly = $isStopLoss || $isTakeProfit || ($reduceOnly === true);
+        $isReduceOnly = $isStopLoss || $isTakeProfit || $reduceOnly;
         $positionSide = 'LONG';
         if ($isReduceOnly) {
             if ($side === 'buy') {

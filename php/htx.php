@@ -3749,7 +3749,7 @@ class htx extends Exchange {
             $stopLoss = $this->safe_bool($paramsMarketType, 'stopLoss', false);
             $takeProfit = $this->safe_bool($paramsMarketType, 'takeProfit', false);
             $trailing = $this->safe_bool($paramsMarketType, 'trailing', false);
-            $isAlgo = (($trigger === true) || ($stopLoss === true) || ($takeProfit === true) || ($stopLossTakeProfit === true) || ($trailing === true));
+            $isAlgo = (($trigger === true) || $stopLoss || $takeProfit || $stopLossTakeProfit || $trailing);
             $paramsOmitted = $this->omit($paramsMarketType, array( 'stop', 'stopLossTakeProfit', 'trailing', 'trigger', 'stopLoss', 'takeProfit' ));
             $clientOrderId = $this->safe_string_n($paramsOmitted, array( 'client_order_id', 'clientOrderId', 'algo_client_order_id' ));
             $paramsClientOrderId = ($clientOrderId !== null) ? $this->omit($paramsOmitted, array( 'client_order_id', 'clientOrderId', 'algo_client_order_id' )) : $paramsOmitted;
@@ -4024,7 +4024,7 @@ class htx extends Exchange {
         $stopLoss = $this->safe_bool($params, 'stopLoss', false);
         $takeProfit = $this->safe_bool($params, 'takeProfit', false);
         $trailing = $this->safe_bool($params, 'trailing', false);
-        $isAlgo = (($trigger === true) || ($stopLoss === true) || ($takeProfit === true) || ($stopLossTakeProfit === true) || ($trailing));
+        $isAlgo = (($trigger === true) || $stopLoss || $takeProfit || $stopLossTakeProfit || ($trailing));
         $paramsOmitted = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing', 'trigger', 'stopLoss', 'takeProfit' ));
         if ($since !== null) {
             $request['start_time'] = $since;
@@ -4175,7 +4175,7 @@ class htx extends Exchange {
             $stopLoss = $this->safe_bool($params, 'stopLoss', false);
             $takeProfit = $this->safe_bool($params, 'takeProfit', false);
             $trailing = $this->safe_bool($params, 'trailing', false);
-            $isAlgo = (($trigger === true) || ($stopLoss === true) || ($takeProfit === true) || ($stopLossTakeProfit === true) || ($trailing));
+            $isAlgo = (($trigger === true) || $stopLoss || $takeProfit || $stopLossTakeProfit || ($trailing));
             if ($isAlgo) {
                 $request['states'] = 'effective';
             } else {
@@ -4273,7 +4273,7 @@ class htx extends Exchange {
                 $stopLoss = $this->safe_bool($paramsMarketType, 'stopLoss', false);
                 $takeProfit = $this->safe_bool($paramsMarketType, 'takeProfit', false);
                 $trailing = $this->safe_bool($paramsMarketType, 'trailing', false);
-                $isAlgo = (($trigger === true) || ($stopLoss === true) || ($takeProfit === true) || ($stopLossTakeProfit === true) || ($trailing));
+                $isAlgo = (($trigger === true) || $stopLoss || $takeProfit || $stopLossTakeProfit || ($trailing));
                 if ($isAlgo) {
                     $request['states'] = 'canceled';
                 } else {

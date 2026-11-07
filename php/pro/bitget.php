@@ -567,7 +567,7 @@ class bitget extends \ccxt\async\bitget {
         $isStock = $market['stock'];
         $paramsStock = $this->omit($paramsUta, 'stock');
         $isStockSpot = $isStock && ($market['spot'] === true);
-        $isStockOrUta = ($isStockSpot || ($uta === true));
+        $isStockOrUta = ($isStockSpot || $uta);
         list($instType, $paramsInstType) = $this->get_inst_type('watchOHLCV', $market, $isStockOrUta, $paramsStock);
         $paramsRequest = $paramsInstType;
         if ($isStockOrUta) {
@@ -841,7 +841,7 @@ class bitget extends \ccxt\async\bitget {
         $paramsStock = $this->omit($params, 'stock');
         list($uta, $paramsUta) = $this->handle_option_bool_and_params($paramsStock, 'unWatchOrderBook', 'uta', false);
         $isStockSpot = $isStock && $market['spot'];
-        $isStockOrUta = ($isStockSpot || ($uta === true));
+        $isStockOrUta = ($isStockSpot || $uta);
         $paramsRequest = $paramsUta;
         if ($isStockOrUta) {
             $paramsRequest = $this->extend($paramsUta, array( 'uta' => true ));
@@ -926,7 +926,7 @@ class bitget extends \ccxt\async\bitget {
         }
         $paramsStock = $this->omit($params, 'stock');
         list($uta, $paramsUta) = $this->handle_option_bool_and_params($paramsStock, 'watchOrderBookForSymbols', 'uta', false);
-        $isStockOrUta = ($isStockSpot || ($uta === true));
+        $isStockOrUta = ($isStockSpot || $uta);
         $channel = 'books';
         $incrementalFeed = true;
         if (($limit === 1) || ($limit === 5) || ($limit === 15) || ($limit === 50)) {
@@ -2514,7 +2514,7 @@ class bitget extends \ccxt\async\bitget {
          */
         list($uta, $paramsUta) = $this->handle_option_bool_and_params($params, 'watchBalance', 'uta', false);
         list($stock, $paramsStock) = $this->handle_option_bool_and_params($paramsUta, 'watchBalance', 'stock', false);
-        $isStockOrUta = (($stock === true) || ($uta === true));
+        $isStockOrUta = ($stock || $uta);
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchBalance', null, $paramsStock);
         list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('watchBalance', $paramsMarketType);
         $instTypeDefault = null;
