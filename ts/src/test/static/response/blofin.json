@@ -1865,6 +1865,128 @@
                         "fees": []
                     }
                 ]
+            },
+            {
+                "description": "paginate makes one request: the trades endpoint returns the latest trades and ignores 'after', so further pages only repeat them",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1793517081062,
+                    null,
+                    {
+                        "paginate": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": [
+                        {
+                            "tradeId": "50918287711",
+                            "instId": "BTC-USDT",
+                            "price": "77922.4",
+                            "size": "11",
+                            "side": "sell",
+                            "ts": "1793517100519"
+                        },
+                        {
+                            "tradeId": "50918287450",
+                            "instId": "BTC-USDT",
+                            "price": "77922.1",
+                            "size": "37.2",
+                            "side": "sell",
+                            "ts": "1793517081171"
+                        },
+                        {
+                            "tradeId": "50918287249",
+                            "instId": "BTC-USDT",
+                            "price": "77922.4",
+                            "size": "0.9",
+                            "side": "buy",
+                            "ts": "1793517081062"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "tradeId": "50918287249",
+                            "instId": "BTC-USDT",
+                            "price": "77922.4",
+                            "size": "0.9",
+                            "side": "buy",
+                            "ts": "1793517081062"
+                        },
+                        "timestamp": 1793517081062,
+                        "datetime": "2026-11-01T07:11:21.062Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "id": "50918287249",
+                        "order": null,
+                        "type": null,
+                        "takerOrMaker": null,
+                        "side": "buy",
+                        "price": 77922.4,
+                        "amount": 0.9,
+                        "cost": 70.13016,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "tradeId": "50918287450",
+                            "instId": "BTC-USDT",
+                            "price": "77922.1",
+                            "size": "37.2",
+                            "side": "sell",
+                            "ts": "1793517081171"
+                        },
+                        "timestamp": 1793517081171,
+                        "datetime": "2026-11-01T07:11:21.171Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "id": "50918287450",
+                        "order": null,
+                        "type": null,
+                        "takerOrMaker": null,
+                        "side": "sell",
+                        "price": 77922.1,
+                        "amount": 37.2,
+                        "cost": 2898.70212,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "tradeId": "50918287711",
+                            "instId": "BTC-USDT",
+                            "price": "77922.4",
+                            "size": "11",
+                            "side": "sell",
+                            "ts": "1793517100519"
+                        },
+                        "timestamp": 1793517100519,
+                        "datetime": "2026-11-01T07:11:40.519Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "id": "50918287711",
+                        "order": null,
+                        "type": null,
+                        "takerOrMaker": null,
+                        "side": "sell",
+                        "price": 77922.4,
+                        "amount": 11,
+                        "cost": 857.1464,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
             }
         ],
         "transfer": [
