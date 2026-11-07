@@ -8251,7 +8251,7 @@ class Exchange extends BaseExchange {
     }
 
     private function do_cancel_unified_order(array $order, $params = array()) {
-        return Async\await($this->cancel_order($this->safe_string($order, 'id'), $this->safe_string($order, 'symbol'), $params));
+        return Async\await($this->cancel_order($this->safe_string($order, 'id', ''), $this->safe_string($order, 'symbol'), $params));
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {

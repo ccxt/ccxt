@@ -10608,7 +10608,7 @@ class Exchange extends BaseExchange {
     }
 
     public function cancel_unified_order(array $order, $params = array()) {
-        return $this->cancel_order($this->safe_string($order, 'id'), $this->safe_string($order, 'symbol'), $params);
+        return $this->cancel_order($this->safe_string($order, 'id', ''), $this->safe_string($order, 'symbol'), $params);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
