@@ -529,7 +529,7 @@ export default class whitebit extends Exchange {
         let settleId: Str = undefined;
         let symbol = base + '/' + quote;
         const swap = (typeId === 'futures') || (typeId === 'tradfiFutures');
-        const margin = (isCollateral === true) && !swap;
+        const margin = isCollateral && !swap;
         let contract = false;
         const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'stockPrec')));
         let linear: Bool = undefined;

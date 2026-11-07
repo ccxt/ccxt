@@ -3741,9 +3741,9 @@ export default class bybit extends Exchange {
         }
         const request: Dict = {};
         const unifiedEnabled = await this.isUnifiedEnabled ();
-        const enableUnifiedMargin: boolean = this.safeBool (unifiedEnabled, 0, false);
-        const enableUnifiedAccount: boolean = this.safeBool (unifiedEnabled, 1, false);
-        const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
+        const enableUnifiedMargin: boolean = unifiedEnabled[0];
+        const enableUnifiedAccount: boolean = unifiedEnabled[1];
+        const isUnifiedAccount = enableUnifiedMargin || enableUnifiedAccount;
         // don't use getBybitType here
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let type: Str = marketType;
@@ -5211,9 +5211,9 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         const unifiedEnabled = await this.isUnifiedEnabled ();
-        const enableUnifiedMargin: boolean = this.safeBool (unifiedEnabled, 0, false);
-        const enableUnifiedAccount: boolean = this.safeBool (unifiedEnabled, 1, false);
-        const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
+        const enableUnifiedMargin: boolean = unifiedEnabled[0];
+        const enableUnifiedAccount: boolean = unifiedEnabled[1];
+        const isUnifiedAccount = enableUnifiedMargin || enableUnifiedAccount;
         let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
@@ -5328,9 +5328,9 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         const unifiedEnabled = await this.isUnifiedEnabled ();
-        const enableUnifiedMargin: boolean = this.safeBool (unifiedEnabled, 0, false);
-        const enableUnifiedAccount: boolean = this.safeBool (unifiedEnabled, 1, false);
-        const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
+        const enableUnifiedMargin: boolean = unifiedEnabled[0];
+        const enableUnifiedAccount: boolean = unifiedEnabled[1];
+        const isUnifiedAccount = enableUnifiedMargin || enableUnifiedAccount;
         if (!isUnifiedAccount) {
             return await this.fetchOrderClassic (id, symbol, params);
         }
@@ -6400,7 +6400,7 @@ export default class bybit extends Exchange {
             // 'cursor': '', Cursor. Used for pagination
         };
         const unifiedEnabled = await this.isUnifiedEnabled ();
-        const enableUnified: boolean = this.safeBool (unifiedEnabled, 1, false);
+        const enableUnified: boolean = unifiedEnabled[1];
         let currency: Currency = undefined;
         let currencyKey = 'coin';
         if (enableUnified) {
@@ -6669,7 +6669,7 @@ export default class bybit extends Exchange {
         const accounts = await this.isUnifiedEnabled ();
         const isUta = accounts[1];
         const [ accountTypeOption, paramsAccountType ] = this.handleOptionStringAndParams (paramsWithdrawTag, 'withdraw', 'accountType');
-        const defaultAccountType = (isUta === true) ? 'UTA' : 'SPOT';
+        const defaultAccountType = isUta ? 'UTA' : 'SPOT';
         const accountType = (accountTypeOption === undefined) ? defaultAccountType : accountTypeOption;
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -7214,9 +7214,9 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         const unifiedEnabled = await this.isUnifiedEnabled ();
-        const enableUnifiedMargin: boolean = this.safeBool (unifiedEnabled, 0, false);
-        const enableUnifiedAccount: boolean = this.safeBool (unifiedEnabled, 1, false);
-        const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
+        const enableUnifiedMargin: boolean = unifiedEnabled[0];
+        const enableUnifiedAccount: boolean = unifiedEnabled[1];
+        const isUnifiedAccount = enableUnifiedMargin || enableUnifiedAccount;
         let market: Market = undefined;
         let response: Dict;
         const marginModes: Dict = {
@@ -9456,9 +9456,9 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         const unifiedEnabled = await this.isUnifiedEnabled ();
-        const enableUnifiedMargin: boolean = this.safeBool (unifiedEnabled, 0, false);
-        const enableUnifiedAccount: boolean = this.safeBool (unifiedEnabled, 1, false);
-        const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
+        const enableUnifiedMargin: boolean = unifiedEnabled[0];
+        const enableUnifiedAccount: boolean = unifiedEnabled[1];
+        const isUnifiedAccount = enableUnifiedMargin || enableUnifiedAccount;
         let accountTypeDefault: Str = 'eb_convert_spot';
         if (isUnifiedAccount) {
             accountTypeDefault = 'eb_convert_uta';
@@ -9509,7 +9509,7 @@ export default class bybit extends Exchange {
             const id = this.safeString (entry, 'coin');
             const disableFrom = this.safeBool (entry, 'disableFrom', false);
             const disableTo = this.safeBool (entry, 'disableTo', false);
-            const inactive = (disableFrom === true) || (disableTo === true);
+            const inactive = disableFrom || disableTo;
             const code = this.safeCurrencyCode (id);
             if (code !== undefined) {
                 result[code] = {
@@ -9562,9 +9562,9 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         const unifiedEnabled = await this.isUnifiedEnabled ();
-        const enableUnifiedMargin: boolean = this.safeBool (unifiedEnabled, 0, false);
-        const enableUnifiedAccount: boolean = this.safeBool (unifiedEnabled, 1, false);
-        const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
+        const enableUnifiedMargin: boolean = unifiedEnabled[0];
+        const enableUnifiedAccount: boolean = unifiedEnabled[1];
+        const isUnifiedAccount = enableUnifiedMargin || enableUnifiedAccount;
         let accountTypeDefault: Str = 'eb_convert_spot';
         if (isUnifiedAccount) {
             accountTypeDefault = 'eb_convert_uta';
@@ -9658,9 +9658,9 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         const unifiedEnabled = await this.isUnifiedEnabled ();
-        const enableUnifiedMargin: boolean = this.safeBool (unifiedEnabled, 0, false);
-        const enableUnifiedAccount: boolean = this.safeBool (unifiedEnabled, 1, false);
-        const isUnifiedAccount = (enableUnifiedMargin === true) || (enableUnifiedAccount === true);
+        const enableUnifiedMargin: boolean = unifiedEnabled[0];
+        const enableUnifiedAccount: boolean = unifiedEnabled[1];
+        const isUnifiedAccount = enableUnifiedMargin || enableUnifiedAccount;
         let accountTypeDefault: Str = 'eb_convert_spot';
         if (isUnifiedAccount) {
             accountTypeDefault = 'eb_convert_uta';
