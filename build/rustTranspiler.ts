@@ -2007,7 +2007,8 @@ function inRepeatedBlock(masked: string, from: number, pos: number, declAt = -1)
         const head = blockHeader(masked, from, open);
         if (/\b(for|while|loop)\b/.test(head)) return true;
         if (/\|[^|]*\|/.test(head)) return true;
-        if (/\bmove\s*$/.test(head)) return true;
+        // a `move` closure body re-runs; an `async move` block (a typed method's body) runs once
+        if (/\bmove\s*$/.test(head) && !/\basync\s+move\s*$/.test(head)) return true;
     }
     return false;
 }
