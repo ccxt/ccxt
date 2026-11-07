@@ -3140,7 +3140,7 @@ func (this *Weex) CreateContractOrderRequest(symbol string, typeVar string, side
 		panic(BadRequest(this.Id + " createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters"))
 	}
 	var reduceOnly *bool = this.SafeBool(query, "reduceOnly", false)
-	var isReduceOnly bool = isStopLoss || isTakeProfit || (reduceOnly != nil && *reduceOnly == true)
+	var isReduceOnly bool = isStopLoss || isTakeProfit || (reduceOnly != nil && *reduceOnly)
 	var positionSide string = "LONG"
 	if isReduceOnly {
 		if side == "buy" {

@@ -2472,7 +2472,7 @@ func (this *Coinbase) ParseContractMarket(market any, feeTier map[string]any) ma
 		return nil
 	}
 	var isDisabled *bool = this.SafeBool(market, "is_disabled", false)
-	var tradingDisabled bool = (isDisabled != nil && *isDisabled == true) || (this.SafeBool(market, "trading_disabled") != nil && *this.SafeBool(market, "trading_disabled") == true)
+	var tradingDisabled bool = (isDisabled != nil && *isDisabled) || (this.SafeBool(market, "trading_disabled") != nil && *this.SafeBool(market, "trading_disabled") == true)
 	var symbol string = *base + "/" + *quote
 	var typeVar string
 	if isSwap {

@@ -4310,7 +4310,7 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		}
 		var reduceOnlyParam *bool = this.SafeBool(paramsTakeProfit, "reduceOnly", false)
 		// stop loss / take profit price orders are always reduce only
-		var reduceOnly bool = (reduceOnlyParam != nil && *reduceOnlyParam == true) || (!isTriggerOrder && (isStopLossPriceOrder || isTakeProfitPriceOrder))
+		var reduceOnly bool = (reduceOnlyParam != nil && *reduceOnlyParam) || (!isTriggerOrder && (isStopLossPriceOrder || isTakeProfitPriceOrder))
 		if isTriggerOrder {
 			request["stopPrice"] = this.ParseToNumeric(this.PriceToPrecision(symbol, triggerPrice))
 			if isMarketOrder || (typeValue == "TRIGGER_MARKET") {

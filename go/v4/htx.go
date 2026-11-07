@@ -5230,7 +5230,7 @@ func (this *Htx) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalA
 		var stopLoss *bool = this.SafeBool(paramsMarketType, "stopLoss", false)
 		var takeProfit *bool = this.SafeBool(paramsMarketType, "takeProfit", false)
 		var trailing *bool = this.SafeBool(paramsMarketType, "trailing", false)
-		var isAlgo bool = ((trigger != nil && *trigger == true) || (stopLoss != nil && *stopLoss == true) || (takeProfit != nil && *takeProfit == true) || (stopLossTakeProfit != nil && *stopLossTakeProfit == true) || (trailing != nil && *trailing == true))
+		var isAlgo bool = ((trigger != nil && *trigger == true) || (stopLoss != nil && *stopLoss) || (takeProfit != nil && *takeProfit) || (stopLossTakeProfit != nil && *stopLossTakeProfit) || (trailing != nil && *trailing))
 		var paramsOmitted map[string]any = this.OmitDict(paramsMarketType, []any{"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"})
 		var clientOrderId *string = this.SafeStringN(paramsOmitted, []any{"client_order_id", "clientOrderId", "algo_client_order_id"})
 		var paramsClientOrderId map[string]any = func() map[string]any {
@@ -5620,7 +5620,7 @@ func (this *Htx) fetchContractOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	var stopLoss *bool = this.SafeBool(params, "stopLoss", false)
 	var takeProfit *bool = this.SafeBool(params, "takeProfit", false)
 	var trailing *bool = this.SafeBool(params, "trailing", false)
-	var isAlgo bool = ((trigger != nil && *trigger == true) || (stopLoss != nil && *stopLoss == true) || (takeProfit != nil && *takeProfit == true) || (stopLossTakeProfit != nil && *stopLossTakeProfit == true) || (trailing != nil && *trailing))
+	var isAlgo bool = ((trigger != nil && *trigger == true) || (stopLoss != nil && *stopLoss) || (takeProfit != nil && *takeProfit) || (stopLossTakeProfit != nil && *stopLossTakeProfit) || (trailing != nil && *trailing))
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"})
 	if since != nil {
 		request["start_time"] = since
@@ -5772,7 +5772,7 @@ func (this *Htx) fetchClosedContractOrdersBody(ch chan AsyncResult[[]Order], opt
 		var stopLoss *bool = this.SafeBool(params, "stopLoss", false)
 		var takeProfit *bool = this.SafeBool(params, "takeProfit", false)
 		var trailing *bool = this.SafeBool(params, "trailing", false)
-		var isAlgo bool = ((trigger != nil && *trigger == true) || (stopLoss != nil && *stopLoss == true) || (takeProfit != nil && *takeProfit == true) || (stopLossTakeProfit != nil && *stopLossTakeProfit == true) || (trailing != nil && *trailing))
+		var isAlgo bool = ((trigger != nil && *trigger == true) || (stopLoss != nil && *stopLoss) || (takeProfit != nil && *takeProfit) || (stopLossTakeProfit != nil && *stopLossTakeProfit) || (trailing != nil && *trailing))
 		if isAlgo {
 			request["states"] = "effective"
 		} else {
@@ -5964,7 +5964,7 @@ func (this *Htx) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optionalA
 			var stopLoss *bool = this.SafeBool(paramsMarketType, "stopLoss", false)
 			var takeProfit *bool = this.SafeBool(paramsMarketType, "takeProfit", false)
 			var trailing *bool = this.SafeBool(paramsMarketType, "trailing", false)
-			var isAlgo bool = ((trigger != nil && *trigger == true) || (stopLoss != nil && *stopLoss == true) || (takeProfit != nil && *takeProfit == true) || (stopLossTakeProfit != nil && *stopLossTakeProfit == true) || (trailing != nil && *trailing))
+			var isAlgo bool = ((trigger != nil && *trigger == true) || (stopLoss != nil && *stopLoss) || (takeProfit != nil && *takeProfit) || (stopLossTakeProfit != nil && *stopLossTakeProfit) || (trailing != nil && *trailing))
 			if isAlgo {
 				request["states"] = "canceled"
 			} else {

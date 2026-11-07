@@ -1758,7 +1758,7 @@ func (this *Hyperliquid) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances
 	var isUnifiedEnabled *bool = this.SafeBool(unifiedResult, 0, false)
 	var paramsValue2 any = this.SafeDict(unifiedResult, 1, paramsMarketType)
 	var dex *string = this.SafeString(paramsValue2, "dex")
-	var isSpot bool = ((typeVar != nil && *typeVar == "spot") || (isUnifiedEnabled != nil && *isUnifiedEnabled == true)) && (dex == nil)
+	var isSpot bool = ((typeVar != nil && *typeVar == "spot") || (isUnifiedEnabled != nil && *isUnifiedEnabled)) && (dex == nil)
 	var topic string = "clearinghouseState"
 	if isSpot {
 		topic = "spotState"
@@ -1838,7 +1838,7 @@ func (this *Hyperliquid) unWatchBalanceBody(ch chan ccxt.AsyncResult[bool], opti
 	var isUnifiedEnabled *bool = this.SafeBool(unifiedResult, 0, false)
 	var paramsValue2 any = this.SafeDict(unifiedResult, 1, paramsMarketType)
 	var dex *string = this.SafeString(paramsValue2, "dex")
-	var isSpot bool = ((typeVar != nil && *typeVar == "spot") || (isUnifiedEnabled != nil && *isUnifiedEnabled == true)) && (dex == nil)
+	var isSpot bool = ((typeVar != nil && *typeVar == "spot") || (isUnifiedEnabled != nil && *isUnifiedEnabled)) && (dex == nil)
 	var topic string = "clearinghouseState"
 	if isSpot {
 		topic = "spotState"

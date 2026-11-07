@@ -4680,7 +4680,7 @@ func (this *Okx) CreateOrderRequest(symbol string, typeVar string, side any, amo
 		marginMode = defaultMarginMode
 	}
 	var marginParam *bool = this.SafeBool(params, "margin", false)
-	var margin bool = marginModeIsExplicit || (marginParam != nil && *marginParam == true)
+	var margin bool = marginModeIsExplicit || (marginParam != nil && *marginParam)
 	// position side / hedged options only apply to swap and future orders
 	var isSwapOrFuture bool = (contract != nil && *contract == true) && ((market["swap"] == true) || (market["future"] == true))
 	positionSide, paramsPositionSide := this.HandleOptionStringAndParams(params, "createOrder", "positionSide")

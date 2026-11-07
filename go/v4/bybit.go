@@ -5100,7 +5100,7 @@ func (this *Bybit) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs 
 	var unifiedEnabled []any = unifiedEnabledRecv
 	var enableUnifiedMargin *bool = this.SafeBool(unifiedEnabled, 0, false)
 	var enableUnifiedAccount *bool = this.SafeBool(unifiedEnabled, 1, false)
-	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin == true) || (enableUnifiedAccount != nil && *enableUnifiedAccount == true)
+	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin) || (enableUnifiedAccount != nil && *enableUnifiedAccount)
 	// don't use getBybitType here
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	var typeVar any = marketType
@@ -6916,7 +6916,7 @@ func (this *Bybit) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	var unifiedEnabled []any = unifiedEnabledRecv
 	var enableUnifiedMargin *bool = this.SafeBool(unifiedEnabled, 0, false)
 	var enableUnifiedAccount *bool = this.SafeBool(unifiedEnabled, 1, false)
-	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin == true) || (enableUnifiedAccount != nil && *enableUnifiedAccount == true)
+	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin) || (enableUnifiedAccount != nil && *enableUnifiedAccount)
 	var market map[string]any = nil
 	var request map[string]any = map[string]any{}
 	if symbol != nil {
@@ -7094,7 +7094,7 @@ func (this *Bybit) fetchOrderBody(ch chan AsyncResult[Order], id string, optiona
 	var unifiedEnabled []any = unifiedEnabledRecv
 	var enableUnifiedMargin *bool = this.SafeBool(unifiedEnabled, 0, false)
 	var enableUnifiedAccount *bool = this.SafeBool(unifiedEnabled, 1, false)
-	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin == true) || (enableUnifiedAccount != nil && *enableUnifiedAccount == true)
+	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin) || (enableUnifiedAccount != nil && *enableUnifiedAccount)
 	if !isUnifiedAccount {
 
 		r2 := <-this.FetchOrderClassicAsync(id, symbol, params)
@@ -9595,7 +9595,7 @@ func (this *Bybit) setMarginModeBody(ch chan AsyncResult[map[string]any], margin
 	var unifiedEnabled []any = unifiedEnabledRecv
 	var enableUnifiedMargin *bool = this.SafeBool(unifiedEnabled, 0, false)
 	var enableUnifiedAccount *bool = this.SafeBool(unifiedEnabled, 1, false)
-	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin == true) || (enableUnifiedAccount != nil && *enableUnifiedAccount == true)
+	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin) || (enableUnifiedAccount != nil && *enableUnifiedAccount)
 	var market map[string]any = nil
 	var response map[string]any = nil
 	var marginModes map[string]any = map[string]any{
@@ -12682,7 +12682,7 @@ func (this *Bybit) fetchConvertCurrenciesBody(ch chan AsyncResult[Currencies], o
 	var unifiedEnabled []any = unifiedEnabledRecv
 	var enableUnifiedMargin *bool = this.SafeBool(unifiedEnabled, 0, false)
 	var enableUnifiedAccount *bool = this.SafeBool(unifiedEnabled, 1, false)
-	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin == true) || (enableUnifiedAccount != nil && *enableUnifiedAccount == true)
+	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin) || (enableUnifiedAccount != nil && *enableUnifiedAccount)
 	var accountTypeDefault string = "eb_convert_spot"
 	if isUnifiedAccount {
 		accountTypeDefault = "eb_convert_uta"
@@ -12738,7 +12738,7 @@ func (this *Bybit) fetchConvertCurrenciesBody(ch chan AsyncResult[Currencies], o
 		var id *string = this.SafeString(entry, "coin")
 		var disableFrom *bool = this.SafeBool(entry, "disableFrom", false)
 		var disableTo *bool = this.SafeBool(entry, "disableTo", false)
-		var inactive bool = (disableFrom != nil && *disableFrom == true) || (disableTo != nil && *disableTo == true)
+		var inactive bool = (disableFrom != nil && *disableFrom) || (disableTo != nil && *disableTo)
 		var code *string = this.SafeCurrencyCode(id)
 		if code != nil {
 			result[*code] = map[string]any{
@@ -12816,7 +12816,7 @@ func (this *Bybit) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fromCo
 	var unifiedEnabled []any = unifiedEnabledRecv
 	var enableUnifiedMargin *bool = this.SafeBool(unifiedEnabled, 0, false)
 	var enableUnifiedAccount *bool = this.SafeBool(unifiedEnabled, 1, false)
-	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin == true) || (enableUnifiedAccount != nil && *enableUnifiedAccount == true)
+	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin) || (enableUnifiedAccount != nil && *enableUnifiedAccount)
 	var accountTypeDefault string = "eb_convert_spot"
 	if isUnifiedAccount {
 		accountTypeDefault = "eb_convert_uta"
@@ -12962,7 +12962,7 @@ func (this *Bybit) fetchConvertTradeBody(ch chan AsyncResult[Conversion], id str
 	var unifiedEnabled []any = unifiedEnabledRecv
 	var enableUnifiedMargin *bool = this.SafeBool(unifiedEnabled, 0, false)
 	var enableUnifiedAccount *bool = this.SafeBool(unifiedEnabled, 1, false)
-	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin == true) || (enableUnifiedAccount != nil && *enableUnifiedAccount == true)
+	var isUnifiedAccount bool = (enableUnifiedMargin != nil && *enableUnifiedMargin) || (enableUnifiedAccount != nil && *enableUnifiedAccount)
 	var accountTypeDefault string = "eb_convert_spot"
 	if isUnifiedAccount {
 		accountTypeDefault = "eb_convert_uta"

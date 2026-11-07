@@ -671,7 +671,7 @@ func (this *Bitget) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	var isStock *bool = ccxt.SafeBoolPtr(market["stock"])
 	var paramsStock map[string]any = this.OmitDict(paramsUta, "stock")
 	var isStockSpot bool = (isStock != nil && *isStock) && (market["spot"] == true)
-	var isStockOrUta bool = (isStockSpot || (uta == true))
+	var isStockOrUta bool = (isStockSpot || uta)
 	instTypeparamsInstTypeVariable := this.GetInstType("watchOHLCV", market, isStockOrUta, paramsStock)
 	var instType *string = ccxt.SafeStringPtr(instTypeparamsInstTypeVariable[0])
 	var paramsInstType map[string]any = ccxt.MapTyped(instTypeparamsInstTypeVariable[1])
@@ -997,7 +997,7 @@ func (this *Bitget) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol 
 	var paramsStock map[string]any = this.OmitDict(params, "stock")
 	uta, paramsUta := this.HandleOptionBoolAndParams(paramsStock, "unWatchOrderBook", "uta", false)
 	var isStockSpot bool = (isStock != nil && *isStock) && ccxt.EvalTruthy(market["spot"])
-	var isStockOrUta bool = (isStockSpot || (uta == true))
+	var isStockOrUta bool = (isStockSpot || uta)
 	var paramsRequest any = paramsUta
 	if isStockOrUta {
 		paramsRequest = this.Extend(paramsUta, map[string]any{
@@ -1125,7 +1125,7 @@ func (this *Bitget) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 	}
 	var paramsStock map[string]any = this.OmitDict(params, "stock")
 	uta, paramsUta := this.HandleOptionBoolAndParams(paramsStock, "watchOrderBookForSymbols", "uta", false)
-	var isStockOrUta bool = (isStockSpot || (uta == true))
+	var isStockOrUta bool = (isStockSpot || uta)
 	var channel string = "books"
 	var incrementalFeed bool = true
 	if (ccxt.IsEqual(limit, 1)) || (ccxt.IsEqual(limit, 5)) || (ccxt.IsEqual(limit, 15)) || (ccxt.IsEqual(limit, 50)) {
@@ -2962,7 +2962,7 @@ func (this *Bitget) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	_ = params
 	uta, paramsUta := this.HandleOptionBoolAndParams(params, "watchBalance", "uta", false)
 	stock, paramsStock := this.HandleOptionBoolAndParams(paramsUta, "watchBalance", "stock", false)
-	var isStockOrUta bool = ((stock == true) || (uta == true))
+	var isStockOrUta bool = (stock || uta)
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, paramsStock)
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("watchBalance", paramsMarketType)
 	var instTypeDefault any = nil

@@ -1274,7 +1274,7 @@ func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) Trade {
 		}
 	}
 	var isBuy bool = (side != nil && *side == "buy")
-	var isMaker bool = (makerBuyer != nil && *makerBuyer == true) && isBuy
+	var isMaker bool = (makerBuyer != nil && *makerBuyer) && isBuy
 	var takerOrMaker string = func() string {
 		if isMaker {
 			return "maker"

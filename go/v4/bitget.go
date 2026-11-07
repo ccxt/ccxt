@@ -9563,7 +9563,7 @@ func (this *Bitget) cancelOrderBody(ch chan AsyncResult[Order], id any, optional
 	uta = utaparamsMarginModeVariable[0]
 	paramsMarginMode = utaparamsMarginModeVariable[1]
 	var isStockOrUta bool = (isStockSpot || (uta == true))
-	var isPlanOrder bool = (trigger != nil && *trigger == true) || (trailing != nil && *trailing == true)
+	var isPlanOrder bool = (trigger != nil && *trigger == true) || (trailing != nil && *trailing)
 	var isContract bool = (market["swap"] == true) || (market["future"] == true)
 	var isContractTriggerEndpoint bool = isContract && isPlanOrder && !isStockOrUta
 	var clientOrderId *string = this.SafeString2(paramsMarginMode, "clientOrderId", "clientOid")
