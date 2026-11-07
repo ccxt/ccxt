@@ -256742,6 +256742,8 @@ class bitrue extends _abstract_bitrue_js__rspack_import_0/* ["default"] */.A {
         const filters = this.safeList(market, 'filters', []);
         const filtersByType = this.indexBy(filters, 'filterType');
         const status = this.safeString(market, 'status');
+        // spot markets say TRADING, futures contracts 1 (0 when offline)
+        const active = status === 'TRADING' || status === '1';
         const priceFilter = this.safeDict(filtersByType, 'PRICE_FILTER', {});
         const amountFilter = this.safeDict(filtersByType, 'LOT_SIZE', {});
         const defaultPricePrecision = this.safeString(market, 'pricePrecision');
@@ -256774,7 +256776,7 @@ class bitrue extends _abstract_bitrue_js__rspack_import_0/* ["default"] */.A {
             'swap': isContract,
             'future': false,
             'option': false,
-            'active': status === 'TRADING',
+            'active': active,
             'contract': isContract,
             'linear': isLinear,
             'inverse': isInverse,
@@ -275016,16 +275018,13 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */ async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchTrades', 'paginate', false);
-        if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchTrades', symbol, since, limit, paramsPaginate, 'tradeId', 'after', undefined, 100);
-        }
+        // the endpoint returns the latest trades only and ignores 'after' / 'before', so there is no cursor to paginate with
+        const paramsNoPaginate = this.omit(params, 'paginate');
         const market = this.market(symbol);
         const request = {
             'instId': market['id']
@@ -275034,7 +275033,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        const [method, paramsMethod] = this.handleOptionStringAndParams(paramsPaginate, 'fetchTrades', 'method', 'publicGetMarketTrades');
+        const [method, paramsMethod] = this.handleOptionStringAndParams(paramsNoPaginate, 'fetchTrades', 'method', 'publicGetMarketTrades');
         if (method === 'publicGetMarketTrades') {
             response = await this.publicGetMarketTrades(this.extend(request, paramsMethod));
         }
@@ -275563,8 +275562,11 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
         let fee = undefined;
         if (feeCostString !== undefined) {
             const feeCostSigned = _base_Precise_js__rspack_import_3/* .Precise.stringAbs */.Y.stringAbs(feeCostString);
-            const feeCurrencyId = this.safeString(order, 'feeCcy', 'USDT');
-            const feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            const feeCurrencyId = this.safeString(order, 'feeCcy');
+            let feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            if (feeCurrencyCode === undefined) {
+                feeCurrencyCode = this.safeString(marketResolved, 'settle');
+            }
             fee = {
                 'cost': this.parseNumber(feeCostSigned),
                 'currency': feeCurrencyCode
@@ -292119,7 +292121,19 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         //     }
         //
         const result = this.safeDict(response, 'result', {});
-        const tickerList = this.safeList(result, 'list', []);
+        let tickerList = this.safeList(result, 'list', []);
+        if (category === 'spot') {
+            // bybit.id lists spot tickers for pairs that are not in its spot instruments; such a ticker would
+            // resolve to the only market with the same id, a contract (BTCUSD -> BTC/USD:BTC), so it is skipped
+            const spotTickers = [];
+            for(let i = 0; i < tickerList.length; i++){
+                const tickerMarket = this.safeMarket(this.safeString(tickerList[i], 'symbol'), undefined, undefined, 'spot');
+                if (!this.safeBool(tickerMarket, 'contract', false)) {
+                    spotTickers.push(tickerList[i]);
+                }
+            }
+            tickerList = spotTickers;
+        }
         return this.parseTickers(tickerList, parsedSymbols);
     }
     /**
@@ -315390,12 +315404,12 @@ class coinmate extends _abstract_coinmate_js__rspack_import_0/* ["default"] */.A
             'ask': this.safeNumber(ticker, 'ask'),
             'vwap': undefined,
             'askVolume': undefined,
-            'open': undefined,
+            'open': this.safeNumber(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': undefined,
+            'percentage': this.safeNumber(ticker, 'change'),
             'average': undefined,
             'baseVolume': this.safeNumber(ticker, 'amount'),
             'quoteVolume': undefined,
@@ -526579,7 +526593,7 @@ class backpack extends _backpack_js__rspack_import_0/* ["default"] */.A {
         //     },
         //
         return [
-            this.parse8601(this.safeString(ohlcv, 'T')),
+            this.parse8601(this.safeString(ohlcv, 't')),
             this.safeNumber(ohlcv, 'o'),
             this.safeNumber(ohlcv, 'h'),
             this.safeNumber(ohlcv, 'l'),
@@ -532850,10 +532864,19 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
         if (this.positions === undefined) {
             this.positions = {};
         }
-        if (type in this.positions) {
-            return;
-        }
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', false);
+        if (type in this.positions) {
+            // a fresh client has no snapshot future yet, which means the
+            // connection was re-established after a disconnect: positions
+            // closed while disconnected never arrive as stream deltas, so
+            // the cached positions are stale and must be reloaded
+            const messageHash = type + ':fetchPositionsSnapshot';
+            if (fetchPositionsSnapshot === true && !(messageHash in client.futures)) {
+                delete this.positions[type];
+            } else {
+                return;
+            }
+        }
         if (fetchPositionsSnapshot === true) {
             const messageHash = type + ':fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
@@ -532872,6 +532895,13 @@ class binance extends _binance_js__rspack_import_0/* ["default"] */.A {
             params['portfolioMargin'] = true;
         }
         const positions = await this.fetchPositions(undefined, params);
+        // the client may have been replaced by a reconnect while the
+        // snapshot was in flight: a stale snapshot must not overwrite
+        // the fresh one loaded for the new client
+        const currentClient = this.safeValue(this.clients, client.url);
+        if (currentClient !== client) {
+            return;
+        }
         this.positions[type] = new _base_ws_Cache_js__rspack_import_2/* .ArrayCacheBySymbolBySide */.Hk();
         const cache = this.positions[type];
         for(let i = 0; i < positions.length; i++){
@@ -566234,13 +566264,15 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
         //     "channel": "spot.candlesticks",
         //     "event": "update",
         //     "result": {
-        //       "t": "1606292580", // total volume
-        //       "v": "2362.32035", // volume
+        //       "t": "1606292580", // timestamp
+        //       "v": "2362.32035", // volume in the quote currency
         //       "c": "19128.1", // close
         //       "h": "19128.1", // high
         //       "l": "19128.1", // low
         //       "o": "19128.1", // open
-        //       "n": "1m_BTC_USDT" // sub
+        //       "n": "1m_BTC_USDT", // sub
+        //       "a": "0.12349", // volume in the base currency
+        //       "w": false // window closed
         //     }
         //   }
         //
@@ -566270,7 +566302,18 @@ class gate extends _gate_js__rspack_import_0/* ["default"] */.A {
             const prefix = timeframe + '_';
             const marketId = subscription.replace(prefix, '');
             const symbol = this.safeSymbol(marketId, undefined, '_', marketType);
-            const parsed = this.parseOHLCV(ohlcv);
+            let parsed = this.parseOHLCV(ohlcv);
+            if (marketType === 'spot') {
+                // spot's "v" is the volume in the quote currency, "a" in the base currency, which fetchOHLCV returns
+                parsed = [
+                    this.safeTimestamp(ohlcv, 't'),
+                    this.safeNumber(ohlcv, 'o'),
+                    this.safeNumber(ohlcv, 'h'),
+                    this.safeNumber(ohlcv, 'l'),
+                    this.safeNumber(ohlcv, 'c'),
+                    this.safeNumber(ohlcv, 'a')
+                ];
+            }
             this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
             let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
             if (stored === undefined) {
@@ -606433,7 +606476,7 @@ class poloniex extends _poloniex_js__rspack_import_0/* ["default"] */.A {
             this.handleAuthenticate(client, message);
         } else if (type === undefined) {
             this.handleOrderRequest(client, message);
-        } else {
+        } else if (method !== undefined) {
             const data = this.safeList(message, 'data', []);
             const dataLength = data.length;
             if (dataLength > 0) {

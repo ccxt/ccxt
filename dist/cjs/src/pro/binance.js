@@ -5168,10 +5168,20 @@ class binance extends binance$1["default"] {
         if (this.positions === undefined) {
             this.positions = {};
         }
-        if (type in this.positions) {
-            return;
-        }
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', false);
+        if (type in this.positions) {
+            // a fresh client has no snapshot future yet, which means the
+            // connection was re-established after a disconnect: positions
+            // closed while disconnected never arrive as stream deltas, so
+            // the cached positions are stale and must be reloaded
+            const messageHash = type + ':fetchPositionsSnapshot';
+            if ((fetchPositionsSnapshot === true) && (!(messageHash in client.futures))) {
+                delete this.positions[type];
+            }
+            else {
+                return;
+            }
+        }
         if (fetchPositionsSnapshot === true) {
             const messageHash = type + ':fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
@@ -5191,6 +5201,13 @@ class binance extends binance$1["default"] {
             params['portfolioMargin'] = true;
         }
         const positions = await this.fetchPositions(undefined, params);
+        // the client may have been replaced by a reconnect while the
+        // snapshot was in flight: a stale snapshot must not overwrite
+        // the fresh one loaded for the new client
+        const currentClient = this.safeValue(this.clients, client.url);
+        if (currentClient !== client) {
+            return;
+        }
         this.positions[type] = new Cache.ArrayCacheBySymbolBySide();
         const cache = this.positions[type];
         for (let i = 0; i < positions.length; i++) {

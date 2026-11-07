@@ -185,7 +185,6 @@ get the list of most recent trades for a particular symbol
 | since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
 | limit | <code>int</code> | No | the maximum amount of trades to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.paginate | <code>boolean</code> | No | *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times |
 
 
 ```javascript
