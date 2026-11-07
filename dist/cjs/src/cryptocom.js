@@ -835,7 +835,7 @@ class cryptocom extends cryptocom$1["default"] {
                 'settleId': settleId,
                 'type': type,
                 'spot': spot,
-                'margin': ((marginBuyEnabled === true) || (marginSellEnabled === true)),
+                'margin': (marginBuyEnabled || marginSellEnabled),
                 'swap': swap,
                 'future': future,
                 'option': option,

@@ -222081,7 +222081,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
             }
             const reduceOnlyParam = this.safeBool(paramsTakeProfit, 'reduceOnly', false);
             // stop loss / take profit price orders are always reduce only
-            const reduceOnly = reduceOnlyParam === true || !isTriggerOrder && (isStopLossPriceOrder || isTakeProfitPriceOrder);
+            const reduceOnly = reduceOnlyParam || !isTriggerOrder && (isStopLossPriceOrder || isTakeProfitPriceOrder);
             if (isTriggerOrder) {
                 request['stopPrice'] = this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice));
                 if (isMarketOrder || typeValue === 'TRIGGER_MARKET') {
@@ -244268,7 +244268,7 @@ class bitget extends _abstract_bitget_js__rspack_import_0/* ["default"] */.A {
         let uta = undefined;
         [uta, paramsMarginMode] = await this.handleUTAAndParams(paramsMarginMode, 'cancelOrder', false);
         const isStockOrUta = isStockSpot || uta === true;
-        const isPlanOrder = trigger === true || trailing === true;
+        const isPlanOrder = trigger === true || trailing;
         const isContract = market['swap'] === true || market['future'] === true;
         const isContractTriggerEndpoint = isContract && isPlanOrder && !isStockOrUta;
         const clientOrderId = this.safeString2(paramsMarginMode, 'clientOrderId', 'clientOid');
@@ -293096,7 +293096,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         const unifiedEnabled = await this.isUnifiedEnabled();
         const enableUnifiedMargin = this.safeBool(unifiedEnabled, 0, false);
         const enableUnifiedAccount = this.safeBool(unifiedEnabled, 1, false);
-        const isUnifiedAccount = enableUnifiedMargin === true || enableUnifiedAccount === true;
+        const isUnifiedAccount = enableUnifiedMargin || enableUnifiedAccount;
         // don't use getBybitType here
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         let type = marketType;
@@ -294529,7 +294529,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         const unifiedEnabled = await this.isUnifiedEnabled();
         const enableUnifiedMargin = this.safeBool(unifiedEnabled, 0, false);
         const enableUnifiedAccount = this.safeBool(unifiedEnabled, 1, false);
-        const isUnifiedAccount = enableUnifiedMargin === true || enableUnifiedAccount === true;
+        const isUnifiedAccount = enableUnifiedMargin || enableUnifiedAccount;
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -294649,7 +294649,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         const unifiedEnabled = await this.isUnifiedEnabled();
         const enableUnifiedMargin = this.safeBool(unifiedEnabled, 0, false);
         const enableUnifiedAccount = this.safeBool(unifiedEnabled, 1, false);
-        const isUnifiedAccount = enableUnifiedMargin === true || enableUnifiedAccount === true;
+        const isUnifiedAccount = enableUnifiedMargin || enableUnifiedAccount;
         if (!isUnifiedAccount) {
             return await this.fetchOrderClassic(id, symbol, params);
         }
@@ -296495,7 +296495,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         const unifiedEnabled = await this.isUnifiedEnabled();
         const enableUnifiedMargin = this.safeBool(unifiedEnabled, 0, false);
         const enableUnifiedAccount = this.safeBool(unifiedEnabled, 1, false);
-        const isUnifiedAccount = enableUnifiedMargin === true || enableUnifiedAccount === true;
+        const isUnifiedAccount = enableUnifiedMargin || enableUnifiedAccount;
         let market = undefined;
         let response;
         const marginModes = {
@@ -298681,7 +298681,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         const unifiedEnabled = await this.isUnifiedEnabled();
         const enableUnifiedMargin = this.safeBool(unifiedEnabled, 0, false);
         const enableUnifiedAccount = this.safeBool(unifiedEnabled, 1, false);
-        const isUnifiedAccount = enableUnifiedMargin === true || enableUnifiedAccount === true;
+        const isUnifiedAccount = enableUnifiedMargin || enableUnifiedAccount;
         let accountTypeDefault = 'eb_convert_spot';
         if (isUnifiedAccount) {
             accountTypeDefault = 'eb_convert_uta';
@@ -298732,7 +298732,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
             const id = this.safeString(entry, 'coin');
             const disableFrom = this.safeBool(entry, 'disableFrom', false);
             const disableTo = this.safeBool(entry, 'disableTo', false);
-            const inactive = disableFrom === true || disableTo === true;
+            const inactive = disableFrom || disableTo;
             const code = this.safeCurrencyCode(id);
             if (code !== undefined) {
                 result[code] = {
@@ -298785,7 +298785,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         const unifiedEnabled = await this.isUnifiedEnabled();
         const enableUnifiedMargin = this.safeBool(unifiedEnabled, 0, false);
         const enableUnifiedAccount = this.safeBool(unifiedEnabled, 1, false);
-        const isUnifiedAccount = enableUnifiedMargin === true || enableUnifiedAccount === true;
+        const isUnifiedAccount = enableUnifiedMargin || enableUnifiedAccount;
         let accountTypeDefault = 'eb_convert_spot';
         if (isUnifiedAccount) {
             accountTypeDefault = 'eb_convert_uta';
@@ -298877,7 +298877,7 @@ class bybit extends _abstract_bybit_js__rspack_import_0/* ["default"] */.A {
         const unifiedEnabled = await this.isUnifiedEnabled();
         const enableUnifiedMargin = this.safeBool(unifiedEnabled, 0, false);
         const enableUnifiedAccount = this.safeBool(unifiedEnabled, 1, false);
-        const isUnifiedAccount = enableUnifiedMargin === true || enableUnifiedAccount === true;
+        const isUnifiedAccount = enableUnifiedMargin || enableUnifiedAccount;
         let accountTypeDefault = 'eb_convert_spot';
         if (isUnifiedAccount) {
             accountTypeDefault = 'eb_convert_uta';
@@ -303613,7 +303613,7 @@ class coinbase extends _abstract_coinbase_js__rspack_import_0/* ["default"] */.A
             return undefined;
         }
         const isDisabled = this.safeBool(market, 'is_disabled', false);
-        const tradingDisabled = isDisabled === true || this.safeBool(market, 'trading_disabled') === true;
+        const tradingDisabled = isDisabled || this.safeBool(market, 'trading_disabled') === true;
         let symbol = base + '/' + quote;
         let type = undefined;
         if (isSwap) {
@@ -322397,7 +322397,7 @@ class cryptocom extends _abstract_cryptocom_js__rspack_import_0/* ["default"] */
                 'settleId': settleId,
                 'type': type,
                 'spot': spot,
-                'margin': marginBuyEnabled === true || marginSellEnabled === true,
+                'margin': marginBuyEnabled || marginSellEnabled,
                 'swap': swap,
                 'future': future,
                 'option': option,
@@ -390847,7 +390847,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             const stopLoss = this.safeBool(paramsMarketType, 'stopLoss', false);
             const takeProfit = this.safeBool(paramsMarketType, 'takeProfit', false);
             const trailing = this.safeBool(paramsMarketType, 'trailing', false);
-            const isAlgo = trigger === true || stopLoss === true || takeProfit === true || stopLossTakeProfit === true || trailing === true;
+            const isAlgo = trigger === true || stopLoss || takeProfit || stopLossTakeProfit || trailing;
             const paramsOmitted = this.omit(paramsMarketType, [
                 'stop',
                 'stopLossTakeProfit',
@@ -391123,7 +391123,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         const stopLoss = this.safeBool(params, 'stopLoss', false);
         const takeProfit = this.safeBool(params, 'takeProfit', false);
         const trailing = this.safeBool(params, 'trailing', false);
-        const isAlgo = trigger === true || stopLoss === true || takeProfit === true || stopLossTakeProfit === true || trailing;
+        const isAlgo = trigger === true || stopLoss || takeProfit || stopLossTakeProfit || trailing;
         const paramsOmitted = this.omit(params, [
             'stop',
             'stopLossTakeProfit',
@@ -391280,7 +391280,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
             const stopLoss = this.safeBool(params, 'stopLoss', false);
             const takeProfit = this.safeBool(params, 'takeProfit', false);
             const trailing = this.safeBool(params, 'trailing', false);
-            const isAlgo = trigger === true || stopLoss === true || takeProfit === true || stopLossTakeProfit === true || trailing;
+            const isAlgo = trigger === true || stopLoss || takeProfit || stopLossTakeProfit || trailing;
             if (isAlgo) {
                 request['states'] = 'effective';
             } else {
@@ -391374,7 +391374,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
                 const stopLoss = this.safeBool(paramsMarketType, 'stopLoss', false);
                 const takeProfit = this.safeBool(paramsMarketType, 'takeProfit', false);
                 const trailing = this.safeBool(paramsMarketType, 'trailing', false);
-                const isAlgo = trigger === true || stopLoss === true || takeProfit === true || stopLossTakeProfit === true || trailing;
+                const isAlgo = trigger === true || stopLoss || takeProfit || stopLossTakeProfit || trailing;
                 if (isAlgo) {
                     request['states'] = 'canceled';
                 } else {
@@ -427854,7 +427854,7 @@ class latoken extends _abstract_latoken_js__rspack_import_0/* ["default"] */.A {
             }
         }
         const isBuy = side === 'buy';
-        const isMaker = makerBuyer === true && isBuy;
+        const isMaker = makerBuyer && isBuy;
         const takerOrMaker = isMaker ? 'maker' : 'taker';
         const baseId = this.safeString(trade, 'baseCurrency');
         const quoteId = this.safeString(trade, 'quoteCurrency');
@@ -461502,7 +461502,7 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
             marginMode = defaultMarginMode;
         }
         const marginParam = this.safeBool(params, 'margin', false);
-        const margin = marginModeIsExplicit || marginParam === true;
+        const margin = marginModeIsExplicit || marginParam;
         // position side / hedged options only apply to swap and future orders
         const isSwapOrFuture = contract === true && (market['swap'] === true || market['future'] === true);
         const [positionSide, paramsPositionSide] = this.handleOptionStringAndParams(params, 'createOrder', 'positionSide');
@@ -537687,7 +537687,7 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
         const isStock = market['stock'];
         const paramsStock = this.omit(paramsUta, 'stock');
         const isStockSpot = isStock && market['spot'] === true;
-        const isStockOrUta = isStockSpot || uta === true;
+        const isStockOrUta = isStockSpot || uta;
         const [instType, paramsInstType] = this.getInstType('watchOHLCV', market, isStockOrUta, paramsStock);
         let paramsRequest = paramsInstType;
         if (isStockOrUta) {
@@ -537952,7 +537952,7 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
         const paramsStock = this.omit(params, 'stock');
         const [uta, paramsUta] = this.handleOptionBoolAndParams(paramsStock, 'unWatchOrderBook', 'uta', false);
         const isStockSpot = isStock && market['spot'];
-        const isStockOrUta = isStockSpot || uta === true;
+        const isStockOrUta = isStockSpot || uta;
         let paramsRequest = paramsUta;
         if (isStockOrUta) {
             paramsRequest = this.extend(paramsUta, {
@@ -538030,7 +538030,7 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
         }
         const paramsStock = this.omit(params, 'stock');
         const [uta, paramsUta] = this.handleOptionBoolAndParams(paramsStock, 'watchOrderBookForSymbols', 'uta', false);
-        const isStockOrUta = isStockSpot || uta === true;
+        const isStockOrUta = isStockSpot || uta;
         let channel = 'books';
         let incrementalFeed = true;
         if (limit === 1 || limit === 5 || limit === 15 || limit === 50) {
@@ -539611,7 +539611,7 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
      */ async watchBalance(params = {}) {
         const [uta, paramsUta] = this.handleOptionBoolAndParams(params, 'watchBalance', 'uta', false);
         const [stock, paramsStock] = this.handleOptionBoolAndParams(paramsUta, 'watchBalance', 'stock', false);
-        const isStockOrUta = stock === true || uta === true;
+        const isStockOrUta = stock || uta;
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('watchBalance', undefined, paramsStock);
         const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('watchBalance', paramsMarketType);
         let instTypeDefault = undefined;
@@ -577003,7 +577003,7 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
         const isUnifiedEnabled = this.safeBool(unifiedResult, 0, false);
         const paramsValue2 = this.safeDict(unifiedResult, 1, paramsMarketType);
         const dex = this.safeString(paramsValue2, 'dex');
-        const isSpot = (type === 'spot' || isUnifiedEnabled === true) && dex === undefined;
+        const isSpot = (type === 'spot' || isUnifiedEnabled) && dex === undefined;
         let topic = 'clearinghouseState';
         if (isSpot) {
             topic = 'spotState';
@@ -577053,7 +577053,7 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
         const isUnifiedEnabled = this.safeBool(unifiedResult, 0, false);
         const paramsValue2 = this.safeDict(unifiedResult, 1, paramsMarketType);
         const dex = this.safeString(paramsValue2, 'dex');
-        const isSpot = (type === 'spot' || isUnifiedEnabled === true) && dex === undefined;
+        const isSpot = (type === 'spot' || isUnifiedEnabled) && dex === undefined;
         let topic = 'clearinghouseState';
         if (isSpot) {
             topic = 'spotState';
@@ -635221,7 +635221,7 @@ class weex extends _abstract_weex_js__rspack_import_0/* ["default"] */.A {
             throw new _base_errors_js__rspack_import_2.BadRequest(this.id + ' createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters');
         }
         const reduceOnly = this.safeBool(query, 'reduceOnly', false);
-        const isReduceOnly = isStopLoss || isTakeProfit || reduceOnly === true;
+        const isReduceOnly = isStopLoss || isTakeProfit || reduceOnly;
         let positionSide = 'LONG';
         if (isReduceOnly) {
             if (side === 'buy') {
@@ -638084,7 +638084,7 @@ class whitebit extends _abstract_whitebit_js__rspack_import_0/* ["default"] */.A
         let settleId = undefined;
         let symbol = base + '/' + quote;
         const swap = typeId === 'futures' || typeId === 'tradfiFutures';
-        const margin = isCollateral === true && !swap;
+        const margin = isCollateral && !swap;
         let contract = false;
         const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'stockPrec')));
         let linear = undefined;

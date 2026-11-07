@@ -6805,7 +6805,7 @@ export default class bitget extends Exchange {
         let uta = undefined;
         [uta, paramsMarginMode] = await this.handleUTAAndParams(paramsMarginMode, 'cancelOrder', false);
         const isStockOrUta = (isStockSpot || (uta === true));
-        const isPlanOrder = (trigger === true) || (trailing === true);
+        const isPlanOrder = (trigger === true) || trailing;
         const isContract = (market['swap'] === true) || (market['future'] === true);
         const isContractTriggerEndpoint = isContract && isPlanOrder && !isStockOrUta;
         const clientOrderId = this.safeString2(paramsMarginMode, 'clientOrderId', 'clientOid');

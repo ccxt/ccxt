@@ -2362,7 +2362,7 @@ class weex extends weex$1["default"] {
             throw new errors.BadRequest(this.id + ' createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters');
         }
         const reduceOnly = this.safeBool(query, 'reduceOnly', false);
-        const isReduceOnly = isStopLoss || isTakeProfit || (reduceOnly === true);
+        const isReduceOnly = isStopLoss || isTakeProfit || reduceOnly;
         let positionSide = 'LONG';
         if (isReduceOnly) {
             if (side === 'buy') {

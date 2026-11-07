@@ -527,7 +527,7 @@ class whitebit extends whitebit$1["default"] {
         let settleId = undefined;
         let symbol = base + '/' + quote;
         const swap = (typeId === 'futures') || (typeId === 'tradfiFutures');
-        const margin = (isCollateral === true) && !swap;
+        const margin = isCollateral && !swap;
         let contract = false;
         const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'stockPrec')));
         let linear = undefined;

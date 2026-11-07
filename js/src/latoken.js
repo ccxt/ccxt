@@ -1004,7 +1004,7 @@ export default class latoken extends Exchange {
             }
         }
         const isBuy = (side === 'buy');
-        const isMaker = (makerBuyer === true) && isBuy;
+        const isMaker = makerBuyer && isBuy;
         const takerOrMaker = isMaker ? 'maker' : 'taker';
         const baseId = this.safeString(trade, 'baseCurrency');
         const quoteId = this.safeString(trade, 'quoteCurrency');

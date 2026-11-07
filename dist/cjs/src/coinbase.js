@@ -1866,7 +1866,7 @@ class coinbase extends coinbase$1["default"] {
             return undefined;
         }
         const isDisabled = this.safeBool(market, 'is_disabled', false);
-        const tradingDisabled = (isDisabled === true) || (this.safeBool(market, 'trading_disabled') === true);
+        const tradingDisabled = isDisabled || (this.safeBool(market, 'trading_disabled') === true);
         let symbol = base + '/' + quote;
         let type = undefined;
         if (isSwap) {

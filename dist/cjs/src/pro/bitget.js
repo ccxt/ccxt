@@ -538,7 +538,7 @@ class bitget extends bitget$1["default"] {
         const isStock = market['stock'];
         const paramsStock = this.omit(paramsUta, 'stock');
         const isStockSpot = isStock && (market['spot'] === true);
-        const isStockOrUta = (isStockSpot || (uta === true));
+        const isStockOrUta = (isStockSpot || uta);
         const [instType, paramsInstType] = this.getInstType('watchOHLCV', market, isStockOrUta, paramsStock);
         let paramsRequest = paramsInstType;
         if (isStockOrUta) {
@@ -797,7 +797,7 @@ class bitget extends bitget$1["default"] {
         const paramsStock = this.omit(params, 'stock');
         const [uta, paramsUta] = this.handleOptionBoolAndParams(paramsStock, 'unWatchOrderBook', 'uta', false);
         const isStockSpot = isStock && market['spot'];
-        const isStockOrUta = (isStockSpot || (uta === true));
+        const isStockOrUta = (isStockSpot || uta);
         let paramsRequest = paramsUta;
         if (isStockOrUta) {
             paramsRequest = this.extend(paramsUta, { 'uta': true });
@@ -873,7 +873,7 @@ class bitget extends bitget$1["default"] {
         }
         const paramsStock = this.omit(params, 'stock');
         const [uta, paramsUta] = this.handleOptionBoolAndParams(paramsStock, 'watchOrderBookForSymbols', 'uta', false);
-        const isStockOrUta = (isStockSpot || (uta === true));
+        const isStockOrUta = (isStockSpot || uta);
         let channel = 'books';
         let incrementalFeed = true;
         if ((limit === 1) || (limit === 5) || (limit === 15) || (limit === 50)) {
@@ -2430,7 +2430,7 @@ class bitget extends bitget$1["default"] {
     async watchBalance(params = {}) {
         const [uta, paramsUta] = this.handleOptionBoolAndParams(params, 'watchBalance', 'uta', false);
         const [stock, paramsStock] = this.handleOptionBoolAndParams(paramsUta, 'watchBalance', 'stock', false);
-        const isStockOrUta = ((stock === true) || (uta === true));
+        const isStockOrUta = (stock || uta);
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('watchBalance', undefined, paramsStock);
         const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('watchBalance', paramsMarketType);
         let instTypeDefault = undefined;
