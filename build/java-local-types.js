@@ -15050,6 +15050,16 @@ export function installJavaBooleanParams (transpiler) {
         if (bare === undefined || bare.kind === ts.SyntaxKind.NullKeyword || (ts.isIdentifier (bare) && bare.text === 'undefined')) {
             return upstreamConvert (type, printed, node);
         }
+        // a definite TS `boolean` (e.g. a MarketInterface flag) already prints as a Java Boolean
+        let checked;
+        try {
+            checked = printer.getChecker ().getTypeAtLocation (bare);
+        } catch (e) {
+            checked = undefined;
+        }
+        if (checked !== undefined && (checked.flags & ts.TypeFlags.BooleanLike) !== 0) {
+            return printed;
+        }
         throw new Error (`java boolean param: argument ${printed} is not a boolean literal or Boolean slot`);
     };
     const upstreamCondition = printer.printCondition.bind (printer);
