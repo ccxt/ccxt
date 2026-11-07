@@ -261,7 +261,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, false);
             Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            Object isContract = firstMarket.get("contract");
+            Boolean isContract = (Boolean) firstMarket.get("contract");
             String topic = "ticker";
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
@@ -332,7 +332,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, false);
             Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            Object isContract = firstMarket.get("contract");
+            Boolean isContract = (Boolean) firstMarket.get("contract");
             String topic = "ticker";
             List<Object> subHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
@@ -502,7 +502,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, false);
             Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            Object isContract = firstMarket.get("contract");
+            Boolean isContract = (Boolean) firstMarket.get("contract");
             String topic = "trade";
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
@@ -570,7 +570,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, false);
             Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            Object isContract = firstMarket.get("contract");
+            Boolean isContract = (Boolean) firstMarket.get("contract");
             String topic = "trade";
             List<Object> subHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
@@ -750,7 +750,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             List<Object> firstEntry = (List<Object>) this.safeList(symbolsAndTimeframes, 0, new ArrayList<Object>(Arrays.asList()));
             String firstSymbol = this.safeString(firstEntry, 0);
             Map<String, Object> firstMarket = this.market(firstSymbol);
-            Object isContract = firstMarket.get("contract");
+            Boolean isContract = (Boolean) firstMarket.get("contract");
             String priceType = "LAST_PRICE";
             Map<String, Object> paramsPriceType = paramsOmitted;
             if (java.util.Objects.equals(isContract, true))
@@ -841,7 +841,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             List<Object> firstEntry = (List<Object>) this.safeList(symbolsAndTimeframes, 0, new ArrayList<Object>(Arrays.asList()));
             String firstSymbol = this.safeString(firstEntry, 0);
             Map<String, Object> firstMarket = this.market(firstSymbol);
-            Object isContract = firstMarket.get("contract");
+            Boolean isContract = (Boolean) firstMarket.get("contract");
             String priceType = "LAST_PRICE";
             Map<String, Object> paramsPriceType = paramsOmitted;
             if (java.util.Objects.equals(isContract, true))
@@ -1012,7 +1012,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, false);
             Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            Object isContract = firstMarket.get("contract");
+            Boolean isContract = (Boolean) firstMarket.get("contract");
             String callerMethodName = this.safeString(parameters, "callerMethodName", "watchOrderBookForSymbols");
             Map<String, Object> paramsOmitted = this.omit(parameters, "callerMethodName");
             String depth = "200";
@@ -1084,7 +1084,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, false);
             Map<String, Object> firstMarket = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
-            Object isContract = firstMarket.get("contract");
+            Boolean isContract = (Boolean) firstMarket.get("contract");
             String callerMethodName = this.safeString(parameters, "callerMethodName", "unWatchOrderBookForSymbols");
             Map<String, Object> paramsOmitted = this.omit(parameters, "callerMethodName");
             String depth = "200";
