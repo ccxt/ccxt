@@ -46,7 +46,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.currency] currency code to watch, default is any
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
-    watchBalance(params?: {}): Promise<Balances>;
+    watchBalance(params?: Dict): Promise<Balances>;
     handleBalance(client: Client, message: Dict): void;
     /**
      * @method
@@ -90,7 +90,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.interval] notification interval, default raw
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name coinbaseinternational#watchOrdersForSymbols

@@ -587095,8 +587095,8 @@ class lighter extends _lighter_js__rspack_import_0/* ["default"] */.A {
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */ watchMarkPrice(symbol, params = {}) {
-        return this.watchTicker(symbol, params);
+     */ async watchMarkPrice(symbol, params = {}) {
+        return await this.watchTicker(symbol, params);
     }
     /**
      * @method
@@ -587106,8 +587106,8 @@ class lighter extends _lighter_js__rspack_import_0/* ["default"] */.A {
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */ watchMarkPrices(symbols = undefined, params = {}) {
-        return this.watchTickers(symbols, params);
+     */ async watchMarkPrices(symbols = undefined, params = {}) {
+        return await this.watchTickers(symbols, params);
     }
     /**
      * @method
