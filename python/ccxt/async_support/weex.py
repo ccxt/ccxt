@@ -2255,7 +2255,7 @@ class weex(Exchange, ImplicitAPI):
         if isTrigger and (isStopLoss or isTakeProfit):
             raise BadRequest(self.id + ' createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters')
         reduceOnly = self.safe_bool(query, 'reduceOnly', False)
-        isReduceOnly = isStopLoss or isTakeProfit or (reduceOnly is True)
+        isReduceOnly = isStopLoss or isTakeProfit or reduceOnly
         positionSide = 'LONG'
         if isReduceOnly:
             if side == 'buy':

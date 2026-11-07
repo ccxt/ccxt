@@ -839,7 +839,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'settleId': settleId,
                 'type': type,
                 'spot': spot,
-                'margin': ((marginBuyEnabled is True) or (marginSellEnabled is True)),
+                'margin': (marginBuyEnabled or marginSellEnabled),
                 'swap': swap,
                 'future': future,
                 'option': option,

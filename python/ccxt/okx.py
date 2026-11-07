@@ -3163,7 +3163,7 @@ class okx(Exchange, ImplicitAPI):
         if not marginModeIsExplicit:
             marginMode = defaultMarginMode
         marginParam = self.safe_bool(params, 'margin', False)
-        margin = marginModeIsExplicit or (marginParam is True)
+        margin = marginModeIsExplicit or marginParam
         # position side / hedged options only apply to swap and future orders
         isSwapOrFuture = (contract is True) and ((market['swap'] is True) or (market['future'] is True))
         positionSide, paramsPositionSide = self.handle_option_string_and_params(params, 'createOrder', 'positionSide')

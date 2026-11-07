@@ -6381,7 +6381,7 @@ class bitget(Exchange, ImplicitAPI):
         uta = None
         uta, paramsMarginMode = self.handle_uta_and_params(paramsMarginMode, 'cancelOrder', False)
         isStockOrUta = (isStockSpot or (uta is True))
-        isPlanOrder = (trigger is True) or (trailing is True)
+        isPlanOrder = (trigger is True) or trailing
         isContract = (market['swap'] is True) or (market['future'] is True)
         isContractTriggerEndpoint = isContract and isPlanOrder and not isStockOrUta
         clientOrderId = self.safe_string_2(paramsMarginMode, 'clientOrderId', 'clientOid')

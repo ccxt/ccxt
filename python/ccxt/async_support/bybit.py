@@ -3603,7 +3603,7 @@ class bybit(Exchange, ImplicitAPI):
         unifiedEnabled = await self.is_unified_enabled()
         enableUnifiedMargin = self.safe_bool(unifiedEnabled, 0, False)
         enableUnifiedAccount = self.safe_bool(unifiedEnabled, 1, False)
-        isUnifiedAccount = (enableUnifiedMargin is True) or (enableUnifiedAccount is True)
+        isUnifiedAccount = enableUnifiedMargin or enableUnifiedAccount
         # don't use getBybitType here
         marketType, paramsMarketType = self.handle_market_type_and_params('fetchBalance', None, params)
         type = marketType
@@ -4940,7 +4940,7 @@ class bybit(Exchange, ImplicitAPI):
         unifiedEnabled = await self.is_unified_enabled()
         enableUnifiedMargin = self.safe_bool(unifiedEnabled, 0, False)
         enableUnifiedAccount = self.safe_bool(unifiedEnabled, 1, False)
-        isUnifiedAccount = (enableUnifiedMargin is True) or (enableUnifiedAccount is True)
+        isUnifiedAccount = enableUnifiedMargin or enableUnifiedAccount
         market = None
         request = {}
         if symbol is not None:
@@ -5043,7 +5043,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         unifiedEnabled = await self.is_unified_enabled()
         enableUnifiedMargin = self.safe_bool(unifiedEnabled, 0, False)
         enableUnifiedAccount = self.safe_bool(unifiedEnabled, 1, False)
-        isUnifiedAccount = (enableUnifiedMargin is True) or (enableUnifiedAccount is True)
+        isUnifiedAccount = enableUnifiedMargin or enableUnifiedAccount
         if not isUnifiedAccount:
             return await self.fetch_order_classic(id, symbol, params)
         acknowledge, paramsAcknowledged = self.handle_option_bool_and_params(params, 'fetchOrder', 'acknowledged', False)
@@ -6798,7 +6798,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         unifiedEnabled = await self.is_unified_enabled()
         enableUnifiedMargin = self.safe_bool(unifiedEnabled, 0, False)
         enableUnifiedAccount = self.safe_bool(unifiedEnabled, 1, False)
-        isUnifiedAccount = (enableUnifiedMargin is True) or (enableUnifiedAccount is True)
+        isUnifiedAccount = enableUnifiedMargin or enableUnifiedAccount
         market = None
         response: dict
         marginModes = {
@@ -8884,7 +8884,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         unifiedEnabled = await self.is_unified_enabled()
         enableUnifiedMargin = self.safe_bool(unifiedEnabled, 0, False)
         enableUnifiedAccount = self.safe_bool(unifiedEnabled, 1, False)
-        isUnifiedAccount = (enableUnifiedMargin is True) or (enableUnifiedAccount is True)
+        isUnifiedAccount = enableUnifiedMargin or enableUnifiedAccount
         accountTypeDefault = 'eb_convert_spot'
         if isUnifiedAccount:
             accountTypeDefault = 'eb_convert_uta'
@@ -8934,7 +8934,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             id = self.safe_string(entry, 'coin')
             disableFrom = self.safe_bool(entry, 'disableFrom', False)
             disableTo = self.safe_bool(entry, 'disableTo', False)
-            inactive = (disableFrom is True) or (disableTo is True)
+            inactive = disableFrom or disableTo
             code = self.safe_currency_code(id)
             if code is not None:
                 result[code] = {
@@ -8985,7 +8985,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         unifiedEnabled = await self.is_unified_enabled()
         enableUnifiedMargin = self.safe_bool(unifiedEnabled, 0, False)
         enableUnifiedAccount = self.safe_bool(unifiedEnabled, 1, False)
-        isUnifiedAccount = (enableUnifiedMargin is True) or (enableUnifiedAccount is True)
+        isUnifiedAccount = enableUnifiedMargin or enableUnifiedAccount
         accountTypeDefault = 'eb_convert_spot'
         if isUnifiedAccount:
             accountTypeDefault = 'eb_convert_uta'
@@ -9076,7 +9076,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         unifiedEnabled = await self.is_unified_enabled()
         enableUnifiedMargin = self.safe_bool(unifiedEnabled, 0, False)
         enableUnifiedAccount = self.safe_bool(unifiedEnabled, 1, False)
-        isUnifiedAccount = (enableUnifiedMargin is True) or (enableUnifiedAccount is True)
+        isUnifiedAccount = enableUnifiedMargin or enableUnifiedAccount
         accountTypeDefault = 'eb_convert_spot'
         if isUnifiedAccount:
             accountTypeDefault = 'eb_convert_uta'

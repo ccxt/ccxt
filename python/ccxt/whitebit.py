@@ -535,7 +535,7 @@ class whitebit(Exchange, ImplicitAPI):
         settleId = None
         symbol = base + '/' + quote
         swap = (typeId == 'futures') or (typeId == 'tradfiFutures')
-        margin = (isCollateral is True) and not swap
+        margin = isCollateral and not swap
         contract = False
         amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'stockPrec')))
         linear = None

@@ -3202,7 +3202,7 @@ class bingx(Exchange, ImplicitAPI):
                 request['price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
             reduceOnlyParam = self.safe_bool(paramsTakeProfit, 'reduceOnly', False)
             # stop loss / take profit price orders are always reduce only
-            reduceOnly = (reduceOnlyParam is True) or (not isTriggerOrder and (isStopLossPriceOrder or isTakeProfitPriceOrder))
+            reduceOnly = reduceOnlyParam or (not isTriggerOrder and (isStopLossPriceOrder or isTakeProfitPriceOrder))
             if isTriggerOrder:
                 request['stopPrice'] = self.parse_to_numeric(self.price_to_precision(symbol, triggerPrice))
                 if isMarketOrder or (typeValue == 'TRIGGER_MARKET'):

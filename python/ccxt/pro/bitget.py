@@ -519,7 +519,7 @@ class bitget(ccxt.async_support.bitget):
         isStock = market['stock']
         paramsStock = self.omit(paramsUta, 'stock')
         isStockSpot = isStock and (market['spot'] is True)
-        isStockOrUta = (isStockSpot or (uta is True))
+        isStockOrUta = (isStockSpot or uta)
         instType, paramsInstType = self.get_inst_type('watchOHLCV', market, isStockOrUta, paramsStock)
         paramsRequest = paramsInstType
         if isStockOrUta:
@@ -766,7 +766,7 @@ class bitget(ccxt.async_support.bitget):
         paramsStock = self.omit(params, 'stock')
         uta, paramsUta = self.handle_option_bool_and_params(paramsStock, 'unWatchOrderBook', 'uta', False)
         isStockSpot = isStock and market['spot']
-        isStockOrUta = (isStockSpot or (uta is True))
+        isStockOrUta = (isStockSpot or uta)
         paramsRequest = paramsUta
         if isStockOrUta:
             paramsRequest = self.extend(paramsUta, {'uta': True})
@@ -831,7 +831,7 @@ class bitget(ccxt.async_support.bitget):
             isStockSpot = isStock and (market['spot'] is True)
         paramsStock = self.omit(params, 'stock')
         uta, paramsUta = self.handle_option_bool_and_params(paramsStock, 'watchOrderBookForSymbols', 'uta', False)
-        isStockOrUta = (isStockSpot or (uta is True))
+        isStockOrUta = (isStockSpot or uta)
         channel = 'books'
         incrementalFeed = True
         if (limit == 1) or (limit == 5) or (limit == 15) or (limit == 50):
@@ -2269,7 +2269,7 @@ class bitget(ccxt.async_support.bitget):
         """
         uta, paramsUta = self.handle_option_bool_and_params(params, 'watchBalance', 'uta', False)
         stock, paramsStock = self.handle_option_bool_and_params(paramsUta, 'watchBalance', 'stock', False)
-        isStockOrUta = ((stock is True) or (uta is True))
+        isStockOrUta = (stock or uta)
         type, paramsMarketType = self.handle_market_type_and_params('watchBalance', None, paramsStock)
         marginMode, paramsMarginMode = self.handle_margin_mode_and_params('watchBalance', paramsMarketType)
         instTypeDefault = None

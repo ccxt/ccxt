@@ -3575,7 +3575,7 @@ class htx(Exchange, ImplicitAPI):
             stopLoss = self.safe_bool(paramsMarketType, 'stopLoss', False)
             takeProfit = self.safe_bool(paramsMarketType, 'takeProfit', False)
             trailing = self.safe_bool(paramsMarketType, 'trailing', False)
-            isAlgo = ((trigger is True) or (stopLoss is True) or (takeProfit is True) or (stopLossTakeProfit is True) or (trailing is True))
+            isAlgo = ((trigger is True) or stopLoss or takeProfit or stopLossTakeProfit or trailing)
             paramsOmitted = self.omit(paramsMarketType, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger', 'stopLoss', 'takeProfit'])
             clientOrderId = self.safe_string_n(paramsOmitted, ['client_order_id', 'clientOrderId', 'algo_client_order_id'])
             paramsClientOrderId = self.omit(paramsOmitted, ['client_order_id', 'clientOrderId', 'algo_client_order_id']) if (clientOrderId is not None) else paramsOmitted
@@ -3823,7 +3823,7 @@ class htx(Exchange, ImplicitAPI):
         stopLoss = self.safe_bool(params, 'stopLoss', False)
         takeProfit = self.safe_bool(params, 'takeProfit', False)
         trailing = self.safe_bool(params, 'trailing', False)
-        isAlgo = ((trigger is True) or (stopLoss is True) or (takeProfit is True) or (stopLossTakeProfit is True) or (trailing))
+        isAlgo = ((trigger is True) or stopLoss or takeProfit or stopLossTakeProfit or (trailing))
         paramsOmitted = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger', 'stopLoss', 'takeProfit'])
         if since is not None:
             request['start_time'] = since
@@ -3963,7 +3963,7 @@ class htx(Exchange, ImplicitAPI):
             stopLoss = self.safe_bool(params, 'stopLoss', False)
             takeProfit = self.safe_bool(params, 'takeProfit', False)
             trailing = self.safe_bool(params, 'trailing', False)
-            isAlgo = ((trigger is True) or (stopLoss is True) or (takeProfit is True) or (stopLossTakeProfit is True) or (trailing))
+            isAlgo = ((trigger is True) or stopLoss or takeProfit or stopLossTakeProfit or (trailing))
             if isAlgo:
                 request['states'] = 'effective'
             else:
@@ -4049,7 +4049,7 @@ class htx(Exchange, ImplicitAPI):
                 stopLoss = self.safe_bool(paramsMarketType, 'stopLoss', False)
                 takeProfit = self.safe_bool(paramsMarketType, 'takeProfit', False)
                 trailing = self.safe_bool(paramsMarketType, 'trailing', False)
-                isAlgo = ((trigger is True) or (stopLoss is True) or (takeProfit is True) or (stopLossTakeProfit is True) or (trailing))
+                isAlgo = ((trigger is True) or stopLoss or takeProfit or stopLossTakeProfit or (trailing))
                 if isAlgo:
                     request['states'] = 'canceled'
                 else:

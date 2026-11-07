@@ -986,7 +986,7 @@ class latoken(Exchange, ImplicitAPI):
             elif side == 'TRADE_DIRECTION_SELL':
                 side = 'sell'
         isBuy = (side == 'buy')
-        isMaker = (makerBuyer is True) and isBuy
+        isMaker = makerBuyer and isBuy
         takerOrMaker = 'maker' if isMaker else 'taker'
         baseId = self.safe_string(trade, 'baseCurrency')
         quoteId = self.safe_string(trade, 'quoteCurrency')

@@ -1038,7 +1038,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         isUnifiedEnabled = self.safe_bool(unifiedResult, 0, False)
         paramsValue2 = self.safe_dict(unifiedResult, 1, paramsMarketType)
         dex = self.safe_string(paramsValue2, 'dex')
-        isSpot = ((type == 'spot') or (isUnifiedEnabled is True)) and (dex is None)
+        isSpot = ((type == 'spot') or isUnifiedEnabled) and (dex is None)
         topic = 'clearinghouseState'
         if isSpot:
             topic = 'spotState'
@@ -1084,7 +1084,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         isUnifiedEnabled = self.safe_bool(unifiedResult, 0, False)
         paramsValue2 = self.safe_dict(unifiedResult, 1, paramsMarketType)
         dex = self.safe_string(paramsValue2, 'dex')
-        isSpot = ((type == 'spot') or (isUnifiedEnabled is True)) and (dex is None)
+        isSpot = ((type == 'spot') or isUnifiedEnabled) and (dex is None)
         topic = 'clearinghouseState'
         if isSpot:
             topic = 'spotState'
