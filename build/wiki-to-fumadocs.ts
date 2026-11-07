@@ -544,6 +544,15 @@ function exchangeOrder (): string[] {
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
+// base-spec lists ~3.7k exchange links under 274 headings; as <li>s + TOC entries the page
+// exceeds 24k DOM nodes and hangs low-end browsers, so render each list as one inline line.
+function compactSupportedExchanges (md: string): string {
+    return md.replace(/^#####\s+Supported exchanges[ \t]*\n((?:\*[ \t]+[^\n]*\n?)+)/gm, (_m, list: string) => {
+        const items = list.trim().split('\n').map((l) => l.replace(/^\*[ \t]+/, '').trim());
+        return `**Supported exchanges (${items.length}):** ${items.join(' · ')}\n`;
+    });
+}
+
 function main () {
     if (!fs.existsSync(WIKI)) throw new Error(`wiki/ not found at ${WIKI}`);
     console.log('🧹 wiping', path.relative(ROOT, OUT));
@@ -582,7 +591,8 @@ function main () {
             count++;
             continue;
         }
-        const body = transform(readWiki(file));
+        const raw = readWiki(file);
+        const body = transform(route === 'base-spec' ? compactSupportedExchanges(raw) : raw);
         if (route === 'manual') EN_MANUAL_TABLE = (body.match(EXCHANGE_TABLE_RE) ?? [''])[0];
         else if (route === 'pro-manual') EN_PRO_TABLE = (body.match(EXCHANGE_TABLE_RE) ?? [''])[0];
         const desc = ROUTE_DESC[route] || firstParagraph(body);
