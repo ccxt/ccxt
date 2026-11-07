@@ -507,6 +507,10 @@ class gemini extends \ccxt\async\gemini {
     }
 
     public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_bids_asks(...))($symbols, $params);
+    }
+
+    private function do_watch_bids_asks(?array $symbols = null, $params = array()) {
         /**
          * watches best bid & ask for $symbols
          *
@@ -516,7 +520,7 @@ class gemini extends \ccxt\async\gemini {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        return $this->helper_for_watch_multiple_construct('bidsasks', $symbols, $params);
+        return Async\await($this->helper_for_watch_multiple_construct('bidsasks', $symbols, $params));
     }
 
     public function handle_bids_asks_for_multidata(Client $client, array $rawBidAskChanges, ?int $timestamp, ?int $nonce) {

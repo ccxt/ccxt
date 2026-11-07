@@ -1346,8 +1346,12 @@ class BaseExchange extends \ccxt\BaseExchange {
     }
 
     public function watch_my_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        return Async\async(self::do_watch_my_liquidations(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_my_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         if ($this->has['watchMyLiquidationsForSymbols'] !== null && $this->has['watchMyLiquidationsForSymbols'] !== false) {
-            return $this->watch_my_liquidations_for_symbols(array( $symbol ), $since, $limit, $params);
+            return Async\await($this->watch_my_liquidations_for_symbols(array( $symbol ), $since, $limit, $params));
         }
         throw new NotSupported($this->id . ' watchMyLiquidations() is not supported yet');
     }

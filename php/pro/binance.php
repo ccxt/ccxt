@@ -369,6 +369,10 @@ class binance extends \ccxt\async\binance {
     }
 
     public function watch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_liquidations(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * watch the public liquidations of a trading pair
          *
@@ -383,7 +387,7 @@ class binance extends \ccxt\async\binance {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
          */
-        return $this->watch_liquidations_for_symbols(array( $symbol ), $since, $limit, $params);
+        return Async\await($this->watch_liquidations_for_symbols(array( $symbol ), $since, $limit, $params));
     }
 
     public function watch_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -604,6 +608,10 @@ class binance extends \ccxt\async\binance {
     }
 
     public function watch_my_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_my_liquidations(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_my_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * watch the private liquidations of a trading pair
          *
@@ -618,7 +626,7 @@ class binance extends \ccxt\async\binance {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
          */
-        return $this->watch_my_liquidations_for_symbols(array( $symbol ), $since, $limit, $params);
+        return Async\await($this->watch_my_liquidations_for_symbols(array( $symbol ), $since, $limit, $params));
     }
 
     public function watch_my_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -734,6 +742,10 @@ class binance extends \ccxt\async\binance {
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
         /**
          * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -760,7 +772,7 @@ class binance extends \ccxt\async\binance {
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams
         // sync recipe differs between spot and futures (stream/snapshot urls, delta caching/merging, U/u/pu continuity check):
         // https://binance-docs.github.io/apidocs/spot/en/#how-to-manage-a-local-order-book-correctly and https://binance-docs.github.io/apidocs/futures/en/#how-to-manage-a-local-order-book-correctly
-        return $this->watch_order_book_for_symbols(array( $symbol ), $limit, $params);
+        return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
     }
 
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
@@ -925,6 +937,10 @@ class binance extends \ccxt\async\binance {
     }
 
     public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_order_book(...))($symbol, $params);
+    }
+
+    private function do_un_watch_order_book(string $symbol, $params = array()) {
         /**
          * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -943,7 +959,7 @@ class binance extends \ccxt\async\binance {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        return $this->un_watch_order_book_for_symbols(array( $symbol ), $params);
+        return Async\await($this->un_watch_order_book_for_symbols(array( $symbol ), $params));
     }
 
     public function fetch_order_book_ws(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1489,6 +1505,10 @@ class binance extends \ccxt\async\binance {
     }
 
     public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades(...))($symbol, $params);
+    }
+
+    private function do_un_watch_trades(string $symbol, $params = array()) {
         /**
          * unsubscribes from the trades channel
          *
@@ -1504,7 +1524,7 @@ class binance extends \ccxt\async\binance {
          * @param {string} [$params->name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        return $this->un_watch_trades_for_symbols(array( $symbol ), $params);
+        return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $params));
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -2406,6 +2426,10 @@ class binance extends \ccxt\async\binance {
     }
 
     public function un_watch_mark_price(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_mark_price(...))($symbol, $params);
+    }
+
+    private function do_un_watch_mark_price(string $symbol, $params = array()) {
         /**
          * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          *
@@ -2416,7 +2440,7 @@ class binance extends \ccxt\async\binance {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        return $this->un_watch_mark_prices(array( $symbol ), $params);
+        return Async\await($this->un_watch_mark_prices(array( $symbol ), $params));
     }
 
     public function un_watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
@@ -2439,6 +2463,10 @@ class binance extends \ccxt\async\binance {
     }
 
     public function un_watch_ticker(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_ticker(...))($symbol, $params);
+    }
+
+    private function do_un_watch_ticker(string $symbol, $params = array()) {
         /**
          * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          *
@@ -2455,7 +2483,7 @@ class binance extends \ccxt\async\binance {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        return $this->un_watch_tickers(array( $symbol ), $params);
+        return Async\await($this->un_watch_tickers(array( $symbol ), $params));
     }
 
     public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
@@ -3618,6 +3646,10 @@ class binance extends \ccxt\async\binance {
     }
 
     public function fetch_position_ws(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_position_ws(...))($symbol, $params);
+    }
+
+    private function do_fetch_position_ws(string $symbol, $params = array()) {
         /**
          * fetch data on an open position
          *
@@ -3627,7 +3659,7 @@ class binance extends \ccxt\async\binance {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
-        return $this->fetch_positions_ws(array( $symbol ), $params);
+        return Async\await($this->fetch_positions_ws(array( $symbol ), $params));
     }
 
     public function fetch_positions_ws(?array $symbols = null, $params = array()): PromiseInterface {

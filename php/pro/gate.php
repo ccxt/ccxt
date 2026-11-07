@@ -390,6 +390,10 @@ class gate extends \ccxt\async\gate {
     }
 
     public function fetch_open_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_open_orders_ws(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_open_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all unfilled currently open orders
          *
@@ -401,10 +405,14 @@ class gate extends \ccxt\async\gate {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        return $this->fetch_orders_by_status_ws('open', $symbol, $since, $limit, $params);
+        return Async\await($this->fetch_orders_by_status_ws('open', $symbol, $since, $limit, $params));
     }
 
     public function fetch_closed_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_closed_orders_ws(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_closed_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches information on multiple closed orders made by the user
          *
@@ -416,7 +424,7 @@ class gate extends \ccxt\async\gate {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        return $this->fetch_orders_by_status_ws('finished', $symbol, $since, $limit, $params);
+        return Async\await($this->fetch_orders_by_status_ws('finished', $symbol, $since, $limit, $params));
     }
 
     public function fetch_orders_by_status_ws(string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -877,6 +885,10 @@ class gate extends \ccxt\async\gate {
     }
 
     public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_bids_asks(...))($symbols, $params);
+    }
+
+    private function do_watch_bids_asks(?array $symbols = null, $params = array()) {
         /**
          *
          * @see https://www.gate.io/docs/developers/apiv4/ws/en/#best-bid-or-ask-price
@@ -888,7 +900,7 @@ class gate extends \ccxt\async\gate {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        return $this->subscribe_watch_tickers_and_bids_asks($symbols, 'watchBidsAsks', $this->extend(array( 'method' => 'book_ticker' ), $params));
+        return Async\await($this->subscribe_watch_tickers_and_bids_asks($symbols, 'watchBidsAsks', $this->extend(array( 'method' => 'book_ticker' ), $params)));
     }
 
     public function handle_bid_ask(Client $client, array $message) {
@@ -994,6 +1006,10 @@ class gate extends \ccxt\async\gate {
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          *
          * @see https://www.gate.com/docs/developers/apiv4/ws/en/#public-trades-channel
@@ -1008,7 +1024,7 @@ class gate extends \ccxt\async\gate {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        return $this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params);
+        return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
     }
 
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1085,13 +1101,17 @@ class gate extends \ccxt\async\gate {
     }
 
     public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades(...))($symbol, $params);
+    }
+
+    private function do_un_watch_trades(string $symbol, $params = array()) {
         /**
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the market to fetch trades for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        return $this->un_watch_trades_for_symbols(array( $symbol ), $params);
+        return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $params));
     }
 
     public function handle_trades(Client $client, array $message) {
@@ -1896,6 +1916,10 @@ class gate extends \ccxt\async\gate {
     }
 
     public function watch_my_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_my_liquidations(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_my_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * watch the public liquidations of a trading pair
          *
@@ -1909,7 +1933,7 @@ class gate extends \ccxt\async\gate {
          * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
          * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
          */
-        return $this->watch_my_liquidations_for_symbols(array( $symbol ), $since, $limit, $params);
+        return Async\await($this->watch_my_liquidations_for_symbols(array( $symbol ), $since, $limit, $params));
     }
 
     public function watch_my_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
