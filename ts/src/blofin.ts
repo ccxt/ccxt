@@ -1012,17 +1012,14 @@ export default class blofin extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchTrades', 'paginate', false);
-        if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchTrades', symbol, since, limit, paramsPaginate, 'tradeId', 'after', undefined, 100) as Trade[];
-        }
+        // the endpoint returns the latest trades only and ignores 'after' / 'before', so there is no cursor to paginate with
+        const paramsNoPaginate = this.omit (params, 'paginate');
         const market = this.market (symbol);
         const request: Dict = {
             'instId': market['id'],
@@ -1031,7 +1028,7 @@ export default class blofin extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        const [ method, paramsMethod ] = this.handleOptionStringAndParams (paramsPaginate, 'fetchTrades', 'method', 'publicGetMarketTrades');
+        const [ method, paramsMethod ] = this.handleOptionStringAndParams (paramsNoPaginate, 'fetchTrades', 'method', 'publicGetMarketTrades');
         if (method === 'publicGetMarketTrades') {
             response = await this.publicGetMarketTrades (this.extend (request, paramsMethod));
         }
