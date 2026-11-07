@@ -3528,7 +3528,13 @@ public partial class aster : Exchange
             request["origClientOrderIdList"] = clientOrderIdList;
         } else
         {
-            request["orderIdList"] = ids;
+            // the api takes LONG[] order ids
+            List<object> orderIdList = new List<object>() {};
+            for (int i = 0; i < (ids?.Count ?? 0); i++)
+            {
+                orderIdList.Add(this.parseToNumeric((ids != null && i < ids.Count ? ids[i] : null)));
+            }
+            request["orderIdList"] = orderIdList;
         }
         List<object> response = null;
         if ((this.safeBool(market, "swap", false) == true))

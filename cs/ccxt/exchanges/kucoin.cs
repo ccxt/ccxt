@@ -12529,10 +12529,9 @@ public partial class kucoin : Exchange
                 { "clientOid", this.safeString(clientOrderIds, i) },
             });
         }
-        IList<object> idsList = this.toArray(ids);
-        for (int i = 0; i < (idsList?.Count ?? 0); i++)
+        for (int i = 0; i < (ids?.Count ?? 0); i++)
         {
-            string? orderId = this.safeString(idsList, i);
+            string? orderId = this.safeString(ids, i);
             if ((uta == true))
             {
                 ordersRequests.Add(new Dictionary<string, object>() {
