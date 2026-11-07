@@ -6795,10 +6795,19 @@ func (this *Binance) SetPositionsCache(client any, typeVar any, optionalArgs ...
 	if this.Positions == nil {
 		this.Positions = map[string]any{}
 	}
-	if ccxt.InOp(this.Positions, typeVar) {
-		return
-	}
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
+	if ccxt.InOp(this.Positions, typeVar) {
+		// a fresh client has no snapshot future yet, which means the
+		// connection was re-established after a disconnect: positions
+		// closed while disconnected never arrive as stream deltas, so
+		// the cached positions are stale and must be reloaded
+		var messageHash any = ccxt.Add(typeVar, ":fetchPositionsSnapshot")
+		if (fetchPositionsSnapshot == true) && (!(client.(ccxt.ClientInterface).FutureHas(messageHash))) {
+			ccxt.Remove(this.Positions, typeVar)
+		} else {
+			return
+		}
+	}
 	if fetchPositionsSnapshot == true {
 		var messageHash any = ccxt.Add(typeVar, ":fetchPositionsSnapshot")
 		if !(client.(ccxt.ClientInterface).FutureHas(messageHash)) {
@@ -6829,6 +6838,14 @@ func (this *Binance) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], c
 		panic(r.Err)
 	}
 	var positions []any = ccxt.PositionsToList(r.Value)
+	// the client may have been replaced by a reconnect while the
+	// snapshot was in flight: a stale snapshot must not overwrite
+	// the fresh one loaded for the new client
+	var currentClient any = this.SafeValue(this.Clients, client.(ccxt.ClientInterface).GetUrl())
+	if !ccxt.IsEqual(currentClient, client) {
+
+		return nil
+	}
 	ccxt.AddElementToObject(this.Positions, typeVar, ccxt.NewArrayCacheBySymbolBySide())
 	var cache any = ccxt.GetValue(this.Positions, typeVar)
 	for i := 0; i < len(positions); i++ {
@@ -7375,9 +7392,9 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 							}
 						}
 						if insertNewFeeCurrency {
-							retRes566932 := ccxt.GetValue(order, "fees")
-							ccxt.AppendToArray(&retRes566932, tradeFee)
-							ccxt.AddElementToObject(order, "fees", retRes566932)
+							retRes568532 := ccxt.GetValue(order, "fees")
+							ccxt.AppendToArray(&retRes568532, tradeFee)
+							ccxt.AddElementToObject(order, "fees", retRes568532)
 						}
 					} else if fee != nil {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {

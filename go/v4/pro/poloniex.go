@@ -1958,7 +1958,7 @@ func (this *Poloniex) HandleMessage(client any, message map[string]any) {
 		this.HandleAuthenticate(client, message)
 	} else if typeVar == nil {
 		this.HandleOrderRequest(client, message)
-	} else {
+	} else if method != nil {
 		var data []any = ccxt.SafeListTyped(message, "data")
 		var dataLength int = len(data)
 		if dataLength > 0 {

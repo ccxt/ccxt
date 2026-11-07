@@ -1323,7 +1323,6 @@ func (this *Blofin) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Blofin) FetchTradesAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {
@@ -1347,21 +1346,8 @@ func (this *Blofin) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 			panic(r.Err)
 		}
 	}
-	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchTrades", "paginate", false)
-	if paginate {
-
-		r1 := <-this.FetchPaginatedCallCursorAsync("fetchTrades", symbol, since, limit, paramsPaginate, "tradeId", "after", nil, 100)
-		if r1.Err != nil {
-			panic(r1.Err)
-		}
-		var retRes102319 []any = r1.Value
-		if retRes102319 == nil {
-			ch <- AsyncResult[[]Trade]{Value: nil}
-		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes102319)}
-		}
-		return nil
-	}
+	// the endpoint returns the latest trades only and ignores 'after' / 'before', so there is no cursor to paginate with
+	var paramsNoPaginate map[string]any = this.OmitDict(params, "paginate")
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
@@ -1370,14 +1356,14 @@ func (this *Blofin) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	if limit != nil {
 		request["limit"] = limit // default 100
 	}
-	method, paramsMethod := this.HandleOptionStringAndParams(paramsPaginate, "fetchTrades", "method", "publicGetMarketTrades")
+	method, paramsMethod := this.HandleOptionStringAndParams(paramsNoPaginate, "fetchTrades", "method", "publicGetMarketTrades")
 	if method != nil && *method == "publicGetMarketTrades" {
 
-		r2 := <-this.PublicGetMarketTrades(this.Extend(request, paramsMethod))
-		if r2.Err != nil {
-			panic(r2.Err)
+		r1 := <-this.PublicGetMarketTrades(this.Extend(request, paramsMethod))
+		if r1.Err != nil {
+			panic(r1.Err)
 		}
-		response = r2.Value
+		response = r1.Value
 	}
 	var data []any = SafeListTypedDefault(response, "data", []any{})
 
@@ -1450,11 +1436,11 @@ func (this *Blofin) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes108819 []any = r1.Value
-		if retRes108819 == nil {
+		var retRes108519 []any = r1.Value
+		if retRes108519 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes108819)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes108519)}
 		}
 		return nil
 	}
@@ -1539,11 +1525,11 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes113519 []any = r1.Value
-		if retRes113519 == nil {
+		var retRes113219 []any = r1.Value
+		if retRes113219 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes113519)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes113219)}
 		}
 		return nil
 	}
@@ -2031,8 +2017,11 @@ func (this *Blofin) ParseOrder(order any, optionalArgs ...any) Order {
 	var fee map[string]any = nil
 	if feeCostString != nil {
 		var feeCostSigned *string = Precise.StringAbs(feeCostString)
-		var feeCurrencyId string = *this.SafeString(order, "feeCcy", "USDT")
+		var feeCurrencyId *string = this.SafeString(order, "feeCcy")
 		var feeCurrencyCode *string = this.SafeCurrencyCode(feeCurrencyId)
+		if feeCurrencyCode == nil {
+			feeCurrencyCode = this.SafeString(marketResolved, "settle")
+		}
 		fee = map[string]any{
 			"cost":     this.ParseNumber(feeCostSigned),
 			"currency": feeCurrencyCode,
@@ -5148,7 +5137,6 @@ func (this *Blofin) FetchTickers(options ...FetchTickersOptions) (Tickers, error
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Blofin) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
