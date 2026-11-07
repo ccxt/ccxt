@@ -3550,7 +3550,7 @@ export class BaseExchange {
     }
 
     marketsCacheFilePath () {
-        return this.getTempDir () + 'ccxt_cache_' + this.id + '_markets_currencies_.json';
+        return this.getTempDir () + 'ccxt_cache_' + this.id + '_markets_currencies_.json.ccxtfile';
     }
 
     marketsCacheRead () {
