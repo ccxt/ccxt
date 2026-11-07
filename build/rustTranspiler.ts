@@ -2006,8 +2006,8 @@ function inRepeatedBlock(masked: string, from: number, pos: number, declAt = -1)
         if (open < declAt) continue;
         const head = blockHeader(masked, from, open);
         if (/\b(for|while|loop)\b/.test(head)) return true;
-        // a typed unified method's body closure is called exactly once
-        if (/^\s*move \|[^|]*__optional_args: Vec<Value>\| async move\s*$/.test(head)) continue;
+        // a typed unified method's body block (`call_typed(async move {`) runs exactly once
+        if (/^\s*async move\s*$/.test(head) && /crate::runtime::call_typed\(\s*async move\s*$/.test(masked.slice(Math.max(from, open - 64), open))) continue;
         if (/\|[^|]*\|/.test(head)) return true;
         if (/\bmove\s*$/.test(head)) return true;
     }
