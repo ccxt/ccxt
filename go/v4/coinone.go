@@ -15,7 +15,7 @@ func newCoinone() *Coinone {
 	return p
 }
 
-func (this *Coinone) Describe() any {
+func (this *Coinone) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "coinone",
 		"name":      "CoinOne",
@@ -1232,12 +1232,12 @@ func (this *Coinone) createOrderBody(ch chan AsyncResult[Order], symbol string, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Coinone) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Coinone) FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Coinone) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Coinone) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1349,25 +1349,11 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) Order {
 	var id *string = this.SafeString2(order, "orderId", "order_id")
 	var baseId *string = this.SafeString2(order, "baseCurrency", "target_currency")
 	var quoteId *string = this.SafeString2(order, "targetCurrency", "quote_currency")
-	var base any = nil
-	var quote any = nil
-	if baseId != nil {
-		if derefPtr := this.SafeCurrencyCode(baseId); derefPtr != nil {
-			base = *derefPtr
-		} else {
-			base = nil
-		}
-	}
-	if quoteId != nil {
-		if derefPtr := this.SafeCurrencyCode(quoteId); derefPtr != nil {
-			quote = *derefPtr
-		} else {
-			quote = nil
-		}
-	}
+	var base *string = this.SafeCurrencyCode(baseId)
+	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = nil
 	if (base != nil) && (quote != nil) {
-		symbol = Add(Add(base, "/"), quote)
+		symbol = *base + "/" + *quote
 	}
 	var marketResolved any = func() any {
 		if symbol != nil {
@@ -1404,7 +1390,7 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) Order {
 	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(order, "fee")
 	if feeCostString != nil {
-		var feeCurrencyCode any = base
+		var feeCurrencyCode *string = base
 		if side != nil && *side == "sell" {
 			feeCurrencyCode = quote
 		}
@@ -1710,40 +1696,35 @@ func (this *Coinone) fetchDepositAddressesBody(ch chan AsyncResult[[]DepositAddr
 		var currencyId *string = this.SafeString(parts, 0)
 		var secondPart *string = this.SafeString(parts, 1)
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var depositAddress any = this.SafeDict(result, code)
-		if depositAddress == nil {
-			depositAddress = map[string]any{
-				"info":     value,
-				"currency": code,
-				"network":  nil,
-				"address":  nil,
-				"tag":      nil,
-			}
-		}
-		var address *string = this.SafeString(depositAddress, "address", value)
+		var address *string = this.SafeString(this.SafeValue(result, code), "address", value)
 		this.CheckAddress(address)
-		AddElementToObject(depositAddress, "address", address)
-		AddElementToObject(depositAddress, "info", address)
+		var depositAddress map[string]any = map[string]any{
+			"info":     address,
+			"currency": code,
+			"network":  nil,
+			"address":  address,
+			"tag":      this.SafeString(this.SafeValue(result, code), "tag"),
+		}
 		if (secondPart != nil && *secondPart == "tag") || (secondPart != nil && *secondPart == "memo") {
-			AddElementToObject(depositAddress, "tag", value)
-			AddElementToObject(depositAddress, "info", []any{address, value})
+			depositAddress["tag"] = value
+			depositAddress["info"] = []any{address, value}
 		}
 		if code != nil {
-			AddElementToObject(result, code, depositAddress)
+			result[*code] = depositAddress
 		}
 	}
 
 	ch <- AsyncResult[[]DepositAddress]{Value: DepositAddressesFromList(this.ToArray(result))}
 	return nil
 }
-func (this *Coinone) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"public"})
+func (this *Coinone) Sign(path string, optionalArgs ...any) map[string]any {
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiName string = api[0]
 	var request string = this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
@@ -1751,20 +1732,20 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) any {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + "/"
-	var isPublic bool = (apiName != nil && *apiName == "public") || (apiName != nil && *apiName == "v2Public")
-	if apiName != nil && *apiName == "v2Public" {
+	var isPublic bool = (apiName == "public") || (apiName == "v2Public")
+	if apiName == "v2Public" {
 		var apiUrl2 *string = this.SafeString(this.Urls["api"], "v2Public")
 		if apiUrl2 == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
 		url = *apiUrl2 + "/"
-	} else if apiName != nil && *apiName == "v2Private" {
+	} else if apiName == "v2Private" {
 		var apiUrl3 *string = this.SafeString(this.Urls["api"], "v2Private")
 		if apiUrl3 == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 		}
 		url = *apiUrl3 + "/"
-	} else if apiName != nil && *apiName == "v2_1Private" {
+	} else if apiName == "v2_1Private" {
 		var apiUrl4 *string = this.SafeString(this.Urls["api"], "v2_1Private")
 		if apiUrl4 == nil {
 			panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
@@ -1775,7 +1756,7 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) any {
 	var requestHeaders any = nil
 	if isPublic {
 		url += request
-		if len(ObjectKeys(query)) > 0 {
+		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
 	} else {
@@ -1783,10 +1764,11 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) any {
 		url += request
 		// the v2.1 api requires a uuid nonce, the older apis use a numeric one
 		var nonce *string = nil
-		if apiName != nil && *apiName == "v2_1Private" {
-			nonce = SafeStringPtr(this.Uuid())
+		if apiName == "v2_1Private" {
+			uuidText := this.Uuid()
+			nonce = &uuidText
 		} else {
-			nonce = SafeStringPtr(ToString(this.Nonce()))
+			nonce = this.NumberToString(this.Nonce())
 		}
 		var json string = this.Json(this.Extend(map[string]any{
 			"access_token": this.ApiKey,
@@ -1794,7 +1776,7 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) any {
 		}, params))
 		var payload string = this.StringToBase64(json)
 		requestBody = SafeStringPtr(payload)
-		var secret string = ToUpper(this.Secret)
+		var secret string = strings.ToUpper(this.Secret)
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(secret), sha512)
 		requestHeaders = map[string]any{
 			"Content-Type":        "application/json",
@@ -1811,7 +1793,7 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) any {
 		"headers": headersResolved,
 	}
 }
-func (this *Coinone) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Coinone) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -1837,7 +1819,7 @@ func NewCoinone(userConfig map[string]any) *Coinone {
 func (this *Coinone) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

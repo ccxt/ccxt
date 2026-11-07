@@ -138,7 +138,7 @@ class WsClientExecutorShutdownTest {
                 "reconnected client must still process frames");
 
         // Once the redial is gone, a later disconnect re-arms the shutdown.
-        client.startedConnecting.set(false);
+        client.startedConnecting = false;
         clientsMap(ex).put(client.url, client);
         ex.onError(client, new RuntimeException("second disconnect"));
         awaitShutdown(client, 5_000);

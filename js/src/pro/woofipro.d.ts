@@ -2,7 +2,7 @@ import woofiproRest from '../woofipro.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class woofipro extends woofiproRest {
-    describe(): any;
+    describe(): Dict;
     requestId(url: string): number;
     watchPublic(messageHash: string, message: Dict): Promise<any>;
     /**

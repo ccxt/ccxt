@@ -49,7 +49,7 @@ public class TestWatchTrades extends BaseTest {
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, response);
                 for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
-                    TestTrade.testTrade(exchange, skippedProperties, method, (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)), symbol, now, true);
+                    TestTrade.testTrade(exchange, skippedProperties, method, (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)), (String) (symbol), now, true);
                 }
                 if (Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime))
                 {

@@ -14,7 +14,7 @@ declare const inArray: (needle: any, haystack: any[]) => boolean;
 declare const toArray: (object: Dictionary<any> | any[] | undefined | null) => any[];
 declare const isEmpty: (object: any[] | Dictionary<any> | null | undefined) => boolean;
 declare const keysort: (x: Dictionary<any> | undefined, out?: Dictionary<any>) => Dictionary<any>;
-declare const sort: (array: string[] | any) => any;
+declare const sort: (array: string[] | any) => string[];
 declare const groupBy: (x: Dictionary<any> | undefined, k: string, out?: Dictionary<any>) => Dictionary<any>;
 declare const indexBy: (x: Dictionary<any> | undefined, k: IndexType, out?: Dictionary<any>) => Dictionary<any>;
 declare const filterBy: (x: Dictionary<any> | undefined, k: string, value?: any, out?: Dictionary<any>[]) => Dictionary<any>[];
@@ -22,7 +22,8 @@ declare const sortBy: (array: any[], key: IndexType, descending?: boolean, defau
 declare const sortBy2: (array: any[], key1: IndexType, key2: IndexType, descending?: boolean, direction?: number) => any[];
 declare const flatten: (x: any[], out?: any[]) => any[];
 declare const pluck: (x: Dictionary<any>, k: any) => any[];
-declare const omit: (x: Dictionary<any> | undefined, ...args: any) => any;
+declare function omit<T extends Dictionary<any>>(x: T, ...args: any): T;
+declare function omit(x: any, ...args: any): any;
 declare const sum: (...xs: any[]) => any;
 declare const deepExtend: (...args: any) => any;
 declare const merge: (target: Dictionary<any>, ...args: any) => Dictionary<any>;

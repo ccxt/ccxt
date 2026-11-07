@@ -870,6 +870,16 @@ function order_router_test_request_id_header($router) {
     order_router_assert(strpos($recorder->lastUrl, 'requestId') === false, 'and is not a query parameter');
 }
 
+function order_router_test_user_agent_config($router) {
+    //  the suite stubs request() wholesale (OrderRouterRecorder), so the curl header list is
+    //  not observable here; what IS asserted is that the option is parsed from config with
+    //  an empty default, which is the value request() branches on
+    $default = new OrderRouter(array());
+    order_router_assert($default->userAgent === '', 'no User-Agent override by default');
+    $configured = new OrderRouter(array('userAgent' => 'ccxt-mcp/1.0.0 (ccxt 4.0.0)'));
+    order_router_assert($configured->userAgent === 'ccxt-mcp/1.0.0 (ccxt 4.0.0)', 'the configured userAgent is stored');
+}
+
 function order_router_test_fee_not_double_subtracted($router) {
     //  THE REGRESSION THIS EXISTS FOR. execute() reports realisedOut NET of a fee charged in
     //  the asset the step produced, because that is what the wallet receives. The router had
@@ -1994,6 +2004,7 @@ function test_order_router() {
         'a fee the router already subtracted is not subtracted a second time' => 'ccxt\order_router_test_fee_not_double_subtracted',
         'a router that ignored the balances is caught, including when the wallet is empty' => 'ccxt\order_router_test_balances_echo_is_verified',
         'a caller-chosen audit id travels as x-request-id' => 'ccxt\order_router_test_request_id_header',
+        'userAgent is parsed from config, empty by default' => 'ccxt\order_router_test_user_agent_config',
         'streamUrl upgrades the scheme and refuses what /stream/route refuses' => 'ccxt\order_router_test_stream_url',
         'buildUnwindPlan is never automatic and never nets across venues' => 'ccxt\order_router_test_unwind_is_never_automatic',
         'a buy-side unwind order never spends more quote than the residual actually holds' => 'ccxt\order_router_test_unwind_buy_is_fundable',

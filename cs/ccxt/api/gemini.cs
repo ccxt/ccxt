@@ -425,10 +425,10 @@ public partial class gemini : Exchange
     }
 
     /// <summary>Calls the privatePostV1Balances endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privatePostV1Balances (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privatePostV1Balances (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("privatePostV1Balances",parameters);
+        return await this.callAsync<List<object>> ("privatePostV1Balances",parameters);
     }
 
     /// <summary>Calls the privatePostV1BalancesStaking endpoint.</summary>

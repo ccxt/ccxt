@@ -24,7 +24,7 @@ public final class Encode {
     // base16 / hex
     // ----------------------------
 
-    public static Object base16ToBinary(Object str2) {
+    public static byte[] base16ToBinary(Object str2) {
         String s = (String) str2;
         return convertHexStringToByteArray(s);
     }
@@ -44,7 +44,7 @@ public final class Encode {
         return out;
     }
 
-    public static Object remove0xPrefix(Object str2) {
+    public static String remove0xPrefix(Object str2) {
         String s = (String) str2;
         if (s.startsWith("0x")) return s.substring(2);
         return s;
@@ -146,7 +146,7 @@ public final class Encode {
     // binary concat
     // ----------------------------
 
-    public static Object binaryConcat(Object... parts) {
+    public static byte[] binaryConcat(Object... parts) {
         ArrayList<Byte> out = new ArrayList<>();
         for (Object part : parts) {
             if (part instanceof String s) {
@@ -163,7 +163,7 @@ public final class Encode {
         return res;
     }
 
-    public static Object binaryConcatArray(Object arrays2) {
+    public static byte[] binaryConcatArray(Object arrays2) {
         List<Object> arrays = (List<Object>) arrays2;
 
         int total = 0;
