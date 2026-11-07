@@ -48,8 +48,8 @@ func (this *Bittrade) V2PrivateGetReferenceTransactFeeRate(args ...any) <-chan E
 }
 
 // V2PrivateGetAccountAssetValuation returns a channel that yields a JSON object.
-func (this *Bittrade) V2PrivateGetAccountAssetValuation(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("v2PrivateGetAccountAssetValuation", args...)
+func (this *Bittrade) V2PrivateGetAccountAssetValuation(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v2PrivateGetAccountAssetValuation", args...))
 }
 
 // V2PrivateGetPointAccount returns a channel that yields a JSON object.
@@ -343,13 +343,13 @@ func (this *Bittrade) PublicGetRetailMaintainTime(args ...any) <-chan EndpointRe
 }
 
 // PrivateGetAccountAccounts returns a channel that yields a JSON object.
-func (this *Bittrade) PrivateGetAccountAccounts(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateGetAccountAccounts", args...)
+func (this *Bittrade) PrivateGetAccountAccounts(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetAccountAccounts", args...))
 }
 
 // PrivateGetAccountAccountsIdBalance returns a channel that yields a JSON object.
-func (this *Bittrade) PrivateGetAccountAccountsIdBalance(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateGetAccountAccountsIdBalance", args...)
+func (this *Bittrade) PrivateGetAccountAccountsIdBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetAccountAccountsIdBalance", args...))
 }
 
 // PrivateGetAccountAccountsSubUid returns a channel that yields a JSON object.
@@ -378,28 +378,28 @@ func (this *Bittrade) PrivateGetFeeFeeRateGet(args ...any) <-chan EndpointResult
 }
 
 // PrivateGetOrderOpenOrders returns a channel that yields a JSON object.
-func (this *Bittrade) PrivateGetOrderOpenOrders(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateGetOrderOpenOrders", args...)
+func (this *Bittrade) PrivateGetOrderOpenOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetOrderOpenOrders", args...))
 }
 
 // PrivateGetOrderOrders returns a channel that yields a JSON object.
-func (this *Bittrade) PrivateGetOrderOrders(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateGetOrderOrders", args...)
+func (this *Bittrade) PrivateGetOrderOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetOrderOrders", args...))
 }
 
 // PrivateGetOrderOrdersId returns a channel that yields a JSON object.
-func (this *Bittrade) PrivateGetOrderOrdersId(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateGetOrderOrdersId", args...)
+func (this *Bittrade) PrivateGetOrderOrdersId(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetOrderOrdersId", args...))
 }
 
 // PrivateGetOrderOrdersIdMatchresults returns a channel that yields a JSON object.
-func (this *Bittrade) PrivateGetOrderOrdersIdMatchresults(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateGetOrderOrdersIdMatchresults", args...)
+func (this *Bittrade) PrivateGetOrderOrdersIdMatchresults(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetOrderOrdersIdMatchresults", args...))
 }
 
 // PrivateGetOrderOrdersGetClientOrder returns a channel that yields a JSON object.
-func (this *Bittrade) PrivateGetOrderOrdersGetClientOrder(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateGetOrderOrdersGetClientOrder", args...)
+func (this *Bittrade) PrivateGetOrderOrdersGetClientOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetOrderOrdersGetClientOrder", args...))
 }
 
 // PrivateGetOrderHistory returns a channel that yields a JSON object.
@@ -418,13 +418,13 @@ func (this *Bittrade) PrivateGetQueryDepositWithdraw(args ...any) <-chan Endpoin
 }
 
 // PrivateGetMarginLoanOrders returns a channel that yields a JSON object.
-func (this *Bittrade) PrivateGetMarginLoanOrders(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateGetMarginLoanOrders", args...)
+func (this *Bittrade) PrivateGetMarginLoanOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetMarginLoanOrders", args...))
 }
 
 // PrivateGetMarginAccountsBalance returns a channel that yields a JSON object.
-func (this *Bittrade) PrivateGetMarginAccountsBalance(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateGetMarginAccountsBalance", args...)
+func (this *Bittrade) PrivateGetMarginAccountsBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetMarginAccountsBalance", args...))
 }
 
 // PrivateGetCrossMarginLoanOrders returns a channel that yields a JSON object.
@@ -478,33 +478,33 @@ func (this *Bittrade) PrivatePostFuturesTransfer(args ...any) <-chan EndpointRes
 }
 
 // PrivatePostOrderBatchOrders returns a channel that yields a JSON object.
-func (this *Bittrade) PrivatePostOrderBatchOrders(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privatePostOrderBatchOrders", args...)
+func (this *Bittrade) PrivatePostOrderBatchOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostOrderBatchOrders", args...))
 }
 
 // PrivatePostOrderOrdersPlace returns a channel that yields a JSON object.
-func (this *Bittrade) PrivatePostOrderOrdersPlace(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privatePostOrderOrdersPlace", args...)
+func (this *Bittrade) PrivatePostOrderOrdersPlace(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostOrderOrdersPlace", args...))
 }
 
 // PrivatePostOrderOrdersSubmitCancelClientOrder returns a channel that yields a JSON object.
-func (this *Bittrade) PrivatePostOrderOrdersSubmitCancelClientOrder(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privatePostOrderOrdersSubmitCancelClientOrder", args...)
+func (this *Bittrade) PrivatePostOrderOrdersSubmitCancelClientOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostOrderOrdersSubmitCancelClientOrder", args...))
 }
 
 // PrivatePostOrderOrdersBatchCancelOpenOrders returns a channel that yields a JSON object.
-func (this *Bittrade) PrivatePostOrderOrdersBatchCancelOpenOrders(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privatePostOrderOrdersBatchCancelOpenOrders", args...)
+func (this *Bittrade) PrivatePostOrderOrdersBatchCancelOpenOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostOrderOrdersBatchCancelOpenOrders", args...))
 }
 
 // PrivatePostOrderOrdersIdSubmitcancel returns a channel that yields a JSON object.
-func (this *Bittrade) PrivatePostOrderOrdersIdSubmitcancel(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privatePostOrderOrdersIdSubmitcancel", args...)
+func (this *Bittrade) PrivatePostOrderOrdersIdSubmitcancel(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostOrderOrdersIdSubmitcancel", args...))
 }
 
 // PrivatePostOrderOrdersBatchcancel returns a channel that yields a JSON object.
-func (this *Bittrade) PrivatePostOrderOrdersBatchcancel(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privatePostOrderOrdersBatchcancel", args...)
+func (this *Bittrade) PrivatePostOrderOrdersBatchcancel(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostOrderOrdersBatchcancel", args...))
 }
 
 // PrivatePostDwWithdrawApiCreate returns a channel that yields a JSON object.

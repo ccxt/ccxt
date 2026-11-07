@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\p2b as Exchange;
 
 class p2b extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'p2b',
             'name' => 'p2b',
@@ -182,31 +182,35 @@ class p2b extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'taker' => array(
-                        array( $this->parse_number('0'), $this->parse_number('0.2') ),
-                        array( $this->parse_number('1'), $this->parse_number('0.19') ),
-                        array( $this->parse_number('5'), $this->parse_number('0.18') ),
-                        array( $this->parse_number('10'), $this->parse_number('0.17') ),
-                        array( $this->parse_number('25'), $this->parse_number('0.16') ),
-                        array( $this->parse_number('75'), $this->parse_number('0.15') ),
-                        array( $this->parse_number('100'), $this->parse_number('0.14') ),
-                        array( $this->parse_number('150'), $this->parse_number('0.13') ),
-                        array( $this->parse_number('300'), $this->parse_number('0.12') ),
-                        array( $this->parse_number('450'), $this->parse_number('0.11') ),
-                        array( $this->parse_number('500'), $this->parse_number('0.1') ),
-                    ),
-                    'maker' => array(
-                        array( $this->parse_number('0'), $this->parse_number('0.2') ),
-                        array( $this->parse_number('1'), $this->parse_number('0.18') ),
-                        array( $this->parse_number('5'), $this->parse_number('0.16') ),
-                        array( $this->parse_number('10'), $this->parse_number('0.14') ),
-                        array( $this->parse_number('25'), $this->parse_number('0.12') ),
-                        array( $this->parse_number('75'), $this->parse_number('0.1') ),
-                        array( $this->parse_number('100'), $this->parse_number('0.08') ),
-                        array( $this->parse_number('150'), $this->parse_number('0.06') ),
-                        array( $this->parse_number('300'), $this->parse_number('0.04') ),
-                        array( $this->parse_number('450'), $this->parse_number('0.02') ),
-                        array( $this->parse_number('500'), $this->parse_number('0.01') ),
+                    'taker' => $this->parse_number('0.002'),
+                    'maker' => $this->parse_number('0.002'),
+                    'tiers' => array(
+                        'taker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.002') ),
+                            array( $this->parse_number('1'), $this->parse_number('0.0019') ),
+                            array( $this->parse_number('5'), $this->parse_number('0.0018') ),
+                            array( $this->parse_number('10'), $this->parse_number('0.0017') ),
+                            array( $this->parse_number('25'), $this->parse_number('0.0016') ),
+                            array( $this->parse_number('75'), $this->parse_number('0.0015') ),
+                            array( $this->parse_number('100'), $this->parse_number('0.0014') ),
+                            array( $this->parse_number('150'), $this->parse_number('0.0013') ),
+                            array( $this->parse_number('300'), $this->parse_number('0.0012') ),
+                            array( $this->parse_number('450'), $this->parse_number('0.0011') ),
+                            array( $this->parse_number('500'), $this->parse_number('0.001') ),
+                        ),
+                        'maker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.002') ),
+                            array( $this->parse_number('1'), $this->parse_number('0.0018') ),
+                            array( $this->parse_number('5'), $this->parse_number('0.0016') ),
+                            array( $this->parse_number('10'), $this->parse_number('0.0014') ),
+                            array( $this->parse_number('25'), $this->parse_number('0.0012') ),
+                            array( $this->parse_number('75'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('100'), $this->parse_number('0.0008') ),
+                            array( $this->parse_number('150'), $this->parse_number('0.0006') ),
+                            array( $this->parse_number('300'), $this->parse_number('0.0004') ),
+                            array( $this->parse_number('450'), $this->parse_number('0.0002') ),
+                            array( $this->parse_number('500'), $this->parse_number('0.0001') ),
+                        ),
                     ),
                 ),
             ),
@@ -552,10 +556,7 @@ class p2b extends Exchange {
         //    }
         //
         $timestamp = $this->safe_integer_product($ticker, 'at', 1000);
-        $tickerInner = $ticker;
-        if (is_array($ticker) && array_key_exists('ticker' ?? '', $ticker)) {
-            $tickerInner = $this->safe_dict($ticker, 'ticker');
-        }
+        $tickerInner = $this->safe_dict($ticker, 'ticker', $ticker);
         $last = $this->safe_string($tickerInner, 'last');
         return $this->safe_ticker(array(
             'symbol' => $this->safe_string($market, 'symbol'),
@@ -865,7 +866,7 @@ class p2b extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         //
         //    {
         //        "USDT": {
@@ -1137,25 +1138,25 @@ class p2b extends Exchange {
         }
         $untilParam = $this->safe_integer($params, 'until');
         $paramsOmitted = $this->omit($params, 'until');
-        $until = null;
-        $sinceResolved = 0;
+        $until = $this->parse_to_int(0);
+        $sinceResolved = $this->parse_to_int(0);
         if ($untilParam !== null) {
-            $until = $untilParam;
+            $until = $this->parse_to_int($untilParam);
             if ($since !== null) {
                 if (($untilParam - $since) > 86400000) {
                     throw new BadRequest($this->id . ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours');
                 }
-                $sinceResolved = $since;
+                $sinceResolved = $this->parse_to_int($since);
             } else {
-                $sinceResolved = $untilParam - 86400000;
+                $sinceResolved = $this->parse_to_int($untilParam - 86400000);
             }
         } elseif ($since !== null) {
-            $until = $since + 86400000;
-            $sinceResolved = $since;
+            $until = $this->parse_to_int($since + 86400000);
+            $sinceResolved = $this->parse_to_int($since);
         } else {
             $now = $this->milliseconds();
-            $until = $now;
-            $sinceResolved = $now - 86400000;
+            $until = $this->parse_to_int($now);
+            $sinceResolved = $this->parse_to_int($now - 86400000);
         }
         $market = $this->market($symbol);
         $sinceSec = $this->parse_to_int($sinceResolved / 1000);
@@ -1225,25 +1226,25 @@ class p2b extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $until = null;
-        $sinceResolved = 0;
+        $until = $this->parse_to_int(0);
+        $sinceResolved = $this->parse_to_int(0);
         if ($untilParam !== null) {
-            $until = $untilParam;
+            $until = $this->parse_to_int($untilParam);
             if ($since !== null) {
                 if (($untilParam - $since) > 86400000) {
                     throw new BadRequest($this->id . ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours');
                 }
-                $sinceResolved = $since;
+                $sinceResolved = $this->parse_to_int($since);
             } else {
-                $sinceResolved = $untilParam - 86400000;
+                $sinceResolved = $this->parse_to_int($untilParam - 86400000);
             }
         } elseif ($since !== null) {
-            $until = $since + 86400000;
-            $sinceResolved = $since;
+            $until = $this->parse_to_int($since + 86400000);
+            $sinceResolved = $this->parse_to_int($since);
         } else {
             $now = $this->milliseconds();
-            $until = $now;
-            $sinceResolved = $now - 86400000;
+            $until = $this->parse_to_int($now);
+            $sinceResolved = $this->parse_to_int($now - 86400000);
         }
         $sinceSec = $this->parse_to_int($sinceResolved / 1000);
         $untilSec = $this->parse_to_int($until / 1000);
@@ -1380,10 +1381,12 @@ class p2b extends Exchange {
             }
         }
         if ($apiName === 'private') {
-            $paramsOmitted['request'] = '/api/v2/' . $path;
             // p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
             // the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
-            $paramsOmitted['nonce'] = (string) $this->incrementing_nonce();
+            $paramsOmitted = $this->extend($paramsOmitted, array(
+                'request' => '/api/v2/' . $path,
+                'nonce' => (string) $this->incrementing_nonce(),
+            ));
             $payload = base64_encode($this->json($paramsOmitted));  // Body json encoded in base64
             $headersSigned = array(
                 'Content-Type' => 'application/json',
@@ -1397,7 +1400,7 @@ class p2b extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }

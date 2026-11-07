@@ -5,6 +5,7 @@ import { registerReadTools } from './read.js';
 import { registerTradeTools } from './trade.js';
 import { registerFundsTools, registerImplicitWriteTool } from './funds.js';
 import { registerWatchTools } from './watch.js';
+import { registerRouteTools, registerRouteExecuteTool } from './route.js';
 import { log } from '../logging.js';
 
 // By default every tier's tools are listed so the model can discover them and, when a
@@ -21,11 +22,13 @@ export function registerAllTools (server: McpServer, ctx: ServerContext): void {
     const implicitWritesEnabled = accounts.some ((account) => account.implicitWrites === true);
     registerMarketTools (server, ctx);
     registerWatchTools (server, ctx);
+    registerRouteTools (server, ctx);
     if (!hideDisabled || accounts.length > 0) {
         registerReadTools (server, ctx);
     }
     if (!hideDisabled || tradingEnabled) {
         registerTradeTools (server, ctx);
+        registerRouteExecuteTool (server, ctx);
     }
     if (!hideDisabled || fundsEnabled) {
         registerFundsTools (server, ctx);
@@ -48,6 +51,7 @@ Conventions:
 - Every exchange-touching tool accepts "params": extra exchange-specific parameters passed to ccxt unchanged. Discover supported keys and per-exchange behavior with describe_method.
 - "since" accepts ms timestamps or ISO8601 strings; results carry both timestamp (ms) and datetime (ISO8601).
 - List results are capped: search tools report meta.returned/offset/hasMore (or available); fetch tools report meta.count plus meta.hasMore when the count hit the limit — page with since/offset rather than assuming completeness. Host-oversized results are tail-trimmed and flagged meta.truncated.
+- To find the best price or execution route for converting an asset at a given size across exchanges, use fetch_route rather than comparing order books yourself — it is a quote, not an order. Read fillRatio before effectiveRate. To act on it, pass its routeId to execute_route (trading tier; every order still goes through the account's caps and confirmation).
 - The long tail of read methods (funding rates, ledger, open interest, settlements, …) is available via call_read_method; raw exchange-specific GET endpoints via call_implicit_get.
 - For LIVE data over WebSocket, use watch_subscribe (e.g. watchOHLCV/watchTicker/watchOrderBook/watchTrades, or watchOrders/watchMyTrades with an account) to open a background stream, then poll watch_read for new updates and watch_unsubscribe to stop. One-shot fetch* tools are simpler when you just need a current snapshot.
 - Private tools (balances, orders, positions, create_order, withdraw, …) take an "account" name (list_accounts). API credentials live only in the local config — they are never tool parameters and never appear in results; capability tiers (trading, funds, implicitWrites) can only be enabled by the user editing the config file, never from the conversation.

@@ -15,7 +15,7 @@ use ccxt\pro\ArrayCacheBySymbolById;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class phemex extends \ccxt\async\phemex {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -302,7 +302,7 @@ class phemex extends \ccxt\async\phemex {
         }
         for ($i = 0; $i < count($tickers); $i++) {
             $ticker = $tickers[$i];
-            $symbol = $ticker['symbol'];
+            $symbol = $this->safe_string($ticker, 'symbol', '');
             $messageHash = 'ticker:' . $symbol;
             $timestamp = $this->safe_integer_product($message, 'timestamp', 0.000001);
             $ticker['timestamp'] = $timestamp;
@@ -333,8 +333,10 @@ class phemex extends \ccxt\async\phemex {
         }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchBalance', null, $params);
         $usePerpetualApi = $this->safe_string($paramsMarketType, 'settle') === 'USDT';
-        $messageHash = ':balance';
-        $messageHash = $usePerpetualApi ? 'perpetual' . $messageHash : $type . $messageHash;
+        $messageHash = 'perpetual:balance';
+        if (!$usePerpetualApi) {
+            $messageHash = $type . ':balance';
+        }
         return Async\await($this->subscribe_private($type, $messageHash, $paramsMarketType));
     }
 
@@ -828,8 +830,14 @@ class phemex extends \ccxt\async\phemex {
             $book = $this->safe_dict_2($message, 'book', 'orderbook_p', array());
             $snapshot = $this->custom_parse_order_book($book, $symbol, $timestamp, 'bids', 'asks', 0, 1, $market);
             $snapshot['nonce'] = $nonce;
-            $orderbook = $this->order_book($snapshot, $depth);
-            $this->orderbooks[$symbol] = $orderbook;
+            // reset the existing orderbook instead of replacing it: a consumer
+            // holds a reference to the old object and would never see updates
+            // after a re-subscription snapshot
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+                $this->orderbooks[$symbol] = $this->order_book(array(), $depth);
+            }
+            $orderbook = $this->orderbooks[$symbol];
+            $orderbook->reset($snapshot);
             $client->resolve($orderbook, $messageHash);
         } else {
             if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
@@ -869,7 +877,7 @@ class phemex extends \ccxt\async\phemex {
         $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $messageHash = $messageHash . $market['symbol'];
+            $messageHash = 'trades:' . $this->safe_string($market, 'symbol', '');
         }
         $isUsdtMarket = ($market !== null) && ($market['settle'] === 'USDT');
         $settleRequest = array();
@@ -877,9 +885,13 @@ class phemex extends \ccxt\async\phemex {
             $settleRequest = array( 'settle' => 'USDT' );
         }
         list($type, $paramsType) = $this->handle_market_type_and_params('watchMyTrades', $market, $this->extend($params, $settleRequest));
-        if ($symbolResolved === null) {
+        if ($symbol === null) {
             $settle = $this->safe_string($paramsType, 'settle');
-            $messageHash = ($settle === 'USDT') ? ($messageHash . 'perpetual') : ($messageHash . $type);
+            if ($settle === 'USDT') {
+                $messageHash = 'trades:perpetual';
+            } else {
+                $messageHash = 'trades:' . $type;
+            }
         }
         $trades = Async\await($this->subscribe_private($type, $messageHash, $paramsType));
         $limitResolved = $limit;
@@ -995,7 +1007,7 @@ class phemex extends \ccxt\async\phemex {
         }
         $marketIds = array();
         $type = null;
-        for ($i = 0; $i < count($message); $i++) {
+        for ($i = 0; $i < $tradesLength; $i++) {
             $rawTrade = $message[$i];
             $marketId = $this->safe_string($rawTrade, 'symbol');
             $market = $this->safe_market($marketId);
@@ -1042,7 +1054,7 @@ class phemex extends \ccxt\async\phemex {
         $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $messageHash = $messageHash . $market['symbol'];
+            $messageHash = 'orders:' . $this->safe_string($market, 'symbol', '');
         }
         $isUsdtMarket = ($market !== null) && ($market['settle'] === 'USDT');
         $settleRequest = array();
@@ -1051,8 +1063,12 @@ class phemex extends \ccxt\async\phemex {
         }
         list($type, $paramsType) = $this->handle_market_type_and_params('watchOrders', $market, $this->extend($params, $settleRequest));
         $isUSDTSettled = $this->safe_string($paramsType, 'settle') === 'USDT';
-        if ($symbolResolved === null) {
-            $messageHash = ($isUSDTSettled) ? ($messageHash . 'perpetual') : ($messageHash . $type);
+        if ($symbol === null) {
+            if ($isUSDTSettled) {
+                $messageHash = 'orders:perpetual';
+            } else {
+                $messageHash = 'orders:' . $type;
+            }
         }
         $orders = Async\await($this->subscribe_private($type, $messageHash, $paramsType));
         $limitResolved = $limit;
@@ -1242,7 +1258,7 @@ class phemex extends \ccxt\async\phemex {
             if ($messageLength === 0) {
                 return;
             }
-            for ($i = 0; $i < count($message); $i++) {
+            for ($i = 0; $i < $messageLength; $i++) {
                 $update = $message[$i];
                 $action = $this->safe_string($update, 'action');
                 if (($action !== null) && ($action !== 'Cancel')) {

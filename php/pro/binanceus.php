@@ -8,7 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 
 class binanceus extends \ccxt\pro\binance {
-    public function describe(): mixed {
+    public function describe(): array {
         // eslint-disable-next-line new-cap
         $restInstance = new \ccxt\async\binanceus();
         $restDescribe = $restInstance->describe();

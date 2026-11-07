@@ -1237,7 +1237,7 @@ export default class weex extends Exchange {
         }
         const results = [];
         for (let i = 0; i < response.length; i++) {
-            const rawTicker = response[i];
+            const rawTicker = this.safeValue(response, i);
             // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
             const marketId = this.safeString(rawTicker, 'symbol');
             const tickerMarket = this.safeMarket(marketId, undefined, undefined, marketType);
@@ -1308,7 +1308,7 @@ export default class weex extends Exchange {
         const marketId = this.safeString(ticker, 'symbol');
         const markPrice = this.safeString(ticker, 'markPrice');
         let marketType = 'spot';
-        if ((markPrice !== undefined) || ((market !== undefined) && (market['contract'] === true))) {
+        if ((markPrice !== undefined) || ((market !== undefined) && (this.safeBool(market, 'contract', false)))) {
             // 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
             marketType = 'swap';
         }
@@ -1404,7 +1404,7 @@ export default class weex extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new NotSupported(this.id + ' fetchMarkPrice() supports contract markets only');
         }
         const [priceType, paramsPriceType] = this.handleOptionStringAndParams(params, 'fetchMarkPrice', 'priceType', 'MARK'); // the endpoint defaults to INDEX
@@ -1485,7 +1485,7 @@ export default class weex extends Exchange {
             request['limit'] = 200; // default is 15, max is 200
         }
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.publicGetApiV3MarketDepth(this.extend(request, params));
         }
         else {
@@ -1534,7 +1534,7 @@ export default class weex extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             return await this.fetchSpotOHLCV(symbol, timeframe, since, limit, params);
         }
         else {
@@ -1582,7 +1582,7 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.paginate] whether to automatically paginate requests until the required number of candles is returned
-     * @param {boolean} [params.historical] whether to fetch historical klines (default is false). If false, will fetch last price klines
+     * @param {boolean} [params.historical] whether to fetch historical klines (default is false, forced to true when since or until is set because the recent klines endpoints ignore time filters). If false, will fetch last price klines
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchContractOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1609,24 +1609,30 @@ export default class weex extends Exchange {
         let response = undefined;
         // hardcap threshold
         const limitResolved = (limit === undefined) ? undefined : Math.min(limit, 1000);
-        if (historical) {
+        // the recent-klines endpoints ignore startTime and endTime and only ever return the
+        // latest candles, so a request bounded by since or until has to go through the history
+        // endpoint, which honours both (endTime = since + limit * timeframe when until is absent)
+        const useHistory = historical || (since !== undefined) || (until !== undefined);
+        if (useHistory) {
             if (priceType !== undefined) {
                 request['priceType'] = priceType;
             }
+            const now = this.milliseconds();
             let startTime = since;
-            let endTime = until;
+            let endTime = now;
+            if (until !== undefined) {
+                endTime = until;
+            }
             if ((since === undefined) || (until === undefined)) {
-                const now = this.milliseconds();
-                const duration = this.parseTimeframe(timeframe) * 1000;
-                let timeDelta = maxHistoricalLimit * duration;
+                const duration = this.parseToInt(this.parseTimeframe(timeframe) * 1000);
+                // the history endpoint returns at most maxHistoricalLimit candles and serves the
+                // newest ones inside the window, so a wider window would silently drop the candles
+                // right after since, keep the window at what one call can return
+                let historyLimit = this.parseToInt(maxHistoricalLimit);
                 if (limit !== undefined && limit !== null && limit !== 0) {
-                    if (limit > 1000) {
-                        timeDelta = 1000 * duration;
-                    }
-                    else {
-                        timeDelta = limit * duration;
-                    }
+                    historyLimit = this.parseToInt(Math.min(limit, maxHistoricalLimit));
                 }
+                const timeDelta = this.parseToInt(historyLimit * duration);
                 if ((since === undefined) && (until === undefined)) {
                     endTime = now;
                     startTime = now - timeDelta;
@@ -1638,8 +1644,13 @@ export default class weex extends Exchange {
                     startTime = until - timeDelta;
                 }
                 else {
-                    endTime = since + timeDelta;
+                    // this.sum, a bare + is string concatenation in the php port
+                    endTime = this.sum(since, timeDelta);
                 }
+            }
+            // the endpoint rejects an endTime in the future (-1142), which a recent since would produce
+            if (endTime > now) {
+                endTime = now;
             }
             request['startTime'] = startTime;
             request['endTime'] = endTime;
@@ -1695,7 +1706,7 @@ export default class weex extends Exchange {
             request['limit'] = Math.min(limit, 1000);
         }
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.publicGetApiV3MarketTrades(this.extend(request, params));
         }
         else {
@@ -1920,8 +1931,7 @@ export default class weex extends Exchange {
         let interval = undefined;
         const collectCycle = this.safeString(contract, 'collectCycle');
         if (collectCycle !== undefined) {
-            interval = Precise.stringDiv(collectCycle, '60');
-            interval = interval + 'h';
+            interval = Precise.stringDiv(collectCycle, '60') + 'h';
         }
         return {
             'info': contract,
@@ -2069,9 +2079,9 @@ export default class weex extends Exchange {
                 response = await this.contractPrivateGetCapiV3AccountBalance(paramsMarketType);
             }
         }
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = {
             'info': response,
         };
@@ -2190,7 +2200,7 @@ export default class weex extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] === true) {
+        if (this.safeBool(market, 'contract', false)) {
             return await this.createContractOrder(symbol, type, side, amount, price, params);
         }
         else {
@@ -2222,7 +2232,8 @@ export default class weex extends Exchange {
         }
         const market = this.market(symbol);
         const request = this.createSpotOrderRequest(symbol, type, side, amount, price, params);
-        const response = await this.privatePostApiV3Order(request);
+        let response = undefined;
+        response = await this.privatePostApiV3Order(request);
         //
         //     {
         //         "symbol": "DOGEUSDT",
@@ -2351,8 +2362,8 @@ export default class weex extends Exchange {
         if (isTrigger && (isStopLoss || isTakeProfit)) {
             throw new BadRequest(this.id + ' createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters');
         }
-        const reduceOnly = this.safeBool(query, 'reduceOnly');
-        const isReduceOnly = isStopLoss || isTakeProfit || (reduceOnly === true);
+        const reduceOnly = this.safeBool(query, 'reduceOnly', false);
+        const isReduceOnly = isStopLoss || isTakeProfit || reduceOnly;
         let positionSide = 'LONG';
         if (isReduceOnly) {
             if (side === 'buy') {
@@ -2959,7 +2970,7 @@ export default class weex extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new NotSupported(this.id + ' fetchOrders() supports spot markets only');
         }
         const maxLimit = 1000;
@@ -3595,7 +3606,7 @@ export default class weex extends Exchange {
         };
         if (symbol !== undefined) {
             market = this.market(symbol);
-            if (market['swap'] !== true) {
+            if (!this.safeBool(market, 'swap', false)) {
                 throw new NotSupported(this.id + ' fetchFundingHistory() supports swap contracts only');
             }
             request['symbol'] = market['id'];
@@ -3923,7 +3934,7 @@ export default class weex extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             // spot markets return 0 for fees
             throw new NotSupported(this.id + ' fetchTradingFee() is not supported for spot markets');
         }
@@ -4338,8 +4349,7 @@ export default class weex extends Exchange {
             return marketId; // a live market id, not a demo one
         }
         if (marketId.endsWith('SUSDT')) {
-            const baseLength = marketId.length - 5;
-            return marketId.slice(0, baseLength) + 'USDT';
+            return marketId.slice(0, -5) + 'USDT';
         }
         return marketId;
     }
@@ -4353,7 +4363,7 @@ export default class weex extends Exchange {
         const query = this.omit(params, this.extractParams(path));
         const isBatch = (path.indexOf('batch') >= 0);
         if (!isBatch && ((method === 'GET') || (method === 'DELETE'))) {
-            if (Object.keys(query).length > 0) {
+            if (!this.isEmpty(query)) {
                 endpoint += '?' + this.urlencode(query);
             }
         }
@@ -4363,7 +4373,7 @@ export default class weex extends Exchange {
         if (hasJsonBody) {
             requestBody = this.json(query);
         }
-        let requestHeaders = undefined;
+        let requestHeaders = {};
         if (isPrivate) {
             const sandboxMode = this.safeBool(this.options, 'sandboxMode', false);
             if ((sandboxMode) && (path.indexOf('capi/v3/sim/') !== 0)) {

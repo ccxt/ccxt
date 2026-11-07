@@ -26,7 +26,7 @@ from ccxt.base.precise import Precise
 
 class kraken(ccxt.async_support.kraken):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(kraken, self).describe(), {
             'has': {
                 'ws': True,
@@ -41,6 +41,9 @@ class kraken(ccxt.async_support.kraken):
                 'watchBidsAsks': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': True,
+                'unWatchOHLCV': True,
+                'unWatchTrades': True,
+                'unWatchTradesForSymbols': True,
                 'createOrderWs': True,
                 'editOrderWs': True,
                 'cancelOrderWs': True,
@@ -134,22 +137,22 @@ class kraken(ccxt.async_support.kraken):
             },
         })
 
-    def order_request_ws(self, method: str, symbol: str, type: str, request: dict, amount: Num, price: Num = None, params: dict = {}) -> list:
+    def order_request_ws(self, method: str, symbol: str, type: str, request: dict, orderParams: dict, amount: Num, price: Num = None, params: dict = {}) -> list:
         isLimitOrder = type.endswith('limit')  # supporting limit, stop-loss-limit, take-profit-limit, etc
         if isLimitOrder:
             if price is None:
                 raise ArgumentsRequired(self.id + ' limit orders require a price argument')
-            request['params']['limit_price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
+            orderParams['limit_price'] = self.parse_to_numeric(self.price_to_precision(symbol, price))
         isMarket = (type == 'market')
         postOnly, paramsPostOnly = self.handle_post_only(isMarket, False, params)
         if postOnly:
-            request['params']['post_only'] = True
+            orderParams['post_only'] = True
         clientOrderId = self.safe_string(paramsPostOnly, 'clientOrderId')
         if clientOrderId is not None:
-            request['params']['cl_ord_id'] = clientOrderId
+            orderParams['cl_ord_id'] = clientOrderId
         cost = self.safe_string(paramsPostOnly, 'cost')
         if cost is not None:
-            request['params']['order_qty'] = self.parse_to_numeric(self.cost_to_precision(symbol, cost))
+            orderParams['order_qty'] = self.parse_to_numeric(self.cost_to_precision(symbol, cost))
         stopLoss = self.safe_dict(paramsPostOnly, 'stopLoss', {})
         takeProfit = self.safe_dict(paramsPostOnly, 'takeProfit', {})
         presetStopLoss = self.safe_string(stopLoss, 'triggerPrice')
@@ -187,78 +190,82 @@ class kraken(ccxt.async_support.kraken):
         if isTrailingPercentOrder or isTrailingLimitPercentOrder:
             priceType = 'pct'
         if method == 'createOrderWs':
-            reduceOnly = self.safe_bool(paramsPostOnly, 'reduceOnly')
-            if reduceOnly is True:
-                request['params']['reduce_only'] = True
+            reduceOnly = self.safe_bool(paramsPostOnly, 'reduceOnly', False)
+            if reduceOnly:
+                orderParams['reduce_only'] = True
             timeInForce = self.safe_string_lower(paramsPostOnly, 'timeInForce')
             if timeInForce is not None:
-                request['params']['time_in_force'] = timeInForce
-            if isStopLossPriceOrder or isTakeProfitPriceOrder or isTrailingAmountOrder or isTrailingPercentOrder or isTrailingLimitAmountOrder or isTrailingLimitPercentOrder:
-                request['params']['triggers'] = {}
+                orderParams['time_in_force'] = timeInForce
+            triggers = {}
+            conditional = {}
             if isPresetStopLoss or isPresetTakeProfit:
-                request['params']['conditional'] = {}
                 if isPresetStopLoss:
-                    request['params']['conditional']['order_type'] = 'stop-loss'
-                    request['params']['conditional']['trigger_price'] = self.parse_to_numeric(self.price_to_precision(symbol, presetStopLoss))
+                    conditional['order_type'] = 'stop-loss'
+                    conditional['trigger_price'] = self.parse_to_numeric(self.price_to_precision(symbol, presetStopLoss))
                 elif isPresetTakeProfit:
-                    request['params']['conditional']['order_type'] = 'take-profit'
-                    request['params']['conditional']['trigger_price'] = self.parse_to_numeric(self.price_to_precision(symbol, presetTakeProfit))
+                    conditional['order_type'] = 'take-profit'
+                    conditional['trigger_price'] = self.parse_to_numeric(self.price_to_precision(symbol, presetTakeProfit))
                 if presetStopLossLimit is not None:
-                    request['params']['conditional']['order_type'] = 'stop-loss-limit'
-                    request['params']['conditional']['limit_price'] = self.parse_to_numeric(self.price_to_precision(symbol, presetStopLossLimit))
+                    conditional['order_type'] = 'stop-loss-limit'
+                    conditional['limit_price'] = self.parse_to_numeric(self.price_to_precision(symbol, presetStopLossLimit))
                 elif presetTakeProfitLimit is not None:
-                    request['params']['conditional']['order_type'] = 'take-profit-limit'
-                    request['params']['conditional']['limit_price'] = self.parse_to_numeric(self.price_to_precision(symbol, presetTakeProfitLimit))
+                    conditional['order_type'] = 'take-profit-limit'
+                    conditional['limit_price'] = self.parse_to_numeric(self.price_to_precision(symbol, presetTakeProfitLimit))
             elif isStopLossPriceOrder or isTakeProfitPriceOrder:
                 if isStopLossPriceOrder:
-                    request['params']['triggers']['price'] = self.parse_to_numeric(self.price_to_precision(symbol, stopLossPrice))
+                    triggers['price'] = self.parse_to_numeric(self.price_to_precision(symbol, stopLossPrice))
                     if isLimitOrder:
-                        request['params']['order_type'] = 'stop-loss-limit'
+                        orderParams['order_type'] = 'stop-loss-limit'
                     else:
-                        request['params']['order_type'] = 'stop-loss'
+                        orderParams['order_type'] = 'stop-loss'
                 else:
-                    request['params']['triggers']['price'] = self.parse_to_numeric(self.price_to_precision(symbol, takeProfitPrice))
+                    triggers['price'] = self.parse_to_numeric(self.price_to_precision(symbol, takeProfitPrice))
                     if isLimitOrder:
-                        request['params']['order_type'] = 'take-profit-limit'
+                        orderParams['order_type'] = 'take-profit-limit'
                     else:
-                        request['params']['order_type'] = 'take-profit'
+                        orderParams['order_type'] = 'take-profit'
             elif isTrailingAmountOrder or isTrailingPercentOrder or isTrailingLimitAmountOrder or isTrailingLimitPercentOrder:
-                request['params']['triggers']['price_type'] = priceType
+                triggers['price_type'] = priceType
                 if not isLimitOrder and (isTrailingAmountOrder or isTrailingPercentOrder):
-                    request['params']['order_type'] = 'trailing-stop'
+                    orderParams['order_type'] = 'trailing-stop'
                     if isTrailingAmountOrder:
-                        request['params']['triggers']['price'] = self.parse_to_numeric(trailingAmountString)
+                        triggers['price'] = self.parse_to_numeric(trailingAmountString)
                     else:
-                        request['params']['triggers']['price'] = self.parse_to_numeric(trailingPercentString)
+                        triggers['price'] = self.parse_to_numeric(trailingPercentString)
                 else:
                     # trailing limit orders are not conventionally supported because the static limit_price_type param is not available for trailing-stop-limit orders
-                    request['params']['limit_price_type'] = priceType
-                    request['params']['order_type'] = 'trailing-stop-limit'
+                    orderParams['limit_price_type'] = priceType
+                    orderParams['order_type'] = 'trailing-stop-limit'
                     if isTrailingLimitAmountOrder:
-                        request['params']['triggers']['price'] = self.parse_to_numeric(trailingLimitAmountString)
+                        triggers['price'] = self.parse_to_numeric(trailingLimitAmountString)
                     else:
-                        request['params']['triggers']['price'] = self.parse_to_numeric(trailingLimitPercentString)
+                        triggers['price'] = self.parse_to_numeric(trailingLimitPercentString)
+            # attach after the writes so a copy-semantics port sees the filled dict
+            if isStopLossPriceOrder or isTakeProfitPriceOrder or isTrailingAmountOrder or isTrailingPercentOrder or isTrailingLimitAmountOrder or isTrailingLimitPercentOrder:
+                orderParams['triggers'] = triggers
+            if isPresetStopLoss or isPresetTakeProfit:
+                orderParams['conditional'] = conditional
         elif method == 'editOrderWs':
             if isPresetStopLoss or isPresetTakeProfit:
                 raise NotSupported(self.id + ' editing the stopLoss and takeProfit on existing orders is currently not supported')
             if isStopLossPriceOrder or isTakeProfitPriceOrder:
                 if isStopLossPriceOrder:
-                    request['params']['trigger_price'] = self.parse_to_numeric(self.price_to_precision(symbol, stopLossPrice))
+                    orderParams['trigger_price'] = self.parse_to_numeric(self.price_to_precision(symbol, stopLossPrice))
                 else:
-                    request['params']['trigger_price'] = self.parse_to_numeric(self.price_to_precision(symbol, takeProfitPrice))
+                    orderParams['trigger_price'] = self.parse_to_numeric(self.price_to_precision(symbol, takeProfitPrice))
             elif isTrailingAmountOrder or isTrailingPercentOrder or isTrailingLimitAmountOrder or isTrailingLimitPercentOrder:
-                request['params']['trigger_price_type'] = priceType
+                orderParams['trigger_price_type'] = priceType
                 if not isLimitOrder and (isTrailingAmountOrder or isTrailingPercentOrder):
                     if isTrailingAmountOrder:
-                        request['params']['trigger_price'] = self.parse_to_numeric(trailingAmountString)
+                        orderParams['trigger_price'] = self.parse_to_numeric(trailingAmountString)
                     else:
-                        request['params']['trigger_price'] = self.parse_to_numeric(trailingPercentString)
+                        orderParams['trigger_price'] = self.parse_to_numeric(trailingPercentString)
                 else:
-                    request['params']['limit_price_type'] = priceType
+                    orderParams['limit_price_type'] = priceType
                     if isTrailingLimitAmountOrder:
-                        request['params']['trigger_price'] = self.parse_to_numeric(trailingLimitAmountString)
+                        orderParams['trigger_price'] = self.parse_to_numeric(trailingLimitAmountString)
                     else:
-                        request['params']['trigger_price'] = self.parse_to_numeric(trailingLimitPercentString)
+                        orderParams['trigger_price'] = self.parse_to_numeric(trailingLimitPercentString)
         isCreateOrder = (method == 'createOrderWs')
         paramsCreate = paramsPostOnly
         if isCreateOrder:
@@ -267,6 +274,7 @@ class kraken(ccxt.async_support.kraken):
         if isCreateOrder and (isPresetStopLoss or isPresetTakeProfit):
             paramsPreset = self.omit(paramsCreate, ['stopLoss', 'takeProfit'])
         paramsOmitted = self.omit(paramsPreset, ['clientOrderId', 'cost', 'offset', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent'])
+        request['params'] = orderParams
         return [request, paramsOmitted]
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
@@ -289,18 +297,19 @@ class kraken(ccxt.async_support.kraken):
         url = (self.urls['api'])['ws']['privateV2']
         requestId = self.request_id()
         messageHash = self.number_to_string(requestId)
+        orderParams = {
+            'order_type': type,
+            'side': side,
+            'order_qty': self.parse_to_numeric(self.amount_to_precision(symbol, amount)),
+            'symbol': market['symbol'],
+            'token': token,
+        }
         request = {
             'method': 'add_order',
-            'params': {
-                'order_type': type,
-                'side': side,
-                'order_qty': self.parse_to_numeric(self.amount_to_precision(symbol, amount)),
-                'symbol': market['symbol'],
-                'token': token,
-            },
+            'params': orderParams,
             'req_id': requestId,
         }
-        requestValue, paramsValue = self.order_request_ws('createOrderWs', symbol, type, request, amount, price, params)
+        requestValue, paramsValue = self.order_request_ws('createOrderWs', symbol, type, request, orderParams, amount, price, params)
         return await self.watch(url, messageHash, self.extend(requestValue, paramsValue), messageHash)
 
     def handle_create_edit_order(self, client: Client, message: dict):
@@ -355,16 +364,17 @@ class kraken(ccxt.async_support.kraken):
         url = (self.urls['api'])['ws']['privateV2']
         requestId = self.request_id()
         messageHash = self.number_to_string(requestId)
+        orderParams = {
+            'order_id': id,
+            'order_qty': self.parse_to_numeric(self.amount_to_precision(symbol, amount)),
+            'token': token,
+        }
         request = {
             'method': 'amend_order',
-            'params': {
-                'order_id': id,
-                'order_qty': self.parse_to_numeric(self.amount_to_precision(symbol, amount)),
-                'token': token,
-            },
+            'params': orderParams,
             'req_id': requestId,
         }
-        requestValue, paramsValue = self.order_request_ws('editOrderWs', symbol, type, request, amount, price, params)
+        requestValue, paramsValue = self.order_request_ws('editOrderWs', symbol, type, request, orderParams, amount, price, params)
         return await self.watch(url, messageHash, self.extend(requestValue, paramsValue), messageHash)
 
     async def cancel_orders_ws(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
@@ -721,10 +731,50 @@ class kraken(ccxt.async_support.kraken):
         trades = await self.watch_multi_helper('trade', 'trade', symbols, None, params)
         limitResolved = limit
         if self.newUpdates:
-            first = self.safe_list(trades, 0)
+            first = self.safe_dict(trades, 0)
             tradeSymbol = self.safe_string(first, 'symbol')
             limitResolved = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
+
+    async def un_watch_trades(self, symbol: str, params: dict = {}) -> object:
+        """
+        stop watching the list of most recent trades for a particular symbol
+
+        https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+
+        :param str symbol: unified symbol of the market to stop watching the trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: status of the unwatch request
+        """
+        return await self.un_watch_trades_for_symbols([symbol], params)
+
+    async def un_watch_trades_for_symbols(self, symbols: list[str], params: dict = {}) -> object:
+        """
+        stop watching the list of most recent trades for a list of symbols
+
+        https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+
+        :param str[] symbols: unified symbols of the markets to stop watching the trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: status of the unwatch request
+        """
+        await self.load_markets()
+        symbolsNormalized = self.market_symbols(symbols, None, False, True, False)
+        unsubMessageHashes = []
+        for i in range(0, len(symbolsNormalized)):
+            unsubMessageHashes.append('unsubscribe:' + self.get_message_hash('trade', None, symbolsNormalized[i]))
+        request = {
+            'method': 'unsubscribe',
+            'params': {
+                'channel': 'trade',
+                'symbol': symbolsNormalized,
+            },
+            'req_id': self.request_id(),
+        }
+        request['params'] = self.deep_extend(request['params'], params)
+        url = (self.urls['api'])['ws']['publicV2']
+        # kraken acknowledges each symbol separately, see handleUnsubscriptionStatus
+        return await self.watch_multiple(url, unsubMessageHashes, request, unsubMessageHashes)
 
     def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
@@ -794,6 +844,35 @@ class kraken(ccxt.async_support.kraken):
         if self.newUpdates:
             limitResolved = ohlcv.getLimit(symbolValue, limit)
         return self.filter_by_since_limit(ohlcv, since, limitResolved, 'timestamp', True)
+
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params: dict = {}) -> object:
+        """
+        stop watching historical candlestick data for a market
+
+        https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ohlc
+
+        :param str symbol: unified symbol of the market to stop watching the candles for
+        :param str timeframe: the length of time each candle represents
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: status of the unwatch request
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        symbolValue = market['symbol']
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
+        unsubMessageHash = 'unsubscribe:' + self.get_message_hash('ohlcv', interval, symbolValue)
+        unsubscribe = {
+            'method': 'unsubscribe',
+            'params': {
+                'channel': 'ohlc',
+                'symbol': [symbolValue],
+                'interval': self.safe_value(self.timeframes, timeframe, timeframe),
+            },
+            'req_id': self.request_id(),
+        }
+        request = self.deep_extend(unsubscribe, params)
+        url = (self.urls['api'])['ws']['publicV2']
+        return await self.watch(url, unsubMessageHash, request, unsubMessageHash)
 
     async def load_markets(self, reload=False, params: dict = {}):
         markets = await super(kraken, self).load_markets(reload, params)
@@ -922,9 +1001,9 @@ class kraken(ccxt.async_support.kraken):
             # size the book from the subscribed depth (10 by default), not from
             # the level count of this snapshot: a thin market's snapshot can
             # carry fewer levels than the subscription and must not cap the book
-            limit = self.safe_integer(subscription, 'limit', 10)
+            limit = self.parse_to_int(self.safe_integer(subscription, 'limit', 10))
             asksLength = len(a)
-            depth = asksLength if (asksLength > limit) else limit
+            depth = self.parse_to_int(asksLength if (asksLength > limit) else limit)
             depths = self.safe_dict(self.options, 'wsOrderBookDepths', {})
             storedDepth = self.safe_integer(depths, symbol)
             if not (symbol in self.orderbooks) or (storedDepth != depth):
@@ -957,12 +1036,18 @@ class kraken(ccxt.async_support.kraken):
                 # const checkAsks = asks.map ((elem) => [ elem['price'], elem['qty'] ]);
                 # const checkBids = bids.map ((elem) => [ elem['price'], elem['qty'] ]);
                 for i in range(0, 10):
-                    currentAsk = self.safe_value(checkAsks, i, {})
-                    formattedAsk = self.format_number(currentAsk[0]) + self.format_number(currentAsk[1])
+                    currentAsk = self.safe_list(checkAsks, i, [])
+                    currentAskLength = len(currentAsk)
+                    formattedAsk = ''
+                    if currentAskLength > 1:
+                        formattedAsk = self.format_number(currentAsk[0]) + self.format_number(currentAsk[1])
                     payloadArray.append(formattedAsk)
                 for i in range(0, 10):
-                    currentBid = self.safe_value(checkBids, i, {})
-                    formattedBid = self.format_number(currentBid[0]) + self.format_number(currentBid[1])
+                    currentBid = self.safe_list(checkBids, i, [])
+                    currentBidLength = len(currentBid)
+                    formattedBid = ''
+                    if currentBidLength > 1:
+                        formattedBid = self.format_number(currentBid[0]) + self.format_number(currentBid[1])
                     payloadArray.append(formattedBid)
             payload = ''.join(payloadArray)
             localChecksum = self.crc32(payload, False)
@@ -1068,13 +1153,12 @@ class kraken(ccxt.async_support.kraken):
                 #         }
                 #     }
                 #
-                subscription = self.safe_dict(response, 'result')
+                subscription = self.extend(self.safe_dict(response, 'result'), {'start': now})
                 token = self.safe_string(subscription, 'token')
                 if token is None:
                     # reject instead of caching an empty credential, so
                     # waiters retry rather than proceed unauthenticated
                     raise AuthenticationError(self.id + ' authenticate() received an empty token')
-                subscription['start'] = now
                 client.subscriptions[authenticated] = subscription
                 # settle the flight and wake every waiter - resolve () also
                 # clears the registry entry, so the next refresh re-leads
@@ -1094,9 +1178,10 @@ class kraken(ccxt.async_support.kraken):
         token = await self.authenticate()
         subscriptionHash = 'executions'
         messageHash = name
-        symbolResolved = self.symbol(symbol) if (symbol is not None) else None
-        if symbolResolved is not None:
-            messageHash += ':' + symbolResolved
+        symbolResolved = None
+        if symbol is not None:
+            symbolResolved = self.symbol(symbol)
+            messageHash = name + ':' + symbolResolved
         url = (self.urls['api'])['ws']['privateV2']
         requestId = self.request_id()
         subscribe = {
@@ -1299,7 +1384,7 @@ class kraken(ccxt.async_support.kraken):
                 previousOrder = self.safe_dict(previousOrders, id)
                 newOrder = parsed
                 if previousOrder is not None:
-                    newRawOrder = self.extend(previousOrder['info'], newOrder['info'])
+                    newRawOrder = self.extend(previousOrder['info'], parsed['info'])
                     newOrder = self.parse_ws_order(newRawOrder)
                 length = len(stored)
                 if length == limit and (previousOrder is None):
@@ -1461,20 +1546,25 @@ class kraken(ccxt.async_support.kraken):
         #         "sequence": 1
         #     }
         #
+        # merge updates into the existing balance object instead of building a
+        # fresh one: a consumer awakened by an earlier message holds a reference
+        # to this.balance[type], and Client.resolve is a no-op while nobody is
+        # awaiting, so a replaced object would make updates landing in that
+        # window invisible to the consumer forever (issue #26773)
+        type = 'spot'
+        if self.balance is None:
+            self.balance = {}
+        self.balance[type] = self.safe_dict(self.balance, type, {})
+        self.balance[type]['info'] = message
         data = self.safe_list(message, 'data', [])
-        result = {'info': message}
         for i in range(0, len(data)):
             currencyId = self.safe_string(data[i], 'asset')
             code = self.safe_currency_code(currencyId)
             account = self.account()
             eq = self.safe_string(data[i], 'balance')
             account['total'] = eq
-            result[code] = account
-        type = 'spot'
-        balance = self.safe_balance(result)
-        oldBalance = self.safe_dict(self.balance, type, {})
-        newBalance = self.deep_extend(oldBalance, balance)
-        self.balance[type] = self.safe_balance(newBalance)
+            self.balance[type][code] = account
+        self.balance[type] = self.safe_balance(self.balance[type])
         channel = self.safe_string(message, 'channel')
         client.resolve(self.balance[type], channel)
 
@@ -1522,6 +1612,35 @@ class kraken(ccxt.async_support.kraken):
         # if (requestId in client.futures) {
         #     delete client.futures[requestId];
         # }
+
+    def handle_unsubscription_status(self, client: Client, message: dict) -> dict:
+        #
+        # one acknowledgement per symbol in the unsubscribe request
+        #
+        #     {
+        #         "method": "unsubscribe",
+        #         "req_id": 4,
+        #         "result": { "channel": "ohlc", "interval": 5, "symbol": "BTC/USD" },
+        #         "success": true,
+        #         "time_in": "2026-10-26T16:12:36.610481Z",
+        #         "time_out": "2026-10-26T16:12:36.610502Z"
+        #     }
+        #
+        result = self.safe_dict(message, 'result', {})
+        channel = self.safe_string(result, 'channel')
+        symbol = self.safe_symbol(self.safe_string(result, 'symbol'))
+        if channel == 'trade':
+            subMessageHash = self.get_message_hash('trade', None, symbol)
+            self.clean_cache({'topic': 'trades', 'symbols': [symbol]})
+            self.clean_unsubscription(client, subMessageHash, 'unsubscribe:' + subMessageHash)
+        elif channel == 'ohlc':
+            interval = self.safe_integer(result, 'interval')
+            timeframe = self.find_timeframe(interval)
+            subMessageHash = self.get_message_hash('ohlcv', None, symbol)
+            unsubMessageHash = 'unsubscribe:' + self.get_message_hash('ohlcv', self.number_to_string(interval), symbol)
+            self.clean_cache({'topic': 'ohlcv', 'symbolsAndTimeframes': [[symbol, timeframe]]})
+            self.clean_unsubscription(client, subMessageHash, unsubMessageHash)
+        return message
 
     def handle_error_message(self, client: Client, message: dict) -> Bool:
         #
@@ -1585,6 +1704,7 @@ class kraken(ccxt.async_support.kraken):
                 'heartbeat': self.handle_heartbeat,
                 'systemStatus': self.handle_system_status,
                 'subscriptionStatus': self.handle_subscription_status,
+                'unsubscribe': self.handle_unsubscription_status,
                 'add_order': self.handle_create_edit_order,
                 'amend_order': self.handle_create_edit_order,
                 'cancel_order': self.handle_cancel_order,

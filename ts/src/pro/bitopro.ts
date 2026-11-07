@@ -12,7 +12,7 @@ import type { WsOrderBook } from '../base/ws/OrderBook.js';
 // ----------------------------------------------------------------------------
 
 export default class bitopro extends bitoproRest {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -81,11 +81,12 @@ export default class bitopro extends bitoproRest {
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
         const messageHash = 'ORDER_BOOK' + ':' + symbolValue;
+        const marketIdValue = this.safeString (market, 'id', '');
         let endPart: Str = undefined;
         if (limit === undefined) {
-            endPart = market['id'];
+            endPart = marketIdValue;
         } else {
-            endPart = market['id'] + ':' + this.numberToString (limit);
+            endPart = marketIdValue + ':' + this.numberToString (limit);
         }
         const orderbook: WsOrderBook = await this.watchPublic ('order-books', messageHash, endPart);
         return orderbook.limit ();
@@ -188,7 +189,8 @@ export default class bitopro extends bitoproRest {
             tradesCache = new ArrayCache (limit);
         }
         for (let i = 0; i < trades.length; i++) {
-            tradesCache.append (trades[i]);
+            const trade = trades[i];
+            tradesCache.append (trade);
         }
         this.trades[symbol] = tradesCache;
         if (event !== undefined) {
@@ -216,7 +218,8 @@ export default class bitopro extends bitoproRest {
         let messageHash = 'USER_TRADE';
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            messageHash = messageHash + ':' + market['symbol'];
+            const symbolValue: string = market['symbol'];
+            messageHash = messageHash + ':' + symbolValue;
         }
         const wsUrl = this.safeString (this.urls['ws'], 'private');
         if (wsUrl === undefined) {
@@ -436,17 +439,19 @@ export default class bitopro extends bitoproRest {
         };
         // this.options = this.extend (defaultOptions, this.options);
         this.extendExchangeOptions (defaultOptions);
-        const originalHeaders = this.options['ws']['options']['headers'];
+        const wsOptions = this.safeDict (this.options, 'ws', {});
+        const wsInnerOptions = this.safeDict (wsOptions, 'options', {});
+        const originalHeaders = wsInnerOptions['headers'];
         const headers: Dict = {
             'X-BITOPRO-API': 'ccxt',
             'X-BITOPRO-APIKEY': this.apiKey,
             'X-BITOPRO-PAYLOAD': payload,
             'X-BITOPRO-SIGNATURE': signature,
         };
-        this.options['ws']['options']['headers'] = headers;
+        wsInnerOptions['headers'] = headers;
         // instantiate client
         this.client (url);
-        this.options['ws']['options']['headers'] = originalHeaders;
+        wsInnerOptions['headers'] = originalHeaders;
     }
 
     /**
@@ -494,11 +499,18 @@ export default class bitopro extends bitoproRest {
         const timestamp = this.safeInteger (message, 'timestamp');
         const datetime = this.safeString (message, 'datetime');
         const currencies = Object.keys (data);
-        const result: Dict = {
-            'info': data,
-            'timestamp': timestamp,
-            'datetime': datetime,
-        };
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a
+        // reference to this.balance, and Client.resolve is a no-op while
+        // nobody is awaiting, so a replaced object would make updates landing
+        // in that window invisible to the consumer forever (same class as
+        // issue #26773)
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        this.balance['info'] = data;
+        this.balance['timestamp'] = timestamp;
+        this.balance['datetime'] = datetime;
         for (let i = 0; i < currencies.length; i++) {
             const currency = this.safeString (currencies, i);
             const balance = this.safeDict (data, currency, {});
@@ -508,10 +520,10 @@ export default class bitopro extends bitoproRest {
             account['free'] = this.safeString (balance, 'available');
             account['total'] = this.safeString (balance, 'amount');
             if (code !== undefined) {
-                result[code] = account;
+                this.balance[code] = account;
             }
         }
-        this.balance = this.safeBalance (result);
+        this.balance = this.safeBalance (this.balance);
         client.resolve (this.balance, event);
     }
 

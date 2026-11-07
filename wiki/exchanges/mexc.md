@@ -396,6 +396,7 @@ create a trade order
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.marginMode | <code>string</code> | No | only 'isolated' is supported for spot-margin trading |
 | params.triggerPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
+| params.triggerDirection | <code>string</code> | No | *swap only* 'ascending' triggers when the price rises to triggerPrice, 'descending' when it falls to it, default is 'ascending' |
 | params.postOnly | <code>bool</code> | No | if true, the order will only be posted if it will be a maker order |
 | params.reduceOnly | <code>bool</code> | No | *contract only* indicates if this order is to reduce the size of a position |
 | params.hedged | <code>bool</code> | No | *swap only* true for hedged mode, false for one way mode, default is false |

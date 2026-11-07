@@ -19,7 +19,7 @@ use ccxt\pro\ArrayCacheBySymbolById;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class kraken extends \ccxt\async\kraken {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -34,6 +34,9 @@ class kraken extends \ccxt\async\kraken {
                 'watchBidsAsks' => true,
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
+                'unWatchOHLCV' => true,
+                'unWatchTrades' => true,
+                'unWatchTradesForSymbols' => true,
                 'createOrderWs' => true,
                 'editOrderWs' => true,
                 'cancelOrderWs' => true,
@@ -128,26 +131,26 @@ class kraken extends \ccxt\async\kraken {
         ));
     }
 
-    public function order_request_ws(string $method, string $symbol, string $type, array $request, ?float $amount, ?float $price = null, $params = array()): array {
+    public function order_request_ws(string $method, string $symbol, string $type, array $request, array $orderParams, ?float $amount, ?float $price = null, $params = array()): array {
         $isLimitOrder = str_ends_with($type, 'limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
         if ($isLimitOrder) {
             if ($price === null) {
                 throw new ArgumentsRequired($this->id . ' limit orders require a price argument');
             }
-            $request['params']['limit_price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
+            $orderParams['limit_price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
         }
         $isMarket = ($type === 'market');
         list($postOnly, $paramsPostOnly) = $this->handle_post_only($isMarket, false, $params);
         if ($postOnly) {
-            $request['params']['post_only'] = true;
+            $orderParams['post_only'] = true;
         }
         $clientOrderId = $this->safe_string($paramsPostOnly, 'clientOrderId');
         if ($clientOrderId !== null) {
-            $request['params']['cl_ord_id'] = $clientOrderId;
+            $orderParams['cl_ord_id'] = $clientOrderId;
         }
         $cost = $this->safe_string($paramsPostOnly, 'cost');
         if ($cost !== null) {
-            $request['params']['order_qty'] = $this->parse_to_numeric($this->cost_to_precision($symbol, $cost));
+            $orderParams['order_qty'] = $this->parse_to_numeric($this->cost_to_precision($symbol, $cost));
         }
         $stopLoss = $this->safe_dict($paramsPostOnly, 'stopLoss', array());
         $takeProfit = $this->safe_dict($paramsPostOnly, 'takeProfit', array());
@@ -191,68 +194,73 @@ class kraken extends \ccxt\async\kraken {
             $priceType = 'pct';
         }
         if ($method === 'createOrderWs') {
-            $reduceOnly = $this->safe_bool($paramsPostOnly, 'reduceOnly');
-            if ($reduceOnly === true) {
-                $request['params']['reduce_only'] = true;
+            $reduceOnly = $this->safe_bool($paramsPostOnly, 'reduceOnly', false);
+            if ($reduceOnly) {
+                $orderParams['reduce_only'] = true;
             }
             $timeInForce = $this->safe_string_lower($paramsPostOnly, 'timeInForce');
             if ($timeInForce !== null) {
-                $request['params']['time_in_force'] = $timeInForce;
+                $orderParams['time_in_force'] = $timeInForce;
             }
-            if ($isStopLossPriceOrder || $isTakeProfitPriceOrder || $isTrailingAmountOrder || $isTrailingPercentOrder || $isTrailingLimitAmountOrder || $isTrailingLimitPercentOrder) {
-                $request['params']['triggers'] = array();
-            }
+            $triggers = array();
+            $conditional = array();
             if ($isPresetStopLoss || $isPresetTakeProfit) {
-                $request['params']['conditional'] = array();
                 if ($isPresetStopLoss) {
-                    $request['params']['conditional']['order_type'] = 'stop-loss';
-                    $request['params']['conditional']['trigger_price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $presetStopLoss));
+                    $conditional['order_type'] = 'stop-loss';
+                    $conditional['trigger_price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $presetStopLoss));
                 } elseif ($isPresetTakeProfit) {
-                    $request['params']['conditional']['order_type'] = 'take-profit';
-                    $request['params']['conditional']['trigger_price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $presetTakeProfit));
+                    $conditional['order_type'] = 'take-profit';
+                    $conditional['trigger_price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $presetTakeProfit));
                 }
                 if ($presetStopLossLimit !== null) {
-                    $request['params']['conditional']['order_type'] = 'stop-loss-limit';
-                    $request['params']['conditional']['limit_price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $presetStopLossLimit));
+                    $conditional['order_type'] = 'stop-loss-limit';
+                    $conditional['limit_price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $presetStopLossLimit));
                 } elseif ($presetTakeProfitLimit !== null) {
-                    $request['params']['conditional']['order_type'] = 'take-profit-limit';
-                    $request['params']['conditional']['limit_price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $presetTakeProfitLimit));
+                    $conditional['order_type'] = 'take-profit-limit';
+                    $conditional['limit_price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $presetTakeProfitLimit));
                 }
             } elseif ($isStopLossPriceOrder || $isTakeProfitPriceOrder) {
                 if ($isStopLossPriceOrder) {
-                    $request['params']['triggers']['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $stopLossPrice));
+                    $triggers['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $stopLossPrice));
                     if ($isLimitOrder) {
-                        $request['params']['order_type'] = 'stop-loss-limit';
+                        $orderParams['order_type'] = 'stop-loss-limit';
                     } else {
-                        $request['params']['order_type'] = 'stop-loss';
+                        $orderParams['order_type'] = 'stop-loss';
                     }
                 } else {
-                    $request['params']['triggers']['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $takeProfitPrice));
+                    $triggers['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $takeProfitPrice));
                     if ($isLimitOrder) {
-                        $request['params']['order_type'] = 'take-profit-limit';
+                        $orderParams['order_type'] = 'take-profit-limit';
                     } else {
-                        $request['params']['order_type'] = 'take-profit';
+                        $orderParams['order_type'] = 'take-profit';
                     }
                 }
             } elseif ($isTrailingAmountOrder || $isTrailingPercentOrder || $isTrailingLimitAmountOrder || $isTrailingLimitPercentOrder) {
-                $request['params']['triggers']['price_type'] = $priceType;
+                $triggers['price_type'] = $priceType;
                 if (!$isLimitOrder && ($isTrailingAmountOrder || $isTrailingPercentOrder)) {
-                    $request['params']['order_type'] = 'trailing-stop';
+                    $orderParams['order_type'] = 'trailing-stop';
                     if ($isTrailingAmountOrder) {
-                        $request['params']['triggers']['price'] = $this->parse_to_numeric($trailingAmountString);
+                        $triggers['price'] = $this->parse_to_numeric($trailingAmountString);
                     } else {
-                        $request['params']['triggers']['price'] = $this->parse_to_numeric($trailingPercentString);
+                        $triggers['price'] = $this->parse_to_numeric($trailingPercentString);
                     }
                 } else {
                     // trailing limit orders are not conventionally supported because the static limit_price_type param is not available for trailing-stop-limit orders
-                    $request['params']['limit_price_type'] = $priceType;
-                    $request['params']['order_type'] = 'trailing-stop-limit';
+                    $orderParams['limit_price_type'] = $priceType;
+                    $orderParams['order_type'] = 'trailing-stop-limit';
                     if ($isTrailingLimitAmountOrder) {
-                        $request['params']['triggers']['price'] = $this->parse_to_numeric($trailingLimitAmountString);
+                        $triggers['price'] = $this->parse_to_numeric($trailingLimitAmountString);
                     } else {
-                        $request['params']['triggers']['price'] = $this->parse_to_numeric($trailingLimitPercentString);
+                        $triggers['price'] = $this->parse_to_numeric($trailingLimitPercentString);
                     }
                 }
+            }
+            // attach after the writes so a copy-semantics port sees the filled dict
+            if ($isStopLossPriceOrder || $isTakeProfitPriceOrder || $isTrailingAmountOrder || $isTrailingPercentOrder || $isTrailingLimitAmountOrder || $isTrailingLimitPercentOrder) {
+                $orderParams['triggers'] = $triggers;
+            }
+            if ($isPresetStopLoss || $isPresetTakeProfit) {
+                $orderParams['conditional'] = $conditional;
             }
         } elseif ($method === 'editOrderWs') {
             if ($isPresetStopLoss || $isPresetTakeProfit) {
@@ -260,24 +268,24 @@ class kraken extends \ccxt\async\kraken {
             }
             if ($isStopLossPriceOrder || $isTakeProfitPriceOrder) {
                 if ($isStopLossPriceOrder) {
-                    $request['params']['trigger_price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $stopLossPrice));
+                    $orderParams['trigger_price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $stopLossPrice));
                 } else {
-                    $request['params']['trigger_price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $takeProfitPrice));
+                    $orderParams['trigger_price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $takeProfitPrice));
                 }
             } elseif ($isTrailingAmountOrder || $isTrailingPercentOrder || $isTrailingLimitAmountOrder || $isTrailingLimitPercentOrder) {
-                $request['params']['trigger_price_type'] = $priceType;
+                $orderParams['trigger_price_type'] = $priceType;
                 if (!$isLimitOrder && ($isTrailingAmountOrder || $isTrailingPercentOrder)) {
                     if ($isTrailingAmountOrder) {
-                        $request['params']['trigger_price'] = $this->parse_to_numeric($trailingAmountString);
+                        $orderParams['trigger_price'] = $this->parse_to_numeric($trailingAmountString);
                     } else {
-                        $request['params']['trigger_price'] = $this->parse_to_numeric($trailingPercentString);
+                        $orderParams['trigger_price'] = $this->parse_to_numeric($trailingPercentString);
                     }
                 } else {
-                    $request['params']['limit_price_type'] = $priceType;
+                    $orderParams['limit_price_type'] = $priceType;
                     if ($isTrailingLimitAmountOrder) {
-                        $request['params']['trigger_price'] = $this->parse_to_numeric($trailingLimitAmountString);
+                        $orderParams['trigger_price'] = $this->parse_to_numeric($trailingLimitAmountString);
                     } else {
-                        $request['params']['trigger_price'] = $this->parse_to_numeric($trailingLimitPercentString);
+                        $orderParams['trigger_price'] = $this->parse_to_numeric($trailingLimitPercentString);
                     }
                 }
             }
@@ -292,6 +300,7 @@ class kraken extends \ccxt\async\kraken {
             $paramsPreset = $this->omit($paramsCreate, array( 'stopLoss', 'takeProfit' ));
         }
         $paramsOmitted = $this->omit($paramsPreset, array( 'clientOrderId', 'cost', 'offset', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent' ));
+        $request['params'] = $orderParams;
         return array( $request, $paramsOmitted );
     }
 
@@ -319,18 +328,19 @@ class kraken extends \ccxt\async\kraken {
         $url = ($this->urls['api'])['ws']['privateV2'];
         $requestId = $this->request_id();
         $messageHash = $this->number_to_string($requestId);
+        $orderParams = array(
+            'order_type' => $type,
+            'side' => $side,
+            'order_qty' => $this->parse_to_numeric($this->amount_to_precision($symbol, $amount)),
+            'symbol' => $market['symbol'],
+            'token' => $token,
+        );
         $request = array(
             'method' => 'add_order',
-            'params' => array(
-                'order_type' => $type,
-                'side' => $side,
-                'order_qty' => $this->parse_to_numeric($this->amount_to_precision($symbol, $amount)),
-                'symbol' => $market['symbol'],
-                'token' => $token,
-            ),
+            'params' => $orderParams,
             'req_id' => $requestId,
         );
-        list($requestValue, $paramsValue) = $this->order_request_ws('createOrderWs', $symbol, $type, $request, $amount, $price, $params);
+        list($requestValue, $paramsValue) = $this->order_request_ws('createOrderWs', $symbol, $type, $request, $orderParams, $amount, $price, $params);
         return Async\await($this->watch($url, $messageHash, $this->extend($requestValue, $paramsValue), $messageHash));
     }
 
@@ -391,16 +401,17 @@ class kraken extends \ccxt\async\kraken {
         $url = ($this->urls['api'])['ws']['privateV2'];
         $requestId = $this->request_id();
         $messageHash = $this->number_to_string($requestId);
+        $orderParams = array(
+            'order_id' => $id,
+            'order_qty' => $this->parse_to_numeric($this->amount_to_precision($symbol, $amount)),
+            'token' => $token,
+        );
         $request = array(
             'method' => 'amend_order',
-            'params' => array(
-                'order_id' => $id,
-                'order_qty' => $this->parse_to_numeric($this->amount_to_precision($symbol, $amount)),
-                'token' => $token,
-            ),
+            'params' => $orderParams,
             'req_id' => $requestId,
         );
-        list($requestValue, $paramsValue) = $this->order_request_ws('editOrderWs', $symbol, $type, $request, $amount, $price, $params);
+        list($requestValue, $paramsValue) = $this->order_request_ws('editOrderWs', $symbol, $type, $request, $orderParams, $amount, $price, $params);
         return Async\await($this->watch($url, $messageHash, $this->extend($requestValue, $paramsValue), $messageHash));
     }
 
@@ -812,11 +823,62 @@ class kraken extends \ccxt\async\kraken {
         $trades = Async\await($this->watch_multi_helper('trade', 'trade', $symbols, null, $params));
         $limitResolved = $limit;
         if ($this->newUpdates) {
-            $first = $this->safe_list($trades, 0);
+            $first = $this->safe_dict($trades, 0);
             $tradeSymbol = $this->safe_string($first, 'symbol');
             $limitResolved = $trades->getLimit($tradeSymbol, $limit);
         }
         return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
+    }
+
+    public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades(...))($symbol, $params);
+    }
+
+    private function do_un_watch_trades(string $symbol, $params = array()) {
+        /**
+         * stop watching the list of most recent trades for a particular $symbol
+         *
+         * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+         *
+         * @param {string} $symbol unified $symbol of the market to stop watching the trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch request
+         */
+        return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $params));
+    }
+
+    public function un_watch_trades_for_symbols(array $symbols, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades_for_symbols(...))($symbols, $params);
+    }
+
+    private function do_un_watch_trades_for_symbols(array $symbols, $params = array()) {
+        /**
+         * stop watching the list of most recent trades for a list of $symbols
+         *
+         * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+         *
+         * @param {string[]} $symbols unified $symbols of the markets to stop watching the trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch $request
+         */
+        Async\await($this->load_markets());
+        $symbolsNormalized = $this->market_symbols($symbols, null, false, true, false);
+        $unsubMessageHashes = array();
+        for ($i = 0; $i < count($symbolsNormalized); $i++) {
+            $unsubMessageHashes[] = 'unsubscribe:' . $this->get_message_hash('trade', null, $symbolsNormalized[$i]);
+        }
+        $request = array(
+            'method' => 'unsubscribe',
+            'params' => array(
+                'channel' => 'trade',
+                'symbol' => $symbolsNormalized,
+            ),
+            'req_id' => $this->request_id(),
+        );
+        $request['params'] = $this->deep_extend($request['params'], $params);
+        $url = ($this->urls['api'])['ws']['publicV2'];
+        // kraken acknowledges each symbol separately, see handleUnsubscriptionStatus
+        return Async\await($this->watch_multiple($url, $unsubMessageHashes, $request, $unsubMessageHashes));
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
@@ -900,6 +962,40 @@ class kraken extends \ccxt\async\kraken {
             $limitResolved = $ohlcv->getLimit($symbolValue, $limit);
         }
         return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 'timestamp', true);
+    }
+
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_ohlcv(...))($symbol, $timeframe, $params);
+    }
+
+    private function do_un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()) {
+        /**
+         * stop watching historical candlestick data for a $market
+         *
+         * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ohlc
+         *
+         * @param {string} $symbol unified $symbol of the $market to stop watching the candles for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch $request
+         */
+        Async\await($this->load_markets());
+        $market = $this->market($symbol);
+        $symbolValue = $market['symbol'];
+        $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        $unsubMessageHash = 'unsubscribe:' . $this->get_message_hash('ohlcv', $interval, $symbolValue);
+        $unsubscribe = array(
+            'method' => 'unsubscribe',
+            'params' => array(
+                'channel' => 'ohlc',
+                'symbol' => array( $symbolValue ),
+                'interval' => $this->safe_value($this->timeframes, $timeframe, $timeframe),
+            ),
+            'req_id' => $this->request_id(),
+        );
+        $request = $this->deep_extend($unsubscribe, $params);
+        $url = ($this->urls['api'])['ws']['publicV2'];
+        return Async\await($this->watch($url, $unsubMessageHash, $request, $unsubMessageHash));
     }
 
     public function load_markets($reload = false, $params = array()) {
@@ -1048,9 +1144,9 @@ class kraken extends \ccxt\async\kraken {
             // size the book from the subscribed depth (10 by default), not from
             // the level count of this snapshot: a thin market's snapshot can
             // carry fewer levels than the subscription and must not cap the book
-            $limit = $this->safe_integer($subscription, 'limit', 10);
+            $limit = $this->parse_to_int($this->safe_integer($subscription, 'limit', 10));
             $asksLength = count($a);
-            $depth = ($asksLength > $limit) ? $asksLength : $limit;
+            $depth = $this->parse_to_int(($asksLength > $limit) ? $asksLength : $limit);
             $depths = $this->safe_dict($this->options, 'wsOrderBookDepths', array());
             $storedDepth = $this->safe_integer($depths, $symbol);
             if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) || ($storedDepth !== $depth)) {
@@ -1087,13 +1183,21 @@ class kraken extends \ccxt\async\kraken {
                 // const checkAsks = asks.map ((elem) => [ elem['price'], elem['qty'] ]);
                 // const checkBids = bids.map ((elem) => [ elem['price'], elem['qty'] ]);
                 for ($i = 0; $i < 10; $i++) {
-                    $currentAsk = $this->safe_value($checkAsks, $i, array());
-                    $formattedAsk = $this->format_number($currentAsk[0]) . $this->format_number($currentAsk[1]);
+                    $currentAsk = $this->safe_list($checkAsks, $i, array());
+                    $currentAskLength = count($currentAsk);
+                    $formattedAsk = '';
+                    if ($currentAskLength > 1) {
+                        $formattedAsk = $this->format_number($currentAsk[0]) . $this->format_number($currentAsk[1]);
+                    }
                     $payloadArray[] = $formattedAsk;
                 }
                 for ($i = 0; $i < 10; $i++) {
-                    $currentBid = $this->safe_value($checkBids, $i, array());
-                    $formattedBid = $this->format_number($currentBid[0]) . $this->format_number($currentBid[1]);
+                    $currentBid = $this->safe_list($checkBids, $i, array());
+                    $currentBidLength = count($currentBid);
+                    $formattedBid = '';
+                    if ($currentBidLength > 1) {
+                        $formattedBid = $this->format_number($currentBid[0]) . $this->format_number($currentBid[1]);
+                    }
                     $payloadArray[] = $formattedBid;
                 }
             }
@@ -1214,14 +1318,13 @@ class kraken extends \ccxt\async\kraken {
                 //         }
                 //     }
                 //
-                $subscription = $this->safe_dict($response, 'result');
+                $subscription = $this->extend($this->safe_dict($response, 'result'), array( 'start' => $now ));
                 $token = $this->safe_string($subscription, 'token');
                 if ($token === null) {
                     // reject instead of caching an empty credential, so
                     // waiters retry rather than proceed unauthenticated
                     throw new AuthenticationError($this->id . ' authenticate() received an empty token');
                 }
-                $subscription['start'] = $now;
                 $client->subscriptions[$authenticated] = $subscription;
                 // settle the flight and wake every waiter - resolve () also
                 // clears the registry entry, so the next refresh re-leads
@@ -1248,9 +1351,10 @@ class kraken extends \ccxt\async\kraken {
         $token = Async\await($this->authenticate());
         $subscriptionHash = 'executions';
         $messageHash = $name;
-        $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : null;
-        if ($symbolResolved !== null) {
-            $messageHash .= ':' . $symbolResolved;
+        $symbolResolved = null;
+        if ($symbol !== null) {
+            $symbolResolved = $this->symbol($symbol);
+            $messageHash = $name . ':' . $symbolResolved;
         }
         $url = ($this->urls['api'])['ws']['privateV2'];
         $requestId = $this->request_id();
@@ -1473,7 +1577,7 @@ class kraken extends \ccxt\async\kraken {
                 $previousOrder = $this->safe_dict($previousOrders, $id);
                 $newOrder = $parsed;
                 if ($previousOrder !== null) {
-                    $newRawOrder = $this->extend($previousOrder['info'], $newOrder['info']);
+                    $newRawOrder = $this->extend($previousOrder['info'], $parsed['info']);
                     $newOrder = $this->parse_ws_order($newRawOrder);
                 }
                 $length = count($stored);
@@ -1657,21 +1761,27 @@ class kraken extends \ccxt\async\kraken {
         //         "sequence": 1
         //     }
         //
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance[type], and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make updates landing in that
+        // window invisible to the consumer forever (issue #26773)
+        $type = 'spot';
+        if ($this->balance === null) {
+            $this->balance = array();
+        }
+        $this->balance[$type] = $this->safe_dict($this->balance, $type, array());
+        $this->balance[$type]['info'] = $message;
         $data = $this->safe_list($message, 'data', array());
-        $result = array( 'info' => $message );
         for ($i = 0; $i < count($data); $i++) {
             $currencyId = $this->safe_string($data[$i], 'asset');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $eq = $this->safe_string($data[$i], 'balance');
             $account['total'] = $eq;
-            $result[$code] = $account;
+            $this->balance[$type][$code] = $account;
         }
-        $type = 'spot';
-        $balance = $this->safe_balance($result);
-        $oldBalance = $this->safe_dict($this->balance, $type, array());
-        $newBalance = $this->deep_extend($oldBalance, $balance);
-        $this->balance[$type] = $this->safe_balance($newBalance);
+        $this->balance[$type] = $this->safe_balance($this->balance[$type]);
         $channel = $this->safe_string($message, 'channel');
         $client->resolve($this->balance[$type], $channel);
     }
@@ -1724,6 +1834,37 @@ class kraken extends \ccxt\async\kraken {
         // if (requestId in client.futures) {
         //     delete client.futures[requestId];
         // }
+    }
+
+    public function handle_unsubscription_status(Client $client, array $message): array {
+        //
+        // one acknowledgement per symbol in the unsubscribe request
+        //
+        //     {
+        //         "method": "unsubscribe",
+        //         "req_id": 4,
+        //         "result": { "channel": "ohlc", "interval": 5, "symbol": "BTC/USD" },
+        //         "success": true,
+        //         "time_in": "2026-10-26T16:12:36.610481Z",
+        //         "time_out": "2026-10-26T16:12:36.610502Z"
+        //     }
+        //
+        $result = $this->safe_dict($message, 'result', array());
+        $channel = $this->safe_string($result, 'channel');
+        $symbol = $this->safe_symbol($this->safe_string($result, 'symbol'));
+        if ($channel === 'trade') {
+            $subMessageHash = $this->get_message_hash('trade', null, $symbol);
+            $this->clean_cache(array( 'topic' => 'trades', 'symbols' => array( $symbol ) ));
+            $this->clean_unsubscription($client, $subMessageHash, 'unsubscribe:' . $subMessageHash);
+        } elseif ($channel === 'ohlc') {
+            $interval = $this->safe_integer($result, 'interval');
+            $timeframe = $this->find_timeframe($interval);
+            $subMessageHash = $this->get_message_hash('ohlcv', null, $symbol);
+            $unsubMessageHash = 'unsubscribe:' . $this->get_message_hash('ohlcv', $this->number_to_string($interval), $symbol);
+            $this->clean_cache(array( 'topic' => 'ohlcv', 'symbolsAndTimeframes' => array( array( $symbol, $timeframe ) ) ));
+            $this->clean_unsubscription($client, $subMessageHash, $unsubMessageHash);
+        }
+        return $message;
     }
 
     public function handle_error_message(Client $client, array $message): ?bool {
@@ -1795,6 +1936,7 @@ class kraken extends \ccxt\async\kraken {
                 'heartbeat' => array($this, 'handle_heartbeat'),
                 'systemStatus' => array($this, 'handle_system_status'),
                 'subscriptionStatus' => array($this, 'handle_subscription_status'),
+                'unsubscribe' => array($this, 'handle_unsubscription_status'),
                 'add_order' => array($this, 'handle_create_edit_order'),
                 'amend_order' => array($this, 'handle_create_edit_order'),
                 'cancel_order' => array($this, 'handle_cancel_order'),

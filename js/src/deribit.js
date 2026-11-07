@@ -130,7 +130,7 @@ export default class deribit extends Exchange {
                 },
                 'www': 'https://www.deribit.com',
                 'doc': [
-                    'https://docs.deribit.com/v2',
+                    'https://docs.deribit.com',
                     'https://github.com/deribit',
                 ],
                 'fees': 'https://www.deribit.com/pages/information/fees',
@@ -525,50 +525,50 @@ export default class deribit extends Exchange {
     createExpiredOptionMarket(symbol) {
         // support expired option contracts
         let quote = 'USD';
-        let settle = undefined;
+        let settle = '';
         const optionParts = symbol.split('-');
         const symbolBase = symbol.split('/');
+        const hasSlash = symbol.indexOf('/') > -1;
+        const hasUsdc = symbol.indexOf('USDC') > -1;
         let base = undefined;
         let expiry = undefined;
-        if (symbol.indexOf('/') > -1) {
-            base = this.safeString(symbolBase, 0);
+        if (hasSlash) {
+            base = this.safeString(symbolBase, 0, '');
             expiry = this.safeString(optionParts, 1);
-            if (symbol.indexOf('USDC') > -1) {
-                base = base + '_USDC';
-            }
         }
         else {
-            base = this.safeString(optionParts, 0);
+            base = this.safeString(optionParts, 0, '');
             expiry = this.convertMarketIdExpireDate(this.safeString(optionParts, 1));
         }
-        if (symbol.indexOf('USDC') > -1) {
+        if (base === undefined) {
+            throw new ExchangeError(this.id + ' createExpiredOptionMarket() missing base');
+        }
+        // the slash form of a usdc instrument carries its settlement currency in the base
+        let baseSuffix = '';
+        if (hasSlash && hasUsdc) {
+            baseSuffix = '_USDC';
+        }
+        const baseResolved = base + baseSuffix;
+        if (hasUsdc) {
             quote = 'USDC';
             settle = 'USDC';
         }
         else {
-            settle = base;
+            // no usdc suffix on this path, so the resolved base is the settle currency
+            settle = baseResolved;
         }
-        let splitBase = base;
-        if (base === undefined) {
-            throw new ExchangeError(this.id + ' createExpiredOptionMarket() missing base');
-        }
-        if (base.indexOf('_') > -1) {
-            const splitSymbol = base.split('_');
-            splitBase = this.safeString(splitSymbol, 0);
-        }
-        const strike = this.safeString(optionParts, 2);
-        const optionType = this.safeString(optionParts, 3);
+        // the part of the base before the first underscore, or the whole base when it has none
+        const splitBase = this.safeString(baseResolved.split('_'), 0, '');
+        const strike = this.safeString(optionParts, 2, '');
+        const optionType = this.safeString(optionParts, 3, '');
         const datetime = this.convertExpireDate(expiry);
-        const timestamp = this.parse8601(datetime);
-        const id = base + '-' + this.convertExpireDateToMarketIdDate(expiry) + '-' + strike + '-' + optionType;
-        const symbolExpired = splitBase + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType;
         return {
-            'id': id,
-            'symbol': symbolExpired,
-            'base': base,
+            'id': baseResolved + '-' + this.convertExpireDateToMarketIdDate(expiry) + ('-' + strike + '-' + optionType),
+            'symbol': splitBase + '/' + quote + ':' + settle + '-' + expiry + ('-' + strike + '-' + optionType),
+            'base': baseResolved,
             'quote': quote,
             'settle': settle,
-            'baseId': base,
+            'baseId': baseResolved,
             'quoteId': quote,
             'settleId': settle,
             'active': false,
@@ -582,7 +582,7 @@ export default class deribit extends Exchange {
             'margin': false,
             'contract': true,
             'contractSize': undefined,
-            'expiry': timestamp,
+            'expiry': this.parse8601(datetime),
             'expiryDatetime': datetime,
             'optionType': (optionType === 'C') ? 'call' : 'put',
             'strike': this.parseNumber(strike),
@@ -619,7 +619,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://docs.deribit.com/#public-get_time
+     * @see https://docs.deribit.com/api-reference/supporting/public-get_time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -641,7 +641,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://docs.deribit.com/#public-get_currencies
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -715,7 +715,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://docs.deribit.com/#public-status
+     * @see https://docs.deribit.com/api-reference/supporting/public-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
@@ -748,7 +748,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchAccounts
      * @description fetch all the accounts associated with a profile
-     * @see https://docs.deribit.com/#private-get_subaccounts
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_subaccounts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
@@ -820,8 +820,8 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchMarkets
      * @description retrieves data on all markets for deribit
-     * @see https://docs.deribit.com/#public-get_currencies
-     * @see https://docs.deribit.com/#public-get_instruments
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_instruments
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -1099,8 +1099,8 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.deribit.com/#private-get_account_summary
-     * @see https://docs.deribit.com/#private-get_account_summaries
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summary
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summaries
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.code] unified currency code of the currency for the balance, if defined 'privateGetGetAccountSummary' will be used, otherwise 'privateGetGetAccountSummaries' will be used
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -1171,7 +1171,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#createDepositAddress
      * @description create a currency deposit address
-     * @see https://docs.deribit.com/#private-create_deposit_address
+     * @see https://docs.deribit.com/api-reference/wallet/private-create_deposit_address
      * @param {string} code unified currency code of the currency for the deposit address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -1212,7 +1212,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
-     * @see https://docs.deribit.com/#private-get_current_deposit_address
+     * @see https://docs.deribit.com/api-reference/wallet/private-get_current_deposit_address
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -1335,7 +1335,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.deribit.com/#public-ticker
+     * @see https://docs.deribit.com/api-reference/market-data/public-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1384,7 +1384,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://docs.deribit.com/#public-get_book_summary_by_currency
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.code] *required* the currency code to fetch the tickers for, eg. 'BTC', 'ETH'
@@ -1403,7 +1403,7 @@ export default class deribit extends Exchange {
                 const market = this.market(symbolsNormalized[i]);
                 const marketBase = this.safeString(market, 'base');
                 if (code !== undefined && code !== marketBase) {
-                    throw new BadRequest(this.id + ' fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency');
+                    throw new BadRequest(this.id + ' fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency');
                 }
                 if (code === undefined) {
                     code = this.safeString(market, 'base');
@@ -1419,18 +1419,14 @@ export default class deribit extends Exchange {
             'currency': currency['id'],
         };
         if (type !== undefined) {
-            let requestType = undefined;
             if (type === 'spot') {
-                requestType = 'spot';
+                request['kind'] = 'spot';
             }
             else if (type === 'future' || (type === 'contract')) {
-                requestType = 'future';
+                request['kind'] = 'future';
             }
             else if (type === 'option') {
-                requestType = 'option';
-            }
-            if (requestType !== undefined) {
-                request['kind'] = requestType;
+                request['kind'] = 'option';
             }
         }
         const response = await this.publicGetGetBookSummaryByCurrency(this.extend(request, paramsOmitted));
@@ -1479,7 +1475,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.deribit.com/#public-get_tradingview_chart_data
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_tradingview_chart_data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1605,7 +1601,7 @@ export default class deribit extends Exchange {
         // For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         const amount = this.safeString(trade, 'amount');
         let cost = Precise.stringMul(amount, priceString);
-        if (marketResolved['inverse'] === true) {
+        if (this.safeBool(marketResolved, 'inverse', false)) {
             cost = Precise.stringDiv(amount, priceString);
         }
         const liquidity = this.safeString(trade, 'liquidity');
@@ -1643,8 +1639,8 @@ export default class deribit extends Exchange {
     /**
      * @method
      * @name deribit#fetchTrades
-     * @see https://docs.deribit.com/#public-get_last_trades_by_instrument
-     * @see https://docs.deribit.com/#public-get_last_trades_by_instrument_and_time
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_last_trades_by_instrument
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_last_trades_by_instrument_and_time
      * @description get the list of most recent trades for a particular symbol.
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -1713,7 +1709,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchTradingFees
      * @description fetch the trading fees for multiple markets
-     * @see https://docs.deribit.com/#private-get_account_summary
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summary
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
@@ -1820,13 +1816,13 @@ export default class deribit extends Exchange {
                 'maker': market['maker'],
                 'taker': market['taker'],
             };
-            if (market['swap'] === true) {
+            if (this.safeBool(market, 'swap', false)) {
                 fee = this.extend(fee, perpetualFee);
             }
-            else if (market['future'] === true) {
+            else if (this.safeBool(market, 'future', false)) {
                 fee = this.extend(fee, futureFee);
             }
-            else if (market['option'] === true) {
+            else if (this.safeBool(market, 'option', false)) {
                 fee = this.extend(fee, optionFee);
             }
             parsedFees[symbol] = fee;
@@ -1837,7 +1833,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.deribit.com/#public-get_order_book
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_order_book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2028,7 +2024,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://docs.deribit.com/#private-get_order_state
+     * @see https://docs.deribit.com/api-reference/trading/private-get_order_state
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2081,8 +2077,8 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#createOrder
      * @description create a trade order
-     * @see https://docs.deribit.com/#private-buy
-     * @see https://docs.deribit.com/#private-sell
+     * @see https://docs.deribit.com/api-reference/trading/private-buy
+     * @see https://docs.deribit.com/api-reference/trading/private-sell
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -2134,7 +2130,7 @@ export default class deribit extends Exchange {
         const isStopOrder = isStopLossOrder || isTakeProfitOrder;
         const isLimitOrder = (type === 'limit') || isStopLimit || isTakeLimit;
         const isMarketOrder = (type === 'market') || isStopMarket || isTakeMarket;
-        const exchangeSpecificPostOnly = this.safeValue(params, 'post_only');
+        const exchangeSpecificPostOnly = this.safeBool(params, 'post_only');
         const postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificPostOnly, params);
         if (isLimitOrder) {
             request['type'] = 'limit';
@@ -2252,16 +2248,14 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeDict(response, 'result', {});
-        const order = this.safeValue(result, 'order');
-        const trades = this.safeList(result, 'trades', []);
-        order['trades'] = trades;
+        const order = this.extend(this.safeValue(result, 'order'), { 'trades': this.safeList(result, 'trades', []) });
         return this.parseOrder(order, market);
     }
     /**
      * @method
      * @name deribit#editOrder
      * @description edit a trade order
-     * @see https://docs.deribit.com/#private-edit
+     * @see https://docs.deribit.com/api-reference/trading/private-edit
      * @param {string} id edit order id
      * @param {string} [symbol] unified symbol of the market to edit an order in
      * @param {string} [type] 'market' or 'limit'
@@ -2302,16 +2296,14 @@ export default class deribit extends Exchange {
         }
         const response = await this.privateGetEdit(this.extend(request, paramsOmitted));
         const result = this.safeDict(response, 'result', {});
-        const order = this.safeValue(result, 'order');
-        const trades = this.safeList(result, 'trades', []);
-        order['trades'] = trades;
+        const order = this.extend(this.safeValue(result, 'order'), { 'trades': this.safeList(result, 'trades', []) });
         return this.parseOrder(order);
     }
     /**
      * @method
      * @name deribit#cancelOrder
      * @description cancels an open order
-     * @see https://docs.deribit.com/#private-cancel
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel
      * @param {string} id order id
      * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2332,8 +2324,8 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#cancelAllOrders
      * @description cancel all open orders
-     * @see https://docs.deribit.com/#private-cancel_all
-     * @see https://docs.deribit.com/#private-cancel_all_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel_all
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel_all_by_instrument
      * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2372,8 +2364,8 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://docs.deribit.com/#private-get_open_orders_by_currency
-     * @see https://docs.deribit.com/#private-get_open_orders_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_currency
+     * @see https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_instrument
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -2405,8 +2397,8 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
-     * @see https://docs.deribit.com/#private-get_order_history_by_currency
-     * @see https://docs.deribit.com/#private-get_order_history_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_order_history_by_currency
+     * @see https://docs.deribit.com/api-reference/trading/private-get_order_history_by_instrument
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2444,7 +2436,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://docs.deribit.com/#private-get_user_trades_by_order
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_order
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2500,10 +2492,10 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://docs.deribit.com/#private-get_user_trades_by_currency
-     * @see https://docs.deribit.com/#private-get_user_trades_by_currency_and_time
-     * @see https://docs.deribit.com/#private-get_user_trades_by_instrument
-     * @see https://docs.deribit.com/#private-get_user_trades_by_instrument_and_time
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_currency
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_currency_and_time
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument_and_time
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -2586,7 +2578,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchDeposits
      * @description fetch all deposits made to an account
-     * @see https://docs.deribit.com/#private-get_deposits
+     * @see https://docs.deribit.com/api-reference/wallet/private-get_deposits
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -2636,7 +2628,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://docs.deribit.com/#private-get_withdrawals
+     * @see https://docs.deribit.com/api-reference/wallet/private-get_withdrawals
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -2791,8 +2783,7 @@ export default class deribit extends Exchange {
         //
         const contract = this.safeString(position, 'instrument_name');
         const marketResolved = this.safeMarket(contract, market);
-        let side = this.safeString(position, 'direction');
-        side = (side === 'buy') ? 'long' : 'short';
+        const side = (this.safeString(position, 'direction') === 'buy') ? 'long' : 'short';
         const unrealizedPnl = this.safeString(position, 'floating_profit_loss');
         const initialMarginString = this.safeString(position, 'initial_margin');
         const notionalString = this.safeString(position, 'size_currency');
@@ -2833,7 +2824,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchPosition
      * @description fetch data on a single open contract trade position
-     * @see https://docs.deribit.com/#private-get_position
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_position
      * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -2880,7 +2871,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchPositions
      * @description fetch all open positions
-     * @see https://docs.deribit.com/#private-get_positions
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.currency] currency code filter for positions
@@ -2936,7 +2927,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchVolatilityHistory
      * @description fetch the historical volatility of an option market based on an underlying asset
-     * @see https://docs.deribit.com/#public-get_historical_volatility
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_historical_volatility
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
@@ -2999,7 +2990,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchTransfers
      * @description fetch a history of internal transfers made on an account
-     * @see https://docs.deribit.com/#private-get_transfers
+     * @see https://docs.deribit.com/api-reference/wallet/private-get_transfers
      * @param {string} code unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of  transfers structures to retrieve
@@ -3062,8 +3053,8 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://docs.deribit.com/#private-submit_transfer_to_user
-     * @see https://docs.deribit.com/#private-submit_transfer_to_subaccount
+     * @see https://docs.deribit.com/api-reference/wallet/private-submit_transfer_to_user
+     * @see https://docs.deribit.com/api-reference/wallet/private-submit_transfer_to_subaccount
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
@@ -3158,7 +3149,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#withdraw
      * @description make a withdrawal
-     * @see https://docs.deribit.com/#private-withdraw
+     * @see https://docs.deribit.com/api-reference/wallet/private-withdraw
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
@@ -3216,7 +3207,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchDepositWithdrawFees
      * @description fetch deposit and withdraw fees
-     * @see https://docs.deribit.com/#public-get_currencies
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
      * @param {string[]|undefined} codes list of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -3255,7 +3246,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchFundingRate
      * @description fetch the current funding rate
-     * @see https://docs.deribit.com/#public-get_funding_rate_value
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_funding_rate_value
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.start_timestamp] fetch funding rate starting from this timestamp
@@ -3290,7 +3281,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchFundingRateHistory
      * @description fetch the current funding rate
-     * @see https://docs.deribit.com/#public-get_funding_rate_history
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_funding_rate_history
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch funding rate history for
      * @param {int} [limit] the maximum number of entries to retrieve
@@ -3317,16 +3308,22 @@ export default class deribit extends Exchange {
         const month = 30 * 24 * 60 * 60 * 1000;
         const defaultSince = now - month;
         const sinceResolved = (since === undefined) ? defaultSince : since;
-        const time = (since === undefined) ? now : since + month;
+        let time = now;
+        if (since !== undefined) {
+            time = this.parseToInt(since + month);
+        }
         const request = {
             'instrument_name': market['id'],
             'start_timestamp': sinceResolved - 1,
         };
         const until = this.safeInteger2(paramsPaginate, 'until', 'end_timestamp');
         const paramsUntil = (until !== undefined) ? this.omit(paramsPaginate, ['until']) : paramsPaginate;
-        const endTimestamp = (until !== undefined) ? until : time;
+        let endTimestamp = time;
+        if (until !== undefined) {
+            endTimestamp = this.parseToInt(until);
+        }
         request['end_timestamp'] = endTimestamp;
-        const isPaginationCall = ('isDeribitPaginationCall' in paramsUntil);
+        const isPaginationCall = this.safeBool(paramsUntil, 'isDeribitPaginationCall', false);
         let paramsOmitted = paramsUntil;
         if (isPaginationCall) {
             paramsOmitted = this.omit(paramsUntil, 'isDeribitPaginationCall');
@@ -3410,7 +3407,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchLiquidations
      * @description retrieves the public liquidations of a trading pair
-     * @see https://docs.deribit.com/#public-get_last_settlements_by_currency
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_last_settlements_by_currency
      * @param {string} symbol unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -3427,8 +3424,8 @@ export default class deribit extends Exchange {
             return await this.fetchPaginatedCallCursor('fetchLiquidations', symbol, since, limit, paramsPaginate, 'continuation', 'continuation', undefined);
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
-            throw new NotSupported(this.id + ' fetchLiquidations() does not support ' + market['type'] + ' markets');
+        if (this.safeBool(market, 'spot', false)) {
+            throw new NotSupported(this.id + ' fetchLiquidations() does not support ' + this.safeString(market, 'type', '') + ' markets');
         }
         const request = {
             'instrument_name': market['id'],
@@ -3475,8 +3472,8 @@ export default class deribit extends Exchange {
         if (cursor !== undefined) {
             const dataLength = data.length;
             if (dataLength > 0) {
-                const first = data[0];
-                const last = data[dataLength - 1];
+                const first = this.safeDict(data, 0, {});
+                const last = this.safeDict(data, dataLength - 1, {});
                 first['continuation'] = cursor;
                 last['continuation'] = cursor;
                 data[0] = first;
@@ -3489,7 +3486,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchMyLiquidations
      * @description retrieves the users liquidated positions
-     * @see https://docs.deribit.com/#private-get_settlement_history_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_settlement_history_by_instrument
      * @param {string} symbol unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -3504,8 +3501,8 @@ export default class deribit extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
-            throw new NotSupported(this.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' markets');
+        if (this.safeBool(market, 'spot', false)) {
+            throw new NotSupported(this.id + ' fetchMyLiquidations() does not support ' + this.safeString(market, 'type', '') + ' markets');
         }
         const request = {
             'instrument_name': market['id'],
@@ -3576,7 +3573,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchGreeks
      * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
-     * @see https://docs.deribit.com/#public-ticker
+     * @see https://docs.deribit.com/api-reference/market-data/public-ticker
      * @param {string} symbol unified symbol of the market to fetch greeks for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
@@ -3709,7 +3706,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchOption
      * @description fetches option data that is commonly found in an option chain
-     * @see https://docs.deribit.com/#public-get_book_summary_by_instrument
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_instrument
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
@@ -3763,7 +3760,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchOptionChain
      * @description fetches data for an underlying asset that is commonly found in an option chain
-     * @see https://docs.deribit.com/#public-get_book_summary_by_currency
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency
      * @param {string} code base currency to fetch an option chain for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
@@ -3866,7 +3863,7 @@ export default class deribit extends Exchange {
      * @method
      * @name deribit#fetchOpenInterest
      * @description Retrieves the open interest of a symbol
-     * @see https://docs.deribit.com/?shell#public-get_book_summary_by_instrument
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_instrument
      * @param {string} symbol unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
@@ -3876,7 +3873,7 @@ export default class deribit extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request = {
@@ -3949,7 +3946,7 @@ export default class deribit extends Exchange {
         const openInterest = this.safeNumber(interest, 'open_interest');
         let openInterestAmount = undefined;
         let openInterestValue = undefined;
-        if ((marketResolved['option'] === true) || ((marketResolved['future'] === true) && (marketResolved['linear'] === true))) {
+        if ((this.safeBool(marketResolved, 'option', false)) || ((this.safeBool(marketResolved, 'future', false)) && (this.safeBool(marketResolved, 'linear', false)))) {
             openInterestAmount = openInterest;
         }
         else {
@@ -4003,7 +4000,7 @@ export default class deribit extends Exchange {
         const url = apiUrl + request;
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }

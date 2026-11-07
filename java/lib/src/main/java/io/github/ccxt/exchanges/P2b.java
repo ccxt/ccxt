@@ -33,7 +33,7 @@ public class P2b extends P2bApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "p2b" );
@@ -243,8 +243,12 @@ public class P2b extends P2bApi
                 put( "trading", new HashMap<String, Object>() {{
                     put( "tierBased", true );
                     put( "percentage", true );
-                    put( "taker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("0"), P2b.this.parseNumber("0.2"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("1"), P2b.this.parseNumber("0.19"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("5"), P2b.this.parseNumber("0.18"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("10"), P2b.this.parseNumber("0.17"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("25"), P2b.this.parseNumber("0.16"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("75"), P2b.this.parseNumber("0.15"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("100"), P2b.this.parseNumber("0.14"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("150"), P2b.this.parseNumber("0.13"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("300"), P2b.this.parseNumber("0.12"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("450"), P2b.this.parseNumber("0.11"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("500"), P2b.this.parseNumber("0.1"))))) );
-                    put( "maker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("0"), P2b.this.parseNumber("0.2"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("1"), P2b.this.parseNumber("0.18"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("5"), P2b.this.parseNumber("0.16"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("10"), P2b.this.parseNumber("0.14"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("25"), P2b.this.parseNumber("0.12"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("75"), P2b.this.parseNumber("0.1"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("100"), P2b.this.parseNumber("0.08"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("150"), P2b.this.parseNumber("0.06"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("300"), P2b.this.parseNumber("0.04"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("450"), P2b.this.parseNumber("0.02"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("500"), P2b.this.parseNumber("0.01"))))) );
+                    put( "taker", P2b.this.parseNumber("0.002") );
+                    put( "maker", P2b.this.parseNumber("0.002") );
+                    put( "tiers", new HashMap<String, Object>() {{
+                        put( "taker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("0"), P2b.this.parseNumber("0.002"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("1"), P2b.this.parseNumber("0.0019"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("5"), P2b.this.parseNumber("0.0018"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("10"), P2b.this.parseNumber("0.0017"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("25"), P2b.this.parseNumber("0.0016"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("75"), P2b.this.parseNumber("0.0015"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("100"), P2b.this.parseNumber("0.0014"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("150"), P2b.this.parseNumber("0.0013"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("300"), P2b.this.parseNumber("0.0012"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("450"), P2b.this.parseNumber("0.0011"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("500"), P2b.this.parseNumber("0.001"))))) );
+                        put( "maker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("0"), P2b.this.parseNumber("0.002"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("1"), P2b.this.parseNumber("0.0018"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("5"), P2b.this.parseNumber("0.0016"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("10"), P2b.this.parseNumber("0.0014"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("25"), P2b.this.parseNumber("0.0012"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("75"), P2b.this.parseNumber("0.001"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("100"), P2b.this.parseNumber("0.0008"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("150"), P2b.this.parseNumber("0.0006"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("300"), P2b.this.parseNumber("0.0004"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("450"), P2b.this.parseNumber("0.0002"))), new ArrayList<Object>(Arrays.asList(P2b.this.parseNumber("500"), P2b.this.parseNumber("0.0001"))))) );
+                    }} );
                 }} );
             }} );
             put( "features", new HashMap<String, Object>() {{
@@ -610,34 +614,30 @@ public class P2b extends P2bApi
         //    }
         //
         Long timestamp = this.safeIntegerProduct(ticker, "at", 1000);
-        Object tickerInner = ticker;
-        if ((switch ((Object)(ticker)) { case List<?> j39v2 -> j39v2.contains("ticker"); case Map<?, ?> j39v1 -> j39v1.containsKey("ticker"); case null, default -> false; }))
-        {
-            tickerInner = this.safeDict(ticker, "ticker", (Object) null);
-        }
+        Object tickerInner = this.safeDict(ticker, "ticker", ticker);
         String last = this.safeString(tickerInner, "last");
-        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
-        mapLiteral2.put("symbol", this.safeString(market, "symbol"));
-        mapLiteral2.put("timestamp", timestamp);
-        mapLiteral2.put("datetime", this.iso8601(timestamp));
-        mapLiteral2.put("high", this.safeString(tickerInner, "high"));
-        mapLiteral2.put("low", this.safeString(tickerInner, "low"));
-        mapLiteral2.put("bid", this.safeString(tickerInner, "bid"));
-        mapLiteral2.put("bidVolume", null);
-        mapLiteral2.put("ask", this.safeString(tickerInner, "ask"));
-        mapLiteral2.put("askVolume", null);
-        mapLiteral2.put("vwap", null);
-        mapLiteral2.put("open", this.safeString(tickerInner, "open"));
-        mapLiteral2.put("close", last);
-        mapLiteral2.put("last", last);
-        mapLiteral2.put("previousClose", null);
-        mapLiteral2.put("change", null);
-        mapLiteral2.put("percentage", this.safeString(tickerInner, "change"));
-        mapLiteral2.put("average", null);
-        mapLiteral2.put("baseVolume", this.safeString2(tickerInner, "vol", "volume"));
-        mapLiteral2.put("quoteVolume", this.safeString(tickerInner, "deal"));
-        mapLiteral2.put("info", tickerInner);
-        return this.safeTicker(mapLiteral2, market);
+        return this.safeTicker(new HashMap<String, Object>() {{
+            put( "symbol", P2b.this.safeString(market, "symbol") );
+            put( "timestamp", timestamp );
+            put( "datetime", P2b.this.iso8601(timestamp) );
+            put( "high", P2b.this.safeString(tickerInner, "high") );
+            put( "low", P2b.this.safeString(tickerInner, "low") );
+            put( "bid", P2b.this.safeString(tickerInner, "bid") );
+            put( "bidVolume", null );
+            put( "ask", P2b.this.safeString(tickerInner, "ask") );
+            put( "askVolume", null );
+            put( "vwap", null );
+            put( "open", P2b.this.safeString(tickerInner, "open") );
+            put( "close", last );
+            put( "last", last );
+            put( "previousClose", null );
+            put( "change", null );
+            put( "percentage", P2b.this.safeString(tickerInner, "change") );
+            put( "average", null );
+            put( "baseVolume", P2b.this.safeString2(tickerInner, "vol", "volume") );
+            put( "quoteVolume", P2b.this.safeString(tickerInner, "deal") );
+            put( "info", tickerInner );
+        }}, market);
     }
 
     /**
@@ -805,7 +805,7 @@ public class P2b extends P2bApi
         //        "deal": "10.9740544"          // Total (price * amount)
         //    }
         //
-        Long timestamp = (Long) this.safeIntegerProduct2(trade, "time", "deal_time", 1000);
+        Long timestamp = this.safeIntegerProduct2(trade, "time", "deal_time", 1000);
         String takerOrMaker = this.safeString(trade, "role");
         if (java.util.Objects.equals(takerOrMaker, "1"))
         {
@@ -814,24 +814,24 @@ public class P2b extends P2bApi
         {
             takerOrMaker = "taker";
         }
-        HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("info", trade);
-        mapLiteral3.put("id", this.safeString2(trade, "id", "deal_id"));
-        mapLiteral3.put("timestamp", timestamp);
-        mapLiteral3.put("datetime", this.iso8601(timestamp));
-        mapLiteral3.put("symbol", this.safeString(market, "symbol"));
-        mapLiteral3.put("order", this.safeString2(trade, "dealOrderId", "deal_order_id"));
-        mapLiteral3.put("type", null);
-        mapLiteral3.put("side", this.safeString2(trade, "type", "side"));
-        mapLiteral3.put("takerOrMaker", takerOrMaker);
-        mapLiteral3.put("price", this.safeString(trade, "price"));
-        mapLiteral3.put("amount", this.safeString(trade, "amount"));
-        mapLiteral3.put("cost", this.safeString(trade, "deal"));
-        mapLiteral3.put("fee", new HashMap<String, Object>() {{
+        HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
+        mapLiteral2.put("info", trade);
+        mapLiteral2.put("id", this.safeString2(trade, "id", "deal_id"));
+        mapLiteral2.put("timestamp", timestamp);
+        mapLiteral2.put("datetime", this.iso8601(timestamp));
+        mapLiteral2.put("symbol", this.safeString(market, "symbol"));
+        mapLiteral2.put("order", this.safeString2(trade, "dealOrderId", "deal_order_id"));
+        mapLiteral2.put("type", null);
+        mapLiteral2.put("side", this.safeString2(trade, "type", "side"));
+        mapLiteral2.put("takerOrMaker", takerOrMaker);
+        mapLiteral2.put("price", this.safeString(trade, "price"));
+        mapLiteral2.put("amount", this.safeString(trade, "amount"));
+        mapLiteral2.put("cost", this.safeString(trade, "deal"));
+        mapLiteral2.put("fee", new HashMap<String, Object>() {{
                 put( "currency", P2b.this.safeString(market, "quote") );
                 put( "cost", P2b.this.safeString2(trade, "fee", "deal_fee") );
             }});
-        return this.safeTrade(mapLiteral3, market);
+        return this.safeTrade(mapLiteral2, market);
     }
 
     /**
@@ -952,7 +952,7 @@ public class P2b extends P2bApi
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         //
         //    {
@@ -969,12 +969,12 @@ public class P2b extends P2bApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        List<Object> keys = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<String> keys = new ArrayList<String>(response.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object currencyId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String currencyId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, currencyId, (Object) null);
-            String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
+            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             String used = this.safeString(balance, "freeze");
             String available = this.safeString(balance, "available");
             Map<String, Object> account = new HashMap<String, Object>() {{
@@ -1265,35 +1265,35 @@ public class P2b extends P2bApi
             }
             Long untilParam = this.safeInteger(parameters, "until");
             Map<String, Object> paramsOmitted = this.omit(parameters, "until");
-            Object until = null;
-            Long sinceResolved = 0L;
+            Long until = this.parseToInt(0);
+            Long sinceResolved = this.parseToInt(0);
             if (!java.util.Objects.equals(untilParam, null))
             {
-                until = untilParam;
+                until = this.parseToInt(untilParam);
                 if (!java.util.Objects.equals(since, null))
                 {
                     if (((untilParam - since)) > 86400000)
                     {
                         throw new BadRequest((this.id + " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
                     }
-                    sinceResolved = since;
+                    sinceResolved = this.parseToInt(since);
                 } else
                 {
-                    sinceResolved = (untilParam - 86400000L);
+                    sinceResolved = this.parseToInt((untilParam - 86400000L));
                 }
             } else if (!java.util.Objects.equals(since, null))
             {
-                until = (since + 86400000L);
-                sinceResolved = since;
+                until = this.parseToInt((since + 86400000L));
+                sinceResolved = this.parseToInt(since);
             } else
             {
                 Long now = this.milliseconds();
-                until = now;
-                sinceResolved = (now - 86400000L);
+                until = this.parseToInt(now);
+                sinceResolved = this.parseToInt((now - 86400000L));
             }
             Map<String, Object> market = this.market(symbol);
             Long sinceSec = this.parseToInt((((double) sinceResolved) / ((double) 1000)));
-            Long untilSec = this.parseToInt((until == null ? null : ((Number) until).doubleValue() / ((double) 1000)));
+            Long untilSec = this.parseToInt((((double) until) / ((double) 1000)));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", market.get("id") );
                 put( "startTime", sinceSec );
@@ -1368,34 +1368,34 @@ public class P2b extends P2bApi
             {
                 market = this.market(symbol);
             }
-            Object until = null;
-            Long sinceResolved = 0L;
+            Long until = this.parseToInt(0);
+            Long sinceResolved = this.parseToInt(0);
             if (!java.util.Objects.equals(untilParam, null))
             {
-                until = untilParam;
+                until = this.parseToInt(untilParam);
                 if (!java.util.Objects.equals(since, null))
                 {
                     if (((untilParam - since)) > 86400000)
                     {
                         throw new BadRequest((this.id + " fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
                     }
-                    sinceResolved = since;
+                    sinceResolved = this.parseToInt(since);
                 } else
                 {
-                    sinceResolved = (untilParam - 86400000L);
+                    sinceResolved = this.parseToInt((untilParam - 86400000L));
                 }
             } else if (!java.util.Objects.equals(since, null))
             {
-                until = (since + 86400000L);
-                sinceResolved = since;
+                until = this.parseToInt((since + 86400000L));
+                sinceResolved = this.parseToInt(since);
             } else
             {
                 Long now = this.milliseconds();
-                until = now;
-                sinceResolved = (now - 86400000L);
+                until = this.parseToInt(now);
+                sinceResolved = this.parseToInt((now - 86400000L));
             }
             Long sinceSec = this.parseToInt((((double) sinceResolved) / ((double) 1000)));
-            Long untilSec = this.parseToInt((until == null ? null : ((Number) until).doubleValue() / ((double) 1000)));
+            Long untilSec = this.parseToInt((((double) until) / ((double) 1000)));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "startTime", sinceSec );
                 put( "endTime", untilSec );
@@ -1489,7 +1489,7 @@ public class P2b extends P2bApi
         //        "dealMoney": "10.9740544"     // Filled total
         //    }
         //
-        Long timestamp = (Long) this.safeIntegerProduct2(order, "timestamp", "ctime", 1000);
+        Long timestamp = this.safeIntegerProduct2(order, "timestamp", "ctime", 1000);
         String marketId = this.safeString(order, "market");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         return this.safeOrder(new HashMap<String, Object>() {{
@@ -1522,7 +1522,7 @@ public class P2b extends P2bApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
@@ -1540,10 +1540,12 @@ public class P2b extends P2bApi
         }
         if (java.util.Objects.equals(apiName, "private"))
         {
-            ((Map<String, Object>)paramsOmitted).put("request", ("/api/v2/" + path));
             // p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
             // the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
-            ((Map<String, Object>)paramsOmitted).put("nonce", String.valueOf(this.incrementingNonce()));
+            paramsOmitted = this.extend(paramsOmitted, new HashMap<String, Object>() {{
+                put( "request", ("/api/v2/" + path) );
+                put( "nonce", String.valueOf(P2b.this.incrementingNonce()) );
+            }});
             String payload = this.stringToBase64(this.json(paramsOmitted)); // Body json encoded in base64
             Map<String, Object> headersSigned = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
@@ -1571,7 +1573,7 @@ public class P2b extends P2bApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -1587,7 +1589,7 @@ public class P2b extends P2bApi
         {
             String errorCode = this.safeString(response, "errorCode");
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
             String codeAsString = String.valueOf(code);
             Long statusCode = this.parseToInt(code);
             if ((((statusCode == null || statusCode < 400))) || !(((Map<?, ?>)this.httpExceptions).containsKey(codeAsString)))

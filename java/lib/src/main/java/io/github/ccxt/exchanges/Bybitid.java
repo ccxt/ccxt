@@ -10,6 +10,7 @@ import io.github.ccxt.BaseExchange;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 
 public class Bybitid extends BybitidApi
 {
@@ -21,7 +22,7 @@ public class Bybitid extends BybitidApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         // Bybit Indonesia serves the same v5 API as the global exchange, with the
         // same product categories (spot, linear, inverse, option) but its own

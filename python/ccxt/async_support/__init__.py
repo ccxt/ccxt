@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.89'
+__version__ = '4.5.92'
 
 # -----------------------------------------------------------------------------
 
@@ -99,7 +99,6 @@ from ccxt.async_support.bullish import bullish                                  
 from ccxt.async_support.bybit import bybit                                      # noqa: F401
 from ccxt.async_support.bybiteu import bybiteu                                  # noqa: F401
 from ccxt.async_support.bybitid import bybitid                                  # noqa: F401
-from ccxt.async_support.bydfi import bydfi                                      # noqa: F401
 from ccxt.async_support.cex import cex                                          # noqa: F401
 from ccxt.async_support.coinbase import coinbase                                # noqa: F401
 from ccxt.async_support.coinbaseexchange import coinbaseexchange                # noqa: F401
@@ -205,7 +204,6 @@ exchanges = [
     'bybit',
     'bybiteu',
     'bybitid',
-    'bydfi',
     'cex',
     'coinbase',
     'coinbaseexchange',

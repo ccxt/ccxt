@@ -48,8 +48,8 @@ func (this *Htx) V2PrivateGetReferenceTransactFeeRate(args ...any) <-chan Endpoi
 }
 
 // V2PrivateGetAccountAssetValuation returns a channel that yields a JSON object.
-func (this *Htx) V2PrivateGetAccountAssetValuation(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("v2PrivateGetAccountAssetValuation", args...)
+func (this *Htx) V2PrivateGetAccountAssetValuation(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v2PrivateGetAccountAssetValuation", args...))
 }
 
 // V2PrivateGetPointAccount returns a channel that yields a JSON object.
@@ -298,13 +298,13 @@ func (this *Htx) PublicGetSettingsCurrencys(args ...any) <-chan EndpointResult[m
 }
 
 // PrivateGetAccountAccounts returns a channel that yields a JSON object.
-func (this *Htx) PrivateGetAccountAccounts(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateGetAccountAccounts", args...)
+func (this *Htx) PrivateGetAccountAccounts(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetAccountAccounts", args...))
 }
 
 // PrivateGetAccountAccountsIdBalance returns a channel that yields a JSON object.
-func (this *Htx) PrivateGetAccountAccountsIdBalance(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateGetAccountAccountsIdBalance", args...)
+func (this *Htx) PrivateGetAccountAccountsIdBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetAccountAccountsIdBalance", args...))
 }
 
 // PrivateGetAccountAccountsSubUid returns a channel that yields a JSON object.
@@ -333,28 +333,28 @@ func (this *Htx) PrivateGetFeeFeeRateGet(args ...any) <-chan EndpointResult[map[
 }
 
 // PrivateGetOrderOpenOrders returns a channel that yields a JSON object.
-func (this *Htx) PrivateGetOrderOpenOrders(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateGetOrderOpenOrders", args...)
+func (this *Htx) PrivateGetOrderOpenOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetOrderOpenOrders", args...))
 }
 
 // PrivateGetOrderOrders returns a channel that yields a JSON object.
-func (this *Htx) PrivateGetOrderOrders(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateGetOrderOrders", args...)
+func (this *Htx) PrivateGetOrderOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetOrderOrders", args...))
 }
 
 // PrivateGetOrderOrdersId returns a channel that yields a JSON object.
-func (this *Htx) PrivateGetOrderOrdersId(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateGetOrderOrdersId", args...)
+func (this *Htx) PrivateGetOrderOrdersId(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetOrderOrdersId", args...))
 }
 
 // PrivateGetOrderOrdersIdMatchresults returns a channel that yields a JSON object.
-func (this *Htx) PrivateGetOrderOrdersIdMatchresults(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateGetOrderOrdersIdMatchresults", args...)
+func (this *Htx) PrivateGetOrderOrdersIdMatchresults(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetOrderOrdersIdMatchresults", args...))
 }
 
 // PrivateGetOrderOrdersGetClientOrder returns a channel that yields a JSON object.
-func (this *Htx) PrivateGetOrderOrdersGetClientOrder(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateGetOrderOrdersGetClientOrder", args...)
+func (this *Htx) PrivateGetOrderOrdersGetClientOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetOrderOrdersGetClientOrder", args...))
 }
 
 // PrivateGetOrderHistory returns a channel that yields a JSON object.
@@ -373,13 +373,13 @@ func (this *Htx) PrivateGetQueryDepositWithdraw(args ...any) <-chan EndpointResu
 }
 
 // PrivateGetMarginLoanOrders returns a channel that yields a JSON object.
-func (this *Htx) PrivateGetMarginLoanOrders(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateGetMarginLoanOrders", args...)
+func (this *Htx) PrivateGetMarginLoanOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetMarginLoanOrders", args...))
 }
 
 // PrivateGetMarginAccountsBalance returns a channel that yields a JSON object.
-func (this *Htx) PrivateGetMarginAccountsBalance(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateGetMarginAccountsBalance", args...)
+func (this *Htx) PrivateGetMarginAccountsBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetMarginAccountsBalance", args...))
 }
 
 // PrivateGetCrossMarginLoanOrders returns a channel that yields a JSON object.
@@ -428,33 +428,33 @@ func (this *Htx) PrivatePostFuturesTransfer(args ...any) <-chan EndpointResult[m
 }
 
 // PrivatePostOrderBatchOrders returns a channel that yields a JSON object.
-func (this *Htx) PrivatePostOrderBatchOrders(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privatePostOrderBatchOrders", args...)
+func (this *Htx) PrivatePostOrderBatchOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostOrderBatchOrders", args...))
 }
 
 // PrivatePostOrderOrdersPlace returns a channel that yields a JSON object.
-func (this *Htx) PrivatePostOrderOrdersPlace(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privatePostOrderOrdersPlace", args...)
+func (this *Htx) PrivatePostOrderOrdersPlace(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostOrderOrdersPlace", args...))
 }
 
 // PrivatePostOrderOrdersSubmitCancelClientOrder returns a channel that yields a JSON object.
-func (this *Htx) PrivatePostOrderOrdersSubmitCancelClientOrder(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privatePostOrderOrdersSubmitCancelClientOrder", args...)
+func (this *Htx) PrivatePostOrderOrdersSubmitCancelClientOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostOrderOrdersSubmitCancelClientOrder", args...))
 }
 
 // PrivatePostOrderOrdersBatchCancelOpenOrders returns a channel that yields a JSON object.
-func (this *Htx) PrivatePostOrderOrdersBatchCancelOpenOrders(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privatePostOrderOrdersBatchCancelOpenOrders", args...)
+func (this *Htx) PrivatePostOrderOrdersBatchCancelOpenOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostOrderOrdersBatchCancelOpenOrders", args...))
 }
 
 // PrivatePostOrderOrdersIdSubmitcancel returns a channel that yields a JSON object.
-func (this *Htx) PrivatePostOrderOrdersIdSubmitcancel(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privatePostOrderOrdersIdSubmitcancel", args...)
+func (this *Htx) PrivatePostOrderOrdersIdSubmitcancel(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostOrderOrdersIdSubmitcancel", args...))
 }
 
 // PrivatePostOrderOrdersBatchcancel returns a channel that yields a JSON object.
-func (this *Htx) PrivatePostOrderOrdersBatchcancel(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privatePostOrderOrdersBatchcancel", args...)
+func (this *Htx) PrivatePostOrderOrdersBatchcancel(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostOrderOrdersBatchcancel", args...))
 }
 
 // PrivatePostDwWithdrawApiCreate returns a channel that yields a JSON object.
@@ -633,13 +633,13 @@ func (this *Htx) SpotPublicGetV2EtpRebalance(args ...any) <-chan EndpointResult[
 }
 
 // SpotPrivateGetV1AccountAccounts returns a channel that yields a JSON object.
-func (this *Htx) SpotPrivateGetV1AccountAccounts(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotPrivateGetV1AccountAccounts", args...)
+func (this *Htx) SpotPrivateGetV1AccountAccounts(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("spotPrivateGetV1AccountAccounts", args...))
 }
 
 // SpotPrivateGetV1AccountAccountsAccountIdBalance returns a channel that yields a JSON object.
-func (this *Htx) SpotPrivateGetV1AccountAccountsAccountIdBalance(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotPrivateGetV1AccountAccountsAccountIdBalance", args...)
+func (this *Htx) SpotPrivateGetV1AccountAccountsAccountIdBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("spotPrivateGetV1AccountAccountsAccountIdBalance", args...))
 }
 
 // SpotPrivateGetV2AccountValuation returns a channel that yields a JSON object.
@@ -648,8 +648,8 @@ func (this *Htx) SpotPrivateGetV2AccountValuation(args ...any) <-chan EndpointRe
 }
 
 // SpotPrivateGetV2AccountAssetValuation returns a channel that yields a JSON object.
-func (this *Htx) SpotPrivateGetV2AccountAssetValuation(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotPrivateGetV2AccountAssetValuation", args...)
+func (this *Htx) SpotPrivateGetV2AccountAssetValuation(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("spotPrivateGetV2AccountAssetValuation", args...))
 }
 
 // SpotPrivateGetV1AccountHistory returns a channel that yields a JSON object.
@@ -743,33 +743,33 @@ func (this *Htx) SpotPrivateGetV1AccountAccountsSubUid(args ...any) <-chan Endpo
 }
 
 // SpotPrivateGetV1OrderOpenOrders returns a channel that yields a JSON object.
-func (this *Htx) SpotPrivateGetV1OrderOpenOrders(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotPrivateGetV1OrderOpenOrders", args...)
+func (this *Htx) SpotPrivateGetV1OrderOpenOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("spotPrivateGetV1OrderOpenOrders", args...))
 }
 
 // SpotPrivateGetV1OrderOrdersOrderId returns a channel that yields a JSON object.
-func (this *Htx) SpotPrivateGetV1OrderOrdersOrderId(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotPrivateGetV1OrderOrdersOrderId", args...)
+func (this *Htx) SpotPrivateGetV1OrderOrdersOrderId(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("spotPrivateGetV1OrderOrdersOrderId", args...))
 }
 
 // SpotPrivateGetV1OrderOrdersGetClientOrder returns a channel that yields a JSON object.
-func (this *Htx) SpotPrivateGetV1OrderOrdersGetClientOrder(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotPrivateGetV1OrderOrdersGetClientOrder", args...)
+func (this *Htx) SpotPrivateGetV1OrderOrdersGetClientOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("spotPrivateGetV1OrderOrdersGetClientOrder", args...))
 }
 
 // SpotPrivateGetV1OrderOrdersOrderIdMatchresult returns a channel that yields a JSON object.
-func (this *Htx) SpotPrivateGetV1OrderOrdersOrderIdMatchresult(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotPrivateGetV1OrderOrdersOrderIdMatchresult", args...)
+func (this *Htx) SpotPrivateGetV1OrderOrdersOrderIdMatchresult(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("spotPrivateGetV1OrderOrdersOrderIdMatchresult", args...))
 }
 
 // SpotPrivateGetV1OrderOrdersOrderIdMatchresults returns a channel that yields a JSON object.
-func (this *Htx) SpotPrivateGetV1OrderOrdersOrderIdMatchresults(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotPrivateGetV1OrderOrdersOrderIdMatchresults", args...)
+func (this *Htx) SpotPrivateGetV1OrderOrdersOrderIdMatchresults(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("spotPrivateGetV1OrderOrdersOrderIdMatchresults", args...))
 }
 
 // SpotPrivateGetV1OrderOrders returns a channel that yields a JSON object.
-func (this *Htx) SpotPrivateGetV1OrderOrders(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotPrivateGetV1OrderOrders", args...)
+func (this *Htx) SpotPrivateGetV1OrderOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("spotPrivateGetV1OrderOrders", args...))
 }
 
 // SpotPrivateGetV1OrderHistory returns a channel that yields a JSON object.
@@ -808,13 +808,13 @@ func (this *Htx) SpotPrivateGetV1MarginLoanInfo(args ...any) <-chan EndpointResu
 }
 
 // SpotPrivateGetV1MarginLoanOrders returns a channel that yields a JSON object.
-func (this *Htx) SpotPrivateGetV1MarginLoanOrders(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotPrivateGetV1MarginLoanOrders", args...)
+func (this *Htx) SpotPrivateGetV1MarginLoanOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("spotPrivateGetV1MarginLoanOrders", args...))
 }
 
 // SpotPrivateGetV1MarginAccountsBalance returns a channel that yields a JSON object.
-func (this *Htx) SpotPrivateGetV1MarginAccountsBalance(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotPrivateGetV1MarginAccountsBalance", args...)
+func (this *Htx) SpotPrivateGetV1MarginAccountsBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("spotPrivateGetV1MarginAccountsBalance", args...))
 }
 
 // SpotPrivateGetV1CrossMarginLoanInfo returns a channel that yields a JSON object.
@@ -973,38 +973,38 @@ func (this *Htx) SpotPrivatePostV1TrustUserActiveCredit(args ...any) <-chan Endp
 }
 
 // SpotPrivatePostV1OrderOrdersPlace returns a channel that yields a JSON object.
-func (this *Htx) SpotPrivatePostV1OrderOrdersPlace(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotPrivatePostV1OrderOrdersPlace", args...)
+func (this *Htx) SpotPrivatePostV1OrderOrdersPlace(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("spotPrivatePostV1OrderOrdersPlace", args...))
 }
 
 // SpotPrivatePostV1OrderBatchOrders returns a channel that yields a JSON object.
-func (this *Htx) SpotPrivatePostV1OrderBatchOrders(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotPrivatePostV1OrderBatchOrders", args...)
+func (this *Htx) SpotPrivatePostV1OrderBatchOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("spotPrivatePostV1OrderBatchOrders", args...))
 }
 
 // SpotPrivatePostV1OrderAutoPlace returns a channel that yields a JSON object.
-func (this *Htx) SpotPrivatePostV1OrderAutoPlace(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotPrivatePostV1OrderAutoPlace", args...)
+func (this *Htx) SpotPrivatePostV1OrderAutoPlace(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("spotPrivatePostV1OrderAutoPlace", args...))
 }
 
 // SpotPrivatePostV1OrderOrdersOrderIdSubmitcancel returns a channel that yields a JSON object.
-func (this *Htx) SpotPrivatePostV1OrderOrdersOrderIdSubmitcancel(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotPrivatePostV1OrderOrdersOrderIdSubmitcancel", args...)
+func (this *Htx) SpotPrivatePostV1OrderOrdersOrderIdSubmitcancel(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("spotPrivatePostV1OrderOrdersOrderIdSubmitcancel", args...))
 }
 
 // SpotPrivatePostV1OrderOrdersSubmitCancelClientOrder returns a channel that yields a JSON object.
-func (this *Htx) SpotPrivatePostV1OrderOrdersSubmitCancelClientOrder(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotPrivatePostV1OrderOrdersSubmitCancelClientOrder", args...)
+func (this *Htx) SpotPrivatePostV1OrderOrdersSubmitCancelClientOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("spotPrivatePostV1OrderOrdersSubmitCancelClientOrder", args...))
 }
 
 // SpotPrivatePostV1OrderOrdersBatchCancelOpenOrders returns a channel that yields a JSON object.
-func (this *Htx) SpotPrivatePostV1OrderOrdersBatchCancelOpenOrders(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotPrivatePostV1OrderOrdersBatchCancelOpenOrders", args...)
+func (this *Htx) SpotPrivatePostV1OrderOrdersBatchCancelOpenOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("spotPrivatePostV1OrderOrdersBatchCancelOpenOrders", args...))
 }
 
 // SpotPrivatePostV1OrderOrdersBatchcancel returns a channel that yields a JSON object.
-func (this *Htx) SpotPrivatePostV1OrderOrdersBatchcancel(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("spotPrivatePostV1OrderOrdersBatchcancel", args...)
+func (this *Htx) SpotPrivatePostV1OrderOrdersBatchcancel(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("spotPrivatePostV1OrderOrdersBatchcancel", args...))
 }
 
 // SpotPrivatePostV2AlgoOrdersCancelAllAfter returns a channel that yields a JSON object.
@@ -1553,48 +1553,48 @@ func (this *Htx) ContractPublicGetLinearSwapApiV1SwapEstimatedSettlementPrice(ar
 }
 
 // ContractPublicGetV5MarketFundingRate returns a channel that yields a JSON object.
-func (this *Htx) ContractPublicGetV5MarketFundingRate(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPublicGetV5MarketFundingRate", args...)
+func (this *Htx) ContractPublicGetV5MarketFundingRate(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPublicGetV5MarketFundingRate", args...))
 }
 
 // ContractPublicGetV5MarketFundingRateHistory returns a channel that yields a JSON object.
-func (this *Htx) ContractPublicGetV5MarketFundingRateHistory(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPublicGetV5MarketFundingRateHistory", args...)
+func (this *Htx) ContractPublicGetV5MarketFundingRateHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPublicGetV5MarketFundingRateHistory", args...))
 }
 
 // ContractPublicGetV5MarketOpenInterest returns a channel that yields a JSON object.
-func (this *Htx) ContractPublicGetV5MarketOpenInterest(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPublicGetV5MarketOpenInterest", args...)
+func (this *Htx) ContractPublicGetV5MarketOpenInterest(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPublicGetV5MarketOpenInterest", args...))
 }
 
 // ContractPublicGetV5MarketLiquidationOrders returns a channel that yields a JSON object.
-func (this *Htx) ContractPublicGetV5MarketLiquidationOrders(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPublicGetV5MarketLiquidationOrders", args...)
+func (this *Htx) ContractPublicGetV5MarketLiquidationOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPublicGetV5MarketLiquidationOrders", args...))
 }
 
 // ContractPublicGetV5MarketSettlementHistory returns a channel that yields a JSON object.
-func (this *Htx) ContractPublicGetV5MarketSettlementHistory(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPublicGetV5MarketSettlementHistory", args...)
+func (this *Htx) ContractPublicGetV5MarketSettlementHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPublicGetV5MarketSettlementHistory", args...))
 }
 
 // ContractPublicGetV5MarketEliteAccountRatio returns a channel that yields a JSON object.
-func (this *Htx) ContractPublicGetV5MarketEliteAccountRatio(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPublicGetV5MarketEliteAccountRatio", args...)
+func (this *Htx) ContractPublicGetV5MarketEliteAccountRatio(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPublicGetV5MarketEliteAccountRatio", args...))
 }
 
 // ContractPublicGetV5MarketElitePositionRatio returns a channel that yields a JSON object.
-func (this *Htx) ContractPublicGetV5MarketElitePositionRatio(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPublicGetV5MarketElitePositionRatio", args...)
+func (this *Htx) ContractPublicGetV5MarketElitePositionRatio(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPublicGetV5MarketElitePositionRatio", args...))
 }
 
 // ContractPublicGetV5MarketEstimatedSettlementPrice returns a channel that yields a JSON object.
-func (this *Htx) ContractPublicGetV5MarketEstimatedSettlementPrice(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPublicGetV5MarketEstimatedSettlementPrice", args...)
+func (this *Htx) ContractPublicGetV5MarketEstimatedSettlementPrice(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPublicGetV5MarketEstimatedSettlementPrice", args...))
 }
 
 // ContractPublicGetV5MarketPriceLimit returns a channel that yields a JSON object.
-func (this *Htx) ContractPublicGetV5MarketPriceLimit(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPublicGetV5MarketPriceLimit", args...)
+func (this *Htx) ContractPublicGetV5MarketPriceLimit(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPublicGetV5MarketPriceLimit", args...))
 }
 
 // ContractPrivateGetApiV1ContractSubAuthList returns a channel that yields a JSON object.
@@ -1618,98 +1618,98 @@ func (this *Htx) ContractPrivateGetSwapApiV1SwapApiTradingStatus(args ...any) <-
 }
 
 // ContractPrivateGetV5AccountAssetMode returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivateGetV5AccountAssetMode(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivateGetV5AccountAssetMode", args...)
+func (this *Htx) ContractPrivateGetV5AccountAssetMode(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivateGetV5AccountAssetMode", args...))
 }
 
 // ContractPrivateGetV5AccountBalance returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivateGetV5AccountBalance(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivateGetV5AccountBalance", args...)
+func (this *Htx) ContractPrivateGetV5AccountBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivateGetV5AccountBalance", args...))
 }
 
 // ContractPrivateGetV5AccountBills returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivateGetV5AccountBills(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivateGetV5AccountBills", args...)
+func (this *Htx) ContractPrivateGetV5AccountBills(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivateGetV5AccountBills", args...))
 }
 
 // ContractPrivateGetV5AccountFeeDeductionCurrency returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivateGetV5AccountFeeDeductionCurrency(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivateGetV5AccountFeeDeductionCurrency", args...)
+func (this *Htx) ContractPrivateGetV5AccountFeeDeductionCurrency(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivateGetV5AccountFeeDeductionCurrency", args...))
 }
 
 // ContractPrivateGetV5TradePositionOpens returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivateGetV5TradePositionOpens(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivateGetV5TradePositionOpens", args...)
+func (this *Htx) ContractPrivateGetV5TradePositionOpens(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivateGetV5TradePositionOpens", args...))
 }
 
 // ContractPrivateGetV5TradeOrderOpens returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivateGetV5TradeOrderOpens(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivateGetV5TradeOrderOpens", args...)
+func (this *Htx) ContractPrivateGetV5TradeOrderOpens(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivateGetV5TradeOrderOpens", args...))
 }
 
 // ContractPrivateGetV5TradeOrderDetails returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivateGetV5TradeOrderDetails(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivateGetV5TradeOrderDetails", args...)
+func (this *Htx) ContractPrivateGetV5TradeOrderDetails(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivateGetV5TradeOrderDetails", args...))
 }
 
 // ContractPrivateGetV5TradeOrderHistory returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivateGetV5TradeOrderHistory(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivateGetV5TradeOrderHistory", args...)
+func (this *Htx) ContractPrivateGetV5TradeOrderHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivateGetV5TradeOrderHistory", args...))
 }
 
 // ContractPrivateGetV5TradeOrder returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivateGetV5TradeOrder(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivateGetV5TradeOrder", args...)
+func (this *Htx) ContractPrivateGetV5TradeOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivateGetV5TradeOrder", args...))
 }
 
 // ContractPrivateGetV5PositionLever returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivateGetV5PositionLever(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivateGetV5PositionLever", args...)
+func (this *Htx) ContractPrivateGetV5PositionLever(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivateGetV5PositionLever", args...))
 }
 
 // ContractPrivateGetV5PositionMode returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivateGetV5PositionMode(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivateGetV5PositionMode", args...)
+func (this *Htx) ContractPrivateGetV5PositionMode(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivateGetV5PositionMode", args...))
 }
 
 // ContractPrivateGetV5PositionRiskLimit returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivateGetV5PositionRiskLimit(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivateGetV5PositionRiskLimit", args...)
+func (this *Htx) ContractPrivateGetV5PositionRiskLimit(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivateGetV5PositionRiskLimit", args...))
 }
 
 // ContractPrivateGetV5PositionRiskLimitTier returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivateGetV5PositionRiskLimitTier(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivateGetV5PositionRiskLimitTier", args...)
+func (this *Htx) ContractPrivateGetV5PositionRiskLimitTier(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivateGetV5PositionRiskLimitTier", args...))
 }
 
 // ContractPrivateGetV5MarketRiskLimit returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivateGetV5MarketRiskLimit(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivateGetV5MarketRiskLimit", args...)
+func (this *Htx) ContractPrivateGetV5MarketRiskLimit(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivateGetV5MarketRiskLimit", args...))
 }
 
 // ContractPrivateGetV5MarketAssetsDeductionCurrency returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivateGetV5MarketAssetsDeductionCurrency(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivateGetV5MarketAssetsDeductionCurrency", args...)
+func (this *Htx) ContractPrivateGetV5MarketAssetsDeductionCurrency(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivateGetV5MarketAssetsDeductionCurrency", args...))
 }
 
 // ContractPrivateGetV5MarketMultiAssetsMargin returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivateGetV5MarketMultiAssetsMargin(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivateGetV5MarketMultiAssetsMargin", args...)
+func (this *Htx) ContractPrivateGetV5MarketMultiAssetsMargin(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivateGetV5MarketMultiAssetsMargin", args...))
 }
 
 // ContractPrivateGetV5AlgoOrderOpens returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivateGetV5AlgoOrderOpens(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivateGetV5AlgoOrderOpens", args...)
+func (this *Htx) ContractPrivateGetV5AlgoOrderOpens(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivateGetV5AlgoOrderOpens", args...))
 }
 
 // ContractPrivateGetV5AlgoOrder returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivateGetV5AlgoOrder(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivateGetV5AlgoOrder", args...)
+func (this *Htx) ContractPrivateGetV5AlgoOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivateGetV5AlgoOrder", args...))
 }
 
 // ContractPrivateGetV5AlgoOrderHistory returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivateGetV5AlgoOrderHistory(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivateGetV5AlgoOrderHistory", args...)
+func (this *Htx) ContractPrivateGetV5AlgoOrderHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivateGetV5AlgoOrderHistory", args...))
 }
 
 // ContractPrivateGetApiV6CopyTradingTraderInstruments returns a channel that yields a JSON object.
@@ -2298,73 +2298,73 @@ func (this *Htx) ContractPrivatePostV5AccountAssetMode(args ...any) <-chan Endpo
 }
 
 // ContractPrivatePostV5TradeOrder returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivatePostV5TradeOrder(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivatePostV5TradeOrder", args...)
+func (this *Htx) ContractPrivatePostV5TradeOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivatePostV5TradeOrder", args...))
 }
 
 // ContractPrivatePostV5TradeBatchOrders returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivatePostV5TradeBatchOrders(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivatePostV5TradeBatchOrders", args...)
+func (this *Htx) ContractPrivatePostV5TradeBatchOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivatePostV5TradeBatchOrders", args...))
 }
 
 // ContractPrivatePostV5TradeCancelOrder returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivatePostV5TradeCancelOrder(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivatePostV5TradeCancelOrder", args...)
+func (this *Htx) ContractPrivatePostV5TradeCancelOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivatePostV5TradeCancelOrder", args...))
 }
 
 // ContractPrivatePostV5TradeCancelBatchOrders returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivatePostV5TradeCancelBatchOrders(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivatePostV5TradeCancelBatchOrders", args...)
+func (this *Htx) ContractPrivatePostV5TradeCancelBatchOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivatePostV5TradeCancelBatchOrders", args...))
 }
 
 // ContractPrivatePostV5TradeCancelAllOrders returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivatePostV5TradeCancelAllOrders(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivatePostV5TradeCancelAllOrders", args...)
+func (this *Htx) ContractPrivatePostV5TradeCancelAllOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivatePostV5TradeCancelAllOrders", args...))
 }
 
 // ContractPrivatePostV5TradeCancelAfter returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivatePostV5TradeCancelAfter(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivatePostV5TradeCancelAfter", args...)
+func (this *Htx) ContractPrivatePostV5TradeCancelAfter(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivatePostV5TradeCancelAfter", args...))
 }
 
 // ContractPrivatePostV5TradePosition returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivatePostV5TradePosition(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivatePostV5TradePosition", args...)
+func (this *Htx) ContractPrivatePostV5TradePosition(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivatePostV5TradePosition", args...))
 }
 
 // ContractPrivatePostV5TradePositionAll returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivatePostV5TradePositionAll(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivatePostV5TradePositionAll", args...)
+func (this *Htx) ContractPrivatePostV5TradePositionAll(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivatePostV5TradePositionAll", args...))
 }
 
 // ContractPrivatePostV5PositionLever returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivatePostV5PositionLever(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivatePostV5PositionLever", args...)
+func (this *Htx) ContractPrivatePostV5PositionLever(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivatePostV5PositionLever", args...))
 }
 
 // ContractPrivatePostV5PositionMode returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivatePostV5PositionMode(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivatePostV5PositionMode", args...)
+func (this *Htx) ContractPrivatePostV5PositionMode(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivatePostV5PositionMode", args...))
 }
 
 // ContractPrivatePostV5PositionMargin returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivatePostV5PositionMargin(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivatePostV5PositionMargin", args...)
+func (this *Htx) ContractPrivatePostV5PositionMargin(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivatePostV5PositionMargin", args...))
 }
 
 // ContractPrivatePostV5AccountFeeDeductionCurrency returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivatePostV5AccountFeeDeductionCurrency(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivatePostV5AccountFeeDeductionCurrency", args...)
+func (this *Htx) ContractPrivatePostV5AccountFeeDeductionCurrency(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivatePostV5AccountFeeDeductionCurrency", args...))
 }
 
 // ContractPrivatePostV5AlgoOrder returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivatePostV5AlgoOrder(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivatePostV5AlgoOrder", args...)
+func (this *Htx) ContractPrivatePostV5AlgoOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivatePostV5AlgoOrder", args...))
 }
 
 // ContractPrivatePostV5AlgoCancelOrders returns a channel that yields a JSON object.
-func (this *Htx) ContractPrivatePostV5AlgoCancelOrders(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("contractPrivatePostV5AlgoCancelOrders", args...)
+func (this *Htx) ContractPrivatePostV5AlgoCancelOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("contractPrivatePostV5AlgoCancelOrders", args...))
 }
 
 // ContractPrivatePostApiV6CopyTradingTraderFollower returns a channel that yields a JSON object.

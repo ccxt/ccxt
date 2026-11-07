@@ -2,7 +2,7 @@ import phemexRest from '../phemex.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class phemex extends phemexRest {
-    describe(): any;
+    describe(): Dict;
     fromEn(en: any, scale: any): Str;
     fromEp(ep: any, market?: Market): Str;
     fromEv(ev: any, market?: Market): Str;

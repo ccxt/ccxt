@@ -3,7 +3,7 @@ import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings, Num, Dict, Lis
 import Client from '../base/ws/Client.js';
 import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 export default class hitbtc extends hitbtcRest {
-    describe(): any;
+    describe(): Dict;
     describeData(): any;
     /**
      * @ignore
@@ -22,6 +22,18 @@ export default class hitbtc extends hitbtcRest {
      * @param {object} [params] extra parameters specific to the hitbtc api
      */
     subscribePublic(name: string, messageHashPrefix: string, symbols?: Strings, params?: Dict): Promise<any>;
+    /**
+     * @ignore
+     * @method
+     * @description unsubscribes from a public websocket channel
+     * @param {string} name websocket endpoint name
+     * @param {string} messageHashPrefix prefix of the message hashes the matching watch method subscribed with
+     * @param {string[]} symbols unified CCXT symbols
+     * @param {object} subscription the topic and symbols of the caches to clean once the unsubscribe is acknowledged
+     * @param {object} [params] extra parameters specific to the hitbtc api
+     * @returns {boolean} true once the exchange acknowledges the unsubscribe
+     */
+    unSubscribePublic(name: string, messageHashPrefix: string, symbols: string[], subscription: Dict, params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method
@@ -57,7 +69,6 @@ export default class hitbtc extends hitbtcRest {
     watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     handleOrderBook(client: Client, message: Dict): void;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any[]): void;
     /**
      * @method
      * @name hitbtc#watchTicker
@@ -116,6 +127,16 @@ export default class hitbtc extends hitbtcRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
+    /**
+     * @method
+     * @name hitbtc#unWatchTrades
+     * @description unWatches the list of most recent trades for a particular symbol
+     * @see https://api.hitbtc.com/#subscribe-to-trades
+     * @param {string} symbol unified symbol of the market to unwatch the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} true once hitbtc acknowledges the unsubscribe
+     */
+    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
     handleTrades(client: Client, message: Dict): Dict;
     parseWsTrades(trades: List, market?: Market, since?: Int, limit?: Int, params?: Dict): Trade[];
     parseWsTrade(trade: Dict, market?: Market): Trade;
@@ -132,6 +153,17 @@ export default class hitbtc extends hitbtcRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
+    /**
+     * @method
+     * @name hitbtc#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api.hitbtc.com/#subscribe-to-candles
+     * @param {string} symbol unified symbol of the market to unwatch the OHLCV data for
+     * @param {string} [timeframe] the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} true once hitbtc acknowledges the unsubscribe
+     */
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
     handleOHLCV(client: Client, message: Dict): Dict;
     parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
@@ -235,6 +267,7 @@ export default class hitbtc extends hitbtcRest {
     handleNotification(client: Client, message: Dict): Dict;
     handleOrderRequest(client: Client, message: Dict): Dict;
     handleMessage(client: Client, message: Dict): void;
+    handleUnSubscription(client: Client, message: Dict): void;
     handleAuthenticate(client: Client, message: Dict): Dict;
     handleError(client: Client, message: Dict): boolean;
 }
