@@ -1516,7 +1516,7 @@ export class BaseExchange {
             return this.markets;
         }
         const [ marketsFromCache, currenciesFromCache ] = this.marketsCacheRead ();
-        if (markets !== undefined) {
+        if (marketsFromCache !== undefined) {
             return this.setMarkets (marketsFromCache, currenciesFromCache);
         }
         let currencies: Currencies | undefined = undefined;
