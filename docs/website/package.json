@@ -36,7 +36,7 @@
     "remark-rehype": "^11.1.2",
     "tailwind-merge": "^3.6.0",
     "unist-util-visit": "^5.1.0",
-    "zod": "^4.4.3"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.0",
