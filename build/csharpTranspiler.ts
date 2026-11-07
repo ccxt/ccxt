@@ -9270,6 +9270,8 @@ function methodNameType (region, name: string, line: number): string | undefined
 // `isTrue((m.ContainsKey("spot") ? m["spot"] : null))` on a market row local: the key holds a bool or
 // nothing on every row writer (MARKET_ROW_BOOL_KEYS), so `(x as bool?) == true` equals isTrue's answer
 function marketBoolRead (region, arg: string, line: number): string | undefined {
+    // `((m.ContainsKey("k") ? m["k"] : null))`: drop source parentheses that wrap the whole read
+    while (arg.startsWith ('((') && arg.endsWith ('))') && NATIVE_MARKET_KEY_READ_RE.test (arg.slice (1, -1))) arg = arg.slice (1, -1);
     const m = NATIVE_MARKET_KEY_READ_RE.exec (arg);
     if ((m === null) || ((m[1] !== undefined) && (m[1] !== m[2])) || !MARKET_ROW_BOOL_KEYS.includes (m[3])) return undefined;
     const name = m[2];
