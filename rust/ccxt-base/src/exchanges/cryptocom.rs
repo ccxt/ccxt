@@ -1707,7 +1707,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("settleId".to_string(), settleId);
                     m.insert("type".to_string(), type_var);
                     m.insert("spot".to_string(), spot);
-                    m.insert("margin".to_string(), (Value::Bool((marginBuyEnabled) || (marginSellEnabled))));
+                    m.insert("margin".to_string(), Value::Bool((marginBuyEnabled || marginSellEnabled)));
                     m.insert("swap".to_string(), swap);
                     m.insert("future".to_string(), future);
                     m.insert("option".to_string(), option);

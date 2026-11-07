@@ -6331,7 +6331,7 @@ impl BybitCore {
         let mut unifiedEnabled: Value = self.is_unified_enabled(&[]).await;
         let mut enableUnifiedMargin: bool = self.safe_bool_opt(unifiedEnabled.clone(), Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
         let mut enableUnifiedAccount: bool = self.safe_bool_opt(unifiedEnabled, Value::Int(1), &[Value::Bool(false)]).unwrap_or(false);
-        let mut isUnifiedAccount: bool = (enableUnifiedMargin) || (enableUnifiedAccount);
+        let mut isUnifiedAccount: bool = enableUnifiedMargin || enableUnifiedAccount;
         // don't use getBybitType here
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -7815,7 +7815,7 @@ impl BybitCore {
         let mut unifiedEnabled: Value = self.is_unified_enabled(&[]).await;
         let mut enableUnifiedMargin: bool = self.safe_bool_opt(unifiedEnabled.clone(), Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
         let mut enableUnifiedAccount: bool = self.safe_bool_opt(unifiedEnabled, Value::Int(1), &[Value::Bool(false)]).unwrap_or(false);
-        let mut isUnifiedAccount: bool = (enableUnifiedMargin) || (enableUnifiedAccount);
+        let mut isUnifiedAccount: bool = enableUnifiedMargin || enableUnifiedAccount;
         let mut market: Value = Value::Null;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -7962,7 +7962,7 @@ impl BybitCore {
         let mut unifiedEnabled: Value = self.is_unified_enabled(&[]).await;
         let mut enableUnifiedMargin: bool = self.safe_bool_opt(unifiedEnabled.clone(), Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
         let mut enableUnifiedAccount: bool = self.safe_bool_opt(unifiedEnabled, Value::Int(1), &[Value::Bool(false)]).unwrap_or(false);
-        let mut isUnifiedAccount: bool = (enableUnifiedMargin) || (enableUnifiedAccount);
+        let mut isUnifiedAccount: bool = enableUnifiedMargin || enableUnifiedAccount;
         if !isUnifiedAccount {
             return self.fetch_order_classic(id.clone(), &[symbol.clone(), params.clone()]).await;
         }
@@ -10139,7 +10139,7 @@ impl BybitCore {
         let mut unifiedEnabled: Value = self.is_unified_enabled(&[]).await;
         let mut enableUnifiedMargin: bool = self.safe_bool_opt(unifiedEnabled.clone(), Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
         let mut enableUnifiedAccount: bool = self.safe_bool_opt(unifiedEnabled, Value::Int(1), &[Value::Bool(false)]).unwrap_or(false);
-        let mut isUnifiedAccount: bool = (enableUnifiedMargin) || (enableUnifiedAccount);
+        let mut isUnifiedAccount: bool = enableUnifiedMargin || enableUnifiedAccount;
         let mut market: Value = Value::Null;
         let mut response: Value = Value::Null;
         let mut marginModes: indexmap::IndexMap<String, Value> = ({
@@ -12927,7 +12927,7 @@ impl BybitCore {
         let mut unifiedEnabled: Value = self.is_unified_enabled(&[]).await;
         let mut enableUnifiedMargin: bool = self.safe_bool_opt(unifiedEnabled.clone(), Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
         let mut enableUnifiedAccount: bool = self.safe_bool_opt(unifiedEnabled, Value::Int(1), &[Value::Bool(false)]).unwrap_or(false);
-        let mut isUnifiedAccount: bool = (enableUnifiedMargin) || (enableUnifiedAccount);
+        let mut isUnifiedAccount: bool = enableUnifiedMargin || enableUnifiedAccount;
         let mut accountTypeDefault: String = "eb_convert_spot".to_string();
         if isUnifiedAccount {
             accountTypeDefault = "eb_convert_uta".to_string();
@@ -12992,7 +12992,7 @@ impl BybitCore {
             let mut id: Option<String> = self.safe_string_k_opt(entry.clone(), "coin", &[]);
             let mut disableFrom: bool = self.safe_bool_k_opt(entry.clone(), "disableFrom", &[Value::Bool(false)]).unwrap_or(false);
             let mut disableTo: bool = self.safe_bool_k_opt(entry.clone(), "disableTo", &[Value::Bool(false)]).unwrap_or(false);
-            let mut inactive: bool = (disableFrom) || (disableTo);
+            let mut inactive: bool = disableFrom || disableTo;
             let mut code: Value = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if (code != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&code), Value::Map({
@@ -13065,7 +13065,7 @@ impl BybitCore {
         let mut unifiedEnabled: Value = self.is_unified_enabled(&[]).await;
         let mut enableUnifiedMargin: bool = self.safe_bool_opt(unifiedEnabled.clone(), Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
         let mut enableUnifiedAccount: bool = self.safe_bool_opt(unifiedEnabled, Value::Int(1), &[Value::Bool(false)]).unwrap_or(false);
-        let mut isUnifiedAccount: bool = (enableUnifiedMargin) || (enableUnifiedAccount);
+        let mut isUnifiedAccount: bool = enableUnifiedMargin || enableUnifiedAccount;
         let mut accountTypeDefault: String = "eb_convert_spot".to_string();
         if isUnifiedAccount {
             accountTypeDefault = "eb_convert_uta".to_string();
@@ -13189,7 +13189,7 @@ impl BybitCore {
         let mut unifiedEnabled: Value = self.is_unified_enabled(&[]).await;
         let mut enableUnifiedMargin: bool = self.safe_bool_opt(unifiedEnabled.clone(), Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
         let mut enableUnifiedAccount: bool = self.safe_bool_opt(unifiedEnabled, Value::Int(1), &[Value::Bool(false)]).unwrap_or(false);
-        let mut isUnifiedAccount: bool = (enableUnifiedMargin) || (enableUnifiedAccount);
+        let mut isUnifiedAccount: bool = enableUnifiedMargin || enableUnifiedAccount;
         let mut accountTypeDefault: String = "eb_convert_spot".to_string();
         if isUnifiedAccount {
             accountTypeDefault = "eb_convert_uta".to_string();

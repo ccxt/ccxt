@@ -4873,7 +4873,7 @@ impl BingxCore {
             }
             let mut reduceOnlyParam: bool = self.safe_bool_k_opt(paramsTakeProfit.clone(), "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
             // stop loss / take profit price orders are always reduce only
-            let mut reduceOnly: bool = (reduceOnlyParam) || (!isTriggerOrder && (isStopLossPriceOrder || isTakeProfitPriceOrder));
+            let mut reduceOnly: bool = reduceOnlyParam || (!isTriggerOrder && (isStopLossPriceOrder || isTakeProfitPriceOrder));
             if isTriggerOrder {
                 request.insert("stopPrice".into(), self.parse_to_numeric(self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null))));
                 if isMarketOrder || (typeValue.as_str() == Some("TRIGGER_MARKET")) {

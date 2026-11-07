@@ -3241,7 +3241,7 @@ impl WeexCore {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters".into()))));
         }
         let mut reduceOnly: bool = self.safe_bool_k_opt(query, "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
-        let mut isReduceOnly: bool = isStopLoss || isTakeProfit || (reduceOnly);
+        let mut isReduceOnly: bool = isStopLoss || isTakeProfit || reduceOnly;
         let mut positionSide: String = "LONG".to_string();
         if isReduceOnly {
             if (side.as_str() == Some("buy")) {

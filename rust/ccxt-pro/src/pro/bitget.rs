@@ -964,12 +964,12 @@ impl BitgetCore {
         let mut isStock: Value = market.as_map().and_then(|__m| __m.get("stock")).cloned().unwrap_or(Value::Null);
         let mut paramsStock: Value = self.omit(paramsUta, Value::Str("stock".into()), &[]);
         let mut isStockSpot: bool = isStock.as_bool() == Some(true) && (market.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null).as_bool() == Some(true));
-        let mut isStockOrUta: Value = (Value::Bool(isStockSpot || (uta.as_bool() == Some(true))));
-        let instTypeparamsInstTypeVariable: Vec<Value> = self.get_inst_type(Value::Str("watchOHLCV".into()), market.clone(), &[isStockOrUta.clone(), paramsStock]).as_array().cloned().unwrap_or_default();
+        let mut isStockOrUta: bool = isStockSpot || uta.as_bool() == Some(true);
+        let instTypeparamsInstTypeVariable: Vec<Value> = self.get_inst_type(Value::Str("watchOHLCV".into()), market.clone(), &[Value::Bool(isStockOrUta.clone()), paramsStock]).as_array().cloned().unwrap_or_default();
         let mut instType: Value = instTypeparamsInstTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsInstType: Value = instTypeparamsInstTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut paramsRequest: Value = paramsInstType.clone();
-        if matches!(&isStockOrUta, Value::Bool(true)) {
+        if isStockOrUta {
             paramsRequest = self.extend(paramsInstType, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("uta".to_string(), Value::Bool(true));
@@ -981,7 +981,7 @@ impl BitgetCore {
                 m.insert("instType".to_string(), instType);
             m
         });
-        if matches!(&isStockOrUta, Value::Bool(true)) {
+        if isStockOrUta {
             args.insert("topic".into(), Value::Str("kline".into()));
             args.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             args.insert("interval".into(), interval.clone().map(Value::from).unwrap_or(Value::Null));
@@ -991,7 +991,7 @@ impl BitgetCore {
             args.insert("instId".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbolValue).into());
         }
-        let mut ohlcv: Value = self.watch_public(isStockOrUta, messageHash, Value::Map(args), &[paramsRequest]).await;
+        let mut ohlcv: Value = self.watch_public(Value::Bool(isStockOrUta), messageHash, Value::Map(args), &[paramsRequest]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue, limit);
@@ -1279,7 +1279,7 @@ impl BitgetCore {
         let mut uta: Value = utaparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUta: Value = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut isStockSpot: bool = is_true(&isStock) && is_true(&market.get("spot").cloned().unwrap_or(Value::Null));
-        let mut isStockOrUta: bool = isStockSpot || (uta.as_bool() == Some(true));
+        let mut isStockOrUta: bool = isStockSpot || uta.as_bool() == Some(true);
         let mut paramsRequest: Value = paramsUta.clone();
         if isStockOrUta {
             paramsRequest = self.extend(paramsUta, &[Value::Map({
@@ -1388,7 +1388,7 @@ impl BitgetCore {
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(paramsStock, Value::Str("watchOrderBookForSymbols".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut uta: Value = utaparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUta: Value = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut isStockOrUta: Value = (Value::Bool(isStockSpot || (uta.as_bool() == Some(true))));
+        let mut isStockOrUta: bool = isStockSpot || uta.as_bool() == Some(true);
         let mut channel: Value = Value::Str("books".into());
         let mut incrementalFeed: bool = true;
         if (limit.as_f64() == Some(1.0)) || (limit.as_f64() == Some(5.0)) || (limit.as_f64() == Some(15.0)) || (limit.as_f64() == Some(50.0)) {
@@ -1404,7 +1404,7 @@ impl BitgetCore {
             while { if !__for_first_114 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_114 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
             let mut symbol: Value = symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
-            let instTypeparamsInstTypeVariable: Vec<Value> = self.get_inst_type(Value::Str("watchOrderBookForSymbols".into()), market.clone(), &[isStockOrUta.clone(), paramsCursor.clone()]).as_array().cloned().unwrap_or_default();
+            let instTypeparamsInstTypeVariable: Vec<Value> = self.get_inst_type(Value::Str("watchOrderBookForSymbols".into()), market.clone(), &[Value::Bool(isStockOrUta.clone()), paramsCursor.clone()]).as_array().cloned().unwrap_or_default();
             let mut instType: Value = instTypeparamsInstTypeVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsInstType: Value = instTypeparamsInstTypeVariable.get(1).cloned().unwrap_or(Value::Null);
             paramsCursor = paramsInstType;
@@ -1414,11 +1414,11 @@ impl BitgetCore {
                 m
             };
             let mut topicOrChannel: String = "channel".to_string();
-            if matches!(&isStockOrUta, Value::Bool(true)) {
+            if isStockOrUta {
                 topicOrChannel = "topic".to_string();
             }
             let mut symbolOrInstId: String = "instId".to_string();
-            if matches!(&isStockOrUta, Value::Bool(true)) {
+            if isStockOrUta {
                 symbolOrInstId = "symbol".to_string();
             }
             args.insert(topicOrChannel.clone(), channel.clone());
@@ -1427,10 +1427,10 @@ impl BitgetCore {
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into()));
         }
         }
-        if matches!(&isStockOrUta, Value::Bool(true)) {
+        if isStockOrUta {
             add_element_to_object(&mut paramsCursor, &Value::Str("uta".into()), Value::Bool(true));
         }
-        let mut orderbook: Value = self.watch_public_multiple(isStockOrUta, Value::from(messageHashes), Value::from(topics), &[paramsCursor]).await;
+        let mut orderbook: Value = self.watch_public_multiple(Value::Bool(isStockOrUta), Value::from(messageHashes), Value::from(topics), &[paramsCursor]).await;
         if incrementalFeed {
             return orderbook.limit();
         }  else {
@@ -3162,7 +3162,7 @@ impl BitgetCore {
         let stockparamsStockVariable: Vec<Value> = self.handle_option_bool_and_params(paramsUta, Value::Str("watchBalance".into()), Value::Str("stock".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut stock: Value = stockparamsStockVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsStock: Value = stockparamsStockVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut isStockOrUta: Value = (Value::Bool((stock.as_bool() == Some(true)) || (uta.as_bool() == Some(true))));
+        let mut isStockOrUta: bool = stock.as_bool() == Some(true) || uta.as_bool() == Some(true);
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), &[Value::Null, paramsStock]).as_array().cloned().unwrap_or_default();
         let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -3175,21 +3175,21 @@ impl BitgetCore {
             instTypeDefault = Value::Str("USDT-FUTURES".into());
         }  else if (marginMode != Value::Null) {
             instTypeDefault = Value::Str("MARGIN".into());
-            if !(matches!(&isStockOrUta, Value::Bool(true))) {
+            if !(isStockOrUta) {
                 if (marginMode.as_str() == Some("isolated")) {
                     channel = "account-isolated".to_string();
                 }  else {
                     channel = "account-crossed".to_string();
                 }
             }
-        }  else if !(matches!(&isStockOrUta, Value::Bool(true))) {
+        }  else if !(isStockOrUta) {
             instTypeDefault = Value::Str("SPOT".into());
         }
         let instTypeOptionparamsInstTypeVariable: Vec<Value> = self.handle_option_string_and_params(paramsMarginMode, Value::Str("watchBalance".into()), Value::Str("instType".into()), &[instTypeDefault]).as_array().cloned().unwrap_or_default();
         let mut instTypeOption: Value = instTypeOptionparamsInstTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsInstType: Value = instTypeOptionparamsInstTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut instType: Value = instTypeOption;
-        if matches!(&isStockOrUta, Value::Bool(true)) {
+        if isStockOrUta {
             instType = Value::Str("UTA".into());
         }
         let mut args: indexmap::IndexMap<String, Value> = ({
@@ -3198,24 +3198,24 @@ impl BitgetCore {
             m
         });
         let mut topicOrChannel: String = "channel".to_string();
-        if matches!(&isStockOrUta, Value::Bool(true)) {
+        if isStockOrUta {
             topicOrChannel = "topic".to_string();
         }
         args.insert(topicOrChannel.clone(), Value::from(channel));
         let mut paramsRequest: Value = paramsInstType.clone();
-        if matches!(&isStockOrUta, Value::Bool(true)) {
+        if isStockOrUta {
             paramsRequest = self.extend(paramsInstType, &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("uta".to_string(), Value::Bool(true));
                 m
             })]);
         }
-        if !(matches!(&isStockOrUta, Value::Bool(true))) {
+        if !(isStockOrUta) {
             args.insert("coin".into(), Value::Str("default".into()));
         }
         let mut instTypeLower: Value = self.safe_string_lower(Value::Map(args.clone()), Value::Str("instType".into()), &[Value::Str("".into())]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("balance:".into()), instTypeLower).into());
-        return self.watch_private(isStockOrUta, messageHash.clone(), messageHash.clone(), Value::Map(args), &[paramsRequest]).await;
+        return self.watch_private(Value::Bool(isStockOrUta), messageHash.clone(), messageHash.clone(), Value::Map(args), &[paramsRequest]).await;
 
     Value::Null
 }

@@ -2805,7 +2805,7 @@ if _try_result.is_err() {
             return Value::Null;
         }
         let mut isDisabled: bool = self.safe_bool_k_opt(market.clone(), "is_disabled", &[Value::Bool(false)]).unwrap_or(false);
-        let mut tradingDisabled: bool = (isDisabled) || (self.safe_bool_k(market.clone(), "trading_disabled", &[]).as_bool() == Some(true));
+        let mut tradingDisabled: bool = isDisabled || (self.safe_bool_k(market.clone(), "trading_disabled", &[]).as_bool() == Some(true));
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
         let mut type_var: Value = Value::Null;
         if matches!(&isSwap, Value::Bool(true)) {

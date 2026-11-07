@@ -5753,7 +5753,7 @@ impl OkxCore {
             marginMode = defaultMarginMode;
         }
         let mut marginParam: bool = self.safe_bool_k_opt(params.clone(), "margin", &[Value::Bool(false)]).unwrap_or(false);
-        let mut margin: bool = marginModeIsExplicit || (marginParam);
+        let mut margin: bool = marginModeIsExplicit || marginParam;
         // position side / hedged options only apply to swap and future orders
         let mut isSwapOrFuture: bool = (contract == Some(true)) && ((market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) || (market.as_map().and_then(|__m| __m.get("future")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)));
         let positionSideparamsPositionSideVariable: Vec<Value> = self.handle_option_string_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("positionSide".into()), &[]).as_array().cloned().unwrap_or_default();
