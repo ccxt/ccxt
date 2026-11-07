@@ -700,15 +700,15 @@ impl IndependentreserveCore {
         let mut quoteCurrencyIds: Value = self.to_array(quoteCurrencies);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_828: bool = true;
-            while { if !__for_first_828 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_828 = false; i.as_f64().unwrap_or(f64::NAN) < ((baseCurrencyIds.len() as i64) as f64) } {
+            let mut __for_first_825: bool = true;
+            while { if !__for_first_825 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_825 = false; i.as_f64().unwrap_or(f64::NAN) < ((baseCurrencyIds.len() as i64) as f64) } {
             let mut baseId: Value = baseCurrencyIds.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
             let mut minAmount: Value = self.safe_number(limits.clone(), baseId.clone(), &[]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_827: bool = true;
-                while { if !__for_first_827 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_827 = false; j.as_f64().unwrap_or(f64::NAN) < ((quoteCurrencyIds.len() as i64) as f64) } {
+                let mut __for_first_824: bool = true;
+                while { if !__for_first_824 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_824 = false; j.as_f64().unwrap_or(f64::NAN) < ((quoteCurrencyIds.len() as i64) as f64) } {
                 let mut quoteId: Value = quoteCurrencyIds.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
                 if (base == Value::Null) || (quote == Value::Null) {
@@ -800,8 +800,8 @@ impl IndependentreserveCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_829: bool = true;
-            while { if !__for_first_829 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_829 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_826: bool = true;
+            while { if !__for_first_826 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_826 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
             let mut balance: Value = self.safe_dict(response.clone(), i.clone(), &[]);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "CurrencyCode", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
@@ -1381,8 +1381,8 @@ impl IndependentreserveCore {
         let mut rows: Value = self.to_array(response);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_830: bool = true;
-            while { if !__for_first_830 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_830 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            let mut __for_first_827: bool = true;
+            while { if !__for_first_827 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_827 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
             let mut fee: Value = rows.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut currencyId: Value = self.safe_string_k(fee.clone(), "CurrencyCode", &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
@@ -1404,8 +1404,8 @@ impl IndependentreserveCore {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_831: bool = true;
-            while { if !__for_first_831 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_831 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
+            let mut __for_first_828: bool = true;
+            while { if !__for_first_828 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_828 = false; i.as_f64().unwrap_or(f64::NAN) < ((symbols.len() as i64) as f64) } {
             let mut symbol: Value = symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let mut fee: Value = self.safe_dict(fees.clone(), market.as_map().and_then(|__m| __m.get("base")).cloned().unwrap_or(Value::Null), &[Value::Map({
@@ -1712,8 +1712,8 @@ impl IndependentreserveCore {
             let mut keys: Value = Value::Array(params.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_832: bool = true;
-                while { if !__for_first_832 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_832 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+                let mut __for_first_829: bool = true;
+                while { if !__for_first_829 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_829 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
                 let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut value: Value = to_string_val(&get_value(&params, &key));
                 if let Value::Arr(__a) = &mut auth { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", key, Value::Str("=".into())).into()), value).into())); }
@@ -1730,8 +1730,8 @@ impl IndependentreserveCore {
             if let Value::Dict(__d) = &mut query { std::sync::Arc::make_mut(__d).insert("signature".into(), signature.as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null)); }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_833: bool = true;
-                while { if !__for_first_833 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_833 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
+                let mut __for_first_830: bool = true;
+                while { if !__for_first_830 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_830 = false; i.as_f64().unwrap_or(f64::NAN) < ((keys.len() as i64) as f64) } {
                 let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 if let Value::Dict(__d) = &mut query { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), params.as_map().and_then(|__m| key.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null)); }
             }
