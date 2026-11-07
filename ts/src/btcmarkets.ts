@@ -1128,6 +1128,7 @@ export default class btcmarkets extends Exchange {
     override calculateFee (symbol: string, type: string, side: string, amount: number, price: number, takerOrMaker: any = 'taker', params: Dict = {}) {
         /**
          * @method
+         * @name btcmarkets#calculateFee
          * @description calculates the presumptive fee that would be charged for an order
          * @param {string} symbol unified market symbol
          * @param {string} type not used by btcmarkets.calculateFee

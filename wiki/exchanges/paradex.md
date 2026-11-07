@@ -51,7 +51,6 @@ Paradex is a decentralized exchange built on the StarkWare layer 2 scaling solut
 or alternatively you can provide the startknet private key and public key by setting exchange.options['paradexAccount'] with  add {"privateKey": A, "publicKey": B, "address": C}
 
 
-
 ```javascript
 paradex.paradex ()
 ```
