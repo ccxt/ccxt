@@ -1118,7 +1118,7 @@ class BaseExchange(SyncExchange):
         fees = await self.fetch_deposit_withdraw_fees([code], params)
         return self.safe_dict(fees, code)
 
-    async def fetch_cross_borrow_rate(self, code: str, params={}):
+    async def fetch_cross_borrow_rate(self, code: str, params: dict = {}):
         await self.load_markets()
         if self.has['fetchBorrowRates'] is None or self.has['fetchBorrowRates'] is False:
             raise NotSupported(self.id + ' fetchCrossBorrowRate() is not supported yet')
@@ -2246,7 +2246,7 @@ class Exchange(BaseExchange):
         order = await self.fetchOrder(id, symbol, params)
         return self.safe_string(order, 'status')
 
-    async def fetch_unified_order(self, order: object, params: dict = {}):
+    async def fetch_unified_order(self, order: Order, params: dict = {}):
         return await self.fetchOrder(self.safe_string(order, 'id', ''), self.safe_string(order, 'symbol'), params)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}):

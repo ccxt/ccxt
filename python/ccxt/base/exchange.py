@@ -6277,7 +6277,7 @@ class BaseExchange(object):
             # "mapping->") and turns ": " after a non-space into " => ".
             raise NotSupported(self.id + ' ' + key + ' does not have a value in mapping' + ', must be one of ' + ', '.join(keys))
 
-    def fetch_cross_borrow_rate(self, code: str, params={}):
+    def fetch_cross_borrow_rate(self, code: str, params: dict = {}):
         self.load_markets()
         if self.has['fetchBorrowRates'] is None or self.has['fetchBorrowRates'] is False:
             raise NotSupported(self.id + ' fetchCrossBorrowRate() is not supported yet')
@@ -8703,7 +8703,7 @@ class Exchange(BaseExchange):
         order = self.fetchOrder(id, symbol, params)
         return self.safe_string(order, 'status')
 
-    def fetch_unified_order(self, order: object, params: dict = {}):
+    def fetch_unified_order(self, order: Order, params: dict = {}):
         return self.fetchOrder(self.safe_string(order, 'id', ''), self.safe_string(order, 'symbol'), params)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}):
