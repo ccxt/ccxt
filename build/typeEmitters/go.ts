@@ -479,7 +479,7 @@ function defaultExpr (goType: string, key: string, accessor: string, isInfo: boo
         return 'SafeBoolTyped(' + accessor + ', "' + key + '")';
     }
     if (goType === 'bool') {
-        return 'SafeBoolTyped(' + accessor + ', "' + key + '") != nil && *SafeBoolTyped(' + accessor + ', "' + key + '")';
+        return 'derefScalar(' + accessor + '["' + key + '"]) == true';
     }
     if (goType === 'map[string]any') {
         if (isInfo) {

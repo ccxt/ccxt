@@ -2634,8 +2634,10 @@ function structureKeyTable (dtoName) {
         const text = fs.readFileSync (path.join (JAVA_TYPES_FOLDER, dtoName + '.java'), 'utf8');
         for (const line of text.split ('\n')) {
             const field = line.match (/^\s*public\s+([\w.<>, ]+?)\s+(\w+)\s*;\s*$/);
-            if (field !== null && STRUCTURE_KEY_CAST_TYPES.has (field[1])) {
-                table[field[2]] = field[1];
+            // a primitive `boolean` DTO field holds a Boolean in the raw row
+            const box = (field !== null && field[1] === 'boolean') ? 'Boolean' : field?.[1];
+            if (field !== null && STRUCTURE_KEY_CAST_TYPES.has (box)) {
+                table[field[2]] = box;
             }
         }
     } catch (e) {
