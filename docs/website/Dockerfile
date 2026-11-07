@@ -31,7 +31,8 @@ ENV NODE_ENV=production \
 # standalone bundle (flat, thanks to outputFileTracingRoot) + static assets
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
-# public/ holds the CCXT logo assets used by the homepage hero
+# public/ holds the CCXT logo assets used by the homepage hero, plus the OG cards that
+# `npm run build` renders into public/og (served as static files, with Content-Length)
 COPY --from=builder /app/public ./public
 EXPOSE 3005
 CMD ["node", "server.js"]

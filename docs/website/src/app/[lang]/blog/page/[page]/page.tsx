@@ -41,7 +41,7 @@ export async function generateMetadata(props: PageProps<'/[lang]/blog/page/[page
       title: `${appName} Blog — page ${page}`,
       description: blogDescription,
       url: `${blogAbsoluteBase}/blog/page/${page}`,
-      images: [{ url: `${basePath}/og/home`, width: 1200, height: 630 }],
+      images: [{ url: `${basePath}/og/home.png`, width: 1200, height: 630 }],
     },
   };
 }

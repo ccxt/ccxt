@@ -29,6 +29,13 @@ const config = {
     if (process.env.NEXT_OUTPUT === 'export') return [];
     return [{ source: '/docs/:path*.md', destination: '/llms.mdx/docs/:path*' }];
   },
+  // The home OG card used to be a route handler at /og/home; it is now a static file
+  // generated at build time (scripts/generate-og-images.mjs). Keep the old URL working
+  // for previews that were scraped before the move.
+  async redirects() {
+    if (process.env.NEXT_OUTPUT === 'export') return [];
+    return [{ source: '/og/home', destination: '/og/home.png', permanent: true }];
+  },
   // Allow the apex marketing site (https://ccxt.com, GitHub Pages) to embed docs in an
   // iframe. Do NOT send X-Frame-Options here — SAMEORIGIN would block that embed, and
   // CSP frame-ancestors supersedes XFO in modern browsers. The docs deploy also drops
@@ -43,6 +50,13 @@ const config = {
             value: "frame-ancestors 'self' https://ccxt.com",
           },
         ],
+      },
+      {
+        // Pre-rendered OG cards in public/og. Next's static file server would send
+        // `max-age=0`; keep the caching the old image route handlers set. The files aren't
+        // content-hashed, so no `immutable`: a redeploy can change a card.
+        source: '/og/:path*',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=86400, s-maxage=604800' }],
       },
     ];
   },
