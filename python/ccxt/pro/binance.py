@@ -4727,9 +4727,17 @@ class binance(ccxt.async_support.binance):
             return
         if self.positions is None:
             self.positions = {}
-        if type in self.positions:
-            return
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
+        if type in self.positions:
+            # a fresh client has no snapshot future yet, which means the
+            # connection was re-established after a disconnect: positions
+            # closed while disconnected never arrive as stream deltas, so
+            # the cached positions are stale and must be reloaded
+            messageHash = type + ':fetchPositionsSnapshot'
+            if (fetchPositionsSnapshot is True) and (not(messageHash in client.futures)):
+                del self.positions[type]
+            else:
+                return
         if fetchPositionsSnapshot is True:
             messageHash = type + ':fetchPositionsSnapshot'
             if not (messageHash in client.futures):
@@ -4745,6 +4753,12 @@ class binance(ccxt.async_support.binance):
         if isPortfolioMargin:
             params['portfolioMargin'] = True
         positions = await self.fetch_positions(None, params)
+        # the client may have been replaced by a reconnect while the
+        # snapshot was in flight: a stale snapshot must not overwrite
+        # the fresh one loaded for the new client
+        currentClient = self.safe_value(self.clients, client.url)
+        if currentClient != client:
+            return
         self.positions[type] = ArrayCacheBySymbolBySide()
         cache = self.positions[type]
         for i in range(0, len(positions)):

@@ -1078,13 +1078,15 @@ class gate(ccxt.async_support.gate):
         #     "channel": "spot.candlesticks",
         #     "event": "update",
         #     "result": {
-        #       "t": "1606292580", // total volume
-        #       "v": "2362.32035", // volume
+        #       "t": "1606292580", // timestamp
+        #       "v": "2362.32035", // volume in the quote currency
         #       "c": "19128.1", // close
         #       "h": "19128.1", // high
         #       "l": "19128.1", // low
         #       "o": "19128.1", // open
-        #       "n": "1m_BTC_USDT" // sub
+        #       "n": "1m_BTC_USDT", // sub
+        #       "a": "0.12349", // volume in the base currency
+        #       "w": false // window closed
         #     }
         #   }
         #
@@ -1111,6 +1113,16 @@ class gate(ccxt.async_support.gate):
             marketId = subscription.replace(prefix, '')
             symbol = self.safe_symbol(marketId, None, '_', marketType)
             parsed = self.parse_ohlcv(ohlcv)
+            if marketType == 'spot':
+                # spot's "v" is the volume in the quote currency, "a" in the base currency, which fetchOHLCV returns
+                parsed = [
+                    self.safe_timestamp(ohlcv, 't'),
+                    self.safe_number(ohlcv, 'o'),
+                    self.safe_number(ohlcv, 'h'),
+                    self.safe_number(ohlcv, 'l'),
+                    self.safe_number(ohlcv, 'c'),
+                    self.safe_number(ohlcv, 'a'),
+                ]
             self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
             stored = self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe)
             if stored is None:

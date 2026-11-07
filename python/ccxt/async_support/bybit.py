@@ -2706,6 +2706,15 @@ class bybit(Exchange, ImplicitAPI):
         #
         result = self.safe_dict(response, 'result', {})
         tickerList = self.safe_list(result, 'list', [])
+        if category == 'spot':
+            # bybit.id lists spot tickers for pairs that are not in its spot instruments; such a ticker would
+            # resolve to the only market with the same id, a contract (BTCUSD -> BTC/USD:BTC), so it is skipped
+            spotTickers = []
+            for i in range(0, len(tickerList)):
+                tickerMarket = self.safe_market(self.safe_string(tickerList[i], 'symbol'), None, None, 'spot')
+                if not self.safe_bool(tickerMarket, 'contract', False):
+                    spotTickers.append(tickerList[i])
+            tickerList = spotTickers
         return self.parse_tickers(tickerList, parsedSymbols)
 
     async def fetch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
