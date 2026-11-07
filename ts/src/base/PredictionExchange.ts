@@ -41,6 +41,8 @@ export default class PredictionExchange extends BaseExchange {
                 'cancelOrder': false,
                 'cancelOrders': false,
                 'cancelAllOrders': false,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'editOrder': false,
                 'fetchBalance': false,
                 'fetchOrder': false,
@@ -53,6 +55,7 @@ export default class PredictionExchange extends BaseExchange {
                 'fetchMyTrades': false,
                 'fetchPosition': false,
                 'fetchPositions': false,
+                'redeemPosition': false,
                 'fetchAccounts': false,
                 'fetchLedger': false,
                 'fetchDeposits': false,
@@ -1085,6 +1088,41 @@ export default class PredictionExchange extends BaseExchange {
      */
     async fetchPosition (outcome: string, params: Dict = {}): Promise<PredictionPosition> {
         throw new NotSupported (this.id + ' fetchPosition() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name PredictionExchange#closePosition
+     * @description builds a request to close a prediction position
+     * @param {string} positionId prediction position identifier
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} close result, which may contain a transaction to sign
+     */
+    async closePosition (positionId: string, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' closePosition() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name PredictionExchange#closeAllPositions
+     * @description builds requests to close all prediction positions
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} close results, which may contain transactions to sign
+     */
+    async closeAllPositions (params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' closeAllPositions() is not supported yet');
+    }
+
+    /**
+     * @method
+     * @name PredictionExchange#redeemPosition
+     * @description builds a request to redeem a settled prediction position
+     * @param {string} positionId prediction position identifier
+     * @param {object} [params] extra parameters specific to the endpoint
+     * @returns {object} redemption result, which may contain a transaction to sign
+     */
+    async redeemPosition (positionId: string, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' redeemPosition() is not supported yet');
     }
 
     /**
