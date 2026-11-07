@@ -1069,7 +1069,11 @@ func (this *BaseExchange) watchMyLiquidationsBody(ch chan AsyncResult[[]Liquidat
 	_ = params
 	if (this.Has["watchMyLiquidationsForSymbols"] != nil) && (this.Has["watchMyLiquidationsForSymbols"] != false) {
 
-		ch <- <-this.DerivedExchange.WatchMyLiquidationsForSymbolsAsync([]any{symbol}, since, limit, params)
+		r := <-this.DerivedExchange.WatchMyLiquidationsForSymbolsAsync([]any{symbol}, since, limit, params)
+		if r.Err != nil {
+			panic(r.Err)
+		}
+		ch <- AsyncResult[[]Liquidation]{Value: r.Value}
 		return nil
 	}
 	panic(NotSupported(this.Id + " watchMyLiquidations() is not supported yet"))
