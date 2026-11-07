@@ -242,12 +242,14 @@ impl Myriad {
     }
 }
 
-// Read-only deref only. `DerefMut` is intentionally NOT implemented so a
-// safe caller cannot `mem::replace`/swap the Core; mutation goes through
-// the typed methods, which project via `core_mut()` above.
+// The Core's typed unified methods (`fetch_ticker`, …) are reached through these derefs.
 impl std::ops::Deref for Myriad {
     type Target = MyriadCore;
     fn deref(&self) -> &Self::Target { &*self.core }
+}
+
+impl std::ops::DerefMut for Myriad {
+    fn deref_mut(&mut self) -> &mut Self::Target { &mut *self.core }
 }
 
 impl Myriad {
@@ -869,18 +871,6 @@ impl Myriad {
         Ok(OrderBookL3::from_value(v))
     }
 
-    /// Typed wrapper around `fetchTrades`.
-    pub async fn fetch_trades(&mut self, symbol: &str, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<Vec<Trade>> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_trades(Value::from(symbol), &[since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(vec_from_value(&v, Trade::from_value))
-    }
-
-    /// Typed wrapper around `fetchOrderBook`.
-    pub async fn fetch_order_book(&mut self, symbol: &str, limit: Option<i64>, params: impl Into<Params>) -> crate::Result<OrderBook> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_order_book(Value::from(symbol), &[limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()])).await?;
-        Ok(OrderBook::from_value(v))
-    }
-
     /// Typed wrapper around `fetchOpenInterest`.
     pub async fn fetch_open_interest(&mut self, symbol: &str, params: impl Into<Params>) -> crate::Result<OpenInterest> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_open_interest(Value::from(symbol), &[params.into().into_value()])).await?;
@@ -927,18 +917,6 @@ impl Myriad {
     pub async fn fetch_positions(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<Vec<Position>> {
         let v = crate::runtime::call_typed(self.core_mut().fetch_positions(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
         Ok(vec_from_value(&v, Position::from_value))
-    }
-
-    /// Typed wrapper around `fetchTicker`.
-    pub async fn fetch_ticker(&mut self, symbol: &str, params: impl Into<Params>) -> crate::Result<Ticker> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_ticker(Value::from(symbol), &[params.into().into_value()])).await?;
-        Ok(Ticker::from_value(v))
-    }
-
-    /// Typed wrapper around `fetchTickers`.
-    pub async fn fetch_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> crate::Result<Tickers> {
-        let v = crate::runtime::call_typed(self.core_mut().fetch_tickers(&[match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()])).await?;
-        Ok(dict_from_value(&v, Ticker::from_value))
     }
 
     /// Typed wrapper around `fetchOrder`.

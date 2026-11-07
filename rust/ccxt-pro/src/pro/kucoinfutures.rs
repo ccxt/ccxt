@@ -271,7 +271,7 @@ impl KucoinfuturesCore {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        return self.fetch_tickers(&[symbols, __ws_arg_0]).await;
+        return crate::types::IntoRaw::into_raw(self.fetch_tickers(symbols.to_opt_str_vec(), __ws_arg_0).await);
 
     Value::Null
 }

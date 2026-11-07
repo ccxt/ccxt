@@ -1530,8 +1530,8 @@ impl CoinbaseinternationalCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_220: bool = true;
-            while { if !__for_first_220 { i += 1; } __for_first_220 = false; i < (rawNetworks.len() as i64) } {
+            let mut __for_first_556: bool = true;
+            while { if !__for_first_556 { i += 1; } __for_first_556 = false; i < (rawNetworks.len() as i64) } {
             let mut rawNetwork: Value = rawNetworks.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Option<String> = self.safe_string_k_opt(rawNetwork.clone(), "resource_name", &[]);
             let mut network: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
@@ -1908,8 +1908,8 @@ impl CoinbaseinternationalCore {
         };
         {
                         let mut i: i64 = 0;
-            let mut __for_first_221: bool = true;
-            while { if !__for_first_221 { i += 1; } __for_first_221 = false; i < (symbolsResolved.len() as i64) } {
+            let mut __for_first_557: bool = true;
+            while { if !__for_first_557 { i += 1; } __for_first_557 = false; i < (symbolsResolved.len() as i64) } {
             let mut symbol: Option<String> = self.safe_string_opt(symbolsResolved.clone(), Value::Int(i), &[]);
             if (symbol.is_none()) {
                 continue;
@@ -2104,8 +2104,8 @@ impl CoinbaseinternationalCore {
                 }
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_222: bool = true;
-                    while { if !__for_first_222 { i += 1; } __for_first_222 = false; i < (depths.len() as i64) } {
+                    let mut __for_first_558: bool = true;
+                    while { if !__for_first_558 { i += 1; } __for_first_558 = false; i < (depths.len() as i64) } {
                     if limit.as_f64().unwrap_or(f64::NAN) <= self.parse_to_int(depths.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_f64().unwrap_or(f64::NAN) {
                         request.insert("depth".into(), self.safe_integer(depths.clone(), Value::Int(i), &[Value::Int(0)]));
                         break;
@@ -2482,8 +2482,8 @@ impl CoinbaseinternationalCore {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_223: bool = true;
-            while { if !__for_first_223 { i += 1; } __for_first_223 = false; i < (summaries.len() as i64) } {
+            let mut __for_first_559: bool = true;
+            while { if !__for_first_559 { i += 1; } __for_first_559 = false; i < (summaries.len() as i64) } {
             let mut data: Value = self.safe_dict(summaries.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(data.clone(), "currency", &[]);
             let mut currencyCode: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -2991,8 +2991,8 @@ impl CoinbaseinternationalCore {
         let mut transactions: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_224: bool = true;
-            while { if !__for_first_224 { i += 1; } __for_first_224 = false; i < (logs.len() as i64) } {
+            let mut __for_first_560: bool = true;
+            while { if !__for_first_560 { i += 1; } __for_first_560 = false; i < (logs.len() as i64) } {
             let mut transaction: Value = logs.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut transactionType: Option<String> = self.safe_string_k(transaction.clone(), "type", &[]).as_str().map(str::to_owned);
             if (transactionType.as_deref() == Some("deposit")) || (transactionType.as_deref() == Some("withdrawal")) {

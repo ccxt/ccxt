@@ -259,7 +259,7 @@ impl KucoinfuturesCore {
             m
         });
         let mut extendedRequest: Value = self.extend(Value::Map(request), &[params]);
-        return self.fetch_tickers(&[symbols, extendedRequest]).await;
+        return crate::types::IntoRaw::into_raw(self.fetch_tickers(symbols.to_opt_str_vec(), extendedRequest).await);
 
     Value::Null
 }
