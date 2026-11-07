@@ -16,7 +16,7 @@ import java.util.Map;
 
 
 public class TestTradingFee extends BaseTest {
-    public static void testTradingFee(BaseExchange exchange, Object skippedProperties, Object method, Object symbol, Object entry)
+    public static void testTradingFee(BaseExchange exchange, Object skippedProperties, String method, String symbol, Object entry)
     {
         // prediction-market fee structures are keyed by an outcome handle, not a `symbol`
         if (Helpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
@@ -32,8 +32,8 @@ public class TestTradingFee extends BaseTest {
             put( "taker", exchange.parseNumber("0.003") );
         }};
         List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("tierBased", "percentage", "symbol"));
-        TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
-        TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol);
+        TestSharedMethods.AssertStructure(exchange, skippedProperties, (String) (method), entry, format, emptyAllowedFor);
+        TestSharedMethods.AssertSymbol(exchange, skippedProperties, (String) (method), entry, "symbol", symbol);
     }
 
 }

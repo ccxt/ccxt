@@ -80,7 +80,7 @@ abstract class bitflyer extends \ccxt\async\Exchange {
         return $this->request('getpermissions', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function private_get_getbalance($params = array()) {
         return $this->request('getbalance', array('private'), 'GET', $params, array("cost" => 1));
@@ -296,7 +296,7 @@ abstract class bitflyer extends \ccxt\async\Exchange {
         return $this->request('getpermissions', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function privateGetGetbalance($params = array()) {
         return $this->request('getbalance', array('private'), 'GET', $params, array("cost" => 1));

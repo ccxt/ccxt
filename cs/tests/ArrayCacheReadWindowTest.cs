@@ -14,7 +14,7 @@ public partial class BaseTest
     {
         public Action BeforeFilter { get; set; }
 
-        public override IList<object> filterBySinceLimit(object array, object since = null, object limit = null, object key = null, bool? tail = null)
+        public override IList<object> filterBySinceLimit(IList<object> array, object since = null, object limit = null, object key = null, bool? tail = null)
         {
             var action = BeforeFilter;
             BeforeFilter = null;
@@ -42,7 +42,7 @@ public partial class BaseTest
             return base.filterBySymbolSinceLimit(array, symbol, since, limit, tail);
         }
 
-        public override IList<object> filterBySinceLimit(object array, object since = null, object limit = null, object key = null, bool? tail = null)
+        public override IList<object> filterBySinceLimit(IList<object> array, object since = null, object limit = null, object key = null, bool? tail = null)
         {
             var action = BeforeFilter;
             BeforeFilter = null;
@@ -83,6 +83,100 @@ public partial class BaseTest
         }
     }
 
+    private interface CachePublicationProbe
+    {
+        Action AfterRows { get; set; }
+    }
+
+    private class PublishingTrades : ArrayCache, CachePublicationProbe
+    {
+        public Action AfterRows { get; set; }
+        public PublishingTrades(int? capacity) : base(capacity) { }
+        public override void Publish() { base.Publish(); AfterRows?.Invoke(); }
+    }
+
+    private class PublishingCandles : ArrayCacheByTimestamp, CachePublicationProbe
+    {
+        public Action AfterRows { get; set; }
+        public PublishingCandles(int? capacity) : base(capacity) { }
+        public override void Publish() { base.Publish(); AfterRows?.Invoke(); }
+    }
+
+    private class PublishingOrders : ArrayCacheBySymbolById, CachePublicationProbe
+    {
+        public Action AfterRows { get; set; }
+        public PublishingOrders(int? capacity) : base(capacity) { }
+        public override void Publish() { base.Publish(); AfterRows?.Invoke(); }
+    }
+
+    private class PublishingSides : ArrayCacheBySymbolBySide, CachePublicationProbe
+    {
+        public Action AfterRows { get; set; }
+        public PublishingSides(int? capacity) : base(capacity) { }
+        public override void Publish() { base.Publish(); AfterRows?.Invoke(); }
+    }
+
+    private class PublishingOutcomes : ArrayCacheByOutcomeById, CachePublicationProbe
+    {
+        public Action AfterRows { get; set; }
+        public PublishingOutcomes(int? capacity) : base(capacity) { }
+        public override void Publish() { base.Publish(); AfterRows?.Invoke(); }
+    }
+
+    private async Task testCacheReadDuringPublication(string kind, int? capacity, bool scoped)
+    {
+        BaseCache cache = kind switch {
+            "trades" => new PublishingTrades(capacity),
+            "candles" => new PublishingCandles(capacity),
+            "orders" => new PublishingOrders(capacity),
+            "sides" => new PublishingSides(capacity),
+            _ => new PublishingOutcomes(capacity),
+        };
+        object row(int timestamp) => kind == "candles"
+            ? new List<object>() { timestamp, 1.0, 2.0, 0.5, 1.5, 10.0 }
+            : new Dictionary<string, object>() {
+                { "id", timestamp.ToString() }, { "timestamp", timestamp },
+                { "symbol", "BTC/USDT" }, { "outcome", "event:YES" },
+                { "side", timestamp % 2 == 0 ? "sell" : "buy" },
+            };
+        var exchange = new ccxt.pro.binance();
+        exchange.newUpdates = true;
+        object scope = scoped ? (kind == "outcomes" ? "event:YES" : "BTC/USDT") : null;
+        cache.append(row(1));
+        using var rowsPublished = new ManualResetEventSlim(false);
+        using var publishCounts = new ManualResetEventSlim(false);
+        using var readStarted = new ManualResetEventSlim(false);
+        ((CachePublicationProbe)cache).AfterRows = () => {
+            rowsPublished.Set();
+            Assert(publishCounts.Wait(TimeSpan.FromSeconds(5)), "reader did not release publication");
+        };
+        var writer = Task.Factory.StartNew(() => cache.append(row(2)), CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+        Task<Dictionary<string, object>> reader = null;
+        bool returnedBeforeCounts = false;
+        try
+        {
+            Assert(rowsPublished.Wait(TimeSpan.FromSeconds(5)), "writer did not publish its rows");
+            reader = Task.Factory.StartNew(() => {
+                readStarted.Set();
+                return exchange.getCacheRead(cache, scope);
+            }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            Assert(readStarted.Wait(TimeSpan.FromSeconds(5)), "cache reader did not start");
+            returnedBeforeCounts = await Task.WhenAny(reader, Task.Delay(100)) == reader;
+        }
+        finally
+        {
+            publishCounts.Set();
+            await writer.WaitAsync(TimeSpan.FromSeconds(5));
+            ((CachePublicationProbe)cache).AfterRows = null;
+        }
+        var window = await reader.WaitAsync(TimeSpan.FromSeconds(5));
+        Assert(!returnedBeforeCounts, kind + " read mixed a new row publication with old counters");
+        Assert(Convert.ToInt64(window["limit"]) == 2 && ((IList<object>)window["data"]).Count == 2, kind + " read did not capture the complete update window");
+        cache.append(row(3));
+        var next = exchange.getCacheRead(cache, scope);
+        Assert(Convert.ToInt64(next["limit"]) == 1, kind + " next window replayed an update consumed during publication");
+    }
+
     public void testWsCacheReadWindows()
     {
         // The threaded receive/continuation interleaving is C#-specific; the
@@ -107,6 +201,12 @@ public partial class BaseTest
         }
         testCacheReadPollingScopes();
         testCacheReadKeyedReferences();
+        foreach (var kind in new[] { "trades", "candles", "orders", "sides", "outcomes" })
+        foreach (var capacity in new int?[] { null, 3 })
+        foreach (var scoped in new[] { true, false })
+        {
+            testCacheReadDuringPublication(kind, capacity, scoped).GetAwaiter().GetResult();
+        }
     }
 
     private async Task testOutcomeWatchReadWindow(string kind, int? capacity, bool newUpdates, string? outcome)

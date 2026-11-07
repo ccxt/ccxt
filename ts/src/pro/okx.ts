@@ -5,14 +5,14 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import okxRest from '../okx.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, List, Liquidation, Bool, Market } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, NullableDict, List, Liquidation, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class okx extends okxRest {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -105,11 +105,8 @@ export default class okx extends okxRest {
         });
     }
 
-    getUrl (channel: Str, access: string = 'public'): string {
+    getUrl (channel: string, access: string = 'public'): string {
         // for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
-        if (channel === undefined) {
-            throw new ArgumentsRequired (this.id + ' getUrl() requires a channel argument');
-        }
         const isSandbox: Bool = this.options['sandboxMode'];
         let sandboxSuffix: Str = '';
         if (isSandbox === true) {
@@ -117,7 +114,7 @@ export default class okx extends okxRest {
         }
         const isBusiness = (access === 'business');
         const isPublic = (access === 'public');
-        const url: string = this.urls['api']['ws'];
+        const url: string = this.safeString (this.urls['api'], 'ws', '');
         if (isBusiness || (channel.indexOf ('candle') > -1) || (channel === 'orders-algo')) {
             return url + '/business' + sandboxSuffix;
         } else if (isPublic) {
@@ -174,7 +171,7 @@ export default class okx extends okxRest {
         let messageHashResolved: string = messageHash;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            messageHashResolved += ':' + market['id'];
+            messageHashResolved = messageHash + ':' + this.safeString (market, 'id', '');
             firstArgument['instId'] = market['id'];
         }
         const request: Dict = {
@@ -376,7 +373,7 @@ export default class okx extends okxRest {
         }
         const symbolValue: string = this.symbol (symbol);
         const fr = await this.watchFundingRates ([ symbolValue ], params);
-        return fr[symbolValue];
+        return this.safeValue (fr, symbolValue);
     }
 
     /**
@@ -454,7 +451,7 @@ export default class okx extends okxRest {
             if (symbol !== undefined) {
                 this.fundingRates[symbol] = fundingRate;
             }
-            client.resolve (fundingRate, 'funding-rate' + ':' + fundingRate['symbol']);
+            client.resolve (fundingRate, 'funding-rate' + ':' + this.safeString (fundingRate, 'symbol', ''));
         }
     }
 
@@ -536,7 +533,7 @@ export default class okx extends okxRest {
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
         const ticker = await this.watchMarkPrices ([ symbolValue ], paramsChannel);
-        return ticker[symbolValue];
+        return this.safeValue (ticker, symbolValue);
     }
 
     /**
@@ -739,7 +736,7 @@ export default class okx extends okxRest {
         const data = this.safeList (message, 'data', []);
         const ticker = this.safeDict (data, 0, {});
         const parsedTicker = this.parseWsBidAsk (ticker, market);
-        const symbol = parsedTicker['symbol'];
+        const symbol = this.safeString (parsedTicker, 'symbol');
         if (symbol !== undefined) {
             this.bidsasks[symbol] = parsedTicker;
         }
@@ -868,7 +865,7 @@ export default class okx extends okxRest {
         for (let i = 0; i < rawLiquidations.length; i++) {
             const rawLiquidation = rawLiquidations[i];
             const liquidation = this.parseWsLiquidation (rawLiquidation);
-            const symbol = this.safeString (liquidation, 'symbol');
+            const symbol = this.safeString (liquidation, 'symbol', '');
             if (this.liquidations === undefined) {
                 const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
                 this.liquidations = new ArrayCache (limit);
@@ -973,7 +970,7 @@ export default class okx extends okxRest {
                 return;
             }
             const liquidation = this.parseWsMyLiquidation (rawLiquidation);
-            const symbol = this.safeString (liquidation, 'symbol');
+            const symbol = this.safeString (liquidation, 'symbol', '');
             if (this.liquidations === undefined) {
                 const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
                 this.liquidations = new ArrayCache (limit);
@@ -1240,8 +1237,7 @@ export default class okx extends okxRest {
                 }
             }
             stored.append (parsed);
-            const messageHash = channel + ':' + market['id'];
-            client.resolve (stored, messageHash);
+            client.resolve (stored, channel + ':' + this.safeString (market, 'id', ''));
             // for multiOHLCV we need special object, as opposed to other "multi"
             // methods, because OHLCV response item does not contain symbol
             // or timeframe, thus otherwise it would be unrecognizable
@@ -1309,10 +1305,9 @@ export default class okx extends okxRest {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             messageHashes.push (depth + ':' + symbol);
-            const marketId = this.marketId (symbol);
             const topic: Dict = {
                 'channel': depth,
-                'instId': marketId,
+                'instId': this.marketId (symbol),
             };
             topics.push (topic);
         }
@@ -1329,7 +1324,7 @@ export default class okx extends okxRest {
             if (this.safeString (client.subscriptions, messageHashes[i]) === 'resync') {
                 // okx sends a snapshot only in reply to a subscribe, so a channel left without a book is unsubscribed first
                 resyncTopics.push (topics[i]);
-                resyncHashes.push ('unsubscribe:orderbook:' + symbolsNormalized[i]);
+                resyncHashes.push ('unsubscribe:orderbook:' + this.safeString (symbolsNormalized, i, ''));
                 resyncNeeded = true;
             }
         }
@@ -1361,7 +1356,7 @@ export default class okx extends okxRest {
         }
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false);
         let depth: Str = undefined;
-        let paramsDepth = undefined;
+        let paramsDepth: NullableDict = undefined;
         [ depth, paramsDepth ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'depth', 'books');
         const limit = this.safeInteger (paramsDepth, 'limit');
         if (limit !== undefined) {
@@ -1454,15 +1449,13 @@ export default class okx extends okxRest {
         //
         const asks = this.safeList (message, 'asks', []);
         const bids = this.safeList (message, 'bids', []);
-        const storedAsks = orderbook['asks'];
-        const storedBids = orderbook['bids'];
-        this.handleDeltas (storedAsks, asks);
-        this.handleDeltas (storedBids, bids);
+        this.handleDeltas (orderbook['asks'], asks);
+        this.handleDeltas (orderbook['bids'], bids);
         const marketId = this.safeString (message, 'instId');
         const symbol = this.safeSymbol (marketId, market);
         const seqId = this.safeInteger (message, 'seqId');
         const prevSeqId = this.safeInteger (message, 'prevSeqId');
-        const nonce = orderbook['nonce'];
+        const nonce = this.safeInteger (orderbook, 'nonce');
         if (prevSeqId !== undefined && prevSeqId !== -1 && nonce !== prevSeqId) {
             const error = new InvalidNonce (this.id + ' watchOrderBook received invalid nonce');
             delete client.subscriptions[messageHash];
@@ -1568,7 +1561,7 @@ export default class okx extends okxRest {
         const arg = this.safeDict (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const action = this.safeString (message, 'action');
-        const data = this.safeList (message, 'data', []) as List;
+        const data = this.safeList (message, 'data', []);
         const marketId = this.safeString (arg, 'instId');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -1591,31 +1584,31 @@ export default class okx extends okxRest {
                 if (!(symbol in this.orderbooks)) {
                     this.orderbooks[symbol] = this.orderBook ({}, limit);
                 }
-                const orderbook = this.orderbooks[symbol];
+                const snapshotBook: WsOrderBook = this.orderbooks[symbol];
                 const timestamp = this.safeInteger (update, 'ts');
                 // rows are [ price, amount, liquidatedOrders, numOrders ] - store
                 // price and amount only, matching handleDelta, so countOrIdKey
                 // points past the row on purpose
                 const snapshot = this.parseOrderBook (update, symbol, timestamp, 'bids', 'asks', 0, 1, 4);
                 snapshot['nonce'] = this.safeInteger (update, 'seqId');
-                orderbook.reset (snapshot);
+                snapshotBook.reset (snapshot);
                 if (!(messageHash in client.subscriptions)) {
                     break;
                 }
-                client.resolve (orderbook, messageHash);
+                client.resolve (snapshotBook, messageHash);
             }
         } else if (action === 'update') {
             if (symbol in this.orderbooks) {
-                const orderbook = this.orderbooks[symbol];
+                const updatedBook: WsOrderBook = this.orderbooks[symbol];
                 for (let i = 0; i < data.length; i++) {
                     const update = data[i];
-                    this.handleOrderBookMessage (client, update, orderbook, messageHash, market);
+                    this.handleOrderBookMessage (client, update, updatedBook, messageHash, market);
                     if (!(messageHash in client.subscriptions)) {
                         // a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it
                         client.subscriptions[messageHash] = 'resync';
                         break;
                     }
-                    client.resolve (orderbook, messageHash);
+                    client.resolve (updatedBook, messageHash);
                 }
             }
         } else if ((channel === 'books5') || (channel === 'bbo-tbt')) {
@@ -1626,13 +1619,13 @@ export default class okx extends okxRest {
                 if (!(symbol in this.orderbooks)) {
                     this.orderbooks[symbol] = this.orderBook ({}, limit);
                 }
-                const orderbook = this.orderbooks[symbol];
+                const bboBook: WsOrderBook = this.orderbooks[symbol];
                 for (let i = 0; i < data.length; i++) {
                     const update = data[i];
                     const timestamp = this.safeInteger (update, 'ts');
                     const snapshot = this.parseOrderBook (update, symbol, timestamp, 'bids', 'asks', 0, 1);
-                    orderbook.reset (snapshot);
-                    client.resolve (orderbook, messageHash);
+                    bboBook.reset (snapshot);
+                    client.resolve (bboBook, messageHash);
                 }
             }
         }
@@ -1808,7 +1801,7 @@ export default class okx extends okxRest {
             if (this.inArray (key, reserved)) {
                 continue;
             }
-            this.balance[key] = balance[key];
+            this.balance[key] = this.safeValue (balance, key);
         }
         this.balance = this.safeBalance (this.balance);
         client.resolve (this.balance, channel);
@@ -2026,7 +2019,8 @@ export default class okx extends okxRest {
         for (let i = 0; i < data.length; i++) {
             const rawPosition = data[i];
             const position = this.parsePosition (rawPosition);
-            if (position['contracts'] === 0 && this.safeString (rawPosition, 'posSide') === 'net') {
+            const contracts = this.safeNumber (position, 'contracts');
+            if (contracts === 0 && this.safeString (rawPosition, 'posSide') === 'net') {
                 position['side'] = 'long';
                 const shortPosition = this.clone (position);
                 shortPosition['side'] = 'short';
@@ -2176,7 +2170,7 @@ export default class okx extends okxRest {
             for (let i = 0; i < parsed.length; i++) {
                 const order = parsed[i];
                 stored.append (order);
-                const symbol = order['symbol'];
+                const symbol = this.safeString (order, 'symbol', '');
                 const market = this.market (symbol);
                 marketIds.push (market['id']);
             }
@@ -2272,7 +2266,7 @@ export default class okx extends okxRest {
             const rawTrade = filteredOrders[i];
             const trade = this.orderToTrade (rawTrade);
             myTrades.append (trade);
-            const symbol = trade['symbol'];
+            const symbol = this.safeString (trade, 'symbol');
             if (symbol !== undefined) {
                 symbols[symbol] = true;
             }
@@ -2366,7 +2360,7 @@ export default class okx extends okxRest {
         if (this.isEmpty (args)) {
             const method = this.safeString (message, 'op');
             const stringMsg = this.json (message);
-            this.handleErrors (1, '', client.url, method as string, {}, stringMsg, message, {}, {});
+            this.handleErrors (1, '', client.url, method as string, {}, stringMsg, message, {}, '');
         }
         const orders = this.parseOrders (args, undefined, undefined, undefined);
         const first = this.safeDict (orders, 0, {});
@@ -2484,7 +2478,7 @@ export default class okx extends okxRest {
         };
         for (let i = 0; i < idsLength; i++) {
             const arg: Dict = this.extend (instParams, {
-                'ordId': ids[i],
+                'ordId': this.safeString (ids, i),
             });
             args.push (arg);
         }
@@ -2553,7 +2547,7 @@ export default class okx extends okxRest {
         if (this.isEmpty (args)) {
             const method = this.safeString (message, 'op');
             const stringMsg = this.json (message);
-            this.handleErrors (1, '', client.url, method as string, {}, stringMsg, message, {}, {});
+            this.handleErrors (1, '', client.url, method as string, {}, stringMsg, message, {}, '');
         }
         const orders = this.parseOrders (args, undefined, undefined, undefined);
         client.resolve (orders, messageHash);
@@ -2661,7 +2655,13 @@ export default class okx extends okxRest {
         return true;
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleTextMessage (client: Client, message: string) {
+        if (message === 'pong') {
+            this.handlePong (client, message);
+        }
+    }
+
+    override handleMessage (client: Client, message: Dict) {
         if (this.handleErrorMessage (client, message) !== true) {
             return;
         }
@@ -2704,12 +2704,6 @@ export default class okx extends okxRest {
         //
         //
         //
-        if (typeof message === 'string') {
-            if (message === 'pong') {
-                this.handlePong (client, message);
-            }
-            return;
-        }
         // const table = this.safeString (message, 'table');
         // if (table === undefined) {
         const event = this.safeString2 (message, 'event', 'op');
@@ -2800,10 +2794,8 @@ export default class okx extends okxRest {
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription (client, subMessageHash, messageHash);
         // watchOHLCV subscribes through subscribe () under channel:marketId
-        if (symbol !== undefined) {
-            this.cleanUnsubscription (client, channel + ':' + this.marketId (symbol), undefined);
-        }
-        if ((symbol !== undefined) && (timeframe !== undefined) && (timeframe in this.ohlcvs[symbol])) {
+        this.cleanUnsubscription (client, channel + ':' + this.marketId (symbol), undefined);
+        if (timeframe in this.ohlcvs[symbol]) {
             delete this.ohlcvs[symbol][timeframe];
         }
     }
@@ -2829,9 +2821,15 @@ export default class okx extends okxRest {
         // }
         // arg might be an array or list
         const arg = this.safeDict (message, 'arg', {});
-        const channel = this.safeString (arg, 'channel', '');
+        const channel = this.safeString (arg, 'channel');
+        if (channel === undefined) {
+            return;
+        }
         const marketId = this.safeString (arg, 'instId');
         const symbol = this.safeSymbol (marketId);
+        if (symbol === undefined) {
+            return;
+        }
         if (channel === 'trades' || channel === 'trades-all') {
             this.handleUnSubscriptionTrades (client, symbol, channel);
         } else if (channel.startsWith ('bbo') || channel.startsWith ('book')) {

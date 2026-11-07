@@ -18,7 +18,7 @@ func newBequant() *Bequant {
 	return p
 }
 
-func (this *Bequant) Describe() any {
+func (this *Bequant) Describe() map[string]any {
 	// eslint-disable-next-line new-cap
 	restInstance := ccxt.NewBequant(nil)
 	var restDescribe any = restInstance.Describe()

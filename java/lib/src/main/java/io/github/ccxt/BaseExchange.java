@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Locale;
@@ -96,24 +95,12 @@ public class BaseExchange {
 
     // exponential reconnect backoff with rng-free jitter, mirrors ts/src/base/Exchange.ts
     // calculateWsBackoffDelay, see https://github.com/ccxt/ccxt/issues/23525
-    public int calculateWsBackoffDelay(Object url) {
-        String urlKey = url.toString();
-        long base = 1000L;
-        long factor = 2L;
-        long maxDelay = 60000L;
-        long stableAfter = 30000L;
-        Object wsOptions = Helpers.GetValue(this.options, "ws");
-        Object backoff = (wsOptions == null) ? null : Helpers.GetValue(wsOptions, "backoff");
-        if (backoff != null) {
-            Object value = Helpers.GetValue(backoff, "base");
-            if (value != null) { base = Helpers.toInt64(value); }
-            value = Helpers.GetValue(backoff, "factor");
-            if (value != null) { factor = Helpers.toInt64(value); }
-            value = Helpers.GetValue(backoff, "max");
-            if (value != null) { maxDelay = Helpers.toInt64(value); }
-            value = Helpers.GetValue(backoff, "stableAfter");
-            if (value != null) { stableAfter = Helpers.toInt64(value); }
-        }
+    public int calculateWsBackoffDelay(String urlKey) {
+        Object backoff = this.safeValue(this.safeValue(this.options, "ws"), "backoff");
+        long base = this.safeInteger(backoff, "base", 1000L);
+        long factor = this.safeInteger(backoff, "factor", 2L);
+        long maxDelay = this.safeInteger(backoff, "max", 60000L);
+        long stableAfter = this.safeInteger(backoff, "stableAfter", 30000L);
         long now = this.milliseconds();
         long attempts = 0L;
         long lastAttempt = 0L;
@@ -154,6 +141,21 @@ public class BaseExchange {
         return CompletableFuture.supplyAsync(supplier, executor);
     }
 
+    // ------------------------------------------------------------------------------------------
+    // One unit of work run under STATE_LOCK.
+    private abstract static class OwnedTask<T> {
+        abstract T run ();
+    }
+
+    private static final Object STATE_LOCK = new Object ();
+
+    // Mutable header state (options, markets load, counters) is guarded by one monitor.
+    private static <T> T owned (OwnedTask<T> task) {
+        synchronized (STATE_LOCK) {
+            return task.run ();
+        }
+    }
+
     public Object timeout = 10000; // default timeout 10s
     // If you have these constants elsewhere, remove these placeholders.
     // HTTP
@@ -170,7 +172,8 @@ public class BaseExchange {
     public boolean verbose = false;
     public boolean validateServerSsl = true;
     public boolean enableRateLimit = true;
-    public volatile long lastRestRequestTimestamp = 0L;
+    // request stamp — owner-confined (see `owned`), written only by the owner thread
+    private long lastRestRequestTimestamp = 0L;
     public String url = "";
     public String hostname = "";
     public List<Object> countries = new ArrayList<>();
@@ -180,9 +183,7 @@ public class BaseExchange {
 
     // Currencies/markets API structures
     public Map<String, Object> baseCurrencies = new HashMap<>();
-    public volatile boolean reloadingMarkets = false;
-    public volatile CompletableFuture<Object> marketsLoading = null;
-    public volatile boolean marketsLoaded = false;
+    // loadMarkets single-flight + its currency hand-off are owner-confined: see MarketsLoadState
 
     public Map<String, Object> quoteCurrencies = new HashMap<>();
     public Map<String, Object> api = new HashMap<>();
@@ -214,20 +215,224 @@ public class BaseExchange {
     public Object number = Float.class;                   // C# typeof(float) → Java Class<?> for Float
     public Map<String, Object> has = new HashMap<>();
     public Map<String, Object> features = new HashMap<>();
-    // ConcurrentHashMap so concurrent watchTrades / loadMarkets calls don't
-    // race on put/get/remove/iterate. Null values are not allowed by CHM,
-    // but the few exchange-side `options.put("listenKey", null)` sites are
-    // semantically equivalent to "delete the key" — Helpers.addElementToObject
-    // routes null puts to remove() to preserve that semantics (see
-    // SharedStateRaceTest for the concurrent regression that motivated this).
-    public Map<String, Object> options = new java.util.concurrent.ConcurrentHashMap<>();
+    // Single owner of `options`: the map itself lives on the state-owner thread, so a writer
+    // hands over its write and a reader takes the reply (a value or an immutable snapshot);
+    // there is no lock and no volatile publication, and `put(key, null)` removes the key, which
+    // is the element-write contract every options site prints.
+    public Map<String, Object> options = new SynchronizedOptions ();
+
+    public static final class SynchronizedOptions extends java.util.AbstractMap<String, Object> {
+        // op codes for the owner-side switch: every public Map call becomes one hand-off
+        private static final int OP_GET = 0;
+        private static final int OP_CONTAINS = 1;
+        private static final int OP_SIZE = 2;
+        private static final int OP_IS_EMPTY = 3;
+        private static final int OP_ENTRY_SET = 4;
+        private static final int OP_PUT = 5;
+        private static final int OP_REMOVE = 6;
+        private static final int OP_PUT_ALL = 7;
+        private static final int OP_CLEAR = 8;
+        private static final int OP_FILL = 9;
+
+        private final Map<String, Object> owner = new LinkedHashMap<String, Object> ();
+
+        public static SynchronizedOptions of (Map<String, Object> source) {
+            SynchronizedOptions store = new SynchronizedOptions ();
+            if (source == null) return store;
+            store.ownedApply (OP_FILL, null, source);
+            return store;
+        }
+
+        private Object ownedApply (final int op, final Object key, final Object value) {
+            return owned (new OwnedTask<Object> () {
+                @Override Object run () { return SynchronizedOptions.this.ownerApply (op, key, value); }
+            });
+        }
+
+        // runs on the state-owner thread only: `owner` is that thread's map
+        private Object ownerApply (int op, Object key, Object value) {
+            switch (op) {
+                case OP_GET: return this.owner.get (key);
+                case OP_CONTAINS: return Boolean.valueOf (this.owner.containsKey (key));
+                case OP_SIZE: return Integer.valueOf (this.owner.size ());
+                case OP_IS_EMPTY: return Boolean.valueOf (this.owner.isEmpty ());
+                case OP_ENTRY_SET: return java.util.Collections.unmodifiableMap (new LinkedHashMap<String, Object> (this.owner)).entrySet ();
+                case OP_PUT: return (value == null) ? this.owner.remove (key) : this.owner.put ((String) key, value);
+                case OP_REMOVE: return this.owner.remove (key);
+                case OP_PUT_ALL:
+                case OP_FILL: {
+                    Map<?, ?> entries = (Map<?, ?>) value;
+                    if (op == OP_FILL) this.owner.clear ();
+                    for (Map.Entry<?, ?> entry : entries.entrySet ()) {
+                        Object entryKey = entry.getKey ();
+                        Object entryValue = entry.getValue ();
+                        if (entryKey == null) continue;
+                        if (entryValue == null) this.owner.remove (entryKey);
+                        else this.owner.put (String.valueOf (entryKey), entryValue);
+                    }
+                    return (op == OP_FILL) ? this : null;
+                }
+                case OP_CLEAR: this.owner.clear (); return null;
+                default: throw new IllegalArgumentException ("unknown options owner op: " + op);
+            }
+        }
+
+        @Override public Object get (Object key) { return this.ownedApply (OP_GET, key, null); }
+        @Override public boolean containsKey (Object key) { return Boolean.TRUE.equals (this.ownedApply (OP_CONTAINS, key, null)); }
+        @Override public int size () { return ((Integer) this.ownedApply (OP_SIZE, null, null)).intValue (); }
+        @Override public boolean isEmpty () { return Boolean.TRUE.equals (this.ownedApply (OP_IS_EMPTY, null, null)); }
+        @SuppressWarnings("unchecked")
+        @Override public java.util.Set<Map.Entry<String, Object>> entrySet () {
+            return (java.util.Set<Map.Entry<String, Object>>) this.ownedApply (OP_ENTRY_SET, null, null);
+        }
+
+        @Override public Object put (String key, Object value) {
+            if (key == null) return null;
+            return this.ownedApply (OP_PUT, key, value);
+        }
+
+        @Override public Object remove (Object key) {
+            return this.ownedApply (OP_REMOVE, key, null);
+        }
+
+        @Override public void putAll (Map<? extends String, ? extends Object> entries) {
+            this.ownedApply (OP_PUT_ALL, null, entries);
+        }
+
+        @Override public void clear () {
+            this.ownedApply (OP_CLEAR, null, null);
+        }
+
+        /** The backing map itself: owner thread only, for an owner task that is already there. */
+        Map<String, Object> ownerMap () { return this.owner; }
+    }
+
+    /** The options store as the owner thread sees it: the raw map, never the hand-off view. */
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> optionsRaw () {
+        if (this.options instanceof SynchronizedOptions ownerStore) return ownerStore.ownerMap ();
+        return this.options;
+    }
+
+    /** One owner task for a whole counter read-modify-write of the options store. */
+    public Long nextCounter (final String key, final long step) {
+        return this.nextCounterAbove (key, step, null);
+    }
+
+    /**
+     * As {@link #nextCounter}, but never below {@code floor}. The increment is ONE owner task:
+     * two separate options hand-offs would let another writer land between the read and the write,
+     * so a monitor is not the right guard and the serialization belongs to the owner thread.
+     */
+    public Long nextCounterAbove (final String key, final long step, final Long floor) {
+        return (Long) owned (new OwnedTask<Object> () {
+            @Override Object run () {
+                Map<String, Object> store = BaseExchange.this.optionsRaw ();
+                Long previous = BaseExchange.this.safeInteger (store, key, 0L);
+                Long next = (floor != null && (previous == null || floor > previous))
+                        ? floor
+                        : Long.valueOf ((previous == null ? 0L : previous.longValue ()) + step);
+                store.put (key, next);
+                return next;
+            }
+        });
+    }
+
+    /**
+     * Map whose contents live on the state-owner thread: every operation is one owner task, so a
+     * writer that hands the whole map over needs no concurrent map and no lock. Bulk reads take a
+     * copy on the owner; nothing else holds a reference to the backing map.
+     */
+    public static final class OwnedMap<K, V> extends java.util.AbstractMap<K, V> {
+        // op codes for the owner-side switch: every public Map call becomes one hand-off, and an
+        // explicit op keeps the hand-off call sites free of closures
+        private static final int OP_GET = 0;
+        private static final int OP_CONTAINS = 1;
+        private static final int OP_SIZE = 2;
+        private static final int OP_IS_EMPTY = 3;
+        private static final int OP_ENTRY_SET = 4;
+        private static final int OP_KEY_SET = 5;
+        private static final int OP_VALUES = 6;
+        private static final int OP_PUT = 7;
+        private static final int OP_PUT_IF_ABSENT = 8;
+        private static final int OP_REMOVE = 9;
+        private static final int OP_REMOVE_PAIR = 10;
+        private static final int OP_CLEAR = 11;
+        private static final int OP_COMPUTE = 12;
+        private static final int OP_COMPUTE_IF_ABSENT = 13;
+        private static final int OP_COMPUTE_IF_PRESENT = 14;
+        private static final int OP_GET_OR_DEFAULT = 15;
+
+        private final Map<K, V> owner = new LinkedHashMap<K, V> ();
+
+        private Object ownedApply (final int op, final Object key, final Object value, final Object fn) {
+            return owned (new OwnedTask<Object> () {
+                @Override Object run () { return OwnedMap.this.ownerApply (op, key, value, fn); }
+            });
+        }
+
+        // runs on the state-owner thread only: `owner` is that thread's map
+        @SuppressWarnings("unchecked")
+        private Object ownerApply (int op, Object key, Object value, Object fn) {
+            switch (op) {
+                case OP_GET: return this.owner.get (key);
+                case OP_GET_OR_DEFAULT: {
+                    V present = this.owner.get (key);
+                    return (present != null) ? present : value;
+                }
+                case OP_CONTAINS: return Boolean.valueOf (this.owner.containsKey (key));
+                case OP_SIZE: return Integer.valueOf (this.owner.size ());
+                case OP_IS_EMPTY: return Boolean.valueOf (this.owner.isEmpty ());
+                case OP_ENTRY_SET: return java.util.Collections.unmodifiableMap (new LinkedHashMap<K, V> (this.owner)).entrySet ();
+                case OP_KEY_SET: return java.util.Collections.unmodifiableMap (new LinkedHashMap<K, V> (this.owner)).keySet ();
+                case OP_VALUES: return java.util.Collections.unmodifiableMap (new LinkedHashMap<K, V> (this.owner)).values ();
+                case OP_PUT: return this.owner.put ((K) key, (V) value);
+                case OP_PUT_IF_ABSENT: return this.owner.putIfAbsent ((K) key, (V) value);
+                case OP_REMOVE: return this.owner.remove (key);
+                case OP_REMOVE_PAIR: return Boolean.valueOf (this.owner.remove (key, value));
+                case OP_CLEAR: this.owner.clear (); return null;
+                case OP_COMPUTE: return this.owner.compute ((K) key, (java.util.function.BiFunction<? super K, ? super V, ? extends V>) fn);
+                case OP_COMPUTE_IF_ABSENT: return this.owner.computeIfAbsent ((K) key, (java.util.function.Function<? super K, ? extends V>) fn);
+                case OP_COMPUTE_IF_PRESENT: return this.owner.computeIfPresent ((K) key, (java.util.function.BiFunction<? super K, ? super V, ? extends V>) fn);
+                default: throw new IllegalArgumentException ("unknown owned-map op: " + op);
+            }
+        }
+
+        @Override public int size () { return ((Integer) this.ownedApply (OP_SIZE, null, null, null)).intValue (); }
+        @Override public boolean isEmpty () { return Boolean.TRUE.equals (this.ownedApply (OP_IS_EMPTY, null, null, null)); }
+        @Override public boolean containsKey (Object key) { return Boolean.TRUE.equals (this.ownedApply (OP_CONTAINS, key, null, null)); }
+        @SuppressWarnings("unchecked")
+        @Override public V get (Object key) { return (V) this.ownedApply (OP_GET, key, null, null); }
+        @SuppressWarnings("unchecked")
+        @Override public V getOrDefault (Object key, V fallback) { return (V) this.ownedApply (OP_GET_OR_DEFAULT, key, fallback, null); }
+        @SuppressWarnings("unchecked")
+        @Override public V put (K key, V value) { return (V) this.ownedApply (OP_PUT, key, value, null); }
+        @SuppressWarnings("unchecked")
+        @Override public V putIfAbsent (K key, V value) { return (V) this.ownedApply (OP_PUT_IF_ABSENT, key, value, null); }
+        @SuppressWarnings("unchecked")
+        @Override public V remove (Object key) { return (V) this.ownedApply (OP_REMOVE, key, null, null); }
+        @Override public boolean remove (Object key, Object value) { return Boolean.TRUE.equals (this.ownedApply (OP_REMOVE_PAIR, key, value, null)); }
+        @SuppressWarnings("unchecked")
+        @Override public V compute (K key, java.util.function.BiFunction<? super K, ? super V, ? extends V> fn) { return (V) this.ownedApply (OP_COMPUTE, key, null, fn); }
+        @SuppressWarnings("unchecked")
+        @Override public V computeIfAbsent (K key, java.util.function.Function<? super K, ? extends V> fn) { return (V) this.ownedApply (OP_COMPUTE_IF_ABSENT, key, null, fn); }
+        @SuppressWarnings("unchecked")
+        @Override public V computeIfPresent (K key, java.util.function.BiFunction<? super K, ? super V, ? extends V> fn) { return (V) this.ownedApply (OP_COMPUTE_IF_PRESENT, key, null, fn); }
+        @Override public void clear () { this.ownedApply (OP_CLEAR, null, null, null); }
+        @SuppressWarnings("unchecked")
+        @Override public java.util.Set<Map.Entry<K, V>> entrySet () { return (java.util.Set<Map.Entry<K, V>>) this.ownedApply (OP_ENTRY_SET, null, null, null); }
+        @SuppressWarnings("unchecked")
+        @Override public java.util.Set<K> keySet () { return (java.util.Set<K>) this.ownedApply (OP_KEY_SET, null, null, null); }
+        @SuppressWarnings("unchecked")
+        @Override public java.util.Collection<V> values () { return (java.util.Collection<V>) this.ownedApply (OP_VALUES, null, null, null); }
+    }
     public boolean isSandboxModeEnabled = false;
 
-    public volatile Object markets = null;
-    public volatile Object currencies = new HashMap<String, Object>();
+    public volatile Map<String, Object> markets = null;
+    public volatile Map<String, Object> currencies = new HashMap<String, Object>();
     public Object fees = new HashMap<String, Object>();
     public Object requiredCredentials = new HashMap<String, Object>();
-    public Object timeframes = new HashMap<String, Object>();
+    public Map<String, Object> timeframes = new HashMap<String, Object>();
     public double rateLimit;
     public double rollingWindowSize = 60000;
     public String rateLimiterAlgorithm = "leakyBucket";                        // 0.0 by default
@@ -265,14 +470,16 @@ public class BaseExchange {
     public String agent;
     // public Object timeout = 10000;                         // Integer by autoboxing
 
-    // Last responses — volatile for visibility across async callbacks (last-writer-wins)
-    public volatile Object last_response_headers;
-    public volatile Object last_request_headers;
-    public volatile Object last_json_response;
-    public volatile Object last_http_response;
-    public volatile Object last_request_body;
-    public volatile Object last_request_url;
-    public final ConcurrentLinkedQueue<Map<String, Object>> fetchHistoryCache = new ConcurrentLinkedQueue<>();
+    // Last responses — written and read on the request's own call chain (the caller sees the
+    // value through the request future, not through the field), so no volatile publish is needed
+    public Object last_response_headers;
+    public Object last_request_headers;
+    public Object last_json_response;
+    public Object last_http_response;
+    public Object last_request_body;
+    public Object last_request_url;
+    // fetch cache — owner-confined (see `owned`); addFetchCache/getFetchCache hand off
+    private final java.util.ArrayDeque<Map<String, Object>> fetchHistoryCache = new java.util.ArrayDeque<>();
     public int fetchHistoryCacheSize = 0;
 
     public boolean returnResponseHeaders = false;
@@ -302,20 +509,17 @@ public class BaseExchange {
     public Object proxy_url = null;
     public Object proxyUrlCallBack = null;
 
-    // concurrent maps
-    public Object tickers = new ConcurrentHashMap<String, Object>();
-    public Object fundingRates = new ConcurrentHashMap<String, Object>();
-    public Object bidsasks = new ConcurrentHashMap<String, Object>();
-    public Object balance = new ConcurrentHashMap<String, Object>();
-    // liquidations/myLiquidations are flat ArrayCache lists (TS: ArrayCache | undefined = undefined),
-    // not symbol-keyed dicts like trades/orderbooks, so they must default to null like orders/myTrades.
-    // A map default makes the `== null` guard in handle(My)Liquidation never trip and the ArrayCache cast throws.
-    public Object liquidations = null;
+    // per-symbol ws caches: written by ws reader threads while user threads read them
+    public Map<String, Object> tickers = new ConcurrentHashMap<>();
+    public Map<String, Object> fundingRates = new ConcurrentHashMap<>();
+    public Map<String, Object> bidsasks = new ConcurrentHashMap<>();
+    public Map<String, Object> balance = new ConcurrentHashMap<>();
+    public Object liquidations = null;   // ArrayCache, created by the first handler (TS: undefined)
     public Object myLiquidations = null;
-    public Object trades = new ConcurrentHashMap<String, Object>();
-    public Object orderbooks = new ConcurrentHashMap<String, Object>();
-    public Object ohlcvs = new ConcurrentHashMap<String, Object>();
-    public Object clients = new ConcurrentHashMap<String, Object>();
+    public Map<String, Object> trades = new ConcurrentHashMap<>();
+    public Map<String, Object> orderbooks = new ConcurrentHashMap<>();
+    public Map<String, Object> ohlcvs = new ConcurrentHashMap<>();
+    public Object clients = new java.util.concurrent.ConcurrentHashMap<String, Client>();
 
     // regular maps / misc
     public Object transactions = new LinkedHashMap<String, Object>();
@@ -417,9 +621,8 @@ public class BaseExchange {
         this.limits    = (Map<String, Object>) this.safeValue(extendedProperties, "limits");
         this.streaming = (Map<String, Object>) this.safeValue(extendedProperties, "streaming");
 
-        // handle options — keep this.options as a ConcurrentHashMap so concurrent
-        // watchTrades / loadMarkets calls don't race (see Exchange.options field
-        // comment + SharedStateRaceTest).
+        // handle options — one owner store: writers publish snapshots, readers never lock
+        // (SharedStateRaceTest pins that contract).
         var extendedOptions = this.safeDict(extendedProperties, "options", null);
         Map<String, Object> initialOptions;
         if (extendedOptions != null) {
@@ -428,15 +631,8 @@ public class BaseExchange {
         } else {
             initialOptions = (Map<String, Object>) this.getDefaultOptions();
         }
-        java.util.concurrent.ConcurrentHashMap<String, Object> opts = new java.util.concurrent.ConcurrentHashMap<>();
-        for (Map.Entry<String, Object> e : initialOptions.entrySet()) {
-            // CHM doesn't accept null values; skip entries that were explicitly
-            // initialized to null (semantically equivalent to "not set").
-            if (e.getKey() != null && e.getValue() != null) {
-                opts.put(e.getKey(), e.getValue());
-            }
-        }
-        this.options = opts;
+        // one hand-off fills the store; a null value means "not set" and is dropped
+        this.options = SynchronizedOptions.of(initialOptions);
 
         Boolean verboseTmp = (Boolean) this.safeValue(extendedProperties, "verbose", Boolean.FALSE);
         this.verbose = (verboseTmp != null) ? verboseTmp : false;
@@ -647,22 +843,30 @@ public class BaseExchange {
     }
 
     public void addFetchCache(Object data) {
-        if (fetchHistoryCacheSize <= 0) {
-            return;
-        }
-
         @SuppressWarnings("unchecked")
-        Map<String, Object> mapData = (Map<String, Object>) data;
-        
-        fetchHistoryCache.offer(mapData);
-        
-        while (fetchHistoryCache.size() > fetchHistoryCacheSize) {
-            fetchHistoryCache.poll(); // drops oldest
-        }
+        final Map<String, Object> mapData = (Map<String, Object>) data;
+        // the cache and its size knob are owner state: the write is handed over, the entry is
+        // dropped oldest-first so the store never holds more than fetchHistoryCacheSize entries
+        owned (new OwnedTask<Object> () {
+            @Override Object run () {
+                if (BaseExchange.this.fetchHistoryCacheSize <= 0) {
+                    return null;
+                }
+                while (BaseExchange.this.fetchHistoryCache.size () >= BaseExchange.this.fetchHistoryCacheSize) {
+                    BaseExchange.this.fetchHistoryCache.poll ();
+                }
+                BaseExchange.this.fetchHistoryCache.offer (mapData);
+                return null;
+            }
+        });
     }
 
     public List<Map<String, Object>> getFetchCache() {
-        return new ArrayList<>(fetchHistoryCache);
+        return owned (new OwnedTask<List<Map<String, Object>>> () {
+            @Override List<Map<String, Object>> run () {
+                return new ArrayList<Map<String, Object>> (BaseExchange.this.fetchHistoryCache);
+            }
+        });
     }
 
     // === HELPERS === //
@@ -730,7 +934,7 @@ public class BaseExchange {
 
     private static int[] crc32Table = null;
 
-    public Object crc32(Object str, Object signed) {
+    public Long crc32(String str, boolean signed) {
         if (crc32Table == null) {
             String tableStr = "00000000 77073096 EE0E612C 990951BA 076DC419 706AF48F E963A535 9E6495A3 0EDB8832 79DCB8A4 E0D5E91E 97D2D988 09B64C2B 7EB17CBD E7B82D07 90BF1D91 "
                 + "1DB71064 6AB020F2 F3B97148 84BE41DE 1ADAD47D 6DDDE4EB F4D4B551 83D385C7 136C9856 646BA8C0 FD62F97A 8A65C9EC 14015C4F 63066CD9 FA0F3D63 8D080DF5 "
@@ -754,14 +958,13 @@ public class BaseExchange {
                 crc32Table[i] = (int) Long.parseLong(parts[i], 16);
             }
         }
-        String s = (String) str;
+        String s = str;
         int crc = -1;
         for (int i = 0; i < s.length(); i++) {
             crc = (crc >>> 8) ^ crc32Table[(crc ^ s.charAt(i)) & 0xFF];
         }
         long unsigned = ((long)(crc ^ (-1))) & 0xFFFFFFFFL;
-        boolean isSigned = Helpers.isTrue(signed);
-        if (isSigned && unsigned >= 0x80000000L) {
+        if (signed && unsigned >= 0x80000000L) {
             return unsigned - 0x100000000L;
         }
         return unsigned;
@@ -771,7 +974,7 @@ public class BaseExchange {
     // Encode
     // =======================
 
-    public Object binaryConcat(Object... parts) {
+    public byte[] binaryConcat(Object... parts) {
         return Encode.binaryConcat(parts);
     }
 
@@ -846,7 +1049,7 @@ public class BaseExchange {
         return Encode.intToBase16(number);
     }
 
-    public Object base16ToBinary(Object str2) {
+    public byte[] base16ToBinary(Object str2) {
         return Encode.base16ToBinary(str2);
     }
 
@@ -854,15 +1057,15 @@ public class BaseExchange {
         return Encode.numberToBE(n2, size2);
     }
 
-    public Object remove0xPrefix(Object str2) {
+    public String remove0xPrefix(Object str2) {
         return Encode.remove0xPrefix(str2);
     }
 
-    public Object binaryConcatArray(Object arrays2) {
+    public byte[] binaryConcatArray(Object arrays2) {
         return Encode.binaryConcatArray(arrays2);
     }
 
-    public Object exceptionMessage(Object exc, Object includeStackArg) {
+    public String exceptionMessage(Object exc, Object includeStackArg) {
         boolean includeStack = !Boolean.FALSE.equals(includeStackArg);
         if (exc instanceof Throwable t) {
             // Walk the cause chain and include each level's class+message. Without
@@ -893,7 +1096,7 @@ public class BaseExchange {
 
     public String ethGetAddressFromPrivateKey(Object privateKey) {
         try {
-            String cleanKey = (String) this.remove0xPrefix(privateKey);
+            String cleanKey = this.remove0xPrefix(privateKey);
             java.math.BigInteger privKeyBigInt = new java.math.BigInteger(cleanKey, 16);
             return "0x" + Crypto.secp256k1EthAddress(privKeyBigInt);
         } catch (Exception e) {
@@ -1163,11 +1366,11 @@ public class BaseExchange {
         return SafeMethods.safeIntegerProduct(obj, key, multiplier, defaultValue);
     }
 
-    public Object safeIntegerProduct2(Object obj, Object key1, Object key2, Object multipler, Object... defaultValue) {
+    public Long safeIntegerProduct2(Object obj, Object key1, Object key2, Object multipler, Object... defaultValue) {
         return SafeMethods.safeIntegerProduct2(obj, key1, key2, multipler, defaultValue);
     }
 
-    public Object safeIntegerProductN(Object obj, Object keys, Object multiplier, Object... defaultValue) {
+    public Long safeIntegerProductN(Object obj, Object keys, Object multiplier, Object... defaultValue) {
         return SafeMethods.safeIntegerProductN(obj, (List<Object>)keys, multiplier, defaultValue);
     }
 
@@ -1329,15 +1532,15 @@ public class BaseExchange {
         return Time.ymdhms(ts, infix);
     }
 
-    public Object ymd(Object ts) {
+    public String ymd(Object ts) {
         return Time.ymd(ts);
     }
 
-    public Object ymd(Object ts, Object infix) {
+    public String ymd(Object ts, Object infix) {
         return Time.ymd(ts, infix);
     }
 
-    public Object parseDate(Object datetime2) {
+    public Long parseDate(Object datetime2) {
         return Time.parseDate(datetime2);
     }
     // public Long nonce() {
@@ -1368,6 +1571,8 @@ public class BaseExchange {
     // test harness that can bury the frame injector beneath a watch task that
     // only the injector itself can release, deadlocking the run. the test
     // runner flips this flag so injector sleeps can never be steal points.
+    // process-wide test hook, not exchange state: it stays volatile because an external harness
+    // may flip it while worker threads are already running (out of this unit's ownership scope).
     public static volatile boolean syncSleep = false;
 
     public CompletableFuture<Object> sleep(Object milliseconds) {
@@ -1399,8 +1604,8 @@ public class BaseExchange {
         return new HashMap<>();
     }
 
-    public ConcurrentHashMap<String, Object> createSafeDictionary(boolean isWs) {
-        return new ConcurrentHashMap<>();
+    public HashMap<String, Object> createSafeDictionary(boolean isWs) {
+        return new HashMap<>();
     }
 
     public Map<String, Object> convertToSafeDictionary(Object obj) {
@@ -1468,7 +1673,7 @@ public class BaseExchange {
         return value;
     }
 
-    public Object arraySlice(Object array, Object first, Object second) {
+    public List<Object> arraySlice(Object array, Object first, Object second) {
         int firstInt = toInt(first);
 
         // ----- byte[] case -----
@@ -1484,15 +1689,15 @@ public class BaseExchange {
                         index = 0;
                     }
                 }
-                // slice [index..end) and return as List<Byte>
-                List<Byte> result = new ArrayList<>(byteArray.length - index);
+                // slice [index..end) and return as List<Object> of Byte
+                List<Object> result = new ArrayList<>(byteArray.length - index);
                 for (int i = index; i < byteArray.length; i++) {
                     result.add(byteArray[i]);
                 }
                 return result;
             } else {
                 int secondInt = toInt(second);
-                // slice [firstInt..secondInt) and return as List<Byte>
+                // slice [firstInt..secondInt) and return as List<Object> of Byte
                 int from = firstInt;
                 int to = secondInt;
                 if (from < 0 || to < from || to > byteArray.length) {
@@ -1500,7 +1705,7 @@ public class BaseExchange {
                             "Invalid slice range: " + from + ".." + to + " for length " + byteArray.length
                     );
                 }
-                List<Byte> result = new ArrayList<>(to - from);
+                List<Object> result = new ArrayList<>(to - from);
                 for (int i = from; i < to; i++) {
                     result.add(byteArray[i]);
                 }
@@ -1552,11 +1757,11 @@ public class BaseExchange {
         return Integer.parseInt(value.toString());
     }
     // overload matching the C# default parameter (second = null)
-    public Object arraySlice(Object array, Object first) {
+    public List<Object> arraySlice(Object array, Object first) {
         return arraySlice(array, first, null);
     }
 
-    public Object stringToCharsArray(Object str) {
+    public List<String> stringToCharsArray(Object str) {
         if (str == null) {
             return null;
         }
@@ -1702,6 +1907,36 @@ public class BaseExchange {
         return Helpers.parseJson(input);
     }
 
+    // The loadMarkets single-flight and the currencies it hands to setMarkets are owner state:
+    // only the state-owner thread touches these fields, and a caller reads them through the
+    // owner's reply, so the hand-off needs neither a lock nor a volatile field.
+    private static final class MarketsLoadState {
+        private Map<String, Object> pendingCurrencies = null;
+        private CompletableFuture<Object> inFlight = null;
+        private boolean running = false;
+        private boolean loaded = false;
+    }
+
+    private final MarketsLoadState loadState = new MarketsLoadState();
+
+    public Map<String, Object> cachedCurrenciesForLoad() {
+        return owned (new OwnedTask<Map<String, Object>> () {
+            @Override Map<String, Object> run () { return BaseExchange.this.loadState.pendingCurrencies; }
+        });
+    }
+
+    public Map<String, Object> cachedCurrenciesForLoadOrEmpty() {
+        Map<String, Object> currencies = this.cachedCurrenciesForLoad ();
+        return (currencies == null) ? new java.util.HashMap<String, Object>() : currencies;
+    }
+
+    // the only writer of the hand-off: the load chain sets it, the same chain clears it
+    private void setPendingCurrencies (final Map<String, Object> currencies) {
+        owned (new OwnedTask<Object> () {
+            @Override Object run () { BaseExchange.this.loadState.pendingCurrencies = currencies; return null; }
+        });
+    }
+
     public java.util.concurrent.CompletableFuture<Object> loadMarketsHelper(boolean reload) throws ExecutionException, InterruptedException {
 
         if (!reload && this.markets != null) {
@@ -1710,6 +1945,8 @@ public class BaseExchange {
             }
             return java.util.concurrent.CompletableFuture.completedFuture(this.markets);
         }
+
+        this.setPendingCurrencies (null);
 
         // Chain: fetchCurrencies (if supported) → fetchMarkets → setMarkets
         // No thread blocked at any point
@@ -1729,11 +1966,9 @@ public class BaseExchange {
         }
 
         return currenciesFuture.thenCompose(currencies -> {
-            if (currencies != null) {
-                this.options.put("cachedCurrencies", currencies);
-            }
+            this.setPendingCurrencies ((currencies == null) ? null : (Map<String, Object>) currencies);
             return this.fetchMarkets(new java.util.HashMap<String, Object>()).thenApply(markets -> {
-                this.options.remove("cachedCurrencies");
+                this.setPendingCurrencies (null);
                 // Pass currencies through so setMarkets() can merge fetched currencies
                 // (including ones not appearing as a base/quote/settle in any market —
                 // e.g. AGLD/WBTC for bigone/apex, USDC for aftermath). The previous
@@ -1745,61 +1980,73 @@ public class BaseExchange {
 
     }
 
-    private final Object marketsLock = new Object();
-
-    private final java.util.concurrent.locks.ReentrantLock lastNonceReentrantLock = new java.util.concurrent.locks.ReentrantLock();
-
+    // `incrementingNonce` hands its whole read-modify-write to the state owner (nextCounterAbove),
+    // so the sequence needs neither a monitor nor a lock. These two only exist because the ts base
+    // declares them; a caller that still brackets the counter with them would be unserialized, so
+    // they fail loudly instead of pretending to guard.
     public void lockLastNonce() {
-        this.lastNonceReentrantLock.lock();
+        throw new IllegalStateException("incrementingNonce is owner-serialized: nextCounterAbove");
     }
 
     public void unlockLastNonce() {
-        this.lastNonceReentrantLock.unlock();
+        throw new IllegalStateException("incrementingNonce is owner-serialized: nextCounterAbove");
     }
 
     // TS `loadMarkets (reload = false, params = {})`; venues override it with this signature
     public java.util.concurrent.CompletableFuture<Object> loadMarkets(Object reload2, Object params) {
 
         boolean reload = Boolean.TRUE.equals(reload2);
-        if (this.marketsLoaded && !reload) {
-            return this.marketsLoading;
-        }
-        synchronized (marketsLock) {
-            // Re-check under the lock to collapse concurrent first-callers onto the same future.
-            if (this.marketsLoaded && !reload) {
-                return this.marketsLoading;
-            }
-            // Collapse concurrent callers onto the same in-flight reload regardless
-            // of the reload flag. The previous `|| reload` short-circuit caused 20
-            // concurrent loadMarkets(true) callers to spawn 20 sequential fetches.
-            // The cache-vs-fetch decision still respects `reload` via the early
-            // `marketsLoaded && !reload` guard above; this branch only decides
-            // whether to start a *new* fetch when none is in-flight.
-            if (!this.reloadingMarkets) {
-                this.reloadingMarkets = true;
-                try {
-                    this.marketsLoading = this.loadMarketsHelper(reload)
-                            .thenApply(res -> {
-                                synchronized (marketsLock) {
-                                    this.reloadingMarkets = false;
-                                    this.marketsLoaded = true;
-                                }
-                                return res;
-                            })
-                            .exceptionallyCompose(ex -> {
-                                synchronized (marketsLock) {
-                                    this.reloadingMarkets = false;
-                                    this.marketsLoading = null;
-                                }
-                                return CompletableFuture.failedFuture(ex);
-                            });
-                } catch (ExecutionException | InterruptedException e) {
-                    this.reloadingMarkets = false;
-                    throw new RuntimeException(e);
+        // One owner task decides: serve the in-flight load, or claim the right to start one by
+        // publishing its placeholder future. The loser gets the winner's future as the reply,
+        // which is the single-flight — no lock, and the caller that claimed starts the fetch
+        // outside the owner so venue code never runs on the owner thread.
+        final CompletableFuture<Object> claim = new CompletableFuture<Object>();
+        CompletableFuture<Object> inFlight = owned (new OwnedTask<CompletableFuture<Object>> () {
+            @Override CompletableFuture<Object> run () {
+                if (BaseExchange.this.loadState.loaded && !reload && BaseExchange.this.loadState.inFlight != null) {
+                    return BaseExchange.this.loadState.inFlight;
                 }
+                if (BaseExchange.this.loadState.running) {
+                    return BaseExchange.this.loadState.inFlight;
+                }
+                BaseExchange.this.loadState.running = true;
+                BaseExchange.this.loadState.inFlight = claim;
+                return null;
             }
-            return this.marketsLoading;
+        });
+        if (inFlight != null) {
+            return inFlight;
         }
+        try {
+            this.loadMarketsHelper(reload).whenComplete((result, failure) -> {
+                owned (new OwnedTask<Object> () {
+                    @Override Object run () {
+                        BaseExchange.this.loadState.running = false;
+                        if (failure != null) {
+                            BaseExchange.this.loadState.inFlight = null;
+                        } else {
+                            BaseExchange.this.loadState.loaded = true;
+                        }
+                        return null;
+                    }
+                });
+                if (failure != null) {
+                    claim.completeExceptionally(failure);
+                } else {
+                    claim.complete(result);
+                }
+            });
+        } catch (ExecutionException | InterruptedException e) {
+            owned (new OwnedTask<Object> () {
+                @Override Object run () {
+                    BaseExchange.this.loadState.running = false;
+                    BaseExchange.this.loadState.inFlight = null;
+                    return null;
+                }
+            });
+            throw new RuntimeException(e);
+        }
+        return claim;
     }
 
     public CompletableFuture<Object> fetchCurrencies(Map<String, Object> params) {
@@ -1858,19 +2105,25 @@ public class BaseExchange {
 
     // ─── WebSocket Bridge (matches C# Exchange.WsBridge.cs) ───
 
+    /** The ws client registry. */
+    @SuppressWarnings("unchecked")
+    private Map<String, Client> clientsMap() {
+        return (Map<String, Client>) this.clients;
+    }
+
     @SuppressWarnings("unchecked")
     public Client client(Object url2) {
-        String url = url2.toString();
-        return ((java.util.concurrent.ConcurrentHashMap<String, Client>) this.clients)
-                .computeIfAbsent(url, u -> {
-                    Object ws = this.safeValue(this.options, "ws", new java.util.HashMap<String, Object>());
-                    Object wsOptions = this.safeValue(ws, "options", new java.util.HashMap<String, Object>());
+        return this.client(url2.toString());
+    }
+
+    @SuppressWarnings("unchecked")
+    public Client client(String url) {
+        return this.clientsMap().computeIfAbsent(url, u -> {
+                    Object wsOptions = this.safeValue(this.safeValue(this.options, "ws", new java.util.HashMap<String, Object>()), "options", new java.util.HashMap<String, Object>());
                     long keepAlive = 30000;
-                    Object keepAliveObj = this.safeValue(wsOptions, "keepAlive");
-                    if (keepAliveObj instanceof Number n) keepAlive = n.longValue();
+                    if (this.safeValue(wsOptions, "keepAlive") instanceof Number n) keepAlive = n.longValue();
                     boolean decompressBin = true;
-                    Object decompressObj = this.safeValue(this.options, "decompressBinary");
-                    if (decompressObj instanceof Boolean b) decompressBin = b;
+                    if (this.safeValue(this.options, "decompressBinary") instanceof Boolean b) decompressBin = b;
 
                     var result = this.checkWsProxySettings();
                     String proxy = null;
@@ -1881,7 +2134,7 @@ public class BaseExchange {
                     }
 
                     Client created = new Client(u, proxy,
-                            (client, msg) -> this.handleMessage((Client) client, msg),
+                            (client, msg) -> this.routeMessage((Client) client, msg),
                             (client) -> this.ping((Client) client),
                             (client, err) -> this.onClose((Client) client, err),
                             (client, err) -> this.onError((Client) client, err),
@@ -1890,8 +2143,7 @@ public class BaseExchange {
 
                     // Forward options.ws.options.headers to the upgrade request — required
                     // by exchanges that gate on User-Agent (weex) or send custom headers.
-                    Object headers = this.safeValue(wsOptions, "headers");
-                    if (headers instanceof java.util.Map<?, ?> m) {
+                    if (this.safeValue(wsOptions, "headers") instanceof java.util.Map<?, ?> m) {
                         java.util.Map<String, String> hh = new java.util.HashMap<>();
                         for (java.util.Map.Entry<?, ?> e : m.entrySet()) {
                             if (e.getKey() == null || e.getValue() == null) continue;
@@ -1911,15 +2163,16 @@ public class BaseExchange {
     public <T> CompletableFuture<T> watch(Object url, Object messageHash2, Object message, Object subscribeHash2, Object subscription) {
         String messageHash = messageHash2.toString();
         String subscribeHash = subscribeHash2 != null ? subscribeHash2.toString() : messageHash;
-        var client = this.client(url);
+        String urlKey = url.toString();
+        var client = this.client(urlKey);
 
         io.github.ccxt.ws.Future future = client.future(messageHash);
 
         if (client.subscriptionsMap().putIfAbsent(subscribeHash, subscription != null ? subscription : true) == null) {
             int backoffDelay = 0;
-            if (!client.startedConnecting.get()) {
+            if (!client.startedConnecting) {
                 // count real dials only, see https://github.com/ccxt/ccxt/pull/29627
-                backoffDelay = this.calculateWsBackoffDelay(url);
+                backoffDelay = this.calculateWsBackoffDelay(url.toString());
             }
             client.connect(backoffDelay).thenAccept(connected -> {
                 if (message != null) {
@@ -1965,9 +2218,9 @@ public class BaseExchange {
 
         if (subscribeHashes2 == null || !missingSubscriptions.isEmpty()) {
             int backoffDelay = 0;
-            if (!client.startedConnecting.get()) {
+            if (!client.startedConnecting) {
                 // count real dials only, see https://github.com/ccxt/ccxt/pull/29627
-                backoffDelay = this.calculateWsBackoffDelay(url);
+                backoffDelay = this.calculateWsBackoffDelay(url.toString());
             }
             client.connect(backoffDelay).thenAccept(connected -> {
                 if (message != null) {
@@ -1992,8 +2245,34 @@ public class BaseExchange {
         return (CompletableFuture<T>) raceFuture.getFuture();
     }
 
-    public void handleMessage(Client client, Object message) {
+    public void handleMessage(Client client, Map<String, Object> message) {
         // Base implementation — overridden by pro exchange classes
+    }
+
+    public void handleTextMessage(Client client, Object message) {
+        // Base implementation — overridden by exchanges that receive text frames
+    }
+
+    public void handleListMessage(Client client, Object message) {
+        // Base implementation — overridden by exchanges that receive json array frames
+    }
+
+    public void handleBinaryMessage(Client client, Object message) {
+        // Base implementation — overridden by exchanges that receive raw binary frames
+    }
+
+    /** Hands a parsed frame to the handler that takes its shape: text, json array, raw bytes or json object. */
+    @SuppressWarnings("unchecked")
+    public void routeMessage(Client client, Object message) {
+        if (message instanceof String) {
+            this.handleTextMessage(client, message);
+        } else if (message instanceof List<?>) {
+            this.handleListMessage(client, message);
+        } else if (message instanceof byte[]) {
+            this.handleBinaryMessage(client, message);
+        } else if (message instanceof Map<?, ?>) {
+            this.handleMessage(client, (Map<String, Object>) message);
+        }
     }
 
     public Object ping(Client client) {
@@ -2022,8 +2301,7 @@ public class BaseExchange {
         // detach the client that errored, by reference: a reconnect may have
         // installed a healthy replacement under the same url in the meantime.
         // see https://github.com/ccxt/ccxt/issues/30463
-        var clientsMap = (java.util.concurrent.ConcurrentHashMap<String, Client>) this.clients;
-        clientsMap.remove(client.url, client);
+        this.clientsMap().remove(client.url, client);
         // no client.close() here: its executor shutdown races in-flight handleMessage
         client.scheduleExecutorShutdown();
     }
@@ -2078,7 +2356,8 @@ public class BaseExchange {
      * an inline spawn rewrite would hit with reassignable locals.
      */
     public void scheduleCallback(Object delayMs, String methodName, Object... args) {
-        this.spawn(() -> {
+        // never on the ws owner: the sleep would park frame handling for the exchange
+        VIRTUAL_EXECUTOR.execute(() -> {
             try {
                 Thread.sleep(((Number) delayMs).longValue());
                 Helpers.callDynamically(this, methodName, args);
@@ -2096,7 +2375,8 @@ public class BaseExchange {
      */
     public io.github.ccxt.ws.Future spawnWithResult(String methodName, Object... args) {
         io.github.ccxt.ws.Future fut = new io.github.ccxt.ws.Future();
-        this.spawn(() -> {
+        // never on the ws owner: the body joins, and the join may need a later frame
+        VIRTUAL_EXECUTOR.execute(() -> {
             try {
                 Object result = Helpers.callDynamically(this, methodName, args);
                 // callDynamically may return a CompletableFuture — unwrap
@@ -2115,18 +2395,27 @@ public class BaseExchange {
     // together with fetchRestOrderBookSafe, since both belong to the Exchange trading tier
     // (BaseExchange no longer declares fetchRestOrderBookSafe/fetchOrderBook that it depends on).
 
-    /** Hand-written (not transpiled): lastRestRequestTimestamp is a volatile long,
-     *  so a plain assignment is already safe against concurrent requests. */
+    /** Hand-written (not transpiled): the request stamp is owner state — the write is handed to
+     *  the state-owner thread and read back through the same hand-off, so no volatile is needed. */
     public void setLastRestRequestTimestamp() {
-        this.lastRestRequestTimestamp = this.milliseconds();
+        final long now = this.milliseconds();
+        owned (new OwnedTask<Object> () {
+            @Override Object run () { BaseExchange.this.lastRestRequestTimestamp = now; return null; }
+        });
     }
 
-    /** Hand-written (not transpiled): the last_request_* fields are volatile,
-     *  so plain assignments are already safe against concurrent requests. */
-    public void setLastRequest(Object request) {
-        this.last_request_headers = Helpers.GetValue(request, "headers");
-        this.last_request_body = Helpers.GetValue(request, "body");
-        this.last_request_url = Helpers.GetValue(request, "url");
+    public long getLastRestRequestTimestamp() {
+        return owned (new OwnedTask<Long> () {
+            @Override Long run () { return Long.valueOf (BaseExchange.this.lastRestRequestTimestamp); }
+        });
+    }
+
+    /** Hand-written (not transpiled): the last_request_* fields are written and read on the
+     *  request's own call chain, so plain assignments need no volatile publication. */
+    public void setLastRequest(Map<String, Object> request) {
+        this.last_request_headers = request.get("headers");
+        this.last_request_body = request.get("body");
+        this.last_request_url = request.get("url");
     }
 
     /** Check if a message is binary (byte array). */
@@ -3128,13 +3417,13 @@ public class BaseExchange {
         return out;
     }
 
-    public Object starknetEncodeStructuredData(Object domain2, Object messageTypes2, Object messageData2, Object address)
+    public String starknetEncodeStructuredData(Object domain2, Object messageTypes2, Object messageData2, Object address)
     {
         // throw new RuntimeException("Not implemented");
         return ""; // to do later
     }
 
-    public Object starknetSign(Object msgHash, Object privateKey)
+    public String starknetSign(Object msgHash, Object privateKey)
     {
         // throw new RuntimeException("Not implemented");
         return ""; // to do later
@@ -3148,7 +3437,7 @@ public class BaseExchange {
         return this.json(new ArrayList<Object>(Arrays.asList(signature[0].toString(), signature[1].toString())));
     }
 
-    public Object extendedStarknetGetSelectorFromName(Object name)
+    public String extendedStarknetGetSelectorFromName(Object name)
     {
         String functionName = name.toString();
         if (functionName.equals("__default__") || functionName.equals("__l1_default__")) {
@@ -3158,7 +3447,7 @@ public class BaseExchange {
         return extendedField(extendedBigIntegerFromUnsignedBytes(digest), EXTENDED_STARKNET_SELECTOR_MASK).toString();
     }
 
-    public Object extendedStarknetComputePoseidonHashOnElements(Object data)
+    public String extendedStarknetComputePoseidonHashOnElements(Object data)
     {
         if (!(data instanceof Iterable<?>)) {
             throw new RuntimeException("extendedStarknetComputePoseidonHashOnElements() requires an array");
@@ -3556,7 +3845,7 @@ public class BaseExchange {
         throw new RuntimeException("Dydx currently does not support create order / transfer asset in java language");
     }
 
-    public Object encodeDydxTxForSimulation(
+    public String encodeDydxTxForSimulation(
         Object message,
         Object memo,
         Object sequence,
@@ -3581,7 +3870,7 @@ public class BaseExchange {
         throw new RuntimeException("Dydx currently does not support create order / transfer asset in java language");
     }
 
-    public Object encodeDydxTxRaw(Object signDoc, Object signature)
+    public String encodeDydxTxRaw(Object signDoc, Object signature)
     {
         throw new RuntimeException("Dydx currently does not support create order / transfer asset in java language");
     }
@@ -3670,7 +3959,7 @@ public class BaseExchange {
     }
 
 
-    public Object lighterCreateAuthToken(Object signer, Object request)
+    public String lighterCreateAuthToken(Object signer, Object request)
     {
         return null;
     }
@@ -3690,7 +3979,7 @@ public class BaseExchange {
         return (String)str;
     }
 
-    public Object binaryToBase58(Object buff2) {
+    public String binaryToBase58(Object buff2) {
         // bitcoin-alphabet base58, mirrors TS `binaryToBase58 = base58.encode` (@scure/base);
         // used by pacifica request signing — must NOT be hex
         return Encode.binaryToBase58(buff2);
@@ -3848,7 +4137,8 @@ public class BaseExchange {
         if (options instanceof Map) {
             @SuppressWarnings("unchecked")
             Map<String, Object> optionsMap = (Map<String, Object>) options;
-            this.options = (Map<String, Object>) this.extend(this.options, optionsMap);
+            // a fresh store per merge: the test harness snapshots the previous map by reference
+            this.options = SynchronizedOptions.of((Map<String, Object>) this.extend(this.options, optionsMap));
         }
     }
 
@@ -4050,7 +4340,7 @@ public class BaseExchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
-public Object describe()
+public Map<String, Object> describe()
     {
         return new HashMap<String, Object>() {{
             put( "id", BaseExchange.this.id );
@@ -4616,7 +4906,7 @@ public Object describe()
         return defaultValue;
     }
 
-    public void storeByKey(Object dict, Object key, Object value)
+    public void storeByKey(Map<String, Object> dict, Object key, Object value)
     {
         /**
          * @ignore
@@ -4634,7 +4924,7 @@ public Object describe()
     {
         for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
-            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
+            this.handleDelta(bookside, this.safeValue(deltas, i));
         }
     }
 
@@ -4643,24 +4933,24 @@ public Object describe()
         throw new NotSupported((this.id + " handleDelta not supported yet")) ;
     }
 
-    public void handleBookDeltas(Object orderbook, Object deltas)
+    public void handleBookDeltas(io.github.ccxt.ws.WsOrderBook orderbook, Object deltas)
     {
-        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
+        for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
-            this.handleBookDelta(orderbook, Helpers.GetValue(deltas, i));
+            this.handleBookDelta(orderbook, this.safeValue(deltas, i));
         }
     }
 
-    public void handleBookDelta(Object orderbook, Object delta)
+    public void handleBookDelta(io.github.ccxt.ws.WsOrderBook orderbook, Object delta)
     {
         throw new NotSupported((this.id + " handleBookDelta not supported yet")) ;
     }
 
     public void handleDeltasWithKeys(Object bookSide, Object deltas, Object priceKey, Object amountKey, Object countOrIdKey)
     {
-        for (var i = 0; i < (switch ((Object)(deltas)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; }); i++)
+        for (var i = 0; i < ((List<?>)deltas).size(); i++)
         {
-            List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(Helpers.GetValue(deltas, i), java.util.Objects.requireNonNullElse(priceKey, 0), java.util.Objects.requireNonNullElse(amountKey, 1), java.util.Objects.requireNonNullElse(countOrIdKey, 2));
+            List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(this.safeValue(deltas, i), java.util.Objects.requireNonNullElse(priceKey, 0), java.util.Objects.requireNonNullElse(amountKey, 1), java.util.Objects.requireNonNullElse(countOrIdKey, 2));
             ((IOrderBookSide)bookSide).storeArray(bidAsk);
         }
     }
@@ -4850,7 +5140,7 @@ public Object describe()
         return new ArrayList<Object>(Arrays.asList(wsProxy, wssProxy, wsSocksProxy));
     }
 
-    public void checkConflictingProxies(Object proxyAgentSet, Object proxyUrlSet)
+    public void checkConflictingProxies(String proxyAgentSet, String proxyUrlSet)
     {
         Boolean proxyAgentIsSet = (!java.util.Objects.equals(proxyAgentSet, null)) && (!java.util.Objects.equals(proxyAgentSet, null)) && (!java.util.Objects.equals(proxyAgentSet, ""));
         Boolean proxyUrlIsSet = (!java.util.Objects.equals(proxyUrlSet, null)) && (!java.util.Objects.equals(proxyUrlSet, null)) && (!java.util.Objects.equals(proxyUrlSet, ""));
@@ -4890,7 +5180,7 @@ public Object describe()
     public Object findMessageHashes(Client client, Object element)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        List<Object> messageHashes = ((List<Object>) switch ((Object)(client.futures)) { case Map<?, ?> j39v7 -> { synchronized (j39v7) { yield new ArrayList<Object>(j39v7.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> messageHashes = new ArrayList<Object>(client.futures.keySet());
         for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
         {
             Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
@@ -4902,9 +5192,9 @@ public Object describe()
         return result;
     }
 
-    public List<Object> filterByLimit(Object array, Long limit, Object key, Object fromStart)
+    public List<Object> filterByLimit(List<Object> array, Long limit, Object key, Object fromStart)
     {
-        if (this.valueIsDefined(limit))
+        if (!java.util.Objects.equals(limit, null) && !java.util.Objects.equals(limit, null))
         {
             Object arrayLength = ((List<?>)array).size();
             if ((((Number) arrayLength).doubleValue() > 0))
@@ -4913,13 +5203,13 @@ public Object describe()
                 if ((Helpers.inOp((array == null || 0 >= ((List<?>)array).size() ? null : ((List<?>)array).get(0)), java.util.Objects.requireNonNullElse(key, "timestamp"))))
                 {
                     Double first = this.safeFloat((array == null || 0 >= ((List<?>)array).size() ? null : ((List<?>)array).get(0)), java.util.Objects.requireNonNullElse(key, "timestamp"));
-                    Double last = this.safeFloat(Helpers.GetValue(array, ((((Number) arrayLength).longValue()) - 1L)), java.util.Objects.requireNonNullElse(key, "timestamp"));
+                    Double last = this.safeFloat((array == null || ((int) ((((Number) arrayLength).longValue()) - 1L)) < 0 || ((int) ((((Number) arrayLength).longValue()) - 1L)) >= array.size() ? null : array.get(((int) ((((Number) arrayLength).longValue()) - 1L)))), java.util.Objects.requireNonNullElse(key, "timestamp"));
                     if (!java.util.Objects.equals(first, null) && !java.util.Objects.equals(last, null))
                     {
                         ascending = ((last == null && first == null) || last != null && (first == null || last >= first)); // true if array is sorted in ascending order based on 'timestamp'
                     }
                 }
-                if (Helpers.isTrue(java.util.Objects.requireNonNullElse(fromStart, false)))
+                if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(fromStart, false)))
                 {
                     Object limitResolved = ((((limit != null && limit > ((Number) arrayLength).doubleValue())))) ? arrayLength : limit;
                     if (Boolean.TRUE.equals(ascending))
@@ -4930,7 +5220,7 @@ public Object describe()
                 }
                 if (Boolean.TRUE.equals(ascending))
                 {
-                    return (List<Object>) this.arraySlice(array, (limit == null ? null : -limit));
+                    return (List<Object>) this.arraySlice(array, (-limit));
                 }
                 return (List<Object>) this.arraySlice(array, 0, limit);
             }
@@ -4944,13 +5234,13 @@ public Object describe()
         {
             return new ArrayList<Object>(Arrays.asList());
         }
-        Boolean sinceIsDefined = this.valueIsDefined(since);
-        List<Object> parsedArray = (List<Object>) ((Object)this.toArray(array));
+        Boolean sinceIsDefined = !java.util.Objects.equals(since, null) && !java.util.Objects.equals(since, null);
+        List<Object> parsedArray = this.toArray(array);
         List<Object> result = parsedArray;
         if (Boolean.TRUE.equals(sinceIsDefined))
         {
             result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < (parsedArray == null ? 0 : parsedArray.size()); i++)
+            for (var i = 0; i < ((List<?>)parsedArray).size(); i++)
             {
                 Object entry = (parsedArray == null || i < 0 || i >= parsedArray.size() ? null : parsedArray.get(i));
                 Long value = this.safeInteger(entry, java.util.Objects.requireNonNullElse(key, "timestamp"));
@@ -4960,36 +5250,36 @@ public Object describe()
                 }
             }
         }
-        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(tail, false)) && !java.util.Objects.equals(limit, null))
+        if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(tail, false)) && !java.util.Objects.equals(limit, null))
         {
             return (List<Object>) this.arraySlice(result, (-limit));
         }
         // if the user provided a 'since' argument
         // we want to limit the result starting from the 'since'
-        Boolean shouldFilterFromStart = !Helpers.isTrue(java.util.Objects.requireNonNullElse(tail, false)) && Boolean.TRUE.equals(sinceIsDefined);
+        Boolean shouldFilterFromStart = !Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(tail, false)) && Boolean.TRUE.equals(sinceIsDefined);
         return this.filterByLimit(result, limit, java.util.Objects.requireNonNullElse(key, "timestamp"), shouldFilterFromStart);
     }
 
     public List<Object> filterByValueSinceLimit(Object array, Object field, Object value, Long since, Long limit, Object key, Boolean tail)
     {
         Boolean valueIsDefined = this.valueIsDefined(value);
-        Boolean sinceIsDefined = this.valueIsDefined(since);
-        List<Object> parsedArray = (List<Object>) ((Object)this.toArray(array));
+        Boolean sinceIsDefined = !java.util.Objects.equals(since, null) && !java.util.Objects.equals(since, null);
+        List<Object> parsedArray = this.toArray(array);
         List<Object> result = parsedArray;
         // single-pass filter for both symbol and since
         if (Boolean.TRUE.equals(valueIsDefined) || Boolean.TRUE.equals(sinceIsDefined))
         {
             result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < (parsedArray == null ? 0 : parsedArray.size()); i++)
+            for (var i = 0; i < ((List<?>)parsedArray).size(); i++)
             {
                 Object entry = (parsedArray == null || i < 0 || i >= parsedArray.size() ? null : parsedArray.get(i));
                 // safeValue (not entry[field]) so a missing field is a non-match, not a
                 // KeyError in python/php — prediction structures key on outcome, not symbol
                 Boolean entryFiledEqualValue = Helpers.isEqual(this.safeValue(entry, field), value);
-                Object firstCondition = ((Boolean.TRUE.equals(valueIsDefined))) ? entryFiledEqualValue : true;
+                Boolean firstCondition = !Boolean.TRUE.equals(valueIsDefined) || Boolean.TRUE.equals(entryFiledEqualValue);
                 Long entryKeyValue = this.safeInteger(entry, java.util.Objects.requireNonNullElse(key, "timestamp"));
-                Object entryKeyGESince = (!java.util.Objects.equals(entryKeyValue, null)) && ((entryKeyValue == null || entryKeyValue != 0)) && (!java.util.Objects.equals(since, null)) && (((entryKeyValue != null && entryKeyValue >= since)));
-                Object secondCondition = ((Boolean.TRUE.equals(sinceIsDefined))) ? entryKeyGESince : true;
+                Boolean entryKeyGESince = (!java.util.Objects.equals(entryKeyValue, null)) && ((entryKeyValue == null || entryKeyValue != 0)) && (!java.util.Objects.equals(since, null)) && (((entryKeyValue != null && entryKeyValue >= since)));
+                Boolean secondCondition = !Boolean.TRUE.equals(sinceIsDefined) || Boolean.TRUE.equals(entryKeyGESince);
                 if (Boolean.TRUE.equals(firstCondition) && Boolean.TRUE.equals(secondCondition))
                 {
                     ((List<Object>)result).add(entry);
@@ -5017,12 +5307,12 @@ public Object describe()
             {
                 if ((this.urls.get("api") instanceof String))
                 {
-                    Helpers.addElementToObject(this.urls, "apiBackup", this.urls.get("api"));
-                    Helpers.addElementToObject(this.urls, "api", this.urls.get("test"));
+                    this.urls.put("apiBackup", this.urls.get("api"));
+                    this.urls.put("api", BaseExchange.this.urls.get("test"));
                 } else
                 {
-                    Helpers.addElementToObject(this.urls, "apiBackup", this.clone(this.urls.get("api")));
-                    Helpers.addElementToObject(this.urls, "api", this.clone(this.urls.get("test")));
+                    this.urls.put("apiBackup", this.clone(this.urls.get("api")));
+                    this.urls.put("api", this.clone(this.urls.get("test")));
                 }
             } else
             {
@@ -5034,10 +5324,10 @@ public Object describe()
         {
             if ((this.urls.get("api") instanceof String))
             {
-                Helpers.addElementToObject(this.urls, "api", ((Object)this.urls.get("apiBackup")));
+                this.urls.put("api", ((Object)this.urls.get("apiBackup")));
             } else
             {
-                Helpers.addElementToObject(this.urls, "api", this.clone(this.urls.get("apiBackup")));
+                this.urls.put("api", this.clone(this.urls.get("apiBackup")));
             }
             Map<String, Object> newUrls = this.omit(this.urls, "apiBackup");
             this.urls = newUrls;
@@ -5060,15 +5350,15 @@ public Object describe()
         }
         if (Boolean.TRUE.equals(enable))
         {
-            Helpers.addElementToObject(this.urls, "apiBackupDemoTrading", this.urls.get("api"));
-            Helpers.addElementToObject(this.urls, "api", this.urls.get("demo"));
+            this.urls.put("apiBackupDemoTrading", BaseExchange.this.urls.get("api"));
+            this.urls.put("api", this.urls.get("demo"));
         } else if (((Map<?, ?>)this.urls).containsKey("apiBackupDemoTrading"))
         {
-            Helpers.addElementToObject(this.urls, "api", ((Object)this.urls.get("apiBackupDemoTrading")));
+            this.urls.put("api", ((Object)this.urls.get("apiBackupDemoTrading")));
             Map<String, Object> newUrls = this.omit(this.urls, "apiBackupDemoTrading");
             this.urls = newUrls;
         }
-        Helpers.addElementToObject(this.options, "enableDemoTrading", enable);
+        this.options.put("enableDemoTrading", enable);
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters)
@@ -5084,10 +5374,7 @@ public Object describe()
     public CompletableFuture<List<Account>> fetchAccounts(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchAccounts() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchAccounts() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Account::new).collect(Collectors.toList()));
 
     }
 
@@ -5108,10 +5395,7 @@ public Object describe()
     public CompletableFuture<List<Liquidation>> watchLiquidationsForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchLiquidationsForSymbols() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchLiquidationsForSymbols() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
 
     }
 
@@ -5132,120 +5416,84 @@ public Object describe()
     public CompletableFuture<List<Liquidation>> watchMyLiquidationsForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchMyLiquidationsForSymbols() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchMyLiquidationsForSymbols() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<Object> unWatchOrders(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " unWatchOrders() is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " unWatchOrders() is not supported yet")));
 
     }
 
     public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " unWatchTrades() is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " unWatchTrades() is not supported yet")));
 
     }
 
     public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " unWatchTradesForSymbols() is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " unWatchTradesForSymbols() is not supported yet")));
 
     }
 
     public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchOHLCVForSymbols() is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchOHLCVForSymbols() is not supported yet")));
 
     }
 
     public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " unWatchOHLCVForSymbols() is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " unWatchOHLCVForSymbols() is not supported yet")));
 
     }
 
     public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " unWatchOrderBookForSymbols() is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " unWatchOrderBookForSymbols() is not supported yet")));
 
     }
 
     public CompletableFuture<Object> unWatchPositions(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " unWatchPositions() is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " unWatchPositions() is not supported yet")));
 
     }
 
     public CompletableFuture<Object> unWatchTicker(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " unWatchTicker() is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " unWatchTicker() is not supported yet")));
 
     }
 
     public CompletableFuture<Object> unWatchMarkPrice(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " unWatchMarkPrice() is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " unWatchMarkPrice() is not supported yet")));
 
     }
 
     public CompletableFuture<Object> unWatchMarkPrices(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " unWatchMarkPrices() is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " unWatchMarkPrices() is not supported yet")));
 
     }
 
     public CompletableFuture<List<DepositAddress>> fetchDepositAddresses(Object codes, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchDepositAddresses() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(DepositAddress::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchDepositAddresses() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(DepositAddress::new).collect(Collectors.toList()));
 
     }
 
@@ -5270,40 +5518,28 @@ public Object describe()
     public CompletableFuture<MarginModes> fetchMarginModes(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchMarginModes () is not supported yet")) ;
-        }).thenApply(MarginModes::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchMarginModes () is not supported yet"))).thenApply(MarginModes::new);
 
     }
 
     public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " unWatchOrderBook() is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " unWatchOrderBook() is not supported yet")));
 
     }
 
     public CompletableFuture<Long> fetchTime(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchTime() is not supported yet")) ;
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchTime() is not supported yet"))).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
 
     }
 
     public CompletableFuture<Object> fetchTradingLimits(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchTradingLimits() is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchTradingLimits() is not supported yet")));
 
     }
 
@@ -5337,7 +5573,7 @@ public Object describe()
     public Object parseMarkets(Object markets)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(markets)) { case null -> 0; case List<?> j39v8 -> j39v8.size(); case String j39v9 -> j39v9.length(); case Object j39v10 -> j39v10.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v10) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(markets)) { case null -> 0; case List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length(); case Object j39v3 -> j39v3.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v3) : 0; }); i++)
         {
             MarketInterface market = this.parseMarket(Helpers.GetValue(markets, i));
             // parseMarket returns undefined for a market it cannot build (e.g. unknown base or quote)
@@ -5396,20 +5632,14 @@ public Object describe()
     public CompletableFuture<CrossBorrowRates> fetchCrossBorrowRates(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchCrossBorrowRates() is not supported yet")) ;
-        }).thenApply(CrossBorrowRates::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchCrossBorrowRates() is not supported yet"))).thenApply(CrossBorrowRates::new);
 
     }
 
     public CompletableFuture<IsolatedBorrowRates> fetchIsolatedBorrowRates(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchIsolatedBorrowRates() is not supported yet")) ;
-        }).thenApply(IsolatedBorrowRates::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchIsolatedBorrowRates() is not supported yet"))).thenApply(IsolatedBorrowRates::new);
 
     }
 
@@ -5421,10 +5651,7 @@ public Object describe()
     public CompletableFuture<LeverageTiers> fetchLeverageTiers(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchLeverageTiers() is not supported yet")) ;
-        }).thenApply(LeverageTiers::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchLeverageTiers() is not supported yet"))).thenApply(LeverageTiers::new);
 
     }
 
@@ -5471,50 +5698,35 @@ public Object describe()
     public CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchFundingRates() is not supported yet")) ;
-        }).thenApply(FundingRates::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchFundingRates() is not supported yet"))).thenApply(FundingRates::new);
 
     }
 
     public CompletableFuture<FundingRates> fetchFundingIntervals(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchFundingIntervals() is not supported yet")) ;
-        }).thenApply(FundingRates::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchFundingIntervals() is not supported yet"))).thenApply(FundingRates::new);
 
     }
 
     public CompletableFuture<FundingRate> watchFundingRate(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchFundingRate() is not supported yet")) ;
-        }).thenApply(FundingRate::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchFundingRate() is not supported yet"))).thenApply(FundingRate::new);
 
     }
 
     public CompletableFuture<FundingRates> watchFundingRates(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchFundingRates() is not supported yet")) ;
-        }).thenApply(FundingRates::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchFundingRates() is not supported yet"))).thenApply(FundingRates::new);
 
     }
 
     public CompletableFuture<Object> unWatchFundingRates(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " unWatchFundingRates() is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " unWatchFundingRates() is not supported yet")));
 
     }
 
@@ -5523,7 +5735,7 @@ public Object describe()
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.watchFundingRates(((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v46 -> (List<String>) hx4J40v46; case Object hx4J40v46 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v46.getClass().getName()); })), parameters)).join();
+            return (this.watchFundingRates(((List<String>) (switch ((Object) (symbols)) { case null -> (List<String>) null; case List<?> hx4J40v35 -> (List<String>) hx4J40v35; case Object hx4J40v35 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v35.getClass().getName()); })), parameters)).join();
         }).thenApply(FundingRates::new);
 
     }
@@ -5531,40 +5743,28 @@ public Object describe()
     public CompletableFuture<TransferEntry> transfer(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " transfer() is not supported yet")) ;
-        }).thenApply(TransferEntry::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " transfer() is not supported yet"))).thenApply(TransferEntry::new);
 
     }
 
     public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " withdraw() is not supported yet")) ;
-        }).thenApply(Transaction::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " withdraw() is not supported yet"))).thenApply(Transaction::new);
 
     }
 
     public CompletableFuture<DepositAddress> createDepositAddress(String code, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " createDepositAddress() is not supported yet")) ;
-        }).thenApply(DepositAddress::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " createDepositAddress() is not supported yet"))).thenApply(DepositAddress::new);
 
     }
 
     public CompletableFuture<Object> setLeverage(Object leverage, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " setLeverage() is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " setLeverage() is not supported yet")));
 
     }
 
@@ -5589,140 +5789,98 @@ public Object describe()
     public CompletableFuture<Leverages> fetchLeverages(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchLeverages() is not supported yet")) ;
-        }).thenApply(Leverages::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchLeverages() is not supported yet"))).thenApply(Leverages::new);
 
     }
 
     public CompletableFuture<Object> setPositionMode(Boolean hedged, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " setPositionMode() is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " setPositionMode() is not supported yet")));
 
     }
 
     public CompletableFuture<MarginModification> addMargin(String symbol, Object amount, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " addMargin() is not supported yet")) ;
-        }).thenApply(MarginModification::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " addMargin() is not supported yet"))).thenApply(MarginModification::new);
 
     }
 
     public CompletableFuture<MarginModification> reduceMargin(String symbol, Object amount, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " reduceMargin() is not supported yet")) ;
-        }).thenApply(MarginModification::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " reduceMargin() is not supported yet"))).thenApply(MarginModification::new);
 
     }
 
     public CompletableFuture<MarginModification> setMargin(String symbol, Object amount, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " setMargin() is not supported yet")) ;
-        }).thenApply(MarginModification::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " setMargin() is not supported yet"))).thenApply(MarginModification::new);
 
     }
 
     public CompletableFuture<LongShortRatio> fetchLongShortRatio(String symbol, String timeframe, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchLongShortRatio() is not supported yet")) ;
-        }).thenApply(LongShortRatio::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchLongShortRatio() is not supported yet"))).thenApply(LongShortRatio::new);
 
     }
 
     public CompletableFuture<List<LongShortRatio>> fetchLongShortRatioHistory(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchLongShortRatioHistory() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(LongShortRatio::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchLongShortRatioHistory() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(LongShortRatio::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<List<MarginModification>> fetchMarginAdjustmentHistory(String symbol, String type, Object since, Object limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchMarginAdjustmentHistory() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(MarginModification::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchMarginAdjustmentHistory() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(MarginModification::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<Object> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " setMarginMode() is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " setMarginMode() is not supported yet")));
 
     }
 
     public CompletableFuture<Object> fetchDepositAddressesByNetwork(Object code, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchDepositAddressesByNetwork() is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchDepositAddressesByNetwork() is not supported yet")));
 
     }
 
     public CompletableFuture<List<OpenInterest>> fetchOpenInterestHistory(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchOpenInterestHistory() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(OpenInterest::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchOpenInterestHistory() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(OpenInterest::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<OpenInterests> fetchOpenInterests(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchOpenInterests() is not supported yet")) ;
-        }).thenApply(OpenInterests::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchOpenInterests() is not supported yet"))).thenApply(OpenInterests::new);
 
     }
 
     public CompletableFuture<Object> signIn(Object parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " signIn() is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " signIn() is not supported yet")));
 
     }
 
     public CompletableFuture<Object> fetchPaymentMethods(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchPaymentMethods() is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchPaymentMethods() is not supported yet")));
 
     }
 
@@ -5734,8 +5892,8 @@ public Object describe()
         // the cast is erased at transpile-time, so output matches every target language, rather than
         // branching to a bare `NaN` literal, which has no symbol in Go/Java/C#
         String stringifiedNumber = this.numberToString(number);
-        Object convertedNumber = ((Object)Helpers.parseFloat(stringifiedNumber));
-        return Helpers.parseInt(convertedNumber);
+        Object convertedNumber = Double.parseDouble(stringifiedNumber);
+        return ((Number)convertedNumber).longValue();
     }
 
     public Object parseToNumeric(Object number)
@@ -5747,9 +5905,9 @@ public Object describe()
         // in PHP:    1 == 1.0 is true, but 1 === 1.0 is false.
         if (((String)stringVersion).indexOf(".") >= 0)
         {
-            return Helpers.parseFloat(stringVersion);
+            return Double.parseDouble(stringVersion);
         }
-        return Helpers.parseInt(stringVersion);
+        return Long.parseLong(stringVersion);
     }
 
     public Boolean isRoundNumber(Object value)
@@ -5786,7 +5944,7 @@ public Object describe()
     {
         // networksById: inverse of options.networks, explicit options.networksById entries win
         Object networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeValue(this.options, "networks", new HashMap<String, Object>() {{}}));
-        Helpers.addElementToObject(this.options, "networksById", this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, "networksById", new HashMap<String, Object>() {{}})));
+        this.options.put("networksById", BaseExchange.this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, "networksById", new HashMap<String, Object>() {{}})));
         this.featuresGenerator();
         this.hasAutocorrect();
         // init predefined markets if any
@@ -5800,7 +5958,7 @@ public Object describe()
         Boolean isSandbox = (Boolean) this.safeBool2(this.options, "sandbox", "testnet", false);
         if (Boolean.TRUE.equals(isSandbox))
         {
-            this.setSandboxMode(isSandbox);
+            this.setSandboxMode(true);
         }
         // compatibility for sandbox/testnet options in userConfig
         if ((Boolean.TRUE.equals((this.safeBool(userConfig, "sandbox", false))) || Boolean.TRUE.equals((this.safeBool(userConfig, "testnet", false)))))
@@ -5823,11 +5981,11 @@ public Object describe()
         {
             String target = (targets == null || i < 0 || i >= targets.size() ? null : targets.get(i));
             Object source = (fallbacks == null || target == null ? null : fallbacks.get(target));
-            Boolean sourceDefined = ((source != null && ((Map<?, ?>)this.has).containsKey(source))) && (!java.util.Objects.equals(Helpers.GetValue(this.has, source), null));
+            Boolean sourceDefined = ((source != null && ((Map<?, ?>)this.has).containsKey(source))) && (!java.util.Objects.equals((this.has == null || source == null ? null : this.has.get(source)), null));
             Boolean targetDefined = (((Map<?, ?>)this.has).containsKey(target)) && (!java.util.Objects.equals((this.has == null || target == null ? null : this.has.get(target)), null));
             if (Boolean.TRUE.equals(sourceDefined) && !Boolean.TRUE.equals(targetDefined))
             {
-                Helpers.addElementToObject(this.has, target, Helpers.GetValue(this.has, source));
+                Helpers.addElementToObject(this.has, target, (this.has == null || source == null ? null : this.has.get(source)));
             }
         }
     }
@@ -5879,7 +6037,7 @@ public Object describe()
             return;
         }
         // reconstruct
-        Object initialFeatures = this.features;
+        Map<String, Object> initialFeatures = this.features;
         this.features = new HashMap<String, Object>() {{}};
         List<String> unifiedMarketTypes = new ArrayList<String>(Arrays.asList("spot", "swap", "future", "option"));
         List<String> subTypes = new ArrayList<String>(Arrays.asList("linear", "inverse"));
@@ -5888,21 +6046,21 @@ public Object describe()
         {
             String marketType = (String) (unifiedMarketTypes == null || i < 0 || i >= unifiedMarketTypes.size() ? null : unifiedMarketTypes.get(i));
             // if marketType is not filled for this exchange, don't add that in `features`
-            if (!(((Map<?, ?>)initialFeatures).containsKey(marketType)))
+            if (!(initialFeatures.containsKey(marketType)))
             {
                 Helpers.addElementToObject(this.features, marketType, null);
             } else
             {
                 if (java.util.Objects.equals(marketType, "spot"))
                 {
-                    Helpers.addElementToObject(this.features, marketType, this.featuresMapper((Map<String, Object>) (initialFeatures), marketType, (String) null));
+                    Helpers.addElementToObject(this.features, marketType, this.featuresMapper(initialFeatures, marketType, (String) null));
                 } else
                 {
-                    Helpers.addElementToObject(this.features, marketType, new HashMap<String, Object>() {{}});
+                    this.features.put(marketType, new HashMap<String, Object>() {{}});
                     for (var j = 0; j < ((List<?>)subTypes).size(); j++)
                     {
                         String subType = (String) (subTypes == null || j < 0 || j >= subTypes.size() ? null : subTypes.get(j));
-                        Helpers.addElementToObject((this.features == null || marketType == null ? null : this.features.get(marketType)), subType, this.featuresMapper((Map<String, Object>) (initialFeatures), marketType, subType));
+                        Helpers.addElementToObject((this.features == null || marketType == null ? null : this.features.get(marketType)), subType, this.featuresMapper(initialFeatures, marketType, subType));
                     }
                 }
             }
@@ -5911,7 +6069,7 @@ public Object describe()
 
     public Object featuresMapper(Map<String, Object> initialFeatures, String marketType, String subType)
     {
-        Object featuresObj = (((!java.util.Objects.equals(subType, null)))) ? Helpers.GetValue(Helpers.GetValue(initialFeatures, ((String)marketType)), subType) : Helpers.GetValue(initialFeatures, ((String)marketType));
+        Object featuresObj = (((!java.util.Objects.equals(subType, null)))) ? Helpers.GetValue((initialFeatures == null || marketType == null ? null : initialFeatures.get(((String)marketType))), subType) : (initialFeatures == null || marketType == null ? null : initialFeatures.get(((String)marketType)));
         // if exchange does not have that market-type (eg. future>inverse)
         if (java.util.Objects.equals(featuresObj, null))
         {
@@ -5921,14 +6079,14 @@ public Object describe()
         if (!java.util.Objects.equals(extendsStr, null))
         {
             featuresObj = this.omit(featuresObj, "extends");
-            Object extendObj = this.featuresMapper((Map<String, Object>) (initialFeatures), extendsStr, (String) null);
+            Object extendObj = this.featuresMapper(initialFeatures, extendsStr, (String) null);
             featuresObj = this.deepExtend(extendObj, featuresObj);
         }
         //
         // ### corrections ###
         //
         // createOrder
-        if ((switch ((Object)(featuresObj)) { case List<?> j39v17 -> j39v17.contains("createOrder"); case Map<?, ?> j39v16 -> j39v16.containsKey("createOrder"); case null, default -> false; }))
+        if ((switch ((Object)(featuresObj)) { case List<?> j39v10 -> j39v10.contains("createOrder"); case Map<?, ?> j39v9 -> j39v9.containsKey("createOrder"); case null, default -> false; }))
         {
             Map<String, Object> value = (Map<String, Object>) this.safeDict(Helpers.GetValue(featuresObj, "createOrder"), "attachedStopLossTakeProfit", (Object) null);
             Helpers.addElementToObject(Helpers.GetValue(featuresObj, "createOrder"), "stopLoss", value);
@@ -5938,7 +6096,7 @@ public Object describe()
                 // default 'hedged': false
                 Helpers.addElementToObject(Helpers.GetValue(featuresObj, "createOrder"), "hedged", false);
                 // default 'leverage': false
-                if (!((switch ((Object)(Helpers.GetValue(featuresObj, "createOrder"))) { case List<?> j39v15 -> j39v15.contains("leverage"); case Map<?, ?> j39v14 -> j39v14.containsKey("leverage"); case null, default -> false; })))
+                if (!((switch ((Object)(Helpers.GetValue(featuresObj, "createOrder"))) { case List<?> j39v8 -> j39v8.contains("leverage"); case Map<?, ?> j39v7 -> j39v7.containsKey("leverage"); case null, default -> false; })))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(featuresObj, "createOrder"), "leverage", false);
                 }
@@ -5950,7 +6108,7 @@ public Object describe()
             }
         }
         // other methods
-        List<Object> keys = ((List<Object>) switch ((Object)(featuresObj)) { case Map<?, ?> j39v13 -> { synchronized (j39v13) { yield new ArrayList<Object>(j39v13.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> keys = ((List<Object>) switch ((Object)(featuresObj)) { case Map<?, ?> j39v6 -> { synchronized (j39v6) { yield new ArrayList<Object>(j39v6.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -5958,7 +6116,7 @@ public Object describe()
             if (!this.inArray(key, new ArrayList<Object>(Arrays.asList("sandbox"))) && !java.util.Objects.equals(featureBlock, null))
             {
                 // default "symbolRequired" to false to all methods (except `createOrder`)
-                if (!((switch ((Object)(featureBlock)) { case List<?> j39v12 -> j39v12.contains("symbolRequired"); case Map<?, ?> j39v11 -> j39v11.containsKey("symbolRequired"); case null, default -> false; })))
+                if (!((switch ((Object)(featureBlock)) { case List<?> j39v5 -> j39v5.contains("symbolRequired"); case Map<?, ?> j39v4 -> j39v4.containsKey("symbolRequired"); case null, default -> false; })))
                 {
                     Helpers.addElementToObject(featureBlock, "symbolRequired", this.inArray(key, new ArrayList<Object>(Arrays.asList("createOrder", "createOrders", "fetchOHLCV"))));
                 }
@@ -6010,12 +6168,12 @@ public Object describe()
         {
             return defaultValue;  // unsupported marketType, check "exchange.features" for details
         }
+        Object methodsContainer = (this.features == null || marketType == null ? null : this.features.get(marketType));
         // if marketType dict undefined
-        if (java.util.Objects.equals(Helpers.GetValue(this.features, marketType), null))
+        if (java.util.Objects.equals(methodsContainer, null))
         {
             return defaultValue;
         }
-        Object methodsContainer = Helpers.GetValue(this.features, marketType);
         if (java.util.Objects.equals(subType, null))
         {
             if (!java.util.Objects.equals(marketType, "spot"))
@@ -6024,16 +6182,16 @@ public Object describe()
             }
         } else
         {
-            if (!(((Map<?, ?>)Helpers.GetValue(this.features, marketType)).containsKey(subType)))
+            if (!(((Map<?, ?>)methodsContainer).containsKey(subType)))
             {
                 return defaultValue;  // unsupported subType, check "exchange.features" for details
             }
+            methodsContainer = Helpers.GetValue(methodsContainer, subType);
             // if subType dict undefined
-            if (java.util.Objects.equals(Helpers.GetValue(Helpers.GetValue(this.features, marketType), subType), null))
+            if (java.util.Objects.equals(methodsContainer, null))
             {
                 return defaultValue;
             }
-            methodsContainer = Helpers.GetValue(Helpers.GetValue(this.features, marketType), subType);
         }
         // if user wanted only marketType and didn't provide methodName, eg: featureIsSupported('spot')
         if (java.util.Objects.equals(methodName, null))
@@ -6057,7 +6215,7 @@ public Object describe()
         List<Object> splited = new ArrayList<Object>(Arrays.asList(((String)paramName).split(java.util.regex.Pattern.quote(".")))); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         Object parentKey = (splited == null || 0 >= splited.size() ? null : splited.get(0));
         String subKey = this.safeString(splited, 1);
-        if (!((switch ((Object)(methodDict)) { case List<?> j39v21 -> ((Object)(parentKey)) != null && j39v21.contains(parentKey); case Map<?, ?> j39v20 -> ((Object)(parentKey)) instanceof String && j39v20.containsKey(parentKey); case null, default -> false; })))
+        if (!(((Map<?, ?>)methodDict).containsKey(parentKey)))
         {
             return defaultValue;  // unsupported paramName, check "exchange.features" for details');
         }
@@ -6074,7 +6232,7 @@ public Object describe()
                 return Helpers.GetValue(methodDict, parentKey);
             }
             // throw an exception for unsupported subKey
-            if (!((switch ((Object)(Helpers.GetValue(methodDict, parentKey))) { case List<?> j39v19 -> ((Object)(subKey)) != null && j39v19.contains(subKey); case Map<?, ?> j39v18 -> ((Object)(subKey)) instanceof String && j39v18.containsKey(subKey); case null, default -> false; })))
+            if (!((switch ((Object)(Helpers.GetValue(methodDict, parentKey))) { case List<?> j39v12 -> ((Object)(subKey)) != null && j39v12.contains(subKey); case Map<?, ?> j39v11 -> ((Object)(subKey)) instanceof String && j39v11.containsKey(subKey); case null, default -> false; })))
             {
                 return defaultValue;  // unsupported subKey, check "exchange.features" for details
             }
@@ -6088,7 +6246,7 @@ public Object describe()
         {
             throw new ArgumentsRequired((this.id + " orderbookChecksumMessage() requires a symbol argument")) ;
         }
-        return ((symbol + " : ") + "orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\"watchOrderBook\"][\"checksum\"] = false");
+        return (symbol + " : orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\"watchOrderBook\"][\"checksum\"] = false");
     }
 
     public Object getDefaultOptions()
@@ -6168,7 +6326,7 @@ public Object describe()
             for (var i = 0; (length != null && i < length); i++)
             {
                 String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                Object network = (networks == null || key == null ? null : networks.get(key));
+                Map<String, Object> network = (Map<String, Object>) this.safeDict(networks, key, new HashMap<String, Object>() {{}});
                 Boolean deposit = (Boolean) this.safeBool(network, "deposit", (Object) null);
                 Boolean currencyDeposit = (Boolean) this.safeBool(currency, "deposit", (Object) null);
                 if (java.util.Objects.equals(currencyDeposit, null) || (java.util.Objects.equals(deposit, true)))
@@ -6197,18 +6355,11 @@ public Object describe()
                 }
                 // limits
                 Map<String, Object> limits = (Map<String, Object>) this.safeDict(network, "limits", (Object) null);
-                Map<String, Object> limitsMain = (Map<String, Object>) this.safeDict(currency, "limits", (Object) null);
-                if (java.util.Objects.equals(limitsMain, null))
-                {
-                    currency.put("limits", new HashMap<String, Object>() {{}});
-                }
+                Map<String, Object> limitsMain = (Map<String, Object>) this.safeDict(currency, "limits", new HashMap<String, Object>() {{}});
                 // deposits
                 Map<String, Object> limitsDeposit = (Map<String, Object>) this.safeDict(limits, "deposit", (Object) null);
-                Map<String, Object> limitsDepositMain = (Map<String, Object>) this.safeDict(limitsMain, "deposit", (Object) null);
-                if (java.util.Objects.equals(limitsDepositMain, null))
-                {
-                    Helpers.addElementToObject(currency.get("limits"), "deposit", new HashMap<String, Object>() {{}});
-                }
+                Map<String, Object> limitsDepositMain = (Map<String, Object>) this.safeDict(limitsMain, "deposit", new HashMap<String, Object>() {{}});
+                Map<String, Object> limitsDepositNew = new HashMap<String, Object>() {{}};
                 String limitsDepositMin = this.safeString(limitsDeposit, "min");
                 String limitsDepositMax = this.safeString(limitsDeposit, "max");
                 String limitsDepositMinMain = this.safeString(limitsDepositMain, "min");
@@ -6216,20 +6367,17 @@ public Object describe()
                 // find min
                 if (java.util.Objects.equals(limitsDepositMinMain, null) || Precise.stringLt(limitsDepositMin, limitsDepositMinMain))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(currency.get("limits"), "deposit"), "min", this.parseNumber(limitsDepositMin));
+                    limitsDepositNew.put("min", BaseExchange.this.parseNumber(limitsDepositMin));
                 }
                 // find max
                 if (java.util.Objects.equals(limitsDepositMaxMain, null) || Precise.stringGt(limitsDepositMax, limitsDepositMaxMain))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(currency.get("limits"), "deposit"), "max", this.parseNumber(limitsDepositMax));
+                    limitsDepositNew.put("max", BaseExchange.this.parseNumber(limitsDepositMax));
                 }
                 // withdrawals
                 Map<String, Object> limitsWithdraw = (Map<String, Object>) this.safeDict(limits, "withdraw", (Object) null);
-                Map<String, Object> limitsWithdrawMain = (Map<String, Object>) this.safeDict(limitsMain, "withdraw", (Object) null);
-                if (java.util.Objects.equals(limitsWithdrawMain, null))
-                {
-                    Helpers.addElementToObject(currency.get("limits"), "withdraw", new HashMap<String, Object>() {{}});
-                }
+                Map<String, Object> limitsWithdrawMain = (Map<String, Object>) this.safeDict(limitsMain, "withdraw", new HashMap<String, Object>() {{}});
+                Map<String, Object> limitsWithdrawNew = new HashMap<String, Object>() {{}};
                 String limitsWithdrawMin = this.safeString(limitsWithdraw, "min");
                 String limitsWithdrawMax = this.safeString(limitsWithdraw, "max");
                 String limitsWithdrawMinMain = this.safeString(limitsWithdrawMain, "min");
@@ -6237,13 +6385,17 @@ public Object describe()
                 // find min
                 if (java.util.Objects.equals(limitsWithdrawMinMain, null) || Precise.stringLt(limitsWithdrawMin, limitsWithdrawMinMain))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(currency.get("limits"), "withdraw"), "min", this.parseNumber(limitsWithdrawMin));
+                    limitsWithdrawNew.put("min", BaseExchange.this.parseNumber(limitsWithdrawMin));
                 }
                 // find max
                 if (java.util.Objects.equals(limitsWithdrawMaxMain, null) || Precise.stringGt(limitsWithdrawMax, limitsWithdrawMaxMain))
                 {
-                    Helpers.addElementToObject(Helpers.GetValue(currency.get("limits"), "withdraw"), "max", this.parseNumber(limitsWithdrawMax));
+                    limitsWithdrawNew.put("max", BaseExchange.this.parseNumber(limitsWithdrawMax));
                 }
+                Helpers.addElementToObject(currency, "limits", this.extend(limitsMain, new HashMap<String, Object>() {{
+    put( "deposit", BaseExchange.this.extend(limitsDepositMain, limitsDepositNew) );
+    put( "withdraw", BaseExchange.this.extend(limitsWithdrawMain, limitsWithdrawNew) );
+}}));
             }
         }
         return new io.github.ccxt.types.CurrencyInterface(this.extend(new HashMap<String, Object>() {{
@@ -6340,7 +6492,7 @@ public Object describe()
         {
             Map<String, Object> result = this.extend(cleanStructure, market);
             // set undefined swap/future/etc
-            if (java.util.Objects.equals(result.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(result, "spot", false)))
             {
                 if (java.util.Objects.equals(result.get("contract"), null))
                 {
@@ -6378,37 +6530,37 @@ public Object describe()
         List<Object> marketValues = this.sortBy(this.toArray(markets), "spot", true, true);
         for (var i = 0; i < ((List<?>)marketValues).size(); i++)
         {
-            Object value = (marketValues == null || i < 0 || i >= marketValues.size() ? null : marketValues.get(i));
-            if (Helpers.inOp(marketsById, Helpers.GetValue(value, "id")))
+            Map<String, Object> value = (Map<String, Object>) this.safeDict(marketValues, i, new HashMap<String, Object>() {{}});
+            if (Helpers.inOp(marketsById, value.get("id")))
             {
-                Object marketsByIdArray = ((Object)Helpers.GetValue(marketsById, Helpers.GetValue(value, "id")));
+                Object marketsByIdArray = Helpers.GetValue(marketsById, value.get("id"));
                 ((List<Object>)marketsByIdArray).add(value);
-                Helpers.addElementToObject(marketsById, Helpers.GetValue(value, "id"), marketsByIdArray);
+                Helpers.addElementToObject(marketsById, value.get("id"), marketsByIdArray);
             } else
             {
-                Helpers.addElementToObject(marketsById, Helpers.GetValue(value, "id"), new ArrayList<Object>(Arrays.asList(value)));
+                Helpers.addElementToObject(marketsById, value.get("id"), new ArrayList<Object>(Arrays.asList(value)));
             }
             // strip undefined-valued keys from the parsed market before deepExtend,
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
             // would clobber the fee defaults from this.fees['trading'] in the merge
             Map<String, Object> valueDefined = new HashMap<String, Object>() {{}};
-            List<Object> valueKeys = ((List<Object>) switch ((Object)(value)) { case Map<?, ?> j39v23 -> { synchronized (j39v23) { yield new ArrayList<Object>(j39v23.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<String> valueKeys = new ArrayList<String>(value.keySet());
             for (var j = 0; j < ((List<?>)valueKeys).size(); j++)
             {
-                Object valueKey = (valueKeys == null || j < 0 || j >= valueKeys.size() ? null : valueKeys.get(j));
-                if (!java.util.Objects.equals(Helpers.GetValue(value, valueKey), null))
+                String valueKey = (valueKeys == null || j < 0 || j >= valueKeys.size() ? null : valueKeys.get(j));
+                if (!java.util.Objects.equals((value == null || valueKey == null ? null : value.get(valueKey)), null))
                 {
-                    valueDefined.put((String)valueKey, Helpers.GetValue(value, valueKey));
+                    valueDefined.put(valueKey, (value == null || valueKey == null ? null : value.get(valueKey)));
                 }
             }
             Map<String,Object> market = this.deepExtend(this.safeMarketStructure((Object) null), new HashMap<String, Object>() {{
                 put( "precision", BaseExchange.this.precision );
                 put( "limits", BaseExchange.this.limits );
             }}, (this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), valueDefined);
-            if (java.util.Objects.equals(market.get("linear"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
                 market.put("subType", "linear");
-            } else if (java.util.Objects.equals(market.get("inverse"), true))
+            } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
             {
                 market.put("subType", "inverse");
             } else
@@ -6426,7 +6578,7 @@ public Object describe()
         Integer numCurrencies = 0;
         if (!java.util.Objects.equals(currencies, null))
         {
-            List<Object> keys = ((List<Object>) switch ((Object)(currencies)) { case Map<?, ?> j39v22 -> { synchronized (j39v22) { yield new ArrayList<Object>(j39v22.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> keys = ((List<Object>) switch ((Object)(currencies)) { case Map<?, ?> j39v13 -> { synchronized (j39v13) { yield new ArrayList<Object>(j39v13.keySet()); } } case null, default -> new ArrayList<Object>(); });
             numCurrencies = ((List<?>)keys).size();
         }
         if ((numCurrencies != null && numCurrencies > 0))
@@ -6467,8 +6619,7 @@ public Object describe()
             quoteCurrencies = this.sortBy(quoteCurrencies, "code", false, "");
             this.baseCurrencies = this.mapToSafeMap(this.indexBy(baseCurrencies, "code"));
             this.quoteCurrencies = this.mapToSafeMap(this.indexBy(quoteCurrencies, "code"));
-            List<Object> allCurrencies = (List<Object>) this.arrayConcat(baseCurrencies, quoteCurrencies);
-            Map<String,Object> groupedCurrencies = this.groupBy(allCurrencies, "code");
+            Map<String,Object> groupedCurrencies = this.groupBy(this.arrayConcat(baseCurrencies, quoteCurrencies), "code");
             List<String> codes = new ArrayList<String>(groupedCurrencies.keySet());
             List<Object> resultingCurrencies = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)codes).size(); i++)
@@ -6498,8 +6649,7 @@ public Object describe()
                 }
                 ((List<Object>)resultingCurrencies).add(highestPrecisionCurrency);
             }
-            List<Object> sortedCurrencies = this.sortBy(resultingCurrencies, "code");
-            this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, this.indexBy(sortedCurrencies, "code")));
+            this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, this.indexBy(this.sortBy(resultingCurrencies, "code"), "code")));
         }
         this.currencies_by_id = this.indexBySafe(this.currencies, "id");
         Map<String,Object> currenciesSortedByCode = this.keysort(this.currencies);
@@ -6556,18 +6706,18 @@ public Object describe()
     public Balances safeBalance(Object balance)
     {
         Object balances = this.omit(balance, new ArrayList<Object>(Arrays.asList("info", "timestamp", "datetime", "free", "used", "total")));
-        List<Object> codes = ((List<Object>) switch ((Object)(balances)) { case Map<?, ?> j39v24 -> { synchronized (j39v24) { yield new ArrayList<Object>(j39v24.keySet()); } } case null, default -> new ArrayList<Object>(); });
-        ((Map<String, Object>)balance).put("free", new HashMap<String, Object>() {{}});
-        ((Map<String, Object>)balance).put("used", new HashMap<String, Object>() {{}});
-        ((Map<String, Object>)balance).put("total", new HashMap<String, Object>() {{}});
+        List<String> codes = new ArrayList<String>(((Map<String, Object>)balances).keySet());
+        Map<String, Object> freeBalance = new HashMap<String, Object>() {{}};
+        Map<String, Object> usedBalance = new HashMap<String, Object>() {{}};
+        Map<String, Object> totalBalance = new HashMap<String, Object>() {{}};
         Map<String, Object> debtBalance = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)codes).size(); i++)
         {
-            Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
-            String total = this.safeString(Helpers.GetValue(balance, code), "total");
-            String free = this.safeString(Helpers.GetValue(balance, code), "free");
-            String used = this.safeString(Helpers.GetValue(balance, code), "used");
-            String debt = this.safeString(Helpers.GetValue(balance, code), "debt");
+            String code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
+            String total = this.safeString(Helpers.GetValue(balances, code), "total");
+            String free = this.safeString(Helpers.GetValue(balances, code), "free");
+            String used = this.safeString(Helpers.GetValue(balances, code), "used");
+            String debt = this.safeString(Helpers.GetValue(balances, code), "debt");
             if ((java.util.Objects.equals(total, null)) && (!java.util.Objects.equals(free, null)) && (!java.util.Objects.equals(used, null)))
             {
                 total = Precise.stringAdd(free, used);
@@ -6580,21 +6730,27 @@ public Object describe()
             {
                 used = Precise.stringSub(total, free);
             }
-            Helpers.addElementToObject(Helpers.GetValue(balance, code), "free", this.parseNumber(free));
-            Helpers.addElementToObject(Helpers.GetValue(balance, code), "used", this.parseNumber(used));
-            Helpers.addElementToObject(Helpers.GetValue(balance, code), "total", this.parseNumber(total));
-            Helpers.addElementToObject(Helpers.GetValue(balance, "free"), code, Helpers.GetValue(Helpers.GetValue(balance, code), "free"));
-            Helpers.addElementToObject(Helpers.GetValue(balance, "used"), code, Helpers.GetValue(Helpers.GetValue(balance, code), "used"));
-            Helpers.addElementToObject(Helpers.GetValue(balance, "total"), code, Helpers.GetValue(Helpers.GetValue(balance, code), "total"));
+            freeBalance.put(code, this.parseNumber(free));
+            usedBalance.put(code, this.parseNumber(used));
+            totalBalance.put(code, this.parseNumber(total));
+            Map<String, Object> entry = new HashMap<String, Object>() {{
+                put( "free", (freeBalance == null || code == null ? null : freeBalance.get(code)) );
+                put( "used", (usedBalance == null || code == null ? null : usedBalance.get(code)) );
+                put( "total", (totalBalance == null || code == null ? null : totalBalance.get(code)) );
+            }};
             if (!java.util.Objects.equals(debt, null))
             {
-                Helpers.addElementToObject(Helpers.GetValue(balance, code), "debt", this.parseNumber(debt));
-                debtBalance.put((String)code, Helpers.GetValue(Helpers.GetValue(balance, code), "debt"));
+                debtBalance.put(code, this.parseNumber(debt));
+                entry.put("debt", (debtBalance == null || code == null ? null : debtBalance.get(code)));
             }
+            Helpers.addElementToObject(balance, code, this.extend(Helpers.GetValue(balances, code), entry));
         }
+        ((Map<String, Object>)balance).put("free", freeBalance);
+        ((Map<String, Object>)balance).put("used", usedBalance);
+        ((Map<String, Object>)balance).put("total", totalBalance);
         List<String> debtBalanceArray = new ArrayList<String>(debtBalance.keySet());
-        Object length = ((List<?>)debtBalanceArray).size();
-        if ((!java.util.Objects.equals(length, null)) && (!java.util.Objects.equals(length, 0)))
+        Integer length = ((List<?>)debtBalanceArray).size();
+        if (!java.util.Objects.equals(length, 0))
         {
             ((Map<String, Object>)balance).put("debt", debtBalance);
         }
@@ -6614,9 +6770,9 @@ public Object describe()
         String remaining = this.safeString(orderDict, "remaining");
         Object filled = this.safeString(orderDict, "filled");
         String cost = this.safeString(orderDict, "cost");
-        Object average = this.omitZero(this.safeString(orderDict, "average"));
-        Object price = this.omitZero(this.safeString(orderDict, "price"));
-        Object lastTradeTimeTimestamp = this.safeInteger(orderDict, "lastTradeTimestamp");
+        String average = this.omitZero(this.safeString(orderDict, "average"));
+        String price = this.omitZero(this.safeString(orderDict, "price"));
+        Long lastTradeTimeTimestamp = this.safeInteger(orderDict, "lastTradeTimestamp");
         String symbol = this.safeString(orderDict, "symbol");
         String side = this.safeString(orderDict, "side");
         String status = this.safeString(orderDict, "status");
@@ -6641,7 +6797,7 @@ public Object describe()
             // (this as any).number = String;
             Object firstTrade = this.safeValue(rawTrades, 0);
             // parse trades if they haven't already been parsed
-            Boolean tradesAreParsed = ((!java.util.Objects.equals(firstTrade, null)) && ((switch ((Object)(firstTrade)) { case List<?> j39v33 -> j39v33.contains("info"); case Map<?, ?> j39v32 -> j39v32.containsKey("info"); case null, default -> false; })) && ((switch ((Object)(firstTrade)) { case List<?> j39v31 -> j39v31.contains("id"); case Map<?, ?> j39v30 -> j39v30.containsKey("id"); case null, default -> false; })));
+            Boolean tradesAreParsed = ((!java.util.Objects.equals(firstTrade, null)) && ((switch ((Object)(firstTrade)) { case List<?> j39v19 -> j39v19.contains("info"); case Map<?, ?> j39v18 -> j39v18.containsKey("info"); case null, default -> false; })) && ((switch ((Object)(firstTrade)) { case List<?> j39v17 -> j39v17.contains("id"); case Map<?, ?> j39v16 -> j39v16.containsKey("id"); case null, default -> false; })));
             if (!Boolean.TRUE.equals(tradesAreParsed))
             {
                 trades = this.parseTrades(rawTrades, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
@@ -6659,19 +6815,19 @@ public Object describe()
             if (Boolean.TRUE.equals(isArray) && ((tradesLength != null && tradesLength > 0)))
             {
                 // move properties that are defined in trades up into the order
-                if (java.util.Objects.equals(orderDict.get("symbol"), null))
+                if (Boolean.TRUE.equals(parseSymbol))
                 {
                     Helpers.addElementToObject(orderDict, "symbol", Helpers.GetValue((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)), "symbol"));
                 }
-                if (java.util.Objects.equals(orderDict.get("side"), null))
+                if (Boolean.TRUE.equals(parseSide))
                 {
                     Helpers.addElementToObject(orderDict, "side", Helpers.GetValue((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)), "side"));
                 }
-                if (java.util.Objects.equals(orderDict.get("type"), null))
+                if (java.util.Objects.equals(this.safeString(orderDict, "type"), null))
                 {
                     Helpers.addElementToObject(orderDict, "type", Helpers.GetValue((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)), "type"));
                 }
-                if (java.util.Objects.equals(orderDict.get("id"), null))
+                if (java.util.Objects.equals(this.safeString(orderDict, "id"), null))
                 {
                     Helpers.addElementToObject(orderDict, "id", Helpers.GetValue((trades == null || 0 >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(0)), "order"));
                 }
@@ -6704,25 +6860,22 @@ public Object describe()
                     {
                         side = this.safeString(trade, "side");
                     }
-                    Object tradeTimestamp = this.safeValue(trade, "timestamp");
+                    Long tradeTimestamp = this.safeInteger(trade, "timestamp");
                     if (Boolean.TRUE.equals(parseLastTradeTimeTimestamp) && (!java.util.Objects.equals(tradeTimestamp, null)))
                     {
-                        if (java.util.Objects.equals(lastTradeTimeTimestamp, null))
+                        if (java.util.Objects.equals(lastTradeTimeTimestamp, null) || (tradeTimestamp != null && (lastTradeTimeTimestamp == null || tradeTimestamp > lastTradeTimeTimestamp)))
                         {
                             lastTradeTimeTimestamp = tradeTimestamp;
-                        } else
-                        {
-                            lastTradeTimeTimestamp = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u > j38v) ? j38a : j38b; }).apply(lastTradeTimeTimestamp, tradeTimestamp);
                         }
                     }
                     if (Boolean.TRUE.equals(shouldParseFees))
                     {
-                        Object tradeFees = this.safeValue(trade, "fees");
+                        List<Object> tradeFees = (List<Object>) this.safeList(trade, "fees", (Object) null);
                         if (!java.util.Objects.equals(tradeFees, null))
                         {
-                            for (var j = 0; j < (switch ((Object)(tradeFees)) { case null -> 0; case List<?> j39v27 -> j39v27.size(); case String j39v28 -> j39v28.length(); case Object j39v29 -> j39v29.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v29) : 0; }); j++)
+                            for (var j = 0; j < ((List<?>)tradeFees).size(); j++)
                             {
-                                Object tradeFee = Helpers.GetValue(tradeFees, j);
+                                Object tradeFee = (tradeFees == null || j < 0 || j >= tradeFees.size() ? null : tradeFees.get(j));
                                 ((List<Object>)fees).add(this.extend(new HashMap<String, Object>() {{}}, tradeFee));
                             }
                         } else
@@ -6752,7 +6905,7 @@ public Object describe()
             for (var i = 0; (reducedLength != null && i < reducedLength); i++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(reducedFees, i), "cost", this.safeNumber((reducedFees == null || i < 0 || i >= ((List<?>)reducedFees).size() ? null : ((List<?>)reducedFees).get(i)), "cost", (Object) null));
-                if ((switch ((Object)((reducedFees == null || i < 0 || i >= ((List<?>)reducedFees).size() ? null : ((List<?>)reducedFees).get(i)))) { case List<?> j39v26 -> j39v26.contains("rate"); case Map<?, ?> j39v25 -> j39v25.containsKey("rate"); case null, default -> false; }))
+                if ((switch ((Object)((reducedFees == null || i < 0 || i >= ((List<?>)reducedFees).size() ? null : ((List<?>)reducedFees).get(i)))) { case List<?> j39v15 -> j39v15.contains("rate"); case Map<?, ?> j39v14 -> j39v14.containsKey("rate"); case null, default -> false; }))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(reducedFees, i), "rate", this.safeNumber((reducedFees == null || i < 0 || i >= ((List<?>)reducedFees).size() ? null : ((List<?>)reducedFees).get(i)), "rate", (Object) null));
                 }
@@ -6817,7 +6970,7 @@ public Object describe()
         {
             if ((!java.util.Objects.equals(filled, null)) && (!java.util.Objects.equals(cost, null)) && Precise.stringGt(filled, "0"))
             {
-                Object filledTimesContractSize = Precise.stringMul(filled, contractSize);
+                String filledTimesContractSize = Precise.stringMul(filled, contractSize);
                 if (Boolean.TRUE.equals(inverse))
                 {
                     average = Precise.stringDiv(filledTimesContractSize, cost);
@@ -6836,7 +6989,7 @@ public Object describe()
         Boolean costPriceExists = (!java.util.Objects.equals(average, null)) || (!java.util.Objects.equals(price, null));
         if (Boolean.TRUE.equals(parseCost) && (!java.util.Objects.equals(filled, null)) && Boolean.TRUE.equals(costPriceExists))
         {
-            Object multiplyPrice = null;
+            String multiplyPrice = null;
             if (java.util.Objects.equals(average, null))
             {
                 multiplyPrice = price;
@@ -6845,7 +6998,7 @@ public Object describe()
                 multiplyPrice = average;
             }
             // contract trading
-            Object filledTimesContractSize = Precise.stringMul(filled, contractSize);
+            String filledTimesContractSize = Precise.stringMul(filled, contractSize);
             if (Boolean.TRUE.equals(inverse))
             {
                 cost = Precise.stringDiv(filledTimesContractSize, multiplyPrice);
@@ -6855,7 +7008,7 @@ public Object describe()
             }
         }
         // support for market orders
-        Object orderType = this.safeValue(orderDict, "type");
+        String orderType = this.safeString(orderDict, "type");
         Boolean emptyPrice = (java.util.Objects.equals(price, null)) || Precise.stringEquals(price, "0");
         if (Boolean.TRUE.equals(emptyPrice) && (java.util.Objects.equals(orderType, "market")))
         {
@@ -7001,12 +7154,12 @@ public Object describe()
         {
             throw new ArgumentsRequired((this.id + " calculateFee() - you have provided incompatible arguments - \"market\" type order can not be \"maker\". Change either the \"type\" or the \"takerOrMaker\" argument to calculate the fee.")) ;
         }
-        Object markets = this.markets;
+        Map<String, Object> markets = this.markets;
         if (java.util.Objects.equals(markets, null))
         {
             throw new ExchangeError((this.id + " markets not loaded")) ;
         }
-        Object market = Helpers.GetValue(markets, symbol);
+        Map<String, Object> market = (Map<String, Object>) this.safeDict(markets, symbol, new HashMap<String, Object>() {{}});
         String feeSide = this.safeString(market, "feeSide", "quote");
         Boolean useQuote = null;
         if (java.util.Objects.equals(feeSide, "get"))
@@ -7034,7 +7187,7 @@ public Object describe()
             key = "base";
         }
         // for derivatives, the fee is in 'settle' currency
-        if (!java.util.Objects.equals(Helpers.GetValue(market, "spot"), true))
+        if (!java.util.Objects.equals(market.get("spot"), true))
         {
             key = "settle";
         }
@@ -7045,7 +7198,7 @@ public Object describe()
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("type", takerOrMakerResolved);
-            h2kMap1.put("currency", Helpers.GetValue(market, key));
+            h2kMap1.put("currency", (market == null || key == null ? null : market.get(key)));
             h2kMap1.put("rate", this.parseNumber(rate));
             h2kMap1.put("cost", this.parseNumber(cost));
             return h2kMap1;
@@ -7137,11 +7290,11 @@ public Object describe()
             }
             if (!java.util.Objects.equals(amount, null))
             {
-                id = (id + ("-" + this.numberToString(amount)));
+                id = (id + ("-" + amount));
             }
             if (!java.util.Objects.equals(price, null))
             {
-                id = (id + ("-" + this.numberToString(price)));
+                id = (id + ("-" + price));
             }
             if (!java.util.Objects.equals(takerOrMaker, null))
             {
@@ -7212,32 +7365,32 @@ public Object describe()
     public Object parseFeeNumeric(Object fee)
     {
         Helpers.addElementToObject(fee, "cost", this.safeNumber(fee, "cost", (Object) null)); // ensure numeric
-        if ((switch ((Object)(fee)) { case List<?> j39v35 -> j39v35.contains("rate"); case Map<?, ?> j39v34 -> j39v34.containsKey("rate"); case null, default -> false; }))
+        if ((switch ((Object)(fee)) { case List<?> j39v21 -> j39v21.contains("rate"); case Map<?, ?> j39v20 -> j39v20.containsKey("rate"); case null, default -> false; }))
         {
             Helpers.addElementToObject(fee, "rate", this.safeNumber(fee, "rate", (Object) null));
         }
         return fee;
     }
 
-    public Object findNearestCeiling(Object arr, Object providedValue)
+    public Object findNearestCeiling(List<Object> arr, Object providedValue)
     {
         //  i.e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
         Integer length = ((List<?>)arr).size();
         for (var i = 0; (length != null && i < length); i++)
         {
-            Object current = (arr == null || i < 0 || i >= ((List<?>)arr).size() ? null : ((List<?>)arr).get(i));
+            Object current = (arr == null || i < 0 || i >= arr.size() ? null : arr.get(i));
             if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return (!j38g && !j38e) || j38e; }).test(providedValue, current))
             {
                 return current;
             }
         }
-        return Helpers.GetValue(arr, (((long) length) - 1L));
+        return (arr == null || ((int) (((long) length) - 1L)) < 0 || ((int) (((long) length) - 1L)) >= arr.size() ? null : arr.get(((int) (((long) length) - 1L))));
     }
 
     public Object addKeyInArrayItems(Object obj, Object keyName)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        List<Object> keys = ((List<Object>) switch ((Object)(obj)) { case Map<?, ?> j39v36 -> { synchronized (j39v36) { yield new ArrayList<Object>(j39v36.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> keys = ((List<Object>) switch ((Object)(obj)) { case Map<?, ?> j39v22 -> { synchronized (j39v22) { yield new ArrayList<Object>(j39v22.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -7256,7 +7409,7 @@ public Object describe()
     public Object invertFlatStringDictionary(Object dict)
     {
         Map<String, Object> reversed = new HashMap<String, Object>() {{}};
-        List<Object> keys = ((List<Object>) switch ((Object)(dict)) { case Map<?, ?> j39v37 -> { synchronized (j39v37) { yield new ArrayList<Object>(j39v37.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> keys = ((List<Object>) switch ((Object)(dict)) { case Map<?, ?> j39v23 -> { synchronized (j39v23) { yield new ArrayList<Object>(j39v23.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
@@ -7322,7 +7475,7 @@ public Object describe()
         //     ]
         //
         Map<String, Object> reduced = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < (switch ((Object)(fees)) { case null -> 0; case List<?> j39v41 -> j39v41.size(); case String j39v42 -> j39v42.length(); case Object j39v43 -> j39v43.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v43) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(fees)) { case null -> 0; case List<?> j39v26 -> j39v26.size(); case String j39v27 -> j39v27.length(); case Object j39v28 -> j39v28.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v28) : 0; }); i++)
         {
             Object fee = Helpers.GetValue(fees, i);
             String code = this.safeString(fee, "currency");
@@ -7340,27 +7493,27 @@ public Object describe()
                     reduced.put(feeCurrencyCode, new HashMap<String, Object>() {{}});
                 }
                 String rateKey = (((java.util.Objects.equals(rate, null)))) ? "" : rate;
-                if ((switch ((Object)((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)))) { case List<?> j39v40 -> ((Object)(rateKey)) != null && j39v40.contains(rateKey); case Map<?, ?> j39v39 -> ((Object)(rateKey)) instanceof String && j39v39.containsKey(rateKey); case null, default -> false; }))
+                if ((switch ((Object)((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)))) { case List<?> j39v25 -> ((Object)(rateKey)) != null && j39v25.contains(rateKey); case Map<?, ?> j39v24 -> ((Object)(rateKey)) instanceof String && j39v24.containsKey(rateKey); case null, default -> false; }))
                 {
                     Helpers.addElementToObject(Helpers.GetValue((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)), rateKey), "cost", Precise.stringAdd(Helpers.GetValue(Helpers.GetValue((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)), rateKey), "cost"), cost));
                 } else
                 {
-                    Helpers.addElementToObject((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)), rateKey, (switch (0) { default -> { HashMap<String, Object> j39v38 = new HashMap<String, Object>();
-                        j39v38.put("currency", code);
-                        j39v38.put("cost", cost);
-                        yield j39v38; } }));
+                    Map<String, Object> newRateFee = new HashMap<String, Object>();
+                    newRateFee.put("currency", code);
+                    newRateFee.put("cost", cost);
                     if (!java.util.Objects.equals(rate, null))
                     {
-                        Helpers.addElementToObject(Helpers.GetValue((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)), rateKey), "rate", rate);
+                        newRateFee.put("rate", rate);
                     }
+                    Helpers.addElementToObject((reduced == null || feeCurrencyCode == null ? null : reduced.get(feeCurrencyCode)), rateKey, newRateFee);
                 }
             }
         }
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        Object feeValues = Helpers.objectValues(reduced);
+        List<Object> feeValues = new ArrayList<Object>(reduced.values());
         for (var i = 0; i < ((List<?>)feeValues).size(); i++)
         {
-            Object reducedFeeValues = Helpers.objectValues((feeValues == null || i < 0 || i >= ((List<?>)feeValues).size() ? null : ((List<?>)feeValues).get(i)));
+            List<Object> reducedFeeValues = Helpers.objectValues((feeValues == null || i < 0 || i >= feeValues.size() ? null : feeValues.get(i)));
             result = (List<Object>) this.arrayConcat(result, reducedFeeValues);
         }
         return result;
@@ -7368,11 +7521,11 @@ public Object describe()
 
     public Ticker safeTicker(Object ticker, Map<String, Object> market)
     {
-        Object open = this.omitZero(this.safeString(ticker, "open"));
-        Object close = this.omitZero(this.safeString2(ticker, "close", "last"));
+        String open = this.omitZero(this.safeString(ticker, "open"));
+        String close = this.omitZero(this.safeString2(ticker, "close", "last"));
         String change = this.safeString(ticker, "change"); // change can be a legitimate zero on a flat day, do not omitZero it, see https://github.com/ccxt/ccxt/issues/25971
-        Object percentage = this.omitZero(this.safeString(ticker, "percentage"));
-        Object average = this.omitZero(this.safeString(ticker, "average"));
+        String percentage = this.omitZero(this.safeString(ticker, "percentage"));
+        String average = this.omitZero(this.safeString(ticker, "average"));
         String vwap = this.safeString(ticker, "vwap");
         String baseVolume = this.safeString(ticker, "baseVolume");
         String quoteVolume = this.safeString(ticker, "quoteVolume");
@@ -7398,7 +7551,7 @@ public Object describe()
                 String openAddClose = Precise.stringMul(average, "2");
                 // openAddClose = open * (1 + (100 + percentage)/100)
                 String denominator = Precise.stringAdd("2", Precise.stringDiv(percentage, "100"));
-                Object calcOpen = (((!java.util.Objects.equals(open, null)))) ? open : Precise.stringDiv(openAddClose, denominator);
+                String calcOpen = (((!java.util.Objects.equals(open, null)))) ? open : Precise.stringDiv(openAddClose, denominator);
                 close = Precise.stringMul(calcOpen, Precise.stringAdd("1", Precise.stringDiv(percentage, "100")));
             }
             if (java.util.Objects.equals(open, null) && !java.util.Objects.equals(close, null))
@@ -7483,70 +7636,49 @@ public Object describe()
     public CompletableFuture<Object> fetchBorrowRate(String code, Object amount, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchBorrowRate is deprecated, please use fetchCrossBorrowRate or fetchIsolatedBorrowRate instead")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchBorrowRate is deprecated, please use fetchCrossBorrowRate or fetchIsolatedBorrowRate instead")));
 
     }
 
     public CompletableFuture<MarginLoan> repayCrossMargin(String code, Object amount, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " repayCrossMargin is not support yet")) ;
-        }).thenApply(MarginLoan::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " repayCrossMargin is not support yet"))).thenApply(MarginLoan::new);
 
     }
 
     public CompletableFuture<MarginLoan> repayIsolatedMargin(String symbol, String code, Object amount, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " repayIsolatedMargin is not support yet")) ;
-        }).thenApply(MarginLoan::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " repayIsolatedMargin is not support yet"))).thenApply(MarginLoan::new);
 
     }
 
     public CompletableFuture<MarginLoan> borrowCrossMargin(String code, Object amount, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " borrowCrossMargin is not support yet")) ;
-        }).thenApply(MarginLoan::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " borrowCrossMargin is not support yet"))).thenApply(MarginLoan::new);
 
     }
 
     public CompletableFuture<MarginLoan> borrowIsolatedMargin(String symbol, String code, Object amount, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " borrowIsolatedMargin is not support yet")) ;
-        }).thenApply(MarginLoan::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " borrowIsolatedMargin is not support yet"))).thenApply(MarginLoan::new);
 
     }
 
     public CompletableFuture<MarginLoan> borrowMargin(String code, Object amount, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead")) ;
-        }).thenApply(MarginLoan::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead"))).thenApply(MarginLoan::new);
 
     }
 
     public CompletableFuture<MarginLoan> repayMargin(String code, Object amount, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead")) ;
-        }).thenApply(MarginLoan::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead"))).thenApply(MarginLoan::new);
 
     }
 
@@ -7568,20 +7700,14 @@ public Object describe()
     public CompletableFuture<List<OHLCV>> fetchSpotOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchSpotOHLCV() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchSpotOHLCV() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<List<OHLCV>> fetchContractOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchContractOHLCV() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchContractOHLCV() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
 
@@ -7603,10 +7729,7 @@ public Object describe()
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchOHLCV() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchOHLCV() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
 
@@ -7659,7 +7782,6 @@ public Object describe()
 
         return BaseExchange.supplyAsync(() -> {
 
-            String errorMessage = "";
             Object options = this.safeValue(this.options, method, new HashMap<String, Object>() {{}});
             Boolean muteOnFailure = (Boolean) this.safeBool(options, "webApiMuteFailure", true);
             try
@@ -7671,9 +7793,8 @@ public Object describe()
                 }
                 Long maxRetries = this.safeInteger(options, "webApiRetries", 10);
                 Object response = null;
-                long retry = 0;
                 Boolean shouldBreak = false;
-                while ((maxRetries != null && retry < maxRetries))
+                for (var retry = 0; (maxRetries != null && retry < maxRetries); retry++)
                 {
                     try
                     {
@@ -7682,8 +7803,7 @@ public Object describe()
                         break;
                     } catch(Exception e)
                     {
-                        retry = (retry + 1L);
-                        if ((maxRetries != null && retry == maxRetries))
+                        if (((maxRetries == null || (((long) retry) + 1L) >= maxRetries)))
                         {
                             throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                         }
@@ -7728,15 +7848,12 @@ public Object describe()
                 }
             } catch(Exception e)
             {
-                errorMessage = (((this.id + " ") + method) + "() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.");
+                if (!Boolean.TRUE.equals(muteOnFailure))
+                {
+                    throw new BadResponse((((this.id + " ") + method) + "() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.")) ;
+                }
             }
-            if (Boolean.TRUE.equals(muteOnFailure))
-            {
-                return null;
-            } else
-            {
-                throw new BadResponse(errorMessage) ;
-            }
+            return null;
         });
 
     }
@@ -7850,7 +7967,7 @@ public Object describe()
                 throw new BadRequest((((this.id + " symbols must be of the same type ") + type) + ". If the type is incorrect you can change it in options or the params of the request")) ;
             }
             marketType = this.safeString(market, "type");
-            if (!java.util.Objects.equals(market.get("spot"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 isLinearSubType = this.safeBool(market, "linear", (Object) null);
             }
@@ -7903,7 +8020,7 @@ public Object describe()
             return objects;
         }
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(objects)) { case null -> 0; case List<?> j39v44 -> j39v44.size(); case String j39v45 -> j39v45.length(); case Object j39v46 -> j39v46.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v46) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(objects)) { case null -> 0; case List<?> j39v29 -> j39v29.size(); case String j39v30 -> j39v30.length(); case Object j39v31 -> j39v31.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v31) : 0; }); i++)
         {
             String objectValue = this.safeString(Helpers.GetValue(objects, i), key);
             if (java.util.Objects.equals(objectValue, value))
@@ -7928,7 +8045,7 @@ public Object describe()
         return ohlcv;
     }
 
-    public Object safeNetwork(Object network)
+    public Object safeNetwork(Map<String, Object> network)
     {
         Boolean withdrawEnabled = (Boolean) this.safeBool(network, "withdraw", (Object) null);
         Boolean depositEnabled = (Boolean) this.safeBool(network, "deposit", (Object) null);
@@ -7942,7 +8059,7 @@ public Object describe()
         }
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
-            h2kMap2.put("info", Helpers.GetValue(network, "info"));
+            h2kMap2.put("info", network.get("info"));
             h2kMap2.put("id", this.safeString(network, "id"));
             h2kMap2.put("name", this.safeString(network, "name"));
             h2kMap2.put("network", this.safeString(network, "network"));
@@ -7988,12 +8105,12 @@ public Object describe()
             return networkId;
         }
         // options.networks may still be keyed by an alias of the unified code
-        Object aliases = this.networkAliases;
-        List<String> aliasKeys = new ArrayList<String>(((Map<String, Object>)aliases).keySet());
+        Map<String, Object> aliases = this.networkAliases;
+        List<String> aliasKeys = new ArrayList<String>(aliases.keySet());
         for (var i = 0; i < ((List<?>)aliasKeys).size(); i++)
         {
             String alias = (aliasKeys == null || i < 0 || i >= aliasKeys.size() ? null : aliasKeys.get(i));
-            if ((java.util.Objects.equals(Helpers.GetValue(aliases, alias), unifiedCode)) && (networkIdsByCodes.containsKey(alias)))
+            if ((java.util.Objects.equals((aliases == null || alias == null ? null : aliases.get(alias)), unifiedCode)) && (networkIdsByCodes.containsKey(alias)))
             {
                 return (networkIdsByCodes == null || alias == null ? null : networkIdsByCodes.get(alias));
             }
@@ -8002,7 +8119,7 @@ public Object describe()
         List<Object> currenciesToCheck = new ArrayList<Object>(Arrays.asList());
         if (java.util.Objects.equals(currencyCode, null))
         {
-            currenciesToCheck = ((List<Object>) switch ((Object)(this.currencies)) { case Map<?, ?> j39v47 -> { synchronized (j39v47) { yield new ArrayList<Object>(j39v47.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            currenciesToCheck = (this.currencies == null ? new ArrayList<Object>() : new ArrayList<Object>(this.currencies.keySet()));
         } else
         {
             currenciesToCheck = new ArrayList<Object>(Arrays.asList(this.safeDict(this.currencies, currencyCode, (Object) null)));
@@ -8047,11 +8164,11 @@ public Object describe()
         return new ArrayList<Object>(Arrays.asList(networkCodeInParams, paramsOmitted));
     }
 
-    public Object selectNetworkKeyFromNetworks(Object currencyCode, String networkCode, Object indexedNetworkEntries, Boolean isIndexedByUnifiedNetworkCode)
+    public Object selectNetworkKeyFromNetworks(Object currencyCode, String networkCode, Map<String, Object> indexedNetworkEntries, Boolean isIndexedByUnifiedNetworkCode)
     {
         // this method is used against raw & unparse network entries, which are just indexed by network id
         Object chosenNetworkId = null;
-        Object availableNetworkIds = ((List<Object>) switch ((Object)(indexedNetworkEntries)) { case Map<?, ?> j39v52 -> { synchronized (j39v52) { yield new ArrayList<Object>(j39v52.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<String> availableNetworkIds = new ArrayList<String>(indexedNetworkEntries.keySet());
         Integer responseNetworksLength = ((List<?>)availableNetworkIds).size();
         if (!java.util.Objects.equals(networkCode, null))
         {
@@ -8066,7 +8183,7 @@ public Object describe()
                 {
                     throw new NotSupported(((((this.id + " - ") + networkCode) + " network was not found for ") + currencyCode)) ;
                 }
-                if ((switch ((Object)(indexedNetworkEntries)) { case List<?> j39v51 -> ((Object)(networkIdOrCode)) != null && j39v51.contains(networkIdOrCode); case Map<?, ?> j39v50 -> ((Object)(networkIdOrCode)) instanceof String && j39v50.containsKey(networkIdOrCode); case null, default -> false; }))
+                if (indexedNetworkEntries.containsKey(networkIdOrCode))
                 {
                     chosenNetworkId = networkIdOrCode;
                 } else
@@ -8088,7 +8205,7 @@ public Object describe()
                 {
                     throw new ExchangeError((this.id + " selectNetworkKeyFromNetworks() missing defaultNetworkId")) ;
                 }
-                if ((switch ((Object)(indexedNetworkEntries)) { case List<?> j39v49 -> ((Object)(defaultNetworkId)) != null && j39v49.contains(defaultNetworkId); case Map<?, ?> j39v48 -> ((Object)(defaultNetworkId)) instanceof String && j39v48.containsKey(defaultNetworkId); case null, default -> false; }))
+                if (indexedNetworkEntries.containsKey(defaultNetworkId))
                 {
                     return defaultNetworkId;
                 }
@@ -8141,7 +8258,7 @@ public Object describe()
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)ohlcvs).size(); i++)
         {
-            ((List<Object>)results).add(this.parseOHLCV((ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v40 -> (Map<String, Object>) hx4J40v40; case Object hx4J40v40 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v40.getClass().getName()); }))));
+            ((List<Object>)results).add(this.parseOHLCV((ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v29 -> (Map<String, Object>) hx4J40v29; case Object hx4J40v29 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v29.getClass().getName()); }))));
         }
         List<Object> sorted = this.sortBy(results, 0);
         return this.filterBySinceLimit(sorted, since, limit, 0, java.util.Objects.requireNonNullElse(tail, false));
@@ -8162,10 +8279,10 @@ public Object describe()
         {
             for (var i = 0; i < ((List<?>)response).size(); i++)
             {
-                Object item = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
+                Object item = this.safeValue(response, i);
                 String id = (((java.util.Objects.equals(marketIdKey, null)))) ? null : this.safeString(item, marketIdKey);
                 Map<String, Object> market = this.safeMarket(id, (Map<String, Object>) null, (String) null, "swap");
-                String symbol = (String) market.get("symbol");
+                String symbol = this.safeString(market, "symbol", "");
                 Boolean contract = (Boolean) this.safeBool(market, "contract", false);
                 if ((Boolean.TRUE.equals(contract) && (Boolean.TRUE.equals(noSymbols) || ((!java.util.Objects.equals(symbolsNormalized, null)) && this.inArray(symbol, symbolsNormalized)))))
                 {
@@ -8174,13 +8291,13 @@ public Object describe()
             }
         } else
         {
-            List<Object> keys = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v53 -> { synchronized (j39v53) { yield new ArrayList<Object>(j39v53.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> keys = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v32 -> { synchronized (j39v32) { yield new ArrayList<Object>(j39v32.keySet()); } } case null, default -> new ArrayList<Object>(); });
             for (var i = 0; i < ((List<?>)keys).size(); i++)
             {
                 Object marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                Object item = Helpers.GetValue(response, marketId);
+                Object item = this.safeValue(response, marketId);
                 Map<String, Object> market = this.safeMarket(java.util.Objects.toString(marketId, null), (Map<String, Object>) null, (String) null, "swap");
-                String symbol = (String) market.get("symbol");
+                String symbol = this.safeString(market, "symbol", "");
                 Boolean contract = (Boolean) this.safeBool(market, "contract", false);
                 if ((Boolean.TRUE.equals(contract) && (Boolean.TRUE.equals(noSymbols) || ((!java.util.Objects.equals(symbolsNormalized, null)) && this.inArray(symbol, symbolsNormalized)))))
                 {
@@ -8200,19 +8317,19 @@ public Object describe()
             {
                 if (java.util.Objects.requireNonNullElse(reload, false) || !(((Map<?, ?>)this.options).containsKey("limitsLoaded")))
                 {
-                    Object response = (this.fetchTradingLimits(symbols, new HashMap<String, Object>() {{}})).join();
+                    Map<String, Object> response = (Map<String, Object>) (this.fetchTradingLimits(symbols, new HashMap<String, Object>() {{}})).join();
                     Object symbolsArray = this.requireValue(symbols, "loadTradingLimits() requires a symbols argument");
-                    Object markets = this.markets;
+                    Map<String, Object> markets = this.markets;
                     if (java.util.Objects.equals(markets, null))
                     {
                         throw new ExchangeError((this.id + " markets not loaded")) ;
                     }
-                    for (var i = 0; i < (switch ((Object)(symbolsArray)) { case null -> 0; case List<?> j39v54 -> j39v54.size(); case String j39v55 -> j39v55.length(); case Object j39v56 -> j39v56.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v56) : 0; }); i++)
+                    for (var i = 0; i < (switch ((Object)(symbolsArray)) { case null -> 0; case List<?> j39v33 -> j39v33.size(); case String j39v34 -> j39v34.length(); case Object j39v35 -> j39v35.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v35) : 0; }); i++)
                     {
                         Object symbol = Helpers.GetValue(symbolsArray, i);
-                        Helpers.addElementToObject(markets, symbol, this.deepExtend(Helpers.GetValue(markets, symbol), Helpers.GetValue(response, symbol)));
+                        Helpers.addElementToObject(markets, symbol, this.deepExtend((markets == null || !(symbol instanceof String) ? null : markets.get(symbol)), (response == null || !(symbol instanceof String) ? null : response.get(symbol))));
                     }
-                    Helpers.addElementToObject(this.options, "limitsLoaded", this.milliseconds());
+                    this.options.put("limitsLoaded", BaseExchange.this.milliseconds());
                 }
             }
             return this.markets;
@@ -8241,7 +8358,7 @@ public Object describe()
         String marginMode = this.safeString(position, "marginMode");
         String unrealizedPnlString = this.safeString(position, "unrealizedPnl");
         String initialMarginString = this.safeString(position, "initialMargin");
-        Object maintenanceMarginString = this.safeString(position, "maintenanceMargin");
+        String maintenanceMarginString = this.safeString(position, "maintenanceMargin");
         String collateralString = this.safeString(position, "collateral");
         String entryPriceString = this.safeString(position, "entryPrice");
         String liquidationPriceString = this.safeString(position, "liquidationPrice");
@@ -8289,7 +8406,7 @@ public Object describe()
             {
                 if (Boolean.TRUE.equals(isInverse))
                 {
-                    Object invEntry = Precise.stringDiv("1", entryPriceString);
+                    String invEntry = Precise.stringDiv("1", entryPriceString);
                     String invLiq = Precise.stringDiv("1", liquidationPriceString);
                     if (java.util.Objects.equals(side, "long"))
                     {
@@ -8318,8 +8435,8 @@ public Object describe()
             Boolean hasPriceDiff = (!java.util.Objects.equals(priceDiff, null)) && Precise.stringGt(priceDiff, "0");
             if ((java.util.Objects.equals(maintenanceMarginString, null)) && Boolean.TRUE.equals(hasEntryMargin) && Boolean.TRUE.equals(hasPriceDiff) && Boolean.TRUE.equals(hasContracts) && Boolean.TRUE.equals(hasContractSize))
             {
-                Object lossFromEntry = Precise.stringMul(priceDiff, Precise.stringMul(contractsString, contractSizeString));
-                Object derivedMm = Precise.stringSub(entryMarginString, lossFromEntry);
+                String lossFromEntry = Precise.stringMul(priceDiff, Precise.stringMul(contractsString, contractSizeString));
+                String derivedMm = Precise.stringSub(entryMarginString, lossFromEntry);
                 if (Precise.stringGt(derivedMm, "0"))
                 {
                     maintenanceMarginString = derivedMm;
@@ -8327,7 +8444,7 @@ public Object describe()
                 }
             } else if ((java.util.Objects.equals(collateralString, null)) && (java.util.Objects.equals(initialMarginString, null)) && Boolean.TRUE.equals(hasMm) && Boolean.TRUE.equals(hasPriceDiff) && Boolean.TRUE.equals(hasContracts) && Boolean.TRUE.equals(hasContractSize))
             {
-                Object lossFromEntry = Precise.stringMul(priceDiff, Precise.stringMul(contractsString, contractSizeString));
+                String lossFromEntry = Precise.stringMul(priceDiff, Precise.stringMul(contractsString, contractSizeString));
                 String derivedEntryMargin = Precise.stringAdd(maintenanceMarginString, lossFromEntry);
                 if (Precise.stringGt(derivedEntryMargin, "0"))
                 {
@@ -8348,11 +8465,11 @@ public Object describe()
                 }
             } else if ((java.util.Objects.equals(liquidationPriceString, null)) && Boolean.TRUE.equals(hasEntryMargin) && Boolean.TRUE.equals(hasMm) && Boolean.TRUE.equals(hasEntryPrice) && Boolean.TRUE.equals(hasContracts) && Boolean.TRUE.equals(hasContractSize) && ((java.util.Objects.equals(side, "long")) || (java.util.Objects.equals(side, "short"))))
             {
-                Object marginBuffer = Precise.stringSub(entryMarginString, maintenanceMarginString);
-                Object totalSize = Precise.stringMul(contractsString, contractSizeString);
+                String marginBuffer = Precise.stringSub(entryMarginString, maintenanceMarginString);
+                String totalSize = Precise.stringMul(contractsString, contractSizeString);
                 if (Precise.stringGt(marginBuffer, "0") && Precise.stringGt(totalSize, "0"))
                 {
-                    Object bufferPerUnit = Precise.stringDiv(marginBuffer, totalSize);
+                    String bufferPerUnit = Precise.stringDiv(marginBuffer, totalSize);
                     String derivedLp = Precise.stringAdd(entryPriceString, bufferPerUnit);
                     if (java.util.Objects.equals(side, "long"))
                     {
@@ -8360,7 +8477,7 @@ public Object describe()
                     }
                     if (Boolean.TRUE.equals(isInverse))
                     {
-                        Object invEntry = Precise.stringDiv("1", entryPriceString);
+                        String invEntry = Precise.stringDiv("1", entryPriceString);
                         String invDerivedLp = Precise.stringSub(invEntry, bufferPerUnit);
                         if (java.util.Objects.equals(side, "long"))
                         {
@@ -8378,11 +8495,11 @@ public Object describe()
                 }
             } else if ((java.util.Objects.equals(entryPriceString, null)) && Boolean.TRUE.equals(hasEntryMargin) && Boolean.TRUE.equals(hasMm) && Boolean.TRUE.equals(hasLiqPrice) && Boolean.TRUE.equals(hasContracts) && Boolean.TRUE.equals(hasContractSize) && ((java.util.Objects.equals(side, "long")) || (java.util.Objects.equals(side, "short"))))
             {
-                Object marginBuffer = Precise.stringSub(entryMarginString, maintenanceMarginString);
-                Object totalSize = Precise.stringMul(contractsString, contractSizeString);
+                String marginBuffer = Precise.stringSub(entryMarginString, maintenanceMarginString);
+                String totalSize = Precise.stringMul(contractsString, contractSizeString);
                 if (Precise.stringGt(marginBuffer, "0") && Precise.stringGt(totalSize, "0"))
                 {
-                    Object bufferPerUnit = Precise.stringDiv(marginBuffer, totalSize);
+                    String bufferPerUnit = Precise.stringDiv(marginBuffer, totalSize);
                     String derivedEp = Precise.stringSub(liquidationPriceString, bufferPerUnit);
                     if (java.util.Objects.equals(side, "long"))
                     {
@@ -8408,8 +8525,8 @@ public Object describe()
                 }
             } else if ((java.util.Objects.equals(contractsString, null)) && Boolean.TRUE.equals(hasEntryMargin) && Boolean.TRUE.equals(hasMm) && Boolean.TRUE.equals(hasPriceDiff) && Boolean.TRUE.equals(hasContractSize))
             {
-                Object marginBuffer = Precise.stringSub(entryMarginString, maintenanceMarginString);
-                Object denom = Precise.stringMul(priceDiff, contractSizeString);
+                String marginBuffer = Precise.stringSub(entryMarginString, maintenanceMarginString);
+                String denom = Precise.stringMul(priceDiff, contractSizeString);
                 if (Precise.stringGt(marginBuffer, "0") && Precise.stringGt(denom, "0"))
                 {
                     String derivedContracts = Precise.stringDiv(marginBuffer, denom);
@@ -8421,8 +8538,8 @@ public Object describe()
                 }
             } else if ((java.util.Objects.equals(contractSizeString, null)) && Boolean.TRUE.equals(hasEntryMargin) && Boolean.TRUE.equals(hasMm) && Boolean.TRUE.equals(hasPriceDiff) && Boolean.TRUE.equals(hasContracts))
             {
-                Object marginBuffer = Precise.stringSub(entryMarginString, maintenanceMarginString);
-                Object denom = Precise.stringMul(priceDiff, contractsString);
+                String marginBuffer = Precise.stringSub(entryMarginString, maintenanceMarginString);
+                String denom = Precise.stringMul(priceDiff, contractsString);
                 if (Precise.stringGt(marginBuffer, "0") && Precise.stringGt(denom, "0"))
                 {
                     String derivedContractSize = Precise.stringDiv(marginBuffer, denom);
@@ -8450,7 +8567,7 @@ public Object describe()
             // 1. notional <-> markPrice / contracts / contractSize
             if ((java.util.Objects.equals(notionalString, null)) && Boolean.TRUE.equals(hasMarkPrice) && Boolean.TRUE.equals(hasContracts) && Boolean.TRUE.equals(hasContractSize))
             {
-                Object totalSize = Precise.stringMul(contractsString, contractSizeString);
+                String totalSize = Precise.stringMul(contractsString, contractSizeString);
                 String derivedNotional = Precise.stringMul(totalSize, markPriceString);
                 if (Boolean.TRUE.equals(isInverse))
                 {
@@ -8463,7 +8580,7 @@ public Object describe()
                 }
             } else if ((java.util.Objects.equals(markPriceString, null)) && (java.util.Objects.equals(entryPriceString, null)) && (java.util.Objects.equals(lastPriceString, null)) && Boolean.TRUE.equals(hasNotional) && Boolean.TRUE.equals(hasContracts) && Boolean.TRUE.equals(hasContractSize))
             {
-                Object totalSize = Precise.stringMul(contractsString, contractSizeString);
+                String totalSize = Precise.stringMul(contractsString, contractSizeString);
                 String derivedMark = Precise.stringDiv(notionalString, totalSize);
                 if (Boolean.TRUE.equals(isInverse))
                 {
@@ -8504,11 +8621,11 @@ public Object describe()
             {
                 if (Precise.stringGt(entryPriceString, "0") && Precise.stringGt(markPriceString, "0") && Precise.stringGt(contractsString, "0") && Precise.stringGt(contractSizeString, "0"))
                 {
-                    Object totalSize = Precise.stringMul(contractsString, contractSizeString);
+                    String totalSize = Precise.stringMul(contractsString, contractSizeString);
                     String pnlDiff = null;
                     if (Boolean.TRUE.equals(isInverse))
                     {
-                        Object invEntry = Precise.stringDiv("1", entryPriceString);
+                        String invEntry = Precise.stringDiv("1", entryPriceString);
                         String invMark = Precise.stringDiv("1", markPriceString);
                         if (java.util.Objects.equals(side, "long"))
                         {
@@ -8589,7 +8706,7 @@ public Object describe()
             Boolean hasValidMmp = (!java.util.Objects.equals(maintenanceMarginPercentageString, null)) && Precise.stringGt(maintenanceMarginPercentageString, "0");
             if ((java.util.Objects.equals(maintenanceMarginString, null)) && Boolean.TRUE.equals(hasValidNotional) && Boolean.TRUE.equals(hasValidMmp))
             {
-                Object derivedMm = Precise.stringMul(notionalString, maintenanceMarginPercentageString);
+                String derivedMm = Precise.stringMul(notionalString, maintenanceMarginPercentageString);
                 if (Precise.stringGt(derivedMm, "0"))
                 {
                     maintenanceMarginString = derivedMm;
@@ -8685,7 +8802,7 @@ public Object describe()
         for (var i = 0; i < ((List<?>)tradesArray).size(); i++)
         {
             Map<String, Object> parsed = null;
-            if (Helpers.isTrue(isWs))
+            if (Boolean.TRUE.equals(isWs))
             {
                 parsed = (Map<String, Object>) this.parseWsTrade((Map<String, Object>) ((tradesArray == null || i < 0 || i >= tradesArray.size() ? null : tradesArray.get(i))), market);
             } else
@@ -8747,7 +8864,7 @@ public Object describe()
             Map<String, Object> itemOrItems = (Map<String, Object>) this.parseLedgerEntry((Map<String, Object>) ((arrayData == null || i < 0 || i >= arrayData.size() ? null : arrayData.get(i))), currency);
             if ((itemOrItems instanceof List))
             {
-                for (var j = 0; j < (switch ((Object)(itemOrItems)) { case null -> 0; case List<?> j39v57 -> j39v57.size(); case String j39v58 -> j39v58.length(); case Object j39v59 -> j39v59.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v59) : 0; }); j++)
+                for (var j = 0; j < (switch ((Object)(itemOrItems)) { case null -> 0; case List<?> j39v36 -> j39v36.size(); case String j39v37 -> j39v37.length(); case Object j39v38 -> j39v38.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v38) : 0; }); j++)
                 {
                     ((List<Object>)result).add(this.extend(Helpers.GetValue(itemOrItems, j), parameters));
                 }
@@ -8777,14 +8894,10 @@ public Object describe()
      * so it narrows the duplicate-nonce race but does not remove it across instances or processes.
      * @returns {int} a strictly-increasing nonce in the unit returned by nonce ()
      */
-    public Object incrementingNonce()
+    public Long incrementingNonce()
     {
         Long currentNonce = this.nonce();
-        this.lockLastNonce();
-        Long lastNonce = this.safeInteger(this.options, "lastNonce", 0);
-        Object result = ((((currentNonce != null && (lastNonce == null || currentNonce > lastNonce))))) ? currentNonce : (lastNonce + 1L);
-        Helpers.addElementToObject(this.options, "lastNonce", result);
-        this.unlockLastNonce();
+        Long result = this.nextCounterAbove("lastNonce", 1L, currentNonce);
         return result;
     }
 
@@ -8799,11 +8912,12 @@ public Object describe()
         {
             return code;
         }
-        Map<String, Object> currency = (Map<String, Object>) this.safeDict(this.currencies, code, (Object) null);
-        if (java.util.Objects.equals(currency, null))
+        Map<String, Object> currencyById = (Map<String, Object>) this.safeDict(this.currencies, code, (Object) null);
+        if (!java.util.Objects.equals(currencyById, null))
         {
-            currency = this.safeCurrency((String) (code), (Map<String, Object>) null);
+            return currencyById.get("id");
         }
+        Map<String, Object> currency = this.safeCurrency((String) (code), (Map<String, Object>) null);
         if (!java.util.Objects.equals(currency, null))
         {
             return currency.get("id");
@@ -8836,7 +8950,11 @@ public Object describe()
     public Object handleParamString(Object parameters, Object paramName, String defaultValue)
     {
         String value = this.safeString(parameters, paramName, defaultValue);
-        Object paramsOmitted = (((!java.util.Objects.equals(value, null)))) ? this.omit(parameters, paramName) : parameters;
+        Object paramsOmitted = parameters;
+        if (!java.util.Objects.equals(value, null))
+        {
+            paramsOmitted = this.omit(parameters, paramName);
+        }
         return new ArrayList<Object>(Arrays.asList(value, paramsOmitted));
     }
 
@@ -8845,35 +8963,55 @@ public Object describe()
     public Object handleParamString2(Object parameters, Object paramName1, Object paramName2, String defaultValue)
     {
         String value = this.safeString2(parameters, paramName1, paramName2, defaultValue);
-        Object paramsOmitted = (((!java.util.Objects.equals(value, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList(paramName1, paramName2))) : parameters;
+        Object paramsOmitted = parameters;
+        if (!java.util.Objects.equals(value, null))
+        {
+            paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList(paramName1, paramName2)));
+        }
         return new ArrayList<Object>(Arrays.asList(value, paramsOmitted));
     }
 
     public Object handleParamInteger(Object parameters, Object paramName, Long defaultValue)
     {
         Long value = this.safeInteger(parameters, paramName, defaultValue);
-        Object paramsOmitted = (((!java.util.Objects.equals(value, null)))) ? this.omit(parameters, paramName) : parameters;
+        Object paramsOmitted = parameters;
+        if (!java.util.Objects.equals(value, null))
+        {
+            paramsOmitted = this.omit(parameters, paramName);
+        }
         return new ArrayList<Object>(Arrays.asList(value, paramsOmitted));
     }
 
     public Object handleParamInteger2(Object parameters, Object paramName1, Object paramName2, Long defaultValue)
     {
         Long value = (Long) this.safeInteger2(parameters, paramName1, paramName2, defaultValue);
-        Object paramsOmitted = (((!java.util.Objects.equals(value, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList(paramName1, paramName2))) : parameters;
+        Object paramsOmitted = parameters;
+        if (!java.util.Objects.equals(value, null))
+        {
+            paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList(paramName1, paramName2)));
+        }
         return new ArrayList<Object>(Arrays.asList(value, paramsOmitted));
     }
 
     public Object handleParamBool(Object parameters, Object paramName, Object defaultValue)
     {
         Object value = this.safeBool(parameters, paramName, defaultValue);
-        Object paramsOmitted = (((!java.util.Objects.equals(value, null)))) ? this.omit(parameters, paramName) : parameters;
+        Object paramsOmitted = parameters;
+        if (!java.util.Objects.equals(value, null))
+        {
+            paramsOmitted = this.omit(parameters, paramName);
+        }
         return new ArrayList<Object>(Arrays.asList(value, paramsOmitted));
     }
 
     public Object handleParamBool2(Object parameters, Object paramName1, Object paramName2, Object defaultValue)
     {
         Object value = this.safeBool2(parameters, paramName1, paramName2, defaultValue);
-        Object paramsOmitted = (((!java.util.Objects.equals(value, null)))) ? this.omit(parameters, new ArrayList<Object>(Arrays.asList(paramName1, paramName2))) : parameters;
+        Object paramsOmitted = parameters;
+        if (!java.util.Objects.equals(value, null))
+        {
+            paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList(paramName1, paramName2)));
+        }
         return new ArrayList<Object>(Arrays.asList(value, paramsOmitted));
     }
 
@@ -8884,15 +9022,11 @@ public Object describe()
 
     public List<Object> getListFromObjectValues(Object objects, Object key)
     {
-        Object newArray = objects;
-        if (!(objects instanceof List))
-        {
-            newArray = this.toArray(objects);
-        }
+        List<Object> newArray = this.toArray(objects);
         List<Object> results = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(newArray)) { case null -> 0; case List<?> j39v60 -> j39v60.size(); case String j39v61 -> j39v61.length(); case Object j39v62 -> j39v62.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v62) : 0; }); i++)
+        for (var i = 0; i < ((List<?>)newArray).size(); i++)
         {
-            ((List<Object>)results).add(Helpers.GetValue(Helpers.GetValue(newArray, i), key));
+            ((List<Object>)results).add(Helpers.GetValue((newArray == null || i < 0 || i >= newArray.size() ? null : newArray.get(i)), key));
         }
         return results;
     }
@@ -9005,7 +9139,7 @@ public Object describe()
             Long retryDelayMaxRetriesOnFailureDelay = (Long) ((List<Object>) retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable).get(0);
             var paramsMaxRetriesOnFailureDelay = ((List<Object>) retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable).get(1);
             Boolean fetchDataCacheEnabled = ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(this.fetchHistoryCacheSize, 0);
-            for (var i = 0; ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(i, ((Object) (switch ((Object) (retriesMaxRetriesOnFailure)) { case null -> (Object) null; case Long hx4J40v30 -> (Object) (hx4J40v30 + 1L); case Integer hx4J40v30 -> (Object) (hx4J40v30.longValue() + 1L); case Double hx4J40v30 -> (Object) (hx4J40v30 + ((double) 1L)); case String hx4J40v30 -> (Object) (hx4J40v30 + "1"); default -> (Object) null; }))); i++)
+            for (var i = 0; ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(i, (retriesMaxRetriesOnFailure == null ? null : (Object) (retriesMaxRetriesOnFailure + 1L))); i++)
             {
                 Map<String, Object> fetchData = null;
                 if (Boolean.TRUE.equals(fetchDataCacheEnabled))
@@ -9122,9 +9256,9 @@ public Object describe()
         Boolean skipZeroPrices = (Boolean) this.safeBool(options, "skipZeroPrices", true);
         for (var i = 0; ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(i, oldest); i++)
         {
-            Object trade = (trades == null || i < 0 || i >= ((List<?>)trades).size() ? null : ((List<?>)trades).get(i));
+            Map<String, Object> trade = (Map<String, Object>) this.safeDict(trades, i, new HashMap<String, Object>() {{}});
             Long ts = this.safeInteger(trade, "timestamp");
-            Object price = ((Map<String, Object>)trade).get("price");
+            Object price = trade.get("price");
             if ((java.util.Objects.equals(ts, null)) || (java.util.Objects.equals(price, null)))
             {
                 continue;
@@ -9165,19 +9299,18 @@ public Object describe()
             if (Boolean.TRUE.equals(isNewCandle))
             {
                 // moved to a new timeframe -> create a new candle from opening trade
-                ((List<Object>)ohlcvs).add(new ArrayList<Object>(Arrays.asList(openingTime, price, price, price, price, ((Map<String, Object>)trade).get("amount"), 1)));
+                ((List<Object>)ohlcvs).add(new ArrayList<Object>(Arrays.asList(openingTime, price, price, price, price, trade.get("amount"), 1)));
             } else
             {
                 // still processing the same timeframe -> update opening trade
-                Object prevHigh = Helpers.GetValue((ohlcvs == null || candle == null || candle.intValue() < 0 || candle.intValue() >= ohlcvs.size() ? null : ohlcvs.get(candle.intValue())), i_high);
-                Object prevLow = Helpers.GetValue((ohlcvs == null || candle == null || candle.intValue() < 0 || candle.intValue() >= ohlcvs.size() ? null : ohlcvs.get(candle.intValue())), i_low);
-                Object prevHighValue = (((java.util.Objects.equals(prevHigh, null)))) ? price : prevHigh;
-                Object prevLowValue = (((java.util.Objects.equals(prevLow, null)))) ? price : prevLow;
-                Helpers.addElementToObject((ohlcvs == null || candle == null || candle.intValue() < 0 || candle.intValue() >= ohlcvs.size() ? null : ohlcvs.get(candle.intValue())), i_high, ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u > j38v) ? j38a : j38b; }).apply(prevHighValue, price));
-                Helpers.addElementToObject((ohlcvs == null || candle == null || candle.intValue() < 0 || candle.intValue() >= ohlcvs.size() ? null : ohlcvs.get(candle.intValue())), i_low, ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(prevLowValue, price));
+                Object prevCandle = this.safeValue(ohlcvs, candle);
+                Object prevHigh = this.safeValue(prevCandle, i_high);
+                Object prevLow = this.safeValue(prevCandle, i_low);
+                Helpers.addElementToObject((ohlcvs == null || candle == null || candle.intValue() < 0 || candle.intValue() >= ohlcvs.size() ? null : ohlcvs.get(candle.intValue())), i_high, ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u > j38v) ? j38a : j38b; }).apply((((java.util.Objects.equals(prevHigh, null)))) ? price : prevHigh, price));
+                Helpers.addElementToObject((ohlcvs == null || candle == null || candle.intValue() < 0 || candle.intValue() >= ohlcvs.size() ? null : ohlcvs.get(candle.intValue())), i_low, ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply((((java.util.Objects.equals(prevLow, null)))) ? price : prevLow, price));
                 Helpers.addElementToObject((ohlcvs == null || candle == null || candle.intValue() < 0 || candle.intValue() >= ohlcvs.size() ? null : ohlcvs.get(candle.intValue())), i_close, price);
-                Helpers.addElementToObject((ohlcvs == null || candle == null || candle.intValue() < 0 || candle.intValue() >= ohlcvs.size() ? null : ohlcvs.get(candle.intValue())), i_volume, this.sum(Helpers.GetValue((ohlcvs == null || candle == null || candle.intValue() < 0 || candle.intValue() >= ohlcvs.size() ? null : ohlcvs.get(candle.intValue())), i_volume), ((Map<String, Object>)trade).get("amount")));
-                Helpers.addElementToObject((ohlcvs == null || candle == null || candle.intValue() < 0 || candle.intValue() >= ohlcvs.size() ? null : ohlcvs.get(candle.intValue())), i_count, this.sum(Helpers.GetValue((ohlcvs == null || candle == null || candle.intValue() < 0 || candle.intValue() >= ohlcvs.size() ? null : ohlcvs.get(candle.intValue())), i_count), 1));
+                Helpers.addElementToObject((ohlcvs == null || candle == null || candle.intValue() < 0 || candle.intValue() >= ohlcvs.size() ? null : ohlcvs.get(candle.intValue())), i_volume, this.sum(this.safeValue(prevCandle, i_volume), trade.get("amount")));
+                Helpers.addElementToObject((ohlcvs == null || candle == null || candle.intValue() < 0 || candle.intValue() >= ohlcvs.size() ? null : ohlcvs.get(candle.intValue())), i_count, this.sum(this.safeValue(prevCandle, i_count), 1));
             }
         }
         return ohlcvs;
@@ -9192,30 +9325,21 @@ public Object describe()
     public CompletableFuture<List<BorrowInterest>> fetchBorrowInterest(String code, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchBorrowInterest() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchBorrowInterest() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(BorrowInterest::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<List<LedgerEntry>> fetchLedger(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchLedger() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchLedger() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<LedgerEntry> fetchLedgerEntry(String id, String code, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchLedgerEntry() is not supported yet")) ;
-        }).thenApply(LedgerEntry::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchLedgerEntry() is not supported yet"))).thenApply(LedgerEntry::new);
 
     }
 
@@ -9260,11 +9384,11 @@ public Object describe()
         {
             code = this.commonCurrencyCode(((String)currencyId).toUpperCase());
         }
-        return (Map<String, Object>) (this.safeCurrencyStructure((switch (0) { default -> { HashMap<String, Object> j39v63 = new HashMap<String, Object>();
-            j39v63.put("id", currencyId);
-            j39v63.put("code", code);
-            j39v63.put("precision", null);
-            yield j39v63; } })));
+        return (Map<String, Object>) (this.safeCurrencyStructure((switch (0) { default -> { HashMap<String, Object> j39v39 = new HashMap<String, Object>();
+            j39v39.put("id", currencyId);
+            j39v39.put("code", code);
+            j39v39.put("precision", null);
+            yield j39v39; } })));
     }
 
     public Map<String, Object> safeMarket(String marketId, Map<String, Object> market, String delimiter, String marketType)
@@ -9273,11 +9397,11 @@ public Object describe()
         {
             if ((!java.util.Objects.equals(this.markets_by_id, null)) && (((Map<?, ?>)this.markets_by_id).containsKey(marketId)))
             {
-                Object markets = (marketId == null || this.markets_by_id == null ? null : ((Map<?, ?>)this.markets_by_id).get(marketId));
-                Integer numMarkets = (switch ((Object)(markets)) { case null -> 0; case List<?> j39v67 -> j39v67.size(); case String j39v68 -> j39v68.length(); case Object j39v69 -> j39v69.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v69) : 0; });
-                if ((numMarkets != null && numMarkets == 1))
+                List<Object> markets = (List<Object>) this.safeList(this.markets_by_id, marketId, new ArrayList<Object>(Arrays.asList()));
+                Integer numMarkets = (markets == null ? 0 : ((List<?>)markets).size());
+                if (java.util.Objects.equals(numMarkets, 1))
                 {
-                    return (Map<String, Object>) (Helpers.GetValue(markets, 0));
+                    return (Map<String, Object>) ((markets == null || 0 >= markets.size() ? null : markets.get(0)));
                 } else
                 {
                     if ((java.util.Objects.equals(marketType, null)) && (java.util.Objects.equals(market, null)))
@@ -9285,10 +9409,10 @@ public Object describe()
                         throw new ArgumentsRequired((((this.id + " safeMarket() requires a fourth argument for ") + marketId) + " to disambiguate between different markets with the same market id")) ;
                     }
                     String marketTypeResolved = (((java.util.Objects.equals(marketType, null)))) ? this.safeString(market, "type", "") : marketType;
-                    for (var i = 0; i < (switch ((Object)(markets)) { case null -> 0; case List<?> j39v64 -> j39v64.size(); case String j39v65 -> j39v65.length(); case Object j39v66 -> j39v66.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v66) : 0; }); i++)
+                    for (var i = 0; i < (markets == null ? 0 : ((List<?>)markets).size()); i++)
                     {
-                        Object currentMarket = Helpers.GetValue(markets, i);
-                        if (java.util.Objects.equals(Helpers.GetValue(currentMarket, marketTypeResolved), true))
+                        Object currentMarket = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
+                        if (Boolean.TRUE.equals(this.safeBool(currentMarket, marketTypeResolved, false)))
                         {
                             return (Map<String, Object>) (currentMarket);
                         }
@@ -9296,7 +9420,7 @@ public Object describe()
                 }
             } else if (!java.util.Objects.equals(delimiter, null) && !java.util.Objects.equals(delimiter, ""))
             {
-                List<Object> parts = (List<Object>) Helpers.split(marketId, delimiter);
+                List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote(delimiter))));
                 Integer partsLength = ((List<?>)parts).size();
                 HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
                 mapLiteral3.put("symbol", marketId);
@@ -9312,19 +9436,19 @@ public Object describe()
                     String quoteId = this.safeString(parts, 1);
                     String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
                     String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
-                    Helpers.addElementToObject(result, "baseId", baseId);
-                    Helpers.addElementToObject(result, "quoteId", quoteId);
+                    result.put("baseId", baseId);
+                    result.put("quoteId", quoteId);
                     if (!java.util.Objects.equals(base, null))
                     {
-                        Helpers.addElementToObject(result, "base", base);
+                        result.put("base", base);
                     }
                     if (!java.util.Objects.equals(quote, null))
                     {
-                        Helpers.addElementToObject(result, "quote", quote);
+                        result.put("quote", quote);
                     }
                     if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
                     {
-                        Helpers.addElementToObject(result, "symbol", ((base + "/") + quote));
+                        result.put("symbol", ((base + "/") + quote));
                     }
                 }
                 return (Map<String, Object>) (result);
@@ -9362,13 +9486,13 @@ public Object describe()
          * @param {boolean} error throw an error that a credential is required if true
          * @returns {boolean} true if all required credentials have been set, otherwise false or an error is thrown is param error=true
          */
-        List<Object> keys = ((List<Object>) switch ((Object)(this.requiredCredentials)) { case Map<?, ?> j39v70 -> { synchronized (j39v70) { yield new ArrayList<Object>(j39v70.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> keys = ((List<Object>) switch ((Object)(this.requiredCredentials)) { case Map<?, ?> j39v40 -> { synchronized (j39v40) { yield new ArrayList<Object>(j39v40.keySet()); } } case null, default -> new ArrayList<Object>(); });
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object credentialValue = Helpers.GetValue(this, key);
             Boolean credentialMissing = (java.util.Objects.equals(credentialValue, null)) || (java.util.Objects.equals(credentialValue, null)) || (java.util.Objects.equals(credentialValue, false)) || (java.util.Objects.equals(credentialValue, ""));
-            if ((java.util.Objects.equals(Helpers.GetValue(this.requiredCredentials, key), true)) && Boolean.TRUE.equals(credentialMissing))
+            if ((java.util.Objects.equals((this.requiredCredentials == null || key == null ? null : ((Map<?, ?>)this.requiredCredentials).get(key)), true)) && Boolean.TRUE.equals(credentialMissing))
             {
                 if (java.util.Objects.requireNonNullElse(error, true))
                 {
@@ -9396,24 +9520,18 @@ public Object describe()
     public CompletableFuture<Balances> fetchBalance(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchBalance() is not supported yet")) ;
-        }).thenApply(Balances::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchBalance() is not supported yet"))).thenApply(Balances::new);
 
     }
 
     public CompletableFuture<Balances> fetchBalanceWs(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchBalanceWs() is not supported yet")) ;
-        }).thenApply(Balances::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchBalanceWs() is not supported yet"))).thenApply(Balances::new);
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         throw new NotSupported((this.id + " parseBalance() is not supported yet")) ;
     }
@@ -9421,10 +9539,7 @@ public Object describe()
     public CompletableFuture<Balances> watchBalance(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " watchBalance() is not supported yet")) ;
-        }).thenApply(Balances::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " watchBalance() is not supported yet"))).thenApply(Balances::new);
 
     }
 
@@ -9472,10 +9587,7 @@ public Object describe()
     public CompletableFuture<Status> fetchStatus(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchStatus() is not supported yet")) ;
-        }).thenApply(Status::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchStatus() is not supported yet"))).thenApply(Status::new);
 
     }
 
@@ -9496,20 +9608,14 @@ public Object describe()
     public CompletableFuture<Object> fetchTransactionFees(Object codes, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchTransactionFees() is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchTransactionFees() is not supported yet")));
 
     }
 
     public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFees(Object codes, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchDepositWithdrawFees() is not supported yet")) ;
-        }).thenApply(DepositWithdrawFees::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchDepositWithdrawFees() is not supported yet"))).thenApply(DepositWithdrawFees::new);
 
     }
 
@@ -9554,7 +9660,7 @@ public Object describe()
             {
                 throw new NotSupported((this.id + " fetchCrossBorrowRate() is not supported yet")) ;
             }
-            CrossBorrowRates borrowRates = (this.fetchCrossBorrowRates(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v28 -> (Map<String, Object>) hx4J40v28; case Object hx4J40v28 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v28.getClass().getName()); })))).join();
+            CrossBorrowRates borrowRates = (this.fetchCrossBorrowRates(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v21 -> (Map<String, Object>) hx4J40v21; case Object hx4J40v21 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v21.getClass().getName()); })))).join();
             Map<String, Object> rate = (Map<String, Object>) this.safeDict(borrowRates, code, (Object) null);
             if (java.util.Objects.equals(rate, null))
             {
@@ -9629,7 +9735,10 @@ public Object describe()
                 value = this.safeValue2(this.options, optionName, defaultOptionName);
             }
             // if it's still undefined, use the default value
-            value = (((!java.util.Objects.equals(value, null)))) ? value : defaultValue;
+            if (java.util.Objects.equals(value, null))
+            {
+                value = defaultValue;
+            }
             return new ArrayList<Object>(Arrays.asList(value, paramsCallerMethodName));
         }
     }
@@ -9693,37 +9802,37 @@ public Object describe()
 
 
 
-    public void throwExactlyMatchedException(Object exact, Object str, Object message)
+    public void throwExactlyMatchedException(Map<String, Object> exact, String str, String message)
     {
         if (java.util.Objects.equals(str, null))
         {
             return;
         }
-        if ((switch ((Object)(exact)) { case List<?> j39v72 -> ((Object)(str)) != null && j39v72.contains(str); case Map<?, ?> j39v71 -> ((Object)(str)) instanceof String && j39v71.containsKey(str); case null, default -> false; }))
+        if (exact.containsKey(str))
         {
-            Helpers.throwDynamicException(Helpers.GetValue(exact, str), message);
+            Helpers.throwDynamicException((exact == null || str == null ? null : exact.get(str)), message);
         }
     }
 
-    public void throwBroadlyMatchedException(Object broad, Object str, Object message)
+    public void throwBroadlyMatchedException(Map<String, Object> broad, String str, String message)
     {
         Object broadKey = this.findBroadlyMatchedKey(broad, (String) (str));
         if (!java.util.Objects.equals(broadKey, null))
         {
-            Helpers.throwDynamicException(Helpers.GetValue(broad, broadKey), message);
+            Helpers.throwDynamicException((broad == null || broadKey == null ? null : broad.get(broadKey)), message);
         }
     }
 
-    public Object findBroadlyMatchedKey(Object broad, String str)
+    public Object findBroadlyMatchedKey(Map<String, Object> broad, String str)
     {
         // a helper for matching error strings exactly vs broadly
-        List<Object> keys = ((List<Object>) switch ((Object)(broad)) { case Map<?, ?> j39v73 -> { synchronized (j39v73) { yield new ArrayList<Object>(j39v73.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<String> keys = new ArrayList<String>(broad.keySet());
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
-            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (!java.util.Objects.equals(str, null))
             {
-                if (((String)str).indexOf(((String)key)) >= 0)
+                if (((String)str).indexOf(key) >= 0)
                 {
                     return key;
                 }
@@ -9732,7 +9841,7 @@ public Object describe()
         return null;
     }
 
-    public Object handleErrors(Object statusCode, Object statusText, Object url, Object method, Object responseHeaders, Object responseBody, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         // it is a stub method that must be overrided in the derived exchange classes
         // throw new NotSupported (this.id + ' handleErrors() not implemented yet');
@@ -9747,120 +9856,84 @@ public Object describe()
     public CompletableFuture<Tickers> fetchSpotTickers(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchSpotTickers() is not supported yet")) ;
-        }).thenApply(Tickers::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchSpotTickers() is not supported yet"))).thenApply(Tickers::new);
 
     }
 
     public CompletableFuture<Tickers> fetchContractTickers(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchContractTickers() is not supported yet")) ;
-        }).thenApply(Tickers::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchContractTickers() is not supported yet"))).thenApply(Tickers::new);
 
     }
 
     public CompletableFuture<OrderBooks> fetchOrderBooks(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchOrderBooks() is not supported yet")) ;
-        }).thenApply(OrderBooks::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchOrderBooks() is not supported yet"))).thenApply(OrderBooks::new);
 
     }
 
     public CompletableFuture<Object> unWatchTickers(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " unWatchTickers() is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " unWatchTickers() is not supported yet")));
 
     }
 
     public CompletableFuture<Object> unWatchFundingRate(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " unWatchFundingRate() is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " unWatchFundingRate() is not supported yet")));
 
     }
 
     public CompletableFuture<Order> createTwapOrder(String symbol, String side, Object amount, Object duration, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " createTwapOrder() is not supported yet")) ;
-        }).thenApply(Order::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " createTwapOrder() is not supported yet"))).thenApply(Order::new);
 
     }
 
     public CompletableFuture<Conversion> createConvertTrade(String id, String fromCode, String toCode, Object amount, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " createConvertTrade() is not supported yet")) ;
-        }).thenApply(Conversion::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " createConvertTrade() is not supported yet"))).thenApply(Conversion::new);
 
     }
 
     public CompletableFuture<Conversion> fetchConvertTrade(String id, String code, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchConvertTrade() is not supported yet")) ;
-        }).thenApply(Conversion::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchConvertTrade() is not supported yet"))).thenApply(Conversion::new);
 
     }
 
     public CompletableFuture<List<Conversion>> fetchConvertTradeHistory(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchConvertTradeHistory() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Conversion::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchConvertTradeHistory() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Conversion::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<PositionModeInfo> fetchPositionMode(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchPositionMode() is not supported yet")) ;
-        }).thenApply(PositionModeInfo::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchPositionMode() is not supported yet"))).thenApply(PositionModeInfo::new);
 
     }
 
     public CompletableFuture<ADL> fetchADLRank(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchADLRank() is not supported yet")) ;
-        }).thenApply(ADL::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchADLRank() is not supported yet"))).thenApply(ADL::new);
 
     }
 
     public CompletableFuture<List<ADL>> fetchPositionsADLRank(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchPositionsADLRank() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(ADL::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchPositionsADLRank() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(ADL::new).collect(Collectors.toList()));
 
     }
 
@@ -9897,18 +9970,6 @@ public Object describe()
         {
             throw new ArgumentsRequired((this.id + " createOrderWithTakeProfitAndStopLoss() requires either a takeProfit or stopLoss argument")) ;
         }
-        if (!java.util.Objects.equals(takeProfit, null))
-        {
-            HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-            mapLiteral5.put("triggerPrice", takeProfit);
-            parameters.put("takeProfit", mapLiteral5);
-        }
-        if (!java.util.Objects.equals(stopLoss, null))
-        {
-            HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
-            mapLiteral6.put("triggerPrice", stopLoss);
-            parameters.put("stopLoss", mapLiteral6);
-        }
         String takeProfitType = this.safeString(parameters, "takeProfitType");
         String takeProfitPriceType = this.safeString(parameters, "takeProfitPriceType");
         String takeProfitLimitPrice = this.safeString(parameters, "takeProfitLimitPrice");
@@ -9917,37 +9978,49 @@ public Object describe()
         String stopLossPriceType = this.safeString(parameters, "stopLossPriceType");
         String stopLossLimitPrice = this.safeString(parameters, "stopLossLimitPrice");
         String stopLossAmount = this.safeString(parameters, "stopLossAmount");
-        if (!java.util.Objects.equals(takeProfitType, null))
+        if (!java.util.Objects.equals(takeProfit, null))
         {
-            Helpers.addElementToObject(parameters.get("takeProfit"), "type", takeProfitType);
+            Map<String, Object> takeProfitRequest = new HashMap<String, Object>();
+            takeProfitRequest.put("triggerPrice", takeProfit);
+            if (!java.util.Objects.equals(takeProfitType, null))
+            {
+                takeProfitRequest.put("type", takeProfitType);
+            }
+            if (!java.util.Objects.equals(takeProfitPriceType, null))
+            {
+                takeProfitRequest.put("priceType", takeProfitPriceType);
+            }
+            if (!java.util.Objects.equals(takeProfitLimitPrice, null))
+            {
+                takeProfitRequest.put("price", BaseExchange.this.parseToNumeric(takeProfitLimitPrice));
+            }
+            if (!java.util.Objects.equals(takeProfitAmount, null))
+            {
+                takeProfitRequest.put("amount", BaseExchange.this.parseToNumeric(takeProfitAmount));
+            }
+            parameters.put("takeProfit", takeProfitRequest);
         }
-        if (!java.util.Objects.equals(takeProfitPriceType, null))
+        if (!java.util.Objects.equals(stopLoss, null))
         {
-            Helpers.addElementToObject(parameters.get("takeProfit"), "priceType", takeProfitPriceType);
-        }
-        if (!java.util.Objects.equals(takeProfitLimitPrice, null))
-        {
-            Helpers.addElementToObject(parameters.get("takeProfit"), "price", this.parseToNumeric(takeProfitLimitPrice));
-        }
-        if (!java.util.Objects.equals(takeProfitAmount, null))
-        {
-            Helpers.addElementToObject(parameters.get("takeProfit"), "amount", this.parseToNumeric(takeProfitAmount));
-        }
-        if (!java.util.Objects.equals(stopLossType, null))
-        {
-            Helpers.addElementToObject(parameters.get("stopLoss"), "type", stopLossType);
-        }
-        if (!java.util.Objects.equals(stopLossPriceType, null))
-        {
-            Helpers.addElementToObject(parameters.get("stopLoss"), "priceType", stopLossPriceType);
-        }
-        if (!java.util.Objects.equals(stopLossLimitPrice, null))
-        {
-            Helpers.addElementToObject(parameters.get("stopLoss"), "price", this.parseToNumeric(stopLossLimitPrice));
-        }
-        if (!java.util.Objects.equals(stopLossAmount, null))
-        {
-            Helpers.addElementToObject(parameters.get("stopLoss"), "amount", this.parseToNumeric(stopLossAmount));
+            Map<String, Object> stopLossRequest = new HashMap<String, Object>();
+            stopLossRequest.put("triggerPrice", stopLoss);
+            if (!java.util.Objects.equals(stopLossType, null))
+            {
+                stopLossRequest.put("type", stopLossType);
+            }
+            if (!java.util.Objects.equals(stopLossPriceType, null))
+            {
+                stopLossRequest.put("priceType", stopLossPriceType);
+            }
+            if (!java.util.Objects.equals(stopLossLimitPrice, null))
+            {
+                stopLossRequest.put("price", BaseExchange.this.parseToNumeric(stopLossLimitPrice));
+            }
+            if (!java.util.Objects.equals(stopLossAmount, null))
+            {
+                stopLossRequest.put("amount", BaseExchange.this.parseToNumeric(stopLossAmount));
+            }
+            parameters.put("stopLoss", stopLossRequest);
         }
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("takeProfitType", "takeProfitPriceType", "takeProfitLimitPrice", "takeProfitAmount", "stopLossType", "stopLossPriceType", "stopLossLimitPrice", "stopLossAmount")));
         return paramsOmitted;
@@ -9956,220 +10029,154 @@ public Object describe()
     public CompletableFuture<List<Order>> createSpotOrders(Object orders, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " createSpotOrders() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " createSpotOrders() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<List<Order>> createContractOrders(Object orders, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " createContractOrders() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " createContractOrders() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<Order> cancelSpotOrder(String id, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " cancelSpotOrder() is not supported yet")) ;
-        }).thenApply(Order::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " cancelSpotOrder() is not supported yet"))).thenApply(Order::new);
 
     }
 
     public CompletableFuture<Order> cancelContractOrder(String id, String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " cancelContractOrder() is not supported yet")) ;
-        }).thenApply(Order::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " cancelContractOrder() is not supported yet"))).thenApply(Order::new);
 
     }
 
     public CompletableFuture<List<Order>> cancelAllSpotOrders(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " cancelAllSpotOrders() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " cancelAllSpotOrders() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<List<Order>> cancelAllContractOrders(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " cancelAllContractOrders() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " cancelAllContractOrders() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " cancelAllOrdersAfter() is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " cancelAllOrdersAfter() is not supported yet")));
 
     }
 
     public CompletableFuture<List<Order>> cancelOrdersForSymbols(Object orders, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " cancelOrdersForSymbols() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " cancelOrdersForSymbols() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<List<Liquidation>> fetchMyLiquidations(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchMyLiquidations() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchMyLiquidations() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<List<Liquidation>> fetchLiquidations(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchLiquidations() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchLiquidations() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Liquidation::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<Greeks> fetchGreeks(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchGreeks() is not supported yet")) ;
-        }).thenApply(Greeks::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchGreeks() is not supported yet"))).thenApply(Greeks::new);
 
     }
 
     public CompletableFuture<Object> fetchAllGreeks(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchAllGreeks() is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchAllGreeks() is not supported yet")));
 
     }
 
     public CompletableFuture<OptionChain> fetchOptionChain(String code, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchOptionChain() is not supported yet")) ;
-        }).thenApply(OptionChain::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchOptionChain() is not supported yet"))).thenApply(OptionChain::new);
 
     }
 
     public CompletableFuture<Option> fetchOption(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchOption() is not supported yet")) ;
-        }).thenApply(Option::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchOption() is not supported yet"))).thenApply(Option::new);
 
     }
 
     public CompletableFuture<Conversion> fetchConvertQuote(Object fromCode, Object toCode, Object amount, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchConvertQuote() is not supported yet")) ;
-        }).thenApply(Conversion::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchConvertQuote() is not supported yet"))).thenApply(Conversion::new);
 
     }
 
     public CompletableFuture<List<Transaction>> fetchDepositsWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchDepositsWithdrawals() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchDepositsWithdrawals() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<List<Transaction>> fetchDeposits(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchDeposits() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchDeposits() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<List<Transaction>> fetchWithdrawals(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchWithdrawals() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchWithdrawals() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<List<Transaction>> fetchDepositsWs(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchDepositsWs() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchDepositsWs() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<List<Transaction>> fetchWithdrawalsWs(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchWithdrawalsWs() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchWithdrawalsWs() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<List<FundingRateHistory>> fetchFundingRateHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchFundingRateHistory() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchFundingRateHistory() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<List<FundingHistory>> fetchFundingHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchFundingHistory() is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchFundingHistory() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
     }
 
@@ -10217,10 +10224,7 @@ public Object describe()
     public CompletableFuture<DepositAddress> fetchContractDepositAddress(String code, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchContractDepositAddress() is not supported yet")) ;
-        }).thenApply(DepositAddress::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchContractDepositAddress() is not supported yet"))).thenApply(DepositAddress::new);
 
     }
 
@@ -10240,7 +10244,7 @@ public Object describe()
      * @param {object} result the code-keyed balance dict being built
      * @param {string} code unified currency code
      * @param {object} account a balance account with string free/used/total/debt
-     * @returns {object} result — callers MUST reassign (`result = this.mergeBalanceAccount (result, ...)`): PHP arrays are passed by value, so the mutation is not visible through the argument
+     * @returns {object} result — callers MUST reassign the return value to their own result: PHP arrays are passed by value, so the mutation is not visible through the argument
      */
     public Object mergeBalanceAccount(Map<String, Object> result, Object code, Map<String, Object> account)
     {
@@ -10281,7 +10285,7 @@ public Object describe()
         {
             throw new ArgumentsRequired((this.id + " currency() requires a code argument")) ;
         }
-        List<Object> keys = ((List<Object>) switch ((Object)(this.currencies)) { case Map<?, ?> j39v74 -> { synchronized (j39v74) { yield new ArrayList<Object>(j39v74.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> keys = (this.currencies == null ? new ArrayList<Object>() : new ArrayList<Object>(this.currencies.keySet()));
         Integer numCurrencies = ((List<?>)keys).size();
         if (java.util.Objects.equals(numCurrencies, 0))
         {
@@ -10308,23 +10312,23 @@ public Object describe()
         {
             throw new ArgumentsRequired((this.id + " market() requires a symbol argument")) ;
         }
-        Object markets = this.markets;
+        Map<String, Object> markets = this.markets;
         if (java.util.Objects.equals(markets, null))
         {
             throw new ExchangeError((this.id + " markets not loaded")) ;
         }
         Map<String, Object> marketsById = this.markets_by_id;
-        if (((Map<?, ?>)markets).containsKey(symbol))
+        if (markets.containsKey(symbol))
         {
-            return (Map<String, Object>) (Helpers.GetValue(markets, symbol));
+            return (Map<String, Object>) ((markets == null || symbol == null ? null : markets.get(symbol)));
         } else if ((!java.util.Objects.equals(marketsById, null)) && (marketsById.containsKey(symbol)))
         {
             Object marketsList = (marketsById == null || symbol == null ? null : marketsById.get(symbol));
             String defaultType = this.safeString2(this.options, "defaultType", "defaultSubType", "spot");
-            for (var i = 0; i < (switch ((Object)(marketsList)) { case null -> 0; case List<?> j39v75 -> j39v75.size(); case String j39v76 -> j39v76.length(); case Object j39v77 -> j39v77.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v77) : 0; }); i++)
+            for (var i = 0; i < (switch ((Object)(marketsList)) { case null -> 0; case List<?> j39v41 -> j39v41.size(); case String j39v42 -> j39v42.length(); case Object j39v43 -> j39v43.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v43) : 0; }); i++)
             {
                 Object market = Helpers.GetValue(marketsList, i);
-                if (java.util.Objects.equals(Helpers.GetValue(market, defaultType), true))
+                if (Boolean.TRUE.equals(this.safeBool(market, defaultType, false)))
                 {
                     return (Map<String, Object>) (market);
                 }
@@ -10434,7 +10438,7 @@ public Object describe()
         {
             throw new ArgumentsRequired((this.id + " currencyToPrecision() requires a code argument")) ;
         }
-        Object currency = Helpers.GetValue(this.currencies, code);
+        Object currency = (this.currencies == null || code == null ? null : this.currencies.get(code));
         Object precision = this.safeValue(currency, "precision");
         if (!java.util.Objects.equals(networkCode, null))
         {
@@ -10495,15 +10499,15 @@ public Object describe()
         {
             return null;
         }
-        Object precisionNumber = Helpers.parseInt(precision);
-        if (java.util.Objects.equals((precisionNumber == null ? null : ((Number) precisionNumber).longValue()), 0L))
+        Long precisionNumber = Long.parseLong(((String)precision));
+        if ((precisionNumber != null && precisionNumber == 0))
         {
             return "1";
         }
-        if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(precisionNumber, 0))
+        if ((precisionNumber != null && precisionNumber > 0))
         {
             String parsedPrecision = "0.";
-            for (var i = 0; ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(i, Helpers.subtract(precisionNumber, 1)); i++)
+            for (var i = 0; i < (precisionNumber - 1L); i++)
             {
                 parsedPrecision = (parsedPrecision + "0");
             }
@@ -10542,9 +10546,9 @@ public Object describe()
             {
                 return null;
             }
-            Object positivePrecision = Helpers.parseInt(positivePrecisionString);
+            Long positivePrecision = Long.parseLong(positivePrecisionString);
             String parsedPrecision = "1";
-            for (var i = 0; ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(i, Helpers.subtract(positivePrecision, 1)); i++)
+            for (var i = 0; i < (positivePrecision - 1L); i++)
             {
                 parsedPrecision = (parsedPrecision + "0");
             }
@@ -10563,7 +10567,7 @@ public Object describe()
             {
                 throw new ExchangeError((this.id + " loadTimeDifference() missing serverTime")) ;
             }
-            Helpers.addElementToObject(this.options, "timeDifference", (after - serverTime));
+            this.options.put("timeDifference", (after - serverTime));
             return this.parseToInt(this.options.get("timeDifference"));
         });
 
@@ -10584,7 +10588,7 @@ public Object describe()
             if (!java.util.Objects.equals(this.has.get("fetchLeverageTiers"), null) && !java.util.Objects.equals(this.has.get("fetchLeverageTiers"), false))
             {
                 Map<String, Object> market = this.market(symbol);
-                if (!java.util.Objects.equals(market.get("contract"), true))
+                if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
                 {
                     throw new BadSymbol((this.id + " fetchMarketLeverageTiers() supports contract markets only")) ;
                 }
@@ -10602,10 +10606,7 @@ public Object describe()
     public CompletableFuture<Object> createSubAccount(Object name, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " createSubAccount() is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " createSubAccount() is not supported yet")));
 
     }
 
@@ -10657,22 +10658,19 @@ public Object describe()
         {
             for (var i = 0; i < ((List<?>)pricesData).size(); i++)
             {
-                Map<String, Object> priceData = this.extend(this.parseLastPrice((Map<String, Object>) ((pricesData == null || i < 0 || i >= ((List<?>)pricesData).size() ? null : ((List<?>)pricesData).get(i))), (Map<String, Object>) null), parameters);
-                ((List<Object>)results).add(priceData);
+                ((List<Object>)results).add(this.extend(this.parseLastPrice((Map<String, Object>) ((pricesData == null || i < 0 || i >= ((List<?>)pricesData).size() ? null : ((List<?>)pricesData).get(i))), (Map<String, Object>) null), parameters));
             }
         } else
         {
-            List<Object> marketIds = ((List<Object>) switch ((Object)(pricesData)) { case Map<?, ?> j39v78 -> { synchronized (j39v78) { yield new ArrayList<Object>(j39v78.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> marketIds = ((List<Object>) switch ((Object)(pricesData)) { case Map<?, ?> j39v44 -> { synchronized (j39v44) { yield new ArrayList<Object>(j39v44.keySet()); } } case null, default -> new ArrayList<Object>(); });
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Map<String, Object> market = this.safeMarket(java.util.Objects.toString(marketId, null), (Map<String, Object>) null, (String) null, (String) null);
-                Map<String, Object> priceData = this.extend(this.parseLastPrice((Map<String, Object>) (Helpers.GetValue(pricesData, marketId)), market), parameters);
-                ((List<Object>)results).add(priceData);
+                ((List<Object>)results).add(this.extend(this.parseLastPrice((Map<String, Object>) (Helpers.GetValue(pricesData, marketId)), market), parameters));
             }
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-        return this.indexBy(this.filterByArray(results, "symbol", symbolsNormalized, false), "symbol");
+        return this.indexBy(this.filterByArray(results, "symbol", this.marketSymbols(symbols, (Object) null, true, false, false), false), "symbol");
     }
 
     public Object parseTickers(Object tickers, List<String> symbols, Map<String, Object> parameters)
@@ -10704,30 +10702,25 @@ public Object describe()
         {
             for (var i = 0; i < ((List<?>)tickers).size(); i++)
             {
-                Map<String, Object> parsedTicker = (Map<String, Object>) this.parseTicker((tickers == null || i < 0 || i >= ((List<?>)tickers).size() ? null : ((List<?>)tickers).get(i)), (Map<String, Object>) null);
-                Map<String, Object> ticker = this.extend(parsedTicker, parameters);
-                ((List<Object>)results).add(ticker);
+                ((List<Object>)results).add(this.extend(this.parseTicker((tickers == null || i < 0 || i >= ((List<?>)tickers).size() ? null : ((List<?>)tickers).get(i)), (Map<String, Object>) null), parameters));
             }
         } else
         {
-            List<Object> marketIds = ((List<Object>) switch ((Object)(tickers)) { case Map<?, ?> j39v79 -> { synchronized (j39v79) { yield new ArrayList<Object>(j39v79.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> marketIds = ((List<Object>) switch ((Object)(tickers)) { case Map<?, ?> j39v45 -> { synchronized (j39v45) { yield new ArrayList<Object>(j39v45.keySet()); } } case null, default -> new ArrayList<Object>(); });
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Map<String, Object> market = this.safeMarket(java.util.Objects.toString(marketId, null), (Map<String, Object>) null, (String) null, (String) null);
-                Map<String, Object> parsed = (Map<String, Object>) this.parseTicker(Helpers.GetValue(tickers, marketId), market);
-                Map<String, Object> ticker = this.extend(parsed, parameters);
-                ((List<Object>)results).add(ticker);
+                ((List<Object>)results).add(this.extend(this.parseTicker(Helpers.GetValue(tickers, marketId), market), parameters));
             }
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-        return this.filterByArrayTickers(results, "symbol", symbolsNormalized);
+        return this.filterByArrayTickers(results, "symbol", this.marketSymbols(symbols, (Object) null, true, false, false));
     }
 
     public Object parseDepositAddresses(Object addresses, Object codes, Boolean indexed, Map<String, Object> parameters)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(addresses)) { case null -> 0; case List<?> j39v80 -> j39v80.size(); case String j39v81 -> j39v81.length(); case Object j39v82 -> j39v82.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v82) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(addresses)) { case null -> 0; case List<?> j39v46 -> j39v46.size(); case String j39v47 -> j39v47.length(); case Object j39v48 -> j39v48.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v48) : 0; }); i++)
         {
             Map<String, Object> address = this.extend(this.parseDepositAddress((Map<String, Object>) (Helpers.GetValue(addresses, i)), (Map<String, Object>) null), parameters);
             ((List<Object>)result).add(address);
@@ -10746,9 +10739,9 @@ public Object describe()
     public List<Object> parseBorrowInterests(Object response, Map<String, Object> market)
     {
         List<Object> interests = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v83 -> j39v83.size(); case String j39v84 -> j39v84.length(); case Object j39v85 -> j39v85.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v85) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v49 -> j39v49.size(); case String j39v50 -> j39v50.length(); case Object j39v51 -> j39v51.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v51) : 0; }); i++)
         {
-            Object row = Helpers.GetValue(response, i);
+            Object row = this.safeValue(response, i);
             ((List<Object>)interests).add(this.parseBorrowInterest((Map<String, Object>) (row), market));
         }
         return interests;
@@ -10762,22 +10755,22 @@ public Object describe()
     public Object parseBorrowRateHistory(Object response, String code, Object since, Object limit)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v86 -> j39v86.size(); case String j39v87 -> j39v87.length(); case Object j39v88 -> j39v88.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v88) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v52 -> j39v52.size(); case String j39v53 -> j39v53.length(); case Object j39v54 -> j39v54.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v54) : 0; }); i++)
         {
-            Object item = Helpers.GetValue(response, i);
+            Object item = this.safeValue(response, i);
             Map<String, Object> borrowRate = (Map<String, Object>) this.parseBorrowRate(item, (Map<String, Object>) null);
             ((List<Object>)result).add(borrowRate);
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
-        return this.filterByCurrencySinceLimit(sorted, code, ((Long) (switch ((Object) (since)) { case null -> (Long) null; case Long hx4J40v22 -> hx4J40v22; case Number hx4J40v22 -> Long.valueOf(hx4J40v22.longValue()); case Object hx4J40v22 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v22.getClass().getName()); })), ((Long) (switch ((Object) (limit)) { case null -> (Long) null; case Long hx4J40v21 -> hx4J40v21; case Number hx4J40v21 -> Long.valueOf(hx4J40v21.longValue()); case Object hx4J40v21 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v21.getClass().getName()); })), false);
+        return this.filterByCurrencySinceLimit(sorted, code, ((Long) (switch ((Object) (since)) { case null -> (Long) null; case Long hx4J40v15 -> hx4J40v15; case Number hx4J40v15 -> Long.valueOf(hx4J40v15.longValue()); case Object hx4J40v15 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v15.getClass().getName()); })), ((Long) (switch ((Object) (limit)) { case null -> (Long) null; case Long hx4J40v14 -> hx4J40v14; case Number hx4J40v14 -> Long.valueOf(hx4J40v14.longValue()); case Object hx4J40v14 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v14.getClass().getName()); })), false);
     }
 
     public Object parseIsolatedBorrowRates(Object info)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < (switch ((Object)(info)) { case null -> 0; case List<?> j39v89 -> j39v89.size(); case String j39v90 -> j39v90.length(); case Object j39v91 -> j39v91.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v91) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(info)) { case null -> 0; case List<?> j39v55 -> j39v55.size(); case String j39v56 -> j39v56.length(); case Object j39v57 -> j39v57.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v57) : 0; }); i++)
         {
-            Object item = Helpers.GetValue(info, i);
+            Object item = this.safeValue(info, i);
             Map<String, Object> borrowRate = (Map<String, Object>) this.parseIsolatedBorrowRate((Map<String, Object>) (item), (Map<String, Object>) null);
             String symbol = this.safeString(borrowRate, "symbol");
             result.put((String)symbol, borrowRate);
@@ -10788,7 +10781,7 @@ public Object describe()
     public List<Object> parseFundingRateHistories(Object response, Map<String, Object> market, Long since, Long limit)
     {
         List<Object> rates = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v92 -> j39v92.size(); case String j39v93 -> j39v93.length(); case Object j39v94 -> j39v94.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v94) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v58 -> j39v58.size(); case String j39v59 -> j39v59.length(); case Object j39v60 -> j39v60.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v60) : 0; }); i++)
         {
             Object entry = Helpers.GetValue(response, i);
             ((List<Object>)rates).add(this.parseFundingRateHistory(entry, market));
@@ -10812,7 +10805,7 @@ public Object describe()
     public Object parseFundingRates(Object response, List<String> symbols)
     {
         Map<String, Object> fundingRates = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v95 -> j39v95.size(); case String j39v96 -> j39v96.length(); case Object j39v97 -> j39v97.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v97) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v61 -> j39v61.size(); case String j39v62 -> j39v62.length(); case Object j39v63 -> j39v63.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v63) : 0; }); i++)
         {
             Object entry = Helpers.GetValue(response, i);
             Map<String, Object> parsed = (Map<String, Object>) this.parseFundingRate(entry, (Map<String, Object>) null);
@@ -10832,7 +10825,7 @@ public Object describe()
     public List<Object> parseLongShortRatioHistory(Object response, Map<String, Object> market, Long since, Long limit)
     {
         List<Object> rates = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v98 -> j39v98.size(); case String j39v99 -> j39v99.length(); case Object j39v100 -> j39v100.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v100) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v64 -> j39v64.size(); case String j39v65 -> j39v65.length(); case Object j39v66 -> j39v66.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v66) : 0; }); i++)
         {
             Object entry = Helpers.GetValue(response, i);
             ((List<Object>)rates).add(this.parseLongShortRatio((Map<String, Object>) (entry), market));
@@ -10842,7 +10835,7 @@ public Object describe()
         return this.filterBySymbolSinceLimit(sorted, java.util.Objects.toString(symbol, null), since, limit, false);
     }
 
-    public Object handleTriggerPricesAndParams(Object symbol, Object parameters, Boolean omitParams)
+    public Object handleTriggerPricesAndParams(Object symbol, Map<String, Object> parameters, Boolean omitParams)
     {
         //
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
@@ -10860,7 +10853,7 @@ public Object describe()
                 ((List<Object>)keysToOmit).add("triggerPrice");
                 ((List<Object>)keysToOmit).add("stopPrice");
             }
-            triggerPriceStr = this.priceToPrecision(symbol, Helpers.parseFloat(triggerPrice));
+            triggerPriceStr = this.priceToPrecision(symbol, Double.parseDouble(triggerPrice));
         }
         if (!java.util.Objects.equals(stopLossPrice, null))
         {
@@ -10868,7 +10861,7 @@ public Object describe()
             {
                 ((List<Object>)keysToOmit).add("stopLossPrice");
             }
-            stopLossPriceStr = this.priceToPrecision(symbol, Helpers.parseFloat(stopLossPrice));
+            stopLossPriceStr = this.priceToPrecision(symbol, Double.parseDouble(stopLossPrice));
         }
         if (!java.util.Objects.equals(takeProfitPrice, null))
         {
@@ -10876,14 +10869,14 @@ public Object describe()
             {
                 ((List<Object>)keysToOmit).add("takeProfitPrice");
             }
-            takeProfitPriceStr = this.priceToPrecision(symbol, Helpers.parseFloat(takeProfitPrice));
+            takeProfitPriceStr = this.priceToPrecision(symbol, Double.parseDouble(takeProfitPrice));
         }
         Integer keysToOmitLength = ((List<?>)keysToOmit).size();
-        Object paramsOmitted = ((((keysToOmitLength != null && keysToOmitLength > 0)))) ? this.omit(parameters, keysToOmit) : parameters;
+        Map<String, Object> paramsOmitted = ((((keysToOmitLength != null && keysToOmitLength > 0)))) ? this.omit(parameters, keysToOmit) : parameters;
         return new ArrayList<Object>(Arrays.asList(triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, paramsOmitted));
     }
 
-    public Object handleTriggerDirectionAndParams(Object parameters, String exchangeSpecificKey, Boolean allowEmpty)
+    public Object handleTriggerDirectionAndParams(Map<String, Object> parameters, String exchangeSpecificKey, Boolean allowEmpty)
     {
         /**
          * @ignore
@@ -10891,8 +10884,8 @@ public Object describe()
          * @returns {[string, object]} the trigger-direction value and omited params
          */
         String triggerDirection = this.safeString(parameters, "triggerDirection");
-        Boolean exchangeSpecificDefined = (!java.util.Objects.equals(exchangeSpecificKey, null)) && ((switch ((Object)(parameters)) { case List<?> j39v102 -> ((Object)(exchangeSpecificKey)) != null && j39v102.contains(exchangeSpecificKey); case Map<?, ?> j39v101 -> ((Object)(exchangeSpecificKey)) instanceof String && j39v101.containsKey(exchangeSpecificKey); case null, default -> false; }));
-        Object paramsOmitted = (((!java.util.Objects.equals(triggerDirection, null)))) ? this.omit(parameters, "triggerDirection") : parameters;
+        Boolean exchangeSpecificDefined = (!java.util.Objects.equals(exchangeSpecificKey, null)) && (parameters.containsKey(exchangeSpecificKey));
+        Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(triggerDirection, null)))) ? this.omit(parameters, "triggerDirection") : parameters;
         // throw exception if:
         // A) if provided value is not unified (support old "up/down" strings too)
         // B) if exchange specific "trigger direction key" (eg. "stopPriceSide") was not provided
@@ -10924,7 +10917,7 @@ public Object describe()
         return this.handleTriggerAndParams(parameters);
     }
 
-    public Boolean isPostOnly(Object isMarketOrder, Object exchangeSpecificParam, Map<String, Object> parameters)
+    public Boolean isPostOnly(Object isMarketOrder, Boolean exchangeSpecificParam, Map<String, Object> parameters)
     {
         /**
          * @ignore
@@ -10939,13 +10932,13 @@ public Object describe()
         Boolean ioc = java.util.Objects.equals(timeInForce, "IOC");
         Boolean fok = java.util.Objects.equals(timeInForce, "FOK");
         Boolean timeInForcePostOnly = java.util.Objects.equals(timeInForce, "PO");
-        Boolean postOnly = Boolean.TRUE.equals(this.safeBool2(parameters, "postOnly", "post_only", false)) || Boolean.TRUE.equals(timeInForcePostOnly) || Helpers.isTrue(exchangeSpecificParam);
+        Boolean postOnly = Boolean.TRUE.equals(this.safeBool2(parameters, "postOnly", "post_only", false)) || Boolean.TRUE.equals(timeInForcePostOnly) || Boolean.TRUE.equals(exchangeSpecificParam);
         if (Boolean.TRUE.equals(postOnly))
         {
             if (Boolean.TRUE.equals(ioc) || Boolean.TRUE.equals(fok))
             {
                 throw new InvalidOrder(((this.id + " postOnly orders cannot have timeInForce equal to ") + timeInForce)) ;
-            } else if (Helpers.isTrue(isMarketOrder))
+            } else if (Boolean.TRUE.equals(isMarketOrder))
             {
                 throw new InvalidOrder((this.id + " market orders cannot be postOnly")) ;
             } else
@@ -10972,18 +10965,18 @@ public Object describe()
         Boolean ioc = java.util.Objects.equals(timeInForce, "IOC");
         Boolean fok = java.util.Objects.equals(timeInForce, "FOK");
         Boolean po = java.util.Objects.equals(timeInForce, "PO");
-        Boolean postOnly = Boolean.TRUE.equals(this.safeBool(parameters, "postOnly", false)) || Boolean.TRUE.equals(po) || Helpers.isTrue(exchangeSpecificPostOnlyOption);
+        Boolean postOnly = Boolean.TRUE.equals(this.safeBool(parameters, "postOnly", false)) || Boolean.TRUE.equals(po) || Boolean.TRUE.equals(exchangeSpecificPostOnlyOption);
         if (Boolean.TRUE.equals(postOnly))
         {
             if (Boolean.TRUE.equals(ioc) || Boolean.TRUE.equals(fok))
             {
                 throw new InvalidOrder(((this.id + " postOnly orders cannot have timeInForce equal to ") + timeInForce)) ;
-            } else if (Helpers.isTrue(isMarketOrder))
+            } else if (Boolean.TRUE.equals(isMarketOrder))
             {
                 throw new InvalidOrder((this.id + " market orders cannot be postOnly")) ;
             } else
             {
-                List<Object> keysToOmit = null;
+                List<Object> keysToOmit = new ArrayList<Object>(Arrays.asList());
                 if (Boolean.TRUE.equals(po))
                 {
                     keysToOmit = new ArrayList<Object>(Arrays.asList("timeInForce", "postOnly"));
@@ -11001,40 +10994,28 @@ public Object describe()
     public CompletableFuture<LastPrices> fetchLastPrices(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchLastPrices() is not supported yet")) ;
-        }).thenApply(LastPrices::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchLastPrices() is not supported yet"))).thenApply(LastPrices::new);
 
     }
 
     public CompletableFuture<TradingFees> fetchTradingFees(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchTradingFees() is not supported yet")) ;
-        }).thenApply(TradingFees::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchTradingFees() is not supported yet"))).thenApply(TradingFees::new);
 
     }
 
     public CompletableFuture<TradingFees> fetchTradingFeesWs(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchTradingFeesWs() is not supported yet")) ;
-        }).thenApply(TradingFees::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchTradingFeesWs() is not supported yet"))).thenApply(TradingFees::new);
 
     }
 
     public CompletableFuture<Currencies> fetchConvertCurrencies(Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchConvertCurrencies() is not supported yet")) ;
-        }).thenApply(Currencies::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchConvertCurrencies() is not supported yet"))).thenApply(Currencies::new);
 
     }
 
@@ -11046,7 +11027,7 @@ public Object describe()
     public Object parseOpenInterests(Object response, List<String> symbols)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v103 -> j39v103.size(); case String j39v104 -> j39v104.length(); case Object j39v105 -> j39v105.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v105) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v67 -> j39v67.size(); case String j39v68 -> j39v68.length(); case Object j39v69 -> j39v69.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v69) : 0; }); i++)
         {
             Object entry = Helpers.GetValue(response, i);
             Map<String, Object> parsed = (Map<String, Object>) this.parseOpenInterest(entry, (Map<String, Object>) null);
@@ -11061,7 +11042,7 @@ public Object describe()
     public List<Object> parseOpenInterestsHistory(Object response, Map<String, Object> market, Long since, Long limit)
     {
         List<Object> interests = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v106 -> j39v106.size(); case String j39v107 -> j39v107.length(); case Object j39v108 -> j39v108.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v108) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v70 -> j39v70.size(); case String j39v71 -> j39v71.length(); case Object j39v72 -> j39v72.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v72) : 0; }); i++)
         {
             Object entry = Helpers.GetValue(response, i);
             Map<String, Object> interest = (Map<String, Object>) this.parseOpenInterest(entry, market);
@@ -11082,7 +11063,7 @@ public Object describe()
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
                 Map<String, Object> market = this.market(symbol);
                 String symbolResolved = (String) market.get("symbol");
-                if (!java.util.Objects.equals(market.get("contract"), true))
+                if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
                 {
                     throw new BadSymbol((this.id + " fetchFundingRate() supports contract markets only")) ;
                 }
@@ -11113,7 +11094,7 @@ public Object describe()
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
                 Map<String, Object> market = this.market(symbol);
                 String symbolResolved = (String) market.get("symbol");
-                if (!java.util.Objects.equals(market.get("contract"), true))
+                if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
                 {
                     throw new BadSymbol((this.id + " fetchFundingInterval() supports contract markets only")) ;
                 }
@@ -11260,9 +11241,9 @@ public Object describe()
         {
             return (accountsByType == null || !(lowercaseAccount instanceof String) ? null : accountsByType.get(lowercaseAccount));
         }
-        Object markets = this.markets;
+        Map<String, Object> markets = this.markets;
         Map<String, Object> marketsById = this.markets_by_id;
-        if (((!java.util.Objects.equals(markets, null)) && ((account != null && ((Map<?, ?>)markets).containsKey(account)))) || ((!java.util.Objects.equals(marketsById, null)) && ((account != null && marketsById.containsKey(account)))))
+        if (((!java.util.Objects.equals(markets, null)) && ((account != null && markets.containsKey(account)))) || ((!java.util.Objects.equals(marketsById, null)) && ((account != null && marketsById.containsKey(account)))))
         {
             Map<String, Object> market = this.market(account);
             return market.get("id");
@@ -11329,9 +11310,9 @@ public Object describe()
         Object responseKeys = response;
         if (!Boolean.TRUE.equals(isArray))
         {
-            responseKeys = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v112 -> { synchronized (j39v112) { yield new ArrayList<Object>(j39v112.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            responseKeys = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v76 -> { synchronized (j39v76) { yield new ArrayList<Object>(j39v76.keySet()); } } case null, default -> new ArrayList<Object>(); });
         }
-        for (var i = 0; i < (switch ((Object)(responseKeys)) { case null -> 0; case List<?> j39v109 -> j39v109.size(); case String j39v110 -> j39v110.length(); case Object j39v111 -> j39v111.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v111) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(responseKeys)) { case null -> 0; case List<?> j39v73 -> j39v73.size(); case String j39v74 -> j39v74.length(); case Object j39v75 -> j39v75.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v75) : 0; }); i++)
         {
             Object entry = Helpers.GetValue(responseKeys, i);
             Object dictionary = ((Boolean.TRUE.equals(isArray))) ? entry : Helpers.GetValue(response, entry);
@@ -11371,7 +11352,7 @@ public Object describe()
         }};
     }
 
-    public Object assignDefaultDepositWithdrawFees(Object fee, Map<String, Object> currency)
+    public Object assignDefaultDepositWithdrawFees(Map<String, Object> fee, Map<String, Object> currency)
     {
         /**
          * @ignore
@@ -11381,12 +11362,12 @@ public Object describe()
          * @param {object} currency A currency structure, the response from this.currency ()
          * @returns {object} A deposit withdraw fee structure
          */
-        List<Object> networkKeys = ((List<Object>) switch ((Object)(Helpers.GetValue(fee, "networks"))) { case Map<?, ?> j39v113 -> { synchronized (j39v113) { yield new ArrayList<Object>(j39v113.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<Object> networkKeys = ((List<Object>) switch ((Object)(fee.get("networks"))) { case Map<?, ?> j39v77 -> { synchronized (j39v77) { yield new ArrayList<Object>(j39v77.keySet()); } } case null, default -> new ArrayList<Object>(); });
         Integer numNetworks = ((List<?>)networkKeys).size();
         if (java.util.Objects.equals(numNetworks, 1))
         {
-            Helpers.addElementToObject(fee, "withdraw", Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(fee, "networks"), (networkKeys == null || 0 >= ((List<?>)networkKeys).size() ? null : ((List<?>)networkKeys).get(0))), "withdraw"));
-            Helpers.addElementToObject(fee, "deposit", Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(fee, "networks"), (networkKeys == null || 0 >= ((List<?>)networkKeys).size() ? null : ((List<?>)networkKeys).get(0))), "deposit"));
+            Helpers.addElementToObject(fee, "withdraw", Helpers.GetValue(Helpers.GetValue(fee.get("networks"), (networkKeys == null || 0 >= ((List<?>)networkKeys).size() ? null : ((List<?>)networkKeys).get(0))), "withdraw"));
+            Helpers.addElementToObject(fee, "deposit", Helpers.GetValue(Helpers.GetValue(fee.get("networks"), (networkKeys == null || 0 >= ((List<?>)networkKeys).size() ? null : ((List<?>)networkKeys).get(0))), "deposit"));
             return fee;
         }
         String currencyCode = this.safeString(currency, "code");
@@ -11395,8 +11376,8 @@ public Object describe()
             Object network = (networkKeys == null || i < 0 || i >= networkKeys.size() ? null : networkKeys.get(i));
             if (java.util.Objects.equals(network, currencyCode))
             {
-                Helpers.addElementToObject(fee, "withdraw", Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(fee, "networks"), (networkKeys == null || i < 0 || i >= networkKeys.size() ? null : networkKeys.get(i))), "withdraw"));
-                Helpers.addElementToObject(fee, "deposit", Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(fee, "networks"), (networkKeys == null || i < 0 || i >= networkKeys.size() ? null : networkKeys.get(i))), "deposit"));
+                Helpers.addElementToObject(fee, "withdraw", Helpers.GetValue(Helpers.GetValue(fee.get("networks"), (networkKeys == null || i < 0 || i >= networkKeys.size() ? null : networkKeys.get(i))), "withdraw"));
+                Helpers.addElementToObject(fee, "deposit", Helpers.GetValue(Helpers.GetValue(fee.get("networks"), (networkKeys == null || i < 0 || i >= networkKeys.size() ? null : networkKeys.get(i))), "deposit"));
             }
         }
         return fee;
@@ -11420,7 +11401,7 @@ public Object describe()
          * @returns {object[]} an array of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
          */
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(incomes)) { case null -> 0; case List<?> j39v114 -> j39v114.size(); case String j39v115 -> j39v115.length(); case Object j39v116 -> j39v116.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v116) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(incomes)) { case null -> 0; case List<?> j39v78 -> j39v78.size(); case String j39v79 -> j39v79.length(); case Object j39v80 -> j39v80.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v80) : 0; }); i++)
         {
             Object entry = Helpers.GetValue(incomes, i);
             Map<String, Object> parsed = (Map<String, Object>) this.parseIncome((Map<String, Object>) (entry), market);
@@ -11453,12 +11434,12 @@ public Object describe()
         return market;
     }
 
-    public Object parseWsOHLCVs(Object ohlcvs, Object market, String timeframe, Long since, Long limit)
+    public Object parseWsOHLCVs(Object ohlcvs, Map<String, Object> market, String timeframe, Long since, Long limit)
     {
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)ohlcvs).size(); i++)
         {
-            ((List<Object>)results).add(this.parseWsOHLCV((ohlcvs == null || i < 0 || i >= ((List<?>)ohlcvs).size() ? null : ((List<?>)ohlcvs).get(i)), ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v13 -> (Map<String, Object>) hx4J40v13; case Object hx4J40v13 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v13.getClass().getName()); }))));
+            ((List<Object>)results).add(this.parseWsOHLCV(this.safeValue(ohlcvs, i), market));
         }
         return results;
     }
@@ -11543,26 +11524,23 @@ public Object describe()
 
         return BaseExchange.supplyAsync(() -> {
 
-            Long maxCalls = 10L;
-            List<Object> maxCallsPaginationCallsparamsPaginationCallsVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "paginationCalls", maxCalls);
+            List<Object> maxCallsPaginationCallsparamsPaginationCallsVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "paginationCalls", 10L);
             Long maxCallsPaginationCalls = (Long) ((List<Object>) maxCallsPaginationCallsparamsPaginationCallsVariable).get(0);
             Map<String, Object> paramsPaginationCalls = (Map<String, Object>) ((List<Object>) maxCallsPaginationCallsparamsPaginationCallsVariable).get(1);
-            Long maxRetries = 3L;
-            List<Object> maxRetriesOptionparamsMaxRetriesVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginationCalls, (String) (method), "maxRetries", maxRetries);
+            List<Object> maxRetriesOptionparamsMaxRetriesVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginationCalls, (String) (method), "maxRetries", 3L);
             Long maxRetriesOption = (Long) ((List<Object>) maxRetriesOptionparamsMaxRetriesVariable).get(0);
             Map<String, Object> paramsMaxRetries = (Map<String, Object>) ((List<Object>) maxRetriesOptionparamsMaxRetriesVariable).get(1);
-            List<Object> paginationDirectionparamsPaginationDirectionVariable = (List<Object>) this.handleOptionAndParams(paramsMaxRetries, method, "paginationDirection", "backward");
-            var paginationDirection = ((List<Object>) paginationDirectionparamsPaginationDirectionVariable).get(0);
-            Map<String, Object> paramsPaginationDirection = (Map<String, Object>) ((List<Object>) paginationDirectionparamsPaginationDirectionVariable).get(1);
-            Object paginationTimestamp = null;
-            List<Object> removeRepeatedOptionparamsRemoveRepeatedVariable = (List<Object>) this.handleOptionAndParams(paramsPaginationDirection, method, "removeRepeated", java.util.Objects.requireNonNullElse(removeRepeated, true));
+            List<Object> removeRepeatedOptionparamsRemoveRepeatedVariable = (List<Object>) this.handleOptionAndParams(paramsMaxRetries, method, "removeRepeated", java.util.Objects.requireNonNullElse(removeRepeated, true));
             var removeRepeatedOption = ((List<Object>) removeRepeatedOptionparamsRemoveRepeatedVariable).get(0);
             Map<String, Object> paramsRemoveRepeated = (Map<String, Object>) ((List<Object>) removeRepeatedOptionparamsRemoveRepeatedVariable).get(1);
-            Object calls = 0;
+            Pair<String, Map<String, Object>> paginationDirectionparamsPaginationDirectionVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsRemoveRepeated), (String) (method), "paginationDirection", "backward");
+            String paginationDirection = paginationDirectionparamsPaginationDirectionVariable.first();
+            Map<String, Object> paramsPaginationDirection = paginationDirectionparamsPaginationDirectionVariable.second();
+            Object paginationTimestamp = null;
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             long errors = 0;
-            Long until = this.safeIntegerN(paramsRemoveRepeated, new ArrayList<Object>(Arrays.asList("until", "untill", "till"))); // do not omit it from params here
-            List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsRemoveRepeated);
+            Long until = this.safeIntegerN(paramsPaginationDirection, new ArrayList<Object>(Arrays.asList("until", "untill", "till"))); // do not omit it from params here
+            List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsPaginationDirection);
             var maxEntriesPerRequestOption = ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(0);
             Map<String, Object> paramsMaxEntriesPerRequest = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(1);
             if ((java.util.Objects.equals(paginationDirection, "forward")))
@@ -11574,9 +11552,8 @@ public Object describe()
                 paginationTimestamp = since;
             }
             Boolean shouldBreak = false;
-            while ((((maxCallsPaginationCalls != null && !(((Number) calls).doubleValue() >= maxCallsPaginationCalls)))))
+            for (var i = 0; (maxCallsPaginationCalls != null && i < maxCallsPaginationCalls); i++)
             {
-                calls = ((Object) (switch ((Object) (calls)) { case null -> (Object) null; case Long hx4J40v12 -> (Object) (hx4J40v12 + 1L); case Integer hx4J40v12 -> (Object) (hx4J40v12.longValue() + 1L); case Double hx4J40v12 -> (Object) (hx4J40v12 + ((double) 1L)); case String hx4J40v12 -> (Object) (hx4J40v12 + "1"); default -> (Object) null; }));
                 try
                 {
                     if (java.util.Objects.equals(paginationDirection, "backward"))
@@ -11588,10 +11565,10 @@ public Object describe()
                             Helpers.addElementToObject(paramsMaxEntriesPerRequest, "until", Helpers.subtract(paginationTimestamp, 1));
                         }
                         Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, null, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest })).join();
-                        Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v120 -> j39v120.size(); case String j39v121 -> j39v121.length(); case Object j39v122 -> j39v122.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v122) : 0; });
+                        Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v84 -> j39v84.size(); case String j39v85 -> j39v85.length(); case Object j39v86 -> j39v86.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v86) : 0; });
                         if (this.verbose)
                         {
-                            String backwardMessage = ((((("Dynamic pagination call " + this.numberToString(calls)) + " method ") + method) + " response length ") + this.numberToString(responseLength));
+                            String backwardMessage = ((((("Dynamic pagination call " + this.numberToString((((long) i) + 1L))) + " method ") + method) + " response length ") + String.valueOf(responseLength));
                             if (!java.util.Objects.equals(paginationTimestamp, null))
                             {
                                 backwardMessage = (backwardMessage + (" timestamp " + this.numberToString(paginationTimestamp)));
@@ -11605,7 +11582,7 @@ public Object describe()
                         }
                         errors = 0;
                         result = (List<Object>) this.arrayConcat(result, response);
-                        Object firstElement = this.safeValue(response, 0);
+                        Map<String, Object> firstElement = (Map<String, Object>) this.safeDict(response, 0, (Object) null);
                         paginationTimestamp = this.safeInteger2(firstElement, "timestamp", 0);
                         if (java.util.Objects.equals(paginationTimestamp, null))
                         {
@@ -11621,10 +11598,10 @@ public Object describe()
                     {
                         // do it forwards, starting from the since
                         Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, paginationTimestamp, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest })).join();
-                        Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v117 -> j39v117.size(); case String j39v118 -> j39v118.length(); case Object j39v119 -> j39v119.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v119) : 0; });
+                        Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v81 -> j39v81.size(); case String j39v82 -> j39v82.length(); case Object j39v83 -> j39v83.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v83) : 0; });
                         if (this.verbose)
                         {
-                            String forwardMessage = ((((("Dynamic pagination call " + this.numberToString(calls)) + " method ") + method) + " response length ") + this.numberToString(responseLength));
+                            String forwardMessage = ((((("Dynamic pagination call " + this.numberToString((((long) i) + 1L))) + " method ") + method) + " response length ") + String.valueOf(responseLength));
                             if (!java.util.Objects.equals(paginationTimestamp, null))
                             {
                                 forwardMessage = (forwardMessage + (" timestamp " + this.numberToString(paginationTimestamp)));
@@ -11638,7 +11615,7 @@ public Object describe()
                         }
                         errors = 0;
                         result = (List<Object>) this.arrayConcat(result, response);
-                        Object last = this.safeValue(response, (((long) responseLength) - 1L));
+                        Map<String, Object> last = (Map<String, Object>) this.safeDict(response, (((long) responseLength) - 1L), (Object) null);
                         Long lastTimestamp = this.safeInteger(last, "timestamp", 0);
                         if (java.util.Objects.equals(lastTimestamp, null))
                         {
@@ -11726,6 +11703,7 @@ public Object describe()
             List<Object> maxCallsPaginationCallsparamsPaginationCallsVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "paginationCalls", maxCalls);
             Long maxCallsPaginationCalls = (Long) ((List<Object>) maxCallsPaginationCallsparamsPaginationCallsVariable).get(0);
             Map<String, Object> paramsPaginationCalls = (Map<String, Object>) ((List<Object>) maxCallsPaginationCallsparamsPaginationCallsVariable).get(1);
+            Long maxCallsLimit = this.parseToInt(maxCallsPaginationCalls);
             List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsPaginationCalls);
             var maxEntriesPerRequestOption = ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(0);
             Map<String, Object> paramsMaxEntriesPerRequest = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(1);
@@ -11739,7 +11717,7 @@ public Object describe()
             Object maxEntriesPerRequestValue = this.requireValue(maxEntriesPerRequestOption, "fetchPaginatedCallDeterministic() maxEntriesPerRequest is required");
             Long step = (Long) Helpers.multiply(time, this.parseToInt(maxEntriesPerRequestValue));
             Long until = (Long) this.safeInteger2(paramsOmitted, "until", "till"); // do not omit it here
-            Object currentSince = Helpers.subtract(Helpers.subtract(current, (Helpers.multiply(maxCallsPaginationCalls, step))), 1);
+            Object currentSince = ((current - ((maxCallsLimit * step))) - 1L);
             if (!java.util.Objects.equals(since, null))
             {
                 if (!java.util.Objects.equals(until, null))
@@ -11764,12 +11742,12 @@ public Object describe()
                     throw new ArgumentsRequired((this.id + " fetchPaginatedCallDeterministic() requires a since argument when until is set")) ;
                 }
                 Double requiredCalls = Math.ceil(Double.parseDouble(String.valueOf((((double) ((until - since))) / ((double) step)))));
-                if ((requiredCalls != null && (maxCallsPaginationCalls == null || requiredCalls > maxCallsPaginationCalls)))
+                if ((requiredCalls != null && (maxCallsLimit == null || requiredCalls > maxCallsLimit)))
                 {
-                    throw new BadRequest(((((this.id + " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ") + String.valueOf(maxCallsPaginationCalls)) + " required calls is ") + String.valueOf(requiredCalls))) ;
+                    throw new BadRequest(((((this.id + " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ") + String.valueOf(maxCallsLimit)) + " required calls is ") + String.valueOf(requiredCalls))) ;
                 }
             }
-            for (var i = 0; ((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(i, maxCallsPaginationCalls); i++)
+            for (var i = 0; (maxCallsLimit != null && i < maxCallsLimit); i++)
             {
                 if ((!java.util.Objects.equals(until, null)) && (((currentSince == null && until == null) || currentSince != null && (until == null || ((Number) currentSince).doubleValue() >= until))))
                 {
@@ -11779,7 +11757,7 @@ public Object describe()
                 {
                     break;
                 }
-                ((List<Object>)tasks).add(this.safeDeterministicCall(method, symbol, ((Long) (switch ((Object) (currentSince)) { case null -> (Long) null; case Long hx4J40v10 -> hx4J40v10; case Number hx4J40v10 -> Long.valueOf(hx4J40v10.longValue()); case Object hx4J40v10 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v10.getClass().getName()); })), ((Long) (switch ((Object) (maxEntriesPerRequestValue)) { case null -> (Long) null; case Long hx4J40v9 -> hx4J40v9; case Number hx4J40v9 -> Long.valueOf(hx4J40v9.longValue()); case Object hx4J40v9 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v9.getClass().getName()); })), timeframe, paramsOmitted));
+                ((List<Object>)tasks).add(this.safeDeterministicCall(method, symbol, ((Long) (switch ((Object) (currentSince)) { case null -> (Long) null; case Long hx4J40v9 -> hx4J40v9; case Number hx4J40v9 -> Long.valueOf(hx4J40v9.longValue()); case Object hx4J40v9 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v9.getClass().getName()); })), ((Long) (switch ((Object) (maxEntriesPerRequestValue)) { case null -> (Long) null; case Long hx4J40v8 -> hx4J40v8; case Number hx4J40v8 -> Long.valueOf(hx4J40v8.longValue()); case Object hx4J40v8 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v8.getClass().getName()); })), timeframe, paramsOmitted));
                 // this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
                 currentSince = Helpers.subtract(this.sum(currentSince, step), 1);
             }
@@ -11815,13 +11793,12 @@ public Object describe()
             var maxEntriesPerRequestOption = ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(0);
             Map<String, Object> paramsMaxEntriesPerRequest = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(1);
             Object cursorValue = null;
-            long i = 0;
             long errors = 0;
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             String timeframe = this.safeString(paramsMaxEntriesPerRequest, "timeframe");
             Map<String, Object> paramsOmitted = this.omit(paramsMaxEntriesPerRequest, "timeframe"); // reading the timeframe from the method arguments to avoid changing the signature
             Boolean shouldBreak = false;
-            while ((maxCallsPaginationCalls != null && i < maxCallsPaginationCalls))
+            for (var i = 0; (maxCallsPaginationCalls != null && i < maxCallsPaginationCalls); i++)
             {
                 try
                 {
@@ -11863,9 +11840,12 @@ public Object describe()
                     Integer responseLength = ((List<?>)response).size();
                     if (this.verbose)
                     {
-                        Object cursorString = (((java.util.Objects.equals(cursorValue, null)))) ? "" : cursorValue;
-                        Object iteration = ((i + 1L));
-                        String cursorMessage = ((((((("Cursor pagination call " + String.valueOf(iteration)) + " method ") + method) + " response length ") + String.valueOf(responseLength)) + " cursor ") + cursorString);
+                        String cursorString = "";
+                        if (!java.util.Objects.equals(cursorValue, null))
+                        {
+                            cursorString = String.valueOf(cursorValue);
+                        }
+                        String cursorMessage = ((((((("Cursor pagination call " + String.valueOf(((((long) i) + 1L)))) + " method ") + method) + " response length ") + String.valueOf(responseLength)) + " cursor ") + cursorString);
                         this.log(cursorMessage);
                     }
                     if (java.util.Objects.equals(responseLength, 0))
@@ -11873,10 +11853,7 @@ public Object describe()
                         shouldBreak = true;
                         break;
                     }
-                    if (!java.util.Objects.equals(response, null))
-                    {
-                        result = (List<Object>) this.arrayConcat(result, response);
-                    }
+                    result = (List<Object>) this.arrayConcat(result, response);
                     Map<String, Object> last = (Map<String, Object>) this.safeDict(response, (((long) responseLength) - 1L), (Object) null);
                     // cursorValue = this.safeValue (last['info'], cursorReceived);
                     cursorValue = null; // search for the cursor
@@ -11888,7 +11865,10 @@ public Object describe()
                             Long index = ((((long) responseLength) - ((long) j)) - 1L);
                             Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, index, (Object) null);
                             Map<String, Object> info = (Map<String, Object>) this.safeDict(entry, "info", (Object) null);
-                            cursorValue = (((java.util.Objects.equals(cursorReceived, null)))) ? null : this.safeValue(info, cursorReceived);
+                            if (!java.util.Objects.equals(cursorReceived, null))
+                            {
+                                cursorValue = this.safeValue(info, cursorReceived);
+                            }
                         }
                     }
                     if (java.util.Objects.equals(cursorValue, null))
@@ -11918,7 +11898,6 @@ public Object describe()
                 {
                     break; // go turns a break inside try into a panic that only ends the iteration
                 }
-                i = (i + 1L);
             }
             Object sorted = this.sortCursorPaginatedResult(result);
             Object key = (((java.util.Objects.equals(method, "fetchOHLCV")))) ? 0 : "timestamp";
@@ -11936,6 +11915,7 @@ public Object describe()
             List<Object> maxCallsPaginationCallsparamsPaginationCallsVariable = (List<Object>) this.handleOptionIntegerAndParams(parameters, (String) (method), "paginationCalls", maxCalls);
             Long maxCallsPaginationCalls = (Long) ((List<Object>) maxCallsPaginationCallsparamsPaginationCallsVariable).get(0);
             Map<String, Object> paramsPaginationCalls = (Map<String, Object>) ((List<Object>) maxCallsPaginationCallsparamsPaginationCallsVariable).get(1);
+            Long maxCallsLimit = this.parseToInt(maxCallsPaginationCalls);
             Long maxRetries = 3L;
             List<Object> maxRetriesOptionparamsMaxRetriesVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginationCalls, (String) (method), "maxRetries", maxRetries);
             Long maxRetriesOption = (Long) ((List<Object>) maxRetriesOptionparamsMaxRetriesVariable).get(0);
@@ -11943,21 +11923,20 @@ public Object describe()
             List<Object> maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, paramsMaxRetries);
             var maxEntriesPerRequestOption = ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(0);
             Map<String, Object> paramsMaxEntriesPerRequest = (Map<String, Object>) ((List<Object>) maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable).get(1);
-            long i = 0;
             long errors = 0;
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Boolean shouldBreak = false;
-            while ((maxCallsPaginationCalls != null && i < maxCallsPaginationCalls))
+            for (var i = 0; (maxCallsLimit != null && i < maxCallsLimit); i++)
             {
                 try
                 {
-                    Helpers.addElementToObject(paramsMaxEntriesPerRequest, ((String)pageKey), (i + 1L));
+                    Helpers.addElementToObject(paramsMaxEntriesPerRequest, ((String)pageKey), (((long) i) + 1L));
                     Object response = ((CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, since, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest })).join();
                     errors = 0;
-                    Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v123 -> j39v123.size(); case String j39v124 -> j39v124.length(); case Object j39v125 -> j39v125.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v125) : 0; });
+                    Integer responseLength = (switch ((Object)(response)) { case null -> 0; case List<?> j39v87 -> j39v87.size(); case String j39v88 -> j39v88.length(); case Object j39v89 -> j39v89.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v89) : 0; });
                     if (this.verbose)
                     {
-                        Object iteration = ((i + 1L));
+                        Object iteration = ((((long) i) + 1L));
                         String incrementalMessage = ((((("Incremental pagination call " + String.valueOf(iteration)) + " method ") + method) + " response length ") + String.valueOf(responseLength));
                         this.log(incrementalMessage);
                     }
@@ -11979,16 +11958,13 @@ public Object describe()
                 {
                     break; // go turns a break inside try into a panic that only ends the iteration
                 }
-                i = (i + 1L);
             }
-            Object sorted = this.sortCursorPaginatedResult(result);
-            Object key = (((java.util.Objects.equals(method, "fetchOHLCV")))) ? 0 : "timestamp";
-            return this.filterBySinceLimit(sorted, since, limit, key, false);
+            return this.filterBySinceLimit(this.sortCursorPaginatedResult(result), since, limit, (((java.util.Objects.equals(method, "fetchOHLCV")))) ? 0 : "timestamp", false);
         });
 
     }
 
-    public Object sortCursorPaginatedResult(Object result)
+    public Object sortCursorPaginatedResult(List<Object> result)
     {
         Map<String, Object> first = (Map<String, Object>) this.safeDict(result, 0, (Object) null);
         if (!java.util.Objects.equals(first, null))
@@ -12009,10 +11985,14 @@ public Object describe()
     {
         Map<String, Object> uniqueDic = new HashMap<String, Object>() {{}};
         List<Object> uniqueResult = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(input)) { case null -> 0; case List<?> j39v126 -> j39v126.size(); case String j39v127 -> j39v127.length(); case Object j39v128 -> j39v128.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v128) : 0; }); i++)
+        for (var i = 0; i < ((List<?>)input).size(); i++)
         {
-            Object entry = Helpers.GetValue(input, i);
-            String uniqValue = ((java.util.Objects.requireNonNullElse(fallbackToTimestamp, true))) ? this.safeStringN(entry, new ArrayList<Object>(Arrays.asList("id", "timestamp", 0))) : this.safeString(entry, "id");
+            Object entry = (input == null || i < 0 || i >= ((List<?>)input).size() ? null : ((List<?>)input).get(i));
+            String uniqValue = this.safeString(entry, "id");
+            if (java.util.Objects.requireNonNullElse(fallbackToTimestamp, true))
+            {
+                uniqValue = this.safeStringN(entry, new ArrayList<Object>(Arrays.asList("id", "timestamp", 0)));
+            }
             if (!java.util.Objects.equals(uniqValue, null) && !(uniqueDic.containsKey(uniqValue)))
             {
                 uniqueDic.put(uniqValue, 1);
@@ -12030,44 +12010,31 @@ public Object describe()
     public Object removeRepeatedTradesFromArray(Object input)
     {
         Map<String, Object> uniqueResult = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < (switch ((Object)(input)) { case null -> 0; case List<?> j39v129 -> j39v129.size(); case String j39v130 -> j39v130.length(); case Object j39v131 -> j39v131.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v131) : 0; }); i++)
+        for (var i = 0; i < ((List<?>)input).size(); i++)
         {
-            Object entry = Helpers.GetValue(input, i);
+            Object entry = (input == null || i < 0 || i >= ((List<?>)input).size() ? null : ((List<?>)input).get(i));
             String id = this.safeString(entry, "id");
             if (java.util.Objects.equals(id, null))
             {
-                String price = this.safeString(entry, "price");
-                String amount = this.safeString(entry, "amount");
+                String price = this.safeString(entry, "price", "");
+                String amount = this.safeString(entry, "amount", "");
                 String timestamp = this.safeString(entry, "timestamp");
-                String side = this.safeString(entry, "side");
+                String side = this.safeString(entry, "side", "");
                 // unique trade identifier
                 if (java.util.Objects.equals(timestamp, null))
                 {
                     throw new ExchangeError((this.id + " removeRepeatedTradesFromArray() missing timestamp")) ;
                 }
-                // optional parts are appended only when present, separators keep positions distinct
-                id = (("t_" + String.valueOf(timestamp)) + "_");
-                if (!java.util.Objects.equals(side, null))
-                {
-                    id = (id + side);
-                }
-                id = (id + "_");
-                if (!java.util.Objects.equals(price, null))
-                {
-                    id = (id + price);
-                }
-                id = (id + "_");
-                if (!java.util.Objects.equals(amount, null))
-                {
-                    id = (id + amount);
-                }
+                // optional parts are empty when absent, separators keep positions distinct
+                id = (((("t_" + String.valueOf(timestamp)) + "_") + side) + "_");
+                id = (id + (((price + "_") + amount)));
             }
             if (!java.util.Objects.equals(id, null) && !(uniqueResult.containsKey(id)))
             {
                 uniqueResult.put(id, entry);
             }
         }
-        Object values = Helpers.objectValues(uniqueResult);
+        List<Object> values = new ArrayList<Object>(uniqueResult.values());
         return values;
     }
 
@@ -12094,16 +12061,16 @@ public Object describe()
         {
             symbol = this.safeString(market, "symbol");
         }
-        HashMap<String, Object> mapLiteral7 = new HashMap<String, Object>();
-        mapLiteral7.put("symbol", symbol);
-        mapLiteral7.put("baseVolume", this.safeNumber(interest, "baseVolume", (Object) null));
-        mapLiteral7.put("quoteVolume", this.safeNumber(interest, "quoteVolume", (Object) null));
-        mapLiteral7.put("openInterestAmount", this.safeNumber(interest, "openInterestAmount", (Object) null));
-        mapLiteral7.put("openInterestValue", this.safeNumber(interest, "openInterestValue", (Object) null));
-        mapLiteral7.put("timestamp", this.safeInteger(interest, "timestamp"));
-        mapLiteral7.put("datetime", this.safeString(interest, "datetime"));
-        mapLiteral7.put("info", this.safeValue(interest, "info"));
-        return this.extend(interest, mapLiteral7);
+        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
+        mapLiteral5.put("symbol", symbol);
+        mapLiteral5.put("baseVolume", this.safeNumber(interest, "baseVolume", (Object) null));
+        mapLiteral5.put("quoteVolume", this.safeNumber(interest, "quoteVolume", (Object) null));
+        mapLiteral5.put("openInterestAmount", this.safeNumber(interest, "openInterestAmount", (Object) null));
+        mapLiteral5.put("openInterestValue", this.safeNumber(interest, "openInterestValue", (Object) null));
+        mapLiteral5.put("timestamp", this.safeInteger(interest, "timestamp"));
+        mapLiteral5.put("datetime", this.safeString(interest, "datetime"));
+        mapLiteral5.put("info", this.safeValue(interest, "info"));
+        return this.extend(interest, mapLiteral5);
     }
 
     public Object parseLiquidation(Object liquidation, Map<String, Object> market)
@@ -12150,24 +12117,19 @@ public Object describe()
         {
             for (var i = 0; i < ((List<?>)greeks).size(); i++)
             {
-                Map<String, Object> parsedTicker = (Map<String, Object>) this.parseGreeks((Map<String, Object>) ((greeks == null || i < 0 || i >= ((List<?>)greeks).size() ? null : ((List<?>)greeks).get(i))), (Map<String, Object>) null);
-                Map<String, Object> greek = this.extend(parsedTicker, parameters);
-                ((List<Object>)results).add(greek);
+                ((List<Object>)results).add(this.extend(this.parseGreeks((Map<String, Object>) ((greeks == null || i < 0 || i >= ((List<?>)greeks).size() ? null : ((List<?>)greeks).get(i))), (Map<String, Object>) null), parameters));
             }
         } else
         {
-            List<Object> marketIds = ((List<Object>) switch ((Object)(greeks)) { case Map<?, ?> j39v132 -> { synchronized (j39v132) { yield new ArrayList<Object>(j39v132.keySet()); } } case null, default -> new ArrayList<Object>(); });
+            List<Object> marketIds = ((List<Object>) switch ((Object)(greeks)) { case Map<?, ?> j39v90 -> { synchronized (j39v90) { yield new ArrayList<Object>(j39v90.keySet()); } } case null, default -> new ArrayList<Object>(); });
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
                 Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Map<String, Object> market = this.safeMarket(java.util.Objects.toString(marketId, null), (Map<String, Object>) null, (String) null, (String) null);
-                Map<String, Object> parsed = (Map<String, Object>) this.parseGreeks((Map<String, Object>) (Helpers.GetValue(greeks, marketId)), market);
-                Map<String, Object> greek = this.extend(parsed, parameters);
-                ((List<Object>)results).add(greek);
+                ((List<Object>)results).add(this.extend(this.parseGreeks((Map<String, Object>) (Helpers.GetValue(greeks, marketId)), market), parameters));
             }
         }
-        List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-        return this.indexBy(this.filterByArray(results, "symbol", symbolsNormalized, false), "symbol");
+        return this.indexBy(this.filterByArray(results, "symbol", this.marketSymbols(symbols, (Object) null, true, false, false), false), "symbol");
     }
 
     public Object parseOption(Map<String, Object> chain, Map<String, Object> currency, Map<String, Object> market)
@@ -12436,109 +12398,91 @@ public Object describe()
     public CompletableFuture<TransferEntry> fetchTransfer(String id, String code, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchTransfer () is not supported yet")) ;
-        }).thenApply(TransferEntry::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchTransfer () is not supported yet"))).thenApply(TransferEntry::new);
 
     }
 
     public CompletableFuture<List<TransferEntry>> fetchTransfers(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchTransfers () is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchTransfers () is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<Object> unWatchOHLCV(String symbol, String timeframe, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " unWatchOHLCV () is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " unWatchOHLCV () is not supported yet")));
 
     }
 
     public CompletableFuture<Transaction> withdrawWs(String code, Object amount, Object address, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " withdrawWs () is not supported yet")) ;
-        }).thenApply(Transaction::new);
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " withdrawWs () is not supported yet"))).thenApply(Transaction::new);
 
     }
 
     public CompletableFuture<Object> unWatchMyTrades(String symbol, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " unWatchMyTrades () is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " unWatchMyTrades () is not supported yet")));
 
     }
 
     public CompletableFuture<List<Order>> fetchOrdersByStatusWs(Object status, String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " fetchOrdersByStatusWs () is not supported yet")) ;
-        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchOrdersByStatusWs () is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
     public CompletableFuture<Object> unWatchBidsAsks(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return BaseExchange.supplyAsync(() -> {
-
-            throw new NotSupported((this.id + " unWatchBidsAsks () is not supported yet")) ;
-        });
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " unWatchBidsAsks () is not supported yet")));
 
     }
 
     public void cleanUnsubscription(Client client, String subHash, String unsubHash, Object subHashIsPrefix)
     {
-        if ((!java.util.Objects.equals(unsubHash, null)) && ((unsubHash != null && ((Map<?, ?>)client.subscriptions).containsKey(unsubHash))))
+        if ((!java.util.Objects.equals(unsubHash, null)) && ((unsubHash != null && client.subscriptions.containsKey(unsubHash))))
         {
-            ((Map<String,Object>)client.subscriptions).remove((String)unsubHash);
+            client.subscriptions.remove((String)unsubHash);
         }
-        if (!Helpers.isTrue(java.util.Objects.requireNonNullElse(subHashIsPrefix, false)))
+        if (!java.util.Objects.equals(subHash, null))
         {
-            if ((!java.util.Objects.equals(subHash, null)) && ((subHash != null && ((Map<?, ?>)client.subscriptions).containsKey(subHash))))
+            if (!Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(subHashIsPrefix, false)))
             {
-                ((Map<String,Object>)client.subscriptions).remove((String)subHash);
-            }
-            if ((!java.util.Objects.equals(subHash, null)) && ((subHash != null && ((Map<?, ?>)client.futures).containsKey(subHash))))
-            {
-                var error = new UnsubscribeError(((this.id + " ") + subHash));
-                client.reject(error, subHash);
-            }
-        } else
-        {
-            List<Object> clientSubscriptions = ((List<Object>) switch ((Object)(client.subscriptions)) { case Map<?, ?> j39v134 -> { synchronized (j39v134) { yield new ArrayList<Object>(j39v134.keySet()); } } case null, default -> new ArrayList<Object>(); });
-            for (var i = 0; i < ((List<?>)clientSubscriptions).size(); i++)
-            {
-                Object sub = (clientSubscriptions == null || i < 0 || i >= clientSubscriptions.size() ? null : clientSubscriptions.get(i));
-                if ((!java.util.Objects.equals(sub, null)) && (!java.util.Objects.equals(subHash, null)) && ((String)sub).startsWith(((String)subHash)))
+                if ((subHash != null && client.subscriptions.containsKey(subHash)))
                 {
-                    ((Map<String,Object>)client.subscriptions).remove((String)sub);
+                    client.subscriptions.remove((String)subHash);
                 }
-            }
-            List<Object> clientFutures = ((List<Object>) switch ((Object)(client.futures)) { case Map<?, ?> j39v133 -> { synchronized (j39v133) { yield new ArrayList<Object>(j39v133.keySet()); } } case null, default -> new ArrayList<Object>(); });
-            for (var i = 0; i < ((List<?>)clientFutures).size(); i++)
-            {
-                Object future = (clientFutures == null || i < 0 || i >= clientFutures.size() ? null : clientFutures.get(i));
-                if ((!java.util.Objects.equals(future, null)) && (!java.util.Objects.equals(subHash, null)) && ((String)future).startsWith(((String)subHash)))
+                if ((subHash != null && client.futures.containsKey(subHash)))
                 {
-                    var error = new UnsubscribeError(((this.id + " ") + future));
-                    client.reject(error, future);
+                    var error = new UnsubscribeError(((this.id + " ") + subHash));
+                    client.reject(error, subHash);
+                }
+            } else
+            {
+                List<Object> clientSubscriptions = new ArrayList<Object>(client.subscriptions.keySet());
+                for (var i = 0; i < ((List<?>)clientSubscriptions).size(); i++)
+                {
+                    Object sub = (clientSubscriptions == null || i < 0 || i >= clientSubscriptions.size() ? null : clientSubscriptions.get(i));
+                    if (((String)sub).startsWith(((String)subHash)))
+                    {
+                        client.subscriptions.remove((String)sub);
+                    }
+                }
+                List<Object> clientFutures = new ArrayList<Object>(client.futures.keySet());
+                for (var i = 0; i < ((List<?>)clientFutures).size(); i++)
+                {
+                    Object future = (clientFutures == null || i < 0 || i >= clientFutures.size() ? null : clientFutures.get(i));
+                    if (((String)future).startsWith(((String)subHash)))
+                    {
+                        var error = new UnsubscribeError(((this.id + " ") + future));
+                        client.reject(error, future);
+                    }
                 }
             }
         }
@@ -12566,7 +12510,7 @@ public Object describe()
                 {
                     throw new ArgumentsRequired((this.id + " cleanCache() requires a timeframe argument")) ;
                 }
-                if ((!java.util.Objects.equals(this.ohlcvs, null)) && (((Map<?, ?>)this.ohlcvs).containsKey(symbol)))
+                if (((Map<?, ?>)this.ohlcvs).containsKey(symbol))
                 {
                     if (((Map<?, ?>)((Map<?, ?>)this.ohlcvs).get(symbol)).containsKey(timeframe))
                     {
@@ -12578,74 +12522,74 @@ public Object describe()
         {
             for (var i = 0; i < (symbols == null ? 0 : ((List<?>)symbols).size()); i++)
             {
-                Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
+                String symbol = this.safeString(symbols, i, "");
                 if (java.util.Objects.equals(topic, "trades"))
                 {
-                    if ((symbol != null && ((Map<?, ?>)this.trades).containsKey(symbol)))
+                    if (((Map<?, ?>)this.trades).containsKey(symbol))
                     {
-                        ((Map<String,Object>)this.trades).remove((String)symbol);
+                        ((Map<String,Object>)this.trades).remove(symbol);
                     }
                 } else if (java.util.Objects.equals(topic, "orderbook"))
                 {
-                    if ((symbol != null && ((Map<?, ?>)this.orderbooks).containsKey(symbol)))
+                    if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
                     {
-                        ((Map<String,Object>)this.orderbooks).remove((String)symbol);
+                        ((Map<String,Object>)this.orderbooks).remove(symbol);
                     }
                 } else if (java.util.Objects.equals(topic, "ticker"))
                 {
-                    if ((symbol != null && ((Map<?, ?>)this.tickers).containsKey(symbol)))
+                    if (this.tickers.containsKey(symbol))
                     {
-                        ((Map<String,Object>)this.tickers).remove((String)symbol);
+                        this.tickers.remove(symbol);
                     }
                 } else if (java.util.Objects.equals(topic, "bidsasks"))
                 {
-                    if ((symbol != null && ((Map<?, ?>)this.bidsasks).containsKey(symbol)))
+                    if (this.bidsasks.containsKey(symbol))
                     {
-                        ((Map<String,Object>)this.bidsasks).remove((String)symbol);
+                        this.bidsasks.remove(symbol);
                     }
                 }
             }
         } else
         {
-            if (java.util.Objects.equals(topic, "myTrades") && (!java.util.Objects.equals(this.myTrades, null)))
+            if (java.util.Objects.equals(topic, "myTrades"))
             {
                 this.myTrades = null;
-            } else if (java.util.Objects.equals(topic, "orders") && (!java.util.Objects.equals(this.orders, null)))
+            } else if (java.util.Objects.equals(topic, "orders"))
             {
                 this.orders = null;
             } else if (java.util.Objects.equals(topic, "positions") && (!java.util.Objects.equals(this.positions, null)))
             {
                 this.positions = null;
-                Object clients = Helpers.objectValues(this.clients);
+                List<Object> clients = Helpers.objectValues(this.clients);
                 for (var i = 0; i < ((List<?>)clients).size(); i++)
                 {
-                    Client client = (Client)Helpers.GetValue(clients, i);
-                    Object futures = client.futures;
-                    if ((!java.util.Objects.equals(futures, null)) && (((Map<?, ?>)futures).containsKey("fetchPositionsSnapshot")))
+                    Client client = (Client)(clients == null || i < 0 || i >= clients.size() ? null : clients.get(i));
+                    Map<String, io.github.ccxt.ws.Future> futures = client.futures;
+                    if (futures.containsKey("fetchPositionsSnapshot"))
                     {
-                        ((Map<String,Object>)futures).remove("fetchPositionsSnapshot");
+                        futures.remove("fetchPositionsSnapshot");
                     }
                 }
             } else if ((java.util.Objects.equals(topic, "ticker") || java.util.Objects.equals(topic, "markPrice")) && (!java.util.Objects.equals(this.tickers, null)))
             {
-                List<Object> tickerSymbols = ((List<Object>) switch ((Object)(this.tickers)) { case Map<?, ?> j39v136 -> { synchronized (j39v136) { yield new ArrayList<Object>(j39v136.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                List<Object> tickerSymbols = (this.tickers == null ? new ArrayList<Object>() : new ArrayList<Object>(this.tickers.keySet()));
                 for (var i = 0; i < ((List<?>)tickerSymbols).size(); i++)
                 {
                     Object tickerSymbol = (tickerSymbols == null || i < 0 || i >= tickerSymbols.size() ? null : tickerSymbols.get(i));
-                    if (((Map<?, ?>)this.tickers).containsKey(tickerSymbol))
+                    if (this.tickers.containsKey(tickerSymbol))
                     {
-                        ((Map<String,Object>)this.tickers).remove((String)tickerSymbol);
+                        this.tickers.remove((String)tickerSymbol);
                     }
                 }
             } else if (java.util.Objects.equals(topic, "bidsasks") && (!java.util.Objects.equals(this.bidsasks, null)))
             {
-                List<Object> bidsaskSymbols = ((List<Object>) switch ((Object)(this.bidsasks)) { case Map<?, ?> j39v135 -> { synchronized (j39v135) { yield new ArrayList<Object>(j39v135.keySet()); } } case null, default -> new ArrayList<Object>(); });
+                List<Object> bidsaskSymbols = (this.bidsasks == null ? new ArrayList<Object>() : new ArrayList<Object>(this.bidsasks.keySet()));
                 for (var i = 0; i < ((List<?>)bidsaskSymbols).size(); i++)
                 {
                     Object bidsaskSymbol = (bidsaskSymbols == null || i < 0 || i >= bidsaskSymbols.size() ? null : bidsaskSymbols.get(i));
-                    if (((Map<?, ?>)this.bidsasks).containsKey(bidsaskSymbol))
+                    if (this.bidsasks.containsKey(bidsaskSymbol))
                     {
-                        ((Map<String,Object>)this.bidsasks).remove((String)bidsaskSymbol);
+                        this.bidsasks.remove((String)bidsaskSymbol);
                     }
                 }
             }

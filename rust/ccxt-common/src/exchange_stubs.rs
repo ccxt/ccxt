@@ -30,17 +30,20 @@ unsafe fn coerce_to_mut_unsafe(e: &Exchange) -> &mut Exchange {
     &mut *ptr
 }
 
+// One owner thread hands out the counter, so two tasks can never take the same
+// value and no call site touches an atomic.
+static RANDOM_COUNTER: once_cell::sync::Lazy<crate::value::OwnerThread<u64>> =
+    once_cell::sync::Lazy::new(|| crate::value::OwnerThread::spawn("ccxt-random", 0u64));
+
 /// Non-cryptographic 64-bit PRNG (splitmix64) seeded from a global
 /// counter mixed with the high-resolution clock. Good enough for the
 /// `uuid*` helpers — uniqueness across calls, not security.
 fn random_u64() -> u64 {
-    use std::sync::atomic::{AtomicU64, Ordering};
-    static COUNTER: AtomicU64 = AtomicU64::new(0);
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_nanos() as u64)
         .unwrap_or(0);
-    let n = COUNTER.fetch_add(1, Ordering::Relaxed);
+    let n = RANDOM_COUNTER.run(|c| { *c = c.wrapping_add(1); *c });
     let mut z = now ^ n.wrapping_mul(0x9E37_79B9_7F4A_7C15);
     z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
     z = (z ^ (z >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
@@ -65,7 +68,7 @@ pub(crate) fn bytes_to_value(bytes: &[u8]) -> Value {
 
 /// True when `v` is a `Value::Array` whose elements are all integer
 /// byte values (0..=255) — the port's stand-in for a binary buffer.
-fn is_byte_array(v: &Value) -> bool {
+pub(crate) fn is_byte_array(v: &Value) -> bool {
     match v {
         Value::Arr(a) => a
             .iter()
@@ -665,6 +668,35 @@ impl Exchange {
         }
     }
 
+    /// `safe_string_k` without the box: same lookup, empty-string and default
+    /// rules, `None` where the boxed helper yields `Value::Null`.
+    #[inline]
+    pub fn safe_string_k_opt(&self, obj: Value, key: &str, optional_args: &[Value]) -> Option<String> {
+        match self.safe_value_k(obj, key, &[]) {
+            Value::Str(s) => Some(s.to_string()),
+            Value::Int(n) => Some(n.to_string()),
+            Value::Float(f) => Some(f.to_string()),
+            _ => match arg_default(optional_args) {
+                Value::Str(d) => Some(d.to_string()),
+                _ => None,
+            },
+        }
+    }
+
+    /// `safe_string` without the box (Value key): same lookup and default rules.
+    #[inline]
+    pub fn safe_string_opt(&self, obj: Value, key: Value, optional_args: &[Value]) -> Option<String> {
+        match self.safe_value(obj, key, &[]) {
+            Value::Str(s) => Some(s.to_string()),
+            Value::Int(n) => Some(n.to_string()),
+            Value::Float(f) => Some(f.to_string()),
+            _ => match arg_default(optional_args) {
+                Value::Str(d) => Some(d.to_string()),
+                _ => None,
+            },
+        }
+    }
+
     #[inline]
     pub fn safe_integer_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
         let v = self.safe_value_k(obj, key, &[]);
@@ -699,6 +731,82 @@ impl Exchange {
     #[inline]
     pub fn safe_number_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
         self.safe_float_k(obj, key, optional_args)
+    }
+
+    /// `safe_bool_k` without the box: `Some` only for an actual boolean, else `None`.
+    #[inline]
+    pub fn safe_bool_k_opt(&self, obj: Value, key: &str, _optional_args: &[Value]) -> Option<bool> {
+        match self.safe_value_k(obj, key, &[]) {
+            Value::Bool(b) => Some(b),
+            _ => None,
+        }
+    }
+
+    /// `safe_bool` without the box (Value key): same lookup rule as `safe_bool_k_opt`.
+    #[inline]
+    pub fn safe_bool_opt(&self, obj: Value, key: Value, _optional_args: &[Value]) -> Option<bool> {
+        match self.safe_value(obj, key, &[]) {
+            Value::Bool(b) => Some(b),
+            _ => None,
+        }
+    }
+
+    /// `safe_bool2` without the box: first key holding a real boolean wins, else `None`.
+    #[inline]
+    pub fn safe_bool2_opt(&self, obj: Value, k1: Value, k2: Value, _optional_args: &[Value]) -> Option<bool> {
+        if let Value::Bool(b) = self.safe_value(obj.clone(), k1, &[]) {
+            return Some(b);
+        }
+        match self.safe_value(obj, k2, &[]) {
+            Value::Bool(b) => Some(b),
+            _ => None,
+        }
+    }
+
+    /// `safe_bool_n` without the box: `Some` only for an actual boolean, else `None`.
+    #[inline]
+    pub fn safe_bool_n_opt(&self, obj: Value, keys: Value, _optional_args: &[Value]) -> Option<bool> {
+        match self.safe_value_n(obj, keys, &[]) {
+            Value::Bool(b) => Some(b),
+            _ => None,
+        }
+    }
+
+    /// `safe_string2` without the box: first key whose `safe_string` is non-null, then the
+    /// default; `None` where the boxed helper yields `Value::Null`.
+    #[inline]
+    pub fn safe_string2_opt(&self, obj: Value, k1: Value, k2: Value, optional_args: &[Value]) -> Option<String> {
+        self.safe_string_opt(obj.clone(), k1, &[])
+            .or_else(|| self.safe_string_opt(obj, k2, &[]))
+            .or_else(|| match arg_default(optional_args) {
+                Value::Str(d) => Some(d.to_string()),
+                _ => None,
+            })
+    }
+
+    /// `safe_string_n` without the box: first key whose `safe_string` is non-null, then the
+    /// default; `None` where the boxed helper yields `Value::Null`.
+    #[inline]
+    pub fn safe_string_n_opt(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Option<String> {
+        if let Value::Arr(ks) = keys {
+            for k in ks.iter().cloned() {
+                if let Some(s) = self.safe_string_opt(obj.clone(), k, &[]) {
+                    return Some(s);
+                }
+            }
+        }
+        match arg_default(optional_args) {
+            Value::Str(d) => Some(d.to_string()),
+            _ => None,
+        }
+    }
+
+    /// `safe_number2` without the box (no default): first key whose string form parses as f64.
+    pub fn safe_number2_opt(&self, obj: Value, k1: Value, k2: Value, _optional_args: &[Value]) -> Option<f64> {
+        match self.safe_string2(obj, k1, k2, &[]) {
+            Value::Str(s) => s.parse::<f64>().ok(),
+            _ => None,
+        }
     }
 
     #[inline]
@@ -844,6 +952,19 @@ impl Exchange {
         arg_default(optional_args)
     }
 
+    /// `safe_string_upper_k` without the box: the found value is upper-cased, a
+    /// default is returned verbatim (`None` where the boxed helper yields `Null`).
+    #[inline]
+    pub fn safe_string_upper_k_opt(&self, obj: Value, key: &str, optional_args: &[Value]) -> Option<String> {
+        match self.safe_string_k_opt(obj, key, &[]) {
+            Some(s) => Some(s.to_uppercase()),
+            None => match arg_default(optional_args) {
+                Value::Str(d) => Some(d.to_string()),
+                _ => None,
+            },
+        }
+    }
+
     pub fn safe_string_lower_n(&self, obj: Value, keys: Value, optional_args: &[Value]) -> Value {
         if let Value::Arr(ks) = keys {
             for k in ks.iter().cloned() {
@@ -897,6 +1018,19 @@ impl Exchange {
             return v;
         }
         arg_default(optional_args)
+    }
+
+    /// `safe_string_lower_k` without the box: the found value is lower-cased, a
+    /// default is returned verbatim (`None` where the boxed helper yields `Null`).
+    #[inline]
+    pub fn safe_string_lower_k_opt(&self, obj: Value, key: &str, optional_args: &[Value]) -> Option<String> {
+        match self.safe_string_k_opt(obj, key, &[]) {
+            Some(s) => Some(s.to_lowercase()),
+            None => match arg_default(optional_args) {
+                Value::Str(d) => Some(d.to_string()),
+                _ => None,
+            },
+        }
     }
 
     pub fn safe_string_lower2(
@@ -1361,7 +1495,7 @@ impl Exchange {
         );
     }
 
-    /// `axolotl(payload, hexKey, ed25519)` — curve25519 signing (waves).
+    /// `axolotl(payload, hexKey, ed25519)` — curve25519 signing (Waves exchange).
     pub fn axolotl(&self, _payload: Value, _hex_key: Value, _ed25519: Value) -> Value {
         self.crypto_not_supported("axolotl")
     }
@@ -1634,6 +1768,17 @@ impl Exchange {
             }
         }
         arg_default(optional_args)
+    }
+
+    /// `safe_integer2` without the box (no default): first key yielding an integer.
+    pub fn safe_integer2_opt(&self, obj: Value, k1: Value, k2: Value, _optional_args: &[Value]) -> Option<i64> {
+        self.safe_integer(obj.clone(), k1, &[]).as_i64().or_else(|| self.safe_integer(obj, k2, &[]).as_i64())
+    }
+
+    /// `safe_integer_n` without the box (no default): first key in `keys` yielding an integer.
+    pub fn safe_integer_n_opt(&self, obj: Value, keys: Value, _optional_args: &[Value]) -> Option<i64> {
+        let Value::Arr(ks) = keys else { return None };
+        ks.iter().find_map(|k| self.safe_integer(obj.clone(), k.clone(), &[]).as_i64())
     }
 
     /// Reads `obj[key]` as a number, multiplies by `factor`, and casts
@@ -3081,8 +3226,8 @@ impl Exchange {
     /// `rateLimit` is milliseconds-per-token, so `refillRate = 1/rateLimit`
     /// tokens/ms; `tokens` may go negative (a request proceeds when `tokens >= 0`
     /// and then subtracts its cost), and the next request waits until the bucket
-    /// refills back to zero. State lives in `internals.throttle` behind an async
-    /// mutex, so concurrent calls on one instance serialize (the TS single queue).
+    /// refills back to zero. The bucket is owned by one task, so concurrent calls
+    /// on one instance serialize by queuing there (the TS single queue).
     /// A no-op when `enableRateLimit` is false or the rate is effectively
     /// unlimited.
     pub async fn throttle(&self, cost: &[Value]) -> Value {
@@ -3110,32 +3255,7 @@ impl Exchange {
             .and_then(|v| v.as_f64())
             .unwrap_or_else(|| tb("cost").unwrap_or(1.0));
 
-        let now_ms = || {
-            std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .map(|d| d.as_millis() as i64)
-                .unwrap_or(0)
-        };
-
-        let mut guard = self.internals.throttle.lock().await;
-        let (tokens, last_ms) = &mut *guard;
-        if *last_ms == 0 {
-            *last_ms = now_ms();
-        }
-        // Refill for the elapsed time (capped at capacity).
-        let n = now_ms();
-        *tokens = (*tokens + refill_rate * (n - *last_ms).max(0) as f64).min(capacity);
-        *last_ms = n;
-        // In deficit → wait until the bucket refills to zero, holding the lock so
-        // requests stay serialized.
-        if *tokens < 0.0 {
-            let wait = ((-*tokens) / refill_rate).max(delay_ms);
-            tokio::time::sleep(std::time::Duration::from_millis(wait.ceil() as u64)).await;
-            let n2 = now_ms();
-            *tokens = (*tokens + refill_rate * (n2 - *last_ms).max(0) as f64).min(capacity);
-            *last_ms = n2;
-        }
-        *tokens -= this_cost;
+        self.internals.throttle.wait(refill_rate, capacity, delay_ms, this_cost).await;
         Value::Null
     }
 

@@ -258,18 +258,18 @@ func (this *Pacifica) PrivatePostPositionsTpsl(args ...any) <-chan EndpointResul
 }
 
 // PrivatePostOrdersCancel returns a channel that yields a JSON object.
-func (this *Pacifica) PrivatePostOrdersCancel(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privatePostOrdersCancel", args...)
+func (this *Pacifica) PrivatePostOrdersCancel(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostOrdersCancel", args...))
 }
 
 // PrivatePostOrdersCancelAll returns a channel that yields a JSON object.
-func (this *Pacifica) PrivatePostOrdersCancelAll(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privatePostOrdersCancelAll", args...)
+func (this *Pacifica) PrivatePostOrdersCancelAll(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostOrdersCancelAll", args...))
 }
 
 // PrivatePostOrdersStopCancel returns a channel that yields a JSON object.
-func (this *Pacifica) PrivatePostOrdersStopCancel(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privatePostOrdersStopCancel", args...)
+func (this *Pacifica) PrivatePostOrdersStopCancel(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostOrdersStopCancel", args...))
 }
 
 // PrivatePostOrdersEdit returns a channel that yields a JSON object.
@@ -288,8 +288,8 @@ func (this *Pacifica) PrivatePostOrdersTwapCreate(args ...any) <-chan EndpointRe
 }
 
 // PrivatePostOrdersTwapCancel returns a channel that yields a JSON object.
-func (this *Pacifica) PrivatePostOrdersTwapCancel(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privatePostOrdersTwapCancel", args...)
+func (this *Pacifica) PrivatePostOrdersTwapCancel(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostOrdersTwapCancel", args...))
 }
 
 // PrivatePostAccountBuilderCodesApprove returns a channel that yields a JSON object.

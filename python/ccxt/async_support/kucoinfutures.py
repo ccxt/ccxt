@@ -11,7 +11,7 @@ from ccxt.base.errors import BadRequest
 
 class kucoinfutures(kucoin, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(kucoinfutures, self).describe(), {
             'id': 'kucoinfutures',
             'name': 'KuCoin Futures',

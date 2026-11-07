@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\bybit as Exchange;
 
 class bybit extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bybit',
             'name' => 'Bybit',
@@ -1467,7 +1467,7 @@ class bybit extends Exchange {
         $this->options['enableDemoTrading'] = $enable;
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
@@ -1591,13 +1591,13 @@ class bybit extends Exchange {
     public function create_expired_option_market(string $symbol): array {
         // support expired option contracts
         $quote = null;
-        $settle = null;
         $optionParts = explode('-', $symbol);
         $symbolBase = explode('/', $symbol);
-        $base = null;
         $expiry = null;
-        if (mb_strpos($symbol, '/') > -1) {
-            $base = $this->safe_string($symbolBase, 0);
+        $hasSlash = mb_strpos($symbol, '/') > -1;
+        $baseName = $this->safe_string($optionParts, 0, '');
+        if ($hasSlash) {
+            $baseName = $this->safe_string($symbolBase, 0, '');
             $expiry = $this->safe_string($optionParts, 1);
             $symbolQuoteAndSettle = $this->safe_string($symbolBase, 1);
             if ($symbolQuoteAndSettle === null) {
@@ -1606,16 +1606,12 @@ class bybit extends Exchange {
             $splitQuote = explode(':', $symbolQuoteAndSettle);
             $quoteAndSettle = $this->safe_string($splitQuote, 0);
             $quote = $quoteAndSettle;
-            $settle = $quoteAndSettle;
         } else {
-            $base = $this->safe_string($optionParts, 0);
             $expiry = $this->convert_market_id_expire_date($this->safe_string($optionParts, 1));
             if (str_ends_with($symbol, '-USDT')) {
                 $quote = 'USDT';
-                $settle = 'USDT';
             } else {
                 $quote = 'USDC';
-                $settle = 'USDC';
             }
         }
         $strike = $this->safe_string($optionParts, 2);
@@ -1625,31 +1621,31 @@ class bybit extends Exchange {
         $amountPrecision = null;
         $pricePrecision = null;
         // hard coded amount and price precisions from fetchOptionMarkets
-        if ($base === 'BTC') {
+        if ($baseName === 'BTC') {
             $amountPrecision = $this->parse_number('0.01');
             $pricePrecision = $this->parse_number('5');
-        } elseif ($base === 'ETH') {
+        } elseif ($baseName === 'ETH') {
             $amountPrecision = $this->parse_number('0.1');
             $pricePrecision = $this->parse_number('0.1');
-        } elseif ($base === 'SOL') {
+        } elseif ($baseName === 'SOL') {
             $amountPrecision = $this->parse_number('1');
             $pricePrecision = $this->parse_number('0.01');
         }
         $convertedExpireDate = $this->convert_expire_date_to_market_id_date($expiry);
         return array(
-            'id' => $base . '-' . $convertedExpireDate . '-' . $strike . '-' . $optionType,
-            'symbol' => $base . '/' . $quote . ':' . $settle . '-' . $expiry . '-' . $strike . '-' . $optionType,
-            'base' => $base,
+            'id' => $baseName . '-' . $convertedExpireDate . '-' . $strike . '-' . $optionType,
+            'symbol' => $baseName . '/' . $quote . ':' . $quote . '-' . $expiry . '-' . $strike . '-' . $optionType,
+            'base' => $baseName,
             'quote' => $quote,
-            'settle' => $settle,
-            'baseId' => $base,
+            'settle' => $quote,
+            'baseId' => $baseName,
             'quoteId' => $quote,
-            'settleId' => $settle,
+            'settleId' => $quote,
             'active' => false,
             'type' => 'option',
-            'subType' => ($base === $settle) ? 'inverse' : 'linear',
-            'linear' => ($base !== $settle),
-            'inverse' => ($base === $settle),
+            'subType' => ($baseName === $quote) ? 'inverse' : 'linear',
+            'linear' => ($baseName !== $quote),
+            'inverse' => ($baseName === $quote),
             'spot' => false,
             'swap' => false,
             'future' => false,
@@ -1692,7 +1688,7 @@ class bybit extends Exchange {
         return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
-    public function get_bybit_type(mixed $method, mixed $market, $params = array()): array {
+    public function get_bybit_type(string $method, ?array $market = null, $params = array()): array {
         list($type, $paramsMarketType) = $this->handle_market_type_and_params($method, $market, $params);
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params($method, $market, $paramsMarketType);
         if ($type === 'option' || $type === 'spot') {
@@ -1713,7 +1709,7 @@ class bybit extends Exchange {
         return $amountString;
     }
 
-    public function get_price(?string $symbol, mixed $price) {
+    public function get_price(?string $symbol, ?string $price): ?string {
         if ($price === null) {
             return $price;
         }
@@ -2254,7 +2250,7 @@ class bybit extends Exchange {
                 }
             }
             $expiryDatetime = $this->iso8601($expiry);
-            $symbol = $symbol . ':' . $settle;
+            $symbol = $base . '/' . $quote . ':' . $settle;
             if ($expiry !== null) {
                 $symbol = $symbol . '-' . $this->yymmdd($expiry);
             }
@@ -2406,8 +2402,8 @@ class bybit extends Exchange {
                 throw new ExchangeError($this->id . ' method() missing id');
             }
             $splitId = explode('-', $id);
-            $strike = $this->safe_string($splitId, 2);
-            $optionLetter = $this->safe_string($splitId, 3);
+            $strike = $this->safe_string($splitId, 2, '');
+            $optionLetter = $this->safe_string($splitId, 3, '');
             $isActive = ($status === 'Trading');
             $isInverse = $base === $settle;
             $loadExpiredOptions = $this->handle_option('fetchMarkets', 'loadExpiredOptions');
@@ -2700,7 +2696,7 @@ class bybit extends Exchange {
                 } elseif ($this->safe_string($market, 'type') !== $currentType) {
                     throw new BadRequest($this->id . ' fetchTickers can only accept a list of symbols of the same type');
                 }
-                if ($market['option'] === true) {
+                if ($this->safe_bool($market, 'option', false)) {
                     $marketBase = $this->safe_string($market, 'base');
                     if ($code !== null && $code !== $marketBase) {
                         throw new BadRequest($this->id . ' fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here => https://bybit-exchange.github.io/docs/v5/market/tickers');
@@ -2802,8 +2798,8 @@ class bybit extends Exchange {
         //         "2.4343353100000003"
         //     ]
         //
-        $isInverse = $this->safe_bool($market, 'inverse');
-        $volumeIndex = ($isInverse === true) ? 6 : 5;
+        $isInverse = $this->safe_bool($market, 'inverse', false);
+        $volumeIndex = $isInverse ? 6 : 5;
         return array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
@@ -2865,15 +2861,15 @@ class bybit extends Exchange {
         $paramsUntil = null;
         list($request, $paramsUntil) = $this->handle_until_option('end', $request, $paramsPaginate);
         $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $request['category'] = 'spot';
             $response = $this->publicGetV5MarketKline($this->extend($request, $paramsUntil));
         } else {
             $price = $this->safe_string($paramsUntil, 'price');
             $paramsOmitted = $this->omit($paramsUntil, 'price');
-            if ($market['linear'] === true) {
+            if ($this->safe_bool($market, 'linear', false)) {
                 $request['category'] = 'linear';
-            } elseif ($market['inverse'] === true) {
+            } elseif ($this->safe_bool($market, 'inverse', false)) {
                 $request['category'] = 'inverse';
             } else {
                 throw new NotSupported($this->id . ' fetchOHLCV() is not supported for option markets');
@@ -3014,10 +3010,11 @@ class bybit extends Exchange {
         $request = array();
         $symbolsNormalized = $this->market_symbols($symbols);
         if ($symbolsNormalized !== null) {
-            $market = $this->market($symbolsNormalized[0]);
+            $symbolMarket = $this->market($symbolsNormalized[0]);
+            $market = $symbolMarket;
             $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength === 1) {
-                $request['symbol'] = $market['id'];
+                $request['symbol'] = $symbolMarket['id'];
             }
         }
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchFundingRates', $market, $params);
@@ -3372,7 +3369,7 @@ class bybit extends Exchange {
         if ($feeCostString !== null) {
             $feeRateString = $this->safe_string($trade, 'feeRate');
             $feeCurrencyCode = null;
-            if ($marketResolved['spot'] === true) {
+            if ($this->safe_bool($marketResolved, 'spot', false)) {
                 if (Precise::string_gt($feeCostString, '0')) {
                     if ($side === 'buy') {
                         $feeCurrencyCode = $marketResolved['base'];
@@ -3387,7 +3384,7 @@ class bybit extends Exchange {
                     }
                 }
             } else {
-                $feeCurrencyCode = ($marketResolved['inverse'] === true) ? $marketResolved['base'] : $marketResolved['settle'];
+                $feeCurrencyCode = ($this->safe_bool($marketResolved, 'inverse', false)) ? $marketResolved['base'] : $marketResolved['settle'];
             }
             $fee = array(
                 'cost' => $feeCostString,
@@ -3495,18 +3492,18 @@ class bybit extends Exchange {
             'symbol' => $market['id'],
         );
         $defaultLimit = 25;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             // limit: [1, 50]. Default: 1
             $defaultLimit = 50;
             $request['category'] = 'spot';
         } else {
-            if ($market['option'] === true) {
+            if ($this->safe_bool($market, 'option', false)) {
                 // limit: [1, 25]. Default: 1
                 $request['category'] = 'option';
-            } elseif ($market['linear'] === true) {
+            } elseif ($this->safe_bool($market, 'linear', false)) {
                 // limit: [1, 500]. Default: 25
                 $request['category'] = 'linear';
-            } elseif ($market['inverse'] === true) {
+            } elseif ($this->safe_bool($market, 'inverse', false)) {
                 // limit: [1, 500]. Default: 25
                 $request['category'] = 'inverse';
             }
@@ -3543,7 +3540,7 @@ class bybit extends Exchange {
         return $this->parse_order_book($result, $symbol, $timestamp, 'b', 'a');
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         //
         // cross
         //     {
@@ -3731,8 +3728,10 @@ class bybit extends Exchange {
             $this->load_markets();
         }
         $request = array();
-        list($enableUnifiedMargin, $enableUnifiedAccount) = $this->is_unified_enabled();
-        $isUnifiedAccount = ($enableUnifiedMargin === true) || ($enableUnifiedAccount === true);
+        $unifiedEnabled = $this->is_unified_enabled();
+        $enableUnifiedMargin = $this->safe_bool($unifiedEnabled, 0, false);
+        $enableUnifiedAccount = $this->safe_bool($unifiedEnabled, 1, false);
+        $isUnifiedAccount = $enableUnifiedMargin || $enableUnifiedAccount;
         // don't use getBybitType here
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $type = $marketType;
@@ -4162,7 +4161,7 @@ class bybit extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['spot'] !== true) {
+        if (!$this->safe_bool($market, 'spot', false)) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         $req = array(
@@ -4191,7 +4190,7 @@ class bybit extends Exchange {
             throw new NotSupported($this->id . ' createMarketSellOrderWithCost() supports UTA accounts only');
         }
         $market = $this->market($symbol);
-        if ($market['spot'] !== true) {
+        if (!$this->safe_bool($market, 'spot', false)) {
             throw new NotSupported($this->id . ' createMarketSellOrderWithCost() supports spot orders only');
         }
         $req = array(
@@ -4249,7 +4248,7 @@ class bybit extends Exchange {
         $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params, $enableUnifiedAccount);
         $switchToOco = ($isStopLossOrder && $isTakeProfitOrder) || $this->safe_bool($params, 'tradingStopEndpoint', false);
         $defaultMethod = null;
-        if (($isTrailingOrder || ($switchToOco)) && ($market['spot'] !== true)) {
+        if (($isTrailingOrder || ($switchToOco)) && (!$this->safe_bool($market, 'spot', false))) {
             $defaultMethod = 'privatePostV5PositionTradingStop';
         } else {
             $defaultMethod = 'privatePostV5OrderCreate';
@@ -4312,10 +4311,10 @@ class bybit extends Exchange {
             // 'orderIv': '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
         );
         $hedged = $this->safe_bool($params, 'hedged', false);
-        $reduceOnly = $this->safe_bool($params, 'reduceOnly');
-        $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
-        $stopLossTriggerPrice = $this->safe_value($params, 'stopLossPrice');
-        $takeProfitTriggerPrice = $this->safe_value($params, 'takeProfitPrice');
+        $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
+        $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
+        $stopLossTriggerPrice = $this->safe_string($params, 'stopLossPrice');
+        $takeProfitTriggerPrice = $this->safe_string($params, 'takeProfitPrice');
         $stopLoss = $this->safe_value($params, 'stopLoss');
         $takeProfit = $this->safe_value($params, 'takeProfit');
         $trailingTriggerPrice = $this->safe_string_2($params, 'trailingTriggerPrice', 'activePrice', $this->number_to_string($price));
@@ -4351,7 +4350,7 @@ class bybit extends Exchange {
         $amountString = ($amountValue !== null) ? $this->get_amount($symbolValue, $amountValue) : null;
         $priceString = ($price !== null) ? $this->get_price($symbolValue, $this->number_to_string($price)) : null;
         if ($endpointIsTradingStop) {
-            if ($hasStopLoss || $hasTakeProfit || $isTriggerOrder || ($market['spot'] === true)) {
+            if ($hasStopLoss || $hasTakeProfit || $isTriggerOrder || ($this->safe_bool($market, 'spot', false))) {
                 throw new InvalidOrder($this->id . ' the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders');
             }
             if ($isStopLossOrder || $isTakeProfitOrder) {
@@ -4418,7 +4417,7 @@ class bybit extends Exchange {
             } elseif ($timeInForce === 'ioc') {
                 $request['timeInForce'] = 'IOC';
             }
-            if ($market['spot'] === true) {
+            if ($this->safe_bool($market, 'spot', false)) {
                 // only works for spot market
                 if ($triggerPrice !== null) {
                     $request['orderFilter'] = 'StopOrder';
@@ -4429,7 +4428,7 @@ class bybit extends Exchange {
             $clientOrderId = $this->safe_string($query, 'clientOrderId');
             if ($clientOrderId !== null) {
                 $request['orderLinkId'] = $clientOrderId;
-            } elseif ($market['option'] === true) {
+            } elseif ($this->safe_bool($market, 'option', false)) {
                 // mandatory field for options
                 $request['orderLinkId'] = $this->uuid16();
             }
@@ -4445,7 +4444,7 @@ class bybit extends Exchange {
         // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
         $isMarketBuyAndCostInferable = ($lowerCaseType === 'market') && ($side === 'buy') && (($price !== null) || ($cost !== null));
         $isMarketOrder = $lowerCaseType === 'market';
-        if (($market['spot'] === true) && $isMarketOrder && $isUTA && !$isMarketBuyAndCostInferable) {
+        if (($this->safe_bool($market, 'spot', false)) && $isMarketOrder && $isUTA && !$isMarketBuyAndCostInferable) {
             // UTA account can specify the cost of the order on both sides
             if (($cost !== null) || ($price !== null)) {
                 $request['marketUnit'] = 'quoteCoin';
@@ -4461,7 +4460,7 @@ class bybit extends Exchange {
                 $request['marketUnit'] = 'baseCoin';
                 $request['qty'] = $amountString;
             }
-        } elseif (($market['spot'] === true) && $isMarketOrder && ($side === 'buy')) {
+        } elseif (($this->safe_bool($market, 'spot', false)) && $isMarketOrder && ($side === 'buy')) {
             // classic accounts
             // for market buy it requires the amount of quote currency to spend
             $createMarketBuyOrderRequiresPrice = true;
@@ -4499,7 +4498,7 @@ class bybit extends Exchange {
         } elseif ($isTriggerOrder && !$endpointIsTradingStop) {
             $triggerDirection = $this->safe_string($query, 'triggerDirection');
             $query = $this->omit($query, array( 'triggerPrice', 'stopPrice', 'triggerDirection' ));
-            if ($market['spot'] === true) {
+            if ($this->safe_bool($market, 'spot', false)) {
                 if ($triggerDirection !== null) {
                     throw new NotSupported($this->id . ' createOrder() : trigger order does not support triggerDirection for spot markets yet');
                 }
@@ -4527,51 +4526,51 @@ class bybit extends Exchange {
         }
         if (($hasStopLoss || $hasTakeProfit) && !$endpointIsTradingStop) {
             if ($hasStopLoss) {
-                $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
+                $slTriggerPrice = $this->safe_string_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
                 $request['stopLoss'] = $this->get_price($symbolValue, $slTriggerPrice);
-                $slLimitPrice = $this->safe_value($stopLoss, 'price');
+                $slLimitPrice = $this->safe_string($stopLoss, 'price');
                 if ($slLimitPrice !== null) {
                     $request['tpslMode'] = 'Partial';
                     $request['slOrderType'] = 'Limit';
                     $request['slLimitPrice'] = $this->get_price($symbolValue, $slLimitPrice);
                 } else {
                     // for spot market, we need to add this
-                    if ($market['spot'] === true) {
+                    if ($this->safe_bool($market, 'spot', false)) {
                         $request['slOrderType'] = 'Market';
                     }
                 }
                 // for spot market, we need to add this
-                if (($market['spot'] === true) && $isMarketOrder) {
+                if (($this->safe_bool($market, 'spot', false)) && $isMarketOrder) {
                     throw new InvalidOrder($this->id . ' createOrder() => attached stopLoss is not supported for spot market orders');
                 }
             }
             if ($hasTakeProfit) {
-                $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
+                $tpTriggerPrice = $this->safe_string_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
                 $request['takeProfit'] = $this->get_price($symbolValue, $tpTriggerPrice);
-                $tpLimitPrice = $this->safe_value($takeProfit, 'price');
+                $tpLimitPrice = $this->safe_string($takeProfit, 'price');
                 if ($tpLimitPrice !== null) {
                     $request['tpslMode'] = 'Partial';
                     $request['tpOrderType'] = 'Limit';
                     $request['tpLimitPrice'] = $this->get_price($symbolValue, $tpLimitPrice);
                 } else {
                     // for spot market, we need to add this
-                    if ($market['spot'] === true) {
+                    if ($this->safe_bool($market, 'spot', false)) {
                         $request['tpOrderType'] = 'Market';
                     }
                 }
                 // for spot market, we need to add this
-                if (($market['spot'] === true) && $isMarketOrder) {
+                if (($this->safe_bool($market, 'spot', false)) && $isMarketOrder) {
                     throw new InvalidOrder($this->id . ' createOrder() => attached takeProfit is not supported for spot market orders');
                 }
             }
         }
-        if (($market['spot'] !== true) && ($hedged)) {
-            if ($reduceOnly === true) {
+        if ((!$this->safe_bool($market, 'spot', false)) && ($hedged)) {
+            if ($reduceOnly) {
                 $query = $this->omit($query, 'reduceOnly');
             }
             // a reduce-only order closes the position on the opposite side
             $isBuyPosition = false;
-            if ($reduceOnly === true) {
+            if ($reduceOnly) {
                 $isBuyPosition = $side === 'sell';
             } else {
                 $isBuyPosition = $side === 'buy';
@@ -4907,7 +4906,7 @@ class bybit extends Exchange {
             // conditional orders
             // 'orderFilter': '', // Valid for spot only. Order,tpslOrder. If not passed, Order by default
         );
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             // only works for spot market
             $isTrigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
             $request['orderFilter'] = ($isTrigger) ? 'StopOrder' : 'Order';
@@ -4915,7 +4914,7 @@ class bybit extends Exchange {
         if ($id !== null) { // The user can also use argument params["orderLinkId"]
             $request['orderId'] = $id;
         }
-        $paramsOmitted = ($market['spot'] === true) ? $this->omit($params, array( 'stop', 'trigger' )) : $params;
+        $paramsOmitted = ($this->safe_bool($market, 'spot', false)) ? $this->omit($params, array( 'stop', 'trigger' )) : $params;
         list($category, $paramsCategory) = $this->get_bybit_type('cancelOrderRequest', $market, $paramsOmitted);
         $request['category'] = $category;
         return $this->extend($request, $paramsCategory);
@@ -5197,13 +5196,16 @@ class bybit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        list($enableUnifiedMargin, $enableUnifiedAccount) = $this->is_unified_enabled();
-        $isUnifiedAccount = ($enableUnifiedMargin === true) || ($enableUnifiedAccount === true);
+        $unifiedEnabled = $this->is_unified_enabled();
+        $enableUnifiedMargin = $this->safe_bool($unifiedEnabled, 0, false);
+        $enableUnifiedAccount = $this->safe_bool($unifiedEnabled, 1, false);
+        $isUnifiedAccount = $enableUnifiedMargin || $enableUnifiedAccount;
         $market = null;
         $request = array();
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
+            $request['symbol'] = $symbolMarket['id'];
         }
         list($type, $paramsValue) = $this->get_bybit_type('cancelAllOrders', $market, $params);
         $request['category'] = $type;
@@ -5277,7 +5279,7 @@ class bybit extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             throw new NotSupported($this->id . ' fetchOrder() is not supported for spot markets');
         }
         $request = array(
@@ -5311,8 +5313,10 @@ class bybit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        list($enableUnifiedMargin, $enableUnifiedAccount) = $this->is_unified_enabled();
-        $isUnifiedAccount = ($enableUnifiedMargin === true) || ($enableUnifiedAccount === true);
+        $unifiedEnabled = $this->is_unified_enabled();
+        $enableUnifiedMargin = $this->safe_bool($unifiedEnabled, 0, false);
+        $enableUnifiedAccount = $this->safe_bool($unifiedEnabled, 1, false);
+        $isUnifiedAccount = $enableUnifiedMargin || $enableUnifiedAccount;
         if (!$isUnifiedAccount) {
             return $this->fetch_order_classic($id, $symbol, $params);
         }
@@ -5426,8 +5430,9 @@ class bybit extends Exchange {
         $request = array();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
+            $request['symbol'] = $symbolMarket['id'];
         }
         list($type, $paramsValue) = $this->get_bybit_type('fetchOrdersClassic', $market, $paramsPaginate);
         if ($type === 'spot') {
@@ -5609,8 +5614,9 @@ class bybit extends Exchange {
         $request = array();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
+            $request['symbol'] = $symbolMarket['id'];
         }
         list($type, $paramsValue) = $this->get_bybit_type('fetchCanceledAndClosedOrders', $market, $paramsPaginate);
         $request['category'] = $type;
@@ -5786,8 +5792,9 @@ class bybit extends Exchange {
         $request = array();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
+            $request['symbol'] = $symbolMarket['id'];
         }
         list($type, $paramsValue) = $this->get_bybit_type('fetchOpenOrders', $market, $paramsPaginate);
         if ($type === 'linear' || $type === 'inverse') {
@@ -5927,8 +5934,9 @@ class bybit extends Exchange {
         );
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
+            $request['symbol'] = $symbolMarket['id'];
         }
         list($type, $paramsValue) = $this->get_bybit_type('fetchMyTrades', $market, $paramsPaginate);
         $request['category'] = $type;
@@ -6377,10 +6385,11 @@ class bybit extends Exchange {
             // 'limit': 0, Limit for data size per page. [1, 50]. Default: 20
             // 'cursor': '', Cursor. Used for pagination
         );
-        $enableUnified = $this->is_unified_enabled();
+        $unifiedEnabled = $this->is_unified_enabled();
+        $enableUnified = $this->safe_bool($unifiedEnabled, 1, false);
         $currency = null;
         $currencyKey = 'coin';
-        if ($enableUnified[1] === true) {
+        if ($enableUnified) {
             $currencyKey = 'currency';
             if ($since !== null) {
                 $request['startTime'] = $since;
@@ -6398,7 +6407,7 @@ class bybit extends Exchange {
             $request['limit'] = $limit;
         }
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchLedger', null, $paramsPaginate);
-        if ($enableUnified[1] === true) {
+        if ($enableUnified) {
             $unifiedMarginStatus = $this->safe_integer($this->options, 'unifiedMarginStatus', 5); // 3/4 uta 1.0, 5/6 uta 2.0
             if ($subType === 'inverse' && ($unifiedMarginStatus < 5)) {
                 $response = $this->privateGetV5AccountContractTransactionLog($this->extend($request, $paramsSubType));
@@ -6796,9 +6805,10 @@ class bybit extends Exchange {
         $request = array();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $request['symbol'] = $market['id'];
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
+            $symbol = $symbolMarket['symbol'];
+            $request['symbol'] = $symbolMarket['id'];
         }
         list($type, $paramsValue) = $this->get_bybit_type('fetchPositions', $market, $paramsPaginate);
         if ($type === 'linear' || $type === 'inverse') {
@@ -7031,7 +7041,7 @@ class bybit extends Exchange {
         $notional = null;
         $contractSize = $this->safe_string($marketResolved, 'contractSize');
         $markPrice = $this->safe_string($position, 'markPrice');
-        if ($marketResolved['inverse'] === true) {
+        if ($this->safe_bool($marketResolved, 'inverse', false)) {
             $notional = Precise::string_div(Precise::string_mul($size, $contractSize), $markPrice);
         } else {
             $notional = $this->safe_string_2($position, 'positionValue', 'cumExitValue');
@@ -7071,7 +7081,7 @@ class bybit extends Exchange {
             } else {
                 $bustPrice = $this->omit_zero($this->safe_string($position, 'bustPrice'));
                 $closingFee = $this->omit_zero($this->safe_string($position, 'occClosingFee'));
-                if ($marketResolved['linear'] === true) {
+                if ($this->safe_bool($marketResolved, 'linear', false)) {
                     // derived from the following formula:
                     //  (Entry price - Bust price) * Contracts = Collateral
                     //  (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
@@ -7188,8 +7198,10 @@ class bybit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        list($enableUnifiedMargin, $enableUnifiedAccount) = $this->is_unified_enabled();
-        $isUnifiedAccount = ($enableUnifiedMargin === true) || ($enableUnifiedAccount === true);
+        $unifiedEnabled = $this->is_unified_enabled();
+        $enableUnifiedMargin = $this->safe_bool($unifiedEnabled, 0, false);
+        $enableUnifiedAccount = $this->safe_bool($unifiedEnabled, 1, false);
+        $isUnifiedAccount = $enableUnifiedMargin || $enableUnifiedAccount;
         $market = null;
         $marginModes = array(
             'isolated' => 'ISOLATED_MARGIN',
@@ -7297,9 +7309,9 @@ class bybit extends Exchange {
         );
         $request['buyLeverage'] = $leverageString;
         $request['sellLeverage'] = $leverageString;
-        if ($market['linear'] === true) {
+        if ($this->safe_bool($market, 'linear', false)) {
             $request['category'] = 'linear';
-        } elseif ($market['inverse'] === true) {
+        } elseif ($this->safe_bool($market, 'inverse', false)) {
             $request['category'] = 'inverse';
         } else {
             throw new NotSupported($this->id . ' setLeverage() only support linear and inverse market');
@@ -7369,7 +7381,7 @@ class bybit extends Exchange {
         }
         $market = $this->market($symbol);
         $subType = 'inverse';
-        if ($market['linear'] === true) {
+        if ($this->safe_bool($market, 'linear', false)) {
             $subType = 'linear';
         }
         $category = $this->safe_string($params, 'category', $subType);
@@ -7449,7 +7461,7 @@ class bybit extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['contract'] !== true) {
+        if (!$this->safe_bool($market, 'contract', false)) {
             throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
         }
         $timeframe = $this->safe_string($params, 'interval', '1h');
@@ -7459,7 +7471,7 @@ class bybit extends Exchange {
             throw new BadRequest($this->id . ' fetchOpenInterest() cannot use the ' . $timeframe . ' timeframe');
         }
         $subType = 'inverse';
-        if ($market['linear'] === true) {
+        if ($this->safe_bool($market, 'linear', false)) {
             $subType = 'linear';
         }
         $category = $this->safe_string($params, 'category', $subType);
@@ -7520,14 +7532,14 @@ class bybit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $paginate = $this->safe_bool($params, 'paginate');
-        if ($paginate === true) {
+        $paginate = $this->safe_bool($params, 'paginate', false);
+        if ($paginate) {
             $paramsPaginate = $this->omit($params, 'paginate');
             $paramsPaginate['timeframe'] = $timeframe;
             return $this->fetch_paginated_call_cursor('fetchOpenInterestHistory', $symbol, $since, $limit, $paramsPaginate, 'nextPageCursor', 'cursor', null, 200);
         }
         $market = $this->market($symbol);
-        if (($market['spot'] === true) || ($market['option'] === true)) {
+        if (($this->safe_bool($market, 'spot', false)) || ($this->safe_bool($market, 'option', false))) {
             throw new BadRequest($this->id . ' fetchOpenInterestHistory() symbol does not support market ' . $symbol);
         }
         $request = array(
@@ -8055,9 +8067,9 @@ class bybit extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['linear'] === true) {
+        if ($this->safe_bool($market, 'linear', false)) {
             $request['category'] = 'linear';
-        } elseif ($market['inverse'] === true) {
+        } elseif ($this->safe_bool($market, 'inverse', false)) {
             $request['category'] = 'inverse';
         }
         $response = $this->publicGetV5MarketRiskLimit($this->extend($request, $params));
@@ -8103,9 +8115,8 @@ class bybit extends Exchange {
             $this->load_markets();
         }
         $request = array();
-        $market = null;
         $market = $this->market($symbol);
-        if (($market['spot'] === true) || ($market['option'] === true)) {
+        if (($this->safe_bool($market, 'spot', false)) || ($this->safe_bool($market, 'option', false))) {
             throw new BadRequest($this->id . ' fetchMarketLeverageTiers() symbol does not support market ' . $symbol);
         }
         $request['symbol'] = $market['id'];
@@ -8214,8 +8225,8 @@ class bybit extends Exchange {
         //         "time": 1676360412576
         //     }
         //
-        $fees = $this->safe_dict($response, 'result', array());
-        $fees = $this->safe_list($fees, 'list', array());
+        $feeRates = $this->safe_dict($response, 'result', array());
+        $fees = $this->safe_list($feeRates, 'list', array());
         $result = array();
         for ($i = 0; $i < count($fees); $i++) {
             $fee = $this->parse_trading_fee($fees[$i]);
@@ -8353,8 +8364,9 @@ class bybit extends Exchange {
         $request = array();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
+            $request['symbol'] = $symbolMarket['id'];
         }
         list($type, $paramsValue) = $this->get_bybit_type('fetchSettlementHistory', $market, $params);
         if ($type === 'spot') {
@@ -8411,8 +8423,9 @@ class bybit extends Exchange {
         $request = array();
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
+            $request['symbol'] = $symbolMarket['id'];
         }
         list($type, $paramsValue) = $this->get_bybit_type('fetchMySettlementHistory', $market, $params);
         if ($type === 'spot') {
@@ -8660,7 +8673,7 @@ class bybit extends Exchange {
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch greeks for, all markets are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->baseCoin] the $baseCoin of the symbol, default is BTC
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=greeks-structure greeks structures~ indexed by $market symbol
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=greeks-structure greeks structures~ indexed by market symbol
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -8671,12 +8684,11 @@ class bybit extends Exchange {
             'category' => 'option',
             'baseCoin' => $baseCoin,
         );
-        $market = null;
         if ($symbolsNormalized !== null) {
             $symbolsLength = count($symbolsNormalized);
             if ($symbolsLength === 1) {
-                $market = $this->market($symbolsNormalized[0]);
-                $request['symbol'] = $market['id'];
+                $symbolMarket = $this->market($symbolsNormalized[0]);
+                $request['symbol'] = $symbolMarket['id'];
             }
         }
         $response = $this->publicGetV5MarketTickers($this->extend($request, $params));
@@ -8807,8 +8819,9 @@ class bybit extends Exchange {
         );
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
+            $request['symbol'] = $symbolMarket['id'];
         }
         list($type, $paramsValue) = $this->get_bybit_type('fetchMyLiquidations', $market, $paramsPaginate);
         $request['category'] = $type;
@@ -8958,11 +8971,10 @@ class bybit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $market = null;
         $symbol = null;
         if ($symbols !== null) {
             $market = $this->market($symbols[0]);
-            if ($market['spot'] === true) {
+            if ($this->safe_bool($market, 'spot', false)) {
                 throw new NotSupported($this->id . ' fetchLeverageTiers() is not supported for spot market');
             }
             $symbol = $this->safe_string($market, 'symbol');
@@ -9068,8 +9080,9 @@ class bybit extends Exchange {
         );
         $market = null;
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
+            $request['symbol'] = $symbolMarket['id'];
         }
         list($type, $paramsValue) = $this->get_bybit_type('fetchFundingHistory', $market, $paramsPaginate);
         $request['category'] = $type;
@@ -9128,7 +9141,7 @@ class bybit extends Exchange {
         $marketId = $this->safe_string($income, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market, null, 'contract');
         $code = 'USDT';
-        if ($marketResolved['inverse'] === true) {
+        if ($this->safe_bool($marketResolved, 'inverse', false)) {
             $code = $marketResolved['quote'];
         }
         $timestamp = $this->safe_integer($income, 'execTime');
@@ -9426,8 +9439,10 @@ class bybit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        list($enableUnifiedMargin, $enableUnifiedAccount) = $this->is_unified_enabled();
-        $isUnifiedAccount = ($enableUnifiedMargin === true) || ($enableUnifiedAccount === true);
+        $unifiedEnabled = $this->is_unified_enabled();
+        $enableUnifiedMargin = $this->safe_bool($unifiedEnabled, 0, false);
+        $enableUnifiedAccount = $this->safe_bool($unifiedEnabled, 1, false);
+        $isUnifiedAccount = $enableUnifiedMargin || $enableUnifiedAccount;
         $accountTypeDefault = 'eb_convert_spot';
         if ($isUnifiedAccount) {
             $accountTypeDefault = 'eb_convert_uta';
@@ -9476,9 +9491,9 @@ class bybit extends Exchange {
         for ($i = 0; $i < count($coins); $i++) {
             $entry = $coins[$i];
             $id = $this->safe_string($entry, 'coin');
-            $disableFrom = $this->safe_bool($entry, 'disableFrom');
-            $disableTo = $this->safe_bool($entry, 'disableTo');
-            $inactive = ($disableFrom === true) || ($disableTo === true);
+            $disableFrom = $this->safe_bool($entry, 'disableFrom', false);
+            $disableTo = $this->safe_bool($entry, 'disableTo', false);
+            $inactive = $disableFrom || $disableTo;
             $code = $this->safe_currency_code($id);
             if ($code !== null) {
                 $result[$code] = array(
@@ -9530,8 +9545,10 @@ class bybit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        list($enableUnifiedMargin, $enableUnifiedAccount) = $this->is_unified_enabled();
-        $isUnifiedAccount = ($enableUnifiedMargin === true) || ($enableUnifiedAccount === true);
+        $unifiedEnabled = $this->is_unified_enabled();
+        $enableUnifiedMargin = $this->safe_bool($unifiedEnabled, 0, false);
+        $enableUnifiedAccount = $this->safe_bool($unifiedEnabled, 1, false);
+        $isUnifiedAccount = $enableUnifiedMargin || $enableUnifiedAccount;
         $accountTypeDefault = 'eb_convert_spot';
         if ($isUnifiedAccount) {
             $accountTypeDefault = 'eb_convert_uta';
@@ -9624,8 +9641,10 @@ class bybit extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        list($enableUnifiedMargin, $enableUnifiedAccount) = $this->is_unified_enabled();
-        $isUnifiedAccount = ($enableUnifiedMargin === true) || ($enableUnifiedAccount === true);
+        $unifiedEnabled = $this->is_unified_enabled();
+        $enableUnifiedMargin = $this->safe_bool($unifiedEnabled, 0, false);
+        $enableUnifiedAccount = $this->safe_bool($unifiedEnabled, 1, false);
+        $isUnifiedAccount = $enableUnifiedMargin || $enableUnifiedAccount;
         $accountTypeDefault = 'eb_convert_spot';
         if ($isUnifiedAccount) {
             $accountTypeDefault = 'eb_convert_uta';
@@ -10066,7 +10085,7 @@ class bybit extends Exchange {
         $url = $this->implode_hostname($apiUrl) . '/' . $path;
         if ($apiName === 'public') {
             if (count($params) > 0) {
-                $url .= '?' . $this->rawencode($params);
+                $url = $this->implode_hostname($apiUrl) . '/' . $path . '?' . $this->rawencode($params);
             }
         } elseif ($apiName === 'private') {
             $this->check_required_credentials();
@@ -10096,21 +10115,21 @@ class bybit extends Exchange {
                     'Content-Type' => 'application/json',
                     'X-BAPI-API-KEY' => $this->apiKey,
                     'X-BAPI-TIMESTAMP' => $timestamp,
-                    'X-BAPI-RECV-WINDOW' => (string) $this->options['recvWindow'],
+                    'X-BAPI-RECV-WINDOW' => $this->safe_string($this->options, 'recvWindow', ''),
                 );
                 if ($isV3UnifiedMargin || $isV3Contract) {
                     $requestHeaders['X-BAPI-SIGN-TYPE'] = '2';
                 }
                 $query = $this->extend(array(), $params);
                 $queryEncoded = $this->rawencode($query);
-                $auth_base = (string) $timestamp . $this->apiKey . (string) $this->options['recvWindow'];
+                $auth_base = $timestamp . $this->apiKey . $this->safe_string($this->options, 'recvWindow', '');
                 $authFull = null;
                 if ($method === 'POST') {
                     $requestBody = $this->json($query);
                     $authFull = $auth_base . $requestBody;
                 } else {
                     $authFull = $auth_base . $queryEncoded;
-                    $url .= '?' . $queryEncoded;
+                    $url = $this->implode_hostname($apiUrl) . '/' . $path . '?' . $queryEncoded;
                 }
                 $signature = null;
                 if (mb_strpos($this->secret, 'PRIVATE KEY') > -1) {
@@ -10150,7 +10169,7 @@ class bybit extends Exchange {
                         );
                     }
                 } else {
-                    $url .= '?' . $this->rawencode($sortedQuery, true);
+                    $url = $this->implode_hostname($apiUrl) . '/' . $path . '?' . $this->rawencode($sortedQuery, true);
                     $url .= '&sign=' . $signature;
                 }
             }
@@ -10166,7 +10185,7 @@ class bybit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -10198,11 +10217,9 @@ class bybit extends Exchange {
                 // {"ret_code":30084,"ret_msg":"Isolated not modified","ext_code":"","ext_info":"","result":null,"time_now":"1642005219.937988","rate_limit_status":73,"rate_limit_reset_ms":1642005219894,"rate_limit":75}
                 return null;
             }
-            $feedback = null;
+            $feedback = $this->id . ' ' . $body;
             if ($errorCode === '10005' && mb_strpos($url, 'order') === false) {
                 $feedback = $this->id . ' private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions => "Account Transfer", "Subaccount Transfer", "Withdrawal" ' . $body;
-            } else {
-                $feedback = $this->id . ' ' . $body;
             }
             if (mb_strpos($body, 'Withdraw address chain or destination tag are not equal') > -1) {
                 $feedback = $feedback . '; You might also need to ensure the address is whitelisted';
