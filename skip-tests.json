@@ -1331,6 +1331,21 @@
             }
         }
     },
+    "flyingtulip": {
+        "skipMethods": {
+            "fetchOrderBook": "Financed exposure uses aggregate RFQ quotes; the alpha order-book endpoint is not a supported executable order book",
+            "fetchCurrencies": {
+                "deposit": "The public token registry omits deposit availability; collateralEnabled is not a deposit-pause flag",
+                "withdraw": "The public token registry omits withdrawal availability and account-dependent limits",
+                "activeMajorCurrencies": "The token registry does not report deposit/withdraw availability, including major currencies"
+            },
+            "fetchTrades": {
+                "price": "unknown_liquidation records explicitly have no execution valuation; price remains undefined instead of inventing an execution price",
+                "cost": "unknown_liquidation records explicitly have no execution notional; cost remains undefined",
+                "sideSequence": "RFQ executions route across independent on-chain liquidity; user buy/sell direction cannot be inferred from consecutive execution-price ticks"
+            }
+        }
+    },
     "fmfwio": {
         "skipMethods": {
             "fetchCurrencies": {

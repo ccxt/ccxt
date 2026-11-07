@@ -99,6 +99,7 @@ import derive from  './src/derive.js'
 import digifinex from  './src/digifinex.js'
 import dydx from  './src/dydx.js'
 import extended from  './src/extended.js'
+import flyingtulip from  './src/flyingtulip.js'
 import fmfwio from  './src/fmfwio.js'
 import foxbit from  './src/foxbit.js'
 import gate from  './src/gate.js'
@@ -292,6 +293,7 @@ const exchanges = {
     'digifinex':              digifinex,
     'dydx':                   dydx,
     'extended':               extended,
+    'flyingtulip':            flyingtulip,
     'fmfwio':                 fmfwio,
     'foxbit':                 foxbit,
     'gate':                   gate,
@@ -665,6 +667,7 @@ export {
     digifinex,
     dydx,
     extended,
+    flyingtulip,
     fmfwio,
     foxbit,
     gate,
