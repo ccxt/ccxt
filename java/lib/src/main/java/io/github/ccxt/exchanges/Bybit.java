@@ -4946,7 +4946,7 @@ public class Bybit extends BybitApi
             Object unifiedEnabled = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
             Boolean enableUnifiedMargin = (Boolean) this.safeBool(unifiedEnabled, 0, false);
             Boolean enableUnifiedAccount = (Boolean) this.safeBool(unifiedEnabled, 1, false);
-            Boolean isUnifiedAccount = (java.util.Objects.equals(enableUnifiedMargin, true)) || (java.util.Objects.equals(enableUnifiedAccount, true));
+            Boolean isUnifiedAccount = Boolean.TRUE.equals(enableUnifiedMargin) || Boolean.TRUE.equals(enableUnifiedAccount);
             // don't use getBybitType here
             Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", (Map<String, Object>) null, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
@@ -6629,7 +6629,7 @@ public class Bybit extends BybitApi
             Object unifiedEnabled = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
             Boolean enableUnifiedMargin = (Boolean) this.safeBool(unifiedEnabled, 0, false);
             Boolean enableUnifiedAccount = (Boolean) this.safeBool(unifiedEnabled, 1, false);
-            Boolean isUnifiedAccount = (java.util.Objects.equals(enableUnifiedMargin, true)) || (java.util.Objects.equals(enableUnifiedAccount, true));
+            Boolean isUnifiedAccount = Boolean.TRUE.equals(enableUnifiedMargin) || Boolean.TRUE.equals(enableUnifiedAccount);
             Map<String, Object> market = null;
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
@@ -6774,7 +6774,7 @@ public class Bybit extends BybitApi
             Object unifiedEnabled = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
             Boolean enableUnifiedMargin = (Boolean) this.safeBool(unifiedEnabled, 0, false);
             Boolean enableUnifiedAccount = (Boolean) this.safeBool(unifiedEnabled, 1, false);
-            Boolean isUnifiedAccount = (java.util.Objects.equals(enableUnifiedMargin, true)) || (java.util.Objects.equals(enableUnifiedAccount, true));
+            Boolean isUnifiedAccount = Boolean.TRUE.equals(enableUnifiedMargin) || Boolean.TRUE.equals(enableUnifiedAccount);
             if (!Boolean.TRUE.equals(isUnifiedAccount))
             {
                 return (this.fetchOrderClassic((String) (id), symbol, parameters)).join();
@@ -8927,7 +8927,7 @@ public class Bybit extends BybitApi
             Object unifiedEnabled = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
             Boolean enableUnifiedMargin = (Boolean) this.safeBool(unifiedEnabled, 0, false);
             Boolean enableUnifiedAccount = (Boolean) this.safeBool(unifiedEnabled, 1, false);
-            Boolean isUnifiedAccount = (java.util.Objects.equals(enableUnifiedMargin, true)) || (java.util.Objects.equals(enableUnifiedAccount, true));
+            Boolean isUnifiedAccount = Boolean.TRUE.equals(enableUnifiedMargin) || Boolean.TRUE.equals(enableUnifiedAccount);
             Map<String, Object> market = null;
             Object response = null;
             Map<String, Object> marginModes = new HashMap<String, Object>() {{
@@ -11530,7 +11530,7 @@ public class Bybit extends BybitApi
             Object unifiedEnabled = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
             Boolean enableUnifiedMargin = (Boolean) this.safeBool(unifiedEnabled, 0, false);
             Boolean enableUnifiedAccount = (Boolean) this.safeBool(unifiedEnabled, 1, false);
-            Boolean isUnifiedAccount = (java.util.Objects.equals(enableUnifiedMargin, true)) || (java.util.Objects.equals(enableUnifiedAccount, true));
+            Boolean isUnifiedAccount = Boolean.TRUE.equals(enableUnifiedMargin) || Boolean.TRUE.equals(enableUnifiedAccount);
             String accountTypeDefault = "eb_convert_spot";
             if (Boolean.TRUE.equals(isUnifiedAccount))
             {
@@ -11585,7 +11585,7 @@ public class Bybit extends BybitApi
                 String id = this.safeString(entry, "coin");
                 Boolean disableFrom = (Boolean) this.safeBool(entry, "disableFrom", false);
                 Boolean disableTo = (Boolean) this.safeBool(entry, "disableTo", false);
-                Boolean inactive = (java.util.Objects.equals(disableFrom, true)) || (java.util.Objects.equals(disableTo, true));
+                Boolean inactive = Boolean.TRUE.equals(disableFrom) || Boolean.TRUE.equals(disableTo);
                 String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
                 if (!java.util.Objects.equals(code, null))
                 {
@@ -11648,7 +11648,7 @@ public class Bybit extends BybitApi
             Object unifiedEnabled = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
             Boolean enableUnifiedMargin = (Boolean) this.safeBool(unifiedEnabled, 0, false);
             Boolean enableUnifiedAccount = (Boolean) this.safeBool(unifiedEnabled, 1, false);
-            Boolean isUnifiedAccount = (java.util.Objects.equals(enableUnifiedMargin, true)) || (java.util.Objects.equals(enableUnifiedAccount, true));
+            Boolean isUnifiedAccount = Boolean.TRUE.equals(enableUnifiedMargin) || Boolean.TRUE.equals(enableUnifiedAccount);
             String accountTypeDefault = "eb_convert_spot";
             if (Boolean.TRUE.equals(isUnifiedAccount))
             {
@@ -11761,7 +11761,7 @@ public class Bybit extends BybitApi
             Object unifiedEnabled = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
             Boolean enableUnifiedMargin = (Boolean) this.safeBool(unifiedEnabled, 0, false);
             Boolean enableUnifiedAccount = (Boolean) this.safeBool(unifiedEnabled, 1, false);
-            Boolean isUnifiedAccount = (java.util.Objects.equals(enableUnifiedMargin, true)) || (java.util.Objects.equals(enableUnifiedAccount, true));
+            Boolean isUnifiedAccount = Boolean.TRUE.equals(enableUnifiedMargin) || Boolean.TRUE.equals(enableUnifiedAccount);
             String accountTypeDefault = "eb_convert_spot";
             if (Boolean.TRUE.equals(isUnifiedAccount))
             {

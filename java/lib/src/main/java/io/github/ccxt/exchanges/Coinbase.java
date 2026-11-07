@@ -2205,7 +2205,7 @@ public class Coinbase extends CoinbaseApi
             return null;
         }
         Boolean isDisabled = (Boolean) this.safeBool(market, "is_disabled", false);
-        Boolean tradingDisabled = (java.util.Objects.equals(isDisabled, true)) || (java.util.Objects.equals(this.safeBool(market, "trading_disabled", (Object) null), true));
+        Boolean tradingDisabled = Boolean.TRUE.equals(isDisabled) || (java.util.Objects.equals(this.safeBool(market, "trading_disabled", (Object) null), true));
         String symbol = ((base + "/") + quote);
         String type = null;
         if (Boolean.TRUE.equals(isSwap))

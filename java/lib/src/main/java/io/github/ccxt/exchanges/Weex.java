@@ -2831,7 +2831,7 @@ public class Weex extends WeexApi
             throw new BadRequest((this.id + " createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters")) ;
         }
         Boolean reduceOnly = (Boolean) this.safeBool(query, "reduceOnly", false);
-        Boolean isReduceOnly = Boolean.TRUE.equals(isStopLoss) || Boolean.TRUE.equals(isTakeProfit) || (java.util.Objects.equals(reduceOnly, true));
+        Boolean isReduceOnly = Boolean.TRUE.equals(isStopLoss) || Boolean.TRUE.equals(isTakeProfit) || Boolean.TRUE.equals(reduceOnly);
         String positionSide = "LONG";
         if (Boolean.TRUE.equals(isReduceOnly))
         {

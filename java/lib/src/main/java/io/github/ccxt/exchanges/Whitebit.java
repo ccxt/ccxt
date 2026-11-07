@@ -846,7 +846,7 @@ public class Whitebit extends WhitebitApi
         String settleId = null;
         String symbol = ((base + "/") + quote);
         Boolean swap = (java.util.Objects.equals(typeId, "futures")) || (java.util.Objects.equals(typeId, "tradfiFutures"));
-        Boolean margin = (java.util.Objects.equals(isCollateral, true)) && !Boolean.TRUE.equals(swap);
+        Boolean margin = Boolean.TRUE.equals(isCollateral) && !Boolean.TRUE.equals(swap);
         Boolean contract = false;
         Double amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "stockPrec")));
         Boolean linear = null;

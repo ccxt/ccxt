@@ -1330,7 +1330,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Boolean isUnifiedEnabled = (Boolean) this.safeBool(unifiedResult, 0, false);
             Map<String, Object> paramsValue2 = (Map<String, Object>) this.safeDict(unifiedResult, 1, paramsMarketType);
             String dex = this.safeString(paramsValue2, "dex");
-            Boolean isSpot = ((java.util.Objects.equals(type, "spot")) || (java.util.Objects.equals(isUnifiedEnabled, true))) && (java.util.Objects.equals(dex, null));
+            Boolean isSpot = ((java.util.Objects.equals(type, "spot")) || Boolean.TRUE.equals(isUnifiedEnabled)) && (java.util.Objects.equals(dex, null));
             String topic = "clearinghouseState";
             if (Boolean.TRUE.equals(isSpot))
             {
@@ -1395,7 +1395,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Boolean isUnifiedEnabled = (Boolean) this.safeBool(unifiedResult, 0, false);
             Map<String, Object> paramsValue2 = (Map<String, Object>) this.safeDict(unifiedResult, 1, paramsMarketType);
             String dex = this.safeString(paramsValue2, "dex");
-            Boolean isSpot = ((java.util.Objects.equals(type, "spot")) || (java.util.Objects.equals(isUnifiedEnabled, true))) && (java.util.Objects.equals(dex, null));
+            Boolean isSpot = ((java.util.Objects.equals(type, "spot")) || Boolean.TRUE.equals(isUnifiedEnabled)) && (java.util.Objects.equals(dex, null));
             String topic = "clearinghouseState";
             if (Boolean.TRUE.equals(isSpot))
             {

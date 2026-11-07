@@ -9047,7 +9047,7 @@ public class Bitget extends BitgetApi
             uta = (Boolean) ((List<Object>) utaparamsMarginModeVariable).get(0);
             paramsMarginMode = (Map<String, Object>) ((List<Object>) utaparamsMarginModeVariable).get(1);
             Boolean isStockOrUta = (Boolean.TRUE.equals(isStockSpot) || (java.util.Objects.equals(uta, true)));
-            Boolean isPlanOrder = (java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(trailing, true));
+            Boolean isPlanOrder = (java.util.Objects.equals(trigger, true)) || Boolean.TRUE.equals(trailing);
             Boolean isContract = (java.util.Objects.equals(market.get("swap"), true)) || (java.util.Objects.equals(market.get("future"), true));
             Boolean isContractTriggerEndpoint = Boolean.TRUE.equals(isContract) && Boolean.TRUE.equals(isPlanOrder) && !Boolean.TRUE.equals(isStockOrUta);
             String clientOrderId = this.safeString2(paramsMarginMode, "clientOrderId", "clientOid");

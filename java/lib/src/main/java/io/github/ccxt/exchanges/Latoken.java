@@ -1215,7 +1215,7 @@ public class Latoken extends LatokenApi
             }
         }
         Boolean isBuy = (java.util.Objects.equals(side, "buy"));
-        Boolean isMaker = (java.util.Objects.equals(makerBuyer, true)) && Boolean.TRUE.equals(isBuy);
+        Boolean isMaker = Boolean.TRUE.equals(makerBuyer) && Boolean.TRUE.equals(isBuy);
         String takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         String baseId = this.safeString(trade, "baseCurrency");
         String quoteId = this.safeString(trade, "quoteCurrency");

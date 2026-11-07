@@ -4410,7 +4410,7 @@ public class Okx extends OkxApi
             marginMode = defaultMarginMode;
         }
         Boolean marginParam = (Boolean) this.safeBool(parameters, "margin", false);
-        Boolean margin = Boolean.TRUE.equals(marginModeIsExplicit) || (java.util.Objects.equals(marginParam, true));
+        Boolean margin = Boolean.TRUE.equals(marginModeIsExplicit) || Boolean.TRUE.equals(marginParam);
         // position side / hedged options only apply to swap and future orders
         Boolean isSwapOrFuture = (java.util.Objects.equals(contract, true)) && ((java.util.Objects.equals(market.get("swap"), true)) || (java.util.Objects.equals(market.get("future"), true)));
         Pair<String, Map<String, Object>> positionSideparamsPositionSideVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "positionSide", (String) null);

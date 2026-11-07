@@ -1132,7 +1132,7 @@ public class Cryptocom extends CryptocomApi
                 j39v1.put("settleId", settleId);
                 j39v1.put("type", type);
                 j39v1.put("spot", spot);
-                j39v1.put("margin", ((java.util.Objects.equals(marginBuyEnabled, true)) || (java.util.Objects.equals(marginSellEnabled, true))));
+                j39v1.put("margin", (Boolean.TRUE.equals(marginBuyEnabled) || Boolean.TRUE.equals(marginSellEnabled)));
                 j39v1.put("swap", swap);
                 j39v1.put("future", future);
                 j39v1.put("option", option);

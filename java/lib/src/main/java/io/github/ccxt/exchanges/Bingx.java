@@ -3962,7 +3962,7 @@ public class Bingx extends BingxApi
             }
             Boolean reduceOnlyParam = (Boolean) this.safeBool(paramsTakeProfit, "reduceOnly", false);
             // stop loss / take profit price orders are always reduce only
-            Boolean reduceOnly = (java.util.Objects.equals(reduceOnlyParam, true)) || (!Boolean.TRUE.equals(isTriggerOrder) && (Boolean.TRUE.equals(isStopLossPriceOrder) || Boolean.TRUE.equals(isTakeProfitPriceOrder)));
+            Boolean reduceOnly = Boolean.TRUE.equals(reduceOnlyParam) || (!Boolean.TRUE.equals(isTriggerOrder) && (Boolean.TRUE.equals(isStopLossPriceOrder) || Boolean.TRUE.equals(isTakeProfitPriceOrder)));
             if (Boolean.TRUE.equals(isTriggerOrder))
             {
                 request.put("stopPrice", this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice)));

@@ -4962,7 +4962,7 @@ public class Htx extends HtxApi
                 Boolean stopLoss = (Boolean) this.safeBool(paramsMarketType, "stopLoss", false);
                 Boolean takeProfit = (Boolean) this.safeBool(paramsMarketType, "takeProfit", false);
                 Boolean trailing = (Boolean) this.safeBool(paramsMarketType, "trailing", false);
-                Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLoss, true)) || (java.util.Objects.equals(takeProfit, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || (java.util.Objects.equals(trailing, true)));
+                Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || Boolean.TRUE.equals(stopLoss) || Boolean.TRUE.equals(takeProfit) || Boolean.TRUE.equals(stopLossTakeProfit) || Boolean.TRUE.equals(trailing));
                 Map<String, Object> paramsOmitted = this.omit(paramsMarketType, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
                 String clientOrderId = this.safeStringN(paramsOmitted, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id")));
                 Map<String, Object> paramsClientOrderId = (((!java.util.Objects.equals(clientOrderId, null)))) ? this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id"))) : paramsOmitted;
@@ -5286,7 +5286,7 @@ public class Htx extends HtxApi
             Boolean stopLoss = (Boolean) this.safeBool(parameters, "stopLoss", false);
             Boolean takeProfit = (Boolean) this.safeBool(parameters, "takeProfit", false);
             Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
-            Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLoss, true)) || (java.util.Objects.equals(takeProfit, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || Boolean.TRUE.equals(trailing));
+            Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || Boolean.TRUE.equals(stopLoss) || Boolean.TRUE.equals(takeProfit) || Boolean.TRUE.equals(stopLossTakeProfit) || Boolean.TRUE.equals(trailing));
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
             if (!java.util.Objects.equals(since, null))
             {
@@ -5397,7 +5397,7 @@ public class Htx extends HtxApi
                 Boolean stopLoss = (Boolean) this.safeBool(parameters, "stopLoss", false);
                 Boolean takeProfit = (Boolean) this.safeBool(parameters, "takeProfit", false);
                 Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
-                Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLoss, true)) || (java.util.Objects.equals(takeProfit, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || Boolean.TRUE.equals(trailing));
+                Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || Boolean.TRUE.equals(stopLoss) || Boolean.TRUE.equals(takeProfit) || Boolean.TRUE.equals(stopLossTakeProfit) || Boolean.TRUE.equals(trailing));
                 if (Boolean.TRUE.equals(isAlgo))
                 {
                     request.put("states", "effective");
@@ -5528,7 +5528,7 @@ public class Htx extends HtxApi
                     Boolean stopLoss = (Boolean) this.safeBool(paramsMarketType, "stopLoss", false);
                     Boolean takeProfit = (Boolean) this.safeBool(paramsMarketType, "takeProfit", false);
                     Boolean trailing = (Boolean) this.safeBool(paramsMarketType, "trailing", false);
-                    Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || (java.util.Objects.equals(stopLoss, true)) || (java.util.Objects.equals(takeProfit, true)) || (java.util.Objects.equals(stopLossTakeProfit, true)) || Boolean.TRUE.equals(trailing));
+                    Boolean isAlgo = ((java.util.Objects.equals(trigger, true)) || Boolean.TRUE.equals(stopLoss) || Boolean.TRUE.equals(takeProfit) || Boolean.TRUE.equals(stopLossTakeProfit) || Boolean.TRUE.equals(trailing));
                     if (Boolean.TRUE.equals(isAlgo))
                     {
                         request.put("states", "canceled");
