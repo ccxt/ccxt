@@ -2897,7 +2897,11 @@ class aster(Exchange, ImplicitAPI):
         if clientOrderIdList is not None:
             request['origClientOrderIdList'] = clientOrderIdList
         else:
-            request['orderIdList'] = ids
+            # the api takes LONG[] order ids
+            orderIdList = []
+            for i in range(0, len(ids)):
+                orderIdList.append(self.parse_to_numeric(ids[i]))
+            request['orderIdList'] = orderIdList
         response: dict
         if self.safe_bool(market, 'swap', False):
             response = await self.fapiPrivateDeleteV3BatchOrders(self.extend(request, params))

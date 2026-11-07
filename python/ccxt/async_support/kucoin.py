@@ -10383,9 +10383,8 @@ class kucoin(Exchange, ImplicitAPI):
                 'symbol': self.safe_string(market, 'id'),
                 'clientOid': self.safe_string(clientOrderIds, i),
             })
-        idsList = self.to_array(ids)
-        for i in range(0, len(idsList)):
-            orderId = self.safe_string(idsList, i)
+        for i in range(0, len(ids)):
+            orderId = self.safe_string(ids, i)
             if uta:
                 ordersRequests.append({
                     'orderId': orderId,
