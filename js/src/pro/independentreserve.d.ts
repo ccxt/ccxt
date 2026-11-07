@@ -2,7 +2,7 @@ import independentreserveRest from '../independentreserve.js';
 import type { Int, OrderBook, Trade, Dict, Market, Num } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class independentreserve extends independentreserveRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name independentreserve#watchTrades

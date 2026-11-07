@@ -2,7 +2,7 @@ import modetradeRest from '../modetrade.js';
 import type { Balances, Dict, Int, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, Market, NullableDict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class modetrade extends modetradeRest {
-    describe(): any;
+    describe(): Dict;
     requestId(url: string): number;
     watchPublic(messageHash: string, message: Dict): Promise<any>;
     /**

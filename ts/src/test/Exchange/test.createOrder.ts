@@ -267,7 +267,7 @@ function tcoGetMinimumAmountForLimitPrice (exchange: any, market: Dict, price: n
     }
     finalAmount = finalAmount + amountPrecision;
     finalAmount = finalAmount * 1.10; // add around 10% to ensure "cost" is enough
-    finalAmount = parseFloat (exchange.decimalToPrecision (finalAmount, 2, market['precision']['amount'], exchange.precisionMode)); // 2 stands for ROUND_UP constant, 0 stands for TRUNCATE
+    finalAmount = parseFloat (exchange.decimalToPrecision (finalAmount, 2, market['precision']['amount'], exchange.precisionMode) as string); // 2 stands for ROUND_UP constant, 0 stands for TRUNCATE
     return finalAmount;
 }
 

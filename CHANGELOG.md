@@ -1,3 +1,38 @@
+<a id="v4.5.92"></a>
+# [v4.5.92](https://github.com/ccxt/ccxt/releases/tag/v4.5.92) - 2026-11-04
+
+## What's Changed
+* build(deps): bump rustls from 0.23.45 to 0.23.46 in /rust by [@dependabot](https://github.com/dependabot)[bot] in [#31043](https://github.com/ccxt/ccxt/pull/31043)
+* chore: remove coinex article by [@carlosmiei](https://github.com/carlosmiei) in [#31046](https://github.com/ccxt/ccxt/pull/31046)
+* fix(bybit): report the liquidation order side in watchLiquidations by [@stooq1](https://github.com/stooq1) in [#31042](https://github.com/ccxt/ccxt/pull/31042)
+* feat(mcp): fetch_route and execute_route over ccxt OrderRouter by [@pcriadoperez](https://github.com/pcriadoperez) in [#31077](https://github.com/ccxt/ccxt/pull/31077)
+* feat(base): OrderRouter userAgent option by [@pcriadoperez](https://github.com/pcriadoperez) in [#31076](https://github.com/ccxt/ccxt/pull/31076)
+* fix(coinbaseinternational): TypeError on public/auth in Python, breaking all private calls by [@ye-chuan](https://github.com/ye-chuan) in [#31068](https://github.com/ccxt/ccxt/pull/31068)
+* Revert "test: fix static test errors" by [@ttodua](https://github.com/ttodua) in [#31087](https://github.com/ccxt/ccxt/pull/31087)
+* docs(blog): add CCXT Terminal for iOS launch post by [@kroitor](https://github.com/kroitor) in [#31088](https://github.com/ccxt/ccxt/pull/31088)
+* docs(blog): add CCXT Terminal for Android launch post by [@kroitor](https://github.com/kroitor) in [#31089](https://github.com/ccxt/ccxt/pull/31089)
+* docs(blog): replace CCXT Terminal for iOS hero image by [@kroitor](https://github.com/kroitor) in [#31090](https://github.com/ccxt/ccxt/pull/31090)
+* docs(blog): replace CCXT Terminal for iOS hero image again by [@kroitor](https://github.com/kroitor) in [#31091](https://github.com/ccxt/ccxt/pull/31091)
+* fix(go): leave liquidation caches nil until a handler creates them by [@carlotestor](https://github.com/carlotestor) in [#31092](https://github.com/ccxt/ccxt/pull/31092)
+* feat(hitbtc): add unWatchTrades and unWatchOHLCV by [@patrickballard](https://github.com/patrickballard) in [#31100](https://github.com/ccxt/ccxt/pull/31100)
+* bybit hardcode fiat currencies by [@ndubel](https://github.com/ndubel) in [#31096](https://github.com/ccxt/ccxt/pull/31096)
+* fix(bitget): watchOrders reports the cumulative filled and cost by [@lcfgr](https://github.com/lcfgr) in [#31094](https://github.com/ccxt/ccxt/pull/31094)
+* feat(coinbaseinternational): change brokerId to ccxt by [@Dan-krm](https://github.com/Dan-krm) in [#31103](https://github.com/ccxt/ccxt/pull/31103)
+* feat(kucoin): orderbook update by [@carlosmiei](https://github.com/carlosmiei) in [#31104](https://github.com/ccxt/ccxt/pull/31104)
+* fix(bitget): skip spot instruments without base or quote coin in fetchMarkets by [@Welith](https://github.com/Welith) in [#31105](https://github.com/ccxt/ccxt/pull/31105)
+* feat(revolutx): conditional and take profit/stop loss orders by [@Mohith26](https://github.com/Mohith26) in [#31102](https://github.com/ccxt/ccxt/pull/31102)
+* fix(java): default liquidations cache to null so WS tests stop hanging by [@carlosmiei](https://github.com/carlosmiei) in [#31107](https://github.com/ccxt/ccxt/pull/31107)
+
+## New Contributors
+* [@lcfgr](https://github.com/lcfgr) made their first contribution in [#31094](https://github.com/ccxt/ccxt/pull/31094)
+* [@Welith](https://github.com/Welith) made their first contribution in [#31105](https://github.com/ccxt/ccxt/pull/31105)
+* [@Mohith26](https://github.com/Mohith26) made their first contribution in [#31102](https://github.com/ccxt/ccxt/pull/31102)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.91...v4.5.92
+
+[Changes][v4.5.92]
+
+
 <a id="v4.5.91"></a>
 # [v4.5.91](https://github.com/ccxt/ccxt/releases/tag/v4.5.91) - 2026-10-29
 
@@ -14719,6 +14754,7 @@
 [Changes][4.3.22]
 
 
+[v4.5.92]: https://github.com/ccxt/ccxt/compare/v4.5.91...v4.5.92
 [v4.5.91]: https://github.com/ccxt/ccxt/compare/v4.5.90...v4.5.91
 [v4.5.90]: https://github.com/ccxt/ccxt/compare/v4.5.89...v4.5.90
 [v4.5.89]: https://github.com/ccxt/ccxt/compare/v4.5.88...v4.5.89

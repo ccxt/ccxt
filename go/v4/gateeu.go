@@ -13,7 +13,7 @@ func newGateeu() *Gateeu {
 	return p
 }
 
-func (this *Gateeu) Describe() any {
+func (this *Gateeu) Describe() map[string]any {
 	return this.DeepExtend(this.Gate.Describe(), map[string]any{
 		"id":        "gateeu",
 		"name":      "Gate EU",

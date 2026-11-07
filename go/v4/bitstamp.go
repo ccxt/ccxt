@@ -18,7 +18,7 @@ func newBitstamp() *Bitstamp {
 	return p
 }
 
-func (this *Bitstamp) Describe() any {
+func (this *Bitstamp) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "bitstamp",
 		"name":      "Bitstamp",
@@ -1161,8 +1161,8 @@ func (this *Bitstamp) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	listRecv1157, _ := MapSliceToList(r.Value), r.Value != nil
-	var response []any = listRecv1157
+	responseRecv, _ := MapSliceToList(r.Value), r.Value != nil
+	var response []any = responseRecv
 	//
 	//    [
 	//
@@ -1210,18 +1210,17 @@ func (this *Bitstamp) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	//
 	var result []any = []any{}
 	for i := 0; i < len(response); i++ {
-		var market any = GetValue(response, i)
-		baseIdquoteIdVariable := []any{this.SafeString(market, "base_currency"), this.SafeString(market, "counter_currency")}
-		baseId := GetValue(baseIdquoteIdVariable, 0)
-		quoteId := GetValue(baseIdquoteIdVariable, 1)
+		var market map[string]any = SafeMapTyped(response, i)
+		var baseId *string = this.SafeString(market, "base_currency")
+		var quoteId *string = this.SafeString(market, "counter_currency")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		if (base == nil) || (quote == nil) {
 			continue
 		}
-		var settleId any = nil
+		var settleId *string = nil
 		var marketTypeRaw *string = this.SafeString(market, "market_type")
-		var symbol any = *base + "/" + *quote
+		var symbol string = *base + "/" + *quote
 		var typeVar *string = nil
 		var subType *string = nil
 		if marketTypeRaw != nil && *marketTypeRaw == "SPOT" {
@@ -1229,7 +1228,7 @@ func (this *Bitstamp) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		} else if marketTypeRaw != nil && *marketTypeRaw == "PERPETUAL" {
 			typeVar = SafeStringPtr("swap")
 			settleId = quoteId
-			symbol = Add(*base+"/"+*quote+":", settleId)
+			symbol = *base + "/" + *quote + ":" + *this.SafeString(market, "counter_currency", "")
 			var payoffType *string = this.SafeString(market, "payoff_type")
 			if payoffType != nil && *payoffType == "Linear" {
 				subType = SafeStringPtr("linear")
@@ -1239,7 +1238,7 @@ func (this *Bitstamp) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		}
 		var isSpot bool = (typeVar != nil && *typeVar == "spot")
 		var settle *string = func() *string {
-			if (settleId != nil) && (settleId != "") {
+			if (settleId != nil) && (settleId == nil || *settleId != "") {
 				return this.SafeCurrencyCode(settleId)
 			}
 			return nil
@@ -1309,16 +1308,16 @@ func (this *Bitstamp) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
-func (this *Bitstamp) ConstructCurrencyObject(id any, code *string, name any, precision *int64, minCost any, originalPayload any) map[string]any {
+func (this *Bitstamp) ConstructCurrencyObject(id *string, code string, name *string, precision *int64, minCost any, originalPayload map[string]any) map[string]any {
 	var currencyType string = "crypto"
-	var description any = this.Describe()
+	var description map[string]any = this.Describe()
+	var fees map[string]any = SafeMapTyped(description, "fees")
+	var fundingFees map[string]any = SafeMapTyped(fees, "funding")
+	var withdrawFee *float64 = this.SafeNumber(fundingFees, "withdraw")
 	if this.IsFiat(code) {
 		currencyType = "fiat"
 	}
-	var tickSize *float64
-	if derefNum, isNum := this.ParseNumber(this.ParsePrecision(this.NumberToString(precision))).(float64); isNum {
-		tickSize = &derefNum
-	}
+	var tickSize *float64 = this.ParseNumber(this.ParsePrecision(this.NumberToString(precision)))
 	return map[string]any{
 		"id":        id,
 		"code":      code,
@@ -1328,7 +1327,7 @@ func (this *Bitstamp) ConstructCurrencyObject(id any, code *string, name any, pr
 		"active":    true,
 		"deposit":   nil,
 		"withdraw":  nil,
-		"fee":       this.SafeNumber(GetValue(GetValue(GetValue(description, "fees"), "funding"), "withdraw"), code),
+		"fee":       withdrawFee,
 		"precision": tickSize,
 		"limits": map[string]any{
 			"amount": map[string]any{
@@ -1363,7 +1362,7 @@ func (this *Bitstamp) fetchMarketsFromCacheBody(ch chan AsyncResult[[]map[string
 	// currencies are now fetched before markets
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var options any = this.SafeDict(this.Options, "fetchMarkets", map[string]any{})
+	var options map[string]any = this.SafeDictMap(this.Options, "fetchMarkets", map[string]any{})
 	var timestamp *int64 = this.SafeInteger(options, "timestamp")
 	var expires int64 = *this.SafeInteger(options, "expires", 1000)
 	var now int64 = this.Milliseconds()
@@ -1391,10 +1390,10 @@ func (this *Bitstamp) fetchMarketsFromCacheBody(ch chan AsyncResult[[]map[string
 		//            "market_type": "SPOT"
 		//        },
 		//
-		this.Options.Store("fetchMarkets", this.Extend(options, map[string]any{
+		this.Options["fetchMarkets"] = this.Extend(options, map[string]any{
 			"response":  response,
 			"timestamp": now,
-		}))
+		})
 	}
 	var cache map[string]any = SafeMapTyped(this.Options, "fetchMarkets")
 	var markets []any = SafeListTypedDefault(cache, "response", []any{})
@@ -1456,54 +1455,35 @@ func (this *Bitstamp) ParseCurrencies(rawCurrencies any) map[string]any {
 	var result map[string]any = map[string]any{}
 	var arr []any = this.ToArray(rawCurrencies)
 	for i := 0; i < len(arr); i++ {
-		var market any = func() any {
-			if i >= 0 && i < len(arr) {
-				return DerefScalar(arr[i])
-			}
-			return nil
-		}()
-		baseIdquoteIdVariable := []any{this.SafeString(market, "base_currency"), this.SafeString(market, "counter_currency")}
-		baseId := GetValue(baseIdquoteIdVariable, 0)
-		quoteId := GetValue(baseIdquoteIdVariable, 1)
+		var market map[string]any = this.SafeDictMap(arr, i, map[string]any{})
+		var baseId *string = this.SafeString(market, "base_currency")
+		var quoteId *string = this.SafeString(market, "counter_currency")
 		var base *string = this.SafeCurrencyCode(baseId)
 		var quote *string = this.SafeCurrencyCode(quoteId)
 		var description *string = this.SafeString(market, "description")
 		if description == nil {
 			panic(ExchangeError(this.Id + " parseCurrencies() missing description"))
 		}
-		baseDescriptionquoteDescriptionVariable := strings.Split(*description, " / ")
-		baseDescription := GetValue(baseDescriptionquoteDescriptionVariable, 0)
-		quoteDescription := GetValue(baseDescriptionquoteDescriptionVariable, 1)
+		var descriptionParts []string = strings.Split(*description, " / ")
+		var baseDescription *string = this.SafeString(descriptionParts, 0)
+		var quoteDescription *string = this.SafeString(descriptionParts, 1)
 		var minimumOrder *string = this.SafeString(market, "minimum_order_value")
 		if minimumOrder == nil {
 			panic(ExchangeError(this.Id + " parseCurrencies() missing minimumOrder"))
 		}
 		var parts []string = strings.Split(*minimumOrder, " ")
-		var cost *string = SafeStringPtr(func() any {
-			if 0 >= 0 && 0 < len(parts) {
-				return parts[0]
+		var cost *string = this.SafeString(parts, 0)
+		if base != nil {
+			if _, ok := result[*base]; !ok {
+				var baseDecimals *int64 = this.SafeInteger(market, "base_decimals")
+				result[*base] = this.ConstructCurrencyObject(baseId, *base, baseDescription, baseDecimals, nil, market)
 			}
-			return nil
-		}())
-		if (base != nil) && !(func() bool {
-			if base == nil {
-				return false
-			}
-			_, ok := result[*base]
-			return ok
-		}()) {
-			var baseDecimals *int64 = this.SafeInteger(market, "base_decimals")
-			result[*base] = this.ConstructCurrencyObject(baseId, base, baseDescription, baseDecimals, nil, market)
 		}
-		if (quote != nil) && !(func() bool {
-			if quote == nil {
-				return false
+		if quote != nil {
+			if _, ok := result[*quote]; !ok {
+				var counterDecimals *int64 = this.SafeInteger(market, "counter_decimals")
+				result[*quote] = this.ConstructCurrencyObject(quoteId, *quote, quoteDescription, counterDecimals, this.ParseNumber(cost), market)
 			}
-			_, ok := result[*quote]
-			return ok
-		}()) {
-			var counterDecimals *int64 = this.SafeInteger(market, "counter_decimals")
-			result[*quote] = this.ConstructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.ParseNumber(cost), market)
 		}
 	}
 	return result
@@ -1710,11 +1690,11 @@ func (this *Bitstamp) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 		}
 	}
 
-	listEp1676 := <-this.PublicGetTicker(params)
-	if listEp1676.Err != nil {
-		panic(listEp1676.Err)
+	responseRecv := <-this.PublicGetTicker(params)
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp1676.Value
+	var response []any = responseRecv.Value
 
 	//
 	// {
@@ -1780,32 +1760,14 @@ func (this *Bitstamp) GetMarketFromTrade(trade any) any {
 		panic(ExchangeError(this.Id + " getMarketFromTrade() too many keys: " + this.Json(currencyIds) + " in the trade: " + this.Json(tradeOmitted)))
 	}
 	if numCurrencyIds == 2 {
-		var marketId any = Add(func() any {
-			if 0 >= 0 && 0 < len(currencyIds) {
-				return currencyIds[0]
-			}
-			return nil
-		}(), func() any {
-			if 1 >= 0 && 1 < len(currencyIds) {
-				return currencyIds[1]
-			}
-			return nil
-		}())
-		if (this.Markets_by_id != nil) && (InOp(this.Markets_by_id, marketId)) {
+		var firstCurrencyId string = *this.SafeString(currencyIds, 0, "")
+		var secondCurrencyId string = *this.SafeString(currencyIds, 1, "")
+		var marketId string = firstCurrencyId + secondCurrencyId
+		if _, ok := this.Markets_by_id[marketId]; (this.Markets_by_id != nil) && ok {
 			return this.SafeMarket(marketId)
 		}
-		marketId = Add(func() any {
-			if 1 >= 0 && 1 < len(currencyIds) {
-				return currencyIds[1]
-			}
-			return nil
-		}(), func() any {
-			if 0 >= 0 && 0 < len(currencyIds) {
-				return currencyIds[0]
-			}
-			return nil
-		}())
-		if (this.Markets_by_id != nil) && (InOp(this.Markets_by_id, marketId)) {
+		marketId = secondCurrencyId + firstCurrencyId
+		if _, ok := this.Markets_by_id[marketId]; (this.Markets_by_id != nil) && ok {
 			return this.SafeMarket(marketId)
 		}
 	}
@@ -1858,7 +1820,6 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var side any = nil
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString(trade, "amount")
-	var orderId *string = this.SafeString(trade, "order_id")
 	var typeVar any = nil
 	var costString *string = this.SafeString(trade, "cost")
 	var rawMarketId any = nil
@@ -1895,9 +1856,9 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) Trade {
 	amountString = this.SafeString(trade, this.SafeString(marketResolved, "baseId"), amountString)
 	costString = this.SafeString(trade, this.SafeString(marketResolved, "quoteId"), costString)
 	// this endpoint is not aligned with "markets" endpoint
-	var baseIdLower *string = this.SafeStringLower(marketResolved, "baseId")
-	var quoteIdLower *string = this.SafeStringLower(marketResolved, "quoteId")
-	var dashedIdLower *string = SafeStringPtr(Add(Add(baseIdLower, "_"), quoteIdLower))
+	var baseIdLower string = *this.SafeStringLower(marketResolved, "baseId", "")
+	var quoteIdLower string = *this.SafeStringLower(marketResolved, "quoteId", "")
+	var dashedIdLower string = baseIdLower + "_" + quoteIdLower
 	if priceString == nil {
 		priceString = this.SafeString(trade, dashedIdLower)
 	}
@@ -1936,14 +1897,10 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) Trade {
 			}
 		}
 	} else {
-		if derefPtr := this.SafeString(trade, "type"); derefPtr != nil {
-			side = *derefPtr
-		} else {
-			side = nil
-		}
-		if side == "1" {
+		var sideRaw *string = this.SafeString(trade, "type")
+		if sideRaw != nil && *sideRaw == "1" {
 			side = "sell"
-		} else if side == "0" {
+		} else if sideRaw != nil && *sideRaw == "0" {
 			side = "buy"
 		} else {
 			side = nil
@@ -1965,7 +1922,7 @@ func (this *Bitstamp) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
 		"symbol":       symbol,
-		"order":        orderId,
+		"order":        this.SafeString(trade, "order_id"),
 		"type":         typeVar,
 		"side":         side,
 		"takerOrMaker": nil,
@@ -2014,11 +1971,11 @@ func (this *Bitstamp) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 		"time": "hour",
 	}
 
-	listEp1961 := <-this.PublicGetTransactionsPair(this.Extend(request, params))
-	if listEp1961.Err != nil {
-		panic(listEp1961.Err)
+	responseRecv := <-this.PublicGetTransactionsPair(this.Extend(request, params))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp1961.Value
+	var response []any = responseRecv.Value
 
 	//
 	//     [
@@ -2173,19 +2130,16 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(ohlc, market, timeframe, since, limitResolved))}
 	return nil
 }
-func (this *Bitstamp) ParseBalance(response any) map[string]any {
+func (this *Bitstamp) ParseBalanceList(response any) map[string]any {
 	var finalResponse any = response // java req
 	var result map[string]any = map[string]any{
 		"info":      finalResponse,
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	var responseList any = response
-	if IsEqual(response, nil) {
-		responseList = []any{}
-	}
-	for i := 0; i < GetArrayLength(responseList); i++ {
-		var currencyBalance map[string]any = SafeMapTyped(responseList, i)
+	var responseEntries []any = this.ToArray(response)
+	for i := 0; i < len(responseEntries); i++ {
+		var currencyBalance map[string]any = SafeMapTyped(responseEntries, i)
 		var currencyId *string = this.SafeString(currencyBalance, "currency")
 		var currencyCode *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()
@@ -2225,11 +2179,11 @@ func (this *Bitstamp) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 		}
 	}
 
-	r1 := <-this.PrivatePostAccountBalances(params)
-	if r1.Err != nil {
-		panic(r1.Err)
+	responseRecv := <-this.PrivatePostAccountBalances(params)
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response map[string]any = r1.Value
+	var response []any = responseRecv.Value
 
 	//
 	//     [
@@ -2242,7 +2196,7 @@ func (this *Bitstamp) fetchBalanceBody(ch chan AsyncResult[Balances], optionalAr
 	//         ...
 	//     ]
 	//
-	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(response))}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(response))}
 	return nil
 }
 
@@ -2277,11 +2231,11 @@ func (this *Bitstamp) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterfac
 		"market_symbol": market["id"],
 	}
 
-	listEp2203 := <-this.PrivatePostFeesTrading(this.Extend(request, params))
-	if listEp2203.Err != nil {
-		panic(listEp2203.Err)
+	responseRecv := <-this.PrivatePostFeesTrading(this.Extend(request, params))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp2203.Value
+	var response []any = responseRecv.Value
 	//
 	//     [
 	//         {
@@ -2323,8 +2277,9 @@ func (this *Bitstamp) ParseTradingFees(fees any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": fees,
 	}
-	for i := 0; i < GetArrayLength(fees); i++ {
-		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(GetValue(fees, i)))
+	var feesList []any = this.ToArray(fees)
+	for i := 0; i < len(feesList); i++ {
+		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(DerefScalar(feesList[i])))
 		var symbol *string = SafeStringPtr(fee["symbol"])
 		if symbol != nil {
 			result[*symbol] = fee
@@ -2359,11 +2314,11 @@ func (this *Bitstamp) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradin
 		}
 	}
 
-	listEp2278 := <-this.PrivatePostFeesTrading(params)
-	if listEp2278.Err != nil {
-		panic(listEp2278.Err)
+	responseRecv := <-this.PrivatePostFeesTrading(params)
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp2278.Value
+	var response []any = responseRecv.Value
 
 	//
 	//     [
@@ -2413,11 +2368,11 @@ func (this *Bitstamp) fetchTransactionFeesBody(ch chan AsyncResult[map[string]an
 		}
 	}
 
-	listEp2325 := <-this.PrivatePostFeesWithdrawal(params)
-	if listEp2325.Err != nil {
-		panic(listEp2325.Err)
+	responseRecv := <-this.PrivatePostFeesWithdrawal(params)
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp2325.Value
+	var response []any = responseRecv.Value
 
 	//
 	//     [
@@ -2491,11 +2446,11 @@ func (this *Bitstamp) fetchDepositWithdrawFeesBody(ch chan AsyncResult[map[strin
 		}
 	}
 
-	listEp2396 := <-this.PrivatePostFeesWithdrawal(params)
-	if listEp2396.Err != nil {
-		panic(listEp2396.Err)
+	responseRecv := <-this.PrivatePostFeesWithdrawal(params)
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp2396.Value
+	var response []any = responseRecv.Value
 	//
 	//     [
 	//         {
@@ -2516,10 +2471,10 @@ func (this *Bitstamp) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[
 	_ = currency
 	var result map[string]any = this.DepositWithdrawFee(fee)
 	var code *string = this.SafeString(currency, "code")
-	for j := 0; j < GetArrayLength(fee); j++ {
-		var networkEntry map[string]any = SafeMapTyped(fee, j)
-		var networkId *string = this.SafeString(networkEntry, "network")
-		var networkCode *string = this.NetworkIdToCode(networkId, code)
+	var feeEntries []any = this.ToArray(fee)
+	for j := 0; j < len(feeEntries); j++ {
+		var networkEntry map[string]any = SafeMapTyped(feeEntries, j)
+		var networkCode *string = this.NetworkIdToCode(this.SafeString(networkEntry, "network"), code)
 		var withdrawFee *float64 = this.SafeNumber(networkEntry, "fee")
 		result["withdraw"] = map[string]any{
 			"fee":        withdrawFee,
@@ -2910,12 +2865,12 @@ func (this *Bitstamp) fetchOrderStatusBody(ch chan AsyncResult[*string], id stri
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitstamp) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bitstamp) FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bitstamp) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Bitstamp) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3022,18 +2977,18 @@ func (this *Bitstamp) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	var response []any = nil
 	if symbol != nil {
 
-		listEp2854 := <-this.PrivatePostUserTransactionsPair(this.Extend(request, params))
-		if listEp2854.Err != nil {
-			panic(listEp2854.Err)
+		responseRecv := <-this.PrivatePostUserTransactionsPair(this.Extend(request, params))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = listEp2854.Value
+		response = responseRecv.Value
 	} else {
 
-		listEp2857 := <-this.PrivatePostUserTransactions(this.Extend(request, params))
-		if listEp2857.Err != nil {
-			panic(listEp2857.Err)
+		responseRecv := <-this.PrivatePostUserTransactions(this.Extend(request, params))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = listEp2857.Value
+		response = responseRecv.Value
 	}
 	var result []any = this.FilterBy(response, "type", "2")
 
@@ -3078,11 +3033,11 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes197119 []any = r.Value
-		if retRes197119 == nil {
+		var retRes197719 []any = r.Value
+		if retRes197719 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes197119)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes197719)}
 		}
 		return nil
 	}
@@ -3186,11 +3141,11 @@ func (this *Bitstamp) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transac
 		request["limit"] = limit
 	}
 
-	listEp2996 := <-this.PrivatePostUserTransactions(this.Extend(request, params))
-	if listEp2996.Err != nil {
-		panic(listEp2996.Err)
+	responseRecv := <-this.PrivatePostUserTransactions(this.Extend(request, params))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp2996.Value
+	var response []any = responseRecv.Value
 	//
 	//     [
 	//         {
@@ -3268,11 +3223,11 @@ func (this *Bitstamp) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 		request["timedelta"] = 50000000 // use max bitstamp approved value
 	}
 
-	listEp3071 := <-this.PrivatePostWithdrawalRequests(this.Extend(request, params))
-	if listEp3071.Err != nil {
-		panic(listEp3071.Err)
+	responseRecv := <-this.PrivatePostWithdrawalRequests(this.Extend(request, params))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp3071.Value
+	var response []any = responseRecv.Value
 
 	//
 	//     [
@@ -3353,7 +3308,7 @@ func (this *Bitstamp) ParseTransaction(transaction any, optionalArgs ...any) Tra
 		amount = this.SafeString(transaction, "amount")
 	} else if currency != nil {
 		amount = this.SafeString(transaction, currency["id"])
-		feeCurrency = GetValue(currency, "code")
+		feeCurrency = currency["code"]
 	} else if (code != nil) && (currencyId != nil) {
 		amount = this.SafeString(transaction, currencyId)
 		feeCurrency = code
@@ -3379,25 +3334,15 @@ func (this *Bitstamp) ParseTransaction(transaction any, optionalArgs ...any) Tra
 		// from fetchWithdrawals
 		typeVar = SafeStringPtr("withdrawal")
 	}
-	var tag any = nil
-	var address any = DerefScalar(this.SafeString(transaction, "address"))
-	if address != nil {
+	var tag *string = nil
+	var address *string = nil
+	var addressRaw *string = this.SafeString(transaction, "address")
+	if addressRaw != nil {
 		// dt (destination tag) is embedded into the address field
-		var addressParts []string = Split(address, "?dt=")
-		var numParts int = len(addressParts)
-		if numParts > 1 {
-			address = func() any {
-				if 0 >= 0 && 0 < len(addressParts) {
-					return addressParts[0]
-				}
-				return nil
-			}()
-			tag = func() any {
-				if 1 >= 0 && 1 < len(addressParts) {
-					return addressParts[1]
-				}
-				return nil
-			}()
+		var addressParts []string = strings.Split(*addressRaw, "?dt=")
+		address = this.SafeString(addressParts, 0)
+		if len(addressParts) > 1 {
+			tag = this.SafeString(addressParts, 1)
 		}
 	}
 	var fee map[string]any = map[string]any{
@@ -3602,8 +3547,9 @@ func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntr
 		var market any = nil
 		var keys []string = ObjectKeys(item)
 		for i := 0; i < len(keys); i++ {
-			if strings.Index(keys[i], "_") >= 0 {
-				var marketId string = strings.ReplaceAll(keys[i], "_", "")
+			var currentKey string = keys[i]
+			if strings.Index(currentKey, "_") >= 0 {
+				var marketId string = strings.Replace(currentKey, "_", "", 1)
 				market = this.SafeMarket(marketId, market)
 			}
 		}
@@ -3613,7 +3559,7 @@ func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntr
 			market = this.GetMarketFromTrade(item)
 		}
 		var direction string = func() string {
-			if IsEqual(parsedTrade["side"], "buy") {
+			if this.SafeString(parsedTrade, "side") != nil && *this.SafeString(parsedTrade, "side") == "buy" {
 				return "in"
 			}
 			return "out"
@@ -3720,11 +3666,11 @@ func (this *Bitstamp) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 		request["limit"] = limit
 	}
 
-	listEp3516 := <-this.PrivatePostUserTransactions(this.Extend(request, params))
-	if listEp3516.Err != nil {
-		panic(listEp3516.Err)
+	responseRecv := <-this.PrivatePostUserTransactions(this.Extend(request, params))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp3516.Value
+	var response []any = responseRecv.Value
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
@@ -3860,11 +3806,11 @@ func (this *Bitstamp) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 		market = this.Market(symbol)
 	}
 
-	listEp3642 := <-this.PrivatePostOpenOrdersAll(params)
-	if listEp3642.Err != nil {
-		panic(listEp3642.Err)
+	responseRecv := <-this.PrivatePostOpenOrdersAll(params)
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp3642.Value
+	var response []any = responseRecv.Value
 
 	//
 	//     [
@@ -3894,8 +3840,8 @@ func (this *Bitstamp) GetCurrencyName(code string) string {
 	 */
 	return strings.ToLower(code)
 }
-func (this *Bitstamp) IsFiat(code *string) bool {
-	return (code != nil && *code == "USD") || (code != nil && *code == "EUR") || (code != nil && *code == "GBP")
+func (this *Bitstamp) IsFiat(code string) bool {
+	return (code == "USD") || (code == "EUR") || (code == "GBP")
 }
 
 /**
@@ -3917,14 +3863,13 @@ func (this *Bitstamp) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if this.IsFiat(SafeStringPtr(code)) {
+	if this.IsFiat(code) {
 		panic(NotSupported(this.Id + " fiat fetchDepositAddress() for " + code + " is not supported!"))
 	}
-	var name string = this.GetCurrencyName(code)
 	// the per-currency implicit methods (privatePostBtcAddress etc.) all route
 	// through request(), called here directly to avoid dynamic dispatch
 
-	r := <-this.RequestAsync(name+"_address/", []any{"private"}, "POST", params)
+	r := <-this.RequestAsync(this.GetCurrencyName(code)+"_address/", []any{"private"}, "POST", params)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -3968,14 +3913,7 @@ func (this *Bitstamp) withdrawBody(ch chan AsyncResult[Transaction], code string
 	// Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
-	tagWithdrawTag := func() any {
-		if p, _ := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
-	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
+	tagWithdrawTag, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -3989,22 +3927,21 @@ func (this *Bitstamp) withdrawBody(ch chan AsyncResult[Transaction], code string
 	}
 	var currency map[string]any = nil
 	var response any = nil
-	if !this.IsFiat(SafeStringPtr(code)) {
-		var name string = this.GetCurrencyName(code)
+	if !this.IsFiat(code) {
 		if code == "XRP" {
 			if tagWithdrawTag != nil {
-				request["destination_tag"] = tagWithdrawTag
+				request["destination_tag"] = *tagWithdrawTag
 			}
 		} else if (code == "XLM") || (code == "HBAR") {
 			if tagWithdrawTag != nil {
-				request["memo_id"] = tagWithdrawTag
+				request["memo_id"] = *tagWithdrawTag
 			}
 		}
 		request["address"] = address
 		// the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
 		// route through request(), called here directly to avoid dynamic dispatch
 
-		r1 := <-this.RequestAsync(name+"_withdrawal/", []any{"private"}, "POST", this.Extend(request, paramsWithdrawTag))
+		r1 := <-this.RequestAsync(this.GetCurrencyName(code)+"_withdrawal/", []any{"private"}, "POST", this.Extend(request, paramsWithdrawTag))
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
@@ -4038,12 +3975,12 @@ func (this *Bitstamp) withdrawBody(ch chan AsyncResult[Transaction], code string
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Bitstamp) TransferAsync(code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Bitstamp) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Bitstamp) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount any, toAccount string, optionalArgs ...any) any {
+func (this *Bitstamp) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4058,10 +3995,10 @@ func (this *Bitstamp) transferBody(ch chan AsyncResult[TransferEntry], code stri
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"amount":   this.ParseToNumeric(this.CurrencyToPrecision(code, amount)),
-		"currency": ToUpper(currency["id"]),
+		"currency": this.SafeStringUpper(currency, "id"),
 	}
 	var response map[string]any = nil
-	if IsEqual(fromAccount, "main") {
+	if fromAccount == "main" {
 		request["subAccount"] = toAccount
 
 		r1 := <-this.PrivatePostTransferFromMain(this.Extend(request, params))
@@ -4106,7 +4043,7 @@ func (this *Bitstamp) ParseTransfer(transfer any, optionalArgs ...any) TransferE
 		"id":          nil,
 		"timestamp":   nil,
 		"datetime":    nil,
-		"currency":    GetValue(currency, "code"),
+		"currency":    currency["code"],
 		"amount":      nil,
 		"fromAccount": nil,
 		"toAccount":   nil,
@@ -4121,17 +4058,17 @@ func (this *Bitstamp) ParseTransferStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitstamp) Nonce() any {
+func (this *Bitstamp) Nonce() int64 {
 	return this.Milliseconds()
 }
-func (this *Bitstamp) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"public"})
+func (this *Bitstamp) Sign(path string, optionalArgs ...any) map[string]any {
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiName string = api[0]
 	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
@@ -4140,28 +4077,28 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) any {
 	url += this.Version + "/"
 	url += this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var isPrivatePost bool = (apiName == nil || *apiName != "public") && (method == "POST")
+	var isPrivatePost bool = (apiName != "public") && (method == "POST")
 	// an empty POST triggers an API0020 error, so empty requests send a dummy object
 	// https://github.com/ccxt/ccxt/issues/6846
-	var emptyPostBody string = this.Urlencode(map[string]any{
+	var queryString string = this.Urlencode(query)
+	var postBody string = this.Urlencode(map[string]any{
 		"foo": "bar",
 	})
-	var postBody string = emptyPostBody
-	if len(ObjectKeys(query)) > 0 {
-		postBody = this.Urlencode(query)
+	if queryString != "" {
+		postBody = queryString
 	}
-	var requestBody any = nil
+	var requestBody *string = nil
 	if isPrivatePost {
-		requestBody = postBody
+		requestBody = SafeStringPtr(postBody)
 	}
-	var privateHeaders any = nil
-	if apiName != nil && *apiName == "public" {
-		if len(ObjectKeys(query)) > 0 {
-			url += "?" + this.Urlencode(query)
+	var privateHeaders map[string]any = map[string]any{}
+	if apiName == "public" {
+		if queryString != "" {
+			url += "?" + queryString
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		var xAuth any = Add("BITSTAMP ", this.ApiKey)
+		var xAuth string = "BITSTAMP " + this.ApiKey
 		var xAuthNonce string = this.Uuid()
 		var xAuthTimestamp string = strconv.FormatInt(this.Milliseconds(), 10)
 		var xAuthVersion string = "v2"
@@ -4174,18 +4111,18 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) any {
 		}
 		if method == "POST" {
 			contentType = "application/x-www-form-urlencoded"
-			AddElementToObject(privateHeaders, "Content-Type", contentType)
+			privateHeaders["Content-Type"] = contentType
 		}
-		var authBody any = ""
-		if (requestBody != nil) && (requestBody != "") {
-			authBody = requestBody
+		var authBody string = ""
+		if isPrivatePost && (postBody != "") {
+			authBody = postBody
 		}
-		var auth any = Add(Add(Add(Add(Add(Add(Add(xAuth, method), strings.Replace(url, "https://", "", 1)), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody)
+		var auth string = xAuth + method + strings.Replace(url, "https://", "", 1) + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
-		AddElementToObject(privateHeaders, "X-Auth-Signature", signature)
+		privateHeaders["X-Auth-Signature"] = signature
 	}
 	var requestHeaders any = func() any {
-		if apiName != nil && *apiName == "public" {
+		if apiName == "public" {
 			return nil
 		}
 		return privateHeaders
@@ -4197,7 +4134,7 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Bitstamp) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Bitstamp) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
@@ -4230,26 +4167,16 @@ func (this *Bitstamp) HandleErrors(httpCode any, reason any, url any, method any
 		} else {
 			var all []any = SafeListTyped(reasonInner, "__all__")
 			for i := 0; i < len(all); i++ {
-				errors = append(errors, func() any {
-					if i >= 0 && i < len(all) {
-						return DerefScalar(all[i])
-					}
-					return nil
-				}())
+				errors = append(errors, DerefScalar(all[i]))
 			}
 		}
-		var code *string = this.SafeString(response, "code")
-		if code != nil && *code == "API0005" {
+		var codeError *string = this.SafeString(response, "code")
+		if codeError != nil && *codeError == "API0005" {
 			panic(AuthenticationError(this.Id + " invalid signature, use the uid for the main account if you have subaccounts"))
 		}
 		var feedback string = this.Id + " " + body
 		for i := 0; i < len(errors); i++ {
-			var value *string = SafeStringPtr(func() any {
-				if i >= 0 && i < len(errors) {
-					return DerefScalar(errors[i])
-				}
-				return nil
-			}())
+			var value *string = this.SafeString(errors, i)
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], value, feedback)
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], value, feedback)
 		}
@@ -4267,7 +4194,7 @@ func NewBitstamp(userConfig map[string]any) *Bitstamp {
 func (this *Bitstamp) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

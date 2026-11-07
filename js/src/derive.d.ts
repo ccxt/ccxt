@@ -5,7 +5,7 @@ import type { NullableDict, Dict, List, Currencies, Transaction, Currency, Curre
  * @augments Exchange
  */
 export default class derive extends Exchange {
-    describe(): any;
+    describe(): Dict;
     setSandboxMode(enable: boolean): void;
     /**
      * @method
@@ -400,7 +400,7 @@ export default class derive extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    parseBalance(response: any): Balances;
+    parseBalanceList(response: any): Balances;
     /**
      * @method
      * @name derive#transfer
@@ -506,9 +506,9 @@ export default class derive extends Exchange {
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionStatus(status: Str): Str;
-    handleDeriveSubaccountId(methodName: string, params: Dict): [any, Dict];
+    handleDeriveSubaccountId(methodName: string, params: Dict): [Int, Dict];
     handleDeriveWalletAddress(methodName: string, params: Dict): [Str, Dict];
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    nonce(): number;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
 }

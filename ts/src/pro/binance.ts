@@ -16,7 +16,7 @@ import type { WsOrderBook } from '../base/ws/OrderBook.js';
 // -----------------------------------------------------------------------------
 
 export default class binance extends binanceRest {
-    override describe (): any {
+    override describe (): Dict {
         const superDescribe = super.describe ();
         return this.deepExtend (superDescribe, this.describeData ());
     }
@@ -259,12 +259,13 @@ export default class binance extends binanceRest {
     }
 
     getWsUrl (type: string, category: string): string {
+        const wsUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
         if ((type === 'option') || (type === 'optionMarket') || (type === 'optionPrivate')) {
             // eOptions urls are stored as full public/market/private paths, no category rewrite needed,
             // see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
-            return this.urls['api']['ws'][type];
+            return this.safeString (wsUrls, type, '');
         }
-        const baseUrl: string = this.urls['api']['ws'][type];
+        const baseUrl = this.safeString (wsUrls, type, '');
         if (type === 'linear') {
             // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
             // const firstProtocol = baseUrl.indexOf ('://');
@@ -301,7 +302,8 @@ export default class binance extends binanceRest {
         if (type === 'linear') {
             return this.getWsUrl (type, 'private') + '?listenKey=' + listenKey;
         }
-        const wsUrl = this.safeString (this.urls['api']['ws'], type);
+        const wsUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const wsUrl = this.safeString (wsUrls, type);
         if (wsUrl === undefined) {
             throw new ExchangeError (this.id + ' getPrivateWsUrl() has no websocket url for this market type');
         }
@@ -309,7 +311,8 @@ export default class binance extends binanceRest {
     }
 
     getStockWsUrl (streamType: Str = 'market'): string {
-        const baseUrl = this.urls['api']['ws']['stock'];
+        const wsUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const baseUrl = wsUrls['stock'];
         if (streamType === 'combined') {
             return baseUrl.replace ('/ws', '/stream');
         }
@@ -322,19 +325,15 @@ export default class binance extends binanceRest {
         return (base === undefined) ? undefined : base.toLowerCase ();
     }
 
-    getStockUnifiedSymbol (stockSymbol: Str, quote: Str = undefined): Str {
+    getStockUnifiedSymbol (stockSymbol: Str, quote: string = 'USDC'): Str {
         if (stockSymbol === undefined) {
             return undefined;
-        }
-        let safeQuote: Str = quote;
-        if (quote === undefined) {
-            safeQuote = 'USDC';
         }
         const parsed = this.safeSymbol (stockSymbol, undefined, '/', 'spot');
         if ((parsed !== undefined) && (parsed.indexOf ('/') >= 0)) {
             return parsed;
         }
-        return stockSymbol + '/' + safeQuote;
+        return stockSymbol + '/' + quote;
     }
 
     /**
@@ -406,7 +405,7 @@ export default class binance extends binanceRest {
         } else {
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const market = this.market (symbolsNormalized[i]);
-                subscriptionHashes.push (market['lowercaseId'] + '@forceOrder');
+                subscriptionHashes.push (this.safeString (market, 'lowercaseId', '') + '@forceOrder');
                 messageHashes.push ('liquidations::' + symbolsNormalized[i]);
             }
             streamHash += '::' + symbolsNormalized.join (',');
@@ -644,7 +643,8 @@ export default class binance extends binanceRest {
         // options.defaultType and seed a different bucket than the listenKey
         // read below indexes - the derive-first shape watchBalance uses
         await this.authenticate (this.extend ({ 'type': type, 'subType': subType }, paramsValue));
-        const listenKey = this.options[type]['listenKey'];
+        const optionsType: Dict = this.safeDict (this.options, type, {});
+        const listenKey = this.safeString (optionsType, 'listenKey');
         const url = this.getPrivateWsUrl (type, listenKey);
         const message = undefined;
         const newLiquidations: Liquidation[] = await this.watchMultiple (url, messageHashes, message, [ type ]);
@@ -777,10 +777,10 @@ export default class binance extends binanceRest {
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false, true, true);
         const firstMarket = this.market (symbolsNormalized[0]);
         let type: string = firstMarket['type'];
-        if (firstMarket['option'] === true) {
+        if (this.safeBool (firstMarket, 'option', false)) {
             type = 'option';
-        } else if (firstMarket['contract'] === true) {
-            type = (firstMarket['linear'] === true) ? 'linear' : 'inverse';
+        } else if (this.safeBool (firstMarket, 'contract', false)) {
+            type = (this.safeBool (firstMarket, 'linear', false)) ? 'linear' : 'inverse';
         }
         let name = 'depth';
         let streamHash = 'multipleOrderbook';
@@ -800,11 +800,13 @@ export default class binance extends binanceRest {
         }
         const subParams: string[] = [];
         const messageHashes: string[] = [];
+        const subscribeHashes: string[] = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const symbol = symbolsNormalized[i];
             const market = this.market (symbol);
             messageHashes.push ('orderbook::' + symbol);
-            const subscriptionHash = market['lowercaseId'] + '@' + name;
+            subscribeHashes.push ('orderbook::' + symbol);
+            const subscriptionHash = this.safeString (market, 'lowercaseId', '') + '@' + name;
             if (watchOrderBookRate === undefined) {
                 throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() watchOrderBookRate is required');
             }
@@ -828,7 +830,7 @@ export default class binance extends binanceRest {
             'type': type,
             'params': paramsRpi,
         };
-        const orderbook: WsOrderBook = await this.watchMultiple (url, messageHashes, this.extend (request, paramsRpi), messageHashes, subscription);
+        const orderbook: WsOrderBook = await this.watchMultiple (url, messageHashes, this.extend (request, paramsRpi), subscribeHashes, subscription);
         return orderbook.limit ();
     }
 
@@ -857,10 +859,10 @@ export default class binance extends binanceRest {
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false, true, true);
         const firstMarket = this.market (symbolsNormalized[0]);
         let type: string = firstMarket['type'];
-        if (firstMarket['option'] === true) {
+        if (this.safeBool (firstMarket, 'option', false)) {
             type = 'option';
-        } else if (firstMarket['contract'] === true) {
-            type = (firstMarket['linear'] === true) ? 'linear' : 'inverse';
+        } else if (this.safeBool (firstMarket, 'contract', false)) {
+            type = (this.safeBool (firstMarket, 'linear', false)) ? 'linear' : 'inverse';
         }
         const name = 'depth';
         let streamHash = 'multipleOrderbook';
@@ -876,8 +878,7 @@ export default class binance extends binanceRest {
             const market = this.market (symbol);
             subMessageHashes.push ('orderbook::' + symbol);
             messageHashes.push ('unsubscribe:orderbook:' + symbol);
-            const streamId = market['lowercaseId'];
-            const subscriptionHash = streamId + '@' + name;
+            const subscriptionHash = this.safeString (market, 'lowercaseId', '') + '@' + name;
             const symbolHash = subscriptionHash + '@' + watchOrderBookRate + 'ms';
             subParams.push (symbolHash);
         }
@@ -948,7 +949,9 @@ export default class binance extends binanceRest {
         if (marketType !== 'linear') {
             throw new BadRequest (this.id + ' fetchOrderBookWs only supports swap markets');
         }
-        const url = this.safeString (this.urls['api']['ws']['ws-api'], marketType);
+        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
+        const url = this.safeString (wsApiDict, marketType);
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -1004,7 +1007,7 @@ export default class binance extends binanceRest {
     }
 
     async fetchOrderBookSnapshot (client: Client, message: any, subscription: any) {
-        const symbol = this.safeString (subscription, 'symbol');
+        const symbol = this.safeString (subscription, 'symbol', '');
         const messageHash = 'orderbook::' + symbol;
         try {
             const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
@@ -1025,7 +1028,7 @@ export default class binance extends binanceRest {
             const messages = orderbook.cache;
             orderbook.cache = [];
             for (let i = 0; i < messages.length; i++) {
-                const messageItem = messages[i];
+                const messageItem = this.safeValue (messages, i);
                 const U = this.safeInteger (messageItem, 'U');
                 const u = this.safeInteger (messageItem, 'u');
                 if ((U === undefined) || (u === undefined)) {
@@ -1078,7 +1081,7 @@ export default class binance extends binanceRest {
 
     override handleDeltas (bookside: any, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (bookside, deltas[i]);
+            this.handleDelta (bookside, this.safeValue (deltas, i));
         }
     }
 
@@ -1303,10 +1306,11 @@ export default class binance extends binanceRest {
         const isOption = firstMarket['option'];
         if (isOption === true) {
             type = 'option';
-        } else if (firstMarket['contract'] === true) {
-            type = (firstMarket['linear'] === true) ? 'linear' : 'inverse';
+        } else if (this.safeBool (firstMarket, 'contract', false)) {
+            type = (this.safeBool (firstMarket, 'linear', false)) ? 'linear' : 'inverse';
         }
         const messageHashes: string[] = [];
+        const subscribeHashes: string[] = [];
         const subParams: string[] = [];
         if (isOption === true) {
             // eOptions: always subscribe per-underlying (<underlying>@optionTrade)
@@ -1316,6 +1320,7 @@ export default class binance extends binanceRest {
                 const symbol = symbolsNormalized[i];
                 const market = this.market (symbol);
                 messageHashes.push ('trade::' + symbol);
+                subscribeHashes.push ('trade::' + symbol);
                 const baseIdLower = this.safeStringLower (market, 'baseId', '');
                 const quoteIdLower = this.safeStringLower (market, 'quoteId', '');
                 const underlying = baseIdLower + '' + quoteIdLower;
@@ -1329,7 +1334,8 @@ export default class binance extends binanceRest {
                 const symbol = symbolsNormalized[i];
                 const market = this.market (symbol);
                 messageHashes.push ('trade::' + symbol);
-                const rawHash = market['lowercaseId'] + '@' + name;
+                subscribeHashes.push ('trade::' + symbol);
+                const rawHash = this.safeString (market, 'lowercaseId', '') + '@' + name;
                 subParams.push (rawHash);
             }
         }
@@ -1345,7 +1351,7 @@ export default class binance extends binanceRest {
         const subscribe: Dict = {
             'id': requestId,
         };
-        const trades: ArrayCache = await this.watchMultiple (url, messageHashes, this.extend (request, query), messageHashes, subscribe);
+        const trades: ArrayCache = await this.watchMultiple (url, messageHashes, this.extend (request, query), subscribeHashes, subscribe);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved: Int = limit;
@@ -1390,8 +1396,8 @@ export default class binance extends binanceRest {
         const isOption = firstMarket['option'];
         if (isOption === true) {
             type = 'option';
-        } else if (firstMarket['contract'] === true) {
-            type = (firstMarket['linear'] === true) ? 'linear' : 'inverse';
+        } else if (this.safeBool (firstMarket, 'contract', false)) {
+            type = (this.safeBool (firstMarket, 'linear', false)) ? 'linear' : 'inverse';
         }
         const subMessageHashes: string[] = [];
         const subParams: string[] = [];
@@ -1419,7 +1425,7 @@ export default class binance extends binanceRest {
                 const market = this.market (symbol);
                 subMessageHashes.push ('trade::' + symbol);
                 messageHashes.push ('unsubscribe:trade:' + symbol);
-                const rawHash = market['lowercaseId'] + '@' + name;
+                const rawHash = this.safeString (market, 'lowercaseId', '') + '@' + name;
                 subParams.push (rawHash);
             }
         }
@@ -1744,11 +1750,11 @@ export default class binance extends binanceRest {
             const stockMessageHashes: string[] = [];
             for (let i = 0; i < symbolsAndTimeframes.length; i++) {
                 const stockSymAndTf = symbolsAndTimeframes[i];
-                const stockSymbolString = this.symbol (stockSymAndTf[0]);
+                const stockSymbolString = this.symbol (this.safeString (stockSymAndTf, 0, ''));
                 const stockMarket = this.market (stockSymbolString);
                 const stockTicker = this.safeString2 (stockMarket, 'base', 'id');
                 const stockTickerString = (stockTicker === undefined) ? '' : stockTicker.toLowerCase ();
-                const stockTimeframeString = stockSymAndTf[1];
+                const stockTimeframeString = this.safeString (stockSymAndTf, 1, '');
                 const stockInterval = this.safeString (this.timeframes, stockTimeframeString, stockTimeframeString);
                 if ((stockInterval !== '5m') && (stockInterval !== '1h') && (stockInterval !== '1d') && (stockInterval !== '1w') && (stockInterval !== '1M')) {
                     throw new BadRequest (this.id + ' watchOHLCVForSymbols only supports 5m, 1h, 1d, 1w, and 1M timeframes');
@@ -1771,11 +1777,11 @@ export default class binance extends binanceRest {
         const firstMarket = this.market (marketSymbols[0]);
         let type: string = firstMarket['type'];
         let wsUrlType: Str = type;
-        if (firstMarket['option'] === true) {
+        if (this.safeBool (firstMarket, 'option', false)) {
             type = 'option';
             wsUrlType = 'optionMarket'; // eOptions klines are served from /market/ws
-        } else if (firstMarket['contract'] === true) {
-            type = (firstMarket['linear'] === true) ? 'linear' : 'inverse';
+        } else if (this.safeBool (firstMarket, 'contract', false)) {
+            type = (this.safeBool (firstMarket, 'linear', false)) ? 'linear' : 'inverse';
             wsUrlType = type;
         }
         const isSpot = (type === 'spot');
@@ -1783,13 +1789,14 @@ export default class binance extends binanceRest {
         const isUtc8 = (timezone !== undefined) && ((timezone === '+08:00') || Precise.stringEq (timezone, '8'));
         const rawHashes: string[] = [];
         const messageHashes: string[] = [];
+        const subscribeHashes: string[] = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symAndTf = symbolsAndTimeframes[i];
-            const symbolString = symAndTf[0];
-            const timeframeString = symAndTf[1];
+            const symbolString = this.safeString (symAndTf, 0, '');
+            const timeframeString = this.safeString (symAndTf, 1, '');
             const interval = this.safeString (this.timeframes, timeframeString, timeframeString);
             const market = this.market (symbolString);
-            let marketId = market['lowercaseId'];
+            let marketId: Str = this.safeString (market, 'lowercaseId');
             if (marketId === undefined) {
                 throw new ArgumentsRequired (this.id + ' watchOHLCVForSymbols() marketId is required');
             }
@@ -1804,7 +1811,8 @@ export default class binance extends binanceRest {
                 utcSuffix = suffix;
             }
             rawHashes.push (marketId + '@' + klineType + '_' + interval + utcSuffix);
-            messageHashes.push ('ohlcv::' + market['symbol'] + '::' + timeframeString);
+            messageHashes.push ('ohlcv::' + this.safeString (market, 'symbol', '') + '::' + timeframeString);
+            subscribeHashes.push ('ohlcv::' + this.safeString (market, 'symbol', '') + '::' + timeframeString);
         }
         const url = this.getWsUrl (wsUrlType, this.getFutureWsCategory (klineType)) + '/' + this.stream (wsUrlType, 'multipleOHLCV');
         const requestId = this.requestId (url);
@@ -1817,7 +1825,7 @@ export default class binance extends binanceRest {
             'id': requestId,
         };
         const paramsOmitted: Dict = this.omit (paramsTimezone, 'callerMethodName');
-        const res = await this.watchMultiple (url, messageHashes, this.extend (request, paramsOmitted), messageHashes, subscribe);
+        const res = await this.watchMultiple (url, messageHashes, this.extend (request, paramsOmitted), subscribeHashes, subscribe);
         const [ symbol, timeframe, candles ] = res;
         let limitResolved: Int = limit;
         if (this.newUpdates) {
@@ -1851,11 +1859,11 @@ export default class binance extends binanceRest {
         const firstMarket = this.market (marketSymbols[0]);
         let type: string = firstMarket['type'];
         let wsUrlType: Str = type;
-        if (firstMarket['option'] === true) {
+        if (this.safeBool (firstMarket, 'option', false)) {
             type = 'option';
             wsUrlType = 'optionMarket'; // eOptions klines are served from /market/ws
-        } else if (firstMarket['contract'] === true) {
-            type = (firstMarket['linear'] === true) ? 'linear' : 'inverse';
+        } else if (this.safeBool (firstMarket, 'contract', false)) {
+            type = (this.safeBool (firstMarket, 'linear', false)) ? 'linear' : 'inverse';
             wsUrlType = type;
         }
         const isSpot = (type === 'spot');
@@ -1866,11 +1874,11 @@ export default class binance extends binanceRest {
         const messageHashes: string[] = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symAndTf = symbolsAndTimeframes[i];
-            const symbolString = symAndTf[0];
-            const timeframeString = symAndTf[1];
+            const symbolString = this.safeString (symAndTf, 0, '');
+            const timeframeString = this.safeString (symAndTf, 1, '');
             const interval = this.safeString (this.timeframes, timeframeString, timeframeString);
             const market = this.market (symbolString);
-            let marketId = market['lowercaseId'];
+            let marketId: Str = this.safeString (market, 'lowercaseId');
             if (marketId === undefined) {
                 throw new ArgumentsRequired (this.id + ' unWatchOHLCVForSymbols() marketId is required');
             }
@@ -1885,8 +1893,8 @@ export default class binance extends binanceRest {
                 utcSuffix = suffix;
             }
             rawHashes.push (marketId + '@' + klineType + '_' + interval + utcSuffix);
-            subMessageHashes.push ('ohlcv::' + market['symbol'] + '::' + timeframeString);
-            messageHashes.push ('unsubscribe::ohlcv::' + market['symbol'] + '::' + timeframeString);
+            subMessageHashes.push ('ohlcv::' + this.safeString (market, 'symbol', '') + '::' + timeframeString);
+            messageHashes.push ('unsubscribe::ohlcv::' + this.safeString (market, 'symbol', '') + '::' + timeframeString);
         }
         const url = this.getWsUrl (wsUrlType, this.getFutureWsCategory (klineType)) + '/' + this.stream (wsUrlType, 'multipleOHLCV');
         const requestId = this.requestId (url);
@@ -2028,7 +2036,9 @@ export default class binance extends binanceRest {
         if (type !== 'linear') {
             throw new BadRequest (this.id + ' fetchTickerWs only supports swap markets');
         }
-        const url = this.safeString (this.urls['api']['ws']['ws-api'], type);
+        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
+        const url = this.safeString (wsApiDict, type);
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -2075,7 +2085,9 @@ export default class binance extends binanceRest {
         if (marketType !== 'spot' && marketType !== 'linear') {
             throw new BadRequest (this.id + ' fetchOHLCVWs only supports spot or swap markets');
         }
-        const url = this.safeString (this.urls['api']['ws']['ws-api'], marketType);
+        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
+        const url = this.safeString (wsApiDict, marketType);
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -2173,7 +2185,7 @@ export default class binance extends binanceRest {
         }
         const symbolValue: string = this.symbol (symbol);
         const tickers = await this.watchTickers ([ symbolValue ], this.extend (params, { 'callerMethodName': 'watchTicker' }));
-        return tickers[symbolValue];
+        return this.safeValue (tickers, symbolValue);
     }
 
     /**
@@ -2193,7 +2205,7 @@ export default class binance extends binanceRest {
         }
         const symbolValue: string = this.symbol (symbol);
         const tickers = await this.watchMarkPrices ([ symbolValue ], this.extend (params, { 'callerMethodName': 'watchMarkPrice' }));
-        return tickers[symbolValue];
+        return this.safeValue (tickers, symbolValue);
     }
 
     /**
@@ -2397,14 +2409,14 @@ export default class binance extends binanceRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbolsNormalized);
     }
 
-    async watchMultiTickerHelper (methodName: string, channelName: Str, symbols: Strings = undefined, params: Dict = {}, isUnsubscribe: boolean = false) {
+    async watchMultiTickerHelper (methodName: string, channelName: string, symbols: Strings = undefined, params: Dict = {}, isUnsubscribe: boolean = false) {
+        const channel = this.safeString ({ 'name': channelName }, 'name', '');
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, false, true);
-        const isBidAsk = (channelName === 'bookTicker');
-        const isMarkPrice = (channelName === 'markPrice');
-        const use1sFreq = this.safeBool (params, 'use1sFreq', true);
+        const isBidAsk = (channel === 'bookTicker');
+        const isMarkPrice = (channel === 'markPrice');
         let firstMarket: Market = undefined;
         const symbolsDefined = (symbolsNormalized !== undefined);
         if (symbolsNormalized !== undefined) {
@@ -2434,7 +2446,7 @@ export default class binance extends binanceRest {
             throw new NotSupported (this.id + ' ' + methodName + '() does not support options markets');
         }
         // eOptions tickers have a different stream name (@optionTicker) but the same event type (24hrTicker)
-        // so only the subscription arg changes — channelName stays as-is to keep messageHashes aligned
+        // so only the subscription arg changes — channel stays as-is to keep messageHashes aligned
         const isOptionTicker = (marketType === 'option' && !isMarkPrice && !isBidAsk);
         if (isMarkPrice && !this.inArray (marketType, [ 'swap', 'future', 'option' ])) {
             throw new NotSupported (this.id + ' ' + methodName + '() does not support ' + marketType + ' markets yet');
@@ -2444,24 +2456,22 @@ export default class binance extends binanceRest {
         const unsubscribeMessageHashes: string[] = [];
         let suffix = '';
         if (isMarkPrice && !isOptionMarkPrice) {
-            suffix = (use1sFreq) ? '@1s' : '';
+            suffix = (this.safeBool (params, 'use1sFreq', true)) ? '@1s' : '';
         }
-        let unifiedPrefix: Str = undefined;
+        let unifiedPrefix = 'ticker';
         if (isBidAsk) {
             unifiedPrefix = 'bidask';
         } else if (isMarkPrice) {
             unifiedPrefix = 'markPrice';
-        } else {
-            unifiedPrefix = 'ticker';
         }
         if (symbolsNormalized !== undefined) {
             const seenUnderlyings: Dict = {};
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const symbol = symbolsNormalized[i];
                 const market = this.market (symbol);
-                messageHashes.push (unifiedPrefix + ':' + channelName + '@' + symbol);
+                messageHashes.push (unifiedPrefix + ':' + channel + '@' + symbol);
                 if (isUnsubscribe) {
-                    unsubscribeMessageHashes.push ('unsubscribe::' + unifiedPrefix + ':' + channelName + '@' + symbol);
+                    unsubscribeMessageHashes.push ('unsubscribe::' + unifiedPrefix + ':' + channel + '@' + symbol);
                 }
                 if (isOptionMarkPrice) {
                     // subscribe per underlying, not per contract
@@ -2477,7 +2487,7 @@ export default class binance extends binanceRest {
                     // market id format: BTC-240328-70000-C → expiry part is parts[1] = '240328'
                     const marketId = this.safeString (market, 'id', '');
                     const parts = marketId.split ('-');
-                    const expiryDate = this.safeString (parts, 1);
+                    const expiryDate = this.safeString (parts, 1, '');
                     const baseIdLower = this.safeStringLower (market, 'baseId', '');
                     const quoteIdLower = this.safeStringLower (market, 'quoteId', '');
                     const underlying = baseIdLower + '' + quoteIdLower;
@@ -2487,8 +2497,7 @@ export default class binance extends binanceRest {
                         subscriptionArgs.push (subscriptionArg);
                     }
                 } else {
-                    const streamId = market['lowercaseId'];
-                    subscriptionArgs.push (streamId + '@' + channelName + suffix);
+                    subscriptionArgs.push (this.safeString (market, 'lowercaseId', '') + '@' + channel + suffix);
                 }
             }
         } else {
@@ -2508,30 +2517,30 @@ export default class binance extends binanceRest {
                     // isOptionMarkPrice: one stream covers all contracts for the underlying
                     subscriptionArgs.push (underlying + '@optionMarkPrice');
                 }
-                messageHashes.push (unifiedPrefix + 's:' + channelName);
-                unsubscribeMessageHashes.push ('unsubscribe::' + channelName);
+                messageHashes.push (unifiedPrefix + 's:' + channel);
+                unsubscribeMessageHashes.push ('unsubscribe::' + channel);
             } else if (isBidAsk) {
                 if (marketType === 'spot') {
                     throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires symbols for this channel for spot markets');
                 }
-                subscriptionArgs.push ('!' + channelName);
-                messageHashes.push (unifiedPrefix + 's:' + channelName);
-                unsubscribeMessageHashes.push ('unsubscribe::' + channelName);
+                subscriptionArgs.push ('!' + channel);
+                messageHashes.push (unifiedPrefix + 's:' + channel);
+                unsubscribeMessageHashes.push ('unsubscribe::' + channel);
             } else if (isMarkPrice) {
-                subscriptionArgs.push ('!' + channelName + '@arr' + suffix);
-                messageHashes.push (unifiedPrefix + 's:' + channelName);
-                unsubscribeMessageHashes.push ('unsubscribe::' + channelName);
+                subscriptionArgs.push ('!' + channel + '@arr' + suffix);
+                messageHashes.push (unifiedPrefix + 's:' + channel);
+                unsubscribeMessageHashes.push ('unsubscribe::' + channel);
             } else {
-                subscriptionArgs.push ('!' + channelName + '@arr');
-                messageHashes.push (unifiedPrefix + 's:' + channelName);
-                unsubscribeMessageHashes.push ('unsubscribe::' + channelName);
+                subscriptionArgs.push ('!' + channel + '@arr');
+                messageHashes.push (unifiedPrefix + 's:' + channel);
+                unsubscribeMessageHashes.push ('unsubscribe::' + channel);
             }
         }
         let streamHash = channelName;
         if (symbolsNormalized !== undefined) {
-            streamHash = channelName + '::' + symbolsNormalized.join (',');
+            streamHash = channel + '::' + symbolsNormalized.join (',');
         }
-        const url = this.getWsUrl (rawMarketType, this.getFutureWsCategory (channelName)) + '/' + this.stream (rawMarketType, streamHash);
+        const url = this.getWsUrl (rawMarketType, this.getFutureWsCategory (channel)) + '/' + this.stream (rawMarketType, streamHash);
         const requestId = this.requestId (url);
         const request: Dict = {
             'method': isUnsubscribe ? 'UNSUBSCRIBE' : 'SUBSCRIBE',
@@ -2557,7 +2566,7 @@ export default class binance extends binanceRest {
         // wait on the batch hash so the resolved value is the full dict of new tickers
         let waitHashes = hashes;
         if (isOptionMarkPrice && !isUnsubscribe) {
-            waitHashes = [ unifiedPrefix + 's:' + channelName ];
+            waitHashes = [ unifiedPrefix + 's:' + channel ];
         }
         const result = await this.watchMultiple (url, waitHashes, this.deepExtend (request, paramsSubType), hashes, subscription);
         if (isUnsubscribe) {
@@ -2681,7 +2690,7 @@ export default class binance extends binanceRest {
         // carries `w`, so a miniTicker uses the contract size.
         let baseVolume = this.safeString (message, 'v');
         let quoteVolume = this.safeString (message, 'q');
-        if (market['inverse'] === true) {
+        if (this.safeBool (market, 'inverse', false)) {
             const contracts = baseVolume;
             baseVolume = quoteVolume;
             const weightedAverage = this.safeString (message, 'w');
@@ -2843,7 +2852,7 @@ export default class binance extends binanceRest {
             if (isSpot) {
                 tickerFallbackType = 'spot';
             }
-            const tickerMarketType = (tickerMarketById !== undefined) ? tickerMarketById['type'] : tickerFallbackType;
+            const tickerMarketType = (tickerMarketById !== undefined) ? this.safeValue (tickerMarketById, 'type') : tickerFallbackType;
             const parsedTicker = this.parseWsTicker (ticker, tickerMarketType);
             const symbol = parsedTicker['symbol'];
             if (symbol !== undefined) {
@@ -2908,7 +2917,9 @@ export default class binance extends binanceRest {
      * @returns Promise<number> The subscription ID for the user data stream
      */
     async ensureUserDataStreamWsSubscribeSignature (marketType: string = 'spot') {
-        const url = this.safeString (this.urls['api']['ws']['ws-api'], marketType);
+        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
+        const url = this.safeString (wsApiDict, marketType);
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -2992,7 +3003,9 @@ export default class binance extends binanceRest {
      * @returns Promise<void>
      */
     async ensureUserDataStreamWsSubscribeListenToken (marketType: string = 'margin', params: Dict = {}) {
-        const url = this.safeString (this.urls['api']['ws']['ws-api'], 'spot');
+        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
+        const url = this.safeString (wsApiDict, 'spot');
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -3275,7 +3288,8 @@ export default class binance extends binanceRest {
                 if (type === 'option') {
                     urlType = 'optionPrivate';
                 }
-                const cachedListenKey = this.options[type]['listenKey'];
+                const optionsType: Dict = this.safeDict (this.options, type, {});
+                const cachedListenKey = this.safeString (optionsType, 'listenKey');
                 url = this.getPrivateWsUrl (urlType, cachedListenKey);
             }
             const client = this.client (url);
@@ -3350,7 +3364,7 @@ export default class binance extends binanceRest {
         this.balance[type] = this.extend (response, this.safeDict (this.balance, type, {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
-            const future = client.futures[messageHash];
+            const future = this.safeValue (client.futures, messageHash);
             future.resolve ();
             client.resolve (this.balance[type], type + ':balance');
         }
@@ -3378,7 +3392,9 @@ export default class binance extends binanceRest {
         if (type !== 'spot' && type !== 'linear' && type !== 'inverse') {
             throw new BadRequest (this.id + ' fetchBalanceWs only supports spot or swap markets');
         }
-        const url = this.safeString (this.urls['api']['ws']['ws-api'], type);
+        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
+        const url = this.safeString (wsApiDict, type);
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -3506,7 +3522,7 @@ export default class binance extends binanceRest {
             const symbolsLength = symbolsNormalized.length;
             if (symbolsLength === 1) {
                 market = this.market (symbolsNormalized[0]);
-                payload['symbol'] = market['id'];
+                payload['symbol'] = this.safeValue (market, 'id');
             }
         }
         let type = this.getMarketType ('fetchPositionsWs', market, params);
@@ -3518,7 +3534,9 @@ export default class binance extends binanceRest {
         if (type !== 'linear' && type !== 'inverse') {
             throw new BadRequest (this.id + ' fetchPositionsWs only supports swap markets');
         }
-        const url = this.safeString (this.urls['api']['ws']['ws-api'], type);
+        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
+        const url = this.safeString (wsApiDict, type);
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -3606,7 +3624,9 @@ export default class binance extends binanceRest {
         let urlType = type;
         if (type === 'spot' || type === 'margin') {
             // route to WebSocket API connection where the user data stream is subscribed
-            url = this.urls['api']['ws']['ws-api']['spot'];
+            const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+            const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
+            url = this.safeString (wsApiDict, 'spot', '');
         } else {
             if (isPortfolioMargin) {
                 urlType = 'papi';
@@ -3617,7 +3637,8 @@ export default class binance extends binanceRest {
                 }
                 urlType = 'optionPrivate';
             }
-            url = this.getPrivateWsUrl (urlType, this.options[type]['listenKey']);
+            const optionsType: Dict = this.safeDict (this.options, type, {});
+            url = this.getPrivateWsUrl (urlType, this.safeString (optionsType, 'listenKey'));
         }
         const client = this.client (url);
         this.setBalanceCache (client, type, isPortfolioMargin);
@@ -3717,8 +3738,8 @@ export default class binance extends binanceRest {
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             const delta = this.safeString (message, 'd');
-            if ((accountType !== undefined) && (code !== undefined) && (code in this.balance[accountType])) {
-                let previousValue = this.balance[accountType][code]['free'];
+            if ((code !== undefined) && (code in this.balance[accountType])) {
+                let previousValue = this.safeValue (this.balance[accountType][code], 'free');
                 if (typeof previousValue !== 'string') {
                     previousValue = this.numberToString (previousValue);
                 }
@@ -3726,7 +3747,7 @@ export default class binance extends binanceRest {
             } else {
                 account['free'] = delta;
             }
-            if ((accountType !== undefined) && (code !== undefined)) {
+            if (code !== undefined) {
                 this.balance[accountType][code] = account;
             }
         } else {
@@ -3742,7 +3763,7 @@ export default class binance extends binanceRest {
                 account['free'] = this.safeString (entry, 'f');
                 account['used'] = this.safeString (entry, 'l');
                 account['total'] = this.safeString (entry, wallet);
-                if ((accountType !== undefined) && (code !== undefined)) {
+                if (code !== undefined) {
                     this.balance[accountType][code] = account;
                 }
             }
@@ -3829,7 +3850,9 @@ export default class binance extends binanceRest {
         if (marketType !== 'spot' && marketType !== 'linear' && marketType !== 'inverse') {
             throw new BadRequest (this.id + ' createOrderWs only supports spot or swap markets');
         }
-        const url = this.safeString (this.urls['api']['ws']['ws-api'], marketType);
+        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
+        const url = this.safeString (wsApiDict, marketType);
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -3838,7 +3861,7 @@ export default class binance extends binanceRest {
         const sor = this.safeBool2 (params, 'sor', 'SOR', false);
         const paramsOmitted: Dict = this.omit (params, 'sor', 'SOR');
         const isConditional = this.isConditionalOrder (paramsOmitted);
-        if ((market['inverse'] === true) && isConditional) {
+        if ((this.safeBool (market, 'inverse', false)) && isConditional) {
             throw new NotSupported (this.id + ' createOrderWs() does not support conditional orders for inverse markets, the exchange only accepts them through the REST API, use createOrder() instead');
         }
         const isAlgoOrder = (market['linear'] === true) && ((market['swap'] === true) || (market['future'] === true)) && isConditional;
@@ -3994,7 +4017,9 @@ export default class binance extends binanceRest {
         if (marketType !== 'spot' && marketType !== 'linear' && marketType !== 'inverse') {
             throw new BadRequest (this.id + ' editOrderWs only supports spot or swap markets');
         }
-        const url = this.safeString (this.urls['api']['ws']['ws-api'], marketType);
+        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
+        const url = this.safeString (wsApiDict, marketType);
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -4155,7 +4180,9 @@ export default class binance extends binanceRest {
         }
         const market = this.market (symbol);
         const type = this.getMarketType ('cancelOrderWs', market, params);
-        const url = this.safeString (this.urls['api']['ws']['ws-api'], type);
+        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
+        const url = this.safeString (wsApiDict, type);
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -4218,7 +4245,9 @@ export default class binance extends binanceRest {
         if (type !== 'spot') {
             throw new BadRequest (this.id + ' cancelAllOrdersWs only supports spot markets');
         }
-        const url = this.safeString (this.urls['api']['ws']['ws-api'], type);
+        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
+        const url = this.safeString (wsApiDict, type);
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -4264,7 +4293,9 @@ export default class binance extends binanceRest {
         if (type !== 'spot' && type !== 'linear' && type !== 'inverse') {
             throw new BadRequest (this.id + ' fetchOrderWs only supports spot or swap markets');
         }
-        const url = this.safeString (this.urls['api']['ws']['ws-api'], type);
+        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
+        const url = this.safeString (wsApiDict, type);
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -4319,7 +4350,9 @@ export default class binance extends binanceRest {
         if (type !== 'spot') {
             throw new BadRequest (this.id + ' fetchOrdersWs only supports spot markets');
         }
-        const url = this.safeString (this.urls['api']['ws']['ws-api'], type);
+        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
+        const url = this.safeString (wsApiDict, type);
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -4358,7 +4391,7 @@ export default class binance extends binanceRest {
         const closedOrders: Order[] = [];
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
-            if (order['status'] === 'closed') {
+            if (this.safeString (order, 'status') === 'closed') {
                 closedOrders.push (order);
             }
         }
@@ -4385,7 +4418,9 @@ export default class binance extends binanceRest {
         if (type !== 'spot') {
             throw new BadRequest (this.id + ' fetchOpenOrdersWs only supports spot markets');
         }
-        const url = this.safeString (this.urls['api']['ws']['ws-api'], type);
+        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
+        const url = this.safeString (wsApiDict, type);
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -4472,7 +4507,7 @@ export default class binance extends binanceRest {
         const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            messageHash += ':' + symbolResolved;
+            messageHash = 'orders:' + this.symbol (symbol);
         }
         const [ type, subType, paramsValue ] = this.resolveAuthType ('watchOrders', market, paramsStock);
         const paramsExtended: Dict = this.extend (paramsValue, { 'type': type, 'symbol': symbolResolved, 'subType': subType }); // needed inside authenticate for isolated margin
@@ -4486,7 +4521,9 @@ export default class binance extends binanceRest {
         let url = '';
         if (type === 'spot' || type === 'margin') {
             // route orders to ws-api user data stream
-            url = this.urls['api']['ws']['ws-api']['spot'];
+            const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+            const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
+            url = this.safeString (wsApiDict, 'spot', '');
         } else {
             if (isPortfolioMargin) {
                 urlType = 'papi';
@@ -4497,7 +4534,8 @@ export default class binance extends binanceRest {
                 }
                 urlType = 'optionPrivate';
             }
-            url = this.getPrivateWsUrl (urlType, this.options[type]['listenKey']);
+            const optionsType: Dict = this.safeDict (this.options, type, {});
+            url = this.getPrivateWsUrl (urlType, this.safeString (optionsType, 'listenKey'));
         }
         const client = this.client (url);
         this.setBalanceCache (client, type, isPortfolioMargin);
@@ -4647,7 +4685,7 @@ export default class binance extends binanceRest {
         if (event === 'orderReport') {
             const baseAssetCode = this.safeString (order, 'b');
             let stockBaseSymbol = baseAssetCode;
-            if ((stockBaseSymbol !== undefined) && (stockBaseSymbol.indexOf ('EQ_') === 0)) {
+            if ((stockBaseSymbol !== undefined) && (stockBaseSymbol.startsWith ('EQ_'))) {
                 stockBaseSymbol = stockBaseSymbol.slice (3);
             }
             if (stockBaseSymbol === undefined) {
@@ -4903,7 +4941,7 @@ export default class binance extends binanceRest {
             this.handleOrder (client, message);
             return;
         }
-        let messageValue: any = message;
+        let messageValue: Dict = message;
         if ((e === 'ORDER_TRADE_UPDATE') || (e === 'ALGO_UPDATE')) {
             messageValue = this.safeDict (message, 'o', message);
             if ((e === 'ALGO_UPDATE') && !('T' in messageValue)) {
@@ -5133,13 +5171,14 @@ export default class binance extends binanceRest {
             }
             urlType = 'optionPrivate';
         }
-        const url = this.getPrivateWsUrl (urlType, this.options[type]['listenKey']);
+        const optionsType: Dict = this.safeDict (this.options, type, {});
+        const url = this.getPrivateWsUrl (urlType, this.safeString (optionsType, 'listenKey'));
         const client = this.client (url);
         this.setBalanceCache (client, type, isPortfolioMargin);
         this.setPositionsCache (client, type, symbolsNormalized, isPortfolioMargin);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
-        const cache = this.safeValue (this.positions, type);
+        const cache = this.positions[type];
         if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (cache === undefined)) {
             const snapshot = await client.future (type + ':fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbolsNormalized, since, limit, true);
@@ -5192,7 +5231,7 @@ export default class binance extends binanceRest {
         }
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
-            const future = client.futures[messageHash];
+            const future = this.safeValue (client.futures, messageHash);
             future.resolve (cache);
             client.resolve (cache, type + ':position');
         }
@@ -5392,7 +5431,9 @@ export default class binance extends binanceRest {
         if (type !== 'spot' && type !== 'linear') {
             throw new BadRequest (this.id + ' fetchMyTradesWs does not support ' + type + ' markets');
         }
-        const url = this.safeString (this.urls['api']['ws']['ws-api'], type);
+        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
+        const url = this.safeString (wsApiDict, type);
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -5448,7 +5489,9 @@ export default class binance extends binanceRest {
         if (type !== 'spot' && type !== 'linear') {
             throw new BadRequest (this.id + ' fetchTradesWs does not support ' + type + ' markets');
         }
-        const url = this.safeString (this.urls['api']['ws']['ws-api'], type);
+        const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+        const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
+        const url = this.safeString (wsApiDict, type);
         if (url === undefined) {
             throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
         }
@@ -5563,7 +5606,9 @@ export default class binance extends binanceRest {
         const isPortfolioMargin: Bool = portfolioMarginAndParams[0];
         let url = '';
         if (type === 'spot' || type === 'margin') {
-            url = this.urls['api']['ws']['ws-api']['spot'];
+            const wsApiUrls: Dict = this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {});
+            const wsApiDict: Dict = this.safeDict (wsApiUrls, 'ws-api', {});
+            url = this.safeString (wsApiDict, 'spot', '');
         } else {
             if (isPortfolioMargin) {
                 urlType = 'papi';
@@ -5574,7 +5619,8 @@ export default class binance extends binanceRest {
                 }
                 urlType = 'optionPrivate';
             }
-            url = this.getPrivateWsUrl (urlType, this.options[type]['listenKey']);
+            const optionsType: Dict = this.safeDict (this.options, type, {});
+            url = this.getPrivateWsUrl (urlType, this.safeString (optionsType, 'listenKey'));
         }
         const client = this.client (url);
         this.setBalanceCache (client, type, isPortfolioMargin);
@@ -5663,8 +5709,7 @@ export default class binance extends binanceRest {
             const myTrades = this.myTrades;
             myTrades.append (trade);
             client.resolve (this.myTrades, messageHash);
-            const messageHashSymbol = messageHash + ':' + symbol;
-            client.resolve (this.myTrades, messageHashSymbol);
+            client.resolve (this.myTrades, 'myTrades:' + symbol);
         }
     }
 
@@ -5802,7 +5847,7 @@ export default class binance extends binanceRest {
         const msg = this.safeString (error, 'msg');
         const codeValue = (code === undefined) ? 0 : code;
         try {
-            this.handleErrors (codeValue, msg as string, client.url, '', {}, this.json (error), error, {}, {});
+            this.handleErrors (codeValue, msg as string, client.url, '', {}, this.json (error), error, {}, '');
         } catch (e) {
             rejected = true;
             // private endpoint uses id as messageHash
@@ -5851,7 +5896,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         // eOptions combined stream endpoints (/public/stream, /market/stream) wrap events as:
         //   { "stream": "<streamName>", "data": { "e": "...", ... } }
         const streamWrapper = this.safeString (message, 'stream');
