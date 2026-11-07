@@ -5371,10 +5371,19 @@ class binance extends \ccxt\async\binance {
         if ($this->positions === null) {
             $this->positions = array();
         }
-        if (is_array($this->positions) && array_key_exists($type ?? '', $this->positions)) {
-            return;
-        }
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
+        if (is_array($this->positions) && array_key_exists($type ?? '', $this->positions)) {
+            // a fresh client has no snapshot future yet, which means the
+            // connection was re-established after a disconnect: positions
+            // closed while disconnected never arrive as stream deltas, so
+            // the cached positions are stale and must be reloaded
+            $messageHash = $type . ':fetchPositionsSnapshot';
+            if (($fetchPositionsSnapshot === true) && (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)))) {
+                unset($this->positions[$type]);
+            } else {
+                return;
+            }
+        }
         if ($fetchPositionsSnapshot === true) {
             $messageHash = $type . ':fetchPositionsSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
@@ -5398,6 +5407,13 @@ class binance extends \ccxt\async\binance {
             $params['portfolioMargin'] = true;
         }
         $positions = Async\await($this->fetch_positions(null, $params));
+        // the client may have been replaced by a reconnect while the
+        // snapshot was in flight: a stale snapshot must not overwrite
+        // the fresh one loaded for the new client
+        $currentClient = $this->safe_value($this->clients, $client->url);
+        if ($currentClient !== $client) {
+            return;
+        }
         $this->positions[$type] = new ArrayCacheBySymbolBySide();
         $cache = $this->positions[$type];
         for ($i = 0; $i < count($positions); $i++) {
