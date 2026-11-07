@@ -59,6 +59,7 @@
 * [unWatchOHLCV](#unwatchohlcv)
 * [unWatchOHLCVForSymbols](#unwatchohlcvforsymbols)
 * [watchBalance](#watchbalance)
+* [watchOrders](#watchorders)
 * [watchOrdersForSymbols](#watchordersforsymbols)
 * [watchPositions](#watchpositions)
 * [watchFundingRate](#watchfundingrate)
@@ -185,7 +186,6 @@ get the list of most recent trades for a particular symbol
 | since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
 | limit | <code>int</code> | No | the maximum amount of trades to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.paginate | <code>boolean</code> | No | *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times |
 
 
 ```javascript
@@ -1333,6 +1333,34 @@ query for balance and get the amount of funds available for trading or funds loc
 
 ```javascript
 blofin.watchBalance (params?)
+```
+
+
+<a name="watchOrders" id="watchorders"></a>
+
+### watchOrders{docsify-ignore}
+watches information on multiple orders made by the user
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure
+
+**See**
+
+- https://docs.blofin.com/index.html#ws-order-channel
+- https://docs.blofin.com/index.html#ws-algo-orders-channel
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.trigger | <code>boolean</code> | No | set to true for trigger orders |
+
+
+```javascript
+blofin.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
