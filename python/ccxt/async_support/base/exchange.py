@@ -753,7 +753,7 @@ class BaseExchange(SyncExchange):
 
     async def watch_my_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}):
         if self.has['watchMyLiquidationsForSymbols'] is not None and self.has['watchMyLiquidationsForSymbols'] is not False:
-            return self.watch_my_liquidations_for_symbols([symbol], since, limit, params)
+            return await self.watch_my_liquidations_for_symbols([symbol], since, limit, params)
         raise NotSupported(self.id + ' watchMyLiquidations() is not supported yet')
 
     async def watch_my_liquidations_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}):

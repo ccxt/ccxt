@@ -452,7 +452,7 @@ class bybit(ccxt.async_support.bybit):
         url = await self.get_url_by_market_type(symbolsValue[0], False, 'watchTickers', params)
         return await self.un_watch_topics(url, 'ticker', symbolsValue, messageHashes, subMessageHashes, topics, params)
 
-    def un_watch_ticker(self, symbol: str, params={}) -> object:
+    async def un_watch_ticker(self, symbol: str, params: dict = {}) -> object:
         """
         unWatches a price ticker
 
@@ -463,7 +463,7 @@ class bybit(ccxt.async_support.bybit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return self.un_watch_tickers([symbol], params)
+        return await self.un_watch_tickers([symbol], params)
 
     def handle_ticker(self, client: Client, message: dict):
         #
@@ -843,7 +843,7 @@ class bybit(ccxt.async_support.bybit):
             self.safe_number(ohlcv, volumeIndex),
         ]
 
-    def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -854,7 +854,7 @@ class bybit(ccxt.async_support.bybit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        return self.watch_order_book_for_symbols([symbol], limit, params)
+        return await self.watch_order_book_for_symbols([symbol], limit, params)
 
     async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params: dict = {}) -> OrderBook:
         """
@@ -936,7 +936,7 @@ class bybit(ccxt.async_support.bybit):
         url = await self.get_url_by_market_type(symbolsNormalized[0], False, 'watchOrderBook', paramsOmitted)
         return await self.un_watch_topics(url, 'orderbook', symbolsNormalized, messageHashes, subMessageHashes, topics, paramsOmitted)
 
-    def un_watch_order_book(self, symbol: str, params={}) -> object:
+    async def un_watch_order_book(self, symbol: str, params: dict = {}) -> object:
         """
         unsubscribe from the orderbook channel
 
@@ -947,7 +947,7 @@ class bybit(ccxt.async_support.bybit):
         :param int [params.limit]: orderbook limit, default is None
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        return self.un_watch_order_book_for_symbols([symbol], params)
+        return await self.un_watch_order_book_for_symbols([symbol], params)
 
     def handle_order_book(self, client: Client, message: dict):
         #
@@ -1028,7 +1028,7 @@ class bybit(ccxt.async_support.bybit):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made in a market
 
@@ -1040,7 +1040,7 @@ class bybit(ccxt.async_support.bybit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        return self.watch_trades_for_symbols([symbol], since, limit, params)
+        return await self.watch_trades_for_symbols([symbol], since, limit, params)
 
     async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -1108,7 +1108,7 @@ class bybit(ccxt.async_support.bybit):
             subMessageHashes.append('trade:' + symbol)
         return await self.un_watch_topics(url, 'trades', symbolsNormalized, messageHashes, subMessageHashes, topics, params)
 
-    def un_watch_trades(self, symbol: str, params={}) -> object:
+    async def un_watch_trades(self, symbol: str, params: dict = {}) -> object:
         """
         unsubscribe from the trades channel
 
@@ -1118,7 +1118,7 @@ class bybit(ccxt.async_support.bybit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns any: status of the unwatch request
         """
-        return self.un_watch_trades_for_symbols([symbol], params)
+        return await self.un_watch_trades_for_symbols([symbol], params)
 
     def handle_trades(self, client: Client, message: dict):
         #

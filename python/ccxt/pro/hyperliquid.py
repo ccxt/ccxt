@@ -488,7 +488,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             limitResolved = trades.getLimit(symbolResolved, limit)
         return self.filter_by_symbol_since_limit(trades, symbolResolved, since, limitResolved, True)
 
-    def watch_my_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Liquidation]:
+    async def watch_my_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Liquidation]:
         """
         watch the private liquidations of a trading pair
 
@@ -501,7 +501,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :param str [params.user]: user address, will default to self.walletAddress if not provided
         :returns dict: an array of `liquidation structures <https://docs.ccxt.com/?id=liquidation-structure>`
         """
-        return self.watch_my_liquidations_for_symbols([symbol], since, limit, params)
+        return await self.watch_my_liquidations_for_symbols([symbol], since, limit, params)
 
     async def watch_my_liquidations_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Liquidation]:
         """

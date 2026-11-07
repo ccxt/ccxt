@@ -442,7 +442,7 @@ class gemini(ccxt.async_support.gemini):
         orderbook = await self.helper_for_watch_multiple_construct('orderbook', symbols, params)
         return orderbook.limit()
 
-    def watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
+    async def watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches best bid & ask for symbols
 
@@ -452,7 +452,7 @@ class gemini(ccxt.async_support.gemini):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return self.helper_for_watch_multiple_construct('bidsasks', symbols, params)
+        return await self.helper_for_watch_multiple_construct('bidsasks', symbols, params)
 
     def handle_bids_asks_for_multidata(self, client: Client, rawBidAskChanges: list[object], timestamp: Int, nonce: Int):
         #

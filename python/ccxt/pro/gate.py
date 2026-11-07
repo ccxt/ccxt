@@ -345,7 +345,7 @@ class gate(ccxt.async_support.gate):
         rawOrder = await self.request_private(url, self.extend(request, requestParams), channel)
         return self.parse_order(rawOrder, market)
 
-    def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
+    async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -357,9 +357,9 @@ class gate(ccxt.async_support.gate):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        return self.fetch_orders_by_status_ws('open', symbol, since, limit, params)
+        return await self.fetch_orders_by_status_ws('open', symbol, since, limit, params)
 
-    def fetch_closed_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
+    async def fetch_closed_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -371,7 +371,7 @@ class gate(ccxt.async_support.gate):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        return self.fetch_orders_by_status_ws('finished', symbol, since, limit, params)
+        return await self.fetch_orders_by_status_ws('finished', symbol, since, limit, params)
 
     async def fetch_orders_by_status_ws(self, status: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -768,7 +768,7 @@ class gate(ccxt.async_support.gate):
         #
         self.handle_ticker_and_bid_ask('ticker', client, message)
 
-    def watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
+    async def watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
 
         https://www.gate.io/docs/developers/apiv4/ws/en/#best-bid-or-ask-price
@@ -780,7 +780,7 @@ class gate(ccxt.async_support.gate):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return self.subscribe_watch_tickers_and_bids_asks(symbols, 'watchBidsAsks', self.extend({'method': 'book_ticker'}, params))
+        return await self.subscribe_watch_tickers_and_bids_asks(symbols, 'watchBidsAsks', self.extend({'method': 'book_ticker'}, params))
 
     def handle_bid_ask(self, client: Client, message: dict):
         #
@@ -864,7 +864,7 @@ class gate(ccxt.async_support.gate):
             messageHash = objectName + ':' + symbol
             client.resolve(parsedItem, messageHash)
 
-    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
 
         https://www.gate.com/docs/developers/apiv4/ws/en/#public-trades-channel
@@ -879,7 +879,7 @@ class gate(ccxt.async_support.gate):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        return self.watch_trades_for_symbols([symbol], since, limit, params)
+        return await self.watch_trades_for_symbols([symbol], since, limit, params)
 
     async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -939,14 +939,14 @@ class gate(ccxt.async_support.gate):
         url = self.get_url_by_market(market)
         return await self.un_subscribe_public_multiple(url, 'trades', symbolsNormalized, messageHashes, subMessageHashes, marketIds, channel, params)
 
-    def un_watch_trades(self, symbol: str, params={}) -> object:
+    async def un_watch_trades(self, symbol: str, params: dict = {}) -> object:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        return self.un_watch_trades_for_symbols([symbol], params)
+        return await self.un_watch_trades_for_symbols([symbol], params)
 
     def handle_trades(self, client: Client, message: dict):
         #
@@ -1645,7 +1645,7 @@ class gate(ccxt.async_support.gate):
             client.resolve(stored, messageHash)
         client.resolve(stored, hashPrefix)
 
-    def watch_my_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Liquidation]:
+    async def watch_my_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Liquidation]:
         """
         watch the public liquidations of a trading pair
 
@@ -1659,7 +1659,7 @@ class gate(ccxt.async_support.gate):
         :param dict [params]: exchange specific parameters for the bitmex api endpoint
         :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
         """
-        return self.watch_my_liquidations_for_symbols([symbol], since, limit, params)
+        return await self.watch_my_liquidations_for_symbols([symbol], since, limit, params)
 
     async def watch_my_liquidations_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Liquidation]:
         """

@@ -1362,7 +1362,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         await self.authenticate()
         return await self.watch_request('privateGetAccount', params)
 
-    def fetch_markets_ws(self, params: dict = {}) -> object:
+    async def fetch_markets_ws(self, params: dict = {}) -> object:
         """
 
         https://docs.bitvavo.com/#tag/General/paths/~1markets/get
@@ -1371,7 +1371,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        return self.watch_request('getMarkets', params)
+        return await self.watch_request('getMarkets', params)
 
     async def fetch_currencies_ws(self, params: dict = {}) -> Currencies:
         """
