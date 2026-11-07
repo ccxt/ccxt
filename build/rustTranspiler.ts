@@ -2006,9 +2006,10 @@ function inRepeatedBlock(masked: string, from: number, pos: number, declAt = -1)
         if (open < declAt) continue;
         const head = blockHeader(masked, from, open);
         if (/\b(for|while|loop)\b/.test(head)) return true;
+        // a typed unified method's body closure is called exactly once
+        if (/^\s*move \|[^|]*__optional_args: Vec<Value>\| async move\s*$/.test(head)) continue;
         if (/\|[^|]*\|/.test(head)) return true;
-        // a `move` closure body re-runs; an `async move` block (a typed method's body) runs once
-        if (/\bmove\s*$/.test(head) && !/\basync\s+move\s*$/.test(head)) return true;
+        if (/\bmove\s*$/.test(head)) return true;
     }
     return false;
 }
