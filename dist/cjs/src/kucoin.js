@@ -1754,7 +1754,10 @@ class kucoin extends kucoin$1["default"] {
             promises.push(this.loadMigrationStatus());
         }
         const responses = await Promise.all(promises);
-        const symbolsData = fetchSpotMarkets ? this.safeList(responses[0], 'data', []) : [];
+        let symbolsData = [];
+        if (fetchSpotMarkets) {
+            symbolsData = this.safeList(responses[0], 'data', []);
+        }
         let crossIndex = 0;
         let isolatedIndex = 0;
         let tickersIndex = 0;
@@ -1791,7 +1794,9 @@ class kucoin extends kucoin$1["default"] {
             if (id === undefined) {
                 continue;
             }
-            const [baseId, quoteId] = id.split('-');
+            const idParts = id.split('-');
+            const baseId = idParts[0];
+            const quoteId = idParts[1];
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
             if ((base === undefined) || (quote === undefined)) {
@@ -1863,8 +1868,7 @@ class kucoin extends kucoin$1["default"] {
             });
         }
         if (fetchContractMarkets) {
-            const contractMarkets = this.safeList(responses, contractIndex, []);
-            result = this.arrayConcat(result, contractMarkets);
+            result = this.arrayConcat(result, this.safeList(responses, contractIndex, []));
         }
         if (this.safeBool(this.options, 'adjustForTimeDifference', false)) {
             await this.loadTimeDifference();
@@ -2237,16 +2241,14 @@ class kucoin extends kucoin$1["default"] {
     }
     handleHfAndParams(params = {}) {
         const migrated = this.safeBool(this.options, 'hf', false);
-        let loadedHf = undefined;
-        if (migrated !== undefined) {
-            if (migrated) {
-                loadedHf = true;
-            }
-            else {
-                loadedHf = false;
-            }
+        let hf = false;
+        if (migrated) {
+            hf = true;
         }
-        const hf = this.safeBool(params, 'hf', loadedHf);
+        const hfParam = this.safeBool(params, 'hf');
+        if (hfParam !== undefined) {
+            hf = (hfParam === true);
+        }
         const paramsOmitted = this.omit(params, 'hf');
         return [hf, paramsOmitted];
     }
@@ -2344,9 +2346,8 @@ class kucoin extends kucoin$1["default"] {
             //
             response = await this.publicGetCurrencies(paramsUta);
         }
-        const currenciesData = this.safeList(response, 'data', []);
         const brokenCurrencies = this.handleOption('fetchCurrencies', 'brokenCurrencies', []);
-        const filteredCurrencies = this.filterOutByArray(currenciesData, 'currency', brokenCurrencies); // remove broken entries
+        const filteredCurrencies = this.filterOutByArray(this.safeList(response, 'data', []), 'currency', brokenCurrencies); // remove broken entries
         return this.parseCurrencies(filteredCurrencies);
     }
     parseCurrency(currency) {
@@ -2434,8 +2435,7 @@ class kucoin extends kucoin$1["default"] {
             //         }
             //     }
             //
-            const dataDict = this.safeDict(response, 'data', {});
-            data = [dataDict];
+            data = [this.safeDict(response, 'data', {})];
         }
         else {
             //
@@ -2760,7 +2760,7 @@ class kucoin extends kucoin$1["default"] {
         last = this.safeString(ticker, 'price', last);
         const marketId = this.safeString(ticker, 'symbol');
         const marketResolved = this.safeMarket(marketId, market, '-');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol', '');
         let percentage = this.safeString(ticker, 'changeRate');
         if (percentage !== undefined) {
             percentage = Precise["default"].stringMul(percentage, '100');
@@ -2935,9 +2935,6 @@ class kucoin extends kucoin$1["default"] {
             'margin': 'MARGIN',
             'swap': 'FUTURES',
         };
-        if (type === undefined) {
-            return undefined;
-        }
         return this.safeString(tradeTypes, type, type);
     }
     /**
@@ -3206,7 +3203,7 @@ class kucoin extends kucoin$1["default"] {
             const resultList = this.safeList(data, 'list', []);
             result = this.safeDict(resultList, 0, {});
         }
-        else if (market['contract'] === true) {
+        else if (this.safeBool(market, 'contract', false)) {
             response = await this.futuresPublicGetTicker(this.extend(request, paramsMarketType));
             //
             //    {
@@ -3277,7 +3274,7 @@ class kucoin extends kucoin$1["default"] {
             'symbol': market['id'],
         };
         let response;
-        if (market['contract'] === true) {
+        if (this.safeBool(market, 'contract', false)) {
             response = await this.futuresPublicGetMarkPriceSymbolCurrent(this.extend(request, params));
             const data = this.safeDict(response, 'data', {});
             return this.parseTicker(data, market);
@@ -3355,7 +3352,7 @@ class kucoin extends kucoin$1["default"] {
         if (uta) {
             return await this.fetchUTAOHLCV(symbol, timeframe, since, limit, paramsRequest);
         }
-        else if (market['contract'] === true) {
+        else if (this.safeBool(market, 'contract', false)) {
             return await this.fetchContractOHLCV(symbol, timeframe, since, limit, paramsRequest);
         }
         else {
@@ -3427,7 +3424,7 @@ class kucoin extends kucoin$1["default"] {
             if (suffix === undefined) {
                 throw new errors.NotSupported(this.id + ' fetchOHLCV() price parameter must be one of "mark", "index", or "premiumIndex"');
             }
-            request['symbol'] = market['id'] + '-' + suffix;
+            request['symbol'] = this.safeString(market, 'id', '') + '-' + suffix;
         }
         const response = await this.utaGetMarketKline(this.extend(request, paramsPrice));
         //
@@ -3662,12 +3659,12 @@ class kucoin extends kucoin$1["default"] {
                 request['chain'] = _netIdTmp.toLowerCase();
             }
         }
-        const version = this.options['versions']['private']['GET']['deposit-addresses'];
-        this.options['versions']['private']['GET']['deposit-addresses'] = 'v1';
+        const version = this.getDepositAddressesVersion();
+        this.setDepositAddressesVersion('v1');
         const response = await this.privateGetDepositAddresses(this.extend(request, paramsRequest));
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
-        this.options['versions']['private']['GET']['deposit-addresses'] = version;
+        this.setDepositAddressesVersion(version);
         const data = this.safeDict(response, 'data');
         if (data === undefined) {
             throw new errors.ExchangeError(this.id + ' fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again');
@@ -3792,8 +3789,8 @@ class kucoin extends kucoin$1["default"] {
             response = await this.utaPrivateGetAssetDepositAddress(this.extend(request, paramsRequest));
         }
         else {
-            const version = this.options['versions']['private']['GET']['deposit-addresses'];
-            this.options['versions']['private']['GET']['deposit-addresses'] = 'v2';
+            const version = this.getDepositAddressesVersion();
+            this.setDepositAddressesVersion('v2');
             response = await this.privateGetDepositAddresses(this.extend(request, paramsRequest));
             //
             //     {
@@ -3810,7 +3807,7 @@ class kucoin extends kucoin$1["default"] {
             //         ]
             //     }
             //
-            this.options['versions']['private']['GET']['deposit-addresses'] = version;
+            this.setDepositAddressesVersion(version);
         }
         const chains = this.safeList(response, 'data', []);
         const parsed = this.parseDepositAddresses(chains, [currency['code']], false, {
@@ -3979,7 +3976,7 @@ class kucoin extends kucoin$1["default"] {
         orderbook['nonce'] = this.safeInteger(data, 'sequence');
         return orderbook;
     }
-    handleTriggerPrices(params) {
+    checkTriggerPrices(params) {
         const triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeNumber(params, 'stopLossPrice');
         const takeProfitPrice = this.safeNumber(params, 'takeProfitPrice');
@@ -3988,7 +3985,6 @@ class kucoin extends kucoin$1["default"] {
         if ((isStopLoss && isTakeProfit) || ((triggerPrice !== undefined) && (stopLossPrice !== undefined)) || ((triggerPrice !== undefined) && isTakeProfit)) {
             throw new errors.ExchangeError(this.id + ' createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice');
         }
-        return [triggerPrice, stopLossPrice, takeProfitPrice];
     }
     /**
      * @method
@@ -4025,14 +4021,14 @@ class kucoin extends kucoin$1["default"] {
         if (utaOption) {
             return await this.createUtaOrder(symbol, type, side, amount, price, paramsUta);
         }
-        else if (market['spot'] === true) {
+        else if (this.safeBool(market, 'spot', false)) {
             return await this.createSpotOrder(symbol, type, side, amount, price, paramsUta);
         }
-        else if (market['contract'] === true) {
+        else if (this.safeBool(market, 'contract', false)) {
             return await this.createContractOrder(symbol, type, side, amount, price, paramsUta);
         }
         else {
-            throw new errors.NotSupported(this.id + ' createOrder() does not support market ' + market['type']);
+            throw new errors.NotSupported(this.id + ' createOrder() does not support market ' + this.safeString(market, 'type', ''));
         }
     }
     /**
@@ -4088,7 +4084,10 @@ class kucoin extends kucoin$1["default"] {
         const paramsOmitted = this.omit(params, 'test');
         const [hf, paramsHf] = this.handleHfAndParams(paramsOmitted);
         const [useSync, paramsSync] = this.handleOptionBoolAndParams(paramsHf, 'createOrder', 'sync', false);
-        const [triggerPrice, stopLossPrice, takeProfitPrice] = this.handleTriggerPrices(paramsSync);
+        this.checkTriggerPrices(paramsSync);
+        const triggerPrice = this.safeNumber2(paramsSync, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeNumber(paramsSync, 'stopLossPrice');
+        const takeProfitPrice = this.safeNumber(paramsSync, 'takeProfitPrice');
         const tradeType = this.safeString(paramsSync, 'tradeType'); // keep it for backward compatibility
         const isTriggerOrder = (triggerPrice !== undefined) || (stopLossPrice !== undefined) || (takeProfitPrice !== undefined);
         const marginMode = this.handleMarginModeAndParams('createOrder', paramsSync)[0];
@@ -4179,7 +4178,10 @@ class kucoin extends kucoin$1["default"] {
             request['price'] = this.priceToPrecision(symbol, price);
         }
         const tradeType = this.safeString(paramsOmitted, 'tradeType'); // keep it for backward compatibility
-        const [triggerPrice, stopLossPrice, takeProfitPrice] = this.handleTriggerPrices(paramsOmitted);
+        this.checkTriggerPrices(paramsOmitted);
+        const triggerPrice = this.safeNumber2(paramsOmitted, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeNumber(paramsOmitted, 'stopLossPrice');
+        const takeProfitPrice = this.safeNumber(paramsOmitted, 'takeProfitPrice');
         const isTriggerOrder = (triggerPrice !== undefined) || (stopLossPrice !== undefined) || (takeProfitPrice !== undefined);
         const isMarginOrder = tradeType === 'MARGIN_TRADE' || marginMode !== undefined;
         paramsOmitted = this.omit(paramsOmitted, ['stopLossPrice', 'takeProfitPrice', 'triggerPrice', 'stopPrice']);
@@ -4201,7 +4203,8 @@ class kucoin extends kucoin$1["default"] {
                 throw new errors.BadRequest(this.id + ' createOrder does not support isolated margin for stop orders');
             }
             else if (marginMode === 'cross') {
-                request['tradeType'] = this.options['marginModes'][marginMode];
+                const marginModes = this.safeDict(this.options, 'marginModes', {});
+                request['tradeType'] = marginModes[marginMode];
             }
         }
         else if (isMarginOrder) {
@@ -4218,9 +4221,11 @@ class kucoin extends kucoin$1["default"] {
     }
     marketOrderAmountToPrecision(symbol, amount) {
         const market = this.market(symbol);
-        const result = this.decimalToPrecision(amount, number.TRUNCATE, market['info']['quoteIncrement'], this.precisionMode, this.paddingMode);
+        const marketInfo = this.safeDict(market, 'info', {});
+        const marketPrecision = this.safeDict(market, 'precision', {});
+        const result = this.decimalToPrecision(amount, number.TRUNCATE, marketInfo['quoteIncrement'], this.precisionMode, this.paddingMode);
         if (result === '0') {
-            throw new errors.InvalidOrder(this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString(market['precision']['amount']));
+            throw new errors.InvalidOrder(this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString(marketPrecision['amount']));
         }
         return result;
     }
@@ -4268,7 +4273,7 @@ class kucoin extends kucoin$1["default"] {
         const market = this.market(symbol);
         const testOrder = this.safeBool(params, 'test', false);
         const paramsOmitted = this.omit(params, 'test');
-        const hasTpOrSlOrder = (this.safeValue(paramsOmitted, 'stopLoss') !== undefined) || (this.safeValue(paramsOmitted, 'takeProfit') !== undefined);
+        const hasTpOrSlOrder = (this.safeDict(paramsOmitted, 'stopLoss') !== undefined) || (this.safeDict(paramsOmitted, 'takeProfit') !== undefined);
         const orderRequest = this.createContractOrderRequest(symbol, type, side, amount, price, paramsOmitted);
         let response;
         if (testOrder) {
@@ -4333,7 +4338,10 @@ class kucoin extends kucoin$1["default"] {
                 request['size'] = parseInt(sizeString);
             }
         }
-        const [triggerPrice, stopLossPrice, takeProfitPrice] = this.handleTriggerPrices(paramsOmitted);
+        this.checkTriggerPrices(paramsOmitted);
+        const triggerPrice = this.safeNumber2(paramsOmitted, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeNumber(paramsOmitted, 'stopLossPrice');
+        const takeProfitPrice = this.safeNumber(paramsOmitted, 'takeProfitPrice');
         const stopLoss = this.safeDict(paramsOmitted, 'stopLoss');
         const takeProfit = this.safeDict(paramsOmitted, 'takeProfit');
         const hasStopLoss = stopLoss !== undefined;
@@ -4603,7 +4611,10 @@ class kucoin extends kucoin$1["default"] {
             }
         }
         // handling with conditional orders
-        const [triggerPrice, stopLossPrice, takeProfitPrice] = this.handleTriggerPrices(paramsOmitted);
+        this.checkTriggerPrices(paramsOmitted);
+        const triggerPrice = this.safeNumber2(paramsOmitted, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeNumber(paramsOmitted, 'stopLossPrice');
+        const takeProfitPrice = this.safeNumber(paramsOmitted, 'takeProfitPrice');
         const stopLoss = this.safeDict(paramsOmitted, 'stopLoss');
         const takeProfit = this.safeDict(paramsOmitted, 'takeProfit');
         const hasStopLoss = stopLoss !== undefined;
@@ -4731,17 +4742,18 @@ class kucoin extends kucoin$1["default"] {
         }
         let isSpot = false;
         let isContract = false;
-        for (let i = 0; i < orders.length; i++) {
-            const order = this.safeDict(orders, i);
+        const ordersList = this.toArray(orders);
+        for (let i = 0; i < ordersList.length; i++) {
+            const order = this.safeDict(ordersList, i);
             const symbol = this.safeString(order, 'symbol');
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' createOrders() requires a symbol for each order');
             }
             const market = this.market(symbol);
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 isSpot = true;
             }
-            else if (market['contract'] === true) {
+            else if (this.safeBool(market, 'contract', false)) {
                 isContract = true;
             }
         }
@@ -4777,8 +4789,9 @@ class kucoin extends kucoin$1["default"] {
         }
         const ordersRequests = [];
         let symbol = undefined;
-        for (let i = 0; i < orders.length; i++) {
-            const rawOrder = this.safeDict(orders, i);
+        const ordersList = this.toArray(orders);
+        for (let i = 0; i < ordersList.length; i++) {
+            const rawOrder = this.safeDict(ordersList, i);
             const marketId = this.safeString(rawOrder, 'symbol');
             if (marketId === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' createOrders() requires a symbol for each order');
@@ -4870,8 +4883,9 @@ class kucoin extends kucoin$1["default"] {
             await this.loadMarkets();
         }
         const ordersRequests = [];
-        for (let i = 0; i < orders.length; i++) {
-            const rawOrder = this.safeDict(orders, i);
+        const ordersList = this.toArray(orders);
+        for (let i = 0; i < ordersList.length; i++) {
+            const rawOrder = this.safeDict(ordersList, i);
             const symbol = this.safeString(rawOrder, 'symbol');
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' createOrders() requires a symbol for each order');
@@ -4929,7 +4943,7 @@ class kucoin extends kucoin$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] === true) {
+        if (this.safeBool(market, 'contract', false)) {
             throw new errors.NotSupported(this.id + ' editOrder() supports spot markets only');
         }
         const request = {
@@ -5345,8 +5359,9 @@ class kucoin extends kucoin$1["default"] {
         else if ((!trigger) && isMarginOrders) {
             throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument for margin non-trigger orders');
         }
-        if (isMarginOrders) {
-            request['tradeType'] = this.options['marginModes'][marginMode];
+        if (marginMode !== undefined) {
+            const marginModes = this.safeDict(this.options, 'marginModes', {});
+            request['tradeType'] = marginModes[marginMode];
             if (marginMode === 'isolated' && (trigger)) {
                 throw new errors.BadRequest(this.id + ' cancelAllOrders does not support isolated margin for stop orders');
             }
@@ -5530,7 +5545,7 @@ class kucoin extends kucoin$1["default"] {
             paramsRequest = this.extend(paramsRequest, { 'marketType': marketType });
             return await this.fetchUtaOrdersByStatus(status, symbol, since, limit, paramsRequest);
         }
-        else if ((marketType === 'spot') || (marketType === 'margin')) {
+        else if (this.inArray(marketType, ['spot', 'margin'])) {
             return await this.fetchSpotOrdersByStatus(status, symbol, since, limit, paramsRequest);
         }
         else {
@@ -6350,7 +6365,7 @@ class kucoin extends kucoin$1["default"] {
         }
         const marketId = this.safeString(order, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        if ((marketResolved !== undefined) && (marketResolved['contract'] === true)) {
+        if ((marketResolved !== undefined) && (this.safeBool(marketResolved, 'contract', false))) {
             return this.parseContractOrder(order, marketResolved);
         }
         else {
@@ -6418,7 +6433,7 @@ class kucoin extends kucoin$1["default"] {
         //
         const marketId = this.safeString(order, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol', '');
         const orderId = this.safeString2(order, 'id', 'orderId');
         const type = this.safeString(order, 'type');
         const timestamp = this.safeInteger(order, 'createdAt');
@@ -6436,7 +6451,7 @@ class kucoin extends kucoin$1["default"] {
         let average = this.safeString(order, 'avgDealPrice');
         if ((average === undefined) && Precise["default"].stringGt(filled, '0')) {
             const contractSize = this.safeString(marketResolved, 'contractSize');
-            if (marketResolved['linear'] === true) {
+            if (this.safeBool(marketResolved, 'linear', false)) {
                 average = Precise["default"].stringDiv(cost, Precise["default"].stringMul(contractSize, filled));
             }
             else {
@@ -6722,7 +6737,7 @@ class kucoin extends kucoin$1["default"] {
         //
         const marketId = this.safeString(order, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString(marketResolved, 'symbol', '');
         const timestamp = this.safeIntegerProduct2(order, 'orderTime', 'ts', 0.000001);
         const lastUpdateTimestamp = this.safeIntegerProduct(order, 'updatedTime', 0.000001);
         const rawTimeInForce = this.safeString(order, 'timeInForce');
@@ -7289,7 +7304,7 @@ class kucoin extends kucoin$1["default"] {
         }
         const marketId = this.safeString(trade, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        if ((marketResolved === undefined) || (marketResolved['spot'] === true)) {
+        if ((marketResolved === undefined) || (this.safeBool(marketResolved, 'spot', false))) {
             return this.parseSpotOrUtaTrade(trade, marketResolved);
         }
         else {
@@ -7636,7 +7651,7 @@ class kucoin extends kucoin$1["default"] {
         let response;
         let entry = undefined;
         if (utaOption) {
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 request['tradeType'] = 'SPOT';
             }
             else {
@@ -7663,7 +7678,7 @@ class kucoin extends kucoin$1["default"] {
             const dataList = this.safeList(data, 'list', []);
             entry = this.safeDict(dataList, 0);
         }
-        else if (market['spot'] === true) {
+        else if (this.safeBool(market, 'spot', false)) {
             request['symbols'] = market['id'];
             response = await this.privateGetTradeFees(this.extend(request, paramsUta));
             //
@@ -8825,7 +8840,7 @@ class kucoin extends kucoin$1["default"] {
         return transfer;
     }
     isHfOrMining(fromId, toId) {
-        return (fromId === 'trade_hf' || toId === 'trade_hf' || fromId === 'pool' || toId === 'pool');
+        return this.inArray(fromId, ['trade_hf', 'pool']) || this.inArray(toId, ['trade_hf', 'pool']);
     }
     parseTransfer(transfer, currency = undefined) {
         //
@@ -10024,7 +10039,7 @@ class kucoin extends kucoin$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new errors.NotSupported(this.id + ' fetchLeverage() supports contract markets only');
         }
         const request = {
@@ -10086,7 +10101,7 @@ class kucoin extends kucoin$1["default"] {
                 throw new errors.ArgumentsRequired(this.id + ' setLeverage requires a symbol argument for contract markets');
             }
             market = this.market(symbol);
-            if (market['contract'] === true) {
+            if (this.safeBool(market, 'contract', false)) {
                 return await this.setContractLeverage(leverage, symbol, paramsRequest);
             }
         }
@@ -10492,8 +10507,9 @@ class kucoin extends kucoin$1["default"] {
         let request = {};
         let market = undefined;
         if (symbol !== undefined) {
-            market = this.market(symbol);
-            request['symbol'] = market['id'];
+            const symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            request['symbol'] = symbolMarket['id'];
         }
         else if (!uta) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingHistory() requires a symbol argument');
@@ -11076,7 +11092,7 @@ class kucoin extends kucoin$1["default"] {
             'leverage': this.safeNumber2(position, 'realLeverage', 'leverage'),
             'unrealizedPnl': this.parseNumber(unrealisedPnl),
             'contracts': this.parseNumber(Precise["default"].stringAbs(size)),
-            'contractSize': this.safeValue(marketResolved, 'contractSize'),
+            'contractSize': this.safeNumber(marketResolved, 'contractSize'),
             'realizedPnl': this.safeNumberN(position, ['realisedPnl', 'pnl', 'realizedPnL']),
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber(position, 'liquidationPrice'),
@@ -11141,8 +11157,9 @@ class kucoin extends kucoin$1["default"] {
                 'clientOid': this.safeString(clientOrderIds, i),
             });
         }
-        for (let i = 0; i < ids.length; i++) {
-            const orderId = ids[i];
+        const idsList = this.toArray(ids);
+        for (let i = 0; i < idsList.length; i++) {
+            const orderId = this.safeString(idsList, i);
             if (uta) {
                 ordersRequests.push({
                     'orderId': orderId,
@@ -11150,7 +11167,7 @@ class kucoin extends kucoin$1["default"] {
                 });
             }
             else {
-                ordersRequests.push(ids[i]);
+                ordersRequests.push(orderId);
             }
         }
         const request = {};
@@ -11371,8 +11388,8 @@ class kucoin extends kucoin$1["default"] {
         const id = this.safeString(info, 'id');
         const marketResolved = this.safeMarket(id, market);
         const currencyId = this.safeString(info, 'settleCurrency');
-        const crossMode = this.safeBool(info, 'crossMode');
-        const mode = (crossMode === true) ? 'cross' : 'isolated';
+        const crossMode = this.safeBool(info, 'crossMode', false);
+        const mode = crossMode ? 'cross' : 'isolated';
         const marketId = this.safeString(marketResolved, 'symbol');
         const timestamp = this.safeInteger(info, 'currentTimestamp');
         return {
@@ -11446,7 +11463,7 @@ class kucoin extends kucoin$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new errors.NotSupported(this.id + ' setMarginMode() supports contract markets only');
         }
         const request = {
@@ -11573,7 +11590,7 @@ class kucoin extends kucoin$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new errors.BadRequest(this.id + ' fetchMarketLeverageTiers() supports contract markets only');
         }
         const uta = false;
@@ -11643,11 +11660,12 @@ class kucoin extends kucoin$1["default"] {
         for (let i = 0; i < info.length; i++) {
             const tier = this.safeDict(info, i, {});
             const marketId = this.safeString(tier, 'symbol');
-            marketCursor = this.safeMarket(marketId, marketCursor);
+            const tierMarket = this.safeMarket(marketId, marketCursor);
+            marketCursor = tierMarket;
             tiers.push({
                 'tier': this.safeNumber2(tier, 'level', 'tier'),
-                'symbol': marketCursor['symbol'],
-                'currency': marketCursor['base'],
+                'symbol': tierMarket['symbol'],
+                'currency': tierMarket['base'],
                 'minNotional': this.safeNumber2(tier, 'minRiskLimit', 'minSize'),
                 'maxNotional': this.safeNumber2(tier, 'maxRiskLimit', 'maxSize'),
                 'maintenanceMarginRate': this.safeNumber2(tier, 'maintainMargin', 'maintainMarginRate'),
@@ -11866,8 +11884,15 @@ class kucoin extends kucoin$1["default"] {
         const uta = this.safeBool(this.options, 'uta') === true;
         return uta;
     }
+    getDepositAddressesVersion() {
+        const getVersions = this.safeDict(this.safeDict(this.safeDict(this.options, 'versions', {}), 'private', {}), 'GET', {});
+        return this.safeString(getVersions, 'deposit-addresses', 'v1');
+    }
+    setDepositAddressesVersion(version) {
+        this.options['versions']['private']['GET']['deposit-addresses'] = version;
+    }
     sign(path, api = ['public'], method = 'GET', params = {}) {
-        const apiName = this.safeString(api, 0);
+        const apiName = api[0];
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                ↑                 ↑
@@ -11977,9 +12002,8 @@ class kucoin extends kucoin$1["default"] {
         //     { code: '200000', data: { ... }}
         //
         const errorCode = this.safeString(response, 'code');
-        const message = this.safeString2(response, 'msg', 'data', '');
         const feedback = this.id + ' ' + body;
-        this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
+        this.throwExactlyMatchedException(this.exceptions['exact'], this.safeString2(response, 'msg', 'data', ''), feedback);
         this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
         this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
         if (errorCode !== '200000' && errorCode !== '200') {

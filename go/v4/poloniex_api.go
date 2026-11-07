@@ -333,18 +333,18 @@ func (this *Poloniex) PrivatePutSmartordersId(args ...any) <-chan EndpointResult
 }
 
 // SwapPublicGetV3MarketAllInstruments returns a channel that yields a JSON object.
-func (this *Poloniex) SwapPublicGetV3MarketAllInstruments(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("swapPublicGetV3MarketAllInstruments", args...)
+func (this *Poloniex) SwapPublicGetV3MarketAllInstruments(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("swapPublicGetV3MarketAllInstruments", args...))
 }
 
 // SwapPublicGetV3MarketInstruments returns a channel that yields a JSON object.
-func (this *Poloniex) SwapPublicGetV3MarketInstruments(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("swapPublicGetV3MarketInstruments", args...)
+func (this *Poloniex) SwapPublicGetV3MarketInstruments(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("swapPublicGetV3MarketInstruments", args...))
 }
 
 // SwapPublicGetV3MarketOrderBook returns a channel that yields a JSON object.
-func (this *Poloniex) SwapPublicGetV3MarketOrderBook(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("swapPublicGetV3MarketOrderBook", args...)
+func (this *Poloniex) SwapPublicGetV3MarketOrderBook(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("swapPublicGetV3MarketOrderBook", args...))
 }
 
 // SwapPublicGetV3MarketCandles returns a channel that yields a JSON object.
@@ -368,63 +368,63 @@ func (this *Poloniex) SwapPublicGetV3MarketMarkPriceCandlesticks(args ...any) <-
 }
 
 // SwapPublicGetV3MarketTrades returns a channel that yields a JSON object.
-func (this *Poloniex) SwapPublicGetV3MarketTrades(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("swapPublicGetV3MarketTrades", args...)
+func (this *Poloniex) SwapPublicGetV3MarketTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("swapPublicGetV3MarketTrades", args...))
 }
 
 // SwapPublicGetV3MarketLiquidationOrder returns a channel that yields a JSON object.
-func (this *Poloniex) SwapPublicGetV3MarketLiquidationOrder(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("swapPublicGetV3MarketLiquidationOrder", args...)
+func (this *Poloniex) SwapPublicGetV3MarketLiquidationOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("swapPublicGetV3MarketLiquidationOrder", args...))
 }
 
 // SwapPublicGetV3MarketTickers returns a channel that yields a JSON object.
-func (this *Poloniex) SwapPublicGetV3MarketTickers(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("swapPublicGetV3MarketTickers", args...)
+func (this *Poloniex) SwapPublicGetV3MarketTickers(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("swapPublicGetV3MarketTickers", args...))
 }
 
 // SwapPublicGetV3MarketMarkPrice returns a channel that yields a JSON object.
-func (this *Poloniex) SwapPublicGetV3MarketMarkPrice(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("swapPublicGetV3MarketMarkPrice", args...)
+func (this *Poloniex) SwapPublicGetV3MarketMarkPrice(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("swapPublicGetV3MarketMarkPrice", args...))
 }
 
 // SwapPublicGetV3MarketIndexPrice returns a channel that yields a JSON object.
-func (this *Poloniex) SwapPublicGetV3MarketIndexPrice(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("swapPublicGetV3MarketIndexPrice", args...)
+func (this *Poloniex) SwapPublicGetV3MarketIndexPrice(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("swapPublicGetV3MarketIndexPrice", args...))
 }
 
 // SwapPublicGetV3MarketIndexPriceComponents returns a channel that yields a JSON object.
-func (this *Poloniex) SwapPublicGetV3MarketIndexPriceComponents(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("swapPublicGetV3MarketIndexPriceComponents", args...)
+func (this *Poloniex) SwapPublicGetV3MarketIndexPriceComponents(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("swapPublicGetV3MarketIndexPriceComponents", args...))
 }
 
 // SwapPublicGetV3MarketFundingRate returns a channel that yields a JSON object.
-func (this *Poloniex) SwapPublicGetV3MarketFundingRate(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("swapPublicGetV3MarketFundingRate", args...)
+func (this *Poloniex) SwapPublicGetV3MarketFundingRate(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("swapPublicGetV3MarketFundingRate", args...))
 }
 
 // SwapPublicGetV3MarketFundingRateHistory returns a channel that yields a JSON object.
-func (this *Poloniex) SwapPublicGetV3MarketFundingRateHistory(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("swapPublicGetV3MarketFundingRateHistory", args...)
+func (this *Poloniex) SwapPublicGetV3MarketFundingRateHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("swapPublicGetV3MarketFundingRateHistory", args...))
 }
 
 // SwapPublicGetV3MarketOpenInterest returns a channel that yields a JSON object.
-func (this *Poloniex) SwapPublicGetV3MarketOpenInterest(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("swapPublicGetV3MarketOpenInterest", args...)
+func (this *Poloniex) SwapPublicGetV3MarketOpenInterest(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("swapPublicGetV3MarketOpenInterest", args...))
 }
 
 // SwapPublicGetV3MarketInsurance returns a channel that yields a JSON object.
-func (this *Poloniex) SwapPublicGetV3MarketInsurance(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("swapPublicGetV3MarketInsurance", args...)
+func (this *Poloniex) SwapPublicGetV3MarketInsurance(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("swapPublicGetV3MarketInsurance", args...))
 }
 
 // SwapPublicGetV3MarketRiskLimit returns a channel that yields a JSON object.
-func (this *Poloniex) SwapPublicGetV3MarketRiskLimit(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("swapPublicGetV3MarketRiskLimit", args...)
+func (this *Poloniex) SwapPublicGetV3MarketRiskLimit(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("swapPublicGetV3MarketRiskLimit", args...))
 }
 
 // SwapPublicGetV3MarketLimitPrice returns a channel that yields a JSON object.
-func (this *Poloniex) SwapPublicGetV3MarketLimitPrice(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("swapPublicGetV3MarketLimitPrice", args...)
+func (this *Poloniex) SwapPublicGetV3MarketLimitPrice(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("swapPublicGetV3MarketLimitPrice", args...))
 }
 
 // SwapPrivateGetV3AccountBalance returns a channel that yields a JSON object.

@@ -15,7 +15,7 @@ from ccxt.base.precise import Precise
 
 class lighter(ccxt.async_support.lighter):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(lighter, self).describe(), {
             'has': {
                 'ws': True,
@@ -161,7 +161,7 @@ class lighter(ccxt.async_support.lighter):
         data = self.safe_dict(message, 'order_book', {})
         channel = self.safe_string(message, 'channel', '')
         parts = channel.split(':')
-        marketId = parts[1]
+        marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId)
         symbol = market['symbol']
         timestamp = self.safe_integer(message, 'timestamp')
@@ -194,7 +194,7 @@ class lighter(ccxt.async_support.lighter):
         market = self.market(symbol)
         symbolValue = market['symbol']
         request = {
-            'channel': 'order_book/' + market['id'],
+            'channel': 'order_book/' + self.safe_string(market, 'id', ''),
         }
         messageHash = self.get_message_hash('orderbook', symbolValue)
         orderbook = await self.subscribe_public(messageHash, self.extend(request, params))
@@ -215,7 +215,7 @@ class lighter(ccxt.async_support.lighter):
         market = self.market(symbol)
         symbolValue = market['symbol']
         request = {
-            'channel': 'order_book/' + market['id'],
+            'channel': 'order_book/' + self.safe_string(market, 'id', ''),
         }
         subMessageHash = self.get_message_hash('orderbook', symbolValue)
         messageHash = 'unsubscribe:' + subMessageHash
@@ -307,10 +307,10 @@ class lighter(ccxt.async_support.lighter):
             await self.load_markets()
         market = self.market(symbol)
         symbolValue = market['symbol']
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise NotSupported(self.id + ' watchTicker() is only supported for swap markets')
         request = {
-            'channel': 'market_stats/' + market['id'],
+            'channel': 'market_stats/' + self.safe_string(market, 'id', ''),
         }
         messageHash = self.get_message_hash('ticker', symbolValue)
         return await self.subscribe_public(messageHash, self.extend(request, params))
@@ -329,10 +329,10 @@ class lighter(ccxt.async_support.lighter):
             await self.load_markets()
         market = self.market(symbol)
         symbolValue = market['symbol']
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise NotSupported(self.id + ' unWatchTicker() is only supported for swap markets')
         request = {
-            'channel': 'market_stats/' + market['id'],
+            'channel': 'market_stats/' + self.safe_string(market, 'id', ''),
         }
         subMessageHash = self.get_message_hash('ticker', symbolValue)
         messageHash = 'unsubscribe:' + subMessageHash
@@ -352,7 +352,7 @@ class lighter(ccxt.async_support.lighter):
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, True, True)
         firstMarket = self.get_market_from_symbols(symbolsNormalized)
-        if (firstMarket is not None) and (firstMarket['swap'] is not True):
+        if (firstMarket is not None) and (not self.safe_bool(firstMarket, 'swap', False)):
             raise NotSupported(self.id + ' watchTickers() is only supported for swap markets')
         request = {
             'channel': 'market_stats/all',
@@ -390,7 +390,7 @@ class lighter(ccxt.async_support.lighter):
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, True, True)
         firstMarket = self.get_market_from_symbols(symbolsNormalized)
-        if (firstMarket is not None) and (firstMarket['swap'] is not True):
+        if (firstMarket is not None) and (not self.safe_bool(firstMarket, 'swap', False)):
             raise NotSupported(self.id + ' unWatchTickers() is only supported for swap markets')
         request = {
             'channel': 'market_stats/all',
@@ -480,9 +480,9 @@ class lighter(ccxt.async_support.lighter):
         tradeId = self.safe_string(trade, 'trade_id')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'size')
-        isMakerAsk = self.safe_bool(trade, 'is_maker_ask')
+        isMakerAsk = self.safe_bool(trade, 'is_maker_ask', False)
         side = 'sell'
-        if isMakerAsk is True:
+        if isMakerAsk:
             side = 'buy'
         return self.safe_trade({
             'info': trade,
@@ -544,7 +544,7 @@ class lighter(ccxt.async_support.lighter):
         data = self.safe_list(message, 'trades', [])
         channel = self.safe_string(message, 'channel', '')
         parts = channel.split(':')
-        marketId = parts[1]
+        marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId)
         symbol = market['symbol']
         stored = self.safe_value(self.trades, symbol)
@@ -554,7 +554,7 @@ class lighter(ccxt.async_support.lighter):
             self.trades[symbol] = stored
         dataLength = len(data)
         for i in range(0, dataLength):
-            iReversed = dataLength - 1 - i
+            iReversed = self.parse_to_int(dataLength - 1 - i)
             trade = self.parse_ws_trade(data[iReversed], market)
             stored.append(trade)
         messageHash = self.get_message_hash('trade', symbol)
@@ -576,7 +576,7 @@ class lighter(ccxt.async_support.lighter):
             await self.load_markets()
         market = self.market(symbol)
         request = {
-            'channel': 'trade/' + market['id'],
+            'channel': 'trade/' + self.safe_string(market, 'id', ''),
         }
         messageHash = self.get_message_hash('trade', self.safe_string(market, 'symbol'))
         trades = await self.subscribe_public(messageHash, self.extend(request, params))
@@ -596,7 +596,7 @@ class lighter(ccxt.async_support.lighter):
             await self.load_markets()
         market = self.market(symbol)
         request = {
-            'channel': 'trade/' + market['id'],
+            'channel': 'trade/' + self.safe_string(market, 'id', ''),
         }
         subMessageHash = self.get_message_hash('trade', self.safe_string(market, 'symbol'))
         messageHash = 'unsubscribe:' + subMessageHash
@@ -636,7 +636,7 @@ class lighter(ccxt.async_support.lighter):
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'size')
         costString = self.safe_string(trade, 'usd_amount')
-        isMakerAsk = self.safe_bool(trade, 'is_maker_ask')
+        isMakerAsk = self.safe_bool(trade, 'is_maker_ask', False)
         accountIndex = self.safe_integer(trade, 'accountIndex')
         bidAccountId = self.safe_integer(trade, 'bid_account_id')
         askAccountId = self.safe_integer(trade, 'ask_account_id')
@@ -648,14 +648,14 @@ class lighter(ccxt.async_support.lighter):
                 # Own trades should use the account's order side
                 side = 'buy'
                 order = self.safe_string(trade, 'bid_id')
-                takerOrMaker = 'taker' if (isMakerAsk is True) else 'maker'
+                takerOrMaker = 'taker' if isMakerAsk else 'maker'
             elif askAccountId == accountIndex:
                 side = 'sell'
                 order = self.safe_string(trade, 'ask_id')
-                takerOrMaker = 'maker' if (isMakerAsk is True) else 'taker'
+                takerOrMaker = 'maker' if isMakerAsk else 'taker'
         # public trades use Lighter's taker-side convention
         if side is None:
-            side = 'buy' if (isMakerAsk is True) else 'sell'
+            side = 'buy' if isMakerAsk else 'sell'
         fee = None
         if takerOrMaker is not None:
             feeRateRaw = None
@@ -723,7 +723,7 @@ class lighter(ccxt.async_support.lighter):
         #
         channel = self.safe_string(message, 'channel', '')
         parts = channel.split(':')
-        accountIndex = parts[1]
+        accountIndex = self.safe_string(parts, 1)
         data = self.safe_dict(message, 'trades', {})
         marketIds = list(data.keys())
         idsLength = len(marketIds)
@@ -741,11 +741,11 @@ class lighter(ccxt.async_support.lighter):
             tradesLength = len(trades)
             for j in range(0, tradesLength):
                 jReversed = tradesLength - 1 - j
-                tradeRaw = trades[jReversed]
+                tradeRaw = self.safe_dict(trades, jReversed, {})
                 tradeRaw['accountIndex'] = accountIndex
                 trade = self.parse_ws_order_trade(tradeRaw, market)
                 stored.append(trade)
-                symbol = trade['symbol']
+                symbol = self.safe_string(trade, 'symbol')
                 if symbol is not None:
                     symbolSpecificMessageHash = self.get_message_hash('myTrades', symbol)
                     client.resolve(stored, symbolSpecificMessageHash)
@@ -833,9 +833,9 @@ class lighter(ccxt.async_support.lighter):
         #     }
         #
         timestamp = self.safe_integer(liquidation, 'timestamp')
-        isMakerAsk = self.safe_bool(liquidation, 'is_maker_ask')
+        isMakerAsk = self.safe_bool(liquidation, 'is_maker_ask', False)
         side = 'sell'
-        if isMakerAsk is True:
+        if isMakerAsk:
             side = 'buy'
         contracts = self.safe_string(liquidation, 'size')
         contractSize = self.safe_string(market, 'contractSize')
@@ -897,7 +897,7 @@ class lighter(ccxt.async_support.lighter):
         data = self.safe_list(message, 'liquidation_trades', [])
         channel = self.safe_string(message, 'channel', '')
         parts = channel.split(':')
-        marketId = parts[1]
+        marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId)
         symbol = market['symbol']
         stored = self.safe_value(self.liquidations, symbol)
@@ -907,7 +907,7 @@ class lighter(ccxt.async_support.lighter):
             stored = self.liquidations
         dataLength = len(data)
         for i in range(0, dataLength):
-            iReversed = dataLength - 1 - i
+            iReversed = self.parse_to_int(dataLength - 1 - i)
             liquidation = self.parse_ws_liquidation(data[iReversed], market)
             stored.append(liquidation)
         messageHash = self.get_message_hash('liquidations', symbol)
@@ -929,7 +929,7 @@ class lighter(ccxt.async_support.lighter):
             await self.load_markets()
         market = self.market(symbol)
         request = {
-            'channel': 'trade/' + market['id'],
+            'channel': 'trade/' + self.safe_string(market, 'id', ''),
         }
         messageHash = self.get_message_hash('liquidations', symbol)
         return await self.subscribe_public(messageHash, self.extend(request, params))
@@ -1066,7 +1066,7 @@ class lighter(ccxt.async_support.lighter):
         if symbol is not None:
             market = self.market(symbol)
             messageHash = self.get_message_hash('orders', self.safe_string(market, 'symbol'))
-            request['channel'] = 'account_orders/' + market['id'] + '/' + self.number_to_string(accountIndex)
+            request['channel'] = 'account_orders/' + self.safe_string(market, 'id', '') + '/' + self.number_to_string(accountIndex)
         else:
             messageHash = self.get_message_hash('orders')
             request['channel'] = 'account_all_orders/' + self.number_to_string(accountIndex)
@@ -1094,7 +1094,7 @@ class lighter(ccxt.async_support.lighter):
         if symbol is not None:
             market = self.market(symbol)
             subMessageHash = self.get_message_hash('orders', self.safe_string(market, 'symbol'))
-            request['channel'] = 'account_orders/' + market['id'] + '/' + self.number_to_string(accountIndex)
+            request['channel'] = 'account_orders/' + self.safe_string(market, 'id', '') + '/' + self.number_to_string(accountIndex)
         else:
             subMessageHash = self.get_message_hash('orders')
             request['channel'] = 'account_all_orders/' + self.number_to_string(accountIndex)

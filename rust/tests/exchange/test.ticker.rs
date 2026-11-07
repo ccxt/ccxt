@@ -54,7 +54,8 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
         m
     });
     // todo: atm, many exchanges fail, so temporarily decrease stict mode
-    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("open".into()), Value::Str("high".into()), Value::Str("low".into()), Value::Str("close".into()), Value::Str("last".into()), Value::Str("baseVolume".into()), Value::Str("quoteVolume".into()), Value::Str("previousClose".into()), Value::Str("bidVolume".into()), Value::Str("askVolume".into()), Value::Str("vwap".into()), Value::Str("change".into()), Value::Str("percentage".into()), Value::Str("average".into())]);
+    let mut emptyAllowedFor: Value = Value::from(vec![Value::Str("timestamp".into()), Value::Str("datetime".into()), Value::Str("open".into()), Value::Str("high".into()), Value::Str("low".into()), Value::Str("close".into()), Value::Str("last".into()), Value::Str("baseVolume".into()), Value::Str("quoteVolume".into()), Value::Str("previousClose".into()),
+        Value::Str("bidVolume".into()), Value::Str("askVolume".into()), Value::Str("vwap".into()), Value::Str("change".into()), Value::Str("percentage".into()), Value::Str("average".into())]);
     // trick csharp-transpiler for string
     if !is_true(&(contains(&Value::Str(format!("{}", method).into()), &Value::Str("BidsAsks".into())))) {
         append_to_array(&mut emptyAllowedFor, Value::Str("bid".into()));
@@ -89,7 +90,7 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
     // only check "above zero" values if exchange is not supposed to have exotic index markets
     let mut isStandardMarket: Value = (Value::Bool((market != Value::Null) && is_true(&exchange.in_array(market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null), Value::from(vec![Value::Str("spot".into()), Value::Str("swap".into()), Value::Str("future".into()), Value::Str("option".into())])))));
     let mut valuesShouldBePositive: Value = isStandardMarket; // || (market === undefined) atm, no check for index markets
-    if is_true(&valuesShouldBePositive) && !(in_op(&skippedProperties, &Value::Str("positiveValues".into()))) {
+    if valuesShouldBePositive.as_bool() == Some(true) && !(in_op(&skippedProperties, &Value::Str("positiveValues".into()))) {
         crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("open".into()).clone(), Value::Str("0".into()).clone()]);
         crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("high".into()).clone(), Value::Str("0".into()).clone()]);
         crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("low".into()).clone(), Value::Str("0".into()).clone()]);
@@ -254,7 +255,7 @@ pub fn testTicker(mut exchange: Value, mut skippedProperties: Value, mut method:
     // intrinsic). the floors stay: a long option cannot lose more than its
     // premium, so percentage >= -100 and change >= -open hold for options too
     let mut isOptionMarket: Value = exchange.safe_bool(market.clone(), Value::Str("option".into()), &[Value::Bool(false)]);
-    if !(in_op(&skippedProperties, &Value::Str("maxIncrease".into()))) && !is_true(&isUnrecognizedSymbol) {
+    if !(in_op(&skippedProperties, &Value::Str("maxIncrease".into()))) && !(isUnrecognizedSymbol.as_bool() == Some(true)) {
         //
         // percentage
         //

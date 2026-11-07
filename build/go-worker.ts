@@ -1,6 +1,5 @@
-import { Transpiler } from 'ast-transpiler';
+import { Transpiler, installCcxtGoLocalTypes, installCcxtGoIndexableTypes, installCcxtGoParamTypes, installCcxtGoDictParams, installCcxtGoGb05ParamTypes, installCcxtGoGb11HandleErrorsCode, installCcxtGoSignTyping, installRfGo5OwnedTables, installFmGo5G01, installFmGo5G04, installCcxtGoTupleSlotReads, installFmGo5GP08, installFmGo5OG02 } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
-import { installCcxtGoLocalTypes, installCcxtGoIndexableTypes } from './go-local-types.js';
 import log from 'ololog'
 
 // task payload posted by goTranspiler.ts#webworkerTranspile (structured clone)
@@ -49,6 +48,17 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: GoWor
         cachedTranspiler.goTranspiler.transformLeadingComment = transformLeadingComment;
         installCcxtGoLocalTypes(cachedTranspiler.goTranspiler, transpilerConfig?.go?.unifiedInt64Params);
         installCcxtGoIndexableTypes(cachedTranspiler.goTranspiler);
+        installCcxtGoParamTypes(cachedTranspiler.goTranspiler);
+        installCcxtGoDictParams(cachedTranspiler.goTranspiler);
+        installCcxtGoGb05ParamTypes(cachedTranspiler.goTranspiler);
+        installCcxtGoGb11HandleErrorsCode(cachedTranspiler.goTranspiler);
+        installCcxtGoSignTyping(cachedTranspiler.goTranspiler);
+        installRfGo5OwnedTables(cachedTranspiler.goTranspiler);  // RF-go-5
+        installFmGo5G01(cachedTranspiler.goTranspiler);  // FM-GO5
+        installFmGo5G04(cachedTranspiler.goTranspiler);  // FM-GO5
+        installCcxtGoTupleSlotReads(cachedTranspiler.goTranspiler);
+        installFmGo5GP08(cachedTranspiler.goTranspiler);  // FM-GO5
+        installFmGo5OG02(cachedTranspiler.goTranspiler);  // FM-GO5
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;

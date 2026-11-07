@@ -49,7 +49,7 @@ public class Paradex extends ParadexApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "paradex" );
@@ -985,7 +985,7 @@ public class Paradex extends ParadexApi
         }
         String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
         String symbol = ((base + "/") + quote);
-        if (!Boolean.TRUE.equals(isSpot))
+        if (!Boolean.TRUE.equals(isSpot) && (!java.util.Objects.equals(settle, null)))
         {
             symbol = ((symbol + ":") + settle);
         }
@@ -997,8 +997,15 @@ public class Paradex extends ParadexApi
         if (Boolean.TRUE.equals(isOption))
         {
             String optionTypeSuffix = (((java.util.Objects.equals(optionType, "CALL")))) ? "C" : "P";
-            String deliveryValue = ((((expiry != null && expiry == 0)))) ? "" : (this.yymmdd(expiry) + "-");
-            symbol = (((((symbol + "-") + deliveryValue) + strikePrice) + "-") + optionTypeSuffix);
+            String deliveryValue = "";
+            if ((expiry == null || expiry != 0))
+            {
+                deliveryValue = (this.yymmdd(expiry) + "-");
+            }
+            if (!java.util.Objects.equals(strikePrice, null))
+            {
+                symbol = (((((symbol + "-") + deliveryValue) + strikePrice) + "-") + optionTypeSuffix);
+            }
             makerFee = this.parseNumber("0.0003");
         } else
         {
@@ -1143,7 +1150,7 @@ public class Paradex extends ParadexApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTradingFee((Map<String, Object>) (first), market);
+            return this.parseTradingFee(first, market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -1233,7 +1240,7 @@ public class Paradex extends ParadexApi
                 // the exchange names the index price "underlying" and rejects "index"
                 request.put("price_kind", (((java.util.Objects.equals(price, "index")))) ? "underlying" : price);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Boolean hasEnd = (request.containsKey("end_at"));
@@ -1247,11 +1254,11 @@ public class Paradex extends ParadexApi
                 if (!Boolean.TRUE.equals(hasEnd))
                 {
                     Long sinceInt = this.parseToInt(since);
-                    ((Map<String, Object>)requestUntil).put("end_at", Helpers.subtract((sinceInt + windowLength), 1));
+                    ((Map<String, Object>)requestUntil).put("end_at", ((sinceInt + windowLength) - 1L));
                 }
             } else
             {
-                Long endAtRaw = ((Boolean.TRUE.equals(hasEnd))) ? this.safeInteger(requestUntil, "end_at", 0) : this.milliseconds();
+                Long endAtRaw = this.safeInteger(requestUntil, "end_at", this.milliseconds());
                 Long endAt = this.parseToInt(endAtRaw);
                 ((Map<String, Object>)requestUntil).put("end_at", endAt);
                 ((Map<String, Object>)requestUntil).put("start_at", ((endAt - windowLength) + 1L));
@@ -1674,7 +1681,7 @@ public class Paradex extends ParadexApi
             {
                 request.put("start_at", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.publicGetTrades(this.extend(requestUntil, paramsUntil))).join();
@@ -1794,7 +1801,7 @@ public class Paradex extends ParadexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("contract"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {
                 throw new BadRequest((this.id + " fetchOpenInterest() supports contract markets only")) ;
             }
@@ -1869,7 +1876,7 @@ public class Paradex extends ParadexApi
         return ("0x" + hashed);
     }
 
-    public String signHash(Object hash, Object privateKey)
+    public String signHash(String hash, String privateKey)
     {
         Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         Object r = signature.get("r");
@@ -1878,9 +1885,9 @@ public class Paradex extends ParadexApi
         return ((("0x" + (((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r))) + (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s))) + v);
     }
 
-    public String signMessage(Object message, Object privateKey)
+    public String signMessage(Object message, String privateKey)
     {
-        return this.signHash(this.hashMessage(message), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
+        return this.signHash((String) (this.hashMessage(message)), (String) ((privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0)))));
     }
 
     public CompletableFuture<Map<String, Object>> getSystemConfig()
@@ -1891,7 +1898,7 @@ public class Paradex extends ParadexApi
             if (java.util.Objects.equals(this.safeDict(this.options, "systemConfig", (Object) null), null))
             {
                 Map<String, Object> response = (this.publicGetSystemConfig(new HashMap<String, Object>() {{}})).join();
-                Helpers.addElementToObject(this.options, "systemConfig", response);
+                this.options.put("systemConfig", response);
             }
             return this.safeDict(this.options, "systemConfig", new HashMap<String, Object>() {{}});
         }).thenApply(res -> (Map<String, Object>) res);
@@ -1908,14 +1915,14 @@ public class Paradex extends ParadexApi
             {
                 Map<String, Object> l1D = new HashMap<String, Object>() {{
                     put( "name", "Paradex" );
-                    put( "chainId", systemConfig.get("l1_chain_id") );
+                    put( "chainId", Paradex.this.safeString(systemConfig, "l1_chain_id") );
                     put( "version", "1" );
                 }};
                 return l1D;
             }
             Map<String, Object> domain = new HashMap<String, Object>() {{
                 put( "name", "Paradex" );
-                put( "chainId", systemConfig.get("starknet_chain_id") );
+                put( "chainId", Paradex.this.safeString(systemConfig, "starknet_chain_id") );
                 put( "version", 1 );
             }};
             return domain;
@@ -1943,16 +1950,16 @@ public class Paradex extends ParadexApi
                     put( "action", "STARK Key" );
                 }};
                 Object msg = this.ethEncodeStructuredData(domain, messageTypes, message);
-                String signature = this.signMessage(msg, this.privateKey);
-                Object account = this.retrieveStarkAccount(signature, systemConfig.get("paraclear_account_hash"), systemConfig.get("paraclear_account_proxy_hash"));
-                Helpers.addElementToObject(this.options, "paradexAccount", account);
+                String signature = this.signMessage(msg, (String) (this.privateKey));
+                Object account = this.retrieveStarkAccount(signature, this.safeString(systemConfig, "paraclear_account_hash"), this.safeString(systemConfig, "paraclear_account_proxy_hash"));
+                this.options.put("paradexAccount", account);
             }
             return this.safeDict(this.options, "paradexAccount", new HashMap<String, Object>() {{}});
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
 
-    public CompletableFuture<Object> onboarding(Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> onboarding(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1968,14 +1975,14 @@ public class Paradex extends ParadexApi
         put( "type", "felt" );
     }})) );
             }};
-            Object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, account.get("address"));
-            Object signature = this.starknetSign(msg, account.get("privateKey"));
+            String msg = this.starknetEncodeStructuredData(domain, messageTypes, req, this.safeString(account, "address"));
+            String signature = this.starknetSign(msg, account.get("privateKey"));
             parameters.put("signature", signature);
-            Helpers.addElementToObject(parameters, "account", account.get("address"));
-            Helpers.addElementToObject(parameters, "public_key", account.get("publicKey"));
+            Helpers.addElementToObject(parameters, "account", this.safeString(account, "address"));
+            Helpers.addElementToObject(parameters, "public_key", this.safeString(account, "publicKey"));
             Map<String, Object> response = (this.privatePostOnboarding(parameters)).join();
             return response;
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
 
@@ -2026,10 +2033,10 @@ public class Paradex extends ParadexApi
         put( "type", "felt" );
     }})) );
             }};
-            Object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, account.get("address"));
-            Object signature = this.starknetSign(msg, account.get("privateKey"));
+            String msg = this.starknetEncodeStructuredData(domain, messageTypes, req, this.safeString(account, "address"));
+            String signature = this.starknetSign(msg, account.get("privateKey"));
             parameters.put("signature", signature);
-            Helpers.addElementToObject(parameters, "account", account.get("address"));
+            Helpers.addElementToObject(parameters, "account", this.safeString(account, "address"));
             parameters.put("timestamp", req.get("timestamp"));
             parameters.put("expiration", req.get("expiration"));
             Map<String, Object> response = (this.privatePostAuth(parameters)).join();
@@ -2039,8 +2046,8 @@ public class Paradex extends ParadexApi
             // }
             //
             String token = this.safeString(response, "jwt_token");
-            Helpers.addElementToObject(this.options, "authToken", token);
-            Helpers.addElementToObject(this.options, "expires", expires);
+            this.options.put("authToken", token);
+            this.options.put("expires", expires);
             return token;
         }).thenApply(res -> (String) res);
 
@@ -2181,7 +2188,7 @@ public class Paradex extends ParadexApi
         return this.safeStringLower(types, type, type);
     }
 
-    public String scaleNumber(Object num)
+    public String scaleNumber(String num)
     {
         return Precise.stringMul(num, "100000000");
     }
@@ -2199,7 +2206,7 @@ public class Paradex extends ParadexApi
         Map<String, Object> market = this.market(symbol);
         Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", (Object) null);
         String orderType = ((String)type).toUpperCase();
-        String orderSide = ((String)((String)side)).toUpperCase();
+        String orderSide = ((String)side).toUpperCase();
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("market", market.get("id"));
         request.put("side", orderSide);
@@ -2213,7 +2220,7 @@ public class Paradex extends ParadexApi
         Boolean isStopLossOrder = (!java.util.Objects.equals(stopLossPrice, null));
         Boolean isStopOrder = (!java.util.Objects.equals(triggerPrice, null)) || Boolean.TRUE.equals(isTakeProfitOrder) || Boolean.TRUE.equals(isStopLossOrder);
         String timeInForce = this.safeStringUpper(parameters, "timeInForce");
-        Boolean postOnly = this.isPostOnly(isMarket, null, parameters);
+        Boolean postOnly = this.isPostOnly(isMarket, (Boolean) (null), parameters);
         if (!Boolean.TRUE.equals(isMarket))
         {
             if (Boolean.TRUE.equals(postOnly))
@@ -2307,11 +2314,11 @@ public class Paradex extends ParadexApi
             Boolean isMarket = (((String)orderType).indexOf("MARKET") >= 0);
             Map<String, Object> orderReq = new HashMap<String, Object>();
             orderReq.put("timestamp", (now * 1000L));
-            orderReq.put("market", this.stringToBase16(request.get("market")));
+            orderReq.put("market", this.stringToBase16(this.safeString(request, "market")));
             orderReq.put("side", (((java.util.Objects.equals(this.safeString(request, "side"), "BUY")))) ? "1" : "2");
-            orderReq.put("orderType", this.stringToBase16(request.get("type")));
-            orderReq.put("size", this.scaleNumber(request.get("size")));
-            orderReq.put("price", ((Boolean.TRUE.equals(isMarket))) ? "0" : this.scaleNumber(request.get("price")));
+            orderReq.put("orderType", this.stringToBase16(this.safeString(request, "type")));
+            orderReq.put("size", this.scaleNumber(this.safeString(request, "size")));
+            orderReq.put("price", ((Boolean.TRUE.equals(isMarket))) ? "0" : this.scaleNumber(this.safeString(request, "price")));
             List<Object> orderFields = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "name", "timestamp" );
         put( "type", "felt" );
@@ -2334,7 +2341,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> messageTypes = new HashMap<String, Object>() {{}};
             if (java.util.Objects.requireNonNullElse(modify, false))
             {
-                orderReq.put("id", request.get("id"));
+                orderReq.put("id", this.safeString(request, "id"));
                 ((List<Object>)orderFields).add(new HashMap<String, Object>() {{
                     put( "name", "id" );
                     put( "type", "felt" );
@@ -2349,8 +2356,8 @@ public class Paradex extends ParadexApi
                 }};
             }
             Map<String, Object> domain = (this.prepareParadexDomain(false)).join();
-            Object msg = this.starknetEncodeStructuredData(domain, messageTypes, orderReq, account.get("address"));
-            Object signature = this.starknetSign(msg, account.get("privateKey"));
+            String msg = this.starknetEncodeStructuredData(domain, messageTypes, orderReq, this.safeString(account, "address"));
+            String signature = this.starknetSign(msg, account.get("privateKey"));
             Map<String, Object> signedRequest = this.extend(request, new HashMap<String, Object>() {{
                 put( "signature", signature );
                 put( "signature_timestamp", orderReq.get("timestamp") );
@@ -2393,7 +2400,7 @@ public class Paradex extends ParadexApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            request = (this.signOrderRequest((Map<String, Object>) (request), false)).join();
+            request = (this.signOrderRequest(request, false)).join();
             Map<String, Object> response = (this.privatePostOrders(request)).join();
             //
             // {
@@ -2540,7 +2547,7 @@ public class Paradex extends ParadexApi
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> extendedParams = this.extend(parameters, orderParams);
                 Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, extendedParams);
-                orderRequest = (this.signOrderRequest((Map<String, Object>) (orderRequest), false)).join();
+                orderRequest = (this.signOrderRequest(orderRequest, false)).join();
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             Map<String, Object> response = (this.privatePostOrdersBatch(ordersRequests)).join();
@@ -2657,7 +2664,7 @@ public class Paradex extends ParadexApi
             }
             List<Object> clientOrderIds = (List<Object>) this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")), (Object) null);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
-            Boolean hasOrderIds = (!java.util.Objects.equals(ids, null)) && ((ids instanceof List));
+            Boolean hasOrderIds = (ids instanceof List);
             Boolean hasClientOrderIds = (!java.util.Objects.equals(clientOrderIds, null)) && ((clientOrderIds instanceof List));
             if (!Boolean.TRUE.equals(hasOrderIds) && !Boolean.TRUE.equals(hasClientOrderIds))
             {
@@ -2879,7 +2886,7 @@ public class Paradex extends ParadexApi
             {
                 request.put("page_size", limit);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetOrdersHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -3029,17 +3036,17 @@ public class Paradex extends ParadexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseBalance(data);
+            return this.parseBalanceList(data);
         }).thenApply(Balances::new);
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalanceList(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; }); i++)
+        for (var i = 0; i < ((List<?>)response).size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "token");
@@ -3099,7 +3106,7 @@ public class Paradex extends ParadexApi
             {
                 request.put("start_at", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetFills(this.extend(requestUntil, paramsUntil))).join();
@@ -3314,7 +3321,7 @@ public class Paradex extends ParadexApi
             {
                 market = this.market(symbol);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetLiquidations(this.extend(requestUntil, paramsUntil))).join();
@@ -3396,7 +3403,7 @@ public class Paradex extends ParadexApi
             {
                 request.put("start_at", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetTransfers(this.extend(requestUntil, paramsUntil))).join();
@@ -3475,7 +3482,7 @@ public class Paradex extends ParadexApi
             {
                 request.put("start_at", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetTransfers(this.extend(requestUntil, paramsUntil))).join();
@@ -3559,7 +3566,7 @@ public class Paradex extends ParadexApi
             {
                 request.put("start_at", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetTransfers(this.extend(requestUntil, paramsUntil))).join();
@@ -3955,7 +3962,7 @@ public class Paradex extends ParadexApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> greeks = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseGreeks((Map<String, Object>) (greeks), market);
+            return this.parseGreeks(greeks, market);
         }).thenApply(Greeks::new);
 
     }
@@ -4135,7 +4142,7 @@ public class Paradex extends ParadexApi
             {
                 request.put("start_at", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetFundingPayments(this.extend(requestUntil, paramsUntil))).join();
@@ -4279,7 +4286,7 @@ public class Paradex extends ParadexApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String version = this.version;
         Object pathValue = path;
         if ((((String)path).indexOf("v2/") == 0))
@@ -4313,19 +4320,19 @@ public class Paradex extends ParadexApi
             // TODO: optimize
             if (java.util.Objects.equals(pathValue, "auth"))
             {
-                privateHeaders.put("PARADEX-STARKNET-ACCOUNT", ((Map<String, Object>)query).get("account"));
-                privateHeaders.put("PARADEX-STARKNET-SIGNATURE", ((Map<String, Object>)query).get("signature"));
-                privateHeaders.put("PARADEX-TIMESTAMP", String.valueOf(((Map<String, Object>)query).get("timestamp")));
-                privateHeaders.put("PARADEX-SIGNATURE-EXPIRATION", String.valueOf(((Map<String, Object>)query).get("expiration")));
+                privateHeaders.put("PARADEX-STARKNET-ACCOUNT", this.safeString(query, "account"));
+                privateHeaders.put("PARADEX-STARKNET-SIGNATURE", this.safeString(query, "signature"));
+                privateHeaders.put("PARADEX-TIMESTAMP", this.safeString(query, "timestamp"));
+                privateHeaders.put("PARADEX-SIGNATURE-EXPIRATION", this.safeString(query, "expiration"));
             } else if (java.util.Objects.equals(pathValue, "onboarding"))
             {
                 privateHeaders.put("PARADEX-ETHEREUM-ACCOUNT", this.walletAddress);
-                privateHeaders.put("PARADEX-STARKNET-ACCOUNT", ((Map<String, Object>)query).get("account"));
-                privateHeaders.put("PARADEX-STARKNET-SIGNATURE", ((Map<String, Object>)query).get("signature"));
-                privateHeaders.put("PARADEX-TIMESTAMP", String.valueOf(this.nonce()));
+                privateHeaders.put("PARADEX-STARKNET-ACCOUNT", this.safeString(query, "account"));
+                privateHeaders.put("PARADEX-STARKNET-SIGNATURE", this.safeString(query, "signature"));
+                privateHeaders.put("PARADEX-TIMESTAMP", this.numberToString(this.nonce()));
                 privateHeaders.put("Content-Type", "application/json");
                 privateBody = this.json(new HashMap<String, Object>() {{
-                    put( "public_key", ((Map<String, Object>)query).get("public_key") );
+                    put( "public_key", Paradex.this.safeString(query, "public_key") );
                 }});
             } else
             {
@@ -4376,7 +4383,7 @@ public class Paradex extends ParadexApi
         }
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -4390,7 +4397,7 @@ public class Paradex extends ParadexApi
         //     }
         //
         String errorCode = this.safeString(response, "error");
-        if ((java.util.Objects.equals(errorCode, null)) && ((httpCode != null && ((Number) httpCode).doubleValue() == 400)))
+        if ((java.util.Objects.equals(errorCode, null)) && ((code != null && ((Number) code).doubleValue() == 400)))
         {
             //
             // a batch where every order was rejected, errors are index-aligned with the request
@@ -4414,8 +4421,8 @@ public class Paradex extends ParadexApi
         if (!java.util.Objects.equals(errorCode, null))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

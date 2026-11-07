@@ -5,7 +5,7 @@ import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory
  * @augments Exchange
  */
 export default class bybit extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name bybit#enableDemoTrading
@@ -14,7 +14,7 @@ export default class bybit extends Exchange {
      * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
      */
     enableDemoTrading(enable: boolean): void;
-    nonce(): number;
+    nonce(): int;
     addPaginationCursorToResult(response: Dict): any[];
     /**
      * @method
@@ -37,9 +37,9 @@ export default class bybit extends Exchange {
     upgradeUnifiedTradeAccount(params?: Dict): Promise<Dict>;
     createExpiredOptionMarket(symbol: string): MarketInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
-    getBybitType(method: any, market: any, params?: Dict): [Str, Dict];
+    getBybitType(method: string, market?: Market, params?: Dict): [Str, Dict];
     getAmount(symbol: Str, amount: number | undefined): Str;
-    getPrice(symbol: Str, price: any): any;
+    getPrice(symbol: Str, price: Str): Str;
     getCost(symbol: Str, cost: Str): Str;
     /**
      * @method
@@ -186,7 +186,7 @@ export default class bybit extends Exchange {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name bybit#fetchBalance
@@ -1129,5 +1129,5 @@ export default class bybit extends Exchange {
     parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
     parseMarginModeType(marginMode: Str): Str;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }
