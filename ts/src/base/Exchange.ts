@@ -1525,7 +1525,7 @@ export class BaseExchange {
             currencies = await this.fetchCurrencies ();
             this.options['cachedCurrencies'] = currencies;
         }
-        markets = await this.fetchMarkets (params);
+        const markets = await this.fetchMarkets (params);
         if ('cachedCurrencies' in this.options) {
             delete this.options['cachedCurrencies'];
         }
