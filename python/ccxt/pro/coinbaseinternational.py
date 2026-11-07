@@ -224,7 +224,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             self.clean_unsubscription(client, self.safe_string(channels, i, ''), self.safe_string(unWatchMessageHashes, i, ''))
         return True
 
-    async def watch_balance(self, params={}) -> Balances:
+    async def watch_balance(self, params: dict = {}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
 
@@ -310,7 +310,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             self.myTrades.append(trades[i])
         client.resolve(self.myTrades, channel)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on orders made by the user
 

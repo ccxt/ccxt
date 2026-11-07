@@ -151,7 +151,7 @@ class paradex(ccxt.async_support.paradex):
         if isAuth:
             self.handle_authentication_message(client, message)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
+    async def watch_trades(self, symbol: Str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 

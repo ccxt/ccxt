@@ -3255,7 +3255,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         tickers = await client.future('tickers')
         return self.filter_by_array(tickers, 'outcome', resolvedSymbols, True)
 
-    async def watch_ohlcv(self, outcome: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
+    async def watch_ohlcv(self, outcome: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         streams OHLCV candles for an outcome, synthesised from the live trades channel
 
