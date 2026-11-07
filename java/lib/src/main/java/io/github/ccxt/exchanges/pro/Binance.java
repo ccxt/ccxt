@@ -273,7 +273,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 this.options.put("numSubscriptionsByStream", this.createSafeDictionary());
             }
             Long subscriptionsByStream = this.safeInteger(this.options.get("numSubscriptionsByStream"), stream, 0);
-            Object newNumSubscriptions = ((java.util.function.BinaryOperator<Object>) (hx4J40v11A, hx4J40v11B) -> { Object hx4J40v11P = hx4J40v11A instanceof Integer hx4J40v11i ? (Object) Long.valueOf(hx4J40v11i.longValue()) : hx4J40v11A; Object hx4J40v11Q = hx4J40v11B instanceof Integer hx4J40v11i ? (Object) Long.valueOf(hx4J40v11i.longValue()) : hx4J40v11B; if (hx4J40v11P instanceof Long hx4J40v11l && hx4J40v11Q instanceof Long hx4J40v11r) { return hx4J40v11l + hx4J40v11r; } if (hx4J40v11P instanceof Double || hx4J40v11Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v11D = hx4J40v11o -> { if (hx4J40v11o instanceof Double || hx4J40v11o instanceof Float || hx4J40v11o instanceof Long || hx4J40v11o instanceof Integer || hx4J40v11o instanceof java.math.BigDecimal) { return ((Number) hx4J40v11o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v11o)); } catch (NumberFormatException hx4J40v11e) { return 0.0; } }; return hx4J40v11D.applyAsDouble(hx4J40v11P) + hx4J40v11D.applyAsDouble(hx4J40v11Q); } if (hx4J40v11P instanceof String || hx4J40v11Q instanceof String) { return String.valueOf(hx4J40v11P) + String.valueOf(hx4J40v11Q); } return null; }).apply(subscriptionsByStream, java.util.Objects.requireNonNullElse(numSubscriptions, 1L));
+            Object newNumSubscriptions = ((java.util.function.BinaryOperator<Object>) (hx4J40v12A, hx4J40v12B) -> { Object hx4J40v12P = hx4J40v12A instanceof Integer hx4J40v12i ? (Object) Long.valueOf(hx4J40v12i.longValue()) : hx4J40v12A; Object hx4J40v12Q = hx4J40v12B instanceof Integer hx4J40v12i ? (Object) Long.valueOf(hx4J40v12i.longValue()) : hx4J40v12B; if (hx4J40v12P instanceof Long hx4J40v12l && hx4J40v12Q instanceof Long hx4J40v12r) { return hx4J40v12l + hx4J40v12r; } if (hx4J40v12P instanceof Double || hx4J40v12Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v12D = hx4J40v12o -> { if (hx4J40v12o instanceof Double || hx4J40v12o instanceof Float || hx4J40v12o instanceof Long || hx4J40v12o instanceof Integer || hx4J40v12o instanceof java.math.BigDecimal) { return ((Number) hx4J40v12o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v12o)); } catch (NumberFormatException hx4J40v12e) { return 0.0; } }; return hx4J40v12D.applyAsDouble(hx4J40v12P) + hx4J40v12D.applyAsDouble(hx4J40v12Q); } if (hx4J40v12P instanceof String || hx4J40v12Q instanceof String) { return String.valueOf(hx4J40v12P) + String.valueOf(hx4J40v12Q); } return null; }).apply(subscriptionsByStream, java.util.Objects.requireNonNullElse(numSubscriptions, 1L));
             Long subscriptionLimitByStream = this.safeInteger(this.options.get("subscriptionLimitByStream"), type, 200);
             if ((newNumSubscriptions != null && (subscriptionLimitByStream == null || ((Number) newNumSubscriptions).doubleValue() > subscriptionLimitByStream)))
             {
@@ -1109,7 +1109,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", "depth" );
-                put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsOmitted))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v10 -> (Map<String, Object>) hx4J40v10; case Object hx4J40v10 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v10.getClass().getName()); }))) );
+                put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsOmitted))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v11 -> (Map<String, Object>) hx4J40v11; case Object hx4J40v11 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v11.getClass().getName()); }))) );
             }};
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "method", "handleFetchOrderBook");
@@ -1171,7 +1171,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
                 // todo: this is a synch blocking call - make it async
                 // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-                Object snapshot = (this.fetchRestOrderBookSafe(symbol, limit, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v9 -> (Map<String, Object>) hx4J40v9; case Object hx4J40v9 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v9.getClass().getName()); })))).join();
+                Object snapshot = (this.fetchRestOrderBookSafe(symbol, limit, ((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v10 -> (Map<String, Object>) hx4J40v10; case Object hx4J40v10 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v10.getClass().getName()); })))).join();
                 if (java.util.Objects.equals(this.safeValue(this.orderbooks, symbol), null))
                 {
                     // if the orderbook is dropped before the snapshot is received
@@ -2398,7 +2398,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", method );
-                put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsMethod))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v8 -> (Map<String, Object>) hx4J40v8; case Object hx4J40v8 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v8.getClass().getName()); }))) );
+                put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsMethod))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v9 -> (Map<String, Object>) hx4J40v9; case Object hx4J40v9 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v9.getClass().getName()); }))) );
             }};
             Object ticker = (this.watch(url, messageHash, message, messageHash, subscription)).join();
             return ticker;
@@ -4243,7 +4243,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", method );
-                put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsMethod))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); }))) );
+                put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsMethod))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v8 -> (Map<String, Object>) hx4J40v8; case Object hx4J40v8 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v8.getClass().getName()); }))) );
             }};
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "method", "handlePositionsWs");
@@ -4635,7 +4635,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", "order.place" );
-                put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsOmitted2))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); }))) );
+                put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsOmitted2))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); }))) );
             }};
             if (Boolean.TRUE.equals(test))
             {
@@ -5009,7 +5009,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", "order.cancel" );
-                put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsOmitted))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); }))) );
+                put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsOmitted))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); }))) );
             }};
             if (Boolean.TRUE.equals(shouldUseAlgoOrder))
             {
@@ -5069,7 +5069,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", "openOrders.cancelAll" );
-                put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsReturnRateLimits))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); }))) );
+                put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsReturnRateLimits))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); }))) );
             }};
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "method", "handleOrdersWs");
@@ -5136,7 +5136,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", "order.status" );
-                put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsReturnRateLimits))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); }))) );
+                put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsReturnRateLimits))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); }))) );
             }};
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "method", "handleOrderWs");
@@ -5198,7 +5198,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", "allOrders" );
-                put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsReturnRateLimits))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); }))) );
+                put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsReturnRateLimits))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); }))) );
             }};
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "method", "handleOrdersWs");
@@ -5288,7 +5288,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "method", "openOrders.status" );
-                put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsReturnRateLimits))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); }))) );
+                put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsReturnRateLimits))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); }))) );
             }};
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "method", "handleOrdersWs");
@@ -6134,11 +6134,22 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             this.positions = new HashMap<String, Object>() {{}};
         }
+        Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
         if ((switch ((Object)(this.positions)) { case List<?> j39v4 -> ((Object)(type)) != null && j39v4.contains(type); case Map<?, ?> j39v3 -> ((Object)(type)) instanceof String && j39v3.containsKey(type); case null, default -> false; }))
         {
-            return;
+            // a fresh client has no snapshot future yet, which means the
+            // connection was re-established after a disconnect: positions
+            // closed while disconnected never arrive as stream deltas, so
+            // the cached positions are stale and must be reloaded
+            String messageHash = (type + ":fetchPositionsSnapshot");
+            if ((java.util.Objects.equals(fetchPositionsSnapshot, true)) && (!(client.futures.containsKey(messageHash))))
+            {
+                ((Map<String,Object>)this.positions).remove((String)type);
+            } else
+            {
+                return;
+            }
         }
-        Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
         if (java.util.Objects.equals(fetchPositionsSnapshot, true))
         {
             String messageHash = (type + ":fetchPositionsSnapshot");
@@ -6165,6 +6176,14 @@ public class Binance extends io.github.ccxt.exchanges.Binance
                 parameters.put("portfolioMargin", true);
             }
             List<Position> positions = (this.fetchPositions((List<String>) null, parameters)).join();
+            // the client may have been replaced by a reconnect while the
+            // snapshot was in flight: a stale snapshot must not overwrite
+            // the fresh one loaded for the new client
+            Object currentClient = this.safeValue(this.clients, client.url);
+            if (!Helpers.isEqual(currentClient, client))
+            {
+                return null;
+            }
             ((Map<Object, Object>) (Map<?, ?>) this.positions).put(type, new ArrayCache.ArrayCacheBySymbolBySide());
             Object cache = (type == null || this.positions == null ? null : ((Map<?, ?>)this.positions).get(type));
             for (var i = 0; i < ((List<?>)positions).size(); i++)
