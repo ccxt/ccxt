@@ -10,6 +10,8 @@ const run = JSON.parse (fs.readFileSync (path.join (runDir, 'run.json'), 'utf8')
 const summary = fs.existsSync (path.join (runDir, 'summary.json')) ? JSON.parse (fs.readFileSync (path.join (runDir, 'summary.json'), 'utf8')) : {};
 const start = Date.parse (run.start);
 
+// fill events carry their own ISO "t", which overrides the log timestamp
+const ts = (e) => (typeof e.t === 'string') ? Date.parse (e.t) : e.t;
 const readJsonl = (file) => fs.existsSync (file) ? fs.readFileSync (file, 'utf8').split ('\n').filter (Boolean).map ((l) => JSON.parse (l)) : [];
 
 // tool calls as seen by the model, for either transcript format
@@ -77,7 +79,7 @@ for (const agent of run.agents) {
         'ordersAttempted': orders.length,
         'ordersRejected': errors.filter ((e) => e.tool === 'place_order').length,
         'fills': fills.length,
-        'firstFillMinute': fills.length ? Number (((fills[0].t - start) / 60_000).toFixed (1)) : undefined,
+        'firstFillMinute': fills.length ? Number (((ts (fills[0]) - start) / 60_000).toFixed (1)) : undefined,
         'venuesTraded': [ ...new Set (fills.map ((f) => f.venue)) ],
         'symbolsTraded': [ ...new Set (fills.map ((f) => f.symbol)) ],
         'maxLeverage': Math.max (0, ...orders.map ((o) => o.input?.leverage ?? 1)),

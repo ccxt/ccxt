@@ -41,7 +41,7 @@ const AGENTS = [
     { 'id': 'gemini', 'kind': 'openrouter', 'model': '~google/gemini-pro-latest' },
     { 'id': 'grok', 'kind': 'openrouter', 'model': 'x-ai/grok-4.7' },
     { 'id': 'deepseek', 'kind': 'openrouter', 'model': 'deepseek/deepseek-v4-pro' },
-    { 'id': 'qwen', 'kind': 'openrouter', 'model': 'qwen/qwen3.8-max-0902' },
+    { 'id': 'qwen', 'kind': 'openrouter', 'model': 'qwen/qwen3.8-2.4t-a95b' },
     { 'id': 'kimi', 'kind': 'openrouter', 'model': 'moonshotai/kimi-k3.1-pro' },
 ];
 
@@ -194,8 +194,8 @@ const runOpenRouter = async (agent, port, start, end, dir) => {
                 } catch (e) {
                     text = JSON.stringify ({ 'ok': false, 'error': e.message });
                 }
-                if (text.length > 12000) {
-                    text = text.slice (0, 12000) + '\n…[truncated]';
+                if (text.length > 100000) {
+                    text = text.slice (0, 100000) + '\n…[truncated]';
                 }
                 messages.push ({ 'role': 'tool', 'tool_call_id': call.id, 'content': text });
                 appendJsonl (transcript, { 'type': 'tool_result', 'name': call.function.name, 'args': call.function.arguments, 'result': text.slice (0, 4000) });
@@ -253,6 +253,7 @@ const claudeEnv = () => {
     }
     env.MCP_TOOL_TIMEOUT = String (20 * 60_000);
     env.MCP_TIMEOUT = '60000';
+    env.MAX_MCP_OUTPUT_TOKENS = '60000'; // let ccxt-mcp's own 80k-char cap govern, as in the OpenRouter loop
     env.DISABLE_AUTOUPDATER = '1';
     return env;
 };

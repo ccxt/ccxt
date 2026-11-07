@@ -63,7 +63,7 @@ const fresh = () => ({
 let state = fs.existsSync (STATE_FILE) ? JSON.parse (fs.readFileSync (STATE_FILE, 'utf8')) : fresh ();
 
 const save = () => fs.writeFileSync (STATE_FILE, JSON.stringify (state, null, 1));
-const log = (type, data) => fs.appendFileSync (EVENTS_FILE, JSON.stringify ({ 't': Date.now (), type, ...data }) + '\n');
+const log = (type, data) => fs.appendFileSync (EVENTS_FILE, JSON.stringify ({ ...data, 't': Date.now (), type }) + '\n');
 const r = (x, d = 4) => (x === undefined || x === null) ? x : Number (Number (x).toFixed (d));
 const minutesLeft = () => Math.max (0, r ((END - Date.now ()) / 60_000, 1));
 const isOver = () => Date.now () >= END;
@@ -248,7 +248,7 @@ const snapshot = async () => {
         'minutesLeft': minutesLeft (),
         venues,
         positions,
-        'openOrders': state.orders.map ((o) => ({ ...o })),
+        'openOrders': state.orders.map ((o) => ({ ...o, 'triggerFrom': undefined })),
         'pendingTransfers': state.transfers.map ((t) => ({ ...t, 'arrivesInMinutes': r ((t.arrives - Date.now ()) / 60_000, 1) })),
     };
 };
@@ -375,7 +375,7 @@ const execMarket = async (o, m, reason) => {
             need = (after - before) * res.avg / o.leverage + res.cost * feeRate;
         }
     }
-    if (need > mg.available + 1e-6) {
+    if (need > 0 && need > mg.available + 1e-6) {
         throw new Error ('insufficient funds on ' + venue + ': need ~' + r (need, 2) + ' USD, available ' + r (mg.available, 2) + ' USD');
     }
     return applyFill ({ ...o, 'amount': res.filled }, m, res.filled, res.avg, feeRate, reason);
@@ -614,7 +614,8 @@ const buildServer = () => {
         if (m.spot && o.side === 'sell' && (state.spot[o.venue][m.base] ?? 0) < o.amount - 1e-9) {
             throw new Error ('insufficient ' + m.base + ' on ' + o.venue);
         }
-        if (!o.reduceOnly && !(m.spot && o.side === 'sell')) {
+        const reduces = !m.spot && existing && ((o.side === 'buy') === (existing.size < 0)) && o.amount <= Math.abs (existing.size) + 1e-9;
+        if (!o.reduceOnly && !reduces && !(m.spot && o.side === 'sell')) {
             const mg = await venueMargin (o.venue);
             const px = o.price ?? o.triggerPrice;
             const need = m.spot ? o.amount * px : o.amount * px / o.leverage;
@@ -624,12 +625,13 @@ const buildServer = () => {
         }
         if (o.triggerPrice !== undefined) {
             o.triggerFrom = t.last < o.triggerPrice ? 'below' : 'above';
+            o.triggersWhen = 'last price ' + (o.triggerFrom === 'below' ? '>=' : '<=') + ' ' + o.triggerPrice;
         }
         o.market = m.spot ? 'spot' : 'swap';
         state.orders.push (o);
         log ('order_open', { 'order': o });
         save ();
-        return { 'status': 'open', 'order': o, 'lastPrice': t.last };
+        return { 'status': 'open', 'order': { ...o, 'triggerFrom': undefined }, 'lastPrice': t.last };
     }));
 
     server.registerTool ('cancel_order', {
@@ -669,8 +671,8 @@ const buildServer = () => {
     }));
 
     server.registerTool ('wait', {
-        'description': 'Do nothing for a number of minutes (1-15) while orders, stops and positions keep running, then get the account snapshot and any fills that happened meanwhile.',
-        'inputSchema': { 'minutes': z.number ().min (0.5).max (15) },
+        'description': 'Do nothing for a number of minutes (0.5-5) while orders, stops and positions keep running, then get the account snapshot and any fills that happened meanwhile.',
+        'inputSchema': { 'minutes': z.number ().min (0.5).max (5) },
     }, guard ('wait', async ({ minutes }) => {
         const fillsBefore = state.fills.length;
         const until = Math.min (Date.now () + minutes * 60_000, END);
