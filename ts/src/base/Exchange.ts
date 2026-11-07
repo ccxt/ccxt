@@ -3573,7 +3573,7 @@ export class BaseExchange {
         return [ undefined, undefined ];
     }
 
-    marketsCacheSave (markets, currencies: Dict = undefined) {
+    marketsCacheSave (markets: any, currencies: Dict = undefined) {
         // only write if user has enabled caching
         if (this.marketsCacheMinutes > 0) {
             const cacheFile = this.marketsCacheFilePath ();
