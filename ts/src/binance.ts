@@ -7123,10 +7123,10 @@ export default class binance extends Exchange {
     generateClientOrderId (market: Market = undefined, api: Str = undefined, path: Str = undefined): string {
         let idMarketType: Str = undefined;
         if (market !== undefined) {
-            if (market['option']) {
+            if (this.safeBool (market, 'option', false)) {
                 idMarketType = 'option';
             } else if (this.safeBool (market, 'linear', false)) {
-                idMarketType = (market['swap']) ? 'swap' : 'future';
+                idMarketType = (this.safeBool (market, 'swap', false)) ? 'swap' : 'future';
             } else if (this.safeBool (market, 'inverse', false)) {
                 idMarketType = 'inverse';
             } else {
@@ -12582,7 +12582,7 @@ export default class binance extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
-            if (!market['swap']) {
+            if (!this.safeBool (market, 'swap', false)) {
                 throw new NotSupported (this.id + ' fetchFundingHistory() supports swap contracts only');
             }
         }
@@ -14555,7 +14555,7 @@ export default class binance extends Exchange {
         }
         if (market !== undefined) {
             let symbolKey: Str = 'symbol';
-            if (market['spot']) {
+            if (this.safeBool (market, 'spot', false)) {
                 symbolKey = 'isolatedSymbol';
             }
             if (!isPortfolioMargin) {

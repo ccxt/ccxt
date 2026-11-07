@@ -10040,7 +10040,7 @@ export default class kucoin extends Exchange {
                 throw new ArgumentsRequired (this.id + ' setLeverage requires a symbol argument for contract markets');
             }
             market = this.market (symbol);
-            if (market['contract']) {
+            if (this.safeBool (market, 'contract', false)) {
                 return await this.setContractLeverage (leverage, symbol, paramsRequest);
             }
         }

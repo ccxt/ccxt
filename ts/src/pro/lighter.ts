@@ -377,7 +377,7 @@ export default class lighter extends lighterRest {
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, true);
         const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
-        if ((firstMarket !== undefined) && (!firstMarket['swap'])) {
+        if ((firstMarket !== undefined) && (!this.safeBool (firstMarket, 'swap', false))) {
             throw new NotSupported (this.id + ' watchTickers() is only supported for swap markets');
         }
         const request: Dict = {
@@ -423,7 +423,7 @@ export default class lighter extends lighterRest {
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true, true);
         const firstMarket = this.getMarketFromSymbols (symbolsNormalized);
-        if ((firstMarket !== undefined) && (!firstMarket['swap'])) {
+        if ((firstMarket !== undefined) && (!this.safeBool (firstMarket, 'swap', false))) {
             throw new NotSupported (this.id + ' unWatchTickers() is only supported for swap markets');
         }
         const request: Dict = {

@@ -1219,7 +1219,7 @@ export default class phemex extends Exchange {
             throw new ArgumentsRequired (this.id + ' customParseBidAsk() requires a market argument');
         }
         let amount = this.safeString (bidask, amountKey);
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             amount = this.fromEv (amount, market);
         }
         return [
@@ -1385,7 +1385,7 @@ export default class phemex extends Exchange {
         //     ]
         //
         let baseVolume: Num = undefined;
-        if ((market !== undefined) && (market['spot'])) {
+        if ((market !== undefined) && (this.safeBool (market, 'spot', false))) {
             baseVolume = this.parseNumber (this.fromEv (this.safeString (ohlcv, 7), market));
         } else {
             baseVolume = this.safeNumber (ohlcv, 7);
@@ -3391,7 +3391,7 @@ export default class phemex extends Exchange {
         if ((symbol === undefined) || (this.safeString (market, 'settle') === 'USDT')) {
             request['currency'] = this.safeString (params, 'settle', 'USDT');
             response = await this.privateGetExchangeOrderV2OrderList (this.extend (request, params));
-        } else if (market !== undefined && (market['swap'])) {
+        } else if (market !== undefined && (this.safeBool (market, 'swap', false))) {
             response = await this.privateGetExchangeOrderList (this.extend (request, params));
         } else {
             response = await this.privateGetExchangeSpotOrder (this.extend (request, params));

@@ -2707,7 +2707,7 @@ export default class bybit extends Exchange {
                 } else if (this.safeString (market, 'type') !== currentType) {
                     throw new BadRequest (this.id + ' fetchTickers can only accept a list of symbols of the same type');
                 }
-                if (market['option']) {
+                if (this.safeBool (market, 'option', false)) {
                     const marketBase = this.safeString (market, 'base');
                     if (code !== undefined && code !== marketBase) {
                         throw new BadRequest (this.id + ' fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://bybit-exchange.github.io/docs/v5/market/tickers');

@@ -2343,7 +2343,7 @@ export default class deepcoin extends Exchange {
         let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            if (market['spot']) {
+            if (this.safeBool (market, 'spot', false)) {
                 throw new NotSupported (this.id + ' editOrder() is not supported for spot markets');
             }
             symbolResolved = market['symbol'];
@@ -2401,7 +2401,7 @@ export default class deepcoin extends Exchange {
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            if (market['spot']) {
+            if (this.safeBool (market, 'spot', false)) {
                 throw new NotSupported (this.id + ' cancelOrders() is not supported for spot markets');
             }
         }

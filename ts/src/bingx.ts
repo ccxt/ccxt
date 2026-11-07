@@ -1590,7 +1590,7 @@ export default class bingx extends Exchange {
             takeOrMaker = isMaker ? 'maker' : 'taker';
         }
         let amount = this.safeStringN (trade, [ 'qty', 'amount', 'q' ]);
-        if ((market !== undefined) && (market['swap']) && ('volume' in trade)) {
+        if ((market !== undefined) && (this.safeBool (market, 'swap', false)) && ('volume' in trade)) {
             // Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
             // safeTrade applies contractSize when calculating inverse cost.
             amount = this.safeString (trade, 'volume');

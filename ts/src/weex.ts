@@ -1312,7 +1312,7 @@ export default class weex extends Exchange {
         const marketId = this.safeString (ticker, 'symbol');
         const markPrice = this.safeString (ticker, 'markPrice');
         let marketType = 'spot';
-        if ((markPrice !== undefined) || ((market !== undefined) && (market['contract']))) {
+        if ((markPrice !== undefined) || ((market !== undefined) && (this.safeBool (market, 'contract', false)))) {
             // 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
             marketType = 'swap';
         }
@@ -3609,7 +3609,7 @@ export default class weex extends Exchange {
         };
         if (symbol !== undefined) {
             market = this.market (symbol);
-            if (!market['swap']) {
+            if (!this.safeBool (market, 'swap', false)) {
                 throw new NotSupported (this.id + ' fetchFundingHistory() supports swap contracts only');
             }
             request['symbol'] = market['id'];

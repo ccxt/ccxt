@@ -5678,7 +5678,7 @@ export default class htx extends Exchange {
             }
             market = this.market (symbol);
             let orderRequest: NullableDict = undefined;
-            if (market['spot']) {
+            if (this.safeBool (market, 'spot', false)) {
                 orderRequest = await this.createSpotOrderRequest (marketId, type, side, amount, price, orderParams);
             } else {
                 orderRequest = this.createContractOrderRequest (marketId, type, side, amount, price, orderParams);

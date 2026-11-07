@@ -7200,7 +7200,7 @@ export default class okx extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['instId'] = market['id'];
-            if (market['contract']) {
+            if (this.safeBool (market, 'contract', false)) {
                 if (this.safeBool (market, 'linear', false)) {
                     request['ctType'] = 'linear';
                     request['ccy'] = market['quoteId'];
@@ -8267,7 +8267,7 @@ export default class okx extends Exchange {
         };
         let response: Dict;
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchOpenInterestHistory', market, params);
-        if ((market !== undefined) && ((market['swap']) || (market['future']))) {
+        if ((market !== undefined) && ((this.safeBool (market, 'swap', false)) || (this.safeBool (market, 'future', false)))) {
             const instrumentRequest: Dict = {
                 'instId': market['id'],
                 'period': timeframeValue,

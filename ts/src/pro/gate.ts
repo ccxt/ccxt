@@ -411,7 +411,7 @@ export default class gate extends gateRest {
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbolResolved = this.safeString (market, 'symbol');
-            if (!market['swap']) {
+            if (!this.safeBool (market, 'swap', false)) {
                 throw new NotSupported (this.id + ' fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets');
             }
         }
@@ -2325,9 +2325,9 @@ export default class gate extends gateRest {
         if (market === undefined) {
             return undefined;
         }
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             return 'spot';
-        } else if (market['option']) {
+        } else if (this.safeBool (market, 'option', false)) {
             return 'options';
         } else {
             return 'futures';

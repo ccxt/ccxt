@@ -2139,7 +2139,7 @@ export default class coinbaseinternational extends Exchange {
      */
     getOrderAmount (market: MarketInterface, amount: Num): Str {
         let exchangeAmount = this.numberToString (amount);
-        if (this.isNativeDeribitCredentials () && (market['contract'])) {
+        if (this.isNativeDeribitCredentials () && (this.safeBool (market, 'contract', false))) {
             exchangeAmount = Precise.stringMul (exchangeAmount, this.safeString (market, 'contractSize'));
         }
         return this.amountToPrecision (market['symbol'], exchangeAmount);

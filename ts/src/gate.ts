@@ -1943,9 +1943,9 @@ export default class gate extends Exchange {
         // * Do not call for multi spot order methods like cancelAllOrders and fetchOpenOrders. Use multiOrderSpotPrepareRequest instead
         const request: Dict = {};
         if (market !== undefined) {
-            if (market['contract']) {
+            if (this.safeBool (market, 'contract', false)) {
                 request['contract'] = market['id'];
-                if (!market['option']) {
+                if (!this.safeBool (market, 'option', false)) {
                     request['settle'] = market['settleId'];
                 }
             } else {

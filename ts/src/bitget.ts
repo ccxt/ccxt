@@ -2058,7 +2058,7 @@ export default class bitget extends Exchange {
         let productType = this.safeString2 (paramsSubType, 'productType', 'category', defaultProductType);
         if ((productType === undefined) && (market !== undefined)) {
             const settle = this.safeString (market, 'settle');
-            if (market['spot']) {
+            if (this.safeBool (market, 'spot', false)) {
                 let marginMode: Str = undefined;
                 [ marginMode, paramsSubType ] = this.handleMarginModeAndParams ('handleProductTypeAndParams', paramsSubType);
                 if (marginMode !== undefined) {
