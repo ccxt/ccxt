@@ -169,11 +169,11 @@ class paradex extends \ccxt\async\paradex {
         }
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function watch_trades(?string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
     }
 
-    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_watch_trades(?string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * get the list of most recent $trades for a particular $symbol
          *

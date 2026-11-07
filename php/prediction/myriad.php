@@ -3724,11 +3724,11 @@ class myriad extends Exchange {
         return $this->filter_by_array($tickers, 'outcome', $resolvedSymbols, true);
     }
 
-    public function watch_ohlcv(string $outcome, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function watch_ohlcv(string $outcome, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_watch_ohlcv(...))($outcome, $timeframe, $since, $limit, $params);
     }
 
-    private function do_watch_ohlcv(string $outcome, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_watch_ohlcv(string $outcome, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * streams OHLCV candles for an $outcome, synthesised from the live $trades channel
          *

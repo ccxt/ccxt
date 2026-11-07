@@ -479,6 +479,10 @@ class lighter extends \ccxt\async\lighter {
     }
 
     public function watch_mark_price(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_mark_price(...))($symbol, $params);
+    }
+
+    private function do_watch_mark_price(string $symbol, $params = array()) {
         /**
          *
          * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
@@ -488,10 +492,14 @@ class lighter extends \ccxt\async\lighter {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        return $this->watch_ticker($symbol, $params);
+        return Async\await($this->watch_ticker($symbol, $params));
     }
 
     public function watch_mark_prices(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_mark_prices(...))($symbols, $params);
+    }
+
+    private function do_watch_mark_prices(?array $symbols = null, $params = array()) {
         /**
          *
          * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
@@ -501,7 +509,7 @@ class lighter extends \ccxt\async\lighter {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        return $this->watch_tickers($symbols, $params);
+        return Async\await($this->watch_tickers($symbols, $params));
     }
 
     public function un_watch_mark_price(string $symbol, $params = array()): PromiseInterface {
