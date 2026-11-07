@@ -207,8 +207,8 @@ export default class bybit extends bybitRest {
         isSpot = (type === 'spot');
         if (isPrivate) {
             const unified = await this.isUnifiedEnabled ();
-            const isUnifiedMargin = unified[0];
-            const isUnifiedAccount = unified[1];
+            const isUnifiedMargin = this.safeBool (unified, 0, false);
+            const isUnifiedAccount = this.safeBool (unified, 1, false);
             if (isUsdcSettled && (!isUnifiedMargin) && (!isUnifiedAccount)) {
                 url = accessibilityUrls['usdc'];
             } else {
@@ -2117,8 +2117,8 @@ export default class bybit extends bybitRest {
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('watchBalance', undefined, paramsMarketType);
         const unified = await this.isUnifiedEnabled ();
-        const isUnifiedMargin = unified[0];
-        const isUnifiedAccount = unified[1];
+        const isUnifiedMargin = this.safeBool (unified, 0, false);
+        const isUnifiedAccount = this.safeBool (unified, 1, false);
         const url = await this.getUrlByMarketType (undefined, true, method, paramsSubType);
         await this.authenticate (url);
         const topicByMarket: Dict = {
