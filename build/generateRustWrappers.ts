@@ -217,6 +217,21 @@ const TYPED_CORE_METHODS = new Set([
     'create_stop_order', 'create_stop_limit_order', 'create_stop_market_order', 'create_stop_loss_order',
     'create_take_profit_order', 'create_trigger_order', 'create_trailing_amount_order',
     'create_trailing_percent_order', 'create_order_with_take_profit_and_stop_loss', 'create_twap_order',
+    'fetch_accounts', 'fetch_cross_borrow_rates', 'fetch_isolated_borrow_rates', 'fetch_funding_intervals', 'create_deposit_address', 'set_margin',
+    'fetch_long_short_ratio', 'fetch_long_short_ratio_history', 'fetch_margin_adjustment_history', 'fetch_deposit_addresses_by_network', 'fetch_open_interests', 'repay_cross_margin',
+    'repay_isolated_margin', 'borrow_cross_margin', 'borrow_isolated_margin', 'borrow_margin', 'repay_margin', 'fetch_spot_ohlcv',
+    'fetch_contract_ohlcv', 'fetch_borrow_interest', 'fetch_ledger_entry', 'fetch_partial_balance', 'fetch_free_balance', 'fetch_used_balance',
+    'fetch_total_balance', 'fetch_deposit_withdraw_fee', 'fetch_cross_borrow_rate', 'fetch_isolated_borrow_rate', 'fetch_spot_tickers', 'fetch_contract_tickers',
+    'fetch_order_books', 'create_convert_trade', 'fetch_convert_trade', 'fetch_convert_trade_history', 'fetch_position_mode', 'fetch_adl_rank',
+    'fetch_positions_adl_rank', 'fetch_position_adl_rank', 'create_spot_orders', 'create_contract_orders', 'cancel_spot_order', 'cancel_contract_order',
+    'cancel_all_spot_orders', 'cancel_all_contract_orders', 'cancel_orders_for_symbols', 'fetch_all_greeks', 'fetch_convert_quote', 'fetch_contract_deposit_address',
+    'fetch_convert_currencies', 'fetch_funding_interval', 'fetch_mark_ohlcv', 'fetch_index_ohlcv', 'fetch_premium_index_ohlcv', 'fetch_transfer',
+    'fetch_position_history', 'fetch_positions_risk', 'fetch_positions_for_symbol', 'fetch_l3_order_book', 'edit_limit_buy_order', 'edit_limit_sell_order',
+    'edit_limit_order', 'edit_order_with_client_order_id', 'fetch_order_with_client_order_id', 'fetch_order_status', 'fetch_unified_order', 'cancel_order_with_client_order_id',
+    'cancel_orders_with_client_order_ids', 'cancel_unified_order', 'create_orders_ws', 'cancel_orders_ws', 'withdraw_ws', 'create_limit_order_ws',
+    'create_market_order_ws', 'create_limit_buy_order_ws', 'create_limit_sell_order_ws', 'create_market_buy_order_ws', 'create_market_sell_order_ws', 'create_market_order_with_cost_ws',
+    'create_post_only_order_ws', 'create_reduce_only_order_ws', 'create_stop_order_ws', 'create_stop_limit_order_ws', 'create_stop_market_order_ws', 'create_stop_loss_order_ws',
+    'create_take_profit_order_ws', 'create_trigger_order_ws', 'create_trailing_amount_order_ws', 'create_trailing_percent_order_ws', 'create_order_with_take_profit_and_stop_loss_ws',
 ]);
 
 interface ParamInfo {

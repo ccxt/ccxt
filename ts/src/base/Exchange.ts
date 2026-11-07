@@ -7131,7 +7131,7 @@ export class BaseExchange {
         }
     }
 
-    async fetchCrossBorrowRate (code: string, params = {}): Promise<CrossBorrowRate> {
+    async fetchCrossBorrowRate (code: string, params: Dict = {}): Promise<CrossBorrowRate> {
         await this.loadMarkets ();
         if (this.has['fetchBorrowRates'] === undefined || this.has['fetchBorrowRates'] === false) {
             throw new NotSupported (this.id + ' fetchCrossBorrowRate() is not supported yet');
@@ -10281,7 +10281,7 @@ export default class Exchange extends BaseExchange {
         return this.safeString (order, 'status');
     }
 
-    async fetchUnifiedOrder (order: any, params: Dict = {}): Promise<Order> {
+    async fetchUnifiedOrder (order: Order, params: Dict = {}): Promise<Order> {
         return await this.fetchOrder (this.safeString (order, 'id', ''), this.safeString (order, 'symbol'), params);
     }
 

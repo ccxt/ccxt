@@ -2000,6 +2000,8 @@ raw_struct!(Ticker, Trade, OrderBook, Order, Balances, Market, Currency, Positio
 raw_struct!(FundingRate, FundingRateHistory, FundingHistory, Leverage, MarginMode, MarginModification, OpenInterest,
     Liquidation, LeverageTier, Greeks, OptionContract, LastPrice, Status);
 raw_struct!(PredictionEvent, PredictionSettlement);
+raw_struct!(Account, BorrowRate, IsolatedBorrowRate, MarginLoan, Conversion, ADL, LongShortRatio, BorrowInterest,
+    PositionModeInfo, OrderBookL3);
 
 /// An untyped unified return (`setLeverage`, `setMarginMode`, unsubscribe acks) passes the payload through.
 impl FromRaw for Value { fn from_raw(v: Value) -> Self { v } }
@@ -2007,6 +2009,47 @@ impl IntoRaw for Value { fn into_raw(self) -> Value { self } }
 /// An integral scalar return (`fetchTime`); any other shape reads `None`.
 impl FromRaw for Option<i64> { fn from_raw(v: Value) -> Self { v.as_i64() } }
 impl IntoRaw for Option<i64> { fn into_raw(self) -> Value { Value::from(self) } }
+/// A string scalar return (`fetchOrderStatus`); any other shape reads `None`.
+impl FromRaw for Option<String> { fn from_raw(v: Value) -> Self { v.as_str().map(String::from) } }
+impl IntoRaw for Option<String> { fn into_raw(self) -> Value { self.map(Value::from).unwrap_or_default() } }
+
+/// One entry of a `cancel_orders_for_symbols` batch (TS `CancellationRequest`); `raw` keeps any other key.
+#[derive(Debug, Clone, Default)]
+pub struct CancellationRequest {
+    pub id:              Option<String>,
+    pub client_order_id: Option<String>,
+    pub symbol:          Option<String>,
+    pub raw:             Value,
+}
+
+impl CancellationRequest {
+    pub fn new(id: &str, symbol: &str) -> Self {
+        CancellationRequest { id: Some(id.into()), symbol: Some(symbol.into()), ..Default::default() }
+    }
+}
+
+impl FromRaw for CancellationRequest {
+    fn from_raw(v: Value) -> Self {
+        use crate::value::safe_string;
+        CancellationRequest {
+            id: safe_string(&v, "id", None), client_order_id: safe_string(&v, "clientOrderId", None),
+            symbol: safe_string(&v, "symbol", None), raw: v,
+        }
+    }
+}
+
+/// Keys whose field still decodes from `raw` keep the raw entry (and its position), so a decoded request lowers back unchanged.
+impl IntoRaw for CancellationRequest {
+    fn into_raw(self) -> Value {
+        let same = Self::from_raw(self.raw.clone());
+        let mut m = match &self.raw { Value::Dict(d) => (**d).clone(), _ => HashMap::new() };
+        let mut put = |k: &str, v: Option<String>| { match v { Some(v) => { m.insert(k.to_string(), Value::from(v)); } None => { m.shift_remove(k); } } };
+        if self.id != same.id { put("id", self.id); }
+        if self.client_order_id != same.client_order_id { put("clientOrderId", self.client_order_id); }
+        if self.symbol != same.symbol { put("symbol", self.symbol); }
+        Value::Dict(std::sync::Arc::new(m))
+    }
+}
 
 /// One order of a `create_orders` / `edit_orders` batch. Mirrors the TS `OrderRequest`
 /// (`id` for edits, `outcome` for prediction venues); `raw` keeps any other key.
