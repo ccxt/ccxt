@@ -2073,7 +2073,7 @@ const ex = new ccxt.kraken ({
 });
 
 const startTime = ex.milliseconds();
-await kraken.loadMarkets ();
+await ex.loadMarkets ();
 console.log ('Loaded in ', ex.milliseconds() - startTime, ' milliseconds');
 ```
 
