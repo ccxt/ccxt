@@ -10778,7 +10778,7 @@ impl BinanceCore {
         }
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market, Value::Null, Value::from(marketType.clone())]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut filled: Value = self.safe_string2(order.clone(), Value::Str("executedQty".into()), Value::Str("filledQty".into()), &[Value::Str("0".into())]);
+        let mut filled: Value = self.safe_string_n(order.clone(), Value::from(vec![Value::Str("executedQty".into()), Value::Str("filledQty".into()), Value::Str("actualQty".into())]), &[Value::Str("0".into())]); // actualQty: algo orders
         let mut timestamp: Option<i64> = self.safe_integer_n_opt(order.clone(), Value::from(vec![Value::Str("time".into()), Value::Str("createTime".into()), Value::Str("workingTime".into()), Value::Str("transactTime".into()), Value::Str("updateTime".into()), Value::Str("createdAt".into())]), &[]); // order of the keys matters here
         let mut lastTradeTimestamp: Value = Value::Null;
         if (matches!(&order, Value::Dict(__d) if __d.contains_key("transactTime"))) || (matches!(&order, Value::Dict(__d) if __d.contains_key("updateTime"))) || (matches!(&order, Value::Dict(__d) if __d.contains_key("updatedAt"))) {

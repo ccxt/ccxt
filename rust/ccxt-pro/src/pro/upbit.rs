@@ -309,8 +309,8 @@ impl UpbitCore {
         let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_651: bool = true;
-            while { if !__for_first_651 { i += 1; } __for_first_651 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_652: bool = true;
+            while { if !__for_first_652 { i += 1; } __for_first_652 = false; i < (symbolsNormalized.len() as i64) } {
             let mut marketId: Value = self.safe_string(marketIds.clone(), Value::Int(i), &[Value::Str("".into())]);
             let symbol: String = self.safe_string_opt(symbolsNormalized.clone(), Value::Int(i), &[Value::Str("".into())]).unwrap_or_default();
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), symbol).into());
@@ -333,8 +333,8 @@ impl UpbitCore {
         let mut channelKeys: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_652: bool = true;
-            while { if !__for_first_652 { i += 1; } __for_first_652 = false; i < (channelKeys.len() as i64) } {
+            let mut __for_first_653: bool = true;
+            while { if !__for_first_653 { i += 1; } __for_first_653 = false; i < (channelKeys.len() as i64) } {
             let mut key: Value = channelKeys.get(i as usize).cloned().unwrap_or(Value::Null);
             finalMessage.push((if let (Some(__m), Some(__k)) = (subscriptions.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
         }
@@ -593,8 +593,8 @@ impl UpbitCore {
         let mut asksSnapshot: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_653: bool = true;
-            while { if !__for_first_653 { i += 1; } __for_first_653 = false; i < (data.len() as i64) } {
+            let mut __for_first_654: bool = true;
+            while { if !__for_first_654 { i += 1; } __for_first_654 = false; i < (data.len() as i64) } {
             let mut entry: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
             let mut bidPrice: Value = self.safe_number_k(entry.clone(), "bid_price", &[]);
             let mut bidSize: Value = self.safe_number_k(entry.clone(), "bid_size", &[]);
@@ -758,8 +758,8 @@ impl UpbitCore {
         let mut channelKeys: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_654: bool = true;
-            while { if !__for_first_654 { i += 1; } __for_first_654 = false; i < (channelKeys.len() as i64) } {
+            let mut __for_first_655: bool = true;
+            while { if !__for_first_655 { i += 1; } __for_first_655 = false; i < (channelKeys.len() as i64) } {
             message.push(get_value(&subscriptions, &channelKeys.get(i as usize).cloned().unwrap_or(Value::Null)));
         }
         }
@@ -1134,8 +1134,8 @@ impl UpbitCore {
         { let __be_tmp = self.iso8601(Value::from(timestamp)); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_655: bool = true;
-            while { if !__for_first_655 { i += 1; } __for_first_655 = false; i < (data.len() as i64) } {
+            let mut __for_first_656: bool = true;
+            while { if !__for_first_656 { i += 1; } __for_first_656 = false; i < (data.len() as i64) } {
             let mut balance: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);

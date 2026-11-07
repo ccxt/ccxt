@@ -5354,13 +5354,13 @@ if _try_result.is_err() {
         let mut maxLimit: i64 = 300;
         let mut limitValue: Value = self.parse_to_int(Value::Int(maxLimit.clone()));
         if (limit != Value::Null) && (limit.as_f64().unwrap_or(f64::NAN) < (maxLimit as f64)) {
-            limitValue = self.parse_to_int(limit);
+            limitValue = self.parse_to_int(limit.clone());
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
         if paginate.as_bool() == Some(true) {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limitValue.clone(), timeframe.clone(), paramsPaginate.clone(), Value::Int(299)]).await;
+            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit, timeframe.clone(), paramsPaginate.clone(), Value::Int(299)]).await;
         }
         let mut market: Value = self.market(symbol);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -5381,11 +5381,16 @@ if _try_result.is_err() {
             sinceString = crate::precise::Precise::stringSub(&now, &Value::Str(format!("{}", requestedDuration).into()));
         }
         request.insert("start".into(), sinceString.clone());
+        // 300 candles max
+        let mut windowEnd: Value = crate::precise::Precise::stringAdd(&sinceString, &Value::Str(format!("{}", requestedDuration).into()));
         if (until != Value::Null) {
-            request.insert("end".into(), self.number_to_string(self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
+            let mut endString: Value = self.number_to_string(self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })));
+            if (since != Value::Null) && crate::precise::Precise::stringLt(&windowEnd, &endString).as_bool() == Some(true) {
+                endString = windowEnd.clone();
+            }
+            request.insert("end".into(), endString);
         }  else {
-            // 300 candles max
-            request.insert("end".into(), crate::precise::Precise::stringAdd(&sinceString, &Value::Str(format!("{}", requestedDuration).into())));
+            request.insert("end".into(), windowEnd);
         }
         let mut response: Value = Value::Null;
         let usePrivateparamsUsePrivateVariable: Vec<Value> = self.handle_option_bool_and_params(paramsOmitted, Value::Str("fetchOHLCV".into()), Value::Str("usePrivate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();

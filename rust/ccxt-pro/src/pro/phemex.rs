@@ -189,6 +189,9 @@ impl crate::exchange_generated::ExchangeBase for PhemexCore {
                 "parse_ws_swap_order" => self.parse_ws_swap_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "request_id" => self.request_id(),
                 "subscribe_private" => self.subscribe_private(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
+                "un_subscribe_public" => self.un_subscribe_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+                "un_watch_ohlcv" => self.un_watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "un_watch_trades" => self.un_watch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "watch_balance" => self.watch_balance(&args[..]).await,
                 "watch_my_trades" => self.watch_my_trades(&args[..]).await,
                 "watch_ohlcv" => self.watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -226,11 +229,15 @@ impl PhemexCore {
             "handle_orders" => { self.handle_orders(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_ticker" => { self.handle_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_trades" => { self.handle_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+            "handle_un_subscription" => { self.handle_un_subscription(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "parse_perpetual_ticker" => self.parse_perpetual_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_swap_ticker" => self.parse_swap_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_ws_swap_order" => self.parse_ws_swap_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "request_id" => self.request_id(),
             "subscribe_private" => { crate::exchange_stubs::enqueue_spawn("subscribe_private", args.to_vec()); crate::Value::Null },
+            "un_subscribe_public" => { crate::exchange_stubs::enqueue_spawn("un_subscribe_public", args.to_vec()); crate::Value::Null },
+            "un_watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("un_watch_ohlcv", args.to_vec()); crate::Value::Null },
+            "un_watch_trades" => { crate::exchange_stubs::enqueue_spawn("un_watch_trades", args.to_vec()); crate::Value::Null },
             "watch_balance" => { crate::exchange_stubs::enqueue_spawn("watch_balance", args.to_vec()); crate::Value::Null },
             "watch_my_trades" => { crate::exchange_stubs::enqueue_spawn("watch_my_trades", args.to_vec()); crate::Value::Null },
             "watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("watch_ohlcv", args.to_vec()); crate::Value::Null },
@@ -267,6 +274,8 @@ impl PhemexCore {
         m.insert("watchOrders".to_string(), Value::Bool(true));
         m.insert("watchOrderBook".to_string(), Value::Bool(true));
         m.insert("watchOHLCV".to_string(), Value::Bool(true));
+        m.insert("unWatchTrades".to_string(), Value::Bool(true));
+        m.insert("unWatchOHLCV".to_string(), Value::Bool(true));
         m.insert("watchPositions".to_string(), Value::Null);
         m.insert("watchOrderBookForSymbols".to_string(), Value::Bool(false));
         m.insert("watchTradesForSymbols".to_string(), Value::Bool(false));
@@ -1104,6 +1113,147 @@ impl PhemexCore {
     Value::Null
 }
 
+    pub async fn un_subscribe_public(&mut self, mut method: Value, mut subMessageHash: Value, mut marketParams: Value, mut subscription: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
+        let mut requestId: Value = self.request_id();
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash).into());
+        let mut request: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("method".to_string(), method);
+                m.insert("id".to_string(), requestId.clone());
+                m.insert("params".to_string(), marketParams);
+            m
+        });
+        let mut unsubscription: Value = self.extend(subscription, &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("id".to_string(), requestId);
+                m.insert("unsubscribe".to_string(), Value::Bool(true));
+                m.insert("subMessageHash".to_string(), subMessageHash);
+                m.insert("messageHash".to_string(), messageHash.clone());
+            m
+        })]);
+        let __ws_arg_0 = self.deep_extend(Value::Map(request), &[params]);
+        return self.watch(url, messageHash.clone(), &[__ws_arg_0, messageHash.clone(), unsubscription]).await;
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name phemex#unWatchTrades
+ * @description unWatches from the stream channel
+ * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#unsubscribe-trade
+ * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#unsubscribe-trade
+ * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#unsubscribe-trade
+ * @param {string} symbol unified symbol of the market to unwatch the trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+    pub async fn un_watch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        self.load_markets(&[]).await;
+        let mut market: Value = self.market(symbol);
+        let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut isUsdtSwap: bool = (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT"));
+        let mut name: String = "trade".to_string();
+        if isUsdtSwap {
+            name = "trade_p".to_string();
+        }
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("topic".to_string(), Value::Str("trades".into()));
+                m.insert("symbols".to_string(), Value::from(vec![symbolValue.clone()]));
+            m
+        });
+        return self.un_subscribe_public(Value::Str(format!("{}{}", name, Value::Str(".unsubscribe".into())).into()), Value::Str(format!("{}{}", Value::Str("trade:".into()), symbolValue).into()), Value::from(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)]), Value::Map(subscription), &[params]).await;
+
+    Value::Null
+}
+
+/*
+ * @method
+ * @name phemex#unWatchOHLCV
+ * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+ * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#unsubscribe-kline
+ * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#unsubscribe-kline
+ * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#unsubscribe-kline
+ * @param {string} symbol unified symbol of the market to unwatch the candles for
+ * @param {string} [timeframe] the length of time each candle represents
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {any} status of the unwatch request
+ */
+    pub async fn un_watch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        self.load_markets(&[]).await;
+        let mut market: Value = self.market(symbol);
+        let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut isUsdtSwap: bool = (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() == Some(true)) && (market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null).as_str() == Some("USDT"));
+        let mut name: String = "kline".to_string();
+        if isUsdtSwap {
+            name = "kline_p".to_string();
+        }
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("topic".to_string(), Value::Str("ohlcv".into()));
+                m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![symbolValue.clone(), timeframe.clone()])]));
+            m
+        });
+        // phemex drops only the given interval when it is sent along with the symbol
+        let mut marketParams: Value = Value::from(vec![market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null), self.safe_integer(self.timeframes.clone(), timeframe.clone(), &[])]);
+        return self.un_subscribe_public(Value::Str(format!("{}{}", name, Value::Str(".unsubscribe".into())).into()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kline:".into()), timeframe).into()), Value::Str(":".into())).into()), symbolValue).into()), marketParams, Value::Map(subscription), &[params]).await;
+
+    Value::Null
+}
+
+    pub fn handle_un_subscription(&mut self, mut client: Value, mut message: Value) {
+        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+        let __message_empty = indexmap::IndexMap::new();
+        let message = message.as_map().unwrap_or(&__message_empty);
+        //
+        // phemex answers subscribe and unsubscribe requests alike, so the answer is matched to a pending unsubscribe by id
+        //
+        //     { "error": null, "id": 3, "result": { "status": "success" } }
+        //     { "error": { "code": 6001, "message": "invalid argument" }, "id": 2, "result": null }
+        //
+        let mut id: Value = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+        let mut subscriptionHashes: Vec<Value> = __ch.subscription_keys();
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_601: bool = true;
+            while { if !__for_first_601 { i += 1; } __for_first_601 = false; i < (subscriptionHashes.len() as i64) } {
+            let mut subscriptionHash: Value = subscriptionHashes.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut subscription: Value = __ch.get_subscription(&subscriptionHash);
+            let mut isUnSubscription: bool = self.safe_bool_k_opt(subscription.clone(), "unsubscribe", &[Value::Bool(false)]).unwrap_or(false);
+            let mut subscriptionId: Value = self.safe_string_k(subscription.clone(), "id", &[]);
+            if isUnSubscription && (subscriptionId != Value::Null) && (subscriptionId == id) {
+                let mut subMessageHash: Option<String> = self.safe_string_k_opt(subscription.clone(), "subMessageHash", &[]);
+                let mut messageHash: Option<String> = self.safe_string_k_opt(subscription.clone(), "messageHash", &[]);
+                let mut error: Value = (match message.get("error") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
+                if (error != Value::Null) {
+                    // the stream stays subscribed, so drop only the pending unsubscribe
+                    __ch.remove_subscription(&subscriptionHash);
+                    client.reject(&[Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&error)))), subscriptionHash]);
+                    return;
+                }
+                self.clean_unsubscription(client.clone(), subMessageHash.map(Value::from).unwrap_or(Value::Null), messageHash.map(Value::from).unwrap_or(Value::Null), &[]);
+                self.clean_cache(subscription);
+                return;
+            }
+        }
+        }
+}
+
     pub fn custom_handle_delta(&self, mut bookside: Value, mut delta: Value, optional_args: &[Value]) {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut bidAsk: Value = self.parent.custom_parse_bid_ask(delta, &[Value::Int(0), Value::Int(1), market]);
@@ -1116,8 +1266,8 @@ impl PhemexCore {
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_601: bool = true;
-            while { if !__for_first_601 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_601 = false; i.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
+            let mut __for_first_602: bool = true;
+            while { if !__for_first_602 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_602 = false; i.as_f64().unwrap_or(f64::NAN) < ((deltas.len() as i64) as f64) } {
             self.custom_handle_delta(bookside.clone(), deltas.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
         }
         }
@@ -1267,8 +1417,8 @@ impl PhemexCore {
                 m
             });
         }
-        let __ws_arg_0 = self.extend(params, &[Value::Map(settleRequest)]);
-        let type_varparamsTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchMyTrades".into()), &[market, __ws_arg_0]).as_array().cloned().unwrap_or_default();
+        let __ws_arg_1 = self.extend(params, &[Value::Map(settleRequest)]);
+        let type_varparamsTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchMyTrades".into()), &[market, __ws_arg_1]).as_array().cloned().unwrap_or_default();
         let mut type_var: Value = type_varparamsTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsType: Value = type_varparamsTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         if (symbol == Value::Null) {
@@ -1402,8 +1552,8 @@ impl PhemexCore {
         let mut type_var: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_602: bool = true;
-            while { if !__for_first_602 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_602 = false; i.as_f64().unwrap_or(f64::NAN) < tradesLength } {
+            let mut __for_first_603: bool = true;
+            while { if !__for_first_603 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_603 = false; i.as_f64().unwrap_or(f64::NAN) < tradesLength } {
             let mut rawTrade: Value = message.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(rawTrade.clone(), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
@@ -1422,8 +1572,8 @@ impl PhemexCore {
         let mut keys: Vec<Value> = Value::Array(marketIds.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_603: bool = true;
-            while { if !__for_first_603 { i += 1; } __for_first_603 = false; i < (keys.len() as i64) } {
+            let mut __for_first_604: bool = true;
+            while { if !__for_first_604 { i += 1; } __for_first_604 = false; i < (keys.len() as i64) } {
             let mut market: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut hash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), market).into());
             client.resolve(&[cachedTrades.clone(), hash]);
@@ -1474,8 +1624,8 @@ impl PhemexCore {
                 m
             });
         }
-        let __ws_arg_1 = self.extend(params, &[Value::Map(settleRequest)]);
-        let type_varparamsTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchOrders".into()), &[market, __ws_arg_1]).as_array().cloned().unwrap_or_default();
+        let __ws_arg_2 = self.extend(params, &[Value::Map(settleRequest)]);
+        let type_varparamsTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchOrders".into()), &[market, __ws_arg_2]).as_array().cloned().unwrap_or_default();
         let mut type_var: Value = type_varparamsTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsType: Value = type_varparamsTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut isUSDTSettled: bool = self.safe_string_k(paramsType.clone(), "settle", &[]).as_str() == Some("USDT");
@@ -1668,8 +1818,8 @@ impl PhemexCore {
             trades = self.safe_list_k(message.clone(), "fills", &[Value::from(vec![])]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_604: bool = true;
-                while { if !__for_first_604 { i += 1; } __for_first_604 = false; i < (orders.len() as i64) } {
+                let mut __for_first_605: bool = true;
+                while { if !__for_first_605 { i += 1; } __for_first_605 = false; i < (orders.len() as i64) } {
                 let mut rawOrder: Value = orders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut parsedOrder: Value = self.parse_order(rawOrder, &[]);
                 parsedOrders.push(parsedOrder.clone());
@@ -1682,8 +1832,8 @@ impl PhemexCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_605: bool = true;
-                while { if !__for_first_605 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_605 = false; i.as_f64().unwrap_or(f64::NAN) < messageLength.as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_606: bool = true;
+                while { if !__for_first_606 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_606 = false; i.as_f64().unwrap_or(f64::NAN) < messageLength.as_f64().unwrap_or(f64::NAN) } {
                 let mut update: Value = get_value(&message, &i);
                 let mut action: Option<String> = self.safe_string_k(update.clone(), "action", &[]).as_str().map(str::to_owned);
                 if (action.is_some()) && (action.as_deref() != Some("Cancel")) {
@@ -1708,8 +1858,8 @@ impl PhemexCore {
         let mut stored: Value = self.orders.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_606: bool = true;
-            while { if !__for_first_606 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_606 = false; i.as_f64().unwrap_or(f64::NAN) < ((parsedOrders.len() as i64) as f64) } {
+            let mut __for_first_607: bool = true;
+            while { if !__for_first_607 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_607 = false; i.as_f64().unwrap_or(f64::NAN) < ((parsedOrders.len() as i64) as f64) } {
             let mut parsed: Value = parsedOrders.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             stored.append(parsed.clone());
             let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1724,8 +1874,8 @@ impl PhemexCore {
         let mut keys: Vec<Value> = Value::Array(marketIds.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_607: bool = true;
-            while { if !__for_first_607 { i += 1; } __for_first_607 = false; i < (keys.len() as i64) } {
+            let mut __for_first_608: bool = true;
+            while { if !__for_first_608 { i += 1; } __for_first_608 = false; i < (keys.len() as i64) } {
             let mut currentMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orders".into()), Value::Str(":".into())).into()), keys.get(i as usize).cloned().unwrap_or(Value::Null)).into());
             client.resolve(&[self.orders.clone(), currentMessageHash]);
         }
@@ -2021,6 +2171,10 @@ impl PhemexCore {
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
                 return;
             }
+        }
+        if (matches!(&message, Value::Dict(__d) if __d.contains_key("result"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("error"))) {
+            self.handle_un_subscription(client.clone(), message.clone());
+            return;
         }
         let mut methodName: Value = (match __pro_message.get("method").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
         if (matches!(&message, Value::Dict(__d) if __d.contains_key("market24h"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("spot_market24h"))) || (methodName.as_str().unwrap_or("").contains("perp_market24h_pack_p")) {

@@ -2782,7 +2782,6 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut interval: Option<String> = self.safe_string_k_opt(kline.clone(), "i", &[]);
         // use a reverse lookup in a static map instead
         let mut unifiedTimeframe: Value = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut parsed: Value = Value::from(vec![self.safe_integer_k(kline.clone(), "t", &[]), self.safe_float_k(kline.clone(), "o", &[]), self.safe_float_k(kline.clone(), "h", &[]), self.safe_float_k(kline.clone(), "l", &[]), self.safe_float_k(kline.clone(), "c", &[]), self.safe_float_k(kline, "v", &[])]);
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
         let mut isSpot: Value = self.is_spot_url(client.clone());
@@ -2790,7 +2789,12 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if isSpot.as_bool() == Some(true) {
             marketType = "spot".to_string();
         }
-        let mut symbol: Value = self.safe_symbol(marketId, &[Value::Null, Value::Null, Value::from(marketType)]);
+        let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, Value::from(marketType)]);
+        let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        // coin-margined contracts count "v" in contracts, "q" is the base asset volume that fetchOHLCV returns
+        let mut inverse: Option<bool> = self.safe_bool_k_opt(market, "inverse", &[]);
+        let mut volumeKey: Value = (if (inverse == Some(true)) { Value::Str("q".into()) } else { Value::Str("v".into()) });
+        let mut parsed: Value = Value::from(vec![self.safe_integer_k(kline.clone(), "t", &[]), self.safe_float_k(kline.clone(), "o", &[]), self.safe_float_k(kline.clone(), "h", &[]), self.safe_float_k(kline.clone(), "l", &[]), self.safe_float_k(kline.clone(), "c", &[]), self.safe_float(kline, volumeKey, &[])]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), symbol).into()), Value::Str("::".into())).into()), unifiedTimeframe).into());
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6373,7 +6377,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         m.insert("amount".to_string(), self.safe_string_k(order.clone(), "q", &[]));
         m.insert("cost".to_string(), self.safe_string_k(order.clone(), "Z", &[]));
         m.insert("average".to_string(), self.safe_string_k(order.clone(), "ap", &[]));
-        m.insert("filled".to_string(), self.safe_string_k(order, "z", &[]));
+        m.insert("filled".to_string(), self.safe_string2(order, Value::Str("z".into()), Value::Str("aq".into()), &[]));
         m.insert("remaining".to_string(), Value::Null);
         m.insert("status".to_string(), status);
         m.insert("fee".to_string(), fee);
