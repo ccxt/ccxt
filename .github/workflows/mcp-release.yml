@@ -1,24 +1,51 @@
 name: MCP Release
 
 # Publishes the ccxt-mcp sub-package to npm, mirroring the main release workflow
-# (manual dispatch, maintainer allowlist, Node 24, npm publish with provenance via OIDC).
+# (maintainer allowlist, Node 24, npm publish with provenance via OIDC).
 # The version is bumped by the workflow itself — same `build/smart-bump.sh` + commit-back
-# pattern as release.yml — so a release is a dispatch, never a hand-edited package.json.
-# One dispatch ships all three channels: npm, the MCP registry entry, and the .mcpb bundle.
+# pattern as release.yml — so a release is a run of this workflow, never a hand-edited package.json.
+# One run ships all three channels: npm, the MCP registry entry, and the .mcpb bundle.
 # npm auth uses OIDC trusted publishing — configure a trusted publisher for the `ccxt-mcp`
 # package on npmjs pointing at this workflow (one-time setup).
+#
+# It runs after every successful ccxt release, and on manual dispatch. Each run floors the
+# `ccxt` dependency at the newest ccxt release. Without the follow-up release, ccxt updates
+# never reach existing users: npx keeps the ccxt resolved at first install until the
+# ccxt-mcp version itself changes, and the .mcpb bundle freezes ccxt at build time.
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Release workflow"]
+    types:
+      - completed
 
 permissions:
   id-token: write
   contents: write
 
+# a dispatch landing while an automatic run is in flight would recompute the same version
+# with smart-bump.sh and die at `npm publish` — queue runs instead of overlapping them
+concurrency:
+  group: mcp-release
+  cancel-in-progress: false
+
 jobs:
   publish:
     runs-on: ubuntu-latest
     environment: Prod
-    if: github.ref == 'refs/heads/master' && contains(fromJSON('["kroitor", "frosty00", "carlosmiei", "pcriadoperez"]'), github.actor)
+    # dispatch: a maintainer on master. workflow_run: a successful Release workflow that a
+    # maintainer dispatched on master (a workflow_run-triggered run always executes on the
+    # default branch, so the release's own branch and event are what need checking)
+    if: >-
+      (github.event_name == 'workflow_dispatch'
+        && github.ref == 'refs/heads/master'
+        && contains(fromJSON('["kroitor", "frosty00", "carlosmiei", "pcriadoperez"]'), github.actor))
+      || (github.event_name == 'workflow_run'
+        && github.repository == 'ccxt/ccxt'
+        && github.event.workflow_run.conclusion == 'success'
+        && github.event.workflow_run.event == 'workflow_dispatch'
+        && github.event.workflow_run.head_branch == 'master'
+        && contains(fromJSON('["kroitor", "frosty00", "carlosmiei", "pcriadoperez"]'), github.event.workflow_run.triggering_actor.login))
     outputs:
       version: ${{ steps.bump.outputs.version }}
       sha: ${{ steps.commit.outputs.sha }}
@@ -47,6 +74,33 @@ jobs:
           package-manager-cache: false  # never use caching in release builds
       - name: Install
         run: npm ci
+      # Floor ccxt at the version the Release workflow committed to master (this checkout is
+      # master's tip), so the tarball, the lockfile and the .mcpb bundle all carry it, and
+      # `npm test` below runs against it. The npm check also covers a dispatch after a release
+      # that bumped master but failed before its npm publish.
+      - name: Raise the ccxt dependency floor to the released ccxt version
+        run: |
+          CCXT_VERSION=$(node -p "require('../package.json').version")
+          CURRENT_FLOOR=$(node -p "require('./package.json').dependencies.ccxt.replace(/^[\^~]/, '')")
+          # raise only, never lower
+          if [ "$(printf '%s\n%s\n' "$CURRENT_FLOOR" "$CCXT_VERSION" | sort -V | tail -n1)" = "$CURRENT_FLOOR" ]; then
+            echo "ccxt floor ^${CURRENT_FLOOR} already covers ${CCXT_VERSION}, leaving it"
+            exit 0
+          fi
+          # npm's CDN can lag the publish the Release workflow just made
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            if [ "$(npm view "ccxt@${CCXT_VERSION}" version 2>/dev/null)" = "$CCXT_VERSION" ]; then
+              break
+            fi
+            if [ "$attempt" -eq 10 ]; then
+              echo "::error::master is at ccxt ${CCXT_VERSION} but npm does not serve it — refusing to release ccxt-mcp against a ccxt that cannot be installed"
+              exit 1
+            fi
+            echo "ccxt@${CCXT_VERSION} not on npm yet, retrying (${attempt})..."
+            sleep 30
+          done
+          npm install "ccxt@^${CCXT_VERSION}" --save --no-audit --no-fund --ignore-scripts
+          echo "ccxt dependency: $(node -p "require('./package.json').dependencies.ccxt"), locked at $(node -p "require('./package-lock.json').packages['node_modules/ccxt'].version")"
       # bump before building so the compiled server + doc manifest carry the new version.
       # smart-bump.sh reads ./package.json relative to cwd, so it bumps the mcp package
       # (not the root ccxt one) thanks to the job-level working-directory.
@@ -173,7 +227,8 @@ jobs:
     needs: publish
     runs-on: ubuntu-latest
     environment: Prod
-    if: github.ref == 'refs/heads/master' && contains(fromJSON('["kroitor", "frosty00", "carlosmiei", "pcriadoperez"]'), github.actor)
+    # the maintainer/trigger gate lives on `publish`; this job only ever follows its success
+    if: needs.publish.result == 'success'
     permissions:
       contents: write
     defaults:
