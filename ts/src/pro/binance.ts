@@ -4811,7 +4811,7 @@ export default class binance extends binanceRest {
             'amount': this.safeString (order, 'q'),
             'cost': this.safeString (order, 'Z'),
             'average': this.safeString (order, 'ap'),
-            'filled': this.safeString (order, 'z'),
+            'filled': this.safeString2 (order, 'z', 'aq'), // aq: ALGO_UPDATE executed quantity
             'remaining': undefined,
             'status': status,
             'fee': fee,
