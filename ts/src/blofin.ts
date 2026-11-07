@@ -1549,8 +1549,11 @@ export default class blofin extends Exchange {
         let fee: Fee = undefined;
         if (feeCostString !== undefined) {
             const feeCostSigned = Precise.stringAbs (feeCostString);
-            const feeCurrencyId = this.safeString (order, 'feeCcy', 'USDT');
-            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            const feeCurrencyId = this.safeString (order, 'feeCcy');
+            let feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            if (feeCurrencyCode === undefined) {
+                feeCurrencyCode = this.safeString (marketResolved, 'settle');
+            }
             fee = {
                 'cost': this.parseNumber (feeCostSigned),
                 'currency': feeCurrencyCode,
