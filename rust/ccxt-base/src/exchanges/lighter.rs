@@ -1179,8 +1179,8 @@ impl LighterCore {
         }
         {
                         let mut i: Value = Value::Int(1);
-            let mut __for_first_926: bool = true;
-            while { if !__for_first_926 { if let Value::Int(__n) = &mut i { *__n += 1; } } __for_first_926 = false; i.as_f64().unwrap_or(f64::NAN) < c.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_927: bool = true;
+            while { if !__for_first_927 { if let Value::Int(__n) = &mut i { *__n += 1; } } __for_first_927 = false; i.as_f64().unwrap_or(f64::NAN) < c.as_f64().unwrap_or(f64::NAN) } {
             r = crate::precise::Precise::stringMul(&r, &n);
         }
         }
@@ -1676,8 +1676,8 @@ if _try_result.is_err() {
             let mut groupOrderExpiry: Value = self.sum(&[self.milliseconds(), Value::Int(2419200000)]); // 28 days
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_927: bool = true;
-                while { if !__for_first_927 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_927 = false; i.as_f64().unwrap_or(f64::NAN) < totalOrderRequests } {
+                let mut __for_first_928: bool = true;
+                while { if !__for_first_928 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_928 = false; i.as_f64().unwrap_or(f64::NAN) < totalOrderRequests } {
                 if (self.safe_integer(orderRequests.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("order_expiry".into()), &[]).as_f64() == Value::Int(-1).as_f64()) {
                     add_element_to_object(get_value_mut(&mut orderRequests, &i), &Value::Str("order_expiry".into()), groupOrderExpiry.clone());
                 }
@@ -2001,8 +2001,8 @@ if _try_result.is_err() {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_928: bool = true;
-            while { if !__for_first_928 { i += 1; } __for_first_928 = false; i < (markets.len() as i64) } {
+            let mut __for_first_929: bool = true;
+            while { if !__for_first_929 { i += 1; } __for_first_929 = false; i < (markets.len() as i64) } {
             let mut market: Value = markets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "market_id", &[]);
             let mut type_var: Value = self.safe_string_k(market.clone(), "market_type", &[]);
@@ -2656,8 +2656,8 @@ if _try_result.is_err() {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_929: bool = true;
-            while { if !__for_first_929 { i += 1; } __for_first_929 = false; i < (data.len() as i64) } {
+            let mut __for_first_930: bool = true;
+            while { if !__for_first_930 { i += 1; } __for_first_930 = false; i < (data.len() as i64) } {
             let mut exchange: Option<String> = self.safe_string_k(data.get(i as usize).cloned().unwrap_or(Value::Null), "exchange", &[]).as_str().map(str::to_owned);
             if (exchange.as_deref() == Some("lighter")) {
                 result.push(data.get(i as usize).cloned().unwrap_or(Value::Null));
@@ -2753,15 +2753,15 @@ if _try_result.is_err() {
         let mut accounts: Value = self.safe_list_k(response, "accounts", &[Value::from(vec![])]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_931: bool = true;
-            while { if !__for_first_931 { i += 1; } __for_first_931 = false; i < (accounts.len() as i64) } {
+            let mut __for_first_932: bool = true;
+            while { if !__for_first_932 { i += 1; } __for_first_932 = false; i < (accounts.len() as i64) } {
             let mut account: Value = self.safe_dict(accounts.clone(), Value::Int(i), &[]);
             if (type_var.as_deref() == Some("spot")) {
                 let mut assets: Value = self.safe_list_k(account.clone(), "assets", &[Value::from(vec![])]);
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_930: bool = true;
-                    while { if !__for_first_930 { j += 1; } __for_first_930 = false; j < (assets.len() as i64) } {
+                    let mut __for_first_931: bool = true;
+                    while { if !__for_first_931 { j += 1; } __for_first_931 = false; j < (assets.len() as i64) } {
                     let mut asset: Value = self.safe_dict(assets.clone(), Value::Int(j), &[]);
                     let mut codeId: Option<String> = self.safe_string_k_opt(asset.clone(), "symbol", &[]);
                     let mut code: Value = self.safe_currency_code(codeId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -2909,14 +2909,14 @@ if _try_result.is_err() {
         let mut accounts: Value = self.safe_list_k(response, "accounts", &[Value::from(vec![])]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_933: bool = true;
-            while { if !__for_first_933 { i += 1; } __for_first_933 = false; i < (accounts.len() as i64) } {
+            let mut __for_first_934: bool = true;
+            while { if !__for_first_934 { i += 1; } __for_first_934 = false; i < (accounts.len() as i64) } {
             let mut account: Value = self.safe_dict(accounts.clone(), Value::Int(i), &[]);
             let mut positions: Vec<Value> = self.safe_list_k(account, "positions", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_932: bool = true;
-                while { if !__for_first_932 { j += 1; } __for_first_932 = false; j < (positions.len() as i64) } {
+                let mut __for_first_933: bool = true;
+                while { if !__for_first_933 { j += 1; } __for_first_933 = false; j < (positions.len() as i64) } {
                 allPositions.push(positions.get(j as usize).cloned().unwrap_or(Value::Null));
             }
             }
@@ -4162,8 +4162,8 @@ if _try_result.is_err() {
         let mut data: Value = self.safe_list_k(response.clone(), "trades", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_934: bool = true;
-            while { if !__for_first_934 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_934 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
+            let mut __for_first_935: bool = true;
+            while { if !__for_first_935 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_935 = false; i.as_f64().unwrap_or(f64::NAN) < ((data.len() as i64) as f64) } {
             add_element_to_object(get_value_mut(&mut data, &i), &Value::Str("account_index".into()), accountIndex.clone());
         }
         }

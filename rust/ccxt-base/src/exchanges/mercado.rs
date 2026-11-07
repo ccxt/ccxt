@@ -599,8 +599,8 @@ impl MercadoCore {
         let mut coins: Value = self.to_array(response);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_940: bool = true;
-            while { if !__for_first_940 { i += 1; } __for_first_940 = false; i < (coins.len() as i64) } {
+            let mut __for_first_941: bool = true;
+            while { if !__for_first_941 { i += 1; } __for_first_941 = false; i < (coins.len() as i64) } {
             let mut coin: Value = self.safe_string(coins.clone(), Value::Int(i), &[Value::Str("".into())]);
             let mut baseId: Value = coin.clone();
             let mut quoteId: String = "BRL".to_string();
@@ -892,8 +892,8 @@ impl MercadoCore {
         let mut currencyIds: Vec<Value> = Value::Array(balances.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_941: bool = true;
-            while { if !__for_first_941 { i += 1; } __for_first_941 = false; i < (currencyIds.len() as i64) } {
+            let mut __for_first_942: bool = true;
+            while { if !__for_first_942 { i += 1; } __for_first_942 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Value = currencyIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             if (matches!((&balances, &currencyId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -1514,13 +1514,13 @@ impl MercadoCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_943: bool = true;
-            while { if !__for_first_943 { i += 1; } __for_first_943 = false; i < (orders.len() as i64) } {
+            let mut __for_first_944: bool = true;
+            while { if !__for_first_944 { i += 1; } __for_first_944 = false; i < (orders.len() as i64) } {
             let mut trades: Vec<Value> = self.safe_list(self.safe_value(orders.clone(), Value::Int(i), &[]), Value::Str("trades".into()), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut y: i64 = 0;
-                let mut __for_first_942: bool = true;
-                while { if !__for_first_942 { y += 1; } __for_first_942 = false; y < (trades.len() as i64) } {
+                let mut __for_first_943: bool = true;
+                while { if !__for_first_943 { y += 1; } __for_first_943 = false; y < (trades.len() as i64) } {
                 result.push(trades.get(y as usize).cloned().unwrap_or(Value::Null));
             }
             }

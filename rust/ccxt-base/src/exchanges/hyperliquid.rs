@@ -892,8 +892,8 @@ impl HyperliquidCore {
                 let mut nameWithoutU: Value = Value::Str("".into());
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_794: bool = true;
-                    while { if !__for_first_794 { j += 1; } __for_first_794 = false; j < (parts.len() as i64) } {
+                    let mut __for_first_795: bool = true;
+                    while { if !__for_first_795 { j += 1; } __for_first_795 = false; j < (parts.len() as i64) } {
                     nameWithoutU = Value::Str(format!("{}{}", nameWithoutU, parts.get(j as usize).cloned().unwrap_or(Value::Null)).into());
                 }
                 }
@@ -930,8 +930,8 @@ impl HyperliquidCore {
         let mut rawPromises: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_795: bool = true;
-            while { if !__for_first_795 { i += 1; } __for_first_795 = false; i < (types.len() as i64) } {
+            let mut __for_first_796: bool = true;
+            while { if !__for_first_796 { i += 1; } __for_first_796 = false; i < (types.len() as i64) } {
             let mut marketType: Option<String> = self.safe_string(types.clone(), Value::Int(i), &[]).as_str().map(str::to_owned);
             if (marketType.as_deref() == Some("swap")) {
                 rawPromises.push(self.fetch_swap_markets(&[params.clone()]).await);
@@ -946,8 +946,8 @@ impl HyperliquidCore {
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_796: bool = true;
-            while { if !__for_first_796 { i += 1; } __for_first_796 = false; i < (promises.len() as i64) } {
+            let mut __for_first_797: bool = true;
+            while { if !__for_first_797 { i += 1; } __for_first_797 = false; i < (promises.len() as i64) } {
             result = self.array_concat(result.clone(), self.safe_list(promises.clone(), Value::Int(i), &[Value::from(vec![])]));
         }
         }
@@ -1000,8 +1000,8 @@ impl HyperliquidCore {
         let mut dexesCount: Value = get_array_length(&fetchDexes);
         {
                         let mut i: Value = Value::Int(1);
-            let mut __for_first_797: bool = true;
-            while { if !__for_first_797 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_797 = false; i.as_f64().unwrap_or(f64::NAN) < dexesCount.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_798: bool = true;
+            while { if !__for_first_798 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_798 = false; i.as_f64().unwrap_or(f64::NAN) < dexesCount.as_f64().unwrap_or(f64::NAN) } {
             // builder-deployed perp dexs start at 110000
             let mut dex: Value = self.safe_dict(fetchDexes.clone(), i.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1039,8 +1039,8 @@ impl HyperliquidCore {
             let mut maxIteration: Value = self.sum(&[maxLimit, Value::Int(1)]);
             {
                                 let mut i: Value = Value::Int(1);
-                let mut __for_first_798: bool = true;
-                while { if !__for_first_798 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_798 = false; i.as_f64().unwrap_or(f64::NAN) < maxIteration.as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_799: bool = true;
+                while { if !__for_first_799 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_799 = false; i.as_f64().unwrap_or(f64::NAN) < maxIteration.as_f64().unwrap_or(f64::NAN) } {
                 if i.as_f64().unwrap_or(f64::NAN) >= fetchDexesLength.as_f64().unwrap_or(f64::NAN) {
                     break;
                 }
@@ -1059,8 +1059,8 @@ impl HyperliquidCore {
         let mut rawPromises: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_799: bool = true;
-            while { if !__for_first_799 { i += 1; } __for_first_799 = false; i < (fetchDexesList.len() as i64) } {
+            let mut __for_first_800: bool = true;
+            while { if !__for_first_800 { i += 1; } __for_first_800 = false; i < (fetchDexesList.len() as i64) } {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("metaAndAssetCtxs".into()));
@@ -1079,8 +1079,8 @@ impl HyperliquidCore {
         let mut markets: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_801: bool = true;
-            while { if !__for_first_801 { i += 1; } __for_first_801 = false; i < (promises.len() as i64) } {
+            let mut __for_first_802: bool = true;
+            while { if !__for_first_802 { i += 1; } __for_first_802 = false; i < (promises.len() as i64) } {
             let mut dexName: Value = fetchDexesList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut offset: Option<i64> = self.safe_integer(perpDexesOffset.clone(), dexName.clone(), &[]).as_i64();
             let mut response: Value = self.safe_list(promises.clone(), Value::Int(i), &[]);
@@ -1094,8 +1094,8 @@ impl HyperliquidCore {
             let mut result: Vec<Value> = Vec::new();
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_800: bool = true;
-                while { if !__for_first_800 { j += 1; } __for_first_800 = false; j < (universe.len() as i64) } {
+                let mut __for_first_801: bool = true;
+                while { if !__for_first_801 { j += 1; } __for_first_801 = false; j < (universe.len() as i64) } {
                 let __ws_arg_4 = self.safe_dict(universe.clone(), Value::Int(j), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1203,8 +1203,8 @@ impl HyperliquidCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_802: bool = true;
-            while { if !__for_first_802 { i += 1; } __for_first_802 = false; i < (universe.len() as i64) } {
+            let mut __for_first_803: bool = true;
+            while { if !__for_first_803 { i += 1; } __for_first_803 = false; i < (universe.len() as i64) } {
             let __ws_arg_7 = self.safe_dict(universe.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1350,8 +1350,8 @@ impl HyperliquidCore {
         let mut markets: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_803: bool = true;
-            while { if !__for_first_803 { i += 1; } __for_first_803 = false; i < (meta.len() as i64) } {
+            let mut __for_first_804: bool = true;
+            while { if !__for_first_804 { i += 1; } __for_first_804 = false; i < (meta.len() as i64) } {
             let mut market: Value = self.safe_dict(meta.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1732,8 +1732,8 @@ impl HyperliquidCore {
             });
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_804: bool = true;
-                while { if !__for_first_804 { i += 1; } __for_first_804 = false; i < (balances.len() as i64) } {
+                let mut __for_first_805: bool = true;
+                while { if !__for_first_805 { i += 1; } __for_first_805 = false; i < (balances.len() as i64) } {
                 let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
                 let mut unifiedCode: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "coin", &[]), &[]);
                 let mut code: Value = (if (isSpot) { self.update_spot_currency_code(unifiedCode.clone()) } else { unifiedCode });
@@ -1896,8 +1896,8 @@ impl HyperliquidCore {
         };
         {
                         let mut i: i64 = 0;
-            let mut __for_first_805: bool = true;
-            while { if !__for_first_805 { i += 1; } __for_first_805 = false; i < (response.len() as i64) } {
+            let mut __for_first_806: bool = true;
+            while { if !__for_first_806 { i += 1; } __for_first_806 = false; i < (response.len() as i64) } {
             let mut market: Value = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut info: Value = self.safe_dict_k(market.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2010,8 +2010,8 @@ impl HyperliquidCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_806: bool = true;
-            while { if !__for_first_806 { i += 1; } __for_first_806 = false; i < (universe.len() as i64) } {
+            let mut __for_first_807: bool = true;
+            while { if !__for_first_807 { i += 1; } __for_first_807 = false; i < (universe.len() as i64) } {
             let __ws_arg_13 = self.safe_dict(universe.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3223,8 +3223,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut ordersToBeParsed: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_807: bool = true;
-            while { if !__for_first_807 { i += 1; } __for_first_807 = false; i < (statuses.len() as i64) } {
+            let mut __for_first_808: bool = true;
+            while { if !__for_first_808 { i += 1; } __for_first_808 = false; i < (statuses.len() as i64) } {
             let mut order: Value = statuses.get(i as usize).cloned().unwrap_or(Value::Null);
             if (order.as_str() == Some("waitingForTrigger")) {
                 ordersToBeParsed.push(Value::Map({
@@ -3355,8 +3355,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut ordersLength: f64 = ((orders.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_808: bool = true;
-            while { if !__for_first_808 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_808 = false; i.as_f64().unwrap_or(f64::NAN) < ordersLength } {
+            let mut __for_first_809: bool = true;
+            while { if !__for_first_809 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_809 = false; i.as_f64().unwrap_or(f64::NAN) < ordersLength } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
             let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3371,8 +3371,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if hasClientOrderId {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_809: bool = true;
-                while { if !__for_first_809 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_809 = false; i.as_f64().unwrap_or(f64::NAN) < ordersLength } {
+                let mut __for_first_810: bool = true;
+                while { if !__for_first_810 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_810 = false; i.as_f64().unwrap_or(f64::NAN) < ordersLength } {
                 let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
                 let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3391,8 +3391,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut grouping: Value = Value::Str("na".into());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_810: bool = true;
-            while { if !__for_first_810 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_810 = false; i.as_f64().unwrap_or(f64::NAN) < ordersLength } {
+            let mut __for_first_811: bool = true;
+            while { if !__for_first_811 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_811 = false; i.as_f64().unwrap_or(f64::NAN) < ordersLength } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             let mut market: Value = self.market(marketId.map(Value::from).unwrap_or(Value::Null));
@@ -3587,8 +3587,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut orders: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_811: bool = true;
-            while { if !__for_first_811 { i += 1; } __for_first_811 = false; i < (statuses.len() as i64) } {
+            let mut __for_first_812: bool = true;
+            while { if !__for_first_812 { i += 1; } __for_first_812 = false; i < (statuses.len() as i64) } {
             let mut status: Value = statuses.get(i as usize).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut orders { std::sync::Arc::make_mut(__a).push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3732,8 +3732,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             cancelAction.insert("type".into(), Value::Str("cancelByCloid".into()));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_812: bool = true;
-                while { if !__for_first_812 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_812 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(clientOrderId.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_813: bool = true;
+                while { if !__for_first_813 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_813 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(clientOrderId.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 cancelReq.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("asset".to_string(), baseId.clone());
@@ -3746,8 +3746,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             cancelAction.insert("type".into(), Value::Str("cancel".into()));
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_813: bool = true;
-                while { if !__for_first_813 { i += 1; } __for_first_813 = false; i < (ids.len() as i64) } {
+                let mut __for_first_814: bool = true;
+                while { if !__for_first_814 { i += 1; } __for_first_814 = false; i < (ids.len() as i64) } {
                 let mut o: Value = self.parse_to_numeric(self.safe_string(ids.clone(), Value::Int(i), &[]));
                 cancelReq.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -3817,8 +3817,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut cancelByCloid: bool = false;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_814: bool = true;
-            while { if !__for_first_814 { i += 1; } __for_first_814 = false; i < (orders.len() as i64) } {
+            let mut __for_first_815: bool = true;
+            while { if !__for_first_815 { i += 1; } __for_first_815 = false; i < (orders.len() as i64) } {
             let mut order: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut clientOrderId: Value = self.safe_string_k(order.clone(), "clientOrderId", &[]);
             if (clientOrderId != Value::Null) {
@@ -3928,8 +3928,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut ordersLength: f64 = ((orders.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_815: bool = true;
-            while { if !__for_first_815 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_815 = false; i.as_f64().unwrap_or(f64::NAN) < ordersLength } {
+            let mut __for_first_816: bool = true;
+            while { if !__for_first_816 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_816 = false; i.as_f64().unwrap_or(f64::NAN) < ordersLength } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
             let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3944,8 +3944,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if hasClientOrderId {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_816: bool = true;
-                while { if !__for_first_816 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_816 = false; i.as_f64().unwrap_or(f64::NAN) < ordersLength } {
+                let mut __for_first_817: bool = true;
+                while { if !__for_first_817 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_817 = false; i.as_f64().unwrap_or(f64::NAN) < ordersLength } {
                 let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
                 let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3962,8 +3962,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut modifies: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_817: bool = true;
-            while { if !__for_first_817 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_817 = false; i.as_f64().unwrap_or(f64::NAN) < ordersLength } {
+            let mut __for_first_818: bool = true;
+            while { if !__for_first_818 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_818 = false; i.as_f64().unwrap_or(f64::NAN) < ordersLength } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
             let mut id: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "id", &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
@@ -4311,8 +4311,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_818: bool = true;
-            while { if !__for_first_818 { i += 1; } __for_first_818 = false; i < (fundings.len() as i64) } {
+            let mut __for_first_819: bool = true;
+            while { if !__for_first_819 { i += 1; } __for_first_819 = false; i < (fundings.len() as i64) } {
             let mut entry: Value = self.safe_dict(fundings.clone(), Value::Int(i), &[]);
             let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "time", &[]).as_i64();
             result.push(Value::Map({
@@ -4415,8 +4415,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_819: bool = true;
-            while { if !__for_first_819 { i += 1; } __for_first_819 = false; i < (rawOrders.len() as i64) } {
+            let mut __for_first_820: bool = true;
+            while { if !__for_first_820 { i += 1; } __for_first_820 = false; i < (rawOrders.len() as i64) } {
             let mut order: Value = self.safe_dict(rawOrders.clone(), Value::Int(i), &[]);
             let mut extendOrder: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -4596,8 +4596,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_820: bool = true;
-            while { if !__for_first_820 { i += 1; } __for_first_820 = false; i < (historicalOrders.len() as i64) } {
+            let mut __for_first_821: bool = true;
+            while { if !__for_first_821 { i += 1; } __for_first_821 = false; i < (historicalOrders.len() as i64) } {
             let mut rawOrder: Value = historicalOrders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut entry: Value = self.safe_dict_k(rawOrder.clone(), "order", &[rawOrder.clone()]);
             let mut oid: Option<String> = self.safe_string_k_opt(entry, "oid", &[]);
@@ -5154,8 +5154,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut user: Option<String> = self.safe_string_lower_k_opt(Value::Map(request), "user", &[]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_821: bool = true;
-                while { if !__for_first_821 { i += 1; } __for_first_821 = false; i < (response.len() as i64) } {
+                let mut __for_first_822: bool = true;
+                while { if !__for_first_822 { i += 1; } __for_first_822 = false; i < (response.len() as i64) } {
                 let mut fill: Value = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5251,8 +5251,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut dexName: Value = self.get_dex_from_hip3_symbol(firstMarket).map(Value::from).unwrap_or(Value::Null);
         {
                         let mut i: Value = Value::Int(1);
-            let mut __for_first_822: bool = true;
-            while { if !__for_first_822 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_822 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
+            let mut __for_first_823: bool = true;
+            while { if !__for_first_823 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_823 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
             let mut market: Value = self.market(symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             let mut currentDexName: Value = self.get_dex_from_hip3_symbol(market).map(Value::from).unwrap_or(Value::Null);
             if (currentDexName != dexName) {
@@ -5351,8 +5351,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_823: bool = true;
-            while { if !__for_first_823 { i += 1; } __for_first_823 = false; i < (data.len() as i64) } {
+            let mut __for_first_824: bool = true;
+            while { if !__for_first_824 { i += 1; } __for_first_824 = false; i < (data.len() as i64) } {
             result.push(self.parse_position(data.get(i as usize).cloned().unwrap_or(Value::Null), &[]));
         }
         }
@@ -6393,8 +6393,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut deposits: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_824: bool = true;
-            while { if !__for_first_824 { i += 1; } __for_first_824 = false; i < (records.len() as i64) } {
+            let mut __for_first_825: bool = true;
+            while { if !__for_first_825 { i += 1; } __for_first_825 = false; i < (records.len() as i64) } {
             let mut record: Value = records.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if (self.safe_string_k(record.clone(), "type", &[]).as_str() == Some("vaultDeposit")) {
                 let mut delta: Value = self.safe_dict_k(record.clone(), "delta", &[Value::Map({
@@ -6487,8 +6487,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut withdrawals: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_825: bool = true;
-            while { if !__for_first_825 { i += 1; } __for_first_825 = false; i < (records.len() as i64) } {
+            let mut __for_first_826: bool = true;
+            while { if !__for_first_826 { i += 1; } __for_first_826 = false; i < (records.len() as i64) } {
             let mut record: Value = records.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if (self.safe_string_k(record.clone(), "type", &[]).as_str() == Some("vaultWithdraw")) {
                 let mut delta: Value = self.safe_dict_k(record.clone(), "delta", &[Value::Map({
@@ -6785,8 +6785,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut records: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_826: bool = true;
-            while { if !__for_first_826 { i += 1; } __for_first_826 = false; i < (data.len() as i64) } {
+            let mut __for_first_827: bool = true;
+            while { if !__for_first_827 { i += 1; } __for_first_827 = false; i < (data.len() as i64) } {
             let mut record: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6894,8 +6894,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut statuses: Vec<Value> = self.safe_list_k(data.clone(), "statuses", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_827: bool = true;
-                while { if !__for_first_827 { i += 1; } __for_first_827 = false; i < (statuses.len() as i64) } {
+                let mut __for_first_828: bool = true;
+                while { if !__for_first_828 { i += 1; } __for_first_828 = false; i < (statuses.len() as i64) } {
                 message = self.safe_string_k(statuses.get(i as usize).cloned().unwrap_or(Value::Null), "error", &[]);
                 if (message != Value::Null) {
                     break;

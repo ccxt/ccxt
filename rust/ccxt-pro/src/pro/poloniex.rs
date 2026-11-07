@@ -2027,7 +2027,7 @@ impl PoloniexCore {
             self.handle_authenticate(client.clone(), message.clone());
         }  else if (type_var.is_none()) {
             self.handle_order_request(client.clone(), message.clone());
-        }  else {
+        }  else if (method != Value::Null) {
             let mut data: Vec<Value> = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
             let mut dataLength: f64 = ((data.len() as i64) as f64);
             if dataLength > ((0i64) as f64) {
