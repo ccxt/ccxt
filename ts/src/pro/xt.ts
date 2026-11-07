@@ -696,7 +696,7 @@ export default class xt extends xtRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!this.safeBool (market, 'swap', false)) {
+        if (!market['swap']) {
             throw new NotSupported (this.id + ' watchFundingRate() supports swap contracts only');
         }
         return await this.subscribe ('fund_rate@' + this.safeString (market, 'id', ''), 'public', 'watchFundingRate', market, undefined, params);
@@ -716,7 +716,7 @@ export default class xt extends xtRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!this.safeBool (market, 'swap', false)) {
+        if (!market['swap']) {
             throw new NotSupported (this.id + ' unWatchFundingRate() supports swap contracts only');
         }
         const name = 'fund_rate@' + this.safeString (market, 'id', '');
@@ -1578,7 +1578,7 @@ export default class xt extends xtRest {
         const market = this.market (tradeSymbol);
         stored.append (parsedTrade);
         let tradeType: Str = 'spot';
-        if (this.safeBool (market, 'contract', false)) {
+        if (market['contract']) {
             tradeType = 'contract';
         }
         client.resolve (stored, 'trade::' + tradeType);

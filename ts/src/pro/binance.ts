@@ -777,9 +777,9 @@ export default class binance extends binanceRest {
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false, true, true);
         const firstMarket = this.market (symbolsNormalized[0]);
         let type: string = firstMarket['type'];
-        if (this.safeBool (firstMarket, 'option', false)) {
+        if (firstMarket['option']) {
             type = 'option';
-        } else if (this.safeBool (firstMarket, 'contract', false)) {
+        } else if (firstMarket['contract']) {
             type = (this.safeBool (firstMarket, 'linear', false)) ? 'linear' : 'inverse';
         }
         let name = 'depth';
@@ -859,9 +859,9 @@ export default class binance extends binanceRest {
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false, true, true);
         const firstMarket = this.market (symbolsNormalized[0]);
         let type: string = firstMarket['type'];
-        if (this.safeBool (firstMarket, 'option', false)) {
+        if (firstMarket['option']) {
             type = 'option';
-        } else if (this.safeBool (firstMarket, 'contract', false)) {
+        } else if (firstMarket['contract']) {
             type = (this.safeBool (firstMarket, 'linear', false)) ? 'linear' : 'inverse';
         }
         const name = 'depth';
@@ -1306,7 +1306,7 @@ export default class binance extends binanceRest {
         const isOption = firstMarket['option'];
         if (isOption === true) {
             type = 'option';
-        } else if (this.safeBool (firstMarket, 'contract', false)) {
+        } else if (firstMarket['contract']) {
             type = (this.safeBool (firstMarket, 'linear', false)) ? 'linear' : 'inverse';
         }
         const messageHashes: string[] = [];
@@ -1396,7 +1396,7 @@ export default class binance extends binanceRest {
         const isOption = firstMarket['option'];
         if (isOption === true) {
             type = 'option';
-        } else if (this.safeBool (firstMarket, 'contract', false)) {
+        } else if (firstMarket['contract']) {
             type = (this.safeBool (firstMarket, 'linear', false)) ? 'linear' : 'inverse';
         }
         const subMessageHashes: string[] = [];
@@ -1777,10 +1777,10 @@ export default class binance extends binanceRest {
         const firstMarket = this.market (marketSymbols[0]);
         let type: string = firstMarket['type'];
         let wsUrlType: Str = type;
-        if (this.safeBool (firstMarket, 'option', false)) {
+        if (firstMarket['option']) {
             type = 'option';
             wsUrlType = 'optionMarket'; // eOptions klines are served from /market/ws
-        } else if (this.safeBool (firstMarket, 'contract', false)) {
+        } else if (firstMarket['contract']) {
             type = (this.safeBool (firstMarket, 'linear', false)) ? 'linear' : 'inverse';
             wsUrlType = type;
         }
@@ -1859,10 +1859,10 @@ export default class binance extends binanceRest {
         const firstMarket = this.market (marketSymbols[0]);
         let type: string = firstMarket['type'];
         let wsUrlType: Str = type;
-        if (this.safeBool (firstMarket, 'option', false)) {
+        if (firstMarket['option']) {
             type = 'option';
             wsUrlType = 'optionMarket'; // eOptions klines are served from /market/ws
-        } else if (this.safeBool (firstMarket, 'contract', false)) {
+        } else if (firstMarket['contract']) {
             type = (this.safeBool (firstMarket, 'linear', false)) ? 'linear' : 'inverse';
             wsUrlType = type;
         }

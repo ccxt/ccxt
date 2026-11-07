@@ -1547,7 +1547,7 @@ export default class whitebit extends Exchange {
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const symbol = symbolsNormalized[i];
                 const market = this.market (symbol);
-                if (!this.safeBool (market, 'contract', false)) {
+                if (!market['contract']) {
                     onlyContractSymbols = false;
                     break;
                 }

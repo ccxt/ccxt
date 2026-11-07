@@ -1507,7 +1507,7 @@ export default class xt extends Exchange {
         }
         let limitResolved: Int = limit;
         if (limit !== undefined) {
-            const maxLimit = (this.safeBool (market, 'spot', false)) ? 1000 : 1500; // spot : derivatives max limit
+            const maxLimit = (market['spot']) ? 1000 : 1500; // spot : derivatives max limit
             limitResolved = Math.min (limit, maxLimit);
             request['limit'] = limitResolved;
         } else {
@@ -1634,7 +1634,7 @@ export default class xt extends Exchange {
             'symbol': market['id'],
         };
         let response = undefined;
-        if (this.safeBool (market, 'spot', false)) {
+        if (market['spot']) {
             if (limit !== undefined) {
                 request['limit'] = Math.min (limit, 500);
             }
@@ -1699,7 +1699,7 @@ export default class xt extends Exchange {
         //
         const orderBook = this.safeDict (response, 'result', {});
         const timestamp = this.safeInteger2 (orderBook, 'timestamp', 't');
-        if (this.safeBool (market, 'spot', false)) {
+        if (market['spot']) {
             const ob = this.parseOrderBook (orderBook, symbol, timestamp);
             ob['nonce'] = this.safeInteger (orderBook, 'lastUpdateId');
             return ob;
@@ -1781,7 +1781,7 @@ export default class xt extends Exchange {
         //         }
         //     }
         //
-        if (this.safeBool (market, 'spot', false)) {
+        if (market['spot']) {
             const tickers = this.safeList (response, 'result', []);
             return this.parseTicker (tickers[0], market);
         }
@@ -2037,7 +2037,7 @@ export default class xt extends Exchange {
         let baseVolume = this.safeString2 (ticker, 'a', 'q');
         let quoteVolume = this.safeString (ticker, 'v');
         const contractSize = this.safeString (marketResolved, 'contractSize');
-        if ((this.safeBool (marketResolved, 'contract', false)) && (contractSize !== undefined)) {
+        if ((marketResolved['contract']) && (contractSize !== undefined)) {
             // 'a' counts contracts, 'v' is in the settle currency
             const contractVolume = Precise.stringMul (baseVolume, contractSize);
             if (this.safeBool (marketResolved, 'inverse', false)) {
@@ -2092,7 +2092,7 @@ export default class xt extends Exchange {
             'symbol': market['id'],
         };
         let response = undefined;
-        if (this.safeBool (market, 'spot', false)) {
+        if (market['spot']) {
             if (limit !== undefined) {
                 request['limit'] = Math.min (limit, 1000);
             }
@@ -2575,7 +2575,7 @@ export default class xt extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!this.safeBool (market, 'spot', false)) {
+        if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         return await this.createOrder (symbol, 'market', 'buy', cost, 1, params);
@@ -2616,7 +2616,7 @@ export default class xt extends Exchange {
         }
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
-        if (this.safeBool (market, 'spot', false)) {
+        if (market['spot']) {
             const isTrailing = ('trailingPercent' in params) || ('trailingAmount' in params) || ('trailingTriggerPrice' in params);
             if (isTrailing) {
                 // do not silently place a regular spot order when a trailing order was requested
@@ -2748,7 +2748,7 @@ export default class xt extends Exchange {
         const isStopLoss = (stopLoss !== undefined);
         const isTakeProfit = (takeProfit !== undefined);
         const isTrailing = (trailingPercent !== undefined) || (trailingAmount !== undefined);
-        if (isTrailing && (!this.safeBool (market, 'swap', false))) {
+        if (isTrailing && (!market['swap'])) {
             throw new NotSupported (this.id + ' createOrder() trailing orders are only supported on swap markets');
         }
         if ((trailingTriggerPrice !== undefined) && !isTrailing) {
@@ -4491,7 +4491,7 @@ export default class xt extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!this.safeBool (market, 'contract', false)) {
+        if (!market['contract']) {
             throw new NotSupported (this.id + ' setLeverage() supports contract markets only');
         }
         const request: Dict = {
@@ -4794,7 +4794,7 @@ export default class xt extends Exchange {
             return await this.fetchPaginatedCallCursor ('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'id', 'id', 1, 200) as FundingRateHistory[];
         }
         const market = this.market (symbol);
-        if (!this.safeBool (market, 'swap', false)) {
+        if (!market['swap']) {
             throw new NotSupported (this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
         const request: Dict = {
@@ -4880,7 +4880,7 @@ export default class xt extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!this.safeBool (market, 'swap', false)) {
+        if (!market['swap']) {
             throw new NotSupported (this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request: Dict = {
@@ -4958,7 +4958,7 @@ export default class xt extends Exchange {
     override async fetchOpenInterest (symbol: string, params: Dict = {}): Promise<OpenInterest> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!this.safeBool (market, 'swap', false)) {
+        if (!market['swap']) {
             throw new NotSupported (this.id + ' fetchOpenInterest() supports swap contracts only');
         }
         const request: Dict = {
@@ -5022,7 +5022,7 @@ export default class xt extends Exchange {
     override async fetchTradingFee (symbol: string, params: Dict = {}): Promise<TradingFeeInterface> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!this.safeBool (market, 'contract', false)) {
+        if (!market['contract']) {
             throw new NotSupported (this.id + ' fetchTradingFee() supports contract markets only');
         }
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchTradingFee', market, params);
@@ -5087,7 +5087,7 @@ export default class xt extends Exchange {
             const symbol = symbols[i];
             const market = this.market (symbol);
             const matchesSubType = (isInverse) ? market['inverse'] : market['linear'];
-            if ((this.safeBool (market, 'contract', false)) && (matchesSubType === true)) {
+            if ((market['contract']) && (matchesSubType === true)) {
                 result[symbol] = this.parseTradingFee (fee, market);
             }
         }
@@ -5122,7 +5122,7 @@ export default class xt extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!this.safeBool (market, 'swap', false)) {
+        if (!market['swap']) {
             throw new NotSupported (this.id + ' fetchFundingHistory() supports swap contracts only');
         }
         const request: Dict = {
@@ -5653,7 +5653,7 @@ export default class xt extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (this.safeBool (market, 'spot', false)) {
+        if (market['spot']) {
             throw new NotSupported (this.id + ' setMarginMode() supports contract markets only');
         }
         const marginModeLower = marginMode.toLowerCase ();
@@ -5729,7 +5729,7 @@ export default class xt extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         let response = undefined;
-        if (this.safeBool (market, 'swap', false)) {
+        if (market['swap']) {
             if (isStopLoss) {
                 request['triggerStopPrice'] = this.priceToPrecision (symbol, stopLoss);
             } else if (takeProfit !== undefined) {
@@ -5783,7 +5783,7 @@ export default class xt extends Exchange {
             //     }
             //
         }
-        const result = (this.safeBool (market, 'swap', false)) ? response : this.safeDict (response, 'result', {});
+        const result = (market['swap']) ? response : this.safeDict (response, 'result', {});
         return this.parseOrder (result, market);
     }
 

@@ -1226,7 +1226,7 @@ export default class blofin extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!this.safeBool (market, 'swap', false)) {
+        if (!market['swap']) {
             throw new ExchangeError (this.id + ' fetchFundingRate() is only valid for swap markets');
         }
         const request: Dict = {

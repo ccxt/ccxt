@@ -1276,7 +1276,7 @@ export default class woo extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!this.safeBool (market, 'spot', false)) {
+        if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         return await this.createOrder (symbol, 'market', 'buy', cost, 1, params);
@@ -1297,7 +1297,7 @@ export default class woo extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!this.safeBool (market, 'spot', false)) {
+        if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketSellOrderWithCost() supports spot orders only');
         }
         return await this.createOrder (symbol, 'market', 'sell', cost, 1, params);
@@ -1445,7 +1445,7 @@ export default class woo extends Exchange {
             // for market buy it requires the amount of quote currency to spend
             const cost = this.safeStringN (paramsMarginMode, [ 'cost', 'order_amount', 'orderAmount' ]);
             const isPriceProvided = price !== undefined;
-            if ((this.safeBool (market, 'spot', false)) && (isPriceProvided || (cost !== undefined))) {
+            if ((market['spot']) && (isPriceProvided || (cost !== undefined))) {
                 let quoteAmount: Str = undefined;
                 if (cost !== undefined) {
                     quoteAmount = this.costToPrecision (symbol, cost);
@@ -2405,7 +2405,7 @@ export default class woo extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!this.safeBool (market, 'swap', false)) {
+        if (!market['swap']) {
             throw new NotSupported (this.id + ' fetchTicker() supports swap markets only, there is no spot ticker endpoint');
         }
         const request: Dict = {
@@ -2469,7 +2469,7 @@ export default class woo extends Exchange {
                 // type" apart from a malformed request, marketSymbols still enforces that the
                 // rest of the list matches
                 const firstMarket = this.market (symbols[0]);
-                if (!this.safeBool (firstMarket, 'swap', false)) {
+                if (!firstMarket['swap']) {
                     throw new NotSupported (this.id + ' fetchTickers() supports swap markets only');
                 }
             }
@@ -3970,7 +3970,7 @@ export default class woo extends Exchange {
         }
         const market = this.market (symbol);
         let response = undefined;
-        if (this.safeBool (market, 'spot', false)) {
+        if (market['spot']) {
             response = await this.v3PrivateGetAccountInfo (params);
             //
             //     {
@@ -4001,7 +4001,7 @@ export default class woo extends Exchange {
             //         "timestamp": 1752645129054
             //     }
             //
-        } else if (this.safeBool (market, 'swap', false)) {
+        } else if (market['swap']) {
             const request: Dict = {
                 'symbol': market['id'],
             };

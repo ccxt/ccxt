@@ -1821,11 +1821,11 @@ export default class deribit extends Exchange {
                 'maker': market['maker'],
                 'taker': market['taker'],
             };
-            if (this.safeBool (market, 'swap', false)) {
+            if (market['swap']) {
                 fee = this.extend (fee, perpetualFee);
-            } else if (this.safeBool (market, 'future', false)) {
+            } else if (market['future']) {
                 fee = this.extend (fee, futureFee);
-            } else if (this.safeBool (market, 'option', false)) {
+            } else if (market['option']) {
                 fee = this.extend (fee, optionFee);
             }
             parsedFees[symbol] = fee;
@@ -3447,7 +3447,7 @@ export default class deribit extends Exchange {
             return await this.fetchPaginatedCallCursor ('fetchLiquidations', symbol, since, limit, paramsPaginate, 'continuation', 'continuation', undefined) as Liquidation[];
         }
         const market = this.market (symbol);
-        if (this.safeBool (market, 'spot', false)) {
+        if (market['spot']) {
             throw new NotSupported (this.id + ' fetchLiquidations() does not support ' + this.safeString (market, 'type', '') + ' markets');
         }
         const request: Dict = {
@@ -3526,7 +3526,7 @@ export default class deribit extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (this.safeBool (market, 'spot', false)) {
+        if (market['spot']) {
             throw new NotSupported (this.id + ' fetchMyLiquidations() does not support ' + this.safeString (market, 'type', '') + ' markets');
         }
         const request: Dict = {
@@ -3905,7 +3905,7 @@ export default class deribit extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!this.safeBool (market, 'contract', false)) {
+        if (!market['contract']) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request: Dict = {
@@ -3979,7 +3979,7 @@ export default class deribit extends Exchange {
         const openInterest = this.safeNumber (interest, 'open_interest');
         let openInterestAmount: Num = undefined;
         let openInterestValue: Num = undefined;
-        if ((this.safeBool (marketResolved, 'option', false)) || ((this.safeBool (marketResolved, 'future', false)) && (this.safeBool (marketResolved, 'linear', false)))) {
+        if ((marketResolved['option']) || ((marketResolved['future']) && (this.safeBool (marketResolved, 'linear', false)))) {
             openInterestAmount = openInterest;
         } else {
             openInterestValue = openInterest;

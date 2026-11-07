@@ -5716,6 +5716,7 @@ class NewTranspiler {
         installCcxtGoTupleSlotReads (this.transpiler.goTranspiler);
         installFmGo5GP08 (this.transpiler.goTranspiler);  // FM-GO5
         installFmGo5OG02 (this.transpiler.goTranspiler);  // FM-GO5
+        installCcxtGoMarketBoolReads (this.transpiler.goTranspiler);
     }
 
     // The base files are assembled from the part of the printed body after its delimiter, which cuts
@@ -9577,6 +9578,54 @@ const GO_TUPLE_PLAIN_ELEMENTS: { [producer: string]: string[] } = {
 };
 // consumers that apply derefScalar to their argument first, so GetValue's own deref is redundant
 const GO_TUPLE_DEREF_CONSUMERS: string[] = [ 'MapTyped', 'ListTyped', 'SafeStringPtr', 'SafeBoolPtr', 'Float64PtrTyped' ];
+
+// `if (market['spot'])` on a local written only by `this.market (...)` / `this.safeMarket (...)`: both
+// return MarketTyped rows (plain values) and the flag is a MarketInterface boolean, so `== true` is EvalTruthy
+const GO_MARKET_BOOL_FLAGS = [ 'spot', 'swap', 'future', 'option', 'contract' ];
+function goIsMarketRowWrite (n: any): boolean {
+    if ((n === undefined) || (n.getText () === 'undefined')) {
+        return true;
+    }
+    return /^this\.(?:market|safeMarket) \(/.test (n.getText ());
+}
+export function installCcxtGoMarketBoolReads (printer: any) {
+    const original = printer.goNativeCondition.bind (printer);
+    printer.goNativeCondition = function (node: any) {
+        const native = original (node);
+        if ((native !== undefined) || (node?.argumentExpression === undefined) || (typeof node.expression?.text !== 'string')) {
+            return native;
+        }
+        const key = /^'(\w+)'$/.exec (node.argumentExpression.getText ())?.[1];
+        if ((key === undefined) || !GO_MARKET_BOOL_FLAGS.includes (key)) {
+            return native;
+        }
+        const receiver = node.expression;
+        const declaration = this.goDeclarationOfIdentifier (receiver);
+        const scope = (declaration === undefined) ? undefined : this.goEnclosingFunction (declaration);
+        if ((scope === undefined) || (this.goDeclaredTypeOfIdentifier (receiver) !== 'map[string]any') || !goIsMarketRowWrite (declaration.initializer)) {
+            return native;
+        }
+        // every later write of the local, whole or by key, must be another market row
+        const name = receiver.text;
+        let ok = true;
+        const visit = (n: any) => {
+            if (!ok) {
+                return;
+            }
+            const isAssign = (n.operatorToken !== undefined) && (n.operatorToken.getText () === '=');
+            if (isAssign && (n.left.getText () === name) && this.goIdentifierRefersToDeclaration (n.left, declaration)) {
+                ok = goIsMarketRowWrite (n.right);
+            } else if (isAssign && (n.left.expression?.getText () === name)) {
+                ok = false;
+            } else if ((n.elements !== undefined) && (n.parent?.left === n) && n.elements.some ((e: any) => e.getText () === name)) {
+                ok = false;
+            }
+            n.forEachChild (visit);
+        };
+        scope.forEachChild (visit);
+        return ok ? `(${this.printNode (receiver, 0)}["${key}"] == true)` : native;
+    };
+}
 
 if (isMainEntry (import.meta.url)) {
     await runMain ();
