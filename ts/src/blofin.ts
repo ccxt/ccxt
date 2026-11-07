@@ -1019,6 +1019,7 @@ export default class blofin extends Exchange {
             await this.loadMarkets ();
         }
         // the endpoint returns the latest trades only and ignores 'after' / 'before', so there is no cursor to paginate with
+        params = this.omit (params, 'paginate');
         const market = this.market (symbol);
         const request: Dict = {
             'instId': market['id'],

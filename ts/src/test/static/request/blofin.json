@@ -486,6 +486,19 @@
                 ]
             },
             {
+                "description": "paginate is not sent to the exchange",
+                "method": "fetchTrades",
+                "url": "https://openapi.blofin.com/api/v1/market/trades?instId=BTC-USDT&limit=5",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    5,
+                    {
+                        "paginate": true
+                    }
+                ]
+            },
+            {
                 "description": "swap fetchTrades",
                 "method": "fetchTrades",
                 "url": "https://openapi.blofin.com/api/v1/market/trades?instId=BTC-USDT",
