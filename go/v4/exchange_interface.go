@@ -17,7 +17,7 @@ type IPredictionCreateOrder interface {
 	CreateOrderAsync(outcome string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[PredictionOrder]
 }
 type IPredictionCancelOrder interface {
-	CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[PredictionOrder]
+	CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[PredictionOrder]
 }
 
 // Per-method interfaces for the 62 symbol-based methods that were trimmed from ICoreExchange/
@@ -31,7 +31,7 @@ type ICreateOrder interface {
 	CreateOrderAsync(symbol string, typeVar string, side string, amount any, optionalArgs ...any) <-chan AsyncResult[Order]
 }
 type ICancelOrder interface {
-	CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order]
+	CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order]
 }
 type IEditOrder interface {
 	EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order]
@@ -137,7 +137,7 @@ type ICreateOrders interface { // W3
 	CreateOrdersAsync(orders []any, optionalArgs ...any) <-chan AsyncResult[[]Order]
 }
 type ICancelOrders interface { // W3
-	CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order]
+	CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order]
 }
 type IWatchMyTrades interface { // W3
 	WatchMyTradesAsync(optionalArgs ...any) <-chan AsyncResult[[]Trade]

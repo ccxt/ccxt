@@ -1665,7 +1665,7 @@
                 "description": "fetch open order",
                 "method": "fetchOpenOrder",
                 "input": [
-                    8284661092,
+                    "8284661092",
                     "ETH/USDC"
                 ],
                 "httpResponse": {

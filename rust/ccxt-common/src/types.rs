@@ -2008,6 +2008,57 @@ impl IntoRaw for Value { fn into_raw(self) -> Value { self } }
 impl FromRaw for Option<i64> { fn from_raw(v: Value) -> Self { v.as_i64() } }
 impl IntoRaw for Option<i64> { fn into_raw(self) -> Value { Value::from(self) } }
 
+/// One order of a `create_orders` / `edit_orders` batch. Mirrors the TS `OrderRequest`
+/// (`id` for edits, `outcome` for prediction venues); `raw` keeps any other key.
+#[derive(Debug, Clone, Default)]
+pub struct OrderRequest {
+    pub id:         Option<String>,
+    pub symbol:     Option<String>,
+    pub outcome:    Option<String>,
+    pub order_type: Option<String>,
+    pub side:       Option<String>,
+    pub amount:     Option<f64>,
+    pub price:      Option<f64>,
+    pub params:     Option<crate::Params>,
+    pub raw:        Value,
+}
+
+impl OrderRequest {
+    pub fn new(symbol: &str, order_type: &str, side: &str, amount: f64, price: Option<f64>) -> Self {
+        OrderRequest { symbol: Some(symbol.into()), order_type: Some(order_type.into()), side: Some(side.into()), amount: Some(amount), price, ..Default::default() }
+    }
+}
+
+impl FromRaw for OrderRequest {
+    fn from_raw(v: Value) -> Self {
+        use crate::value::{safe_string, safe_number};
+        let params = match crate::get_value(&v, &Value::Str("params".into())) { Value::Dict(d) => Some(crate::Params::from(Value::Dict(d))), _ => None };
+        OrderRequest {
+            id: safe_string(&v, "id", None), symbol: safe_string(&v, "symbol", None), outcome: safe_string(&v, "outcome", None),
+            order_type: safe_string(&v, "type", None), side: safe_string(&v, "side", None),
+            amount: safe_number(&v, "amount", None), price: safe_number(&v, "price", None), params, raw: v,
+        }
+    }
+}
+
+/// Keys whose field still decodes from `raw` keep the raw entry (and its position), so a decoded request lowers back unchanged.
+impl IntoRaw for OrderRequest {
+    fn into_raw(self) -> Value {
+        let same = Self::from_raw(self.raw.clone());
+        let mut m = match &self.raw { Value::Dict(d) => (**d).clone(), _ => HashMap::new() };
+        let mut put = |k: &str, v: Option<Value>| { match v { Some(v) => { m.insert(k.to_string(), v); } None => { m.shift_remove(k); } } };
+        if self.id != same.id { put("id", self.id.map(Value::from)); }
+        if self.symbol != same.symbol { put("symbol", self.symbol.map(Value::from)); }
+        if self.outcome != same.outcome { put("outcome", self.outcome.map(Value::from)); }
+        if self.order_type != same.order_type { put("type", self.order_type.map(Value::from)); }
+        if self.side != same.side { put("side", self.side.map(Value::from)); }
+        if self.amount != same.amount { put("amount", self.amount.map(Value::Float)); }
+        if self.price != same.price { put("price", self.price.map(Value::Float)); }
+        if self.params != same.params { put("params", self.params.map(crate::Params::into_value_object)); }
+        Value::Dict(std::sync::Arc::new(m))
+    }
+}
+
 /// A candle row `[timestamp, open, high, low, close, volume]`; a missing or non-numeric field reads `0.0`.
 impl FromRaw for OHLCV {
     fn from_raw(v: Value) -> Self {

@@ -55,7 +55,9 @@ pub fn test_types_rest() -> Result<(), String> {
     // ── list-returning methods ────────────────────────────────────────
     returns::<Vec<Market>>(b.fetch_markets(n.clone()));
     returns::<Vec<Trade>>(b.fetch_trades("BTC/USDT", None, Some(5), n.clone()));
-    returns::<Vec<Order>>(b.create_orders(n.clone(), n.clone()));
+    returns::<Vec<Order>>(b.create_orders(vec![OrderRequest::new("BTC/USDT", "limit", "buy", 1.0, Some(20000.0))], n.clone()));
+    returns::<Vec<Order>>(b.cancel_orders(vec!["1".to_string()], Some("BTC/USDT"), n.clone()));
+    returns::<Order>(b.create_limit_order("BTC/USDT", "buy", 1.0, 20000.0, n.clone()));
     returns::<Vec<Position>>(b.fetch_positions(None, n.clone()));
     returns::<Vec<Transaction>>(b.fetch_deposits_withdrawals(None, None, None, n.clone()));
     returns::<Vec<Transfer>>(b.fetch_transfers(None, None, None, n.clone()));

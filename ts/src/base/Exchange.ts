@@ -10541,7 +10541,7 @@ export default class Exchange extends BaseExchange {
     }
 
     async cancelUnifiedOrder (order: Order, params: Dict = {}): Promise<Order> {
-        return await this.cancelOrder (this.safeString (order, 'id') as string, this.safeString (order, 'symbol'), params);
+        return await this.cancelOrder (this.safeString (order, 'id', ''), this.safeString (order, 'symbol'), params);
     }
 
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {

@@ -2622,7 +2622,7 @@
                 "description": "default",
                 "method": "fetchOpenOrder",
                 "input": [
-                    1917641,
+                    "1917641",
                     "BTC/USDT:USDT"
                 ],
                 "httpResponse": {
@@ -3414,7 +3414,7 @@
                 "method": "cancelOrders",
                 "input": [
                     [
-                        17338441758
+                        "17338441758"
                     ],
                     "ETH/USDT:USDT"
                 ],
