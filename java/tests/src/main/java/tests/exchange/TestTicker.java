@@ -17,7 +17,7 @@ import java.util.Map;
 
 
 public class TestTicker extends BaseTest {
-    public static void testTicker(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object symbol)
+    public static void testTicker(BaseExchange exchange, Object skippedProperties, String method, Object entry, String symbol)
     {
         // prediction outcomes are keyed by an outcome handle (not a `symbol`) and trade thin 0..1
         // books where bid==ask and a stale `last` far from the median are normal — skip the
@@ -64,9 +64,9 @@ public class TestTicker extends BaseTest {
             emptyAllowedFor.add("bid");
             emptyAllowedFor.add("ask");
         }
-        TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
-        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry);
-        Object logText = TestSharedMethods.logTemplate(exchange, method, entry);
+        TestSharedMethods.AssertStructure(exchange, skippedProperties, (String) (method), entry, format, emptyAllowedFor);
+        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, (String) (method), entry);
+        Object logText = TestSharedMethods.logTemplate(exchange, (String) (method), entry);
         // check market
         Object market = null;
         Boolean isUnrecognizedSymbol = false;
@@ -102,20 +102,20 @@ public class TestTicker extends BaseTest {
         Boolean valuesShouldBePositive = isStandardMarket; // || (market === undefined) atm, no check for index markets
         if (Boolean.TRUE.equals(valuesShouldBePositive) && !(Helpers.inOp(skippedProperties, "positiveValues")))
         {
-            TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "open", "0");
-            TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "high", "0");
-            TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "low", "0");
-            TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "close", "0");
-            TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "ask", "0");
-            TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "bid", "0");
-            TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "average", "0");
-            TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "vwap", "0");
+            TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "open", "0");
+            TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "high", "0");
+            TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "low", "0");
+            TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "close", "0");
+            TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "ask", "0");
+            TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "bid", "0");
+            TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "average", "0");
+            TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "vwap", "0");
         }
         // volume can not be negative
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "askVolume", "0");
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "bidVolume", "0");
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "baseVolume", "0");
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "quoteVolume", "0");
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "askVolume", "0");
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "bidVolume", "0");
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "baseVolume", "0");
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "quoteVolume", "0");
         //
         // close price
         //
@@ -261,7 +261,7 @@ public class TestTicker extends BaseTest {
         if ((!java.util.Objects.equals(askString, null)) && (!java.util.Objects.equals(bidString, null)) && !(Helpers.inOp(skippedProperties, "spread")))
         {
             // greater-or-equal: a locked book (bid == ask) is legitimate on thin markets, only a crossed book (ask < bid) is anomalous
-            TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "ask", exchange.safeString(entry, "bid"));
+            TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "ask", (String) (exchange.safeString(entry, "bid")));
         }
         // last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
         String allowedPercentageVariation = "0.01";
@@ -341,7 +341,7 @@ public class TestTicker extends BaseTest {
         // else {
         //    Assert ((askString === undefined) && (bidString === undefined), 'ask & bid should be both defined or both undefined' + logText);
         // }
-        TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol);
+        TestSharedMethods.AssertSymbol(exchange, skippedProperties, (String) (method), entry, "symbol", symbol);
     }
 
 }

@@ -3,11 +3,12 @@
 
 import gate from '../abstract/pro/gateeu.js';
 import gateeuRest from '../gateeu.js';
+import type { Dict } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
 export default class gateeu extends gate {
-    override describe (): any {
+    override describe (): Dict {
         // eslint-disable-next-line new-cap
         const restInstance = new gateeuRest ();
         const restDescribe = restInstance.describe ();

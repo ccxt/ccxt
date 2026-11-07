@@ -2,7 +2,7 @@ import p2bRest from '../p2b.js';
 import type { Int, OHLCV, OrderBook, Trade, Ticker, Dict, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class p2b extends p2bRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @ignore
      * @method

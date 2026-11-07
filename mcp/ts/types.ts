@@ -74,6 +74,8 @@ export interface ServerContext {
     safety: any;   // Safety
     journal: any;  // Journal
     subscriptions: any; // SubscriptionRegistry (WebSocket streaming)
+    router: any;   // ccxt.OrderRouter, or undefined when the installed ccxt predates it
+    routes: any;   // RouteCache — routes returned by fetch_route, executable by routeId
     version: string;
     elicitationSupported: () => boolean;
     elicit: (message: string, schema: any) => Promise<any>;

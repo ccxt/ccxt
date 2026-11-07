@@ -2,7 +2,7 @@ import blofinRest from '../blofin.js';
 import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV, Balances, Str, Order, Position, FundingRate, List, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class blofin extends blofinRest {
-    describe(): any;
+    describe(): Dict;
     ping(client: Client): string;
     /**
      * @method
@@ -224,6 +224,7 @@ export default class blofin extends blofinRest {
     unsubscribeMultipleWrapper(channelName: string, callerMethodName: string, symbolsArray: any, params?: Dict): Promise<any>;
     handleUnsubscription(client: Client, message: Dict): void;
     getSubscriptionRequest(args: List): Dict;
-    handleMessage(client: Client, message: any): void;
+    handleTextMessage(client: Client, message: string): void;
+    handleMessage(client: Client, message: Dict): void;
     authenticate(params?: Dict): Promise<void>;
 }

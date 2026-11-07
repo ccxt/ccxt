@@ -74,7 +74,7 @@ public final class Time {
                     .withResolverStyle(ResolverStyle.STRICT);
 
     // Returns Long (epoch millis) or null
-    public static Object parseDate(Object datetime2) {
+    public static Long parseDate(Object datetime2) {
         if (!(datetime2 instanceof String)) {
             return null;
         }
@@ -241,7 +241,7 @@ public final class Time {
         return yymmdd(ts, "");
     }
 
-    public static Object ymd(Object ts, Object infix) {
+    public static String ymd(Object ts, Object infix) {
         String sep = (infix == null) ? "-" : String.valueOf(infix);
         if (ts == null) return null;
         long ms = Long.parseLong(String.valueOf(ts));
@@ -251,7 +251,7 @@ public final class Time {
         return fmt.format(inst);
     }
 
-    public static Object ymd(Object ts) {
+    public static String ymd(Object ts) {
         return ymd(ts, "-");
     }
 }

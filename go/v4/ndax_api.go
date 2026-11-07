@@ -227,9 +227,9 @@ func (this *Ndax) PrivateGetGetAccountInfo(args ...any) <-chan EndpointResult[ma
 	return Fetch2Result[map[string]any](this, "GetAccountInfo", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// PrivateGetGetAccountPositions returns a channel that yields a JSON object.
-func (this *Ndax) PrivateGetGetAccountPositions(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "GetAccountPositions", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+// PrivateGetGetAccountPositions returns a channel that yields a JSON array.
+func (this *Ndax) PrivateGetGetAccountPositions(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "GetAccountPositions", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetAllAccountConfigs returns a channel that yields a JSON array.
