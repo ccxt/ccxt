@@ -4290,7 +4290,7 @@ public partial class okx : Exchange
             marginMode = defaultMarginMode;
         }
         bool? marginParam = this.safeBool(parameters, "margin", false);
-        bool margin = marginModeIsExplicit || ((marginParam == true));
+        bool margin = marginModeIsExplicit || (marginParam == true);
         // position side / hedged options only apply to swap and future orders
         bool isSwapOrFuture = ((contract == true)) && (((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) || ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true)));
         (string?, object) positionSideparamsPositionSideVariable = this.handleOptionStringAndParams(parameters, "createOrder", "positionSide");

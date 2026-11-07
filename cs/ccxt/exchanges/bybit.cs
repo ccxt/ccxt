@@ -4812,7 +4812,7 @@ public partial class bybit : Exchange
         List<object> unifiedEnabled = await this.isUnifiedEnabled();
         bool? enableUnifiedMargin = this.safeBool(unifiedEnabled, 0, false);
         bool? enableUnifiedAccount = this.safeBool(unifiedEnabled, 1, false);
-        bool isUnifiedAccount = ((enableUnifiedMargin == true)) || ((enableUnifiedAccount == true));
+        bool isUnifiedAccount = (enableUnifiedMargin == true) || (enableUnifiedAccount == true);
         // don't use getBybitType here
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         string? marketType = (string)marketTypeparamsMarketTypeVariable[0];
@@ -6454,7 +6454,7 @@ public partial class bybit : Exchange
         List<object> unifiedEnabled = await this.isUnifiedEnabled();
         bool? enableUnifiedMargin = this.safeBool(unifiedEnabled, 0, false);
         bool? enableUnifiedAccount = this.safeBool(unifiedEnabled, 1, false);
-        bool isUnifiedAccount = ((enableUnifiedMargin == true)) || ((enableUnifiedAccount == true));
+        bool isUnifiedAccount = (enableUnifiedMargin == true) || (enableUnifiedAccount == true);
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbol != null))
@@ -6589,7 +6589,7 @@ public partial class bybit : Exchange
         List<object> unifiedEnabled = await this.isUnifiedEnabled();
         bool? enableUnifiedMargin = this.safeBool(unifiedEnabled, 0, false);
         bool? enableUnifiedAccount = this.safeBool(unifiedEnabled, 1, false);
-        bool isUnifiedAccount = ((enableUnifiedMargin == true)) || ((enableUnifiedAccount == true));
+        bool isUnifiedAccount = (enableUnifiedMargin == true) || (enableUnifiedAccount == true);
         if (!isUnifiedAccount)
         {
             return await this.FetchOrderClassic(id, symbol, parameters);
@@ -8662,7 +8662,7 @@ public partial class bybit : Exchange
         List<object> unifiedEnabled = await this.isUnifiedEnabled();
         bool? enableUnifiedMargin = this.safeBool(unifiedEnabled, 0, false);
         bool? enableUnifiedAccount = this.safeBool(unifiedEnabled, 1, false);
-        bool isUnifiedAccount = ((enableUnifiedMargin == true)) || ((enableUnifiedAccount == true));
+        bool isUnifiedAccount = (enableUnifiedMargin == true) || (enableUnifiedAccount == true);
         IDictionary<string, object> market = null;
         Dictionary<string, object> response = null;
         Dictionary<string, object> marginModes = new Dictionary<string, object>() {
@@ -11141,7 +11141,7 @@ public partial class bybit : Exchange
         List<object> unifiedEnabled = await this.isUnifiedEnabled();
         bool? enableUnifiedMargin = this.safeBool(unifiedEnabled, 0, false);
         bool? enableUnifiedAccount = this.safeBool(unifiedEnabled, 1, false);
-        bool isUnifiedAccount = ((enableUnifiedMargin == true)) || ((enableUnifiedAccount == true));
+        bool isUnifiedAccount = (enableUnifiedMargin == true) || (enableUnifiedAccount == true);
         string accountTypeDefault = "eb_convert_spot";
         if (isUnifiedAccount)
         {
@@ -11196,7 +11196,7 @@ public partial class bybit : Exchange
             string? id = this.safeString(entry, "coin");
             bool? disableFrom = this.safeBool(entry, "disableFrom", false);
             bool? disableTo = this.safeBool(entry, "disableTo", false);
-            bool inactive = ((disableFrom == true)) || ((disableTo == true));
+            bool inactive = (disableFrom == true) || (disableTo == true);
             string? code = this.safeCurrencyCode(id);
             if ((code != null))
             {
@@ -11255,7 +11255,7 @@ public partial class bybit : Exchange
         List<object> unifiedEnabled = await this.isUnifiedEnabled();
         bool? enableUnifiedMargin = this.safeBool(unifiedEnabled, 0, false);
         bool? enableUnifiedAccount = this.safeBool(unifiedEnabled, 1, false);
-        bool isUnifiedAccount = ((enableUnifiedMargin == true)) || ((enableUnifiedAccount == true));
+        bool isUnifiedAccount = (enableUnifiedMargin == true) || (enableUnifiedAccount == true);
         string accountTypeDefault = "eb_convert_spot";
         if (isUnifiedAccount)
         {
@@ -11360,7 +11360,7 @@ public partial class bybit : Exchange
         List<object> unifiedEnabled = await this.isUnifiedEnabled();
         bool? enableUnifiedMargin = this.safeBool(unifiedEnabled, 0, false);
         bool? enableUnifiedAccount = this.safeBool(unifiedEnabled, 1, false);
-        bool isUnifiedAccount = ((enableUnifiedMargin == true)) || ((enableUnifiedAccount == true));
+        bool isUnifiedAccount = (enableUnifiedMargin == true) || (enableUnifiedAccount == true);
         string accountTypeDefault = "eb_convert_spot";
         if (isUnifiedAccount)
         {

@@ -799,7 +799,7 @@ public partial class whitebit : Exchange
         string? settleId = null;
         string symbol = ((bs + "/") + quote);
         bool swap = (typeId == "futures") || (typeId == "tradfiFutures");
-        bool margin = ((isCollateral == true)) && !swap;
+        bool margin = (isCollateral == true) && !swap;
         bool contract = false;
         double? amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "stockPrec")));
         bool? linear = null;

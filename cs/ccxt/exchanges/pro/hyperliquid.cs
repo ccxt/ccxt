@@ -1229,7 +1229,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         bool? isUnifiedEnabled = this.safeBool(unifiedResult, 0, false);
         IDictionary<string, object> paramsValue2 = this.safeDict(unifiedResult, 1, paramsMarketType);
         string? dex = this.safeString(paramsValue2, "dex");
-        bool isSpot = (((type == "spot")) || ((isUnifiedEnabled == true))) && ((dex == null));
+        bool isSpot = (((type == "spot")) || (isUnifiedEnabled == true)) && ((dex == null));
         string topic = "clearinghouseState";
         if (isSpot)
         {
@@ -1291,7 +1291,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         bool? isUnifiedEnabled = this.safeBool(unifiedResult, 0, false);
         IDictionary<string, object> paramsValue2 = this.safeDict(unifiedResult, 1, paramsMarketType);
         string? dex = this.safeString(paramsValue2, "dex");
-        bool isSpot = (((type == "spot")) || ((isUnifiedEnabled == true))) && ((dex == null));
+        bool isSpot = (((type == "spot")) || (isUnifiedEnabled == true)) && ((dex == null));
         string topic = "clearinghouseState";
         if (isSpot)
         {

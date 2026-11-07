@@ -3812,7 +3812,7 @@ public partial class bingx : Exchange
             }
             bool? reduceOnlyParam = this.safeBool(paramsTakeProfit, "reduceOnly", false);
             // stop loss / take profit price orders are always reduce only
-            bool reduceOnly = ((reduceOnlyParam == true)) || (!isTriggerOrder && (isStopLossPriceOrder || isTakeProfitPriceOrder));
+            bool reduceOnly = (reduceOnlyParam == true) || (!isTriggerOrder && (isStopLossPriceOrder || isTakeProfitPriceOrder));
             if (isTriggerOrder)
             {
                 request["stopPrice"] = this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice));

@@ -4825,7 +4825,7 @@ public partial class htx : Exchange
             bool? stopLoss = this.safeBool(paramsMarketType, "stopLoss", false);
             bool? takeProfit = this.safeBool(paramsMarketType, "takeProfit", false);
             bool? trailing = this.safeBool(paramsMarketType, "trailing", false);
-            bool isAlgo = (((trigger == true)) || ((stopLoss == true)) || ((takeProfit == true)) || ((stopLossTakeProfit == true)) || ((trailing == true)));
+            bool isAlgo = (((trigger == true)) || (stopLoss == true) || (takeProfit == true) || (stopLossTakeProfit == true) || (trailing == true));
             Dictionary<string, object> paramsOmitted = this.omit(paramsMarketType, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"});
             string? clientOrderId = this.safeStringN(paramsOmitted, new List<object>() {"client_order_id", "clientOrderId", "algo_client_order_id"});
             object paramsClientOrderId = ((clientOrderId != null)) ? this.omit(paramsOmitted, new List<object>() {"client_order_id", "clientOrderId", "algo_client_order_id"}) : paramsOmitted;
@@ -5133,7 +5133,7 @@ public partial class htx : Exchange
         bool? stopLoss = this.safeBool(parameters, "stopLoss", false);
         bool? takeProfit = this.safeBool(parameters, "takeProfit", false);
         bool? trailing = this.safeBool(parameters, "trailing", false);
-        bool isAlgo = (((trigger == true)) || ((stopLoss == true)) || ((takeProfit == true)) || ((stopLossTakeProfit == true)) || (trailing == true));
+        bool isAlgo = (((trigger == true)) || (stopLoss == true) || (takeProfit == true) || (stopLossTakeProfit == true) || (trailing == true));
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"}));
         if ((since != null))
         {
@@ -5240,7 +5240,7 @@ public partial class htx : Exchange
             bool? stopLoss = this.safeBool(parameters, "stopLoss", false);
             bool? takeProfit = this.safeBool(parameters, "takeProfit", false);
             bool? trailing = this.safeBool(parameters, "trailing", false);
-            bool isAlgo = (((trigger == true)) || ((stopLoss == true)) || ((takeProfit == true)) || ((stopLossTakeProfit == true)) || (trailing == true));
+            bool isAlgo = (((trigger == true)) || (stopLoss == true) || (takeProfit == true) || (stopLossTakeProfit == true) || (trailing == true));
             if (isAlgo)
             {
                 request["states"] = "effective";
@@ -5363,7 +5363,7 @@ public partial class htx : Exchange
                 bool? stopLoss = this.safeBool(paramsMarketType, "stopLoss", false);
                 bool? takeProfit = this.safeBool(paramsMarketType, "takeProfit", false);
                 bool? trailing = this.safeBool(paramsMarketType, "trailing", false);
-                bool isAlgo = (((trigger == true)) || ((stopLoss == true)) || ((takeProfit == true)) || ((stopLossTakeProfit == true)) || (trailing == true));
+                bool isAlgo = (((trigger == true)) || (stopLoss == true) || (takeProfit == true) || (stopLossTakeProfit == true) || (trailing == true));
                 if (isAlgo)
                 {
                     request["states"] = "canceled";

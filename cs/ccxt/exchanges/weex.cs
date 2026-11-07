@@ -2699,7 +2699,7 @@ public partial class weex : Exchange
             throw new BadRequest ((this.id + " createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters")) ;
         }
         bool? reduceOnly = this.safeBool(query, "reduceOnly", false);
-        bool isReduceOnly = isStopLoss || isTakeProfit || ((reduceOnly == true));
+        bool isReduceOnly = isStopLoss || isTakeProfit || (reduceOnly == true);
         string positionSide = "LONG";
         if (isReduceOnly)
         {

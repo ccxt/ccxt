@@ -8881,7 +8881,7 @@ public partial class bitget : Exchange
         uta = (bool?)((IList<object>)utaparamsMarginModeVariable)[0];
         paramsMarginMode = ((IList<object>)utaparamsMarginModeVariable)[1];
         bool isStockOrUta = (isStockSpot || ((uta == true)));
-        bool isPlanOrder = ((trigger == true)) || ((trailing == true));
+        bool isPlanOrder = ((trigger == true)) || (trailing == true);
         bool isContract = ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true)) || ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true));
         bool isContractTriggerEndpoint = isContract && isPlanOrder && !isStockOrUta;
         string? clientOrderId = this.safeString2(paramsMarginMode, "clientOrderId", "clientOid");

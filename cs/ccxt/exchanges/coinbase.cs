@@ -2099,7 +2099,7 @@ public partial class coinbase : Exchange
             return ((Dictionary<string, object>)((object)(null)));
         }
         bool? isDisabled = this.safeBool(market, "is_disabled", false);
-        bool tradingDisabled = ((isDisabled == true)) || ((this.safeBool(market, "trading_disabled") == true));
+        bool tradingDisabled = (isDisabled == true) || ((this.safeBool(market, "trading_disabled") == true));
         string symbol = ((bs + "/") + quote);
         string? type = null;
         if (isSwap)

@@ -1088,7 +1088,7 @@ public partial class cryptocom : Exchange
                 { "settleId", settleId },
                 { "type", type },
                 { "spot", spot },
-                { "margin", (((marginBuyEnabled == true)) || ((marginSellEnabled == true))) },
+                { "margin", ((marginBuyEnabled == true) || (marginSellEnabled == true)) },
                 { "swap", swap },
                 { "future", future },
                 { "option", option },

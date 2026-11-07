@@ -1158,7 +1158,7 @@ public partial class latoken : Exchange
             }
         }
         bool isBuy = (side == "buy");
-        bool isMaker = ((makerBuyer == true)) && isBuy;
+        bool isMaker = (makerBuyer == true) && isBuy;
         string takerOrMaker = isMaker ? "maker" : "taker";
         string? baseId = this.safeString(trade, "baseCurrency");
         string? quoteId = this.safeString(trade, "quoteCurrency");
