@@ -3552,7 +3552,7 @@ export class BaseExchange {
     }
 
     marketsCacheFilePath () {
-        const sandboxFlag = this.isSandboxEnabled ? 'sandbox_' : '';
+        const sandboxFlag = this.isSandboxModeEnabled ? 'sandbox_' : '';
         return this.getTempDir () + 'ccxt_cache_' + this.id + '_markets_currencies' + sandboxFlag + '.json.ccxtfile';
     }
 
