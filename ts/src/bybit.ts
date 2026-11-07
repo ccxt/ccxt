@@ -2873,7 +2873,7 @@ export default class bybit extends Exchange {
         [ request, paramsUntil ] = this.handleUntilOption ('end', request, paramsPaginate);
         request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
         let response: Dict;
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             request['category'] = 'spot';
             response = await this.publicGetV5MarketKline (this.extend (request, paramsUntil));
         } else {
@@ -3381,7 +3381,7 @@ export default class bybit extends Exchange {
         if (feeCostString !== undefined) {
             const feeRateString = this.safeString (trade, 'feeRate');
             let feeCurrencyCode: Str = undefined;
-            if (marketResolved['spot']) {
+            if (this.safeBool (marketResolved, 'spot', false)) {
                 if (Precise.stringGt (feeCostString, '0')) {
                     if (side === 'buy') {
                         feeCurrencyCode = marketResolved['base'];
@@ -3504,12 +3504,12 @@ export default class bybit extends Exchange {
             'symbol': market['id'],
         };
         let defaultLimit = 25;
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             // limit: [1, 50]. Default: 1
             defaultLimit = 50;
             request['category'] = 'spot';
         } else {
-            if (market['option']) {
+            if (this.safeBool (market, 'option', false)) {
                 // limit: [1, 25]. Default: 1
                 request['category'] = 'option';
             } else if (this.safeBool (market, 'linear', false)) {
@@ -4174,7 +4174,7 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['spot']) {
+        if (!this.safeBool (market, 'spot', false)) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         const req = {
@@ -4203,7 +4203,7 @@ export default class bybit extends Exchange {
             throw new NotSupported (this.id + ' createMarketSellOrderWithCost() supports UTA accounts only');
         }
         const market = this.market (symbol);
-        if (!market['spot']) {
+        if (!this.safeBool (market, 'spot', false)) {
             throw new NotSupported (this.id + ' createMarketSellOrderWithCost() supports spot orders only');
         }
         const req = {
@@ -4261,7 +4261,7 @@ export default class bybit extends Exchange {
         const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params, enableUnifiedAccount);
         const switchToOco = (isStopLossOrder && isTakeProfitOrder) || this.safeBool (params, 'tradingStopEndpoint', false);
         let defaultMethod: Str = undefined;
-        if ((isTrailingOrder || (switchToOco)) && (!market['spot'])) {
+        if ((isTrailingOrder || (switchToOco)) && (!this.safeBool (market, 'spot', false))) {
             defaultMethod = 'privatePostV5PositionTradingStop';
         } else {
             defaultMethod = 'privatePostV5OrderCreate';
@@ -4364,7 +4364,7 @@ export default class bybit extends Exchange {
         const amountString = (amountValue !== undefined) ? this.getAmount (symbolValue, amountValue) : undefined;
         const priceString = (price !== undefined) ? this.getPrice (symbolValue, this.numberToString (price)) : undefined;
         if (endpointIsTradingStop) {
-            if (hasStopLoss || hasTakeProfit || isTriggerOrder || (market['spot'])) {
+            if (hasStopLoss || hasTakeProfit || isTriggerOrder || (this.safeBool (market, 'spot', false))) {
                 throw new InvalidOrder (this.id + ' the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders');
             }
             if (isStopLossOrder || isTakeProfitOrder) {
@@ -4431,7 +4431,7 @@ export default class bybit extends Exchange {
             } else if (timeInForce === 'ioc') {
                 request['timeInForce'] = 'IOC';
             }
-            if (market['spot']) {
+            if (this.safeBool (market, 'spot', false)) {
                 // only works for spot market
                 if (triggerPrice !== undefined) {
                     request['orderFilter'] = 'StopOrder';
@@ -4442,7 +4442,7 @@ export default class bybit extends Exchange {
             const clientOrderId = this.safeString (query, 'clientOrderId');
             if (clientOrderId !== undefined) {
                 request['orderLinkId'] = clientOrderId;
-            } else if (market['option']) {
+            } else if (this.safeBool (market, 'option', false)) {
                 // mandatory field for options
                 request['orderLinkId'] = this.uuid16 ();
             }
@@ -4458,7 +4458,7 @@ export default class bybit extends Exchange {
         // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
         const isMarketBuyAndCostInferable = (lowerCaseType === 'market') && (side === 'buy') && ((price !== undefined) || (cost !== undefined));
         const isMarketOrder = lowerCaseType === 'market';
-        if ((market['spot']) && isMarketOrder && isUTA && !isMarketBuyAndCostInferable) {
+        if ((this.safeBool (market, 'spot', false)) && isMarketOrder && isUTA && !isMarketBuyAndCostInferable) {
             // UTA account can specify the cost of the order on both sides
             if ((cost !== undefined) || (price !== undefined)) {
                 request['marketUnit'] = 'quoteCoin';
@@ -4474,7 +4474,7 @@ export default class bybit extends Exchange {
                 request['marketUnit'] = 'baseCoin';
                 request['qty'] = amountString;
             }
-        } else if ((market['spot']) && isMarketOrder && (side === 'buy')) {
+        } else if ((this.safeBool (market, 'spot', false)) && isMarketOrder && (side === 'buy')) {
             // classic accounts
             // for market buy it requires the amount of quote currency to spend
             let createMarketBuyOrderRequiresPrice = true;
@@ -4512,7 +4512,7 @@ export default class bybit extends Exchange {
         } else if (isTriggerOrder && !endpointIsTradingStop) {
             const triggerDirection = this.safeString (query, 'triggerDirection');
             query = this.omit (query, [ 'triggerPrice', 'stopPrice', 'triggerDirection' ]);
-            if (market['spot']) {
+            if (this.safeBool (market, 'spot', false)) {
                 if (triggerDirection !== undefined) {
                     throw new NotSupported (this.id + ' createOrder() : trigger order does not support triggerDirection for spot markets yet');
                 }
@@ -4549,12 +4549,12 @@ export default class bybit extends Exchange {
                     request['slLimitPrice'] = this.getPrice (symbolValue, slLimitPrice);
                 } else {
                     // for spot market, we need to add this
-                    if (market['spot']) {
+                    if (this.safeBool (market, 'spot', false)) {
                         request['slOrderType'] = 'Market';
                     }
                 }
                 // for spot market, we need to add this
-                if ((market['spot']) && isMarketOrder) {
+                if ((this.safeBool (market, 'spot', false)) && isMarketOrder) {
                     throw new InvalidOrder (this.id + ' createOrder(): attached stopLoss is not supported for spot market orders');
                 }
             }
@@ -4568,17 +4568,17 @@ export default class bybit extends Exchange {
                     request['tpLimitPrice'] = this.getPrice (symbolValue, tpLimitPrice);
                 } else {
                     // for spot market, we need to add this
-                    if (market['spot']) {
+                    if (this.safeBool (market, 'spot', false)) {
                         request['tpOrderType'] = 'Market';
                     }
                 }
                 // for spot market, we need to add this
-                if ((market['spot']) && isMarketOrder) {
+                if ((this.safeBool (market, 'spot', false)) && isMarketOrder) {
                     throw new InvalidOrder (this.id + ' createOrder(): attached takeProfit is not supported for spot market orders');
                 }
             }
         }
-        if ((!market['spot']) && (hedged)) {
+        if ((!this.safeBool (market, 'spot', false)) && (hedged)) {
             if (reduceOnly) {
                 query = this.omit (query, 'reduceOnly');
             }
@@ -4920,7 +4920,7 @@ export default class bybit extends Exchange {
             // conditional orders
             // 'orderFilter': '', // Valid for spot only. Order,tpslOrder. If not passed, Order by default
         };
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             // only works for spot market
             const isTrigger = this.safeBool2 (params, 'stop', 'trigger', false);
             request['orderFilter'] = (isTrigger) ? 'StopOrder' : 'Order';
@@ -4928,7 +4928,7 @@ export default class bybit extends Exchange {
         if (id !== undefined) { // The user can also use argument params["orderLinkId"]
             request['orderId'] = id;
         }
-        const paramsOmitted = (market['spot']) ? this.omit (params, [ 'stop', 'trigger' ]) : params;
+        const paramsOmitted = (this.safeBool (market, 'spot', false)) ? this.omit (params, [ 'stop', 'trigger' ]) : params;
         const [ category, paramsCategory ] = this.getBybitType ('cancelOrderRequest', market, paramsOmitted);
         request['category'] = category;
         return this.extend (request, paramsCategory);
@@ -5293,7 +5293,7 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             throw new NotSupported (this.id + ' fetchOrder() is not supported for spot markets');
         }
         const request: Dict = {
@@ -7477,7 +7477,7 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['contract']) {
+        if (!this.safeBool (market, 'contract', false)) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const timeframe = this.safeString (params, 'interval', '1h');
@@ -7555,7 +7555,7 @@ export default class bybit extends Exchange {
             return await this.fetchPaginatedCallCursor ('fetchOpenInterestHistory', symbol, since, limit, paramsPaginate, 'nextPageCursor', 'cursor', undefined, 200) as OpenInterest[];
         }
         const market = this.market (symbol);
-        if ((market['spot']) || (market['option'])) {
+        if ((this.safeBool (market, 'spot', false)) || (this.safeBool (market, 'option', false))) {
             throw new BadRequest (this.id + ' fetchOpenInterestHistory() symbol does not support market ' + symbol);
         }
         const request: Dict = {
@@ -8132,7 +8132,7 @@ export default class bybit extends Exchange {
         }
         const request: Dict = {};
         const market = this.market (symbol);
-        if ((market['spot']) || (market['option'])) {
+        if ((this.safeBool (market, 'spot', false)) || (this.safeBool (market, 'option', false))) {
             throw new BadRequest (this.id + ' fetchMarketLeverageTiers() symbol does not support market ' + symbol);
         }
         request['symbol'] = market['id'];
@@ -8990,7 +8990,7 @@ export default class bybit extends Exchange {
         let symbol: Str = undefined;
         if (symbols !== undefined) {
             const market = this.market (symbols[0]);
-            if (market['spot']) {
+            if (this.safeBool (market, 'spot', false)) {
                 throw new NotSupported (this.id + ' fetchLeverageTiers() is not supported for spot market');
             }
             symbol = this.safeString (market, 'symbol');

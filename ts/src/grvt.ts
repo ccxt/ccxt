@@ -2356,7 +2356,7 @@ export default class grvt extends Exchange {
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const symbol = symbolsNormalized[i];
                 const market = this.market (symbol);
-                if (!market['contract']) {
+                if (!this.safeBool (market, 'contract', false)) {
                     throw new BadRequest (this.id + ' fetchPositions() supports contract markets only');
                 }
                 baseIds.push (market['baseId']);

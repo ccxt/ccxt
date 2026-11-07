@@ -326,7 +326,7 @@ export default class lighter extends lighterRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
-        if (!market['swap']) {
+        if (!this.safeBool (market, 'swap', false)) {
             throw new NotSupported (this.id + ' watchTicker() is only supported for swap markets');
         }
         const request: Dict = {
@@ -351,7 +351,7 @@ export default class lighter extends lighterRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
-        if (!market['swap']) {
+        if (!this.safeBool (market, 'swap', false)) {
             throw new NotSupported (this.id + ' unWatchTicker() is only supported for swap markets');
         }
         const request: Dict = {

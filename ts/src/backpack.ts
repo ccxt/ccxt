@@ -1716,7 +1716,7 @@ export default class backpack extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             throw new BadRequest (this.id + ' fetchFundingRate() symbol does not support market ' + symbol);
         }
         const request: Dict = {
@@ -1777,7 +1777,7 @@ export default class backpack extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             throw new BadRequest (this.id + ' fetchOpenInterest() symbol does not support market ' + symbol);
         }
         const request: Dict = {

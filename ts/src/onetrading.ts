@@ -729,7 +729,7 @@ export default class onetrading extends Exchange {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const tierObject = (market['spot']) ? firstSpotTier : firstFuturesTier;
+            const tierObject = (this.safeBool (market, 'spot', false)) ? firstSpotTier : firstFuturesTier;
             result[symbol] = {
                 'info': spotFees,
                 'symbol': symbol,
@@ -797,8 +797,8 @@ export default class onetrading extends Exchange {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const makerFee = (market['spot']) ? spotMakerFee : futuresMakerFee;
-            const takerFee = (market['spot']) ? spotTakerFee : futuresTakerFee;
+            const makerFee = (this.safeBool (market, 'spot', false)) ? spotMakerFee : futuresMakerFee;
+            const takerFee = (this.safeBool (market, 'spot', false)) ? spotTakerFee : futuresTakerFee;
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,

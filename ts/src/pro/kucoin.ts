@@ -200,7 +200,7 @@ export default class kucoin extends kucoinRest {
         const requestId = this.requestId ().toString ();
         const market = this.market (symbol);
         let urlType: Str = 'spot';
-        if (market['contract']) {
+        if (this.safeBool (market, 'contract', false)) {
             urlType = 'futures';
         }
         const tradeType = urlType.toUpperCase ();
@@ -2130,7 +2130,7 @@ export default class kucoin extends kucoinRest {
         let timestamp = this.safeInteger2 (order, 'orderTime', 'createdAt');
         const marketId = this.safeString (order, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        if (marketResolved['contract']) {
+        if (this.safeBool (marketResolved, 'contract', false)) {
             timestamp = this.safeIntegerProduct (order, 'orderTime', 0.000001);
         }
         const triggerPrice = this.safeString (order, 'stopPrice');

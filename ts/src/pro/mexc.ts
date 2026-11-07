@@ -99,7 +99,7 @@ export default class mexc extends mexcRest {
         }
         const market = this.market (symbol);
         const messageHash = 'ticker:' + market['symbol'];
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             const channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' + this.safeString (market, 'id', '');
             return await this.watchSpotPublic (channel, messageHash, params);
         } else {
@@ -185,7 +185,7 @@ export default class mexc extends mexcRest {
         const market = this.safeMarket (marketId);
         const symbol = this.safeString (market, 'symbol', '');
         let ticker: Ticker;
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             this.handleBidAsk (client, message); // the bids-asks channel is spot only
             ticker = this.parseWsTicker (rawTicker as Dict, market);
             ticker['timestamp'] = timestamp;
@@ -615,7 +615,7 @@ export default class mexc extends mexcRest {
         const timeframeId = this.safeString (timeframes, timeframe);
         const messageHash = 'candles:' + symbolValue + ':' + timeframe;
         let ohlcv: any = undefined;
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             const channel = 'spot@public.kline.v3.api.pb@' + this.safeString (market, 'id', '') + '@' + timeframeId;
             ohlcv = await this.watchSpotPublic (channel, messageHash, params);
         } else {
@@ -813,7 +813,7 @@ export default class mexc extends mexcRest {
         const market = this.market (symbol);
         const messageHash = 'orderbook:' + this.safeString (market, 'symbol', '');
         let orderbook: any = undefined;
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             const [ frequency, paramsFrequency ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'frequency', '100ms');
             const channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + this.safeString (market, 'id', '');
             orderbook = await this.watchSpotPublic (channel, messageHash, paramsFrequency);
@@ -1033,7 +1033,7 @@ export default class mexc extends mexcRest {
         const symbolValue = this.safeString (market, 'symbol', '');
         const messageHash = 'trades:' + symbolValue;
         let trades: any = undefined;
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             const channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + this.safeString (market, 'id', '');
             trades = await this.watchSpotPublic (channel, messageHash, params);
         } else {
@@ -1119,7 +1119,7 @@ export default class mexc extends mexcRest {
         }
         for (let j = 0; j < trades.length; j++) {
             let parsedTrade: Trade;
-            if (market['spot']) {
+            if (this.safeBool (market, 'spot', false)) {
                 parsedTrade = this.parseWsTrade (trades[j], market);
             } else {
                 parsedTrade = this.parseTrade (trades[j], market);
@@ -1212,7 +1212,7 @@ export default class mexc extends mexcRest {
         const market = this.safeMarket (marketId);
         const symbol = this.safeString (market, 'symbol', '');
         let trade: Trade;
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             trade = this.parseWsTrade (data, market);
         } else if (data !== undefined) {
             trade = this.parseTrade (data, market);
@@ -1439,7 +1439,7 @@ export default class mexc extends mexcRest {
         const market = this.safeMarket (marketId);
         const symbol = this.safeString (market, 'symbol', '');
         let parsed: Order;
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             parsed = this.parseWsOrder (data, market);
             const sendTime = this.safeInteger (message, 'sendTime');
             if (sendTime !== undefined) {
@@ -1784,7 +1784,7 @@ export default class mexc extends mexcRest {
         const messageHash = 'unsubscribe:ticker:' + market['symbol'];
         let url: Str = undefined;
         let channel: Str = undefined;
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' + this.safeString (market, 'id', '');
             url = this.urls['api']['ws']['spot'];
             params['unsubscribed'] = true;
@@ -1925,7 +1925,7 @@ export default class mexc extends mexcRest {
         const timeframeId = this.safeString (timeframes, timeframe);
         const messageHash = 'unsubscribe:candles:' + this.safeString (market, 'symbol', '') + ':' + timeframe;
         let url: Str = undefined;
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             url = this.urls['api']['ws']['spot'];
             const channel = 'spot@public.kline.v3.api.pb@' + this.safeString (market, 'id', '') + '@' + timeframeId;
             params['unsubscribed'] = true;
@@ -1960,7 +1960,7 @@ export default class mexc extends mexcRest {
         const market = this.market (symbol);
         const messageHash = 'unsubscribe:orderbook:' + this.safeString (market, 'symbol', '');
         let url: Str = undefined;
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             url = this.urls['api']['ws']['spot'];
             const [ frequency, paramsFrequency ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'frequency', '100ms');
             const channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + this.safeString (market, 'id', '');
@@ -1995,7 +1995,7 @@ export default class mexc extends mexcRest {
         const market = this.market (symbol);
         const messageHash = 'unsubscribe:trades:' + this.safeString (market, 'symbol', '');
         let url: Str = undefined;
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             url = this.urls['api']['ws']['spot'];
             const channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + this.safeString (market, 'id', '');
             params['unsubscribed'] = true;

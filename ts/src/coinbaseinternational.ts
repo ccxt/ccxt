@@ -1820,7 +1820,7 @@ export default class coinbaseinternational extends Exchange {
         let contracts: Num = this.safeNumber (position, 'size');
         if (this.isNativeDeribitCredentials ()) {
             let size = this.safeString (position, 'size');
-            if (!marketResolved['option']) {
+            if (!this.safeBool (marketResolved, 'option', false)) {
                 notional = size;
                 if (this.safeBool (marketResolved, 'linear', false)) {
                     size = this.safeString (position, 'size_currency');
@@ -2406,7 +2406,7 @@ export default class coinbaseinternational extends Exchange {
         const lastUpdateTimestamp = this.safeInteger (order, 'last_update_timestamp');
         let filled = this.safeNumber (order, 'filled_amount');
         let amount = this.safeNumber (order, 'amount');
-        if (this.isNativeDeribitCredentials () && (marketResolved['contract'])) {
+        if (this.isNativeDeribitCredentials () && (this.safeBool (marketResolved, 'contract', false))) {
             const contractSize = this.safeString (marketResolved, 'contractSize');
             amount = this.parseNumber (this.safeString (order, 'contracts', Precise.stringDiv (this.safeString (order, 'amount'), contractSize)));
             filled = this.parseNumber (Precise.stringDiv (this.safeString (order, 'filled_amount'), contractSize));
@@ -2422,7 +2422,7 @@ export default class coinbaseinternational extends Exchange {
         let cost: Num = undefined;
         if ((filledString !== undefined) && (averageString !== undefined)) {
             cost = this.parseNumber (Precise.stringMul (filledString, averageString));
-            if (this.isNativeDeribitCredentials () && (this.safeBool (marketResolved, 'inverse', false)) && (!marketResolved['option'])) {
+            if (this.isNativeDeribitCredentials () && (this.safeBool (marketResolved, 'inverse', false)) && (!this.safeBool (marketResolved, 'option', false))) {
                 cost = this.parseNumber (Precise.stringDiv (filledString, averageString));
             }
         }
@@ -3009,14 +3009,14 @@ export default class coinbaseinternational extends Exchange {
         const price = this.safeNumber (trade, 'price');
         let amount = this.safeNumber (trade, 'amount');
         const amountString = this.safeString (trade, 'amount');
-        if (this.isNativeDeribitCredentials () && (marketResolved['contract'])) {
+        if (this.isNativeDeribitCredentials () && (this.safeBool (marketResolved, 'contract', false))) {
             amount = this.parseNumber (this.safeString (trade, 'contracts', Precise.stringDiv (amountString, this.safeString (marketResolved, 'contractSize'))));
         }
         const priceString = this.safeString (trade, 'price');
         let cost: Num = undefined;
         if ((amountString !== undefined) && (priceString !== undefined)) {
             cost = this.parseNumber (Precise.stringMul (amountString, priceString));
-            if (this.isNativeDeribitCredentials () && (this.safeBool (marketResolved, 'inverse', false)) && (!marketResolved['option'])) {
+            if (this.isNativeDeribitCredentials () && (this.safeBool (marketResolved, 'inverse', false)) && (!this.safeBool (marketResolved, 'option', false))) {
                 cost = this.parseNumber (Precise.stringDiv (amountString, priceString));
             }
         }

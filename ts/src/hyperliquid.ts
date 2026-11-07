@@ -1248,7 +1248,7 @@ export default class hyperliquid extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {
             'type': 'l2Book',
-            'coin': (market['swap']) ? this.safeString (market, 'baseName') : market['id'],
+            'coin': (this.safeBool (market, 'swap', false)) ? this.safeString (market, 'baseName') : market['id'],
         };
         const response = await this.publicPostInfo (this.extend (request, params));
         //
@@ -1548,7 +1548,7 @@ export default class hyperliquid extends Exchange {
         const request: Dict = {
             'type': 'candleSnapshot',
             'req': {
-                'coin': (market['swap']) ? this.safeString (market, 'baseName') : market['id'],
+                'coin': (this.safeBool (market, 'swap', false)) ? this.safeString (market, 'baseName') : market['id'],
                 'interval': this.safeString (this.timeframes, timeframe, timeframe),
                 'startTime': startTime,
                 'endTime': until,
@@ -1691,7 +1691,7 @@ export default class hyperliquid extends Exchange {
         const significantDigits = Math.max (5, integerPart.length);
         const result = this.decimalToPrecision (price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
         let maxDecimals: int = 6;
-        if (market['spot']) {
+        if (this.safeBool (market, 'spot', false)) {
             maxDecimals = 8;
         }
         const subtractedValue = maxDecimals - this.precisionFromString (this.safeString (market['precision'], 'amount'));

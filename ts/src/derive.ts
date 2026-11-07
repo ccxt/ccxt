@@ -989,7 +989,7 @@ export default class derive extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['contract']) {
+        if (!this.safeBool (market, 'contract', false)) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request: Dict = {
@@ -1062,7 +1062,7 @@ export default class derive extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['option']) {
+        if (!this.safeBool (market, 'option', false)) {
             throw new BadRequest (this.id + ' fetchGreeks() supports option markets only');
         }
         const request: Dict = {
@@ -1153,7 +1153,7 @@ export default class derive extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['option']) {
+        if (!this.safeBool (market, 'option', false)) {
             throw new BadRequest (this.id + ' fetchOption() supports option markets only');
         }
         const request: Dict = {
