@@ -50,5 +50,8 @@
   "bugs": {
     "url": "https://github.com/ccxt/ccxt/issues"
   },
-  "homepage": "https://ccxt.com"
+  "homepage": "https://ccxt.com",
+  "overrides": {
+    "undici": "^7.30.2"
+  }
 }
