@@ -11457,12 +11457,12 @@ func (this *Exchange) createOrdersBody(ch chan AsyncResult[[]Order], orders []an
 	_ = params
 	panic(NotSupported(this.Id + " createOrders() is not supported yet"))
 }
-func (this *Exchange) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Exchange) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Exchange) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Exchange) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -11504,12 +11504,12 @@ func (this *Exchange) cancelOrderWithClientOrderIdBody(ch chan AsyncResult[Order
 	ch <- AsyncResult[Order]{Value: r.Value}
 	return nil
 }
-func (this *Exchange) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Exchange) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Exchange) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Exchange) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -11544,7 +11544,7 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 		"clientOrderIds": clientOrderIds,
 	})
 
-	r := <-this.CancelOrdersAsync([]any{}, symbol, extendedParams)
+	r := <-this.CancelOrdersAsync([]string{}, symbol, extendedParams)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -11582,7 +11582,7 @@ func (this *Exchange) cancelUnifiedOrderBody(ch chan AsyncResult[Order], order a
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.DerivedExchange.(ICancelOrder).CancelOrderAsync(this.SafeString(order, "id"), this.SafeString(order, "symbol"), params)
+	r := <-this.DerivedExchange.(ICancelOrder).CancelOrderAsync(*this.SafeString(order, "id", ""), this.SafeString(order, "symbol"), params)
 	if r.Err != nil {
 		panic(r.Err)
 	}

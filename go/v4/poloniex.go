@@ -2981,12 +2981,12 @@ func (this *Poloniex) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
-func (this *Poloniex) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Poloniex) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Poloniex) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	//
@@ -3039,11 +3039,11 @@ func (this *Poloniex) cancelOrderBody(ch chan AsyncResult[Order], id any, option
 		return nil
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
-	var idValue any = func() any {
+	var idValue *string = func() *string {
 		if clientOrderId != nil {
 			return clientOrderId
 		}
-		return id
+		return &id
 	}()
 	request["id"] = idValue
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
@@ -3090,12 +3090,12 @@ func (this *Poloniex) cancelOrderBody(ch chan AsyncResult[Order], id any, option
  * @param {string[]} [params.clientOrderIds] alternative to ids, cancel by client order ids
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Poloniex) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Poloniex) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Poloniex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3115,7 +3115,7 @@ func (this *Poloniex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, op
 	var clientOrderIds any = this.SafeList2(paramsMarketType, "clientOrderIds", "clOrdIds")
 	var query map[string]any = this.OmitDict(paramsMarketType, []any{"clientOrderIds", "clOrdIds"})
 	var request map[string]any = map[string]any{}
-	var idsLength int = GetArrayLength(ids)
+	var idsLength int = len(ids)
 	if marketType == nil || *marketType != "spot" {
 		if market == nil {
 			panic(ArgumentsRequired(this.Id + " cancelOrders() requires a symbol argument for " + *marketType + " markets"))

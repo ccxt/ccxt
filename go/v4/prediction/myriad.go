@@ -1798,7 +1798,7 @@ func (this *Myriad) ClobOrderMessage(rawOrder any) map[string]any {
  * @description extracts an optional pre-fetched order response from params for static tests and higher-level callers that already resolved the original order
  * @returns {object} the fetchOrder-style response wrapper or a raw-order wrapper
  */
-func (this *Myriad) GetOrderResponseFromParams(id any, optionalArgs ...any) any {
+func (this *Myriad) GetOrderResponseFromParams(id string, optionalArgs ...any) any {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var orderResponse map[string]any = ccxt.SafeMapTyped(params, "orderResponse")
@@ -1826,7 +1826,7 @@ func (this *Myriad) GetOrderResponseFromParams(id any, optionalArgs ...any) any 
 		for i := 0; i < responsesLength; i++ {
 			var current map[string]any = this.SafeDictMap(orderResponses, i, map[string]any{})
 			var currentId *string = this.SafeStringN(current, []any{"orderHash", "hash", "id"})
-			if (currentId != nil) && (ccxt.IsEqual(currentId, id)) {
+			if (currentId != nil) && (*currentId == id) {
 				return current
 			}
 		}
@@ -2185,12 +2185,12 @@ func (this *Myriad) fetchAmmOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
  * @param {string} [params.networkId] the order-book network id, required when using params.rawOrder without an embedded network id
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Myriad) CancelOrderAsync(id any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
+func (this *Myriad) CancelOrderAsync(id string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
 	ch := make(chan ccxt.AsyncResult[ccxt.PredictionOrder], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Myriad) cancelOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], id any, optionalArgs ...any) any {
+func (this *Myriad) cancelOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2360,12 +2360,12 @@ func (this *Myriad) cancelAllOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
  * @param {string} [params.networkId] the order-book network id fallback for any supplied raw order data
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Myriad) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionOrder] {
+func (this *Myriad) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionOrder] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.PredictionOrder], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Myriad) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOrder], ids any, optionalArgs ...any) any {
+func (this *Myriad) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOrder], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2378,12 +2378,12 @@ func (this *Myriad) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionO
 	var paramsForLookup any = params
 	var networkIdParam *string = this.SafeString2(params, "networkId", "network_id")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"orderResponse", "orderResponses", "rawOrder", "networkId", "network_id"})
-	var idsLength int = ccxt.GetArrayLength(ids)
+	var idsLength int = len(ids)
 	var signedOrders []any = []any{}
 	var wrappers []any = []any{}
 	var networkId *string = this.SafeString(this.Options, "defaultNetworkId", "56")
 	for i := 0; i < idsLength; i++ {
-		var id *string = ccxt.SafeStringPtr(ccxt.GetValue(ids, i))
+		var id string = ids[i]
 		var fetched any = this.GetOrderResponseFromParams(id, paramsForLookup)
 		if ccxt.IsEqual(fetched, nil) {
 

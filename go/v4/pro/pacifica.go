@@ -135,7 +135,7 @@ func (this *Pacifica) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sy
 			panic(r.Err)
 		}
 	}
-	requestoperationTypeVariable := this.CreateOrderRequest(symbol, typeVar, ccxt.SafeStringPtr(side), amount, price, params)
+	requestoperationTypeVariable := this.CreateOrderRequest(symbol, typeVar, &side, amount, price, params)
 	var request map[string]any = requestoperationTypeVariable[0].(map[string]any)
 	operationType := requestoperationTypeVariable[1]
 	var isTestnet bool = this.IsSandboxModeEnabled
@@ -255,7 +255,7 @@ func (this *Pacifica) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id s
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var request any = this.EditOrderRequest(ccxt.SafeStringPtr(id), symbol, typeVar, side, amount, price, market, params)
+	var request any = this.EditOrderRequest(&id, symbol, typeVar, side, amount, price, market, params)
 	var isTestnet bool = this.IsSandboxModeEnabled
 	var urlKey string = "api"
 	if isTestnet {

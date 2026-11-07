@@ -1157,7 +1157,7 @@ func (this *Hibachi) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		}
 	}
 	var nonce int64 = this.IncrementingNonce()
-	var request map[string]any = this.CreateOrderRequest(nonce, SafeStringPtr(symbol), SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, params)
+	var request map[string]any = this.CreateOrderRequest(nonce, &symbol, &typeVar, &side, amount, price, params)
 	request["accountId"] = this.GetAccountId()
 
 	r1 := <-this.PrivatePostTradeOrder(request)
@@ -1324,7 +1324,7 @@ func (this *Hibachi) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 		}
 	}
 	var nonce int64 = this.IncrementingNonce()
-	var request map[string]any = this.EditOrderRequest(nonce, SafeStringPtr(id), symbol, typeVar, side, amount, price, params)
+	var request map[string]any = this.EditOrderRequest(nonce, &id, symbol, typeVar, side, amount, price, params)
 	request["accountId"] = this.GetAccountId()
 
 	r1 := <-this.PrivatePutTradeOrder(request)
@@ -1412,7 +1412,7 @@ func (this *Hibachi) editOrdersBody(ch chan AsyncResult[[]Order], orders any, op
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(ret)}
 	return nil
 }
-func (this *Hibachi) CancelOrderRequest(id any) map[string]any {
+func (this *Hibachi) CancelOrderRequest(id string) map[string]any {
 	var bigid any = this.ConvertToBigInt(id)
 	var idbase16 string = this.IntToBase16(bigid)
 	var idPadded string = (strings.Repeat("0", max(16-len(idbase16), 0)) + idbase16)[max(len(idbase16)-16, 0):]
@@ -1434,12 +1434,12 @@ func (this *Hibachi) CancelOrderRequest(id any) map[string]any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hibachi) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Hibachi) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hibachi) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Hibachi) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1477,12 +1477,12 @@ func (this *Hibachi) cancelOrderBody(ch chan AsyncResult[Order], id any, optiona
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hibachi) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Hibachi) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Hibachi) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Hibachi) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1490,8 +1490,8 @@ func (this *Hibachi) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, opt
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var orders []any = []any{}
-	for i := 0; i < GetArrayLength(ids); i++ {
-		var orderRequest map[string]any = this.CancelOrderRequest(this.SafeString(ids, i, ""))
+	for i := 0; i < len(ids); i++ {
+		var orderRequest map[string]any = this.CancelOrderRequest(*this.SafeString(ids, i, ""))
 		orderRequest["action"] = "cancel"
 		orders = append(orders, orderRequest)
 	}

@@ -3181,7 +3181,7 @@ func (this *Mexc) createSpotOrderBody(ch chan AsyncResult[Order], market map[str
 	}
 	var test *bool = this.SafeBool(params, "test", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, "test")
-	var request map[string]any = this.CreateSpotOrderRequest(market, SafeStringPtr(typeVar), SafeStringPtr(side), amount, price, marginMode, paramsOmitted)
+	var request map[string]any = this.CreateSpotOrderRequest(market, &typeVar, &side, amount, price, marginMode, paramsOmitted)
 	var response map[string]any = nil
 	if test != nil && *test {
 
@@ -4281,12 +4281,12 @@ func (this *Mexc) fetchOrdersByStateBody(ch chan AsyncResult[[]Order], state any
  * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Mexc) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Mexc) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Mexc) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Mexc) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -4398,7 +4398,7 @@ func (this *Mexc) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalAr
 		var order map[string]any = SafeMapTyped(data, 0)
 		var errorMsg string = *this.SafeString(order, "errorMsg", "")
 		if errorMsg != "success" {
-			panic(InvalidOrder(Add(Add(Add(this.Id+" cancelOrder() the order with id ", id), " cannot be cancelled: "), errorMsg)))
+			panic(InvalidOrder(this.Id + " cancelOrder() the order with id " + id + " cannot be cancelled: " + errorMsg))
 		}
 	}
 
@@ -4416,12 +4416,12 @@ func (this *Mexc) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Mexc) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Mexc) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Mexc) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Mexc) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
