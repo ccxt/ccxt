@@ -480,8 +480,8 @@ class gemini extends gemini$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchBidsAsks(symbols = undefined, params = {}) {
-        return this.helperForWatchMultipleConstruct('bidsasks', symbols, params);
+    async watchBidsAsks(symbols = undefined, params = {}) {
+        return await this.helperForWatchMultipleConstruct('bidsasks', symbols, params);
     }
     handleBidsAsksForMultidata(client, rawBidAskChanges, timestamp, nonce) {
         //

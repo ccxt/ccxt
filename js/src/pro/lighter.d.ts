@@ -104,7 +104,7 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchMarkPrice(symbol: string, params?: {}): Promise<any>;
+    unWatchMarkPrice(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name lighter#unWatchMarkPrices
@@ -114,7 +114,7 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchMarkPrices(symbols?: Strings, params?: {}): Promise<any>;
+    unWatchMarkPrices(symbols?: Strings, params?: Dict): Promise<any>;
     parseWsTrade(trade: Dict, market?: Market): Trade;
     handleTrades(client: Client, message: Dict): void;
     /**

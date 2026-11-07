@@ -454,8 +454,8 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchMarkPrice(symbol, params = {}) {
-        return this.unWatchTicker(symbol, params);
+    async unWatchMarkPrice(symbol, params = {}) {
+        return await this.unWatchTicker(symbol, params);
     }
     /**
      * @method
@@ -466,8 +466,8 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchMarkPrices(symbols = undefined, params = {}) {
-        return this.unWatchTickers(symbols, params);
+    async unWatchMarkPrices(symbols = undefined, params = {}) {
+        return await this.unWatchTickers(symbols, params);
     }
     parseWsTrade(trade, market = undefined) {
         //

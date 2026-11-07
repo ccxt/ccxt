@@ -62,7 +62,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.interval] notification interval, default raw
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name coinbaseinternational#unWatchMyTrades
@@ -74,7 +74,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    unWatchMyTrades(symbol?: Str, params?: {}): Promise<any>;
+    unWatchMyTrades(symbol?: Str, params?: Dict): Promise<any>;
     handleMyTrades(client: Client, message: Dict): void;
     /**
      * @method
@@ -104,7 +104,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    watchOrdersForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    watchOrdersForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name coinbaseinternational#unWatchOrders
@@ -116,7 +116,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    unWatchOrders(symbol?: Str, params?: {}): Promise<any>;
+    unWatchOrders(symbol?: Str, params?: Dict): Promise<any>;
     handleOrders(client: Client, message: Dict): void;
     /**
      * @method
@@ -132,7 +132,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.interval] notification interval, default raw
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     /**
      * @method
      * @name coinbaseinternational#unWatchPositions
@@ -144,7 +144,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    unWatchPositions(symbols?: Strings, params?: {}): Promise<any>;
+    unWatchPositions(symbols?: Strings, params?: Dict): Promise<any>;
     handlePositions(client: Client, message: Dict): void;
     /**
      * @method
@@ -157,7 +157,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    watchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     /**
      * @method
      * @name coinbaseinternational#watchFundingRates
@@ -181,7 +181,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    unWatchFundingRate(symbol: string, params?: {}): Promise<any>;
+    unWatchFundingRate(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name coinbaseinternational#unWatchFundingRates
@@ -193,7 +193,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    unWatchFundingRates(symbols?: Strings, params?: {}): Promise<any>;
+    unWatchFundingRates(symbols?: Strings, params?: Dict): Promise<any>;
     /**
      * @method
      * @name coinbaseinternational#watchTicker
@@ -218,7 +218,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    unWatchTicker(symbol: string, params?: {}): Promise<any>;
+    unWatchTicker(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name coinbaseinternational#watchTickers
@@ -243,7 +243,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
+    unWatchTickers(symbols?: Strings, params?: Dict): Promise<any>;
     /**
      * @method
      * @name coinbaseinternational#watchMarkPrice
@@ -305,7 +305,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchBidsAsks(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name coinbaseinternational#unWatchBidsAsks
@@ -317,7 +317,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    unWatchBidsAsks(symbols?: Strings, params?: {}): Promise<any>;
+    unWatchBidsAsks(symbols?: Strings, params?: Dict): Promise<any>;
     handleTicker(client: Client, message: Dict): void;
     handleBidAsk(client: Client, message: Dict): void;
     parseWsBidAsk(ticker: any, market?: Market): Ticker;
@@ -349,7 +349,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a dictionary of OHLCV arrays indexed by symbol and timeframe
      */
-    watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
+    watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: Dict): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
     /**
      * @method
      * @name coinbaseinternational#unWatchOHLCV
@@ -362,7 +362,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name coinbaseinternational#unWatchOHLCVForSymbols
@@ -374,7 +374,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: {}): Promise<any>;
+    unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: Dict): Promise<any>;
     handleOHLCV(client: Client, message: Dict): void;
     parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
@@ -416,7 +416,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    unWatchTrades(symbol: string, params?: {}): Promise<any>;
+    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name coinbaseinternational#unWatchTradesForSymbols
@@ -428,7 +428,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
+    unWatchTradesForSymbols(symbols: string[], params?: Dict): Promise<any>;
     handleTrades(client: Client, message: Dict): Dict;
     /**
      * @method
@@ -457,7 +457,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name coinbaseinternational#unWatchOrderBook
@@ -469,7 +469,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
+    unWatchOrderBook(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name coinbaseinternational#unWatchOrderBookForSymbols
@@ -481,7 +481,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
+    unWatchOrderBookForSymbols(symbols: string[], params?: Dict): Promise<any>;
     handleOrderBook(client: Client, message: Dict): void;
     resubscribeOrderBook(channel: string): Promise<void>;
     handleDelta(bookside: any, delta: any): void;
@@ -531,7 +531,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name coinbaseinternational#editOrderWs
@@ -548,7 +548,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name coinbaseinternational#cancelOrderWs
@@ -561,7 +561,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrderWs(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name coinbaseinternational#cancelAllOrdersWs
@@ -575,7 +575,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelAllOrdersWs(symbol?: Str, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name coinbaseinternational#fetchOrderWs
@@ -588,7 +588,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    fetchOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOrderWs(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name coinbaseinternational#fetchOpenOrdersWs
@@ -602,7 +602,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    fetchOpenOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOpenOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name coinbaseinternational#fetchOrdersWs
@@ -616,7 +616,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    fetchOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchOrdersWs(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name coinbaseinternational#fetchBalanceWs
@@ -628,7 +628,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
-    fetchBalanceWs(params?: {}): Promise<Balances>;
+    fetchBalanceWs(params?: Dict): Promise<Balances>;
     /**
      * @method
      * @name coinbaseinternational#fetchMyTradesWs
@@ -643,7 +643,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    fetchMyTradesWs(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    fetchMyTradesWs(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name coinbaseinternational#fetchPositionsWs
@@ -655,7 +655,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    fetchPositionsWs(symbols?: Strings, params?: {}): Promise<Position[]>;
+    fetchPositionsWs(symbols?: Strings, params?: Dict): Promise<Position[]>;
     /**
      * @ignore
      * @method

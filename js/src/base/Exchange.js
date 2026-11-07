@@ -3188,7 +3188,7 @@ export class BaseExchange {
     }
     async watchMyLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
         if (this.has['watchMyLiquidationsForSymbols'] !== undefined && this.has['watchMyLiquidationsForSymbols'] !== false) {
-            return this.watchMyLiquidationsForSymbols([symbol], since, limit, params);
+            return await this.watchMyLiquidationsForSymbols([symbol], since, limit, params);
         }
         throw new NotSupported(this.id + ' watchMyLiquidations() is not supported yet');
     }
