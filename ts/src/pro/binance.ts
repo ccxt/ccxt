@@ -5232,7 +5232,8 @@ export default class binance extends binanceRest {
         // the client may have been replaced by a reconnect while the
         // snapshot was in flight: a stale snapshot must not overwrite
         // the fresh one loaded for the new client
-        if ((this.clients === undefined) || (this.clients[client.url] !== client)) {
+        const currentClient = this.safeValue (this.clients, client.url);
+        if (currentClient !== client) {
             return;
         }
         this.positions[type] = new ArrayCacheBySymbolBySide ();
