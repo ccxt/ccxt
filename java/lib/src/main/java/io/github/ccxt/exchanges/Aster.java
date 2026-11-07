@@ -3686,7 +3686,13 @@ public class Aster extends AsterApi
                 request.put("origClientOrderIdList", clientOrderIdList);
             } else
             {
-                request.put("orderIdList", ids);
+                // the api takes LONG[] order ids
+                List<Object> orderIdList = new ArrayList<Object>(Arrays.asList());
+                for (var i = 0; i < ((List<?>)ids).size(); i++)
+                {
+                    ((List<Object>)orderIdList).add(this.parseToNumeric((ids == null || i < 0 || i >= ((List<?>)ids).size() ? null : ((List<?>)ids).get(i))));
+                }
+                request.put("orderIdList", orderIdList);
             }
             List<Object> response = null;
             if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))

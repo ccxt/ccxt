@@ -1476,7 +1476,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.cancelOrder(this.safeString(order, "id"), this.safeString(order, "symbol"), parameters)).join();
+            return (this.cancelOrder(this.safeString(order, "id", ""), this.safeString(order, "symbol"), parameters)).join();
         }).thenApply(Order::new);
 
     }

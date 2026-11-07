@@ -2664,7 +2664,7 @@ public class Paradex extends ParadexApi
             }
             List<Object> clientOrderIds = (List<Object>) this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")), (Object) null);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
-            Boolean hasOrderIds = (ids instanceof List);
+            Boolean hasOrderIds = (!java.util.Objects.equals(ids, null));
             Boolean hasClientOrderIds = (!java.util.Objects.equals(clientOrderIds, null)) && ((clientOrderIds instanceof List));
             if (!Boolean.TRUE.equals(hasOrderIds) && !Boolean.TRUE.equals(hasClientOrderIds))
             {
