@@ -856,7 +856,7 @@ export declare class BaseExchange {
     fetchDepositWithdrawFees(codes?: Strings, params?: Dict): Promise<DepositWithdrawFees>;
     fetchDepositWithdrawFee(code: string, params?: Dict): Promise<DepositWithdrawFee>;
     getSupportedMapping(key: Str, mapping?: Dict): any;
-    fetchCrossBorrowRate(code: string, params?: {}): Promise<CrossBorrowRate>;
+    fetchCrossBorrowRate(code: string, params?: Dict): Promise<CrossBorrowRate>;
     fetchIsolatedBorrowRate(symbol: string, params?: Dict): Promise<IsolatedBorrowRate>;
     requireValue<T>(value: T | undefined, message?: Str): T;
     handleOptionAndParams<T>(params: object, methodName: string, optionName: string, defaultValue: T): [T, Dict];
@@ -1140,7 +1140,7 @@ export default class Exchange extends BaseExchange {
      */
     fetchOrderWithClientOrderId(clientOrderId: string, symbol?: Str, params?: Dict): Promise<Order>;
     fetchOrderStatus(id: string, symbol?: Str, params?: Dict): Promise<Str>;
-    fetchUnifiedOrder(order: any, params?: Dict): Promise<Order>;
+    fetchUnifiedOrder(order: Order, params?: Dict): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     createTrailingAmountOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingAmount?: Num, trailingTriggerPrice?: Num, params?: Dict): Promise<Order>;
     createTrailingPercentOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingPercent?: Num, trailingTriggerPrice?: Num, params?: Dict): Promise<Order>;
