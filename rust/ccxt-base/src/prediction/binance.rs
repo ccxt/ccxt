@@ -86,8 +86,8 @@ impl crate::exchange_generated::ExchangeBase for BinanceCore {
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_str).unwrap_or_default(), args.get(2).and_then(crate::Value::as_str).unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
-                "fetch_event" => self.fetch_event(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "fetch_events" => self.fetch_events(&args[..]).await,
+                "fetch_event" => crate::types::IntoRaw::into_raw(self.fetch_event(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+                "fetch_events" => crate::types::IntoRaw::into_raw(self.fetch_events(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_events_by_query" => self.fetch_events_by_query(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,
                 "fetch_markets" => crate::types::IntoRaw::into_raw(self.fetch_markets(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_my_trades" => crate::types::IntoRaw::into_raw(self.fetch_my_trades(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -396,7 +396,7 @@ impl BinanceCore {
         let mut queriesLength: f64 = ((queries.len() as i64) as f64);
         if queriesLength > ((0i64) as f64) {
             let mut eventParams: Value = self.omit(params.clone(), Value::from(vec![Value::Str("limit".into())]), &[]);
-            let mut events: Value = self.fetch_events(&[eventParams]).await;
+            let mut events: Value = crate::types::IntoRaw::into_raw(self.fetch_events(eventParams).await);
             let mut eventsLength: f64 = ((events.len() as i64) as f64);
             let mut queryMarkets: Vec<Value> = Vec::new();
             {
@@ -629,7 +629,12 @@ impl BinanceCore {
  * @param {string} [params.orderBy] order events by server side ('ASC' | 'DESC'), works when no queries and eveitId provided
  * @returns {object[]} a list of [prediction event structures](https://docs.ccxt.com/#/?id=prediction-event-structure)
  */
-    pub async fn fetch_events(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_events(&mut self, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::PredictionEvent>> {
+        let __args: Vec<Value> = vec![params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -741,9 +746,9 @@ impl BinanceCore {
         // title uses different words than the query
         let mut postParams: Value = self.omit(paramsOmitted, Value::from(postOmitKeys), &[]);
         return self.apply_event_fetch_params(Value::from(result), &[postParams, Value::from(vec![])]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @ignore
@@ -838,7 +843,13 @@ impl BinanceCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
  */
-    pub async fn fetch_event(&mut self, mut id: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_event(&mut self, id: &str, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::PredictionEvent> {
+        let __args: Vec<Value> = vec![Value::from(id), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut id = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -848,11 +859,11 @@ impl BinanceCore {
         m.insert("eventId".to_string(), id);
     m
 }), &[params]);
-        let mut events: Value = self.fetch_events(&[__ws_arg_4]).await;
+        let mut events: Value = crate::types::IntoRaw::into_raw(self.fetch_events(__ws_arg_4).await);
         return self.safe_dict(events, Value::Int(0), &[]);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @ignore
