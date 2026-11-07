@@ -3550,7 +3550,8 @@ export class BaseExchange {
     }
 
     marketsCacheFilePath () {
-        return this.getTempDir () + 'ccxt_cache_' + this.id + '_markets_currencies_.json.ccxtfile';
+        const sandboxFlag = this.isSandboxEnabled ? 'sandbox_' : '';
+        return this.getTempDir () + 'ccxt_cache_' + this.id + '_markets_currencies' + sandboxFlag + '.json.ccxtfile';
     }
 
     marketsCacheRead () {
@@ -3573,7 +3574,7 @@ export class BaseExchange {
         return [ undefined, undefined ];
     }
 
-    marketsCacheSave (markets: any, currencies: Dict = undefined) {
+    marketsCacheSave (markets: any, currencies: Dict | undefined = undefined) {
         // only write if user has enabled caching
         if (this.marketsCacheMinutes > 0) {
             const cacheFile = this.marketsCacheFilePath ();
