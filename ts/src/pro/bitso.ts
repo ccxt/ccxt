@@ -5,6 +5,7 @@ import { ExchangeError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import type { Int, Trade, OrderBook, Dict, Market, Str } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -220,12 +221,15 @@ export default class bitso extends bitsoRest {
         }
         const messageHash = 'orderbook:' + symbol;
         let nonce = this.safeInteger (orderbook, 'nonce');
-        if ((nonce !== undefined) && (sequence > (nonce + 1))) {
-            // a frame was lost, the book can not be trusted anymore,
-            // start buffering again and resynchronize from a fresh snapshot
-            orderbook['nonce'] = undefined;
-            orderbook.cache = [];
-            nonce = undefined;
+        if (nonce !== undefined) {
+            const nextNonce = this.sum (nonce, 1);
+            if (sequence > nextNonce) {
+                // a frame was lost, the book can not be trusted anymore,
+                // start buffering again and resynchronize from a fresh snapshot
+                orderbook['nonce'] = undefined;
+                orderbook.cache = [];
+                nonce = undefined;
+            }
         }
         if (nonce === undefined) {
             // buffer the deltas until the rest snapshot arrives, the frame is
@@ -234,7 +238,8 @@ export default class bitso extends bitsoRest {
             orderbook.cache.push (message);
             const cacheLength = orderbook.cache.length;
             const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 1);
-            if (cacheLength === (snapshotDelay + 1)) {
+            const snapshotLength = this.sum (snapshotDelay, 1);
+            if (cacheLength === snapshotLength) {
                 this.spawn (this.loadIndexedOrderBook, client, messageHash, symbol);
             }
             return;
@@ -247,7 +252,7 @@ export default class bitso extends bitsoRest {
         client.resolve (orderbook, messageHash);
     }
 
-    override handleBookDelta (orderbook: any, delta: any) {
+    override handleBookDelta (orderbook: WsOrderBook, delta: any) {
         const orders = this.safeList (delta, 'payload', []);
         const bids = orderbook['bids'];
         const asks = orderbook['asks'];
@@ -278,7 +283,11 @@ export default class bitso extends bitsoRest {
         const nonce = this.safeInteger (orderbook, 'nonce');
         const firstDelta = this.safeDict (cache, 0);
         const firstSequence = this.safeInteger (firstDelta, 'sequence');
-        if ((nonce === undefined) || (firstSequence === undefined) || (firstSequence > (nonce + 1))) {
+        if ((nonce === undefined) || (firstSequence === undefined)) {
+            return -1;
+        }
+        const nextNonce = this.sum (nonce, 1);
+        if (firstSequence > nextNonce) {
             // the snapshot is older than the oldest buffered delta, there is a gap
             return -1;
         }
@@ -309,11 +318,12 @@ export default class bitso extends bitsoRest {
         const maxRetries = this.handleOption ('watchOrderBook', 'snapshotMaxRetries', 3);
         const market = this.market (symbol);
         let error = undefined;
-        let synchronized = false;
+        let isSynced = false;
         try {
-            // no return inside the try block, the go transpiler wraps it in a closure
+            // no early exit inside the try block (not even the keyword in a comment):
+            // go wraps it in a closure and rust then leaves the function after the try
             let tries = 0;
-            while (!synchronized && (tries < maxRetries)) {
+            while (!isSynced && (tries < maxRetries)) {
                 tries = tries + 1;
                 const request: Dict = {
                     'book': market['id'],
@@ -346,18 +356,21 @@ export default class bitso extends bitsoRest {
                 const index = this.getCacheIndex (snapshot, cache);
                 if (index >= 0) {
                     orderbook.reset (snapshot);
-                    const deltas = this.arraySlice (cache, index);
-                    for (let i = 0; i < deltas.length; i++) {
-                        this.handleBookDelta (orderbook, deltas[i]);
+                    // walk the buffer in place instead of arraySlice, rust exposes
+                    // the book cache as a live handle that arraySlice does not copy
+                    for (let i = 0; i < cache.length; i++) {
+                        if (i >= index) {
+                            this.handleBookDelta (orderbook, cache[i]);
+                        }
                     }
                     orderbook.cache = [];
-                    synchronized = true;
+                    isSynced = true;
                 }
             }
         } catch (e) {
             error = e;
         }
-        if (synchronized) {
+        if (isSynced) {
             client.resolve (orderbook, messageHash);
             return;
         }
@@ -402,9 +415,7 @@ export default class bitso extends bitsoRest {
         }
         if (channel === 'diff-orders') {
             // a fresh subscription (or a reconnect) starts a new book
-            const orderbook = this.indexedOrderBook ({});
-            orderbook.cache = [];
-            this.orderbooks[symbol] = orderbook;
+            this.orderbooks[symbol] = this.indexedOrderBook ({});
         }
     }
 
