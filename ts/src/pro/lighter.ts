@@ -469,8 +469,8 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override unWatchMarkPrice (symbol: string, params = {}): Promise<any> {
-        return this.unWatchTicker (symbol, params);
+    override async unWatchMarkPrice (symbol: string, params: Dict = {}): Promise<any> {
+        return await this.unWatchTicker (symbol, params);
     }
 
     /**
@@ -482,8 +482,8 @@ export default class lighter extends lighterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override unWatchMarkPrices (symbols: Strings = undefined, params = {}): Promise<any> {
-        return this.unWatchTickers (symbols, params);
+    override async unWatchMarkPrices (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
+        return await this.unWatchTickers (symbols, params);
     }
 
     override parseWsTrade (trade: Dict, market: Market = undefined): Trade {

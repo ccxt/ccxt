@@ -275,7 +275,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.interval] notification interval, default raw
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         const paramsResolved = this.handleRouteAndParams ('watchMyTrades', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -303,7 +303,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    override async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
+    override async unWatchMyTrades (symbol: Str = undefined, params: Dict = {}): Promise<any> {
         const paramsResolved = this.handleRouteAndParams ('unWatchMyTrades', params);
         const [ interval, paramsInterval ] = this.handleOptionStringAndParams (paramsResolved, 'watchMyTrades', 'interval', 'raw');
         let channel = 'user.trades.any.any.' + interval;
@@ -380,7 +380,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    override async watchOrdersForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrdersForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const paramsResolved = this.handleRouteAndParams ('watchOrdersForSymbols', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -412,7 +412,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    override async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
+    override async unWatchOrders (symbol: Str = undefined, params: Dict = {}): Promise<any> {
         const paramsResolved = this.handleRouteAndParams ('unWatchOrders', params);
         const [ interval, paramsInterval ] = this.handleOptionStringAndParams (paramsResolved, 'watchOrders', 'interval', 'raw');
         let channel = 'user.orders.any.any.' + interval;
@@ -460,7 +460,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.interval] notification interval, default raw
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
         const paramsResolved = this.handleRouteAndParams ('watchPositions', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -497,7 +497,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    override async unWatchPositions (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         const paramsResolved = this.handleRouteAndParams ('unWatchPositions', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -546,7 +546,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    override async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async watchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
         const paramsResolved = this.handleRouteAndParams ('watchFundingRate', params);
         const ticker = await this.watchTicker (symbol, paramsResolved);
         return this.parseFundingRate (ticker['info'], this.market (symbol));
@@ -594,7 +594,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    override async unWatchFundingRate (symbol: string, params = {}): Promise<any> {
+    override async unWatchFundingRate (symbol: string, params: Dict = {}): Promise<any> {
         const paramsResolved = this.handleRouteAndParams ('unWatchFundingRate', params);
         return await this.unWatchTicker (symbol, paramsResolved);
     }
@@ -610,7 +610,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    override async unWatchFundingRates (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchFundingRates (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         const paramsResolved = this.handleRouteAndParams ('unWatchFundingRates', params);
         return await this.unWatchTickers (symbols, paramsResolved);
     }
@@ -650,7 +650,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    override async unWatchTicker (symbol: string, params = {}): Promise<any> {
+    override async unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
         const paramsResolved = this.handleRouteAndParams ('unWatchTicker', params);
         return await this.unWatchTickers ([ symbol ], paramsResolved);
     }
@@ -704,7 +704,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    override async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         const paramsResolved = this.handleRouteAndParams ('unWatchTickers', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -796,7 +796,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    override async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         const paramsResolved = this.handleRouteAndParams ('watchBidsAsks', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -828,7 +828,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    override async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         const paramsResolved = this.handleRouteAndParams ('unWatchBidsAsks', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -915,7 +915,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a dictionary of OHLCV arrays indexed by symbol and timeframe
      */
-    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
         const paramsResolved = this.handleRouteAndParams ('watchOHLCVForSymbols', params);
         const symbolsAndTimeframesLength = symbolsAndTimeframes.length;
         if (symbolsAndTimeframesLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
@@ -956,7 +956,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
         const paramsResolved = this.handleRouteAndParams ('unWatchOHLCV', params);
         return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], paramsResolved);
     }
@@ -972,7 +972,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    override async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
+    override async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params: Dict = {}): Promise<any> {
         const paramsResolved = this.handleRouteAndParams ('unWatchOHLCVForSymbols', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1090,7 +1090,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    override async unWatchTrades (symbol: string, params = {}): Promise<any> {
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
         const paramsResolved = this.handleRouteAndParams ('unWatchTrades', params);
         return await this.unWatchTradesForSymbols ([ symbol ], paramsResolved);
     }
@@ -1106,7 +1106,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    override async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+    override async unWatchTradesForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
         const paramsResolved = this.handleRouteAndParams ('unWatchTradesForSymbols', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1176,7 +1176,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         const paramsResolved = this.handleRouteAndParams ('watchOrderBookForSymbols', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1213,7 +1213,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
         const paramsResolved = this.handleRouteAndParams ('unWatchOrderBook', params);
         return await this.unWatchOrderBookForSymbols ([ symbol ], paramsResolved);
     }
@@ -1229,7 +1229,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} the exchange response
      */
-    override async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
+    override async unWatchOrderBookForSymbols (symbols: string[], params: Dict = {}): Promise<any> {
         const paramsResolved = this.handleRouteAndParams ('unWatchOrderBookForSymbols', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1551,7 +1551,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         const paramsResolved = this.handleRouteAndParams ('createOrderWs', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1629,7 +1629,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    override async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
+    override async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
         const paramsResolved = this.handleRouteAndParams ('editOrderWs', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1665,7 +1665,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    override async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    override async cancelOrderWs (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const paramsResolved = this.handleRouteAndParams ('cancelOrderWs', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1691,7 +1691,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    override async cancelAllOrdersWs (symbol: Str = undefined, params = {}): Promise<Order[]> {
+    override async cancelAllOrdersWs (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         const paramsResolved = this.handleRouteAndParams ('cancelAllOrdersWs', params);
         let method = 'private/cancel_all';
         let paramsRequest: Dict = paramsResolved;
@@ -1719,7 +1719,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    override async fetchOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    override async fetchOrderWs (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const paramsResolved = this.handleRouteAndParams ('fetchOrderWs', params);
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -1745,7 +1745,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    override async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const paramsResolved = this.handleRouteAndParams ('fetchOpenOrdersWs', params);
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrdersWs() requires a symbol argument');
@@ -1775,7 +1775,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    override async fetchOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const paramsResolved = this.handleRouteAndParams ('fetchOrdersWs', params);
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrdersWs() requires a symbol argument');
@@ -1804,7 +1804,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
-    override async fetchBalanceWs (params = {}): Promise<Balances> {
+    override async fetchBalanceWs (params: Dict = {}): Promise<Balances> {
         const paramsResolved = this.handleRouteAndParams ('fetchBalanceWs', params);
         const result = await this.requestWs ('private/get_account_summaries', paramsResolved, true);
         const summaries = this.safeList (result, 'summaries', []);
@@ -1830,7 +1830,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    override async fetchMyTradesWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchMyTradesWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         const paramsResolved = this.handleRouteAndParams ('fetchMyTradesWs', params);
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTradesWs() requires a symbol argument');
@@ -1859,7 +1859,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    override async fetchPositionsWs (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositionsWs (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         const paramsResolved = this.handleRouteAndParams ('fetchPositionsWs', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();

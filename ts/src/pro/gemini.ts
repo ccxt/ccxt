@@ -489,8 +489,8 @@ export default class gemini extends geminiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override watchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
-        return this.helperForWatchMultipleConstruct ('bidsasks', symbols, params);
+    override async watchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
+        return await this.helperForWatchMultipleConstruct ('bidsasks', symbols, params);
     }
 
     handleBidsAsksForMultidata (client: Client, rawBidAskChanges: any[], timestamp: Int, nonce: Int) {

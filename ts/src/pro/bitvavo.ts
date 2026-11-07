@@ -1515,8 +1515,8 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override fetchMarketsWs (params: Dict = {}): Promise<any> {
-        return this.watchRequest ('getMarkets', params);
+    override async fetchMarketsWs (params: Dict = {}): Promise<any> {
+        return await this.watchRequest ('getMarkets', params);
     }
 
     /**

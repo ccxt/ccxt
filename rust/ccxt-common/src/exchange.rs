@@ -1930,7 +1930,8 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         <Self as crate::exchange_generated::ExchangeBase>::network_code_to_id(self, network_code, optional_args)
     }
     fn super_fetch_deposit_address(&mut self, code: Value, params: Value) -> impl ::std::future::Future<Output = Value> + Send { async move {
-        self.fetch_deposit_address(code, &[params]).await
+        let typed = <Self as crate::exchange_generated::ExchangeBase>::fetch_deposit_address(self, code.as_str().unwrap_or_default(), params).await;
+        crate::types::IntoRaw::into_raw(typed)
     } }
     fn super_load_markets(&mut self, reload: Value, params: Value) -> impl ::std::future::Future<Output = Value> + Send { async move {
         self.load_markets(&[reload, params]).await

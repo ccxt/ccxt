@@ -272,7 +272,9 @@ where
 {
     use futures::FutureExt;
     use std::panic::AssertUnwindSafe;
-    match AssertUnwindSafe(fut).catch_unwind().await {
+    // boxed: a typed body awaiting another typed core (watchOrderBook -> watchOrderBookForSymbols)
+    // would otherwise nest both state machines on the stack
+    match AssertUnwindSafe(Box::pin(fut)).catch_unwind().await {
         Ok(v) => Ok(v),
         Err(payload) => {
             let msg = payload.downcast_ref::<String>().cloned()

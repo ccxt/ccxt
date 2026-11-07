@@ -239,6 +239,14 @@ impl Value {
         }
     }
 
+    /// Rows of [`Value::to_str_vec`]: the `Vec<Vec<String>>` (`symbolsAndTimeframes`) typed-argument bridge.
+    pub fn to_str_vec_vec(&self) -> Vec<Vec<String>> {
+        match self {
+            Value::Arr(a) => a.iter().map(Value::to_str_vec).collect(),
+            _ => Vec::new(),
+        }
+    }
+
     /// `None` for `Null`, else [`Value::to_str_vec`]: the `Option<Vec<String>>` typed-argument bridge.
     pub fn to_opt_str_vec(&self) -> Option<Vec<String>> {
         if self.is_null() { None } else { Some(self.to_str_vec()) }
@@ -587,6 +595,9 @@ impl From<Option<f64>> for Value { fn from(n: Option<f64>) -> Self { n.map_or(Va
 impl From<Option<&str>> for Value { fn from(s: Option<&str>) -> Self { s.map_or(Value::Null, Value::from) } }
 impl From<Option<Vec<String>>> for Value {
     fn from(l: Option<Vec<String>>) -> Self { l.map_or(Value::Null, |l| Value::from(l.into_iter().map(Value::from).collect::<Vec<Value>>())) }
+}
+impl From<Option<Vec<Vec<String>>>> for Value {
+    fn from(l: Option<Vec<Vec<String>>>) -> Self { l.map_or(Value::Null, |l| Value::from(l.into_iter().map(|r| Value::from(Some(r))).collect::<Vec<Value>>())) }
 }
 /// `From<ExchangeError>` makes `error.clone()` flow into `&[Value]`
 /// slices without an explicit conversion — surfaces the typed error

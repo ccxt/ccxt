@@ -1525,6 +1525,86 @@ pub type DepositWithdrawFees = HashMap<String, DepositWithdrawFee>;
 pub type AllGreeks           = HashMap<String, Greeks>;
 /// `fetchDepositAddresses` — currency code → [`DepositAddress`].
 pub type DepositAddresses    = HashMap<String, DepositAddress>;
+/// `watchOHLCVForSymbols` — symbol → timeframe → candles.
+pub type OHLCVsBySymbol      = HashMap<String, HashMap<String, Vec<OHLCV>>>;
+
+/// A prediction-market event: a group of markets (`fetchEvents` / `fetchEvent`).
+#[derive(Debug, Clone, Default)]
+pub struct PredictionEvent {
+    pub id:          String,
+    pub event:       String,
+    pub title:       Option<String>,
+    pub description: Option<String>,
+    pub slug:        Option<String>,
+    pub category:    Option<String>,
+    pub active:      Option<bool>,
+    pub resolved:    Option<bool>,
+    pub volume:      Option<f64>,
+    pub liquidity:   Option<f64>,
+    pub end:         Option<i64>,
+    pub url:         Option<String>,
+    pub raw:         Value,
+}
+
+impl PredictionEvent {
+    pub fn from_value(v: Value) -> Self {
+        use crate::value::{safe_string, safe_number, safe_integer, safe_bool};
+        PredictionEvent {
+            id:          safe_string(&v, "id", None).unwrap_or_default(),
+            event:       safe_string(&v, "event", None).unwrap_or_default(),
+            title:       safe_string(&v, "title", None),
+            description: safe_string(&v, "description", None),
+            slug:        safe_string(&v, "slug", None),
+            category:    safe_string(&v, "category", None),
+            active:      safe_bool(&v, "active", None),
+            resolved:    safe_bool(&v, "resolved", None),
+            volume:      safe_number(&v, "volume", None),
+            liquidity:   safe_number(&v, "liquidity", None),
+            end:         safe_integer(&v, "end", None),
+            url:         safe_string(&v, "url", None),
+            raw:         v,
+        }
+    }
+}
+
+/// A settled prediction position (`fetchSettlements`).
+#[derive(Debug, Clone, Default)]
+pub struct PredictionSettlement {
+    pub id:        Option<String>,
+    pub timestamp: Option<i64>,
+    pub datetime:  Option<String>,
+    pub outcome:   Option<String>,
+    pub market:    Option<String>,
+    pub result:    Option<String>,
+    pub won:       Option<bool>,
+    pub amount:    Option<f64>,
+    pub price:     Option<f64>,
+    pub cost:      Option<f64>,
+    pub payout:    Option<f64>,
+    pub pnl:       Option<f64>,
+    pub raw:       Value,
+}
+
+impl PredictionSettlement {
+    pub fn from_value(v: Value) -> Self {
+        use crate::value::{safe_string, safe_number, safe_integer, safe_bool};
+        PredictionSettlement {
+            id:        safe_string(&v, "id", None),
+            timestamp: safe_integer(&v, "timestamp", None),
+            datetime:  safe_string(&v, "datetime", None),
+            outcome:   safe_string(&v, "outcome", None),
+            market:    safe_string(&v, "market", None),
+            result:    safe_string(&v, "result", None),
+            won:       safe_bool(&v, "won", None),
+            amount:    safe_number(&v, "amount", None),
+            price:     safe_number(&v, "price", None),
+            cost:      safe_number(&v, "cost", None),
+            payout:    safe_number(&v, "payout", None),
+            pnl:       safe_number(&v, "pnl", None),
+            raw:       v,
+        }
+    }
+}
 
 /// Walk a `Value::Dict` of `<key> → Value` and decode each value with
 /// the supplied `from_value` constructor. Returns an empty map on a
@@ -1915,7 +1995,18 @@ macro_rules! raw_struct {
         impl IntoRaw for $t { fn into_raw(self) -> Value { self.raw } }
     )* };
 }
-raw_struct!(Ticker, Trade, OrderBook, Order, Balances, Market, Currency, Position);
+raw_struct!(Ticker, Trade, OrderBook, Order, Balances, Market, Currency, Position,
+    Transaction, DepositAddress, Transfer, LedgerEntry, TradingFee, DepositWithdrawFee);
+raw_struct!(FundingRate, FundingRateHistory, FundingHistory, Leverage, MarginMode, MarginModification, OpenInterest,
+    Liquidation, LeverageTier, Greeks, OptionContract, LastPrice, Status);
+raw_struct!(PredictionEvent, PredictionSettlement);
+
+/// An untyped unified return (`setLeverage`, `setMarginMode`, unsubscribe acks) passes the payload through.
+impl FromRaw for Value { fn from_raw(v: Value) -> Self { v } }
+impl IntoRaw for Value { fn into_raw(self) -> Value { self } }
+/// An integral scalar return (`fetchTime`); any other shape reads `None`.
+impl FromRaw for Option<i64> { fn from_raw(v: Value) -> Self { v.as_i64() } }
+impl IntoRaw for Option<i64> { fn into_raw(self) -> Value { Value::from(self) } }
 
 /// A candle row `[timestamp, open, high, low, close, volume]`; a missing or non-numeric field reads `0.0`.
 impl FromRaw for OHLCV {
@@ -1936,6 +2027,8 @@ impl IntoRaw for OHLCV {
 
 impl<T: FromRaw> FromRaw for Vec<T> {
     fn from_raw(v: Value) -> Self {
+        // a ws cache (ArrayCache*) resolves as its marker dict; its rows live in the cache store
+        let v = crate::value::cache_entries_as_value(&v).unwrap_or(v);
         match v { Value::Arr(rows) => rows.iter().map(|r| T::from_raw(r.clone())).collect(), _ => Vec::new() }
     }
 }
