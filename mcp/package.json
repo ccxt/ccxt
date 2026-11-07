@@ -35,7 +35,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
     "ccxt": "^4.5.84",
-    "zod": "^3.25.76"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@types/node": "^22.20.1",
