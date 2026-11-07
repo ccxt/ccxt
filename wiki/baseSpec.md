@@ -1727,7 +1727,6 @@ enables or disables demo trading mode
 
 **Kind**: instance   
 
-
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | enable | <code>boolean</code> | No | true if demo trading should be enabled, false otherwise |
@@ -6965,30 +6964,6 @@ returns unifiedAccount so the user can check if the unified account is enabled
 
 ---
 
-<a name="market" id="market"></a>
-
-## market
-calculates the presumptive fee that would be charged for an order
-
-**Kind**: instance   
-**Returns**: <code>object</code> - contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| symbol | <code>string</code> | unified market symbol |
-| type | <code>string</code> | not used by btcmarkets.calculateFee |
-| side | <code>string</code> | not used by btcmarkets.calculateFee |
-| amount | <code>float</code> | how much you want to trade, in units of the base currency on most exchanges, or number of contracts |
-| price | <code>float</code> | the price for the order to be filled at, in units of the quote currency |
-| takerOrMaker | <code>string</code> | 'taker' or 'maker' |
-| params | <code>object</code> |  |
-
-**Supported exchanges:**
-[&lt;anonymous&gt;](/exchanges/&lt;anonymous&gt;.md#market)
-
----
-
 <a name="parseMarket" id="parsemarket"></a>
 
 ## parseMarket
@@ -7422,10 +7397,9 @@ enables or disables demo trading mode, if enabled will send PAPTRADING=1 in head
 
 **Kind**: instance   
 
-
 | Param |
 | --- |
-| enabled | 
+| enabled |
 
 **Supported exchanges:**
 [bitget](/exchanges/bitget.md#setsandboxmode)
@@ -8722,7 +8696,6 @@ watches information on multiple orders made by the user
 [bithumb](/exchanges/bithumb.md#watchorders)
 [bitrue](/exchanges/bitrue.md#watchorders)
 [bitvavo](/exchanges/bitvavo.md#watchorders)
-[biofin](/exchanges/biofin.md#watchorders)
 [bullish](/exchanges/bullish.md#watchorders)
 [bybit](/exchanges/bybit.md#watchorders)
 [cex](/exchanges/cex.md#watchorders)
