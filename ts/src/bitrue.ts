@@ -979,6 +979,8 @@ export default class bitrue extends Exchange {
         const filters = this.safeList (market, 'filters', []);
         const filtersByType = this.indexBy (filters, 'filterType');
         const status = this.safeString (market, 'status');
+        // spot markets say TRADING, futures contracts 1 (0 when offline)
+        const active = (status === 'TRADING') || (status === '1');
         const priceFilter = this.safeDict (filtersByType, 'PRICE_FILTER', {});
         const amountFilter = this.safeDict (filtersByType, 'LOT_SIZE', {});
         const defaultPricePrecision = this.safeString (market, 'pricePrecision');
@@ -1011,7 +1013,7 @@ export default class bitrue extends Exchange {
             'swap': isContract,
             'future': false,
             'option': false,
-            'active': (status === 'TRADING'),
+            'active': active,
             'contract': isContract,
             'linear': isLinear,
             'inverse': isInverse,
