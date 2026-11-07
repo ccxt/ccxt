@@ -1104,6 +1104,7 @@ Each network is an associative array (aka dictionary) with the following keys:
     'swap':     false,        // whether the market is a perpetual swap
     'option':   false,        // whether the market is an option contract
     'stock':    false,        // whether the market is for a stock
+    'equity':   undefined,    // optional: true for a separate conventional-securities account
     'contract': false,        // whether the market is a future, a perpetual swap, or an option
     'settle':   'USDT',       // the unified currency code that the contract will settle in, only set if `contract` is true
     'settleId': 'usdt',       // the currencyId of that the contract will settle in, only set if `contract` is true
@@ -1161,6 +1162,7 @@ Each market is an associative array (aka dictionary) with the following keys:
 - `optionType`. The type of the option, `call` option represents an option with the right to buy and `put` an option with the right to sell.
 - `strike`. Price at which an option can be bought or sold when it is exercised.
 - `stock`. A boolean indicating whether the market represents a stock instrument.
+- `equity`. An optional boolean identifying conventional securities-account instruments, distinct from tokenized-stock markets. Currently populated for Bitget Stock+ stocks and equity options.
 
 ### Bitget Stock Market Routing
 
@@ -1170,7 +1172,43 @@ Default market discovery cross-references classic spot symbols against public UT
 
 Methods requiring a symbol, including `fetchOrderBook`, `fetchTicker`, `fetchTrades`, `fetchOHLCV`, `createOrder`, `cancelOrder`, and the corresponding supported WebSocket subscriptions, derive stock routing from the loaded market. They do not accept `params.stock` or method-level stock options as routing overrides; legacy `params.stock` values are discarded. Stock spot subscriptions automatically use UTA public WebSockets; stock-underlying derivatives retain classic derivative WebSockets unless `uta: true` is selected explicitly. The `stock` selector remains available on `fetchMarkets`, `fetchTickers`, `fetchBalance` and `watchBalance`, which can operate without a symbol.
 
-This classification does not establish ownership of underlying shares or add support for the separate Stock+ securities account.
+This tokenized-stock classification does not establish ownership of underlying shares. The separate Stock+ securities account uses the opt-in `equity` routing described below.
+
+### Bitget Stock+ Securities and Equity Options
+
+Stock+ is separate from Bitget's tokenized stocks and crypto derivatives. Stock+ instruments have `equity: true` and `stock: false`; shares are spot markets, while equity options are option contracts. Bitget reserves `stock: true` for its tokenized-stock instruments and stock-underlying crypto derivatives, not Stock+ securities. Default crypto discovery and routing are unchanged. Stock+ quote endpoints require API authentication and the relevant market-data permissions; US options also require the exchange's OPRA entitlement and API whitelist.
+
+There is no all-securities discovery endpoint. Supply native symbols explicitly and preferably use a separate Bitget instance:
+
+```javascript
+const exchange = new ccxt.bitget({
+    apiKey: 'YOUR_API_KEY',
+    secret: 'YOUR_SECRET',
+    password: 'YOUR_API_PASSPHRASE',
+});
+await exchange.loadMarkets(true, {
+    equity: true,
+    symbols: ['AAPL.US'],
+    options: true,             // optional: also discover the underlying's option chains
+    expiryDate: '20261218',    // optional: restrict options to this YYYYMMDD expiry
+});
+const ticker = await exchange.fetchTicker('AAPL.US/USD');
+const balance = await exchange.fetchBalance({ equity: true });
+```
+
+`loadMarkets(true, ...)` replaces the instance's market cache; it does not merge Stock+ with an existing crypto cache. Stock+ symbols such as `AAPL.US/USD` are distinct from tokenized-stock symbols. Option symbols include the native underlying, quote/settle currency, expiry, strike and side; use the symbols returned by discovery. Methods accepting symbols derive routing from `market.equity`, not `params.equity`, `params.stock`, or `uta`. For calls without symbols, select the securities account with `equity: true`.
+
+Supported REST operations include tickers, order books, trades, candles, `fetchOption`, `fetchOptionChain`, order creation/modification/cancellation/detail/history, executions, balances, cash flows, holdings and transfers. `fetchOptionChain('AAPL.US', { expiryDate: '20261218' })` takes a native underlying and required expiry; its results do not automatically add markets to the cache. `fetchOption` is for Stock+ options only. Option-depth, trade and candle support depends on what the provider accepts for the option's native symbol.
+
+Stock+ order creation supports base/share or contract quantities with `limit` and `market` orders. The default validity is `Day`; `GTC`/`GoodTilCanceled` and `GTD`/`GoodTilDate` are supported, with `expireDate` required for GTD in `YYYY-MM-DD` format (for example, `2024-12-16`). `outsideRth` defaults to `RTHOnly`. Unified trigger/bracket/trailing, post-only, reduce-only and quote-cost orders are rejected. Modification changes quantity/price, not order type or side, and may return a replacement order ID. Placement/cancellation acknowledgements do not establish that an order was filled/canceled; inspect its subsequent detail. Batch orders, bulk cancellation and Stock+ WebSockets are not implemented.
+
+`fetchOrders` can query Stock+ orders only, so `has['fetchOrders']` remains `false` for the general crypto capability. Call it with a loaded Stock+ symbol such as `fetchOrders('AAPL.US/USD')`, or without a symbol and with `{ equity: true }`; crypto callers should continue to use `fetchOpenOrders` and `fetchClosedOrders`. Orders and executions accept `history: true` for the history endpoint and `history: false` for today's endpoint; without an explicit value, `since` selects history. The history-executions endpoint excludes today's executions. Query both endpoints separately when a time window spans today. Results cover one exchange page and are filtered by unified `since`/`limit`; automatic pagination is not implemented. Native `startAt`/`endAt` use seconds, whereas unified `since` uses milliseconds.
+
+`fetchBalance({ equity: true })` returns cash balances (`totalCash`/`availableCash`), not buying power, net asset value or share holdings. `fetchPositions(undefined, { equity: true })` returns securities holdings across account channels; `contracts` represents absolute quantity, with channel ID and raw position information retained. Shares do not acquire a synthetic derivatives contract size or leverage. `fetchPosition(symbol)` rejects ambiguous holdings across multiple channels. `fetchLedger(code, since, limit, { equity: true })` requires `since` and reads cash flows.
+
+Use `transfer('USD', amount, 'spot', 'equity')` or the reverse for internal securities transfers; only USD/USDC are accepted. `fetchTransfers(code, since, limit, { equity: true })` accepts exchange pagination parameters such as `cursor`. A transfer ID acknowledges submission, not settlement. Documented transfer records omit timestamps, so time bounds are sent to the API rather than applied as a local timestamp filter.
+
+The securities metadata does not document price ticks or fractional-share increments. Precision remains unknown rather than invented, and order values are submitted without synthetic rounding. Check the provider's quantity and session rules before trading. Option expiry metadata provides a date, not the exercise cutoff; the unified expiry is that date at midnight UTC, not an exercise-time guarantee. Intraday snapshots and option-volume statistics remain available through implicit Stock+ API methods, not fabricated unified candles or greeks.
 
 ### Backpack Tokenized Stocks and Equity Data
 

@@ -262,6 +262,7 @@ public struct Market
 
     public bool? index;
     public bool? stock;
+    public bool? equity;
     public string? baseName;
     public string? id2;
     public Int64? instIdCode;
@@ -310,6 +311,7 @@ public struct Market
         marginModes = market.ContainsKey("marginModes") ? new MarketMarginModes(market["marginModes"]) : null;
         index = market.ContainsKey("index") && market["index"] != null ? (bool)market["index"] : null;
         stock = market.ContainsKey("stock") && market["stock"] != null ? (bool)market["stock"] : null;
+        equity = market.ContainsKey("equity") && market["equity"] != null ? (bool)market["equity"] : null;
         baseName = Exchange.SafeString(market, "baseName");
         id2 = Exchange.SafeString(market, "id2");
         instIdCode = Exchange.SafeInteger(market, "instIdCode");
@@ -1993,6 +1995,7 @@ public struct MarketInterface
     public string? subType;
     public bool? index;
     public bool? stock;
+    public bool? equity;
     public bool? prediction;
     public bool? percentage;
     public bool? tierBased;
@@ -2048,6 +2051,7 @@ public struct MarketInterface
         subType = Exchange.SafeString(market, "subType");
         index = Exchange.SafeValue(market, "index") != null ? (bool)Exchange.SafeValue(market, "index") : null;
         stock = Exchange.SafeValue(market, "stock") != null ? (bool)Exchange.SafeValue(market, "stock") : null;
+        equity = Exchange.SafeValue(market, "equity") != null ? (bool)Exchange.SafeValue(market, "equity") : null;
         prediction = Exchange.SafeValue(market, "prediction") != null ? (bool)Exchange.SafeValue(market, "prediction") : null;
         percentage = Exchange.SafeValue(market, "percentage") != null ? (bool)Exchange.SafeValue(market, "percentage") : null;
         tierBased = Exchange.SafeValue(market, "tierBased") != null ? (bool)Exchange.SafeValue(market, "tierBased") : null;

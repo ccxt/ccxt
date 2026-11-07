@@ -6,6 +6,7 @@ import Exchange from './abstract/bitget.js';
 import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import type { MarketInterface, Option, OptionChain } from './base/types.js';
 import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Bool, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, SubType, Currency, CurrencyInterface, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, NullableDict, NullableList, List, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, Fee, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress, LongShortRatio, BorrowInterest, FundingRates, DepositWithdrawFees, MarginLoan, Endpoint, OpenInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
@@ -108,6 +109,8 @@ export default class bitget extends Exchange {
                 'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
+                'fetchOption': true,
+                'fetchOptionChain': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
@@ -1942,7 +1945,6 @@ export default class bitget extends Exchange {
                         'trailing': false,
                         'symbolRequired': false,
                     },
-                    'fetchOrders': undefined,
                     'fetchClosedOrders': {
                         'marginMode': true,
                         'limit': 100,
@@ -1953,6 +1955,7 @@ export default class bitget extends Exchange {
                         'trailing': false,
                         'symbolRequired': false,
                     },
+                    'fetchOrders': undefined,
                     'fetchOHLCV': {
                         'limit': 200, // variable timespans for recent endpoint, 200 for historical
                     },
@@ -2042,6 +2045,10 @@ export default class bitget extends Exchange {
     }
 
     handleProductTypeAndParams (market: Market = undefined, params: Dict = {}): [Str, Dict] {
+        const equity = this.safeBool (market, 'equity', false);
+        if (equity) {
+            throw new NotSupported (this.id + ' this operation does not support Stock+ markets');
+        }
         let subType: SubType = undefined;
         let paramsSubType = undefined;
         [ subType, paramsSubType ] = this.handleSubTypeAndParams ('handleProductTypeAndParams', undefined, params);
@@ -2135,26 +2142,584 @@ export default class bitget extends Exchange {
      * @method
      * @name bitget#fetchMarkets
      * @description retrieves data on all markets for bitget
+     * @see https://www.bitget.com/docs/catalog/stock-plus/stock-quotes#check-basic-information
      * @see https://www.bitget.com/api-doc/spot/market/Get-Symbols
      * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts
      * @see https://www.bitget.com/api-doc/margin/common/support-currencies
      * @see https://www.bitget.com/api-doc/uta/public/Instruments
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.equity] select Stock+ securities discovery instead of crypto markets
+     * @param {string[]} [params.symbols] required native Stock+ symbols, for example AAPL.US
+     * @param {boolean} [params.options] include Stock+ equity options, defaults to false
+     * @param {string} [params.expiryDate] optionally restrict option discovery to a YYYYMMDD expiry
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock markets
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
+        const [ equity, paramsEquity ] = this.handleOptionBoolAndParams (params, 'fetchMarkets', 'equity', false);
+        if (equity) {
+            return await this.fetchEquityMarkets (paramsEquity);
+        }
         const adjustForTimeDifference = this.safeBool (this.options, 'adjustForTimeDifference', false);
         if (adjustForTimeDifference) {
             await this.loadTimeDifference ();
         }
-        const [ stock, paramsStock ] = this.handleOptionBoolAndParams (params, 'fetchMarkets', 'stock', false);
+        const [ stock, paramsStock ] = this.handleOptionBoolAndParams (paramsEquity, 'fetchMarkets', 'stock', false);
         const [ uta, paramsUTA ] = await this.handleUTAAndParams (paramsStock, 'fetchMarkets', false);
         if ((stock === true) || (uta === true)) {
             return await this.fetchUtaMarkets (paramsUTA);
         }
         return await this.fetchDefaultMarkets (paramsUTA);
+    }
+
+    /**
+     * @ignore
+     * @description discovers Stock+ securities from explicit exchange symbols, without changing crypto discovery
+     * @param {object} extraParams symbols and exchange-specific discovery parameters
+     * @returns {object[]} unified equity markets
+     */
+    async fetchEquityMarkets (extraParams: Dict): Promise<Market[]> {
+        const symbols = this.safeList (extraParams, 'symbols');
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMarkets() with equity requires params.symbols, e.g. ["AAPL.US"]');
+        }
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
+            throw new ArgumentsRequired (this.id + ' Stock+ discovery requires at least one exchange symbol');
+        }
+        const requestParams = this.omit (extraParams, [ 'symbols', 'symbol', 'equity', 'options', 'expiryDate' ]);
+        const includeOptions = this.safeBool (extraParams, 'options', false);
+        const expiryDate = this.safeString (extraParams, 'expiryDate');
+        const result: Market[] = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const request = this.extend ({ 'symbol': symbol }, requestParams);
+            const response = await this.privateUtaGetV3StockplusMarketStatic (request);
+            const data = this.safeDict (response, 'data', {});
+            const rows = this.safeList (data, 'list', []);
+            for (let j = 0; j < rows.length; j++) {
+                const parsed = this.parseEquityMarket (rows[j]);
+                result.push (parsed);
+            }
+            if (includeOptions) {
+                let expiries: List = [];
+                if (expiryDate !== undefined) {
+                    expiries.push (expiryDate);
+                } else {
+                    const expiryResponse = await this.privateUtaGetV3StockplusMarketOptionExpiryDate ({ 'symbol': symbol });
+                    const expiryData = this.safeDict (expiryResponse, 'data', {});
+                    expiries = this.safeList (expiryData, 'expiryDate', []);
+                }
+                for (let j = 0; j < expiries.length; j++) {
+                    const optionMarkets = await this.fetchEquityOptionMarkets (symbol, expiries[j]);
+                    for (let k = 0; k < optionMarkets.length; k++) {
+                        result.push (optionMarkets[k]);
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @ignore
+     * @description parses Stock+ security metadata without assuming undocumented tick sizes
+     * @param {object} instrument security metadata
+     * @returns {object} a unified market
+     */
+    parseEquityMarket (instrument: Dict): Market {
+        const marketId = this.safeString (instrument, 'symbol');
+        const underlying = this.safeString (instrument, 'underlyingSymbol');
+        const option = (underlying !== undefined);
+        let base = marketId;
+        if (option) {
+            base = underlying;
+        }
+        const currencyId = this.safeString (instrument, 'currency');
+        let quote = this.safeCurrencyCode (currencyId);
+        if (option && (quote === undefined)) {
+            // Stock+ option quotes are US equity options.
+            quote = 'USD';
+        }
+        if ((base === undefined) || (quote === undefined)) {
+            throw new ExchangeError (this.id + ' incomplete Stock+ security metadata: ' + this.json (instrument));
+        }
+        let symbol = base + '/' + quote;
+        let marketType = 'spot';
+        let expiry: Int = undefined;
+        let strike: Num = undefined;
+        let optionType: Str = undefined;
+        let contractSize: Num = undefined;
+        let settle: Str = undefined;
+        let linear: Bool = undefined;
+        let inverse: Bool = undefined;
+        if (option) {
+            marketType = 'option';
+            settle = quote;
+            linear = true;
+            inverse = false;
+            const expiryDate = this.safeString (instrument, 'expiryDate');
+            if ((expiryDate === undefined) || ((expiryDate.length !== 6) && (expiryDate.length !== 8))) {
+                throw new ExchangeError (this.id + ' Stock+ option expiryDate must use YYMMDD or YYYYMMDD');
+            }
+            let normalizedExpiryDate = expiryDate;
+            if (expiryDate.length === 6) {
+                normalizedExpiryDate = '20' + expiryDate;
+            }
+            const year = normalizedExpiryDate.slice (0, 4);
+            const month = normalizedExpiryDate.slice (4, 6);
+            const day = normalizedExpiryDate.slice (6, 8);
+            expiry = this.parse8601 (year + '-' + month + '-' + day + 'T00:00:00Z');
+            const direction = this.safeString (instrument, 'direction');
+            if (direction === 'C') {
+                optionType = 'call';
+            } else if (direction === 'P') {
+                optionType = 'put';
+            } else {
+                throw new ExchangeError (this.id + ' unknown Stock+ option direction');
+            }
+            const rawStrike = this.safeString (instrument, 'strikePrice');
+            if (rawStrike === undefined) {
+                throw new ExchangeError (this.id + ' Stock+ option strikePrice is missing');
+            }
+            const strikeString = Precise.stringAdd (rawStrike, '0');
+            strike = this.parseNumber (strikeString);
+            contractSize = this.safeNumber2 (instrument, 'contractSize', 'contractMultipier');
+            if ((contractSize === undefined) || (contractSize <= 0)) {
+                throw new ExchangeError (this.id + ' Stock+ option contractSize must be positive');
+            }
+            symbol += ':' + quote + '-' + normalizedExpiryDate.slice (2) + '-' + strikeString + '-' + direction;
+        }
+        const status = this.safeString (instrument, 'tradeStatus');
+        let active: Bool = undefined;
+        if (status !== undefined) {
+            active = (status === '0') || (status === 'Normal');
+        }
+        return this.safeMarketStructure ({
+            'id': marketId,
+            'symbol': symbol,
+            'base': base,
+            'baseId': base,
+            'quote': quote,
+            'quoteId': quote,
+            'type': marketType,
+            'spot': !option,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': option,
+            'stock': false,
+            'equity': true,
+            'contract': option,
+            'active': active,
+            'settle': settle,
+            'settleId': settle,
+            'linear': linear,
+            'inverse': inverse,
+            'contractSize': contractSize,
+            'expiry': expiry,
+            'expiryDatetime': this.iso8601 (expiry),
+            'strike': strike,
+            'optionType': optionType,
+            'precision': { 'amount': undefined, 'price': undefined },
+            'limits': {},
+            'info': instrument,
+        });
+    }
+
+    /**
+     * @ignore
+     * @description fetches metadata for all option contracts at one Stock+ expiry
+     * @param {string} symbol exchange underlying symbol
+     * @param {string} expiryDate YYYYMMDD date
+     * @returns {object[]} unified option markets
+     */
+    async fetchEquityOptionMarkets (symbol: string, expiryDate: string): Promise<Market[]> {
+        const response = await this.privateUtaGetV3StockplusMarketOptionChainInfo ({ 'symbol': symbol, 'expiryDate': expiryDate });
+        const data = this.safeDict (response, 'data', {});
+        const strikes = this.safeList (data, 'strikePriceInfo', []);
+        const optionIds: string[] = [];
+        const result: Market[] = [];
+        for (let i = 0; i < strikes.length; i++) {
+            const row = strikes[i];
+            const keys = [ 'callSymbol', 'putSymbol' ];
+            for (let j = 0; j < keys.length; j++) {
+                const optionId = this.safeString (row, keys[j]);
+                if (optionId !== undefined) {
+                    optionIds.push (optionId);
+                }
+            }
+        }
+        const optionIdsLength = optionIds.length;
+        const batches = Math.ceil (optionIdsLength / 500);
+        for (let i = 0; i < batches; i++) {
+            const start = i * 500;
+            const end = Math.min (start + 500, optionIdsLength);
+            const batch = this.arraySlice (optionIds, start, end);
+            const batchSymbols = batch.join (',');
+            const quoteResponse = await this.privateUtaGetV3StockplusMarketOptionQuote ({ 'symbol': batchSymbols });
+            const quoteData = this.safeDict (quoteResponse, 'data', {});
+            const quotes = this.safeList (quoteData, 'secuQuote', []);
+            for (let j = 0; j < quotes.length; j++) {
+                const parsed = this.parseEquityMarket (quotes[j]);
+                result.push (parsed);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @ignore
+     * @description selects the securities account for optional-symbol methods
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] equity selector when no symbol is supplied
+     * @returns {boolean} whether the operation targets Stock+
+     */
+    isEquityMarket (symbol: Str = undefined, params: Dict = {}): boolean {
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            const equity = this.safeBool (market, 'equity', false);
+            return (equity === true);
+        }
+        return this.safeBool (params, 'equity', false);
+    }
+
+    /**
+     * @ignore
+     * @description parses Stock+ ISO timestamps or numeric quote timestamps
+     * @param {object} item exchange data
+     * @param {string} key timestamp field
+     * @returns {int} timestamp in milliseconds
+     */
+    parseEquityTimestamp (item: Dict, key: string): Int {
+        const value = this.safeString (item, key);
+        if (value === undefined) {
+            return undefined;
+        }
+        const parts = value.split ('T');
+        const partsLength = parts.length;
+        if (partsLength > 1) {
+            return this.parse8601 (value);
+        }
+        const timestamp = this.parseToInt (value);
+        if (timestamp < 100000000000) {
+            return timestamp * 1000;
+        }
+        return timestamp;
+    }
+
+    /**
+     * @ignore
+     * @description fetches a Stock+ quote
+     * @param {object} market unified equity market
+     * @param {object} extraParams exchange parameters
+     * @returns {object} unified ticker
+     */
+    async fetchEquityTicker (market: MarketInterface, extraParams: Dict): Promise<Ticker> {
+        const request = { 'symbol': market['id'] };
+        const requestParams = this.omit (extraParams, [ 'equity', 'stock', 'uta' ]);
+        let response: Dict = {};
+        let key = 'list';
+        if (market['option']) {
+            response = await this.privateUtaGetV3StockplusMarketOptionQuote (this.extend (requestParams, request));
+            key = 'secuQuote';
+        } else {
+            response = await this.privateUtaGetV3StockplusMarketQuote (this.extend (requestParams, request));
+        }
+        const data = this.safeDict (response, 'data', {});
+        const rows = this.safeList (data, key, []);
+        const rowsLength = rows.length;
+        if (rowsLength === 0) {
+            throw new ExchangeError (this.id + ' Stock+ quote response is empty for ' + market['symbol']);
+        }
+        return this.parseEquityTicker (rows[0], market);
+    }
+
+    /**
+     * @ignore
+     * @description parses a Stock+ quote
+     * @param {object} ticker exchange quote
+     * @param {object} market unified market
+     * @returns {object} unified ticker
+     */
+    parseEquityTicker (ticker: Dict, market: MarketInterface): Ticker {
+        const timestamp = this.parseEquityTimestamp (ticker, 'timestamp');
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'open': this.safeString (ticker, 'open'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'last': this.safeString (ticker, 'lastDone'),
+            'previousClose': this.safeString (ticker, 'prevClose'),
+            'baseVolume': this.safeString (ticker, 'volume'),
+            'quoteVolume': this.safeString (ticker, 'turnover'),
+            'info': ticker,
+        }, market);
+    }
+
+    /**
+     * @ignore
+     * @description fetches Stock+ candlesticks
+     * @param {object} market equity market
+     * @param {string} timeframe unified timeframe
+     * @param {int} [since] earliest timestamp in milliseconds
+     * @param {int} [limit] maximum number of candles
+     * @param {object} extraParams adjustType, tradeSessions, time and useHistoryEndpoint
+     * @returns {number[][]} unified candles
+     */
+    async fetchEquityOHLCV (market: MarketInterface, timeframe: string, since: Int, limit: Int, extraParams: Dict): Promise<OHLCV[]> {
+        const periods = { '1m': 'Min_1', '2m': 'Min_2', '3m': 'Min_3', '5m': 'Min_5', '10m': 'Min_10', '15m': 'Min_15', '20m': 'Min_20', '30m': 'Min_30', '45m': 'Min_45', '1h': 'Min_60', '2h': 'Min_120', '3h': 'Min_180', '4h': 'Min_240', '1d': 'Day', '1w': 'Week', '1M': 'Month', '3M': 'Quarter', '1y': 'Year' };
+        const period = this.safeString (periods, timeframe);
+        if (period === undefined) {
+            throw new NotSupported (this.id + ' unsupported Stock+ timeframe ' + timeframe);
+        }
+        const candleCount = this.safeInteger (extraParams, 'count', limit);
+        let requestCount = 100;
+        if (candleCount !== undefined) {
+            requestCount = Math.min (candleCount, 1000);
+        }
+        const adjustType = this.safeString (extraParams, 'adjustType', 'NoAdjust');
+        const request: Dict = { 'symbol': market['id'], 'period': period, 'count': requestCount, 'adjustType': adjustType };
+        const useHistory = this.safeBool (extraParams, 'useHistoryEndpoint', since !== undefined);
+        if (since !== undefined) {
+            request['time'] = this.numberToString (this.parseToInt (since / 1000));
+            request['forward'] = true;
+        }
+        const requestParams = this.omit (extraParams, [ 'equity', 'stock', 'uta', 'useHistoryEndpoint' ]);
+        let response: Dict = {};
+        if (useHistory) {
+            response = await this.privateUtaGetV3StockplusMarketHistoryCandlestick (this.extend (requestParams, request));
+        } else {
+            response = await this.privateUtaGetV3StockplusMarketCandlestick (this.extend (requestParams, request));
+        }
+        const data = this.safeDict (response, 'data', {});
+        const rows = this.safeList (data, 'list', []);
+        const candles: OHLCV[] = [];
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const timestamp = this.parseEquityTimestamp (row, 'timestamp');
+            const open = this.safeNumber (row, 'open');
+            const high = this.safeNumber (row, 'high');
+            const low = this.safeNumber (row, 'low');
+            const close = this.safeNumber (row, 'close');
+            const volume = this.safeNumber (row, 'volume');
+            candles.push ([ timestamp, open, high, low, close, volume ]);
+        }
+        const sorted = this.sortBy (candles, 0);
+        return this.filterBySinceLimit (sorted, since, limit, 0);
+    }
+
+    /**
+     * @ignore
+     * @description parses Stock+ orders without mapping pending cancellation or replacement to completed states
+     * @param {object} order exchange order
+     * @param {object} [market] unified market
+     * @returns {object} unified order
+     */
+    parseEquityOrder (order: Dict, market: Market = undefined): Order {
+        const marketId = this.safeString (order, 'symbol');
+        const marketResolved = this.safeMarket (marketId, market);
+        const timestamp = this.parseEquityTimestamp (order, 'submittedAt');
+        const updated = this.parseEquityTimestamp (order, 'updatedAt');
+        const rawStatus = this.safeString (order, 'status');
+        const statuses = { 'Filled': 'closed', 'Canceled': 'canceled', 'Expired': 'expired', 'Rejected': 'rejected', 'New': 'open', 'PartialFilled': 'open', 'WaitToNew': 'open', 'WaitToReplace': 'open', 'PendingReplace': 'open', 'Replaced': 'open', 'WaitToCancel': 'open', 'PendingCancel': 'open', 'PartialWithdrawal': 'canceled', 'NotReported': 'open', 'ReplacedNotReported': 'open', 'ProtectedNotReported': 'open', 'VarietiesNotReported': 'open' };
+        const status = this.safeString (statuses, rawStatus, rawStatus);
+        const rawType = this.safeString (order, 'orderType');
+        const types = { 'LO': 'limit', 'MO': 'market', 'LIT': 'limit', 'MIT': 'market', 'TSLPAMT': 'limit', 'TSLPPCT': 'limit' };
+        const orderType = this.safeString (types, rawType, rawType);
+        return this.safeOrder ({
+            'info': order,
+            'id': this.safeString (order, 'orderId'),
+            'clientOrderId': this.safeString (order, 'clientOid'),
+            'symbol': marketResolved['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastUpdateTimestamp': updated,
+            'status': status,
+            'type': orderType,
+            'side': this.safeStringLower (order, 'side'),
+            'price': this.safeString (order, 'price'),
+            'average': this.safeString (order, 'executedPrice'),
+            'amount': this.safeString (order, 'quantity'),
+            'filled': this.safeString (order, 'executedQuantity'),
+            'triggerPrice': this.safeNumber (order, 'triggerPrice'),
+        }, marketResolved);
+    }
+
+    /**
+     * @ignore
+     * @description parses Stock+ public trades or private executions; price direction is not an aggressor side
+     * @param {object} trade exchange trade
+     * @param {object} [market] unified market
+     * @returns {object} unified trade
+     */
+    parseEquityTrade (trade: Dict, market: Market = undefined): Trade {
+        const marketId = this.safeString (trade, 'symbol');
+        const marketResolved = this.safeMarket (marketId, market);
+        let timestamp = this.parseEquityTimestamp (trade, 'tradeDoneAt');
+        if (timestamp === undefined) {
+            timestamp = this.parseEquityTimestamp (trade, 'timestamp');
+        }
+        return this.safeTrade ({
+            'info': trade,
+            'id': this.safeString (trade, 'tradeId'),
+            'order': this.safeString (trade, 'orderId'),
+            'symbol': marketResolved['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'side': this.safeStringLower (trade, 'side'),
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString2 (trade, 'quantity', 'volume'),
+        }, marketResolved);
+    }
+
+    /**
+     * @ignore
+     * @description queries one Stock+ order-history page or today's orders
+     * @param {string} [symbol] unified equity symbol
+     * @param {int} [since] earliest timestamp in milliseconds
+     * @param {int} [limit] client-side result limit
+     * @param {object} extraParams history, status, startAt and endAt
+     * @returns {object[]} unified orders
+     */
+    async fetchEquityOrders (symbol: Str, since: Int, limit: Int, extraParams: Dict): Promise<Order[]> {
+        const history = this.safeBool (extraParams, 'history', since !== undefined);
+        const request: Dict = {};
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (history && (since !== undefined)) {
+            request['startAt'] = this.parseToInt (since / 1000);
+        }
+        const requestParams = this.omit (extraParams, [ 'equity', 'stock', 'uta', 'history' ]);
+        let response: Dict = {};
+        if (history) {
+            response = await this.privateUtaGetV3StockplusTradeHistoryOrders (this.extend (requestParams, request));
+        } else {
+            response = await this.privateUtaGetV3StockplusTradeTodayOrders (this.extend (requestParams, request));
+        }
+        const data = this.safeDict (response, 'data', {});
+        const rows = this.safeList (data, 'orders', []);
+        const result: Order[] = [];
+        for (let i = 0; i < rows.length; i++) {
+            const parsed = this.parseEquityOrder (rows[i], market);
+            result.push (parsed);
+        }
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
+    }
+
+    /**
+     * @method
+     * @name bitget#fetchOption
+     * @description fetches a Stock+ option quote
+     * @see https://www.bitget.com/docs/catalog/stock-plus/options-quotes#get-option-quote
+     * @param {string} symbol unified Stock+ option symbol
+     * @param {object} [params] extra exchange parameters
+     * @returns {object} an [option structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
+     */
+    override async fetchOption (symbol: string, params: Dict = {}): Promise<Option> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const equity = this.safeBool (market, 'equity', false);
+        const option = market['option'];
+        if (!equity || !option) {
+            throw new NotSupported (this.id + ' fetchOption() supports Stock+ options only');
+        }
+        const requestParams = this.omit (params, [ 'equity', 'stock', 'uta' ]);
+        const response = await this.privateUtaGetV3StockplusMarketOptionQuote (this.extend (requestParams, { 'symbol': market['id'] }));
+        const data = this.safeDict (response, 'data', {});
+        const rows = this.safeList (data, 'secuQuote', []);
+        const rowsLength = rows.length;
+        if (rowsLength === 0) {
+            throw new ExchangeError (this.id + ' empty Stock+ option quote');
+        }
+        return this.parseEquityOption (rows[0], market);
+    }
+
+    /**
+     * @method
+     * @name bitget#fetchOptionChain
+     * @description fetches Stock+ option quotes for one underlying and expiry
+     * @see https://www.bitget.com/docs/catalog/stock-plus/options-quotes#get-option-chain-info
+     * @see https://www.bitget.com/docs/catalog/stock-plus/options-quotes#get-option-expiry-date
+     * @param {string} code Stock+ exchange underlying symbol, e.g. AAPL.US
+     * @param {object} [params] extra parameters
+     * @param {string} params.expiryDate YYYYMMDD expiry date
+     * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
+     */
+    override async fetchOptionChain (code: string, params: Dict = {}): Promise<OptionChain> {
+        const expiryDate = this.safeString (params, 'expiryDate');
+        if (expiryDate === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOptionChain() requires params.expiryDate in YYYYMMDD format');
+        }
+        const markets = await this.fetchEquityOptionMarkets (code, expiryDate);
+        const result: OptionChain = {};
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            if (market !== undefined) {
+                const quote = this.parseEquityOption (market['info'], market);
+                result[market['symbol']] = quote;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @ignore
+     * @description parses a Stock+ option quote
+     * @param {object} quote exchange quote
+     * @param {object} market unified option market
+     * @returns {object} unified option quote
+     */
+    parseEquityOption (quote: Dict, market: MarketInterface): Option {
+        const timestamp = this.parseEquityTimestamp (quote, 'timestamp');
+        return {
+            'info': quote,
+            'currency': market['base'],
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'impliedVolatility': this.safeNumber (quote, 'impliedVolatility'),
+            'openInterest': this.safeNumber (quote, 'openInterest'),
+            'bidPrice': undefined,
+            'askPrice': undefined,
+            'midPrice': undefined,
+            'markPrice': undefined,
+            'lastPrice': this.safeNumber (quote, 'lastDone'),
+            'underlyingPrice': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'baseVolume': this.safeNumber (quote, 'volume'),
+            'quoteVolume': this.safeNumber (quote, 'turnover'),
+        };
+    }
+
+    /**
+     * @method
+     * @name bitget#fetchOrders
+     * @description fetches Stock+ orders
+     * @see https://www.bitget.com/docs/catalog/stock-plus/orders#check-history-orders
+     * @param {string} [symbol] unified equity symbol
+     * @param {int} [since] earliest timestamp in milliseconds
+     * @param {int} [limit] client-side result limit
+     * @param {object} [params] exchange parameters
+     * @param {boolean} [params.equity] select Stock+ orders when symbol is omitted; otherwise inferred from the symbol
+     * @param {boolean} [params.history] select history instead of today's orders
+     * @remarks This Stock+ path is not included in the general `fetchOrders` capability; crypto callers should use `fetchOpenOrders` and `fetchClosedOrders`.
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const equity = this.isEquityMarket (symbol, params);
+        if (!equity) {
+            throw new NotSupported (this.id + ' fetchOrders() supports Stock+ only; use fetchOpenOrders()/fetchClosedOrders() for crypto');
+        }
+        return await this.fetchEquityOrders (symbol, since, limit, params);
     }
 
     async fetchDefaultMarkets (params: any): Promise<Market[]> {
@@ -3628,6 +4193,7 @@ export default class bitget extends Exchange {
      * @method
      * @name bitget#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.bitget.com/docs/catalog/stock-plus/stock-quotes#check-order-book
      * @see https://www.bitget.com/api-doc/spot/market/Get-Orderbook
      * @see https://www.bitget.com/api-doc/contract/market/Get-Merge-Depth
      * @see https://www.bitget.com/api-doc/uta/public/OrderBook
@@ -3643,6 +4209,25 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const equity = this.safeBool (market, 'equity', false);
+        if (equity) {
+            const equityParams = this.omit (params, [ 'equity', 'stock', 'uta' ]);
+            const equityRequest = this.extend (equityParams, { 'symbol': market['id'] });
+            const equityResponse = await this.privateUtaGetV3StockplusMarketDepth (equityRequest);
+            const equityData = this.safeDict (equityResponse, 'data', {});
+            const book = this.parseOrderBook (equityData, symbol, undefined, 'bids', 'asks', 'price', 'volume');
+            if (limit !== undefined) {
+                const bids = book['bids'];
+                const asks = book['asks'];
+                const bidsLength = bids.length;
+                const asksLength = asks.length;
+                const bidLimit = Math.min (limit, bidsLength);
+                const askLimit = Math.min (limit, asksLength);
+                book['bids'] = this.arraySlice (bids, 0, bidLimit);
+                book['asks'] = this.arraySlice (asks, 0, askLimit);
+            }
+            return book;
+        }
         const request: Dict = {
             'symbol': market['id'],
         };
@@ -3857,6 +4442,7 @@ export default class bitget extends Exchange {
      * @method
      * @name bitget#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://www.bitget.com/docs/catalog/stock-plus/stock-quotes#check-real-time-quote
      * @see https://www.bitget.com/api-doc/spot/market/Get-Tickers
      * @see https://www.bitget.com/api-doc/contract/market/Get-Ticker
      * @see https://www.bitget.com/api-doc/uta/public/Tickers
@@ -3870,6 +4456,10 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const equity = this.safeBool (market, 'equity', false);
+        if (equity) {
+            return await this.fetchEquityTicker (market, params);
+        }
         const request: Dict = {
             'symbol': market['id'],
         };
@@ -4048,11 +4638,13 @@ export default class bitget extends Exchange {
      * @method
      * @name bitget#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://www.bitget.com/docs/catalog/stock-plus/stock-quotes#check-real-time-quote
      * @see https://www.bitget.com/api-doc/spot/market/Get-Tickers
      * @see https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker
      * @see https://www.bitget.com/api-doc/uta/public/Tickers
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.equity] select Stock+ quotes when symbols are omitted; otherwise inferred from symbols
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock tickers
      * @param {string} [params.subType] *contract only* 'linear', 'inverse'
@@ -4062,6 +4654,38 @@ export default class bitget extends Exchange {
     override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
+        }
+        let equity = this.safeBool (params, 'equity', false);
+        const firstSymbol = this.safeString (symbols, 0);
+        if ((symbols !== undefined) && (firstSymbol !== undefined)) {
+            const firstMarket = this.market (firstSymbol);
+            equity = this.safeBool (firstMarket, 'equity', false);
+            for (let i = 0; i < symbols.length; i++) {
+                const symbolEquity = this.isEquityMarket (symbols[i], params);
+                if (symbolEquity !== equity) {
+                    throw new BadRequest (this.id + ' fetchTickers() cannot mix Stock+ and crypto symbols');
+                }
+            }
+        }
+        if (equity) {
+            let equitySymbols = this.symbols;
+            if (symbols !== undefined) {
+                equitySymbols = this.marketSymbols (symbols);
+            }
+            const equityResult: Tickers = {};
+            for (let i = 0; i < equitySymbols.length; i++) {
+                const equityMarket = this.market (equitySymbols[i]);
+                const isEquity = this.safeBool (equityMarket, 'equity', false);
+                if (!isEquity) {
+                    if (symbols !== undefined) {
+                        throw new BadRequest (this.id + ' fetchTickers() cannot mix Stock+ and crypto symbols');
+                    }
+                    continue;
+                }
+                const ticker = await this.fetchEquityTicker (equityMarket, params);
+                equityResult[equitySymbols[i]] = ticker;
+            }
+            return equityResult;
         }
         let market: Market = undefined;
         let stockDefault: Bool = undefined;
@@ -4398,6 +5022,7 @@ export default class bitget extends Exchange {
      * @method
      * @name bitget#fetchTrades
      * @description get the list of most recent trades for a particular symbol
+     * @see https://www.bitget.com/docs/catalog/stock-plus/stock-quotes#check-trade-detail
      * @see https://www.bitget.com/api-doc/spot/market/Get-Recent-Trades
      * @see https://www.bitget.com/api-doc/spot/market/Get-Market-Trades
      * @see https://www.bitget.com/api-doc/contract/market/Get-Recent-Fills
@@ -4421,6 +5046,23 @@ export default class bitget extends Exchange {
         let paramsPaginate = undefined;
         [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchTrades', 'paginate', false);
         const market = this.market (symbol);
+        const equity = this.safeBool (market, 'equity', false);
+        if (equity) {
+            let tradeCount = 100;
+            if (limit !== undefined) {
+                tradeCount = Math.min (limit, 1000);
+            }
+            const equityParams = this.omit (params, [ 'equity', 'stock', 'uta', 'paginate' ]);
+            const equityRequest = this.extend (equityParams, { 'symbol': market['id'], 'count': tradeCount });
+            const equityResponse = await this.privateUtaGetV3StockplusMarketTrade (equityRequest);
+            const equityRows = this.safeList (equityResponse, 'data', []);
+            const equityTrades: Trade[] = [];
+            for (let i = 0; i < equityRows.length; i++) {
+                const parsed = this.parseEquityTrade (equityRows[i], market);
+                equityTrades.push (parsed);
+            }
+            return this.filterBySinceLimit (equityTrades, since, limit);
+        }
         const isStock = market['stock'];
         const isStockSpot = isStock && market['spot'];
         paramsPaginate = this.omit (paramsPaginate, 'stock');
@@ -4840,6 +5482,8 @@ export default class bitget extends Exchange {
      * @method
      * @name bitget#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.bitget.com/docs/catalog/stock-plus/stock-quotes#check-candlestick
+     * @see https://www.bitget.com/docs/catalog/stock-plus/stock-quotes#check-history-candlestick
      * @see https://www.bitget.com/api-doc/spot/market/Get-Candle-Data
      * @see https://www.bitget.com/api-doc/spot/market/Get-History-Candle-Data
      * @see https://www.bitget.com/api-doc/contract/market/Get-Candle-Data
@@ -4853,6 +5497,10 @@ export default class bitget extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.adjustType] Stock+ adjustment mode, defaults to NoAdjust
+     * @param {string} [params.tradeSessions] Stock+ candle session selector
+     * @param {int} [params.count] Stock+ requested candle count, up to 1000
+     * @param {string} [params.time] Stock+ historical anchor in Unix seconds
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @param {boolean} [params.useHistoryEndpoint] whether to force to use historical endpoint (it has max limit of 200, 100 for uta)
@@ -4864,6 +5512,11 @@ export default class bitget extends Exchange {
     override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
+        }
+        const equityMarket = this.market (symbol);
+        const equity = this.safeBool (equityMarket, 'equity', false);
+        if (equity) {
+            return await this.fetchEquityOHLCV (equityMarket, timeframe, since, limit, params);
         }
         const defaultLimit = 100; // default 100, max 1000
         const maxLimitForRecentEndpoint = 1000;
@@ -5053,6 +5706,7 @@ export default class bitget extends Exchange {
      * @method
      * @name bitget#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.bitget.com/docs/catalog/stock-plus/assets#check-account
      * @see https://www.bitget.com/docs/catalog/classic-spot-account/classic-spot-account#get-account-assets
      * @see https://www.bitget.com/docs/catalog/classic-contract-account/classic-contract-account#get-account-list
      * @see https://www.bitget.com/docs/catalog/classic-margin-cross-account/classic-margin-cross-account#get-cross-account-assets
@@ -5060,6 +5714,7 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-account-assets
      * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-account-funding-assets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.equity] select cash balances in the Stock+ securities account
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {string} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.type] 'funding' to fetch the uta funding-account assets (uta only, classic accounts route funding through 'spot')
@@ -5067,6 +5722,39 @@ export default class bitget extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     override async fetchBalance (params: Dict = {}): Promise<Balances> {
+        const [ equity, equityParams ] = this.handleOptionBoolAndParams (params, 'fetchBalance', 'equity', false);
+        if (equity) {
+            const equityResponse = await this.privateUtaGetV3StockplusAssetAccount (equityParams);
+            const equityData = this.safeDict (equityResponse, 'data', {});
+            const accounts = this.safeList (equityData, 'list', []);
+            const balance: Dict = { 'info': equityResponse };
+            for (let i = 0; i < accounts.length; i++) {
+                const accountCurrencyId = this.safeString (accounts[i], 'currency');
+                const accountCode = this.safeCurrencyCode (accountCurrencyId);
+                if (accountCode === undefined) {
+                    throw new ExchangeError (this.id + ' Stock+ account balance missing currency');
+                }
+                const currencyBalance = this.safeDict (balance, accountCode, this.account ());
+                const totalCash = this.safeString (accounts[i], 'totalCash');
+                currencyBalance['total'] = Precise.stringAdd (this.safeString (currencyBalance, 'total', '0'), totalCash);
+                balance[accountCode] = currencyBalance;
+                const cashInfos = this.safeList (accounts[i], 'cashInfos', []);
+                for (let j = 0; j < cashInfos.length; j++) {
+                    const cash = cashInfos[j];
+                    const currencyId = this.safeString (cash, 'currency');
+                    const code = this.safeCurrencyCode (currencyId);
+                    if (code === undefined) {
+                        throw new ExchangeError (this.id + ' Stock+ cash balance missing currency');
+                    }
+                    const account = this.safeDict (balance, code, this.account ());
+                    const free = this.safeString (cash, 'availableCash');
+                    account['free'] = Precise.stringAdd (this.safeString (account, 'free', '0'), free);
+                    balance[code] = account;
+                }
+            }
+            return this.safeBalance (balance);
+        }
+        const paramsRequest = equityParams;
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5074,7 +5762,7 @@ export default class bitget extends Exchange {
         let marketType: Str = undefined;
         let marginMode: Str = undefined;
         let response = undefined;
-        const [ stock, paramsStock ] = this.handleOptionBoolAndParams (params, 'fetchBalance', 'stock', false);
+        const [ stock, paramsStock ] = this.handleOptionBoolAndParams (paramsRequest, 'fetchBalance', 'stock', false);
         let uta: Bool = undefined;
         let paramsUTA = undefined;
         [ uta, paramsUTA ] = await this.handleUTAAndParams (paramsStock, 'fetchBalance', false);
@@ -5773,6 +6461,7 @@ export default class bitget extends Exchange {
      * @method
      * @name bitget#createOrder
      * @description create a trade order
+     * @see https://www.bitget.com/docs/catalog/stock-plus/orders#place-order
      * @see https://www.bitget.com/api-doc/spot/trade/Place-Order
      * @see https://www.bitget.com/api-doc/spot/plan/Place-Plan-Order
      * @see https://www.bitget.com/api-doc/contract/trade/Place-Order
@@ -5789,6 +6478,8 @@ export default class bitget extends Exchange {
      * @param {float} amount how much you want to trade in units of the base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders, and used as the execution price for contract stop-loss / take-profit orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.outsideRth] Stock+ session policy, defaults to RTHOnly
+     * @param {string} [params.expireDate] Stock+ expiry in YYYY-MM-DD format, required for GoodTilDate validity
      * @param {float} [params.cost] *spot only* how much you want to trade in units of the quote currency, for market buy orders only
      * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
      * @param {float} [params.stopLossPrice] *swap only* The price at which a stop loss order is triggered at
@@ -5820,6 +6511,59 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const equity = this.safeBool (market, 'equity', false);
+        if (equity) {
+            if ((type !== 'limit') && (type !== 'market')) {
+                throw new NotSupported (this.id + ' Stock+ createOrder() supports limit and market orders');
+            }
+            if ((side !== 'buy') && (side !== 'sell')) {
+                throw new InvalidOrder (this.id + ' invalid Stock+ order side');
+            }
+            if (amount <= 0) {
+                throw new InvalidOrder (this.id + ' Stock+ order amount must be positive');
+            }
+            const unsupported = [ 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'stopLossPrice', 'takeProfitPrice', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice', 'reduceOnly', 'postOnly', 'cost', 'marginMode' ];
+            for (let i = 0; i < unsupported.length; i++) {
+                const value = this.safeValue (params, unsupported[i]);
+                if (value !== undefined) {
+                    throw new NotSupported (this.id + ' Stock+ createOrder() does not support ' + unsupported[i]);
+                }
+            }
+            let orderType = 'MO';
+            if (type === 'limit') {
+                orderType = 'LO';
+            }
+            let orderSide = 'Sell';
+            if (side === 'buy') {
+                orderSide = 'Buy';
+            }
+            const timeInForce = this.safeString (params, 'timeInForce', 'Day');
+            const timeInForces = { 'GTC': 'GoodTilCanceled', 'GTD': 'GoodTilDate', 'Day': 'Day', 'GoodTilCanceled': 'GoodTilCanceled', 'GoodTilDate': 'GoodTilDate' };
+            const validity = this.safeString (timeInForces, timeInForce);
+            if (validity === undefined) {
+                throw new NotSupported (this.id + ' unsupported Stock+ timeInForce ' + timeInForce);
+            }
+            const expireDate = this.safeString (params, 'expireDate');
+            if ((validity === 'GoodTilDate') && (expireDate === undefined)) {
+                throw new ArgumentsRequired (this.id + ' Stock+ GoodTilDate orders require params.expireDate');
+            }
+            const outsideRth = this.safeString (params, 'outsideRth', 'RTHOnly');
+            const equityRequest: Dict = { 'symbol': market['id'], 'orderType': orderType, 'side': orderSide, 'submittedQuantity': this.numberToString (amount), 'timeInForce': validity, 'outsideRth': outsideRth };
+            if (type === 'limit') {
+                if ((price === undefined) || (price <= 0)) {
+                    throw new InvalidOrder (this.id + ' Stock+ limit orders require a positive price');
+                }
+                equityRequest['submittedPrice'] = this.numberToString (price);
+            }
+            const clientOid = this.safeString2 (params, 'clientOrderId', 'clientOid');
+            if (clientOid !== undefined) {
+                equityRequest['clientOid'] = clientOid;
+            }
+            const equityParams = this.omit (params, [ 'equity', 'stock', 'uta', 'clientOrderId', 'timeInForce' ]);
+            const equityResponse = await this.privateUtaPostV3StockplusTradePlaceOrder (this.extend (equityParams, equityRequest));
+            const equityData = this.safeDict (equityResponse, 'data', {});
+            return this.parseEquityOrder (equityData, market);
+        }
         const marginParams = this.handleMarginModeAndParams ('createOrder', params);
         const marginMode = marginParams[0];
         const isStock = market['stock'];
@@ -6348,6 +7092,12 @@ export default class bitget extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        for (let i = 0; i < orders.length; i++) {
+            const equity = this.isEquityMarket (orders[i]['symbol'], params);
+            if (equity) {
+                throw new NotSupported (this.id + ' Stock+ batch orders are unsupported; use createOrder()');
+            }
+        }
         let uta: Bool = undefined;
         let paramsUTA = undefined;
         [ uta, paramsUTA ] = await this.handleUTAAndParams (params, 'createOrders', false);
@@ -6448,6 +7198,7 @@ export default class bitget extends Exchange {
      * @method
      * @name bitget#editOrder
      * @description edit a trade order
+     * @see https://www.bitget.com/docs/catalog/stock-plus/orders#modify-order
      * @see https://www.bitget.com/api-doc/spot/plan/Modify-Plan-Order
      * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Replace-Order
      * @see https://www.bitget.com/api-doc/contract/trade/Modify-Order
@@ -6484,6 +7235,23 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const equity = this.safeBool (market, 'equity', false);
+        if (equity) {
+            if ((amount === undefined) || (amount <= 0)) {
+                throw new ArgumentsRequired (this.id + ' Stock+ editOrder() requires a positive amount');
+            }
+            const equityRequest: Dict = { 'orderId': id, 'quantity': this.numberToString (amount) };
+            if (price !== undefined) {
+                if (price <= 0) {
+                    throw new InvalidOrder (this.id + ' Stock+ editOrder() price must be positive');
+                }
+                equityRequest['price'] = this.numberToString (price);
+            }
+            const equityParams = this.omit (params, [ 'equity', 'stock', 'uta' ]);
+            const equityResponse = await this.privateUtaPostV3StockplusTradeModifyOrder (this.extend (equityParams, equityRequest));
+            const equityData = this.safeDict (equityResponse, 'data', {});
+            return this.parseEquityOrder (equityData, market);
+        }
         const request: Dict = {
             // 'orderId': id,
         };
@@ -6681,6 +7449,7 @@ export default class bitget extends Exchange {
      * @method
      * @name bitget#cancelOrder
      * @description cancels an open order
+     * @see https://www.bitget.com/docs/catalog/stock-plus/orders#cancel-order
      * @see https://www.bitget.com/api-doc/spot/trade/Cancel-Order
      * @see https://www.bitget.com/api-doc/spot/plan/Cancel-Plan-Order
      * @see https://www.bitget.com/api-doc/contract/trade/Cancel-Order
@@ -6709,6 +7478,14 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const equity = this.safeBool (market, 'equity', false);
+        if (equity) {
+            const equityRequest = { 'symbol': market['id'], 'orderId': id };
+            const equityParams = this.omit (params, [ 'equity', 'stock', 'uta' ]);
+            const equityResponse = await this.privateUtaPostV3StockplusTradeCancelOrder (this.extend (equityParams, equityRequest));
+            const equityData = this.safeDict (equityResponse, 'data', {});
+            return this.parseEquityOrder (equityData, market);
+        }
         let marginMode: Str = undefined;
         let response: Dict = {};
         let paramsMarginMode = undefined;
@@ -6918,6 +7695,10 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const equity = this.safeBool (market, 'equity', false);
+        if (equity) {
+            throw new NotSupported (this.id + ' Stock+ batch cancellation is unsupported; use cancelOrder()');
+        }
         let uta: Bool = undefined;
         let paramsUTA = undefined;
         [ uta, paramsUTA ] = await this.handleUTAAndParams (params, 'cancelOrders', false);
@@ -7003,6 +7784,11 @@ export default class bitget extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async cancelAllOrders (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const equity = this.isEquityMarket (symbol, params);
+        if (equity) {
+            throw new NotSupported (this.id + ' Stock+ cancelAllOrders() is unsupported; cancel orders individually');
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
@@ -7117,12 +7903,14 @@ export default class bitget extends Exchange {
      * @method
      * @name bitget#fetchOrder
      * @description fetches information on an order made by the user
+     * @see https://www.bitget.com/docs/catalog/stock-plus/orders#check-order-detail
      * @see https://www.bitget.com/api-doc/spot/trade/Get-Order-Info
      * @see https://www.bitget.com/api-doc/contract/trade/Get-Order-Details
      * @see https://www.bitget.com/api-doc/uta/trade/Get-Order-Details
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.equity] select Stock+ when symbol is omitted; otherwise inferred from symbol
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -7135,6 +7923,13 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const equity = this.safeBool (market, 'equity', false);
+        if (equity) {
+            const equityParams = this.omit (params, [ 'equity', 'stock', 'uta' ]);
+            const equityResponse = await this.privateUtaGetV3StockplusTradeOrderDetail (this.extend (equityParams, { 'orderId': id }));
+            const equityData = this.safeDict (equityResponse, 'data', {});
+            return this.parseEquityOrder (equityData, market);
+        }
         const request: Dict = {
             // 'orderId': id,
         };
@@ -7294,6 +8089,7 @@ export default class bitget extends Exchange {
      * @method
      * @name bitget#fetchOpenOrders
      * @description fetch all unfilled currently open orders
+     * @see https://www.bitget.com/docs/catalog/stock-plus/orders#check-today-orders
      * @see https://www.bitget.com/api-doc/spot/trade/Get-Unfilled-Orders
      * @see https://www.bitget.com/api-doc/spot/plan/Get-Current-Plan-Order
      * @see https://www.bitget.com/api-doc/contract/trade/Get-Orders-Pending
@@ -7305,6 +8101,8 @@ export default class bitget extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.equity] select Stock+ when symbol is omitted; otherwise inferred from symbol
+     * @param {boolean} [params.history] Stock+ history instead of today, defaults to whether since is provided
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @param {string} [params.planType] *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
      * @param {boolean} [params.trigger] set to true for fetching trigger orders
@@ -7317,6 +8115,12 @@ export default class bitget extends Exchange {
     override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
+        }
+        const equity = this.isEquityMarket (symbol, params);
+        if (equity) {
+            const equityOrders = await this.fetchEquityOrders (symbol, since, undefined, params);
+            const openOrders = this.filterBy (equityOrders, 'status', 'open');
+            return this.filterBySinceLimit (openOrders, since, limit);
         }
         let market: Market = undefined;
         let type: Str = undefined;
@@ -7706,6 +8510,7 @@ export default class bitget extends Exchange {
      * @method
      * @name bitget#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
+     * @see https://www.bitget.com/docs/catalog/stock-plus/orders#check-history-orders
      * @see https://www.bitget.com/api-doc/spot/trade/Get-History-Orders
      * @see https://www.bitget.com/api-doc/spot/plan/Get-History-Plan-Order
      * @see https://www.bitget.com/api-doc/contract/trade/Get-Orders-History
@@ -7717,6 +8522,8 @@ export default class bitget extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the max number of closed orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.equity] select Stock+ when symbol is omitted; otherwise inferred from symbol
+     * @param {boolean} [params.history] select Stock+ history, defaults to true for this method
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @param {string} [params.planType] *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
      * @param {boolean} [params.trigger] set to true for fetching trigger orders
@@ -7728,6 +8535,13 @@ export default class bitget extends Exchange {
     override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
+        }
+        const equity = this.isEquityMarket (symbol, params);
+        if (equity) {
+            const equityParams = this.extend ({ 'history': true }, params);
+            const equityOrders = await this.fetchEquityOrders (symbol, since, undefined, equityParams);
+            const closedOrders = this.filterBy (equityOrders, 'status', 'closed');
+            return this.filterBySinceLimit (closedOrders, since, limit);
         }
         const orders = await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
         return this.filterBy (orders, 'status', 'closed') as Order[];
@@ -7767,6 +8581,8 @@ export default class bitget extends Exchange {
     /**
      * @method
      * @name bitget#fetchCanceledAndClosedOrders
+     * @description fetches information on multiple canceled and closed orders made by the user
+     * @see https://www.bitget.com/docs/catalog/stock-plus/orders#check-history-orders
      * @see https://www.bitget.com/api-doc/spot/trade/Get-History-Orders
      * @see https://www.bitget.com/api-doc/spot/plan/Get-History-Plan-Order
      * @see https://www.bitget.com/api-doc/contract/trade/Get-Orders-History
@@ -7775,11 +8591,12 @@ export default class bitget extends Exchange {
      * @see https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History
      * @see https://www.bitget.com/api-doc/uta/trade/Get-Order-History
      * @see https://www.bitget.com/api-doc/uta/strategy/Get-History-Strategy-Orders
-     * @description fetches information on multiple canceled and closed orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.equity] select Stock+ when symbol is omitted; otherwise inferred from symbol
+     * @param {boolean} [params.history] select Stock+ history, defaults to true for this method
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @param {string} [params.planType] *contract stop only* 'normal_plan': average trigger order, 'profit_loss': opened tp/sl orders, 'track_plan': trailing stop order, default is 'normal_plan'
      * @param {boolean} [params.trigger] set to true for fetching trigger orders
@@ -7790,6 +8607,21 @@ export default class bitget extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        const equity = this.isEquityMarket (symbol, params);
+        if (equity) {
+            const equityParams = this.extend ({ 'history': true }, params);
+            const equityOrders = await this.fetchEquityOrders (symbol, since, undefined, equityParams);
+            const result: Order[] = [];
+            for (let i = 0; i < equityOrders.length; i++) {
+                const order = equityOrders[i];
+                const status = order['status'];
+                if ((status === 'closed') || (status === 'canceled') || (status === 'expired') || (status === 'rejected')) {
+                    result.push (order);
+                }
+            }
+            return this.filterBySinceLimit (result, since, limit);
+        }
         let uta: Bool = undefined;
         let paramsUTA = undefined;
         [ uta, paramsUTA ] = await this.handleUTAAndParams (params, 'fetchCanceledAndClosedOrders', false);
@@ -8217,6 +9049,7 @@ export default class bitget extends Exchange {
      * @method
      * @name bitget#fetchLedger
      * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+     * @see https://www.bitget.com/docs/catalog/stock-plus/assets#check-cash-flow
      * @see https://www.bitget.com/api-doc/spot/account/Get-Account-Bills
      * @see https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
      * @see https://www.bitget.com/docs/catalog/account/assets-balance#get-financial-records
@@ -8225,6 +9058,7 @@ export default class bitget extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined, the uta endpoints allow a window of at most 30 days between since and until
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.equity] select Stock+ cash flows; since is required
      * @param {int} [params.until] end time in ms
      * @param {string} [params.symbol] *contract only* unified market symbol
      * @param {string} [params.productType] *contract and uta only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
@@ -8234,11 +9068,65 @@ export default class bitget extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<LedgerEntry[]> {
+        const [ equity, equityParams ] = this.handleOptionBoolAndParams (params, 'fetchLedger', 'equity', false);
+        if (equity) {
+            if (since === undefined) {
+                throw new ArgumentsRequired (this.id + ' Stock+ fetchLedger() requires since');
+            }
+            const endTime = this.safeInteger (equityParams, 'endTime', this.seconds ());
+            const size = this.safeInteger (equityParams, 'size', limit);
+            const equityRequest: Dict = { 'startTime': this.parseToInt (since / 1000), 'endTime': endTime };
+            if (size !== undefined) {
+                equityRequest['size'] = Math.min (size, 10000);
+            }
+            const equityResponse = await this.privateUtaGetV3StockplusAssetCashFlow (this.extend (equityParams, equityRequest));
+            const equityData = this.safeDict (equityResponse, 'data', {});
+            const rows = this.safeList (equityData, 'list', []);
+            const entries: LedgerEntry[] = [];
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const currencyId = this.safeString (row, 'currency');
+                const equityCurrency = this.safeCurrencyCode (currencyId);
+                if ((code !== undefined) && (equityCurrency !== code)) {
+                    continue;
+                }
+                const timestamp = this.parseEquityTimestamp (row, 'businessTime');
+                const rawDirection = this.safeString (row, 'direction');
+                let direction: Str = undefined;
+                if (rawDirection === 'In') {
+                    direction = 'in';
+                } else if (rawDirection === 'Out') {
+                    direction = 'out';
+                }
+                const amountString = this.safeString (row, 'balance');
+                const absolute = Precise.stringAbs (amountString);
+                const amount = this.parseNumber (absolute);
+                entries.push ({
+                    'info': row,
+                    'id': undefined,
+                    'timestamp': timestamp,
+                    'datetime': this.iso8601 (timestamp),
+                    'direction': direction,
+                    'account': undefined,
+                    'referenceId': undefined,
+                    'referenceAccount': undefined,
+                    'type': this.safeString (row, 'transactionFlowName'),
+                    'currency': equityCurrency,
+                    'amount': amount,
+                    'before': undefined,
+                    'after': undefined,
+                    'status': undefined,
+                    'fee': undefined,
+                });
+            }
+            return this.filterBySinceLimit (entries, since, limit);
+        }
+        const paramsRequest = equityParams;
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const symbol = this.safeString (params, 'symbol');
-        let paramsOmitted: Dict = this.omit (params, 'symbol');
+        const symbol = this.safeString (paramsRequest, 'symbol');
+        let paramsOmitted: Dict = this.omit (paramsRequest, 'symbol');
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -8714,6 +9602,8 @@ export default class bitget extends Exchange {
      * @method
      * @name bitget#fetchMyTrades
      * @description fetch all trades made by the user
+     * @see https://www.bitget.com/docs/catalog/stock-plus/orders#check-today-executions
+     * @see https://www.bitget.com/docs/catalog/stock-plus/orders#check-history-executions
      * @see https://www.bitget.com/api-doc/spot/trade/Get-Fills
      * @see https://www.bitget.com/api-doc/contract/trade/Get-Order-Fills
      * @see https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-Fills
@@ -8723,12 +9613,45 @@ export default class bitget extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.equity] select Stock+ when symbol is omitted; otherwise inferred from symbol
+     * @param {boolean} [params.history] select historical Stock+ executions excluding today, defaults to whether since is provided
      * @param {int} [params.until] the latest time in ms to fetch trades for
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const equity = this.isEquityMarket (symbol, params);
+        if (equity) {
+            const history = this.safeBool (params, 'history', since !== undefined);
+            const equityRequest: Dict = {};
+            let equityMarket: Market = undefined;
+            if (symbol !== undefined) {
+                equityMarket = this.market (symbol);
+                equityRequest['symbol'] = equityMarket['id'];
+            }
+            if (history && (since !== undefined)) {
+                equityRequest['startAt'] = this.parseToInt (since / 1000);
+            }
+            const equityParams = this.omit (params, [ 'equity', 'stock', 'uta', 'history' ]);
+            let equityResponse: Dict = {};
+            if (history) {
+                equityResponse = await this.privateUtaGetV3StockplusTradeHistoryExecutions (this.extend (equityParams, equityRequest));
+            } else {
+                equityResponse = await this.privateUtaGetV3StockplusTradeTodayExecutions (this.extend (equityParams, equityRequest));
+            }
+            const equityData = this.safeDict (equityResponse, 'data', {});
+            const equityRows = this.safeList (equityData, 'trades', []);
+            const equityTrades: Trade[] = [];
+            for (let i = 0; i < equityRows.length; i++) {
+                const parsed = this.parseEquityTrade (equityRows[i], equityMarket);
+                equityTrades.push (parsed);
+            }
+            return this.filterBySymbolSinceLimit (equityTrades, symbol, since, limit);
+        }
         let uta: Bool = undefined;
         let paramsUTA = undefined;
         [ uta, paramsUTA ] = await this.handleUTAAndParams (params, 'fetchMyTrades', false);
@@ -8942,6 +9865,7 @@ export default class bitget extends Exchange {
      * @method
      * @name bitget#fetchPosition
      * @description fetch data on a single open contract trade position
+     * @see https://www.bitget.com/docs/catalog/stock-plus/assets#check-stock-position
      * @see https://www.bitget.com/api-doc/contract/position/get-single-position
      * @see https://www.bitget.com/api-doc/uta/trade/Get-Position
      * @param {string} symbol unified market symbol of the market the position is held in
@@ -8954,6 +9878,18 @@ export default class bitget extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const equity = this.safeBool (market, 'equity', false);
+        if (equity) {
+            const positions = await this.fetchPositions ([ symbol ], params);
+            const positionsLength = positions.length;
+            if (positionsLength === 0) {
+                throw new ExchangeError (this.id + ' Stock+ position not found for ' + symbol);
+            }
+            if (positionsLength > 1) {
+                throw new NotSupported (this.id + ' multiple Stock+ account channels hold this symbol; use fetchPositions()');
+            }
+            return this.safePosition (positions[0]);
+        }
         const [ productType, paramsProductType ] = this.handleProductTypeAndParams (market, params);
         const request: Dict = {
             'symbol': market['id'],
@@ -9048,11 +9984,13 @@ export default class bitget extends Exchange {
      * @method
      * @name bitget#fetchPositions
      * @description fetch all open positions
+     * @see https://www.bitget.com/docs/catalog/stock-plus/assets#check-stock-position
      * @see https://www.bitget.com/api-doc/contract/position/get-all-position
      * @see https://www.bitget.com/api-doc/contract/position/Get-History-Position
      * @see https://www.bitget.com/api-doc/uta/trade/Get-Position
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.equity] select Stock+ holdings when symbols are omitted; otherwise inferred from symbols
      * @param {string} [params.marginCoin] the settle currency of the positions, needs to match the productType
      * @param {string} [params.productType] 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -9064,6 +10002,64 @@ export default class bitget extends Exchange {
     override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
+        }
+        let equity = this.safeBool (params, 'equity', false);
+        const firstSymbol = this.safeString (symbols, 0);
+        if ((symbols !== undefined) && (firstSymbol !== undefined)) {
+            equity = this.isEquityMarket (firstSymbol, params);
+            for (let i = 0; i < symbols.length; i++) {
+                const symbolEquity = this.isEquityMarket (symbols[i], params);
+                if (symbolEquity !== equity) {
+                    throw new BadRequest (this.id + ' fetchPositions() cannot mix Stock+ and crypto symbols');
+                }
+            }
+        }
+        if (equity) {
+            const equityRequest: Dict = this.omit (params, [ 'equity', 'stock', 'uta' ]);
+            if (symbols !== undefined) {
+                const ids: string[] = [];
+                for (let i = 0; i < symbols.length; i++) {
+                    const equityMarket = this.market (symbols[i]);
+                    const isEquity = this.safeBool (equityMarket, 'equity', false);
+                    if (!isEquity) {
+                        throw new BadRequest (this.id + ' fetchPositions() cannot mix Stock+ and crypto symbols');
+                    }
+                    const marketId = this.safeString (equityMarket, 'id', symbols[i]);
+                    ids.push (marketId);
+                }
+                equityRequest['symbol'] = ids.join (',');
+            }
+            const equityResponse = await this.privateUtaGetV3StockplusAssetStockPosition (equityRequest);
+            const equityData = this.safeDict (equityResponse, 'data', {});
+            const channels = this.safeList (equityData, 'channels', []);
+            const equityPositions: Position[] = [];
+            for (let i = 0; i < channels.length; i++) {
+                const rows = this.safeList (channels[i], 'positions', []);
+                for (let j = 0; j < rows.length; j++) {
+                    const row = rows[j];
+                    const marketId = this.safeString (row, 'symbol');
+                    const equityMarket = this.safeMarket (marketId);
+                    const quantity = this.safeString (row, 'quantity');
+                    let side = 'long';
+                    const negative = Precise.stringLt (quantity, '0');
+                    if (negative) {
+                        side = 'short';
+                    }
+                    const absoluteQuantity = Precise.stringAbs (quantity);
+                    const contracts = this.parseNumber (absoluteQuantity);
+                    const parsed = this.safePosition ({
+                        'info': row,
+                        'id': this.safeString (channels[i], 'accountChannel'),
+                        'symbol': equityMarket['symbol'],
+                        'side': side,
+                        'contracts': contracts,
+                        'contractSize': undefined,
+                        'entryPrice': this.safeNumber (row, 'costPrice'),
+                    });
+                    equityPositions.push (parsed);
+                }
+            }
+            return equityPositions;
         }
         let paginate = false;
         let paramsPaginate = undefined;
@@ -10512,15 +11508,52 @@ export default class bitget extends Exchange {
      * @method
      * @name bitget#fetchTransfers
      * @description fetch a history of internal transfers made on an account
+     * @see https://www.bitget.com/docs/catalog/stock-plus/assets#check-transfer-records
      * @see https://www.bitget.com/api-doc/spot/account/Get-Account-TransferRecords
      * @param {string} code unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of transfers structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.equity] select Stock+ transfer records
+     * @param {string} [params.cursor] Stock+ pagination cursor
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<TransferEntry[]> {
+        const [ equity, equityParams ] = this.handleOptionBoolAndParams (params, 'fetchTransfers', 'equity', false);
+        if (equity) {
+            const equityRequest: Dict = {};
+            if (since !== undefined) {
+                equityRequest['startTime'] = this.numberToString (since);
+            }
+            if (limit !== undefined) {
+                equityRequest['limit'] = this.numberToString (limit);
+            }
+            const equityResponse = await this.privateUtaGetV3StockplusAssetTransferRecords (this.extend (equityParams, equityRequest));
+            const equityData = this.safeDict (equityResponse, 'data', {});
+            const equityRows = this.safeList (equityData, 'list');
+            const rows: List = [];
+            if (equityRows === undefined) {
+                const transferId = this.safeString (equityData, 'transferId');
+                if (transferId !== undefined) {
+                    rows.push (equityData);
+                }
+            } else {
+                for (let i = 0; i < equityRows.length; i++) {
+                    rows.push (equityRows[i]);
+                }
+            }
+            const transfers: TransferEntry[] = [];
+            for (let i = 0; i < rows.length; i++) {
+                const parsed = this.parseEquityTransfer (rows[i]);
+                const equityCurrency = parsed['currency'];
+                if ((code === undefined) || (code === equityCurrency)) {
+                    transfers.push (parsed);
+                }
+            }
+            return this.filterBySinceLimit (transfers, undefined, limit);
+        }
+        const paramsRequest = equityParams;
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a code argument');
         }
@@ -10529,7 +11562,7 @@ export default class bitget extends Exchange {
         }
         let type: Str = undefined;
         let paramsMarketType = undefined;
-        [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTransfers', undefined, params);
+        [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('fetchTransfers', undefined, paramsRequest);
         const fromAccount = this.safeString (paramsMarketType, 'fromAccount', type);
         paramsMarketType = this.omit (paramsMarketType, 'fromAccount');
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
@@ -10576,6 +11609,7 @@ export default class bitget extends Exchange {
      * @method
      * @name bitget#transfer
      * @description transfer currency internally between wallets on the same account
+     * @see https://www.bitget.com/docs/catalog/stock-plus/assets#transfer
      * @see https://www.bitget.com/api-doc/spot/account/Wallet-Transfer
      * @see https://www.bitget.com/api-doc/uta/account/transfer
      * @param {string} code unified currency code
@@ -10583,16 +11617,43 @@ export default class bitget extends Exchange {
      * @param {string} fromAccount account to transfer from
      * @param {string} toAccount account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.equity] select Stock+; also inferred when either account is equity
      * @param {boolean} [params.uta] set to true to transfer via the unified trading account v3 endpoint
      * @param {string} [params.symbol] unified CCXT market symbol, required when transferring to or from an account type that is a leveraged position-by-position account
      * @param {string} [params.clientOid] custom id
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params: Dict = {}): Promise<TransferEntry> {
+        const [ equity, equityParams ] = this.handleOptionBoolAndParams (params, 'transfer', 'equity', false);
+        const fromEquity = (fromAccount === 'equity');
+        const toEquity = (toAccount === 'equity');
+        if (equity || fromEquity || toEquity) {
+            const deposit = (fromAccount === 'spot') && toEquity;
+            const withdraw = fromEquity && (toAccount === 'spot');
+            if (!deposit && !withdraw) {
+                throw new BadRequest (this.id + ' Stock+ transfers require spot -> equity or equity -> spot accounts');
+            }
+            if ((code !== 'USD') && (code !== 'USDC')) {
+                throw new NotSupported (this.id + ' Stock+ transfers support USD and USDC only');
+            }
+            if (amount <= 0) {
+                throw new BadRequest (this.id + ' Stock+ transfer amount must be positive');
+            }
+            let direction = 'out';
+            if (deposit) {
+                direction = 'in';
+            }
+            const equityRequest = { 'coin': code, 'amount': this.numberToString (amount), 'direction': direction };
+            const equityResponse = await this.privateUtaPostV3StockplusAssetTransfer (this.extend (equityParams, equityRequest));
+            const equityData = this.safeDict (equityResponse, 'data', {});
+            const transfer = this.extend (equityRequest, equityData);
+            return this.parseEquityTransfer (transfer);
+        }
+        const paramsRequest = equityParams;
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ uta, paramsUTA ] = await this.handleUTAAndParams (params, 'transfer', false);
+        const [ uta, paramsUTA ] = await this.handleUTAAndParams (paramsRequest, 'transfer', false);
         const currency = this.currency (code);
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromType = this.safeString (accountsByType, fromAccount);
@@ -10630,6 +11691,38 @@ export default class bitget extends Exchange {
         const data = this.safeDict (response, 'data', {});
         data['ts'] = this.safeInteger (response, 'requestTime');
         return this.parseTransfer (data, currency);
+    }
+
+    /**
+     * @ignore
+     * @description parses a Stock+ transfer acknowledgement without assuming settlement
+     * @param {object} transfer exchange transfer
+     * @returns {object} unified transfer
+     */
+    parseEquityTransfer (transfer: Dict): TransferEntry {
+        const currencyId = this.safeString (transfer, 'coin');
+        const currency = this.safeCurrencyCode (currencyId);
+        const direction = this.safeString (transfer, 'direction');
+        let fromAccount: Str = undefined;
+        let toAccount: Str = undefined;
+        if (direction === 'in') {
+            fromAccount = 'spot';
+            toAccount = 'equity';
+        } else if (direction === 'out') {
+            fromAccount = 'equity';
+            toAccount = 'spot';
+        }
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'transferId'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': currency,
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': undefined,
+        };
     }
 
     override parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
