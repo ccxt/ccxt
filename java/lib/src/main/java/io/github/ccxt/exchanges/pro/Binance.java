@@ -2320,7 +2320,6 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         String interval = this.safeString(kline, "i");
         // use a reverse lookup in a static map instead
         String unifiedTimeframe = this.findTimeframe(interval, (Object) null);
-        List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeInteger(kline, "t"), this.safeFloat(kline, "o"), this.safeFloat(kline, "h"), this.safeFloat(kline, "l"), this.safeFloat(kline, "c"), this.safeFloat(kline, "v")));
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
         Boolean isSpot = this.isSpotUrl(client);
@@ -2329,7 +2328,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             marketType = "spot";
         }
-        String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, marketType);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
+        String symbol = (String) market.get("symbol");
+        // coin-margined contracts count "v" in contracts, "q" is the base asset volume that fetchOHLCV returns
+        Boolean inverse = (Boolean) this.safeBool(market, "inverse", (Object) null);
+        String volumeKey = (((java.util.Objects.equals(inverse, true)))) ? "q" : "v";
+        List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeInteger(kline, "t"), this.safeFloat(kline, "o"), this.safeFloat(kline, "h"), this.safeFloat(kline, "l"), this.safeFloat(kline, "c"), this.safeFloat(kline, volumeKey)));
         String messageHash = ((("ohlcv::" + symbol) + "::") + unifiedTimeframe);
         this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, (Object) null), unifiedTimeframe);
@@ -5713,7 +5717,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         mapLiteral11.put("amount", this.safeString(order, "q"));
         mapLiteral11.put("cost", this.safeString(order, "Z"));
         mapLiteral11.put("average", this.safeString(order, "ap"));
-        mapLiteral11.put("filled", this.safeString(order, "z"));
+        mapLiteral11.put("filled", this.safeString2(order, "z", "aq"));
         mapLiteral11.put("remaining", null);
         mapLiteral11.put("status", status);
         mapLiteral11.put("fee", fee);
