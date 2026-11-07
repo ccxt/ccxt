@@ -1,0 +1,197 @@
+---
+title: "We gave nine AI models $100 and an hour to trade. Most of them lost."
+description: Same one-line prompt, same tools, same market, same hour, three times over. Two Claude models refused to play, DeepSeek couldn't sit still, and the fees ate nearly everyone.
+author: CCXT Team
+date: 2026-11-07T22:00:00Z
+tags: [ai, mcp, experiments]
+image: /images/blog/ai-trading-final-equity.png
+---
+
+The prompt was one line:
+
+> Here's $100. You have one hour. Make as much money as you can.
+
+We gave it to nine models at the same moment, with the same tools: the [CCXT MCP server](/docs/mcp)
+for live market data from 100+ exchanges, and a trading account. Then we left them alone. We ran it
+three times.
+
+We weren't trying to crown the best trader. One hour on $100 is mostly noise, and we say more
+about that at the end. What we wanted to see was what each model *does* with an open-ended "make me
+money" and a big toolbox. They turned out to be very different.
+
+## The setup
+
+- **Nine models:** Claude Opus 5.5, Sonnet 5.5 and Haiku 5.5, GPT-6.1 Sol, Gemini Pro, Grok 4.7,
+  DeepSeek V4 Pro, Qwen 3.8 and Kimi K3.1 Pro.
+- **Market data:** the real `ccxt-mcp` server with no API keys. That means tickers, order books,
+  candles, trades, funding rates, WebSocket streams and prediction markets on every exchange CCXT
+  supports.
+- **The account:** a second MCP server holding 100 USDT on OKX. It can trade spot and perpetuals on
+  OKX, Bitget, Gate, KuCoin and Hyperliquid. Moving cash between exchanges costs $1 and takes five
+  minutes, like a real stablecoin withdrawal.
+- **Paper money, real market.** Market orders fill against the exchange's live order book at that
+  market's real taker fee. Limit and stop orders wait for the live price. Perpetuals pay real
+  funding and get liquidated if margin runs out. Nothing is sent to an exchange.
+- **Same hour for everyone.** All nine ran in parallel, so they saw the same prices.
+- If a model stopped early, we told it how many minutes were left and that it could reply `DONE`.
+
+The prompt, the paper broker and the analysis scripts are in
+[`examples/mcp-arena`](https://github.com/ccxt/ccxt/tree/master/examples/mcp-arena).
+
+## The results
+
+ROUND3_RESULTS_PLACEHOLDER
+
+![Equity after one hour, per model and round](/images/blog/ai-trading-final-equity.png)
+
+Here's how round one played out minute by minute:
+
+![Equity over the first round](/images/blog/ai-trading-equity-round1.png)
+
+## Nine personalities
+
+### Claude Opus and Sonnet: did the math, then didn't play
+
+Neither placed a single order in any round.
+
+Opus at least looked. It checked funding rates, worked out that OKX's next funding payment fell
+after the session ended, priced the $1 transfer at 1% of the account, and concluded:
+
+> A dollar not lost is the best expected outcome I can see from the options available.
+
+Sonnet checked the balance once and stopped. Asked afterwards what it did, it was harder on itself
+than we would have been:
+
+> I didn't look at any market data, so I never tested whether an edge existed. […] I was also wrong to
+> say "DONE" when you told me 60 minutes were still left.
+
+### Claude Haiku: a token position
+
+Haiku bought something small and unleveraged each time (0.0005 BTC at 1x, then $95 of spot ETH),
+said it had no edge, and replied `DONE` with most of the hour left. It never finished more than 25
+cents away from $100.
+
+### GPT-6.1: the risk manager
+
+GPT traded like someone who has been burned before. One or two positions per round, always with a
+stop placed seconds after the fill, sized so the stop costs a dollar or two, then long waits. When a
+trade failed it wrote "I'm winding down the remaining position rather than increasing leverage to
+chase the loss" and did exactly that. Small losses, every time.
+
+### Gemini: one big bet
+
+Gemini spent its first two minutes paging through every perpetual on OKX, then put most of the account into
+shorts at 25–35x. In round one it shorted ZEC at 30x, was up to $112 and collected $1.86 of funding
+at the 16:00 settlement. Then a bounce hit its stop, it re-entered at 35x, and it closed the hour at
+$86.63. In round two it opened three 25x shorts with take-profits and no stops at all.
+
+### Grok: the scalper, and the Anthropic short
+
+Grok was the busiest model at the table (190 tool calls in round two), constantly re-reading
+1-minute candles and nudging stops by fractions of a cent. It also spotted that OKX lists a pre-IPO
+`ANTHROPIC/USDT:USDT` perpetual and spent a while weighing a short on it ("ANTHROPIC is the best
+short trade") before talking itself out of it and shorting XRP instead.
+
+### DeepSeek: couldn't sit still
+
+DeepSeek was the first to trade and the slowest to stop. Round two's log reads like a slow tilt:
+
+> Long 0.015 BTC at $75,780, 15x. No stops — I'll manage this manually. […] All or nothing. 460M PEPE
+> short at 30x. 10 minutes to go.
+
+It ended that round at $72.34 after $12.87 in fees. Its own summary is better than anything we could
+write:
+
+> I overtraded — 8 round-trips in an hour — churning roughly $10 in fees on a $100 account […] the
+> chop after the initial selloff rewarded patience, and I had none.
+
+### Kimi: the best run, and the fees that came with it
+
+Kimi produced the only real win: **$111.25** in round one, from momentum trades on ZEC, XRP and ACT
+with trailing stops and clean, readable reasoning. But it paid $11.14 in fees to make $11.25, so it
+had made about twice that before costs. In round two the same style gave back $5.71.
+
+### Qwen: the order-book reader
+
+Qwen (rounds two and three only; see the caveats) was the most analytical. It found a "capitulation
+flush" on 40× normal volume, went long ETH into a 22:1 bid/ask imbalance, hedged it with an OP short
+as a "rotation spread", and then noticed the 5,502 ETH bid wall it was relying on had been pulled.
+It was a lot of sophistication for a market where BTC moved 0.18% in 40 minutes. It lost $5.52, $3.20 of it
+in fees.
+
+## What nobody did
+
+Given 100+ exchanges, prediction markets, a cross-exchange order router and WebSocket streams, every
+model that traded did the same thing: **leveraged OKX perpetuals, mostly short, on the exchange the
+money was already on.**
+
+Nobody moved cash to another exchange. Nobody tried an arbitrage, opened a prediction market or ran a
+funding carry on purpose. A few models looked at prices on Bitget or Gate, or tried Binance and got geo-blocked, and moved on. It
+was a red day for altcoins (−3 to −7%), so they shorted the weakest names they could find.
+
+## Fees ate the hour
+
+Across the 18 runs that traded, the number of fills correlated negatively with P&L (r ≈ −0.44). At
+25x leverage a $100 account trades $2,500 of notional, and OKX charges taker fees on the notional.
+That's over $1 every time a position opens and again when it closes, against a market that barely
+moved.
+
+LI.FI reported the same pattern in its
+[seven-day agent competition](https://li.fi/knowledge-hub/we-let-5-llms-trade-crypto-autonomously-and-the-result-shocked-us):
+the more an agent traded, the worse it did.
+
+## Compared to Alpha Arena and LI.FI
+
+In Nof1's [Alpha Arena](https://decrypt.co/345006/ai-crypto-trading-showdown-deepseek-grok-winning-gemini-implodes),
+six models traded $10,000 each of real money on Hyperliquid for weeks. DeepSeek
+[came out on top](https://www.scmp.com/tech/tech-trends/article/3329784/deepseek-outperforms-ai-rivals-real-money-real-market-crypto-showdown),
+and GPT-5 and Gemini [lost more than half](https://blog.pickmytrade.io/claude-vs-chatgpt-vs-gemini-vs-grok-trading-2026/). In LI.FI's run, Claude Opus 4.6 was the "restless" one: 38
+trades and last place.
+
+Our Claude models did the opposite and barely traded. The likely reason is the harness, not the
+model. Both of those experiments ask the model for a decision every few minutes, so "hold" is just
+one option on a menu that comes back 48 times a day. Ours gave each model one open-ended task and let
+it say it was finished. Given a way to decline, Claude declined every time. Every other model kept
+trading into the last few minutes.
+
+So "trading personality" depends on the setup as well as the model. If you're building an agent,
+whether it can say no is a design decision.
+
+## Caveats
+
+- **Paper trading.** Prices, depth, fees and funding were real. Fills were simulated: no queue
+  position, no latency, and stops fill at the book after they trigger.
+- **Three hours, one market.** All three rounds ran on the same quiet, alt-negative afternoon (BTC
+  between roughly $75,400 and $76,200). A trending day could reward the aggressive models instead.
+- **Two harnesses.** Claude ran in the Claude Code CLI with its system prompt replaced and built-in
+  tools off. The others ran in a plain tool loop through OpenRouter. The prompt and tools were
+  identical, but the loops differ.
+- **Round one had two bugs.** Waits longer than five minutes timed out, and the paper broker refused
+  to close a leveraged position while its margin was negative, which trapped DeepSeek in a losing
+  trade for about 30 minutes. Both were fixed before rounds two and three.
+- **Qwen missed round one**, because of a data-retention setting on our OpenRouter account.
+- **No Binance or Bybit.** Both block the US cloud region the arena ran from.
+- **One rough edge on our side.** Asking `ccxt-mcp` for every OKX funding rate at once returned a
+  result too large to show, and Opus gave up on the scan. That one is on us. We're tightening the
+  server's size limits.
+
+## Run it yourself
+
+You need Node 18+, an OpenRouter key for the non-Claude models, and the `claude` CLI for the Claude
+ones:
+
+```bash
+git clone https://github.com/ccxt/ccxt && cd ccxt/examples/mcp-arena && npm install
+```
+
+```bash
+OPENROUTER_API_KEY=... node arena.mjs --run myrun --minutes 60
+```
+
+```bash
+node analyze.mjs runs/myrun
+```
+
+All nine models cost us about $35 in API calls for three hours. Edit `AGENTS` in `arena.mjs` to swap
+models, or change the prompt and see how much one sentence moves them. To give your own agent the
+same market data, [install the CCXT MCP server](/docs/mcp). It takes one line.
