@@ -21,6 +21,8 @@
 use ccxt::Value;
 use ccxt::{Binance, Myokx, Binanceusdm};
 use ccxt::types::*;
+// The typed core methods an alias venue inherits (binanceusdm `fetch_ticker`) live on this trait.
+use ccxt::exchange_generated::ExchangeBase;
 
 /// Compile-time assertion that `f` resolves to `ccxt::Result<T>`. The future
 /// is consumed and dropped without being polled — the call is a pure type

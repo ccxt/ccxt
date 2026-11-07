@@ -180,6 +180,10 @@ function isObjectType(t: string) {
         || t === 'Dictionary<any>' || (t?.startsWith('{') && t?.endsWith('}'));
 }
 
+// Unified methods the Core itself prints with a typed signature (rustTranspiler `typedUnified`); the
+// wrapper emits no method for them.
+const TYPED_CORE_METHODS = new Set(['fetch_ticker', 'fetch_tickers', 'fetch_order_book', 'fetch_trades']);
+
 interface ParamInfo {
     name: string;       // snake_case Rust param name
     rustType: string;   // Rust type annotation (e.g., `&str`, `Option<i64>`)
@@ -933,12 +937,14 @@ function generateTypedWrapper(exchangeId: string, methods: MethodInfo[], directl
         '    }',
         '}',
         '',
-        '// Read-only deref only. `DerefMut` is intentionally NOT implemented so a',
-        '// safe caller cannot `mem::replace`/swap the Core; mutation goes through',
-        '// the typed methods, which project via `core_mut()` above.',
+        '// The Core\'s typed unified methods (`fetch_ticker`, …) are reached through these derefs.',
         `impl std::ops::Deref for ${className} {`,
         `    type Target = ${coreClassName};`,
         '    fn deref(&self) -> &Self::Target { &*self.core }',
+        '}',
+        '',
+        `impl std::ops::DerefMut for ${className} {`,
+        '    fn deref_mut(&mut self) -> &mut Self::Target { &mut *self.core }',
         '}',
         '',
         `impl ${className} {`,
@@ -947,6 +953,7 @@ function generateTypedWrapper(exchangeId: string, methods: MethodInfo[], directl
     // A method not directly callable on this Core (own inherent + base trait
     // methods) is inherited from a parent Core and must route via call_dynamic.
     const body = methods
+        .filter(m => !TYPED_CORE_METHODS.has(m.coreCall))
         .map(m => genMethod(m, directlyCallable ? !directlyCallable.has(m.coreCall) : false))
         .join('\n\n');
     // Close the inherent impl, then emit the `TypedExchange` impl so this wrapper

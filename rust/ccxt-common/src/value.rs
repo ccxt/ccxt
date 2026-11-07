@@ -239,6 +239,11 @@ impl Value {
         }
     }
 
+    /// `None` for `Null`, else [`Value::to_str_vec`]: the `Option<Vec<String>>` typed-argument bridge.
+    pub fn to_opt_str_vec(&self) -> Option<Vec<String>> {
+        if self.is_null() { None } else { Some(self.to_str_vec()) }
+    }
+
     /// Length of array, map, or string; 0 for everything else.
     /// String length counts Unicode chars (matches TS `String#length`
     /// closely enough for ASCII-only API addresses/identifiers).
@@ -579,6 +584,9 @@ impl From<f64>     for Value { fn from(f: f64)    -> Self { Value::Float(f) } }
 impl From<bool>    for Value { fn from(b: bool)   -> Self { Value::Bool(b) } }
 impl From<Option<i64>> for Value { fn from(n: Option<i64>) -> Self { n.map_or(Value::Null, Value::Int) } }
 impl From<Option<f64>> for Value { fn from(n: Option<f64>) -> Self { n.map_or(Value::Null, Value::Float) } }
+impl From<Option<Vec<String>>> for Value {
+    fn from(l: Option<Vec<String>>) -> Self { l.map_or(Value::Null, |l| Value::from(l.into_iter().map(Value::from).collect::<Vec<Value>>())) }
+}
 /// `From<ExchangeError>` makes `error.clone()` flow into `&[Value]`
 /// slices without an explicit conversion — surfaces the typed error
 /// as a `[Kind] message`-shaped string Value, matching how

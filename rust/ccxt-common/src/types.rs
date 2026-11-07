@@ -1900,3 +1900,39 @@ mod from_value_tests {
         assert_eq!(LeverageTier::from_value(dict(&[("symbol", Value::Str("ETH/USDT:USDT".into()))])).symbol.as_deref(), Some("ETH/USDT:USDT"));
     }
 }
+
+/// Decodes a transpiled body's `Value` result into a typed unified return.
+pub trait FromRaw { fn from_raw(v: Value) -> Self; }
+/// Lowers a typed unified return back to the `Value` the transpiled bodies and dispatch carry.
+pub trait IntoRaw { fn into_raw(self) -> Value; }
+
+macro_rules! raw_struct {
+    ($($t:ident),*) => { $(
+        impl FromRaw for $t { fn from_raw(v: Value) -> Self { $t::from_value(v) } }
+        impl IntoRaw for $t { fn into_raw(self) -> Value { self.raw } }
+    )* };
+}
+raw_struct!(Ticker, Trade, OrderBook);
+
+impl<T: FromRaw> FromRaw for Vec<T> {
+    fn from_raw(v: Value) -> Self {
+        match v { Value::Arr(rows) => rows.iter().map(|r| T::from_raw(r.clone())).collect(), _ => Vec::new() }
+    }
+}
+impl<T: IntoRaw> IntoRaw for Vec<T> {
+    fn into_raw(self) -> Value { Value::from(self.into_iter().map(IntoRaw::into_raw).collect::<Vec<Value>>()) }
+}
+impl<T: FromRaw> FromRaw for HashMap<String, T> {
+    fn from_raw(v: Value) -> Self {
+        match v { Value::Dict(d) => d.iter().map(|(k, x)| (k.clone(), T::from_raw(x.clone()))).collect(), _ => HashMap::new() }
+    }
+}
+impl<T: IntoRaw> IntoRaw for HashMap<String, T> {
+    fn into_raw(self) -> Value { Value::Dict(std::sync::Arc::new(self.into_iter().map(|(k, x)| (k, x.into_raw())).collect())) }
+}
+/// An `Err` re-raises as the `panic!("[Kind] message")` the untyped call raised.
+impl<T: IntoRaw> IntoRaw for crate::Result<T> {
+    fn into_raw(self) -> Value {
+        match self { Ok(t) => t.into_raw(), Err(e) => panic!("{}", e) }
+    }
+}

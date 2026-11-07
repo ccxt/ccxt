@@ -4750,6 +4750,30 @@ function mapParamKind(printedParam: string): 'map' | undefined {
 
 /** Dispatch argument for a native-map parameter (position `index` in `args`). The temp is built on the arm's
  *  own line so a generated dispatch arm stays within the 400-char line budget. */
+// Typed unified-method parameters (printer `typedUnified`) and their `args[i]` dispatch lowering.
+const TYPED_PARAM_KINDS = new Set(['str', 'opti64', 'optstrvec', 'params']);
+
+function typedParamKind(param: string): string | undefined {
+    if (/:\s*&str$/.test(param)) return 'str';
+    if (/:\s*Option<i64>$/.test(param)) return 'opti64';
+    if (/:\s*Option<Vec<String>>$/.test(param)) return 'optstrvec';
+    if (/:\s*impl Into<crate::Params>/.test(param)) return 'params';
+    return undefined;
+}
+
+function typedDispatchArg(kind: string, i: number): string {
+    const arg = `args.get(${i}).cloned().unwrap_or_default()`;
+    return kind === 'str' ? `args.get(${i}).and_then(|v| v.as_str()).unwrap_or_default()`
+        : kind === 'opti64' ? `args.get(${i}).and_then(|v| v.as_i64())`
+        : kind === 'optstrvec' ? `${arg}.to_opt_str_vec()`
+        : arg;
+}
+
+// A typed method's `Result<T>` boxed back to the dispatcher's `Value`.
+function typedResult(call: string, isTyped: boolean | undefined): string {
+    return isTyped ? `crate::types::IntoRaw::into_raw(${call})` : call;
+}
+
 function mapParamDispatchArg(index: number): string {
     return `&mut { let mut __m = args.get(${index}).cloned().unwrap_or_default().as_map().cloned().unwrap_or_default();\n                    __m }`;
 }
@@ -7176,7 +7200,8 @@ export class RustTranspilerBuilder {
     getTranspilerConfig() {
         return {
             verbose: false,
-            rust: {},
+            // Unified methods whose core signature is typed (`&str`/`Option<i64>`/`Params` -> `Result<T>`).
+            rust: { typedUnified: ['fetchTicker', 'fetchTickers', 'fetchOrderBook', 'fetchTrades'] },
         };
     }
 
@@ -12220,11 +12245,23 @@ export class RustTranspilerBuilder {
                     }).join('')
                   } __args }`
                 : `vec![${vecArgs.join(', ')}]`;
-            const preamble =
-                `\n        // async-virtual: try the derived exchange first\n` +
+            // a typed unified method forwards the `__args` its printed body lowered and decodes the override's result
+            const typed = /->\s*crate::Result</.test(m[0]);
+            const preamble = typed
+                ? `\n        // async-virtual: try the derived exchange first\n` +
+                  `        if let Some(__v) = self.dispatch_to_derived("${name}", __args.clone()).await {\n` +
+                  `            if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }\n` +
+                  `        }`
+                : `\n        // async-virtual: try the derived exchange first\n` +
                 `        if let Some(__v) = self.dispatch_to_derived("${name}", ${vecBuild}).await {\n` +
                 `            if !matches!(__v, crate::Value::Null) { return __v; }\n` +
                 `        }\n`;
+            if (typed) {
+                const argsEnd = content.indexOf('\n', content.indexOf('let __args: Vec<Value>', m.index + m[0].length));
+                out += content.slice(last, argsEnd) + preamble;
+                last = argsEnd;
+                continue;
+            }
             const matchEnd = m.index + m[0].length;
             out += content.slice(last, matchEnd) + preamble;
             last = matchEnd;
@@ -12383,8 +12420,8 @@ export class RustTranspilerBuilder {
      * (i.e. inside `impl` blocks). Skips synthetic helpers like `new`
      * and `bind`/`dispatch_virtual` we generate ourselves.
      */
-    collectExchangeMethodSignatures(content: string, allowNoPub = false): Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean, isVoid?: boolean }> {
-        const out: Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean, isVoid?: boolean }> = [];
+    collectExchangeMethodSignatures(content: string, allowNoPub = false): Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean, isVoid?: boolean, isTyped?: boolean }> {
+        const out: Array<{ name: string, isAsync: boolean, paramKinds: string[], isMut?: boolean, isVoid?: boolean, isTyped?: boolean }> = [];
         // Match `[pub] [async] fn NAME(&self|&mut self, ARG_LIST) [-> Ret] {`.
         // `allowNoPub` (used only for the `ExchangeBase` trait body → its
         // `call_dynamic_base`) makes `pub` optional because trait methods are
@@ -12411,12 +12448,15 @@ export class RustTranspilerBuilder {
             // emitters). Sync non-Value methods stay out (they route through the
             // sync dispatch_ws_handler, which already void-wraps them).
             const isValue = /->\s*(crate::)?Value\b/.test(retType);
+            const isTyped = /->\s*crate::Result</.test(retType);
             if (!isValue && !isAsync) continue;
-            const isVoid = !isValue;
+            const isVoid = !isValue && !isTyped;
             // Skip if there's no `self` receiver.
             if (!/\bself\b/.test(argList)) continue;
             const params = mapParamSplitArgs(argList).slice(1).map(s => s.trim()).filter(p => p.length > 0);
             const paramKinds = params.map(p => {
+                const typedKind = typedParamKind(p);
+                if (typedKind !== undefined) return typedKind;
                 if (/:\s*&\[/.test(p)) return 'slice';
                 if (mapParamKind(p) !== undefined) return 'map';
                 if (/:\s*Vec<String>/.test(p)) return 'strvec';
@@ -12430,7 +12470,7 @@ export class RustTranspilerBuilder {
             // `&mut self`; for `&self` methods (parse_ticker/parse_market/sign/
             // handle_errors, …) it can forward directly and soundly.
             const isMut = /^\s*&mut\s+self\b/.test(argList);
-            out.push({ name, isAsync, paramKinds, isMut, isVoid });
+            out.push({ name, isAsync, paramKinds, isMut, isVoid, isTyped });
         }
         return out;
     }
@@ -12529,7 +12569,7 @@ export class RustTranspilerBuilder {
         } catch (_) { /* base not generated yet */ }
         const collide = new Set([...exBase, ...Object.keys(this.traitMethodSignatures())]);
         const arms: string[] = [];
-        for (const { name, paramKinds, isAsync, isVoid } of sigs) {
+        for (const { name, paramKinds, isAsync, isVoid, isTyped } of sigs as any[]) {
             if (['describe', 'new', 'bind', 'init', 'call_dynamic', 'call_dynamic_base', 'call_dynamic_prediction_base', 'pred', 'pred_mut'].includes(name)) continue;
             const callArgs: string[] = [];
             for (let i = 0; i < paramKinds.length; i++) {
@@ -12541,6 +12581,8 @@ export class RustTranspilerBuilder {
                     callArgs.push(`args.get(${i}).cloned().unwrap_or_default().to_str_vec()`);
                 } else if (paramKinds[i] === 'map') {
                     callArgs.push(mapParamDispatchArg(i));
+                } else if (TYPED_PARAM_KINDS.has(paramKinds[i])) {
+                    callArgs.push(typedDispatchArg(paramKinds[i], i));
                 } else if (paramKinds[i] === 'slice') {
                     callArgs.push(this.dispatchSliceArg(i));
                 }
@@ -12549,7 +12591,7 @@ export class RustTranspilerBuilder {
             // ExchangeBase method of the same name (cancel_order, create_order),
             // so always qualify to PredictionBase to avoid ambiguity (review #1).
             const recv = `<Self as crate::prediction_exchange_generated::PredictionBase>::${name}(self${callArgs.length ? ', ' : ''}${callArgs.join(', ')})`;
-            const expr = `${recv}${isAsync ? '.await' : ''}`;
+            const expr = typedResult(`${recv}${isAsync ? '.await' : ''}`, isTyped);
             arms.push(`            "${name}" => ${isVoid ? `{ ${expr}; crate::Value::Null }` : expr},`);
         }
         arms.sort();
@@ -12584,7 +12626,7 @@ ${arms.join('\n')}
         // here, so qualify them to the `ExchangeBase` trampoline (review #1).
         const collide = new Set(Object.keys(this.traitMethodSignatures()));
         const arms: string[] = [];
-        for (const { name, paramKinds, isAsync, isVoid } of sigs) {
+        for (const { name, paramKinds, isAsync, isVoid, isTyped } of sigs as any[]) {
             if (['describe', 'new', 'bind', 'init', 'call_dynamic', 'call_dynamic_base'].includes(name)) continue;
             const callArgs: string[] = [];
             for (let i = 0; i < paramKinds.length; i++) {
@@ -12596,6 +12638,8 @@ ${arms.join('\n')}
                     callArgs.push(`args.get(${i}).cloned().unwrap_or_default().to_str_vec()`);
                 } else if (paramKinds[i] === 'map') {
                     callArgs.push(mapParamDispatchArg(i));
+                } else if (TYPED_PARAM_KINDS.has(paramKinds[i])) {
+                    callArgs.push(typedDispatchArg(paramKinds[i], i));
                 } else if (paramKinds[i] === 'slice') {
                     callArgs.push(this.dispatchSliceArg(i));
                 }
@@ -12603,7 +12647,7 @@ ${arms.join('\n')}
             const recv = collide.has(name)
                 ? `<Self as crate::exchange_generated::ExchangeBase>::${name}(self${callArgs.length ? ', ' : ''}${callArgs.join(', ')})`
                 : `self.${name}(${callArgs.join(', ')})`;
-            const expr = `${recv}${isAsync ? '.await' : ''}`;
+            const expr = typedResult(`${recv}${isAsync ? '.await' : ''}`, isTyped);
             arms.push(`            "${name}" => ${isVoid ? `{ ${expr}; crate::Value::Null }` : expr},`);
         }
         arms.sort();
@@ -12665,7 +12709,7 @@ ${arms.join('\n')}
     emitCallDynamic(sigs: Array<{ name: string, isAsync: boolean, paramKinds: string[] }>, isBase: boolean = false, parentCore: string | null = null): string {
         if (sigs.length === 0) return '';
         const arms: string[] = [];
-        for (const { name, isAsync, paramKinds, isVoid } of sigs) {
+        for (const { name, isAsync, paramKinds, isVoid, isTyped } of sigs as any[]) {
             // Skip names that already clash with the synthesized helpers.
             if (['describe', 'new', 'bind', 'init', 'call_dynamic'].includes(name)) continue;
             const callArgs: string[] = [];
@@ -12680,12 +12724,14 @@ ${arms.join('\n')}
                     callArgs.push(`args.get(${i}).cloned().unwrap_or_default().to_str_vec()`);
                 } else if (paramKinds[i] === 'map') {
                     callArgs.push(mapParamDispatchArg(i));
+                } else if (TYPED_PARAM_KINDS.has(paramKinds[i])) {
+                    callArgs.push(typedDispatchArg(paramKinds[i], i));
                 } else if (paramKinds[i] === 'slice') {
                     // Pass the remaining args as a slice of `args` itself.
                     callArgs.push(this.dispatchSliceArg(i));
                 }
             }
-            const callExpr = `self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''}`;
+            const callExpr = typedResult(`self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''}`, isTyped);
             arms.push(`            "${name}" => ${isVoid ? `{ ${callExpr}; crate::Value::Null }` : callExpr},`);
         }
         // Sort arms for stable diffs.
@@ -12714,7 +12760,7 @@ ${isBase
     /// now a static trait method (review #1).
     emitCoreDispatchImpl(coreName: string, sigs: Array<{ name: string, isAsync: boolean, paramKinds: string[] }>, parentCore: string | null, isPrediction = false, hasHandleMessage = false, frameHandlers: string[] = []): string {
         const arms: string[] = [];
-        for (const { name, isAsync, paramKinds, isVoid } of sigs) {
+        for (const { name, isAsync, paramKinds, isVoid, isTyped } of sigs as any[]) {
             if (['describe', 'new', 'bind', 'init', 'call_dynamic', 'call_dynamic_base', 'call_dynamic_prediction_base', 'pred', 'pred_mut'].includes(name)) continue;
             const callArgs: string[] = [];
             for (let i = 0; i < paramKinds.length; i++) {
@@ -12726,11 +12772,13 @@ ${isBase
                     callArgs.push(`args.get(${i}).cloned().unwrap_or_default().to_str_vec()`);
                 } else if (paramKinds[i] === 'map') {
                     callArgs.push(mapParamDispatchArg(i));
+                } else if (TYPED_PARAM_KINDS.has(paramKinds[i])) {
+                    callArgs.push(typedDispatchArg(paramKinds[i], i));
                 } else if (paramKinds[i] === 'slice') {
                     callArgs.push(this.dispatchSliceArg(i));
                 }
             }
-            arms.push(`                "${name}" => ${isVoid ? `{ self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''}; crate::Value::Null }` : `self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''}`},`);
+            arms.push(`                "${name}" => ${isVoid ? `{ self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''}; crate::Value::Null }` : typedResult(`self.${name}(${callArgs.join(', ')})${isAsync ? '.await' : ''}`, isTyped)},`);
         }
         // `handle_message(&mut self, client, message)` returns `()`, so it's
         // filtered out of `sigs` (dispatch arms must yield a Value). The base

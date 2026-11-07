@@ -124,11 +124,11 @@ impl crate::exchange_generated::ExchangeBase for CoinbaseinternationalCore {
                 "fetch_ohlcv" => self.fetch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_open_orders" => self.fetch_open_orders(&args[..]).await,
                 "fetch_order" => self.fetch_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "fetch_order_book" => self.fetch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(|v| v.as_str()).unwrap_or_default(), args.get(1).and_then(|v| v.as_i64()), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_position" => self.fetch_position(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_positions" => self.fetch_positions(&args[..]).await,
-                "fetch_ticker" => self.fetch_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "fetch_tickers" => self.fetch_tickers(&args[..]).await,
+                "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(|v| v.as_str()).unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
+                "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_time" => self.fetch_time(&args[..]).await,
                 "fetch_transfers" => self.fetch_transfers(&args[..]).await,
                 "fetch_withdrawals" => self.fetch_withdrawals(&args[..]).await,
@@ -1530,8 +1530,8 @@ impl CoinbaseinternationalCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_556: bool = true;
-            while { if !__for_first_556 { i += 1; } __for_first_556 = false; i < (rawNetworks.len() as i64) } {
+            let mut __for_first_220: bool = true;
+            while { if !__for_first_220 { i += 1; } __for_first_220 = false; i < (rawNetworks.len() as i64) } {
             let mut rawNetwork: Value = rawNetworks.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Option<String> = self.safe_string_k_opt(rawNetwork.clone(), "resource_name", &[]);
             let mut network: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
@@ -1884,7 +1884,11 @@ impl CoinbaseinternationalCore {
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-    pub async fn fetch_tickers(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |__optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1904,20 +1908,20 @@ impl CoinbaseinternationalCore {
         };
         {
                         let mut i: i64 = 0;
-            let mut __for_first_557: bool = true;
-            while { if !__for_first_557 { i += 1; } __for_first_557 = false; i < (symbolsResolved.len() as i64) } {
+            let mut __for_first_221: bool = true;
+            while { if !__for_first_221 { i += 1; } __for_first_221 = false; i < (symbolsResolved.len() as i64) } {
             let mut symbol: Option<String> = self.safe_string_opt(symbolsResolved.clone(), Value::Int(i), &[]);
             if (symbol.is_none()) {
                 continue;
             }
-            let mut ticker: Value = self.fetch_ticker(symbol.clone().map(Value::from).unwrap_or(Value::Null), &[paramsResolved.clone()]).await;
+            let mut ticker: Value = crate::types::IntoRaw::into_raw(self.fetch_ticker(symbol.as_deref().unwrap_or_default(), paramsResolved.clone()).await);
             tickers.insert(symbol.as_deref().unwrap_or("null").to_string(), ticker);
         }
         }
         return self.filter_by_array_tickers(Value::Map(tickers), Value::Str("symbol".into()), &[symbolsResolved]);
-
-    Value::Null
-}
+        Value::Null
+        })(__it.collect())).await?))
+    }
 
 /*
  * @method
@@ -1930,7 +1934,11 @@ impl CoinbaseinternationalCore {
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-    pub async fn fetch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_ticker(&mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Ticker> {
+        let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |mut symbol: Value, __optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1984,9 +1992,9 @@ impl CoinbaseinternationalCore {
     m
 })]);
         return self.parse_ticker(ticker, &[market]);
-
-    Value::Null
-}
+        Value::Null
+        })(__it.next().unwrap_or_default(), __it.collect())).await?))
+    }
 
     pub fn parse_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
@@ -2067,7 +2075,11 @@ impl CoinbaseinternationalCore {
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-    pub async fn fetch_order_book(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_order_book(&mut self, symbol: &str, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::OrderBook> {
+        let __args: Vec<Value> = vec![Value::from(symbol), Value::from(limit), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed((move |mut symbol: Value, __optional_args: Vec<Value>| async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut limit = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2092,8 +2104,8 @@ impl CoinbaseinternationalCore {
                 }
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_558: bool = true;
-                    while { if !__for_first_558 { i += 1; } __for_first_558 = false; i < (depths.len() as i64) } {
+                    let mut __for_first_222: bool = true;
+                    while { if !__for_first_222 { i += 1; } __for_first_222 = false; i < (depths.len() as i64) } {
                     if limit.as_f64().unwrap_or(f64::NAN) <= self.parse_to_int(depths.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_f64().unwrap_or(f64::NAN) {
                         request.insert("depth".into(), self.safe_integer(depths.clone(), Value::Int(i), &[Value::Int(0)]));
                         break;
@@ -2156,9 +2168,9 @@ impl CoinbaseinternationalCore {
 })]);
         let mut timestamp: Value = self.safe_integer_k(result.clone(), "timestamp", &[]);
         return self.parse_order_book(result, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp]);
-
-    Value::Null
-}
+        Value::Null
+        })(__it.next().unwrap_or_default(), __it.collect())).await?))
+    }
 
 /*
  * @method
@@ -2470,8 +2482,8 @@ impl CoinbaseinternationalCore {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_559: bool = true;
-            while { if !__for_first_559 { i += 1; } __for_first_559 = false; i < (summaries.len() as i64) } {
+            let mut __for_first_223: bool = true;
+            while { if !__for_first_223 { i += 1; } __for_first_223 = false; i < (summaries.len() as i64) } {
             let mut data: Value = self.safe_dict(summaries.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(data.clone(), "currency", &[]);
             let mut currencyCode: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -2979,8 +2991,8 @@ impl CoinbaseinternationalCore {
         let mut transactions: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_560: bool = true;
-            while { if !__for_first_560 { i += 1; } __for_first_560 = false; i < (logs.len() as i64) } {
+            let mut __for_first_224: bool = true;
+            while { if !__for_first_224 { i += 1; } __for_first_224 = false; i < (logs.len() as i64) } {
             let mut transaction: Value = logs.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut transactionType: Option<String> = self.safe_string_k(transaction.clone(), "type", &[]).as_str().map(str::to_owned);
             if (transactionType.as_deref() == Some("deposit")) || (transactionType.as_deref() == Some("withdrawal")) {
