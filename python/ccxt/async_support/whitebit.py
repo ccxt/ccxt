@@ -1812,6 +1812,7 @@ class whitebit(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
@@ -1823,12 +1824,27 @@ class whitebit(Exchange, ImplicitAPI):
         }
         cappedLimit = 1440 if ((limit is None) or (limit > 1440)) else limit
         limitResolved = cappedLimit if (since is not None) else limit
-        if since is not None:
-            start = self.parse_to_int(since / 1000)
-            request['start'] = start
-        if (since is not None) or (limit is not None):
+        until = self.safe_integer(params, 'until')
+        paramsOmitted = self.omit(params, 'until')
+        if (since is not None) or (until is not None):
+            # the exchange ignores a start alone: it returns the last candles that closed by the end.
+            # It refuses an end past its own clock, which may be behind this one, so an end within a
+            # timeframe of now is left out, and the latest candles it then returns cover the range
+            duration = self.parse_timeframe(timeframe)
+            endTime = None
+            if until is not None:
+                endTime = self.sum(self.parse_to_int(until / 1000), duration)
+            if since is not None:
+                start = self.parse_to_int(since / 1000)
+                request['start'] = start
+                rangeEnd = self.sum(start, duration * cappedLimit)
+                if (endTime is None) or (rangeEnd < endTime):
+                    endTime = rangeEnd
+            if (endTime is not None) and (self.sum(endTime, duration) < self.seconds()):
+                request['end'] = endTime
+        if (since is not None) or (until is not None) or (limit is not None):
             request['limit'] = cappedLimit
-        response = await self.v1PublicGetKline(self.extend(request, params))
+        response = await self.v1PublicGetKline(self.extend(request, paramsOmitted))
         #
         #     {
         #         "success":true,

@@ -1811,21 +1811,25 @@ class binance(ccxt.async_support.binance):
         interval = self.safe_string(kline, 'i')
         # use a reverse lookup in a static map instead
         unifiedTimeframe = self.find_timeframe(interval)
-        parsed = [
-            self.safe_integer(kline, 't'),
-            self.safe_float(kline, 'o'),
-            self.safe_float(kline, 'h'),
-            self.safe_float(kline, 'l'),
-            self.safe_float(kline, 'c'),
-            self.safe_float(kline, 'v'),
-        ]
         # resolve the market from the transport url — an ambiguous id like
         # BTCUSDT maps to both the spot and the linear swap market
         isSpot = self.is_spot_url(client)
         marketType = 'contract'
         if isSpot:
             marketType = 'spot'
-        symbol = self.safe_symbol(marketId, None, None, marketType)
+        market = self.safe_market(marketId, None, None, marketType)
+        symbol = market['symbol']
+        # coin-margined contracts count "v" in contracts, "q" is the base asset volume that fetchOHLCV returns
+        inverse = self.safe_bool(market, 'inverse')
+        volumeKey = 'q' if (inverse is True) else 'v'
+        parsed = [
+            self.safe_integer(kline, 't'),
+            self.safe_float(kline, 'o'),
+            self.safe_float(kline, 'h'),
+            self.safe_float(kline, 'l'),
+            self.safe_float(kline, 'c'),
+            self.safe_float(kline, volumeKey),
+        ]
         messageHash = 'ohlcv::' + symbol + '::' + unifiedTimeframe
         self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
         stored = self.safe_value(self.safe_dict(self.ohlcvs, symbol), unifiedTimeframe)
@@ -4371,7 +4375,7 @@ class binance(ccxt.async_support.binance):
             'amount': self.safe_string(order, 'q'),
             'cost': self.safe_string(order, 'Z'),
             'average': self.safe_string(order, 'ap'),
-            'filled': self.safe_string(order, 'z'),
+            'filled': self.safe_string_2(order, 'z', 'aq'),  # aq: ALGO_UPDATE executed quantity
             'remaining': None,
             'status': status,
             'fee': fee,
