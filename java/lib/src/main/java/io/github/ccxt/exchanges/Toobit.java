@@ -45,7 +45,7 @@ public class Toobit extends ToobitApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "toobit" );
@@ -776,7 +776,6 @@ public class Toobit extends ToobitApi
      * @method
      * @name toobit#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#test-connectivity
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
@@ -835,7 +834,7 @@ public class Toobit extends ToobitApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> response = (this.commonGetApiV1ExchangeInfo(parameters)).join();
-            Helpers.addElementToObject(this.options, "exchangeInfo", response); // we store it in options for later use in fetchMarkets
+            this.options.put("exchangeInfo", response); // we store it in options for later use in fetchMarkets
             //
             //    {
             //        "timezone": "UTC",
@@ -1060,7 +1059,7 @@ public class Toobit extends ToobitApi
             Object response = cachedInfo;
             if (!java.util.Objects.equals(cachedInfo, null))
             {
-                Helpers.addElementToObject(this.options, "exchangeInfo", null); // reset it to avoid using old cached data
+                this.options.remove("exchangeInfo"); // reset it to avoid using old cached data
             } else
             {
                 response = (this.commonGetApiV1ExchangeInfo(parameters)).join();
@@ -1199,7 +1198,7 @@ public class Toobit extends ToobitApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)all).size(); i++)
             {
-                Object market = (all == null || i < 0 || i >= all.size() ? null : all.get(i));
+                Map<String, Object> market = (Map<String, Object>) this.safeDict(all, i, new HashMap<String, Object>() {{}});
                 MarketInterface parsed = this.parseMarket(market);
                 if (!java.util.Objects.equals(parsed, null))
                 {
@@ -1217,7 +1216,7 @@ public class Toobit extends ToobitApi
         String baseId = this.safeString(market, "baseAsset", "");
         String quoteId = this.safeString(market, "quoteAsset");
         List<Object> baseParts = new ArrayList<Object>(Arrays.asList(((String)baseId).split(java.util.regex.Pattern.quote("-"))));
-        String baseIdClean = (String) (baseParts == null || 0 >= baseParts.size() ? null : baseParts.get(0));
+        String baseIdClean = this.safeString(baseParts, 0);
         String base = this.safeCurrencyCode(baseIdClean, (Map<String, Object>) null);
         String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
@@ -1234,11 +1233,11 @@ public class Toobit extends ToobitApi
         Map<String, Object> lotSizeFilter = (Map<String, Object>) this.safeDict(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
         Map<String, Object> minNotionalFilter = (Map<String, Object>) this.safeDict(filtersByType, "MIN_NOTIONAL", new HashMap<String, Object>() {{}});
         String symbol = ((base + "/") + quote);
-        Boolean isContract = (((Map<?, ?>)market).containsKey("contractMultiplier"));
+        Boolean isContract = (!java.util.Objects.equals(this.safeString(market, "contractMultiplier"), null));
         Boolean inverse = (Boolean) this.safeBool2(market, "isInverse", "inverse", (Object) null);
         if (Boolean.TRUE.equals(isContract))
         {
-            symbol = (symbol + (":" + settle));
+            symbol = ((((base + "/") + quote) + ":") + settle);
         }
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
         mapLiteral2.put("id", id);
@@ -1444,19 +1443,19 @@ public class Toobit extends ToobitApi
         Long timestamp = (Long) this.safeInteger2(trade, "t", "time");
         String priceString = this.safeString2(trade, "p", "price");
         String amountString = this.safeString2(trade, "q", "qty");
-        Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer", (Object) null);
+        Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer", false);
         String side = null;
         Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "ibm", (Object) null);
         Boolean isBuyerTaker = (Boolean) this.safeBool(trade, "m", (Object) null);
         if (!java.util.Objects.equals(isBuyerMaker, null))
         {
-            side = (((java.util.Objects.equals(isBuyerMaker, true)))) ? "sell" : "buy";
+            side = ((Boolean.TRUE.equals(isBuyerMaker))) ? "sell" : "buy";
         } else if (!java.util.Objects.equals(isBuyerTaker, null))
         {
-            side = (((java.util.Objects.equals(isBuyerTaker, true)))) ? "buy" : "sell";
+            side = ((Boolean.TRUE.equals(isBuyerTaker))) ? "buy" : "sell";
         } else
         {
-            if (java.util.Objects.equals(isBuyer, true))
+            if (Boolean.TRUE.equals(isBuyer))
             {
                 side = "buy";
             } else
@@ -1534,7 +1533,7 @@ public class Toobit extends ToobitApi
             }};
             Long until = this.safeInteger(parameters, "until");
             Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(until, null)))) ? this.omit(parameters, "until") : parameters;
-            Pair<String, Map<String, Object>> endpointparamsPriceVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsOmitted), "fetchOHLCV", "price", (String) null);
+            Pair<String, Map<String, Object>> endpointparamsPriceVariable = this.handleOptionStringAndParams(paramsOmitted, "fetchOHLCV", "price", (String) null);
             String endpoint = endpointparamsPriceVariable.first();
             Map<String, Object> paramsPrice = endpointparamsPriceVariable.second();
             Boolean isPriceKlines = (java.util.Objects.equals(endpoint, "index")) || (java.util.Objects.equals(endpoint, "mark"));
@@ -1683,7 +1682,7 @@ public class Toobit extends ToobitApi
         String last = this.safeString(ticker, "c");
         String baseVolume = this.safeString(ticker, "v");
         Double contractSize = this.safeNumber(marketResolved, "contractSize", (Object) null);
-        if ((java.util.Objects.equals(marketResolved.get("contract"), true)) && (!java.util.Objects.equals(contractSize, null)))
+        if (Boolean.TRUE.equals((this.safeBool(marketResolved, "contract", false))) && (!java.util.Objects.equals(contractSize, null)))
         {
             // 'v' counts contracts, and a ticker reports base volume
             baseVolume = Precise.stringMul(baseVolume, this.numberToString(contractSize));
@@ -1717,7 +1716,7 @@ public class Toobit extends ToobitApi
      * @name toobit#fetchLastPrices
      * @description fetches the last price for multiple markets
      * @see https://api-docs.toobit.com/api/spot-market-data.html#symbol-price-ticker
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#symbol-price-ticker
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the last prices
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of lastprices structures
@@ -1775,7 +1774,7 @@ public class Toobit extends ToobitApi
      * @name toobit#fetchBidsAsks
      * @description fetches the bid and ask price and volume for multiple markets
      * @see https://api-docs.toobit.com/api/spot-market-data.html#symbol-order-book-ticker
-     * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
+     * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#symbol-order-book-ticker
      * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1817,7 +1816,7 @@ public class Toobit extends ToobitApi
 
     }
 
-    public Object parseBidsAsksCustom(List<Object> tickers, List<String> symbols, Map<String, Object> parameters)
+    public Object parseBidsAsksCustom(List<Object> tickers, Object symbols, Map<String, Object> parameters)
     {
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)tickers).size(); i++)
@@ -2016,12 +2015,12 @@ public class Toobit extends ToobitApi
             {
                 response = (this.privateGetApiV1Account(new HashMap<String, Object>() {{}})).join();
             }
-            return this.parseBalance(response);
+            return this.parseBalanceList(response);
         }).thenApply(Balances::new);
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalanceList(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -2071,7 +2070,7 @@ public class Toobit extends ToobitApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> response = new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 var requestparamsRequestVariable = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
                 var request = ((List<Object>) requestparamsRequestVariable).get(0);
@@ -2206,7 +2205,7 @@ public class Toobit extends ToobitApi
         {
             request.put("timeInForce", "LIMIT_MAKER");
         }
-        List<Object> values = (List<Object>) this.handleTriggerPricesAndParams(symbol, paramsPostOnly, true);
+        List<Object> values = (List<Object>) this.handleTriggerPricesAndParams(symbol, (Map<String, Object>) (paramsPostOnly), true);
         String triggerPrice = (String) ((List<Object>)values).get(0);
         Object paramsTrigger = ((List<Object>)values).get(3);
         if (!java.util.Objects.equals(triggerPrice, null))
@@ -2252,7 +2251,7 @@ public class Toobit extends ToobitApi
             }
         }
         Object paramsOmitted = this.omit(paramsTrigger, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit")));
-        if (!((switch ((Object)(paramsOmitted)) { case List<?> j39v2 -> j39v2.contains("newClientOrderId"); case Map<?, ?> j39v1 -> j39v1.containsKey("newClientOrderId"); case null, default -> false; })))
+        if (java.util.Objects.equals(this.safeString(paramsOmitted, "newClientOrderId"), null))
         {
             request.put("newClientOrderId", this.uuid());
         }
@@ -2523,9 +2522,8 @@ public class Toobit extends ToobitApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            String idsString = String.join(",", (List<String>)ids);
             Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "ids", idsString );
+                put( "ids", String.join(",", (List<String>)ids) );
             }};
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
@@ -2582,7 +2580,7 @@ public class Toobit extends ToobitApi
             }};
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> response = new HashMap<String, Object>() {{}};
-            if (java.util.Objects.equals(market.get("spot"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 response = (this.privateGetApiV1SpotOrder(this.extend(request, parameters))).join();
             } else
@@ -2699,7 +2697,7 @@ public class Toobit extends ToobitApi
             {
                 request.put("startTime", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> market = null;
@@ -2754,7 +2752,7 @@ public class Toobit extends ToobitApi
             {
                 request.put("startTime", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             String marketType = (String) ((List<Object>)this.handleMarketTypeAndParams("fetchClosedOrders", market, paramsUntil, (String) null)).get(0);
@@ -2774,7 +2772,9 @@ public class Toobit extends ToobitApi
             }
             for (var i = 0; i < ((List<?>)responseList).size(); i++)
             {
-                ((List<Object>)ordersList).add((switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>(); j39v3.put("result", (responseList == null || i < 0 || i >= responseList.size() ? null : responseList.get(i))); yield j39v3; } }));
+                HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                j39v1.put("result", (responseList == null || i < 0 || i >= responseList.size() ? null : responseList.get(i)));
+                ((List<Object>)ordersList).add(j39v1);
             }
             return this.parseOrders(ordersList, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -2821,7 +2821,7 @@ public class Toobit extends ToobitApi
             Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, (String) null);
             String marketType = marketTypeparamsMarketTypeVariable.first();
             Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (paramsMarketType), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (paramsMarketType), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = new ArrayList<Object>(Arrays.asList());
@@ -2934,7 +2934,7 @@ public class Toobit extends ToobitApi
             {
                 request.put("startTime", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             if (!java.util.Objects.equals(limit, null))
@@ -3050,9 +3050,11 @@ public class Toobit extends ToobitApi
                 {
                     throw new BadRequest((this.id + " fetchTradingFees requires a params[\"symbol\"]")) ;
                 }
-                market = this.market(symbol);
-                Map<String, Object> request = new HashMap<String, Object>();
-                request.put("symbol", market.get("id"));
+                Map<String, Object> symbolMarket = this.market(symbol);
+                market = symbolMarket;
+                Map<String, Object> request = new HashMap<String, Object>() {{
+                    put( "symbol", symbolMarket.get("id") );
+                }};
                 response = (this.privateGetApiV1FuturesCommissionRate(this.extend(request, paramsSymbol))).join();
             }
             //
@@ -3065,10 +3067,9 @@ public class Toobit extends ToobitApi
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             Map<String, Object> entry = response;
-            String marketId = this.safeString(entry, "symbol");
-            market = this.safeMarket(marketId, market, (String) null, (String) null);
-            Map<String, Object> fee = this.parseTradingFee(entry, market);
-            result.put((String)market.get("symbol"), fee);
+            Map<String, Object> marketResolved = this.safeMarket(this.safeString(entry, "symbol"), market, (String) null, (String) null);
+            Map<String, Object> fee = this.parseTradingFee(entry, marketResolved);
+            result.put((String)marketResolved.get("symbol"), fee);
             return result;
         }).thenApply(TradingFees::new);
 
@@ -3149,13 +3150,13 @@ public class Toobit extends ToobitApi
             {
                 request.put("startTime", since);
             }
-            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
-            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
-            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)requestUntil).put("limit", limit);
+                request.put("limit", limit);
             }
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             List<Object> response = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(type, "deposits"))
             {
@@ -3177,9 +3178,9 @@ public class Toobit extends ToobitApi
 
     }
 
-    public Object parseTransactionWithType(Map<String, Object> transaction, Map<String, Object> currency, String transactType)
+    public Map<String, Object> parseTransactionWithType(Map<String, Object> transaction, Map<String, Object> currency, String transactType)
     {
-        Map<String, Object> result = (Map<String, Object>) this.parseTransaction((Map<String, Object>) (transaction), currency);
+        Map<String, Object> result = (Map<String, Object>) this.parseTransaction(transaction, currency);
         if (!java.util.Objects.equals(transactType, null))
         {
             result.put("type", transactType);
@@ -3347,7 +3348,7 @@ public class Toobit extends ToobitApi
             //         "coinType":"ERC20_TOKEN"
             //     }
             //
-            return this.parseDepositAddress((Map<String, Object>) (response), currency);
+            return this.parseDepositAddress(response, currency);
         }).thenApply(DepositAddress::new);
 
     }
@@ -3419,7 +3420,7 @@ public class Toobit extends ToobitApi
             //     "refuseReason":"" // failure rejection reason
             // }
             //
-            return this.parseTransaction((Map<String, Object>) (response), currency);
+            return this.parseTransaction(response, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -3536,7 +3537,7 @@ public class Toobit extends ToobitApi
             // ]
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
-            return this.parseLeverage((Map<String, Object>) (data), market);
+            return this.parseLeverage(data, market);
         }).thenApply(Leverage::new);
 
     }
@@ -3656,7 +3657,7 @@ public class Toobit extends ToobitApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String baseApiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(baseApiUrl, null))
         {
@@ -3673,7 +3674,7 @@ public class Toobit extends ToobitApi
             // Public endpoints
             if (!Boolean.TRUE.equals(isPost))
             {
-                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+                if (!this.isEmpty(query))
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }
@@ -3687,7 +3688,7 @@ public class Toobit extends ToobitApi
             extraQuery.put("timestamp", String.valueOf(timestamp));
             Map<String, Object> queryExtended = this.extend(query, extraQuery);
             String queryString = "";
-            String privateBody = null;
+            Object privateBody = "";
             if (Boolean.TRUE.equals(isPost) || Boolean.TRUE.equals(isDelete))
             {
                 // everything else except Batch-Orders
@@ -3703,15 +3704,10 @@ public class Toobit extends ToobitApi
             {
                 queryString = this.urlencode(queryExtended);
             }
-            Object payloadBody = null;
+            String payload = queryString;
             if (Boolean.TRUE.equals(isPost) || Boolean.TRUE.equals(isDelete))
             {
-                payloadBody = privateBody;
-            }
-            Object payload = queryString;
-            if (!java.util.Objects.equals(payloadBody, null))
-            {
-                payload = ((java.util.function.BinaryOperator<Object>) (hx4J40v0A, hx4J40v0B) -> { Object hx4J40v0P = hx4J40v0A instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0A; Object hx4J40v0Q = hx4J40v0B instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0B; if (hx4J40v0P instanceof Long hx4J40v0l && hx4J40v0Q instanceof Long hx4J40v0r) { return hx4J40v0l + hx4J40v0r; } if (hx4J40v0P instanceof Double || hx4J40v0Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; return hx4J40v0D.applyAsDouble(hx4J40v0P) + hx4J40v0D.applyAsDouble(hx4J40v0Q); } if (hx4J40v0P instanceof String || hx4J40v0Q instanceof String) { return String.valueOf(hx4J40v0P) + String.valueOf(hx4J40v0Q); } return null; }).apply(payloadBody, payload);
+                payload = (privateBody + queryString);
             }
             String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
             if (!java.util.Objects.equals(queryString, ""))
@@ -3728,7 +3724,7 @@ public class Toobit extends ToobitApi
                 put( "X-BB-API-PLATFORM", Toobit.this.safeString(Toobit.this.options, "brokerId", "177321641268789") );
                 put( "Content-Type", "application/x-www-form-urlencoded" );
             }};
-            String requestBody = null;
+            Object requestBody = null;
             if (Boolean.TRUE.equals(isPost) || Boolean.TRUE.equals(isDelete))
             {
                 requestBody = privateBody;
@@ -3752,7 +3748,7 @@ public class Toobit extends ToobitApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -3763,8 +3759,8 @@ public class Toobit extends ToobitApi
         if ((!java.util.Objects.equals(errorCode, null) && !java.util.Objects.equals(errorCode, "")) && !java.util.Objects.equals(errorCode, "200") && !java.util.Objects.equals(errorCode, "0"))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

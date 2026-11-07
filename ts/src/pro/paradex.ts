@@ -6,12 +6,13 @@ import Precise from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, int, Str, Trade, Order, Dict, NullableDict, OrderBook, Ticker, Strings, Tickers, Bool, Market, FundingRate, FundingRates, Position, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import { ExchangeError } from '../base/errors.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class paradex extends paradexRest {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -75,6 +76,25 @@ export default class paradex extends paradexRest {
         return requestId;
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name paradex#subscribeRequest
+     * @description builds a json-rpc subscribe request, its id is kept in the subscription passed to watch, so an error reply reaches only the watchers of that request
+     * @param {string} channel the channel to subscribe to
+     * @returns {object} the subscribe request
+     */
+    subscribeRequest (channel: string): Dict {
+        return {
+            'jsonrpc': '2.0',
+            'id': this.requestId (),
+            'method': 'subscribe',
+            'params': {
+                'channel': channel,
+            },
+        };
+    }
+
     async authenticate (params: Dict = {}) {
         const url = this.getWsUrl ();
         const client = this.client (url);
@@ -83,15 +103,19 @@ export default class paradex extends paradexRest {
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const token = await this.authenticateRest ();
+            const requestId = this.requestId ();
             const request: Dict = {
                 'jsonrpc': '2.0',
-                'id': this.requestId (),
+                'id': requestId,
                 'method': 'auth',
                 'params': {
                     'bearer': token,
                 },
             };
-            this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+            const subscription: Dict = {
+                'id': requestId,
+            };
+            this.watch (url, messageHash, this.deepExtend (request, params), messageHash, subscription);
         }
         return await future;
     }
@@ -104,13 +128,39 @@ export default class paradex extends paradexRest {
         //         "result": { "node_id": "73cf456f7cb78d59" }
         //     }
         //
+        // the future stays resolved, so later private watches on this connection skip the auth request
+        const future = this.safeValue (client.futures, 'authenticated');
+        if (future !== undefined) {
+            future.resolve (true);
+        }
+    }
+
+    handleRequestReply (client: Client, message: Dict) {
+        //
+        // auth
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 1,
+        //         "result": { "node_id": "73cf456f7cb78d59" }
+        //     }
+        //
+        // subscribe
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 2,
+        //         "result": { "channel": "orders.ALL" }
+        //     }
+        //
+        // only the reply to the auth request resolves the auth, a subscribe ack carries a channel instead of a node id
+        const requestId = this.safeString (message, 'id');
+        const authSubscription = this.safeDict (client.subscriptions, 'authenticated');
+        const authRequestId = this.safeString (authSubscription, 'id');
         const result = this.safeDict (message, 'result');
-        if (result !== undefined) {
-            // client.resolve (true, messageHash);
-            const future = this.safeValue (client.futures, 'authenticated');
-            if (future !== undefined) {
-                future.resolve (true);
-            }
+        const isAuth = ((requestId !== undefined) && (requestId === authRequestId)) || (this.safeString (result, 'node_id') !== undefined);
+        if (isAuth) {
+            this.handleAuthenticationMessage (client, message);
         }
     }
 
@@ -129,22 +179,18 @@ export default class paradex extends paradexRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let messageHash = 'trades.';
+        let messageHash = 'trades.ALL';
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            messageHash += market['id'];
-        } else {
-            messageHash += 'ALL';
+            messageHash = 'trades.' + market['id'];
         }
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': messageHash,
-            },
+        const request: Dict = this.subscribeRequest (messageHash);
+        const subscription: Dict = {
+            'id': request['id'],
+            'messageHashes': [ messageHash ],
         };
-        const trades: ArrayCache = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, subscription);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbol, limit);
@@ -171,8 +217,8 @@ export default class paradex extends paradexRest {
         //         }
         //     }
         //
-        const params = this.safeDict (message, 'params', {});
-        const data = this.safeDict (params, 'data', {});
+        const params: Dict = this.safeDict (message, 'params', {});
+        const data: Dict = this.safeDict (params, 'data', {});
         const parsedTrade = this.parseTrade (data);
         const symbol = parsedTrade['symbol'];
         const messageHash = this.safeString (params, 'channel');
@@ -209,14 +255,12 @@ export default class paradex extends paradexRest {
         const market = this.market (symbol);
         const messageHash = this.getOrderBookChannel (market['id']);
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': messageHash,
-            },
+        const request: Dict = this.subscribeRequest (messageHash);
+        const subscription: Dict = {
+            'id': request['id'],
+            'messageHashes': [ messageHash ],
         };
-        const orderbook: WsOrderBook = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        const orderbook: WsOrderBook = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, subscription);
         return orderbook.limit ();
     }
 
@@ -250,12 +294,12 @@ export default class paradex extends paradexRest {
         //         }
         //     }
         //
-        const params = this.safeDict (message, 'params', {});
-        const data = this.safeDict (params, 'data', {});
+        const params: Dict = this.safeDict (message, 'params', {});
+        const data: Dict = this.safeDict (params, 'data', {});
         const marketId = this.safeString (data, 'market');
         const market = this.safeMarket (marketId);
         const timestamp = this.safeInteger (data, 'last_updated_at');
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ();
         }
@@ -304,15 +348,13 @@ export default class paradex extends paradexRest {
         // option too, thousands of messages a second, all decoded only to be filtered out
         const channel = 'markets_summary.' + market['id'];
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
-        };
         const messageHash = 'markets_summary.' + market['symbol'];
-        return await this.watch (url, messageHash, this.deepExtend (request, params), channel);
+        const request: Dict = this.subscribeRequest (channel);
+        const subscription: Dict = {
+            'id': request['id'],
+            'messageHashes': [ messageHash ],
+        };
+        return await this.watch (url, messageHash, this.deepExtend (request, params), channel, subscription);
     }
 
     /**
@@ -331,13 +373,6 @@ export default class paradex extends paradexRest {
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const channel = 'markets_summary';
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
-        };
         const messageHashes: string[] = [];
         if (symbolsNormalized !== undefined && Array.isArray (symbolsNormalized)) {
             for (let i = 0; i < symbolsNormalized.length; i++) {
@@ -347,7 +382,11 @@ export default class paradex extends paradexRest {
         } else {
             messageHashes.push (channel);
         }
-        const newTicker = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
+        const request: Dict = this.subscribeRequest (channel);
+        const subscription: Dict = {
+            'id': request['id'],
+        };
+        const newTicker = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes, subscription);
         if (this.newUpdates) {
             const result: Dict = {};
             const newTickerSymbol = this.safeString (newTicker, 'symbol');
@@ -376,24 +415,20 @@ export default class paradex extends paradexRest {
         }
         await this.authenticate ();
         let messageHash = 'orders';
-        let channel = 'orders.';
+        let channel = 'orders.ALL';
         const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            channel += market['id'];
-            messageHash += ':' + symbolResolved;
-        } else {
-            channel += 'ALL';
+            channel = 'orders.' + market['id'];
+            messageHash = 'orders:' + symbolResolved;
         }
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
+        const request: Dict = this.subscribeRequest (channel);
+        const subscription: Dict = {
+            'id': request['id'],
+            'messageHashes': [ messageHash ],
         };
-        const orders: ArrayCache = await this.watch (url, messageHash, this.deepExtend (request, params), channel);
+        const orders: ArrayCache = await this.watch (url, messageHash, this.deepExtend (request, params), channel, subscription);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);
@@ -429,8 +464,8 @@ export default class paradex extends paradexRest {
         //         }
         //     }
         //
-        const params = this.safeDict (message, 'params', {});
-        const data = this.safeDict (params, 'data', {});
+        const params: Dict = this.safeDict (message, 'params', {});
+        const data: Dict = this.safeDict (params, 'data', {});
         const parsed = this.parseOrder (data);
         const symbol = this.safeString (parsed, 'symbol');
         if (this.orders === undefined) {
@@ -463,24 +498,20 @@ export default class paradex extends paradexRest {
         }
         await this.authenticate ();
         let messageHash = 'myTrades';
-        let channel = 'fills.';
+        let channel = 'fills.ALL';
         const symbolResolved: Str = (symbol !== undefined) ? this.symbol (symbol) : symbol;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            channel += market['id'];
-            messageHash += ':' + symbolResolved;
-        } else {
-            channel += 'ALL';
+            channel = 'fills.' + market['id'];
+            messageHash = 'myTrades:' + symbolResolved;
         }
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
+        const request: Dict = this.subscribeRequest (channel);
+        const subscription: Dict = {
+            'id': request['id'],
+            'messageHashes': [ messageHash ],
         };
-        const trades: ArrayCache = await this.watch (url, messageHash, this.deepExtend (request, params), channel);
+        const trades: ArrayCache = await this.watch (url, messageHash, this.deepExtend (request, params), channel, subscription);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limit);
@@ -513,8 +544,8 @@ export default class paradex extends paradexRest {
         //         }
         //     }
         //
-        const params = this.safeDict (message, 'params', {});
-        const data = this.safeDict (params, 'data', {});
+        const params: Dict = this.safeDict (message, 'params', {});
+        const data: Dict = this.safeDict (params, 'data', {});
         const trade = this.parseTrade (data);
         const symbol = this.safeString (trade, 'symbol');
         if (this.myTrades === undefined) {
@@ -550,13 +581,6 @@ export default class paradex extends paradexRest {
         // one channel carries every market
         const channel = 'positions';
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
-        };
         const messageHashes: string[] = [];
         let symbolsLength = 0;
         if (symbolsNormalized !== undefined) {
@@ -569,7 +593,12 @@ export default class paradex extends paradexRest {
                 messageHashes.push (channel + ':' + (symbolsNormalized as string[])[i]);
             }
         }
-        const newPositions = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), [ channel ]);
+        const request: Dict = this.subscribeRequest (channel);
+        const subscription: Dict = {
+            'id': request['id'],
+            'messageHashes': messageHashes,
+        };
+        const newPositions = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), [ channel ], subscription);
         if (this.newUpdates) {
             return newPositions;
         }
@@ -600,8 +629,8 @@ export default class paradex extends paradexRest {
         //         }
         //     }
         //
-        const params = this.safeDict (message, 'params', {});
-        const data = this.safeDict (params, 'data', {});
+        const params: Dict = this.safeDict (message, 'params', {});
+        const data: Dict = this.safeDict (params, 'data', {});
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
@@ -649,14 +678,13 @@ export default class paradex extends paradexRest {
         await this.authenticate ();
         const channel = 'account';
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
+        const messageHash = 'balance';
+        const request: Dict = this.subscribeRequest (channel);
+        const subscription: Dict = {
+            'id': request['id'],
+            'messageHashes': [ messageHash ],
         };
-        return await this.watch (url, 'balance', this.deepExtend (request, params), channel);
+        return await this.watch (url, messageHash, this.deepExtend (request, params), channel, subscription);
     }
 
     handleBalance (client: Client, message: Dict) {
@@ -682,8 +710,8 @@ export default class paradex extends paradexRest {
         //         }
         //     }
         //
-        const params = this.safeDict (message, 'params', {});
-        const data = this.safeDict (params, 'data', {});
+        const params: Dict = this.safeDict (message, 'params', {});
+        const data: Dict = this.safeDict (params, 'data', {});
         // merge the parsed update into the existing balance object instead of
         // replacing it: a consumer awakened by an earlier message holds a
         // reference to this.balance, and Client.resolve is a no-op while
@@ -754,8 +782,8 @@ export default class paradex extends paradexRest {
         //         }
         //     }
         //
-        const params = this.safeDict (message, 'params', {});
-        const data = this.safeDict (params, 'data', {});
+        const params: Dict = this.safeDict (message, 'params', {});
+        const data: Dict = this.safeDict (params, 'data', {});
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -785,15 +813,13 @@ export default class paradex extends paradexRest {
         const symbolValue: string = this.symbol (symbol);
         const channel = 'funding_data';
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
-        };
         const messageHash = channel + '.' + symbolValue;
-        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        const request: Dict = this.subscribeRequest (channel);
+        const subscription: Dict = {
+            'id': request['id'],
+            'messageHashes': [ messageHash ],
+        };
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, subscription);
     }
 
     /**
@@ -812,13 +838,6 @@ export default class paradex extends paradexRest {
         const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const channel = 'funding_data';
         const url = this.getWsUrl ();
-        const request: Dict = {
-            'jsonrpc': '2.0',
-            'method': 'subscribe',
-            'params': {
-                'channel': channel,
-            },
-        };
         const messageHashes: string[] = [];
         if (symbolsNormalized !== undefined) {
             const symbolsLength = symbolsNormalized.length;
@@ -833,7 +852,11 @@ export default class paradex extends paradexRest {
         } else {
             messageHashes.push (channel);
         }
-        const newFundingRates = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
+        const request: Dict = this.subscribeRequest (channel);
+        const subscription: Dict = {
+            'id': request['id'],
+        };
+        const newFundingRates = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes, subscription);
         if (this.newUpdates) {
             const result: Dict = {};
             const newFundingRatesSymbol = this.safeString (newFundingRates, 'symbol');
@@ -864,10 +887,10 @@ export default class paradex extends paradexRest {
         //         }
         //     }
         //
-        const params = this.safeDict (message, 'params', {});
-        const data = this.safeDict (params, 'data', {});
+        const params: Dict = this.safeDict (message, 'params', {});
+        const data: Dict = this.safeDict (params, 'data', {});
         const fundingRate = this.parseFundingRateWs (data);
-        const symbol = fundingRate['symbol'];
+        const symbol = this.safeString (fundingRate, 'symbol');
         this.fundingRates[(symbol as string)] = fundingRate;
         const channel = this.safeString (params, 'channel');
         // watchFundingRates without symbols waits on the bare channel
@@ -943,16 +966,16 @@ export default class paradex extends paradexRest {
             return undefined;
         }
         let channel: Str = undefined;
-        let data: any = undefined;
+        let data: NullableDict = undefined;
         if (templateId === 1) {
             data = this.parseSbeTrade (frameHex, blockLength, frameLength);
             if (data !== undefined) {
-                channel = 'trades.' + data['market'];
+                channel = 'trades.' + this.safeString (data, 'market', '');
             }
         } else if (templateId === 3) {
             data = this.parseSbeOrderBook (frameHex, blockLength, frameLength);
             if (data !== undefined) {
-                channel = this.getOrderBookChannel (data['market']);
+                channel = this.getOrderBookChannel (this.safeString (data, 'market'));
             }
         } else if (templateId === 4) {
             data = this.parseSbeMarketSummary (frameHex, blockLength, frameLength);
@@ -963,12 +986,12 @@ export default class paradex extends paradexRest {
         } else if (templateId === 20) {
             data = this.parseSbeOrder (frameHex, blockLength, frameLength);
             if (data !== undefined) {
-                channel = 'orders.' + data['market'];
+                channel = 'orders.' + this.safeString (data, 'market', '');
             }
         } else if (templateId === 21) {
             data = this.parseSbeFill (frameHex, blockLength, frameLength);
             if (data !== undefined) {
-                channel = 'fills.' + data['market'];
+                channel = 'fills.' + this.safeString (data, 'market', '');
             }
         } else if (templateId === 22) {
             data = this.parseSbePosition (frameHex, blockLength, frameLength);
@@ -1077,10 +1100,11 @@ export default class paradex extends paradexRest {
         return '0x' + raw.slice (start, 64);
     }
 
-    sbeReadVarStrings (frameHex: string, offset: number, count: number, frameLength: number): any {
-        // the var-data section: count strings, each prefixed with a uint8 length. Returns undefined
+    sbeReadVarStrings (frameHex: string, offset: number, count: number, frameLength: number): string[] {
+        // the var-data section: count strings, each prefixed with a uint8 length. Returns an empty list
         // when the frame ends before all of them, and only the strings present when a trailing one is
-        // absent, which is how a field appended to var-data reads on a frame from before it
+        // absent, which is how a field appended to var-data reads on a frame from before it.
+        // Every caller guards on the count it needs, so an empty list and a short one read alike
         const result: string[] = [];
         const end = this.parseToInt (frameLength);
         const total = this.parseToInt (count);
@@ -1092,7 +1116,7 @@ export default class paradex extends paradexRest {
             const length = this.parseToInt (this.sbeReadUint (frameHex, position, 1));
             const next = this.parseToInt (this.sum (position, 1, length));
             if (next > end) {
-                return undefined;
+                return [];
             }
             result.push (this.sbeReadString (frameHex, position + 1, length));
             position = next;
@@ -1112,7 +1136,7 @@ export default class paradex extends paradexRest {
             return undefined;
         }
         const strings = this.sbeReadVarStrings (frameHex, this.sum (blockLength, 8), 2, frameLength);
-        const stringsLength = (strings === undefined) ? 0 : strings.length;
+        const stringsLength = strings.length;
         if (stringsLength < 1) {
             return undefined;
         }
@@ -1121,7 +1145,7 @@ export default class paradex extends paradexRest {
         return {
             // the full trade id, absent only on frames that predate it, the int64 tradeId cannot hold it
             'id': this.safeString (strings, 1),
-            'market': strings[0],
+            'market': this.safeString (strings, 0),
             'side': this.sbeReadEnum (frameHex, 32, sides),
             'size': this.sbeReadDecimal (frameHex, 41),
             'price': this.sbeReadDecimal (frameHex, 33),
@@ -1170,13 +1194,13 @@ export default class paradex extends paradexRest {
             }
         }
         const strings = this.sbeReadVarStrings (frameHex, position, 1, frameLength);
-        const stringsLength = (strings === undefined) ? 0 : strings.length;
+        const stringsLength = strings.length;
         if (stringsLength < 1) {
             return undefined;
         }
         return {
             'seq_no': this.sbeReadInt64 (frameHex, 16),
-            'market': strings[0],
+            'market': this.safeString (strings, 0),
             'last_updated_at': this.sbeReadTimestamp (frameHex, 8),
             'update_type': 's',
             'inserts': inserts,
@@ -1199,7 +1223,7 @@ export default class paradex extends paradexRest {
             return undefined;
         }
         const strings = this.sbeReadVarStrings (frameHex, this.sum (blockLength, 8), 1, frameLength);
-        const stringsLength = (strings === undefined) ? 0 : strings.length;
+        const stringsLength = strings.length;
         if (stringsLength < 1) {
             return undefined;
         }
@@ -1209,7 +1233,7 @@ export default class paradex extends paradexRest {
             settlementTwapEstimate = this.sbeReadDecimal (frameHex, 248);
         }
         return {
-            'symbol': strings[0],
+            'symbol': this.safeString (strings, 0),
             'mark_price': this.sbeReadDecimal (frameHex, 24),
             'last_traded_price': this.sbeReadDecimal (frameHex, 40),
             'bid': this.sbeReadDecimal (frameHex, 72),
@@ -1237,12 +1261,12 @@ export default class paradex extends paradexRest {
             return undefined;
         }
         const strings = this.sbeReadVarStrings (frameHex, this.sum (blockLength, 8), 1, frameLength);
-        const stringsLength = (strings === undefined) ? 0 : strings.length;
+        const stringsLength = strings.length;
         if (stringsLength < 1) {
             return undefined;
         }
         return {
-            'market': strings[0],
+            'market': this.safeString (strings, 0),
             'funding_index': this.sbeReadDecimal (frameHex, 32),
             'funding_premium': this.sbeReadDecimal (frameHex, 48),
             'funding_rate': this.sbeReadDecimal (frameHex, 24),
@@ -1266,7 +1290,7 @@ export default class paradex extends paradexRest {
             return undefined;
         }
         const strings = this.sbeReadVarStrings (frameHex, this.sum (blockLength, 8), 4, frameLength);
-        const stringsLength = (strings === undefined) ? 0 : strings.length;
+        const stringsLength = strings.length;
         if (stringsLength < 4) {
             return undefined;
         }
@@ -1279,13 +1303,13 @@ export default class paradex extends paradexRest {
         const order: Dict = {
             'account': this.sbeReadAddress (frameHex, 84),
             'avg_fill_price': this.sbeReadDecimal (frameHex, 60),
-            'client_id': strings[1],
+            'client_id': this.safeString (strings, 1),
             'created_at': this.sbeReadTimestamp (frameHex, 68),
             'flags': flags,
-            'id': strings[0],
+            'id': this.safeString (strings, 0),
             'instruction': this.sbeReadEnum (frameHex, 27, timeInForces),
             'last_updated_at': this.sbeReadTimestamp (frameHex, 76),
-            'market': strings[2],
+            'market': this.safeString (strings, 2),
             'price': this.sbeReadDecimal (frameHex, 28),
             'published_at': this.sbeReadTimestamp (frameHex, 124),
             'received_at': this.sbeReadTimestamp (frameHex, 116),
@@ -1300,8 +1324,9 @@ export default class paradex extends paradexRest {
             'type': this.sbeReadEnum (frameHex, 26, orderTypes),
         };
         // an empty cancel reason is sent for every live order, parseOrder reads any reason as canceled
-        if (strings[3] !== '') {
-            order['cancel_reason'] = strings[3];
+        const cancelReason = this.safeString (strings, 3, '');
+        if (cancelReason !== '') {
+            order['cancel_reason'] = cancelReason;
         }
         return order;
     }
@@ -1334,7 +1359,7 @@ export default class paradex extends paradexRest {
             return undefined;
         }
         const strings = this.sbeReadVarStrings (frameHex, this.sum (blockLength, 8), 6, frameLength);
-        const stringsLength = (strings === undefined) ? 0 : strings.length;
+        const stringsLength = strings.length;
         if (stringsLength < 5) {
             return undefined;
         }
@@ -1343,15 +1368,15 @@ export default class paradex extends paradexRest {
         const liquidities: Dict = { '1': 'MAKER', '2': 'TAKER' };
         const fill: Dict = {
             'account': this.sbeReadAddress (frameHex, 67),
-            'client_id': strings[2],
+            'client_id': this.safeString (strings, 2),
             'created_at': this.sbeReadTimestamp (frameHex, 59),
             'fee': this.sbeReadDecimal (frameHex, 43),
             'fee_currency': this.safeString (strings, 5),
             'fill_type': this.sbeReadEnum (frameHex, 24, fillTypes),
-            'id': strings[0],
+            'id': this.safeString (strings, 0),
             'liquidity': this.sbeReadEnum (frameHex, 26, liquidities),
-            'market': strings[4],
-            'order_id': strings[1],
+            'market': this.safeString (strings, 4),
+            'order_id': this.safeString (strings, 1),
             'price': this.sbeReadDecimal (frameHex, 27),
             'realized_funding': this.sbeReadDecimal (frameHex, 107),
             'realized_pnl': this.sbeReadDecimal (frameHex, 51),
@@ -1382,7 +1407,7 @@ export default class paradex extends paradexRest {
             return undefined;
         }
         const strings = this.sbeReadVarStrings (frameHex, this.sum (blockLength, 8), 2, frameLength);
-        const stringsLength = (strings === undefined) ? 0 : strings.length;
+        const stringsLength = strings.length;
         if (stringsLength < 1) {
             return undefined;
         }
@@ -1403,12 +1428,12 @@ export default class paradex extends paradexRest {
             'cost': this.sbeReadDecimal (frameHex, 129),
             'cost_usd': this.sbeReadDecimal (frameHex, 137),
             // the JSON channel's id, one position per account and market
-            'id': account + '-' + strings[0],
+            'id': account + '-' + this.safeString (strings, 0, ''),
             'last_fill_id': this.safeString (strings, 1),
             'last_updated_at': this.sbeReadTimestamp (frameHex, 81),
             'leverage': this.sbeReadDecimal (frameHex, 73),
             'liquidation_price': this.sbeReadDecimal (frameHex, 65),
-            'market': strings[0],
+            'market': this.safeString (strings, 0),
             'realized_positional_pnl': this.sbeReadDecimal (frameHex, 49),
             'seq_no': this.sbeReadInt64 (frameHex, 16),
             'side': side,
@@ -1433,7 +1458,7 @@ export default class paradex extends paradexRest {
             return undefined;
         }
         const strings = this.sbeReadVarStrings (frameHex, this.sum (blockLength, 8), 1, frameLength);
-        const stringsLength = (strings === undefined) ? 0 : strings.length;
+        const stringsLength = strings.length;
         if (stringsLength < 1) {
             return undefined;
         }
@@ -1446,7 +1471,7 @@ export default class paradex extends paradexRest {
             'maintenance_margin_requirement': this.sbeReadDecimal (frameHex, 48),
             'margin_cushion': this.sbeReadDecimal (frameHex, 112),
             'seq_no': this.sbeReadInt64 (frameHex, 16),
-            'settlement_asset': strings[0],
+            'settlement_asset': this.safeString (strings, 0),
             'status': this.sbeReadEnum (frameHex, 120, statuses),
             'total_collateral': this.sbeReadDecimal (frameHex, 24),
             'updated_at': this.sbeReadTimestamp (frameHex, 72),
@@ -1475,29 +1500,65 @@ export default class paradex extends paradexRest {
         const error = this.safeDict (message, 'error');
         if (error === undefined) {
             return true;
-        } else {
+        }
+        try {
+            const feedback = this.id + ' ' + this.json (error);
             const errorCode = this.safeString (error, 'code');
             if (errorCode !== undefined) {
-                const feedback = this.id + ' ' + this.json (error);
-                this.throwExactlyMatchedException (this.exceptions['exact'], '-32600', feedback);
-                const messageString = this.safeString (error, 'message');
-                if (messageString !== undefined) {
-                    this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
+                this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            }
+            const messageString = this.safeString (error, 'message');
+            if (messageString !== undefined) {
+                this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
+            }
+            throw new ExchangeError (feedback);
+        } catch (e) {
+            // the subscription of every request sent keeps its id, so the request this error answers is found
+            // by it. A failed subscribe or auth is forgotten, so that the next watch sends it again
+            const requestId = this.safeString (message, 'id');
+            let handled = false;
+            if (requestId !== undefined) {
+                const subscribeHashes = Object.keys (client.subscriptions);
+                for (let i = 0; i < subscribeHashes.length; i++) {
+                    const subscribeHash = subscribeHashes[i];
+                    const subscription = this.safeDict (client.subscriptions, subscribeHash);
+                    if (this.safeString (subscription, 'id') === requestId) {
+                        handled = true;
+                        delete client.subscriptions[subscribeHash];
+                        // watchMultiple subscribes per message hash, so the subscribe hash is what its watcher waits on
+                        const messageHashes = this.safeList (subscription, 'messageHashes', [ subscribeHash ]);
+                        for (let j = 0; j < messageHashes.length; j++) {
+                            client.reject (e, messageHashes[j]);
+                        }
+                    }
                 }
             }
-            return false;
-        }
-    }
-
-    override handleMessage (client: Client, message: any) {
-        let parsedMessage: Dict = message;
-        if (this.isBinaryMessage (message)) {
-            parsedMessage = this.parseSbeMessage (message);
-            if (parsedMessage === undefined) {
-                return;
+            if (!handled) {
+                // not a reply to a known request, every watcher on the connection gets the error,
+                // and the next private watch authenticates again instead of waiting on a rejected future
+                if ('authenticated' in client.subscriptions) {
+                    delete client.subscriptions['authenticated'];
+                }
+                client.reject (e);
             }
         }
-        if (this.handleErrorMessage (client, parsedMessage) !== true) {
+        return false;
+    }
+
+    override handleBinaryMessage (client: Client, message: unknown) {
+        const parsedMessage: Dict = this.parseSbeMessage (message);
+        if (parsedMessage === undefined) {
+            return;
+        }
+        this.handleStreamMessage (client, parsedMessage);
+    }
+
+    override handleMessage (client: Client, message: Dict) {
+        this.handleStreamMessage (client, message);
+    }
+
+    handleStreamMessage (client: Client, message: Dict) {
+        if (this.handleErrorMessage (client, message) !== true) {
             return;
         }
         //
@@ -1528,12 +1589,12 @@ export default class paradex extends paradexRest {
         //         }
         //     }
         //
-        const result = this.safeDict (parsedMessage, 'result');
+        const result = this.safeDict (message, 'result');
         if (result !== undefined) {
-            this.handleAuthenticationMessage (client, parsedMessage);
+            this.handleRequestReply (client, message);
             return;
         }
-        const data = this.safeDict (parsedMessage, 'params');
+        const data = this.safeDict (message, 'params');
         if (data !== undefined) {
             const channel = this.safeString (data, 'channel');
             const parts = (channel as string).split ('.');
@@ -1550,7 +1611,7 @@ export default class paradex extends paradexRest {
             };
             const method = this.safeValue (methods, name);
             if (method !== undefined) {
-                method.call (this, client, parsedMessage);
+                method.call (this, client, message);
             }
         }
     }

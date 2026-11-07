@@ -525,11 +525,12 @@ export default class bitbns extends Exchange {
             const parts = key.split('availableorder');
             const numParts = parts.length;
             if (numParts > 1) {
+                const usedCurrencyId = this.safeString(parts, 1, '');
                 let currencyId = this.safeString(parts, 1);
                 // note that "Money" stands for INR - the only fiat in bitbns
                 const account = this.account();
                 account['free'] = this.safeString(data, key);
-                account['used'] = this.safeString(data, 'inorder' + currencyId);
+                account['used'] = this.safeString(data, 'inorder' + usedCurrencyId);
                 if (currencyId === 'Money') {
                     currencyId = 'INR';
                 }
@@ -1276,26 +1277,22 @@ export default class bitbns extends Exchange {
         return this.milliseconds();
     }
     sign(path, api = ['www'], method = 'GET', params = {}) {
-        const urls = this.urls;
         const apiName = api[0];
-        if (!(apiName in urls['api'])) {
+        const baseApiUrl = this.safeString(this.urls['api'], apiName);
+        if (baseApiUrl === undefined) {
             throw new ExchangeError(this.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints');
         }
         if (apiName !== 'www') {
             this.checkRequiredCredentials();
         }
-        const apiKeyHeaders = {
-            'X-BITBNS-APIKEY': this.apiKey,
-        };
-        let requestHeaders = (apiName !== 'www') ? apiKeyHeaders : undefined;
-        const baseApiUrl = this.safeString(this.urls['api'], apiName);
-        if (baseApiUrl === undefined) {
-            throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        const requestHeaders = {};
+        if (apiName !== 'www') {
+            requestHeaders['X-BITBNS-APIKEY'] = this.apiKey;
         }
         const baseUrl = this.implodeHostname(baseApiUrl);
         let url = baseUrl + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        const nonce = this.nonce().toString();
+        const nonce = this.numberToString(this.nonce());
         const queryLength = Object.keys(query).length;
         let postBody = '{}';
         if (queryLength > 0) {
@@ -1314,14 +1311,13 @@ export default class bitbns extends Exchange {
             };
             const payload = this.stringToBase64(this.json(auth));
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512);
-            requestHeaders = (requestHeaders === undefined) ? {} : requestHeaders;
             requestHeaders['X-BITBNS-PAYLOAD'] = payload;
             requestHeaders['X-BITBNS-SIGNATURE'] = signature;
             requestHeaders['Content-Type'] = 'application/x-www-form-urlencoded';
         }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -1329,12 +1325,12 @@ export default class bitbns extends Exchange {
         //     {"msg":"Invalid Request","status":-1,"code":400}
         //     {"data":[],"status":0,"error":"Nothing to show","code":417}
         //
-        const code = this.safeString(response, 'code');
+        const codeError = this.safeString(response, 'code');
         const message = this.safeString(response, 'msg');
-        const error = (code !== undefined) && (code !== '200') && (code !== '204');
+        const error = (codeError !== undefined) && (codeError !== '200') && (codeError !== '204');
         if (error || (message !== undefined)) {
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new ExchangeError(feedback); // unknown message

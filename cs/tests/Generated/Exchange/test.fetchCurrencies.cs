@@ -74,8 +74,8 @@ public partial class testMainClass : BaseTest
                 ids[(string)code] = getValue(currency, "id");
             } else
             {
-                bool isDifferent = !isEqual(getValue(ids, code), getValue(currency, "id"));
-                assert(!isDifferent, add(add(add(add(add(add(exchange.id, " fetchCurrencies() has different ids for the same code: "), code), " "), getValue(ids, code)), " "), getValue(currency, "id")));
+                bool isDifferent = !isEqual((ids != null && code != null && ids.ContainsKey((string)code) ? ids[(string)code] : null), getValue(currency, "id"));
+                assert(!isDifferent, add(add(add(add(add(add(exchange.id, " fetchCurrencies() has different ids for the same code: "), code), " "), (ids != null && code != null && ids.ContainsKey((string)code) ? ids[(string)code] : null)), " "), getValue(currency, "id")));
             }
         }
         return true;

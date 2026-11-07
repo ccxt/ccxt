@@ -272,7 +272,7 @@ abstract class ndax extends \ccxt\Exchange {
         return $this->request('GetAccountInfo', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function private_get_getaccountpositions($params = array()) {
         return $this->request('GetAccountPositions', array('private'), 'GET', $params, array("cost" => 1));
@@ -896,7 +896,7 @@ abstract class ndax extends \ccxt\Exchange {
         return $this->request('GetAccountInfo', array('private'), 'GET', $params, array("cost" => 1));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function privateGetGetAccountPositions($params = array()) {
         return $this->request('GetAccountPositions', array('private'), 'GET', $params, array("cost" => 1));

@@ -150,41 +150,6 @@ func float64ToString(val float64) string {
 	return b.String()
 }
 
-func (this *BaseExchange) NumberToString2(x any) string {
-	x = derefScalar(x)
-	switch v := x.(type) {
-	case nil:
-		return ""
-	case float64, float32, int, int64, int32:
-		str := fmt.Sprintf("%v", v)
-		if math.Abs(ToFloat64((v))) < 1.0 {
-			parts := strings.Split(str, "e-")
-			if len(parts) == 2 {
-				n := strings.Replace(parts[0], ".", "", -1)
-				e, _ := strconv.Atoi(parts[1])
-				neg := str[0] == '-'
-				if e != 0 {
-					// Fix: Remove the extra "-" sign in the result
-					return fmt.Sprintf("%s0.%s%s", map[bool]string{true: "-", false: ""}[neg], strings.Repeat("0", e-1), strings.Replace(n, "-", "", 1))
-				}
-			}
-		} else {
-			parts := strings.Split(str, "e")
-			if len(parts) == 2 {
-				e, _ := strconv.Atoi(parts[1])
-				m := strings.Split(parts[0], ".")
-				if len(m) > 1 {
-					e -= len(m[1])
-				}
-				return fmt.Sprintf("%s%s%s", m[0], m[1], strings.Repeat("0", e))
-			}
-		}
-		return str
-	default:
-		return fmt.Sprintf("%v", x)
-	}
-}
-
 func matchTruncatePrefix(s string, precision int) int {
 	i := 0
 	n := len(s)
@@ -219,11 +184,6 @@ func (this *BaseExchange) truncateToString(num any, precision int) string {
 	}
 	intNum, _ := strconv.Atoi(intPart)
 	return strconv.Itoa(intNum)
-}
-
-func (this *BaseExchange) truncate(num any, precision int) float64 {
-	result, _ := strconv.ParseFloat(this.truncateToString(num, precision), 64)
-	return result
 }
 
 func (this *BaseExchange) PrecisionFromString(str2 any) int {

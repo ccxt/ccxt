@@ -268,9 +268,6 @@
             "fetchPositions": {
                 "stopLossPrice": "undefined",
                 "takeProfitPrice": "undefined",
-                "hedged": "undefined",
-                "timestamp": "undefined",
-                "datetime": "undefined",
                 "lastPrice": "undefined"
             }
         }
@@ -1660,7 +1657,12 @@
     },
     "blofin": {
         "skipWs": "loadMarkets is geo-blocked from the test environment, ws tests can not bootstrap",
-        "until": "2026-08-31"
+        "until": "2026-08-31",
+        "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "asset/currencies lists deposit coins only, inverse USD quotes and tokenized stocks are missing"
+            }
+        }
     },
     "extended": {
         "skip": "loadMarkets is geo-blocked from the test environment (403)",
@@ -2230,6 +2232,7 @@
         }
     },
     "paradex": {
+        "preferredSpotSymbol": "ETH/USDC",
         "skipMethods": {
             "loadMarkets": "perp options not handled well by tests",
             "orderBook": {
@@ -2237,7 +2240,8 @@
             },
             "ticker": {
                 "bid": "equal to ask https://github.com/ccxt/ccxt/actions/runs/15595034293/job/43923530003?pr=26177#step:9:504",
-                "average": "sometimes zero on illiquid option markets"
+                "average": "sometimes zero on illiquid option markets",
+                "lastBetweenBidAsk": "the spot books (ETH-USD, DIME-USD) are thin, the last trade can sit well outside the bid/ask"
             },
             "fetchTickers": {
                 "checkActiveSymbols": "todo",
@@ -2249,12 +2253,20 @@
         }
     },
     "p2b": {
-        "skip": "temp issues",
-        "skipWs": "flaky",
         "httpsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
-            "loadMarkets": "invalid URL",
-            "fetchTrades": "requires order id"
+            "fetchTrades": "venue requires a mandatory params.lastId (ArgumentsRequired, measured 2026-09-14); relax planned in fix/p2b-fetch-trades-lastid",
+            "watchOHLCV": "kline.subscribe acks success for every documented period (probed 60, 900, 3600) and never pushes a kline.update - 0 frames in 60s on its own socket while BTC_USDT took 1708 new deals in the same window (measured 2026-11-04); recheck 2026-12-15",
+            "watchTicker": "state.subscribe (and price.subscribe, the alternative source) ack success and never push an update - 0 frames in 60s on their own sockets while BTC_USDT took 1708 new deals in the same window (measured 2026-11-04, state also via the proxy above); recheck 2026-12-15",
+            "watchTickers": "same state.subscribe/price.subscribe outage as watchTicker - 0 update frames in 60s on their own sockets (measured 2026-11-04); recheck 2026-12-15",
+            "watchTrades": "deals.subscribe acks success and never pushes a deals.update - 0 frames in 60s on its own socket while BTC_USDT took 1708 new deals in the same window (measured 2026-11-04, also via the proxy above); recheck 2026-12-15",
+            "watchTradesForSymbols": "same deals.subscribe outage as watchTrades - 0 update frames in 60s (measured 2026-11-04); recheck 2026-12-15",
+            "fetchCurrencies.go": "the go base does not synthesize currencies from markets - fetchCurrencies returns 0 entries and the amountOfCurrencies gate panics; js/py/php synthesize fine (measured 2026-09-14, recheck when the go port adds market-derived currencies)",
+            "fetchTickers.cs": "the cs number pipeline fails on sub-1e-6 change values from btc-quoted dust pairs with 'input string --06 was not in a correct format'; base-port issue, seven such pairs live (XSR/BTC etc, measured 2026-09-14)",
+            "watchOrderBook": "depth frames carry no timestamp and the handler does not stamp one, the orderbook validator requires it (3/3 deterministic, measured 2026-09-14); fix candidate like whitebit pro handleOrderBook",
+            "fetchCurrencies": {
+                "activeMajorCurrencies": "no currencies endpoint on the public api - currencies are synthesized from markets, deposit/withdraw flags unknowable (measured 2026-09-14)"
+            }
         }
     },
     "poloniex": {
@@ -2667,20 +2679,6 @@
     },
     "zebpay": {
         "skip": "ip whitelist required"
-    },
-    "bydfi": {
-        "skip": "api.bydfi.com returns 404 on every REST path incl. exchange_info; developers.bydfi.com no longer resolves",
-        "skipMethods": {
-            "fetchTickers": {
-                "checkActiveSymbols": "todo"
-            },
-            "ticker": {
-                "compareOHLC": "open higher than high from API"
-            },
-            "orderBook": {
-                "timestamp": "the depth endpoint carries no timestamp"
-            }
-        }
     },
     "aster": {
         "skipMethods": {

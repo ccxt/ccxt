@@ -31,7 +31,7 @@ class paradex extends paradex$1["default"] {
             'dex': true,
             'has': {
                 'CORS': undefined,
-                'spot': false,
+                'spot': true,
                 'margin': false,
                 'swap': true,
                 'future': false,
@@ -366,6 +366,10 @@ class paradex extends paradex$1["default"] {
                     '40110': errors.AuthenticationError, // Malformed Bearer Token
                     '40111': errors.AuthenticationError, // Invalid Bearer Token
                     '40112': errors.PermissionDenied, // Geo IP blocked
+                    '40300': errors.PermissionDenied, // Permission denied
+                    '40301': errors.NotSupported, // SBE encoding required
+                    '42900': errors.OperationRejected, // Max subscriptions per connection, a retry does not help until a channel is unsubscribed
+                    '42901': errors.RateLimitExceeded, // Rate limited
                 },
                 'broad': {
                     'missing or malformed jwt': errors.AuthenticationError,
@@ -378,7 +382,16 @@ class paradex extends paradex$1["default"] {
                 'broker': 'CCXT',
             },
             'features': {
-                'spot': undefined,
+                'spot': {
+                    'extends': 'forSwap',
+                    'createOrder': {
+                        // spot takes limit and market orders only, no trigger, stop loss or take profit types
+                        'triggerPrice': false,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                    },
+                },
                 'forSwap': {
                     'sandbox': true,
                     'createOrder': {
@@ -617,26 +630,54 @@ class paradex extends paradex$1["default"] {
         //     ]
         //  }
         //
+        // spot
+        //
+        //     {
+        //         "symbol": "ETH-USD",
+        //         "base_currency": "ETH",
+        //         "quote_currency": "USD",
+        //         "settlement_currency": "USDC",
+        //         "order_size_increment": "0.0001",
+        //         "price_tick_size": "0.01",
+        //         "min_notional": "10",
+        //         "asset_kind": "SPOT",
+        //         "market_kind": "cross",
+        //         ...
+        //     }
+        //
         const assetKind = this.safeString(market, 'asset_kind');
+        const isSpot = (assetKind === 'SPOT');
         const isOptionPerpetual = (assetKind === 'PERP_OPTION');
         const isOptionDelivery = (assetKind === 'OPTION');
         const isOption = isOptionPerpetual || isOptionDelivery;
         let type = 'swap';
-        if (isOption) {
+        if (isSpot) {
+            type = 'spot';
+        }
+        else if (isOption) {
             type = 'option';
         }
         const isSwap = (type === 'swap');
         const marketId = this.safeString(market, 'symbol');
-        const quoteId = this.safeString(market, 'quote_currency');
+        let quoteId = this.safeString(market, 'quote_currency');
         const baseId = this.safeString(market, 'base_currency');
+        let settleId = this.safeString(market, 'settlement_currency');
+        if (isSpot) {
+            // spot is quoted in "USD" but paid and received in the settlement token (USDC),
+            // a spot market has no settle, so the token it trades against is the quote
+            quoteId = settleId;
+            settleId = undefined;
+        }
         const quote = this.safeCurrencyCode(quoteId);
         const base = this.safeCurrencyCode(baseId);
         if ((base === undefined) || (quote === undefined)) {
             return undefined;
         }
-        const settleId = this.safeString(market, 'settlement_currency');
         const settle = this.safeCurrencyCode(settleId);
-        let symbol = base + '/' + quote + ':' + settle;
+        let symbol = base + '/' + quote;
+        if (!isSpot && (settle !== undefined)) {
+            symbol = symbol + ':' + settle;
+        }
         let expiry = this.safeInteger(market, 'expiry_at');
         const optionType = this.safeString(market, 'option_type');
         const strikePrice = this.safeString(market, 'strike_price');
@@ -644,8 +685,13 @@ class paradex extends paradex$1["default"] {
         let makerFee = this.parseNumber('-0.00005');
         if (isOption) {
             const optionTypeSuffix = (optionType === 'CALL') ? 'C' : 'P';
-            const deliveryValue = (expiry === 0) ? '' : this.yymmdd(expiry) + '-';
-            symbol = symbol + '-' + deliveryValue + strikePrice + '-' + optionTypeSuffix;
+            let deliveryValue = '';
+            if (expiry !== 0) {
+                deliveryValue = this.yymmdd(expiry) + '-';
+            }
+            if (strikePrice !== undefined) {
+                symbol = symbol + '-' + deliveryValue + strikePrice + '-' + optionTypeSuffix;
+            }
             makerFee = this.parseNumber('0.0003');
         }
         else {
@@ -662,18 +708,18 @@ class paradex extends paradex$1["default"] {
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': false,
+            'spot': isSpot,
             'margin': undefined,
             'swap': isSwap,
             'future': false,
             'option': isOption,
             'active': this.safeBool(market, 'enableTrading'),
-            'contract': true,
-            'linear': true,
-            'inverse': false,
+            'contract': !isSpot,
+            'linear': (isSpot) ? undefined : true,
+            'inverse': (isSpot) ? undefined : false,
             'taker': takerFee,
             'maker': makerFee,
-            'contractSize': this.parseNumber('1'),
+            'contractSize': (isSpot) ? undefined : this.parseNumber('1'),
             'expiry': expiry,
             'expiryDatetime': expireDatetime,
             'strike': this.parseNumber(strikePrice),
@@ -835,7 +881,7 @@ class paradex extends paradex$1["default"] {
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-     * @param {string} [params.price] "last", "mark", "index", default is "last"
+     * @param {string} [params.price] "last", "mark", "index" (sent as "underlying"), default is "last"
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -850,7 +896,8 @@ class paradex extends paradex$1["default"] {
         const duration = this.parseTimeframe(timeframe);
         const price = this.safeString(params, 'price');
         if (price !== undefined) {
-            request['price_kind'] = price;
+            // the exchange names the index price "underlying" and rejects "index"
+            request['price_kind'] = (price === 'index') ? 'underlying' : price;
         }
         const [requestUntil, paramsUntil] = this.handleUntilOption('end_at', request, params);
         const hasEnd = ('end_at' in request);
@@ -866,7 +913,7 @@ class paradex extends paradex$1["default"] {
             }
         }
         else {
-            const endAtRaw = hasEnd ? this.safeInteger(requestUntil, 'end_at', 0) : this.milliseconds();
+            const endAtRaw = this.safeInteger(requestUntil, 'end_at', this.milliseconds());
             const endAt = this.parseToInt(endAtRaw);
             requestUntil['end_at'] = endAt;
             requestUntil['start_at'] = endAt - windowLength + 1;
@@ -1334,7 +1381,7 @@ class paradex extends paradex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new errors.BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request = {
@@ -1423,14 +1470,14 @@ class paradex extends paradex$1["default"] {
         if (l1) {
             const l1D = {
                 'name': 'Paradex',
-                'chainId': systemConfig['l1_chain_id'],
+                'chainId': this.safeString(systemConfig, 'l1_chain_id'),
                 'version': '1',
             };
             return l1D;
         }
         const domain = {
             'name': 'Paradex',
-            'chainId': systemConfig['starknet_chain_id'],
+            'chainId': this.safeString(systemConfig, 'starknet_chain_id'),
             'version': 1,
         };
         return domain;
@@ -1450,7 +1497,7 @@ class paradex extends paradex$1["default"] {
             };
             const msg = this.ethEncodeStructuredData(domain, messageTypes, message);
             const signature = this.signMessage(msg, this.privateKey);
-            const account = this.retrieveStarkAccount(signature, systemConfig['paraclear_account_hash'], systemConfig['paraclear_account_proxy_hash']);
+            const account = this.retrieveStarkAccount(signature, this.safeString(systemConfig, 'paraclear_account_hash'), this.safeString(systemConfig, 'paraclear_account_proxy_hash'));
             this.options['paradexAccount'] = account;
         }
         return this.safeDict(this.options, 'paradexAccount', {});
@@ -1466,11 +1513,11 @@ class paradex extends paradex$1["default"] {
                 { 'name': 'action', 'type': 'felt' },
             ],
         };
-        const msg = this.starknetEncodeStructuredData(domain, messageTypes, req, account['address']);
+        const msg = this.starknetEncodeStructuredData(domain, messageTypes, req, this.safeString(account, 'address'));
         const signature = this.starknetSign(msg, account['privateKey']);
         params['signature'] = signature;
-        params['account'] = account['address'];
-        params['public_key'] = account['publicKey'];
+        params['account'] = this.safeString(account, 'address');
+        params['public_key'] = this.safeString(account, 'publicKey');
         const response = await this.privatePostOnboarding(params);
         return response;
     }
@@ -1506,10 +1553,10 @@ class paradex extends paradex$1["default"] {
                 { 'name': 'expiration', 'type': 'felt' },
             ],
         };
-        const msg = this.starknetEncodeStructuredData(domain, messageTypes, req, account['address']);
+        const msg = this.starknetEncodeStructuredData(domain, messageTypes, req, this.safeString(account, 'address'));
         const signature = this.starknetSign(msg, account['privateKey']);
         params['signature'] = signature;
-        params['account'] = account['address'];
+        params['account'] = this.safeString(account, 'address');
         params['timestamp'] = req['timestamp'];
         params['expiration'] = req['expiration'];
         const response = await this.privatePostAuth(params);
@@ -1753,11 +1800,11 @@ class paradex extends paradex$1["default"] {
         const isMarket = (orderType.indexOf('MARKET') >= 0);
         const orderReq = {
             'timestamp': now * 1000,
-            'market': this.stringToBase16(request['market']),
+            'market': this.stringToBase16(this.safeString(request, 'market')),
             'side': (this.safeString(request, 'side') === 'BUY') ? '1' : '2',
-            'orderType': this.stringToBase16(request['type']),
-            'size': this.scaleNumber(request['size']),
-            'price': (isMarket) ? '0' : this.scaleNumber(request['price']),
+            'orderType': this.stringToBase16(this.safeString(request, 'type')),
+            'size': this.scaleNumber(this.safeString(request, 'size')),
+            'price': (isMarket) ? '0' : this.scaleNumber(this.safeString(request, 'price')),
         };
         const orderFields = [
             { 'name': 'timestamp', 'type': 'felt' },
@@ -1769,7 +1816,7 @@ class paradex extends paradex$1["default"] {
         ];
         let messageTypes = {};
         if (modify) {
-            orderReq['id'] = request['id'];
+            orderReq['id'] = this.safeString(request, 'id');
             orderFields.push({ 'name': 'id', 'type': 'felt' });
             messageTypes = {
                 'ModifyOrder': orderFields,
@@ -1781,7 +1828,7 @@ class paradex extends paradex$1["default"] {
             };
         }
         const domain = await this.prepareParadexDomain();
-        const msg = this.starknetEncodeStructuredData(domain, messageTypes, orderReq, account['address']);
+        const msg = this.starknetEncodeStructuredData(domain, messageTypes, orderReq, this.safeString(account, 'address'));
         const signature = this.starknetSign(msg, account['privateKey']);
         const signedRequest = this.extend(request, {
             'signature': signature,
@@ -1950,38 +1997,47 @@ class paradex extends paradex$1["default"] {
         }
         const response = await this.privatePostOrdersBatch(ordersRequests);
         //
-        // {
-        //     "errors": [
-        //         {
-        //             "error": "VALIDATION_ERROR",
-        //             "message": "Invalid order"
-        //         }
-        //     ],
-        //     "orders": [
-        //         {
-        //             "id": "123456",
-        //             "market": "BTC-USD-PERP",
-        //             "side": "BUY",
-        //             "type": "LIMIT",
-        //             "price": "26000",
-        //             "size": "0.05",
-        //             "status": "NEW"
-        //         }
-        //     ]
-        // }
+        // orders and errors are index-aligned with the request, null where the other array has the entry
+        //
+        //     {
+        //         "errors": [
+        //             null,
+        //             {
+        //                 "error": "DUPLICATED_CLIENT_ID",
+        //                 "message": "duplicated client order id"
+        //             }
+        //         ],
+        //         "orders": [
+        //             {
+        //                 "id": "123456",
+        //                 "market": "BTC-USD-PERP",
+        //                 "side": "BUY",
+        //                 "type": "LIMIT",
+        //                 "price": "26000",
+        //                 "size": "0.05",
+        //                 "status": "NEW"
+        //             },
+        //             null
+        //         ]
+        //     }
         //
         const responseOrders = this.safeList(response, 'orders', []);
-        const parsedOrders = this.parseOrders(responseOrders);
         const errors = this.safeList(response, 'errors', []);
-        const rejected = [];
-        for (let i = 0; i < errors.length; i++) {
-            const error = errors[i];
-            rejected.push(this.safeOrder({
-                'info': error,
-                'status': 'rejected',
-            }));
+        const result = [];
+        for (let i = 0; i < orders.length; i++) {
+            const responseOrder = this.safeDict(responseOrders, i);
+            if (responseOrder !== undefined) {
+                result.push(this.parseOrder(responseOrder));
+            }
+            else {
+                const error = this.safeDict(errors, i);
+                result.push(this.safeOrder({
+                    'info': error,
+                    'status': 'rejected',
+                }));
+            }
         }
-        return this.arrayConcat(parsedOrders, rejected);
+        return result;
     }
     /**
      * @method
@@ -2034,7 +2090,7 @@ class paradex extends paradex$1["default"] {
         }
         const clientOrderIds = this.safeListN(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
         const paramsOmitted = this.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
-        const hasOrderIds = (ids !== undefined) && (Array.isArray(ids));
+        const hasOrderIds = Array.isArray(ids);
         const hasClientOrderIds = (clientOrderIds !== undefined) && (Array.isArray(clientOrderIds));
         if (!hasOrderIds && !hasClientOrderIds) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter');
@@ -2347,9 +2403,9 @@ class paradex extends paradex$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'results', []);
-        return this.parseBalance(data);
+        return this.parseBalanceList(data);
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = this.safeDict(response, i, {});
@@ -3414,19 +3470,19 @@ class paradex extends paradex$1["default"] {
             let privateBody = undefined;
             // TODO: optimize
             if (pathValue === 'auth') {
-                privateHeaders['PARADEX-STARKNET-ACCOUNT'] = query['account'];
-                privateHeaders['PARADEX-STARKNET-SIGNATURE'] = query['signature'];
-                privateHeaders['PARADEX-TIMESTAMP'] = query['timestamp'].toString();
-                privateHeaders['PARADEX-SIGNATURE-EXPIRATION'] = query['expiration'].toString();
+                privateHeaders['PARADEX-STARKNET-ACCOUNT'] = this.safeString(query, 'account');
+                privateHeaders['PARADEX-STARKNET-SIGNATURE'] = this.safeString(query, 'signature');
+                privateHeaders['PARADEX-TIMESTAMP'] = this.safeString(query, 'timestamp');
+                privateHeaders['PARADEX-SIGNATURE-EXPIRATION'] = this.safeString(query, 'expiration');
             }
             else if (pathValue === 'onboarding') {
                 privateHeaders['PARADEX-ETHEREUM-ACCOUNT'] = this.walletAddress;
-                privateHeaders['PARADEX-STARKNET-ACCOUNT'] = query['account'];
-                privateHeaders['PARADEX-STARKNET-SIGNATURE'] = query['signature'];
-                privateHeaders['PARADEX-TIMESTAMP'] = this.nonce().toString();
+                privateHeaders['PARADEX-STARKNET-ACCOUNT'] = this.safeString(query, 'account');
+                privateHeaders['PARADEX-STARKNET-SIGNATURE'] = this.safeString(query, 'signature');
+                privateHeaders['PARADEX-TIMESTAMP'] = this.numberToString(this.nonce());
                 privateHeaders['Content-Type'] = 'application/json';
                 privateBody = this.json({
-                    'public_key': query['public_key'],
+                    'public_key': this.safeString(query, 'public_key'),
                 });
             }
             else {
@@ -3460,7 +3516,7 @@ class paradex extends paradex$1["default"] {
         }
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -3471,7 +3527,25 @@ class paradex extends paradex$1["default"] {
         //         "message": "User has never called /onboarding endpoint"
         //     }
         //
-        const errorCode = this.safeString(response, 'error');
+        let errorCode = this.safeString(response, 'error');
+        if ((errorCode === undefined) && (code === 400)) {
+            //
+            // a batch where every order was rejected, errors are index-aligned with the request
+            //
+            //     {
+            //         "errors": [ { "error": "DUPLICATED_CLIENT_ID", "message": "..." } ],
+            //         "orders": [ null ]
+            //     }
+            //
+            const batchErrors = this.safeList(response, 'errors', []);
+            for (let i = 0; i < batchErrors.length; i++) {
+                const batchErrorCode = this.safeString(batchErrors[i], 'error');
+                if (batchErrorCode !== undefined) {
+                    errorCode = batchErrorCode;
+                    break;
+                }
+            }
+        }
         if (errorCode !== undefined) {
             const feedback = this.id + ' ' + body;
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);

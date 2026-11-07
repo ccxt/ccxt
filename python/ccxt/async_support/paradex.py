@@ -14,13 +14,15 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import OperationRejected
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import NotSupported
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
 class paradex(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(paradex, self).describe(), {
             'id': 'paradex',
             'name': 'Paradex',
@@ -32,7 +34,7 @@ class paradex(Exchange, ImplicitAPI):
             'dex': True,
             'has': {
                 'CORS': None,
-                'spot': False,
+                'spot': True,
                 'margin': False,
                 'swap': True,
                 'future': False,
@@ -367,6 +369,10 @@ class paradex(Exchange, ImplicitAPI):
                     '40110': AuthenticationError,  # Malformed Bearer Token
                     '40111': AuthenticationError,  # Invalid Bearer Token
                     '40112': PermissionDenied,  # Geo IP blocked
+                    '40300': PermissionDenied,  # Permission denied
+                    '40301': NotSupported,  # SBE encoding required
+                    '42900': OperationRejected,  # Max subscriptions per connection, a retry does not help until a channel is unsubscribed
+                    '42901': RateLimitExceeded,  # Rate limited
                 },
                 'broad': {
                     'missing or malformed jwt': AuthenticationError,
@@ -380,7 +386,16 @@ class paradex(Exchange, ImplicitAPI):
                 'broker': 'CCXT',
             },
             'features': {
-                'spot': None,
+                'spot': {
+                    'extends': 'forSwap',
+                    'createOrder': {
+                        # spot takes limit and market orders only, no trigger, stop loss or take profit types
+                        'triggerPrice': False,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                    },
+                },
                 'forSwap': {
                     'sandbox': True,
                     'createOrder': {
@@ -619,24 +634,49 @@ class paradex(Exchange, ImplicitAPI):
         #     ]
         #  }
         #
+        # spot
+        #
+        #     {
+        #         "symbol": "ETH-USD",
+        #         "base_currency": "ETH",
+        #         "quote_currency": "USD",
+        #         "settlement_currency": "USDC",
+        #         "order_size_increment": "0.0001",
+        #         "price_tick_size": "0.01",
+        #         "min_notional": "10",
+        #         "asset_kind": "SPOT",
+        #         "market_kind": "cross",
+        #         ...
+        #     }
+        #
         assetKind = self.safe_string(market, 'asset_kind')
+        isSpot = (assetKind == 'SPOT')
         isOptionPerpetual = (assetKind == 'PERP_OPTION')
         isOptionDelivery = (assetKind == 'OPTION')
         isOption = isOptionPerpetual or isOptionDelivery
         type = 'swap'
-        if isOption:
+        if isSpot:
+            type = 'spot'
+        elif isOption:
             type = 'option'
         isSwap = (type == 'swap')
         marketId = self.safe_string(market, 'symbol')
         quoteId = self.safe_string(market, 'quote_currency')
         baseId = self.safe_string(market, 'base_currency')
+        settleId = self.safe_string(market, 'settlement_currency')
+        if isSpot:
+            # spot is quoted in "USD" but paid and received in the settlement token (USDC),
+            # a spot market has no settle, so the token it trades against is the quote
+            quoteId = settleId
+            settleId = None
         quote = self.safe_currency_code(quoteId)
         base = self.safe_currency_code(baseId)
         if (base is None) or (quote is None):
             return None
-        settleId = self.safe_string(market, 'settlement_currency')
         settle = self.safe_currency_code(settleId)
-        symbol = base + '/' + quote + ':' + settle
+        symbol = base + '/' + quote
+        if not isSpot and (settle is not None):
+            symbol = symbol + ':' + settle
         expiry = self.safe_integer(market, 'expiry_at')
         optionType = self.safe_string(market, 'option_type')
         strikePrice = self.safe_string(market, 'strike_price')
@@ -644,8 +684,11 @@ class paradex(Exchange, ImplicitAPI):
         makerFee = self.parse_number('-0.00005')
         if isOption:
             optionTypeSuffix = 'C' if (optionType == 'CALL') else 'P'
-            deliveryValue = '' if (expiry == 0) else self.yymmdd(expiry) + '-'
-            symbol = symbol + '-' + deliveryValue + strikePrice + '-' + optionTypeSuffix
+            deliveryValue = ''
+            if expiry != 0:
+                deliveryValue = self.yymmdd(expiry) + '-'
+            if strikePrice is not None:
+                symbol = symbol + '-' + deliveryValue + strikePrice + '-' + optionTypeSuffix
             makerFee = self.parse_number('0.0003')
         else:
             expiry = None
@@ -660,18 +703,18 @@ class paradex(Exchange, ImplicitAPI):
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': False,
+            'spot': isSpot,
             'margin': None,
             'swap': isSwap,
             'future': False,
             'option': isOption,
             'active': self.safe_bool(market, 'enableTrading'),
-            'contract': True,
-            'linear': True,
-            'inverse': False,
+            'contract': not isSpot,
+            'linear': None if (isSpot) else True,
+            'inverse': None if (isSpot) else False,
             'taker': takerFee,
             'maker': makerFee,
-            'contractSize': self.parse_number('1'),
+            'contractSize': None if (isSpot) else self.parse_number('1'),
             'expiry': expiry,
             'expiryDatetime': expireDatetime,
             'strike': self.parse_number(strikePrice),
@@ -830,7 +873,7 @@ class paradex(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :param str [params.price]: "last", "mark", "index", default is "last"
+        :param str [params.price]: "last", "mark", "index"(sent as "underlying"), default is "last"
         :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
@@ -843,7 +886,8 @@ class paradex(Exchange, ImplicitAPI):
         duration = self.parse_timeframe(timeframe)
         price = self.safe_string(params, 'price')
         if price is not None:
-            request['price_kind'] = price
+            # the exchange names the index price "underlying" and rejects "index"
+            request['price_kind'] = 'underlying' if (price == 'index') else price
         requestUntil, paramsUntil = self.handle_until_option('end_at', request, params)
         hasEnd = ('end_at' in request)
         paramsOmitted = self.omit(paramsUntil, ['price'])
@@ -856,7 +900,7 @@ class paradex(Exchange, ImplicitAPI):
                 sinceInt = self.parse_to_int(since)
                 requestUntil['end_at'] = sinceInt + windowLength - 1
         else:
-            endAtRaw = self.safe_integer(requestUntil, 'end_at', 0) if hasEnd else self.milliseconds()
+            endAtRaw = self.safe_integer(requestUntil, 'end_at', self.milliseconds())
             endAt = self.parse_to_int(endAtRaw)
             requestUntil['end_at'] = endAt
             requestUntil['start_at'] = endAt - windowLength + 1
@@ -1305,7 +1349,7 @@ class paradex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['contract'] is not True:
+        if not self.safe_bool(market, 'contract', False):
             raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
         request = {
             'market': market['id'],
@@ -1392,13 +1436,13 @@ class paradex(Exchange, ImplicitAPI):
         if l1:
             l1D = {
                 'name': 'Paradex',
-                'chainId': systemConfig['l1_chain_id'],
+                'chainId': self.safe_string(systemConfig, 'l1_chain_id'),
                 'version': '1',
             }
             return l1D
         domain = {
             'name': 'Paradex',
-            'chainId': systemConfig['starknet_chain_id'],
+            'chainId': self.safe_string(systemConfig, 'starknet_chain_id'),
             'version': 1,
         }
         return domain
@@ -1420,13 +1464,13 @@ class paradex(Exchange, ImplicitAPI):
             signature = self.sign_message(msg, self.privateKey)
             account = self.retrieve_stark_account(
                 signature,
-                systemConfig['paraclear_account_hash'],
-                systemConfig['paraclear_account_proxy_hash']
+                self.safe_string(systemConfig, 'paraclear_account_hash'),
+                self.safe_string(systemConfig, 'paraclear_account_proxy_hash')
             )
             self.options['paradexAccount'] = account
         return self.safe_dict(self.options, 'paradexAccount', {})
 
-    async def onboarding(self, params: dict = {}):
+    async def onboarding(self, params: dict = {}) -> dict:
         account = await self.retrieve_account()
         req = {
             'action': 'Onboarding',
@@ -1437,11 +1481,11 @@ class paradex(Exchange, ImplicitAPI):
                 {'name': 'action', 'type': 'felt'},
             ],
         }
-        msg = self.starknet_encode_structured_data(domain, messageTypes, req, account['address'])
+        msg = self.starknet_encode_structured_data(domain, messageTypes, req, self.safe_string(account, 'address'))
         signature = self.starknet_sign(msg, account['privateKey'])
         params['signature'] = signature
-        params['account'] = account['address']
-        params['public_key'] = account['publicKey']
+        params['account'] = self.safe_string(account, 'address')
+        params['public_key'] = self.safe_string(account, 'publicKey')
         response = await self.privatePostOnboarding(params)
         return response
 
@@ -1474,10 +1518,10 @@ class paradex(Exchange, ImplicitAPI):
                 {'name': 'expiration', 'type': 'felt'},
             ],
         }
-        msg = self.starknet_encode_structured_data(domain, messageTypes, req, account['address'])
+        msg = self.starknet_encode_structured_data(domain, messageTypes, req, self.safe_string(account, 'address'))
         signature = self.starknet_sign(msg, account['privateKey'])
         params['signature'] = signature
-        params['account'] = account['address']
+        params['account'] = self.safe_string(account, 'address')
         params['timestamp'] = req['timestamp']
         params['expiration'] = req['expiration']
         response = await self.privatePostAuth(params)
@@ -1607,7 +1651,7 @@ class paradex(Exchange, ImplicitAPI):
         }
         return self.safe_string_lower(types, type, type)
 
-    def scale_number(self, num: str) -> Str:
+    def scale_number(self, num: Str) -> Str:
         return Precise.string_mul(num, '100000000')
 
     def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
@@ -1695,11 +1739,11 @@ class paradex(Exchange, ImplicitAPI):
         isMarket = (orderType.find('MARKET') >= 0)
         orderReq = {
             'timestamp': now * 1000,
-            'market': self.string_to_base16(request['market']),
+            'market': self.string_to_base16(self.safe_string(request, 'market')),
             'side': '1' if (self.safe_string(request, 'side') == 'BUY') else '2',
-            'orderType': self.string_to_base16(request['type']),
-            'size': self.scale_number(request['size']),
-            'price': '0' if (isMarket) else self.scale_number(request['price']),
+            'orderType': self.string_to_base16(self.safe_string(request, 'type')),
+            'size': self.scale_number(self.safe_string(request, 'size')),
+            'price': '0' if (isMarket) else self.scale_number(self.safe_string(request, 'price')),
         }
         orderFields = [
             {'name': 'timestamp', 'type': 'felt'},
@@ -1711,7 +1755,7 @@ class paradex(Exchange, ImplicitAPI):
         ]
         messageTypes = {}
         if modify:
-            orderReq['id'] = request['id']
+            orderReq['id'] = self.safe_string(request, 'id')
             orderFields.append({'name': 'id', 'type': 'felt'})
             messageTypes = {
                 'ModifyOrder': orderFields,
@@ -1721,7 +1765,7 @@ class paradex(Exchange, ImplicitAPI):
                 'Order': orderFields,
             }
         domain = await self.prepare_paradex_domain()
-        msg = self.starknet_encode_structured_data(domain, messageTypes, orderReq, account['address'])
+        msg = self.starknet_encode_structured_data(domain, messageTypes, orderReq, self.safe_string(account, 'address'))
         signature = self.starknet_sign(msg, account['privateKey'])
         signedRequest = self.extend(request, {
             'signature': signature,
@@ -1884,37 +1928,44 @@ class paradex(Exchange, ImplicitAPI):
             ordersRequests.append(orderRequest)
         response = await self.privatePostOrdersBatch(ordersRequests)
         #
-        # {
-        #     "errors": [
-        #         {
-        #             "error": "VALIDATION_ERROR",
-        #             "message": "Invalid order"
-        #         }
-        #     ],
-        #     "orders": [
-        #         {
-        #             "id": "123456",
-        #             "market": "BTC-USD-PERP",
-        #             "side": "BUY",
-        #             "type": "LIMIT",
-        #             "price": "26000",
-        #             "size": "0.05",
-        #             "status": "NEW"
-        #         }
-        #     ]
-        # }
+        # orders and errors are index-aligned with the request, null where the other array has the entry
+        #
+        #     {
+        #         "errors": [
+        #             null,
+        #             {
+        #                 "error": "DUPLICATED_CLIENT_ID",
+        #                 "message": "duplicated client order id"
+        #             }
+        #         ],
+        #         "orders": [
+        #             {
+        #                 "id": "123456",
+        #                 "market": "BTC-USD-PERP",
+        #                 "side": "BUY",
+        #                 "type": "LIMIT",
+        #                 "price": "26000",
+        #                 "size": "0.05",
+        #                 "status": "NEW"
+        #             },
+        #             null
+        #         ]
+        #     }
         #
         responseOrders = self.safe_list(response, 'orders', [])
-        parsedOrders = self.parse_orders(responseOrders)
         errors = self.safe_list(response, 'errors', [])
-        rejected = []
-        for i in range(0, len(errors)):
-            error = errors[i]
-            rejected.append(self.safe_order({
-                'info': error,
-                'status': 'rejected',
-            }))
-        return self.array_concat(parsedOrders, rejected)
+        result = []
+        for i in range(0, len(orders)):
+            responseOrder = self.safe_dict(responseOrders, i)
+            if responseOrder is not None:
+                result.append(self.parse_order(responseOrder))
+            else:
+                error = self.safe_dict(errors, i)
+                result.append(self.safe_order({
+                    'info': error,
+                    'status': 'rejected',
+                }))
+        return result
 
     async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -1963,7 +2014,7 @@ class paradex(Exchange, ImplicitAPI):
             await self.load_markets()
         clientOrderIds = self.safe_list_n(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids'])
         paramsOmitted = self.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids'])
-        hasOrderIds = (ids is not None) and (isinstance(ids, list))
+        hasOrderIds = isinstance(ids, list)
         hasClientOrderIds = (clientOrderIds is not None) and (isinstance(clientOrderIds, list))
         if not hasOrderIds and not hasClientOrderIds:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter')
@@ -2255,9 +2306,9 @@ class paradex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'results', [])
-        return self.parse_balance(data)
+        return self.parse_balance_list(data)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: list[dict]) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             balance = self.safe_dict(response, i, {})
@@ -3265,18 +3316,18 @@ class paradex(Exchange, ImplicitAPI):
             privateBody = None
             # TODO: optimize
             if pathValue == 'auth':
-                privateHeaders['PARADEX-STARKNET-ACCOUNT'] = query['account']
-                privateHeaders['PARADEX-STARKNET-SIGNATURE'] = query['signature']
-                privateHeaders['PARADEX-TIMESTAMP'] = str(query['timestamp'])
-                privateHeaders['PARADEX-SIGNATURE-EXPIRATION'] = str(query['expiration'])
+                privateHeaders['PARADEX-STARKNET-ACCOUNT'] = self.safe_string(query, 'account')
+                privateHeaders['PARADEX-STARKNET-SIGNATURE'] = self.safe_string(query, 'signature')
+                privateHeaders['PARADEX-TIMESTAMP'] = self.safe_string(query, 'timestamp')
+                privateHeaders['PARADEX-SIGNATURE-EXPIRATION'] = self.safe_string(query, 'expiration')
             elif pathValue == 'onboarding':
                 privateHeaders['PARADEX-ETHEREUM-ACCOUNT'] = self.walletAddress
-                privateHeaders['PARADEX-STARKNET-ACCOUNT'] = query['account']
-                privateHeaders['PARADEX-STARKNET-SIGNATURE'] = query['signature']
-                privateHeaders['PARADEX-TIMESTAMP'] = str(self.nonce())
+                privateHeaders['PARADEX-STARKNET-ACCOUNT'] = self.safe_string(query, 'account')
+                privateHeaders['PARADEX-STARKNET-SIGNATURE'] = self.safe_string(query, 'signature')
+                privateHeaders['PARADEX-TIMESTAMP'] = self.number_to_string(self.nonce())
                 privateHeaders['Content-Type'] = 'application/json'
                 privateBody = self.json({
-                    'public_key': query['public_key'],
+                    'public_key': self.safe_string(query, 'public_key'),
                 })
             else:
                 token = self.safe_string(self.options, 'authToken')
@@ -3304,7 +3355,7 @@ class paradex(Exchange, ImplicitAPI):
             return {'url': url, 'method': method, 'body': bodyResolved, 'headers': privateHeaders}
         return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
         #
@@ -3315,6 +3366,21 @@ class paradex(Exchange, ImplicitAPI):
         #     }
         #
         errorCode = self.safe_string(response, 'error')
+        if (errorCode is None) and (code == 400):
+            #
+            # a batch where every order was rejected, errors are index-aligned with the request
+            #
+            #     {
+            #         "errors": [ { "error": "DUPLICATED_CLIENT_ID", "message": "..." } ],
+            #         "orders": [ null ]
+            #     }
+            #
+            batchErrors = self.safe_list(response, 'errors', [])
+            for i in range(0, len(batchErrors)):
+                batchErrorCode = self.safe_string(batchErrors[i], 'error')
+                if batchErrorCode is not None:
+                    errorCode = batchErrorCode
+                    break
         if errorCode is not None:
             feedback = self.id + ' ' + body
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)

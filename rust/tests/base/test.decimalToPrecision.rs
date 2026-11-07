@@ -23,9 +23,9 @@ pub fn testDecimalToPrecision() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("12.3456".into()), Value::Int(ccxt::runtime::TRUNCATE), Value::Int(2), &[Value::Int(ccxt::runtime::DECIMAL_PLACES)]).as_str() == Some("12.34")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("12.3456".into()), Value::Int(ccxt::runtime::TRUNCATE), Value::Int(1), &[Value::Int(ccxt::runtime::DECIMAL_PLACES)]).as_str() == Some("12.3")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("12.3456".into()), Value::Int(ccxt::runtime::TRUNCATE), Value::Int(0), &[Value::Int(ccxt::runtime::DECIMAL_PLACES)]).as_str() == Some("12")))));
-    // ['12.3456',    Value::Int(ccxt::runtime::TRUNCATE),  -1, Value::Int(ccxt::runtime::DECIMAL_PLACES),  '10'],   // not yet supported
-    // ['123.456',    Value::Int(ccxt::runtime::TRUNCATE),  -2, Value::Int(ccxt::runtime::DECIMAL_PLACES),  '120'],  // not yet supported
-    // ['123.456',    Value::Int(ccxt::runtime::TRUNCATE),  -3, Value::Int(ccxt::runtime::DECIMAL_PLACES),  '100'],  // not yet supported
+    // ['12.3456',    TRUNCATE,  -1, DECIMAL_PLACES,  '10'],   // not yet supported
+    // ['123.456',    TRUNCATE,  -2, DECIMAL_PLACES,  '120'],  // not yet supported
+    // ['123.456',    TRUNCATE,  -3, DECIMAL_PLACES,  '100'],  // not yet supported
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("0.0000001".into()), Value::Int(ccxt::runtime::TRUNCATE), Value::Int(8), &[Value::Int(ccxt::runtime::DECIMAL_PLACES)]).as_str() == Some("0.0000001")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("0.00000001".into()), Value::Int(ccxt::runtime::TRUNCATE), Value::Int(8), &[Value::Int(ccxt::runtime::DECIMAL_PLACES)]).as_str() == Some("0.00000001")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("0.000000000".into()), Value::Int(ccxt::runtime::TRUNCATE), Value::Int(9), &[Value::Int(ccxt::runtime::DECIMAL_PLACES), Value::Int(ccxt::runtime::PAD_WITH_ZERO)]).as_str() == Some("0.000000000")))));
@@ -74,14 +74,14 @@ pub fn testDecimalToPrecision() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("12.3456".into()), Value::Int(ccxt::runtime::ROUND), Value::Int(1), &[Value::Int(ccxt::runtime::DECIMAL_PLACES)]).as_str() == Some("12.3")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("12.3456".into()), Value::Int(ccxt::runtime::ROUND), Value::Int(0), &[Value::Int(ccxt::runtime::DECIMAL_PLACES)]).as_str() == Some("12")))));
     // todo:
-    // ['9.999',     Value::Int(ccxt::runtime::ROUND),   3, Value::Int(ccxt::runtime::DECIMAL_PLACES),    Value::Int(ccxt::runtime::NO_PADDING),  '9.999'],
-    // ['9.999',     Value::Int(ccxt::runtime::ROUND),   2, Value::Int(ccxt::runtime::DECIMAL_PLACES),    Value::Int(ccxt::runtime::NO_PADDING),  '10'],
-    // ['9.999',     Value::Int(ccxt::runtime::ROUND),   2, Value::Int(ccxt::runtime::DECIMAL_PLACES), Value::Int(ccxt::runtime::PAD_WITH_ZERO),  '10.00'],
-    // ['99.999',    Value::Int(ccxt::runtime::ROUND),   2, Value::Int(ccxt::runtime::DECIMAL_PLACES), Value::Int(ccxt::runtime::PAD_WITH_ZERO),  '100.00'],
-    // ['-99.999',    Value::Int(ccxt::runtime::ROUND),   2, Value::Int(ccxt::runtime::DECIMAL_PLACES), Value::Int(ccxt::runtime::PAD_WITH_ZERO), '-100.00'],
-    // ['12.3456',    Value::Int(ccxt::runtime::ROUND),  -1, Value::Int(ccxt::runtime::DECIMAL_PLACES),    Value::Int(ccxt::runtime::NO_PADDING),  '10'],  // not yet supported
-    // ['123.456',    Value::Int(ccxt::runtime::ROUND),  -1, Value::Int(ccxt::runtime::DECIMAL_PLACES),    Value::Int(ccxt::runtime::NO_PADDING),  '120'],  // not yet supported
-    // ['123.456',    Value::Int(ccxt::runtime::ROUND),  -2, Value::Int(ccxt::runtime::DECIMAL_PLACES),    Value::Int(ccxt::runtime::NO_PADDING),  '100'],  // not yet supported
+    // ['9.999',     ROUND,   3, DECIMAL_PLACES,    NO_PADDING,  '9.999'],
+    // ['9.999',     ROUND,   2, DECIMAL_PLACES,    NO_PADDING,  '10'],
+    // ['9.999',     ROUND,   2, DECIMAL_PLACES, PAD_WITH_ZERO,  '10.00'],
+    // ['99.999',    ROUND,   2, DECIMAL_PLACES, PAD_WITH_ZERO,  '100.00'],
+    // ['-99.999',    ROUND,   2, DECIMAL_PLACES, PAD_WITH_ZERO, '-100.00'],
+    // ['12.3456',    ROUND,  -1, DECIMAL_PLACES,    NO_PADDING,  '10'],  // not yet supported
+    // ['123.456',    ROUND,  -1, DECIMAL_PLACES,    NO_PADDING,  '120'],  // not yet supported
+    // ['123.456',    ROUND,  -2, DECIMAL_PLACES,    NO_PADDING,  '100'],  // not yet supported
     // a problematic case in PHP
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("10000".into()), Value::Int(ccxt::runtime::ROUND), Value::Int(6), &[Value::Int(ccxt::runtime::DECIMAL_PLACES)]).as_str() == Some("10000")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("0.00003186".into()), Value::Int(ccxt::runtime::ROUND), Value::Int(8), &[Value::Int(ccxt::runtime::DECIMAL_PLACES)]).as_str() == Some("0.00003186")))));
@@ -197,7 +197,7 @@ pub fn testDecimalToPrecision() {
     // ----------------------------------------------------------------------------
     // negative precision only implemented so far in python
     // pretty useless for decimal applications as anything |x| < 5 === 0
-    // Value::Int(ccxt::runtime::NO_PADDING) and Value::Int(ccxt::runtime::PAD_WITH_ZERO) are ignored
+    // NO_PADDING and PAD_WITH_ZERO are ignored
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("5".into()), Value::Int(ccxt::runtime::ROUND), Value::Int(-1), &[Value::Int(ccxt::runtime::DECIMAL_PLACES)]).as_str() == Some("10")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("4.999".into()), Value::Int(ccxt::runtime::ROUND), Value::Int(-1), &[Value::Int(ccxt::runtime::DECIMAL_PLACES)]).as_str() == Some("0")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("0.0431531423".into()), Value::Int(ccxt::runtime::ROUND), Value::Int(-1), &[Value::Int(ccxt::runtime::DECIMAL_PLACES)]).as_str() == Some("0")))));
@@ -217,8 +217,8 @@ pub fn testDecimalToPrecision() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("-165".into()), Value::Int(ccxt::runtime::TRUNCATE), Value::Str("110".into()), &[Value::Int(ccxt::runtime::TICK_SIZE)]).as_str() == Some("-110")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("-165".into()), Value::Int(ccxt::runtime::ROUND), Value::Str("110".into()), &[Value::Int(ccxt::runtime::TICK_SIZE)]).as_str() == Some("-220")))));
     // ----------------------------------------------------------------------------
-    // testDecimalToPrecisionErrorHandling (todo): negative precision (Value::Int(ccxt::runtime::TRUNCATE), -2, Value::Int(ccxt::runtime::DECIMAL_PLACES)),
-    // illegal characters ('foo') and Value::Int(ccxt::runtime::TICK_SIZE) with negative numPrecisionDigits must all throw
+    // testDecimalToPrecisionErrorHandling (todo): negative precision (TRUNCATE, -2, DECIMAL_PLACES),
+    // illegal characters ('foo') and TICK_SIZE with negative numPrecisionDigits must all throw
     // ----------------------------------------------------------------------------
     // Additional Edge Cases
     // Zero handling variations
@@ -256,22 +256,22 @@ pub fn testDecimalToPrecision() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("9.999999".into()), Value::Int(ccxt::runtime::ROUND), Value::Int(2), &[Value::Int(ccxt::runtime::DECIMAL_PLACES)]).as_str() == Some("10")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("-9.999999".into()), Value::Int(ccxt::runtime::ROUND), Value::Int(0), &[Value::Int(ccxt::runtime::DECIMAL_PLACES)]).as_str() == Some("-10")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("-99.999999".into()), Value::Int(ccxt::runtime::ROUND), Value::Int(0), &[Value::Int(ccxt::runtime::DECIMAL_PLACES)]).as_str() == Some("-100")))));
-    // Edge cases for Value::Int(ccxt::runtime::TICK_SIZE) with very small ticks
+    // Edge cases for TICK_SIZE with very small ticks
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("1.2345".into()), Value::Int(ccxt::runtime::ROUND), Value::Float(0.0001), &[Value::Int(ccxt::runtime::TICK_SIZE)]).as_str() == Some("1.2345")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("1.23456".into()), Value::Int(ccxt::runtime::ROUND), Value::Float(0.0001), &[Value::Int(ccxt::runtime::TICK_SIZE)]).as_str() == Some("1.2346")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("1.23454".into()), Value::Int(ccxt::runtime::ROUND), Value::Float(0.0001), &[Value::Int(ccxt::runtime::TICK_SIZE)]).as_str() == Some("1.2345")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("1.23444".into()), Value::Int(ccxt::runtime::TRUNCATE), Value::Float(0.0001), &[Value::Int(ccxt::runtime::TICK_SIZE)]).as_str() == Some("1.2344")))));
-    // Value::Int(ccxt::runtime::TICK_SIZE) with numbers smaller than tick
+    // TICK_SIZE with numbers smaller than tick
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("0.05".into()), Value::Int(ccxt::runtime::ROUND), Value::Float(0.1), &[Value::Int(ccxt::runtime::TICK_SIZE)]).as_str() == Some("0.1")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("0.04".into()), Value::Int(ccxt::runtime::ROUND), Value::Float(0.1), &[Value::Int(ccxt::runtime::TICK_SIZE)]).as_str() == Some("0")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("0.04".into()), Value::Int(ccxt::runtime::TRUNCATE), Value::Float(0.1), &[Value::Int(ccxt::runtime::TICK_SIZE)]).as_str() == Some("0")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("0.049999".into()), Value::Int(ccxt::runtime::ROUND), Value::Float(0.1), &[Value::Int(ccxt::runtime::TICK_SIZE)]).as_str() == Some("0")))));
-    // Value::Int(ccxt::runtime::SIGNIFICANT_DIGITS) edge cases
+    // SIGNIFICANT_DIGITS edge cases
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("10000000".into()), Value::Int(ccxt::runtime::TRUNCATE), Value::Int(1), &[Value::Int(ccxt::runtime::SIGNIFICANT_DIGITS)]).as_str() == Some("10000000")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("10000001".into()), Value::Int(ccxt::runtime::TRUNCATE), Value::Int(1), &[Value::Int(ccxt::runtime::SIGNIFICANT_DIGITS)]).as_str() == Some("10000000")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("19999999".into()), Value::Int(ccxt::runtime::TRUNCATE), Value::Int(1), &[Value::Int(ccxt::runtime::SIGNIFICANT_DIGITS)]).as_str() == Some("10000000")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("19999999".into()), Value::Int(ccxt::runtime::ROUND), Value::Int(1), &[Value::Int(ccxt::runtime::SIGNIFICANT_DIGITS)]).as_str() == Some("20000000")))));
-    // Precision with Value::Int(ccxt::runtime::PAD_WITH_ZERO) edge cases
+    // Precision with PAD_WITH_ZERO edge cases
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("1".into()), Value::Int(ccxt::runtime::TRUNCATE), Value::Int(0), &[Value::Int(ccxt::runtime::DECIMAL_PLACES), Value::Int(ccxt::runtime::PAD_WITH_ZERO)]).as_str() == Some("1")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("1.0".into()), Value::Int(ccxt::runtime::TRUNCATE), Value::Int(0), &[Value::Int(ccxt::runtime::DECIMAL_PLACES), Value::Int(ccxt::runtime::PAD_WITH_ZERO)]).as_str() == Some("1")))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(exchange.decimal_to_precision(Value::Str("1".into()), Value::Int(ccxt::runtime::TRUNCATE), Value::Int(3), &[Value::Int(ccxt::runtime::DECIMAL_PLACES), Value::Int(ccxt::runtime::PAD_WITH_ZERO)]).as_str() == Some("1.000")))));

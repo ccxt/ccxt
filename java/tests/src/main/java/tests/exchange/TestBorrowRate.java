@@ -13,7 +13,7 @@ import java.util.Map;
 
 
 public class TestBorrowRate extends BaseTest {
-    public static void testBorrowRate(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object requestedCode)
+    public static void testBorrowRate(BaseExchange exchange, Object skippedProperties, String method, Object entry, String requestedCode)
     {
         Map<String, Object> format = new HashMap<String, Object>() {{
             put( "info", new HashMap<String, Object>() {{}} );
@@ -23,13 +23,13 @@ public class TestBorrowRate extends BaseTest {
             put( "rate", exchange.parseNumber("0.0006") );
             put( "period", 86400000 );
         }};
-        TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format);
-        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry);
-        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, ((Map<String, Object>)entry).get("currency"), requestedCode);
+        TestSharedMethods.AssertStructure(exchange, skippedProperties, (String) (method), entry, format);
+        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, (String) (method), entry);
+        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, (String) (method), entry, (String) (((Map<String, Object>)entry).get("currency")), requestedCode);
         //
         // Assert (borrowRate['period'] === 86400000 || borrowRate['period'] === 3600000) // Milliseconds in an hour or a day
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "period", "0");
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "rate", "0");
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "period", "0");
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "rate", "0");
     }
 
 }

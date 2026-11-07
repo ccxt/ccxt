@@ -14,7 +14,7 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestFetchOpenInterestHistory extends BaseTest {
-    public CompletableFuture<Object> testFetchOpenInterestHistory(BaseExchange exchange, Object skippedProperties, Object symbol)
+    public CompletableFuture<Object> testFetchOpenInterestHistory(BaseExchange exchange, Object skippedProperties, String symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {

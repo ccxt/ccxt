@@ -41,6 +41,7 @@ public partial class latoken : Exchange
                 { "fetchBorrowRateHistory", false },
                 { "fetchBorrowRates", false },
                 { "fetchBorrowRatesPerSymbol", false },
+                { "fetchClosedOrders", "emulated" },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
@@ -382,6 +383,31 @@ public partial class latoken : Exchange
                     { "ACCOUNT_TYPE_WALLET", "wallet" },
                     { "ACCOUNT_TYPE_SPOT", "spot" },
                 } },
+                { "networks", new Dictionary<string, object>() {
+                    { "BEP20", "BSC_TOKEN" },
+                    { "TRC20", "TRON" },
+                    { "ADA", "ADA_TOKEN" },
+                    { "ALGO", "ALGO_TOKEN" },
+                    { "ARBITRUM", "ARB_TOKEN" },
+                    { "AVAXC", "AVAXC_TOKEN" },
+                    { "BASE", "BASE_TOKEN" },
+                    { "CELO", "CELO_TOKEN" },
+                    { "EOS", "EOS_TOKEN" },
+                    { "FTM", "FTM_TOKEN" },
+                    { "MATIC", "MATIC_TOKEN" },
+                    { "OP", "OP_TOKEN" },
+                    { "QTUM", "QTUM_TOKEN" },
+                    { "SOL", "SOL_TOKEN" },
+                    { "TON", "TON_TOKEN" },
+                    { "VET", "VECHAIN_TOKEN" },
+                    { "WAVES", "WAVES_TOKEN" },
+                    { "XDC", "XDC_TOKEN" },
+                    { "XLM", "XLM_TOKEN" },
+                    { "XRP", "XRP_TOKEN" },
+                } },
+                { "networksById", new Dictionary<string, object>() {
+                    { "BSC", "BEP20" },
+                } },
                 { "fetchTradingFee", new Dictionary<string, object>() {
                     { "method", "fetchPrivateTradingFee" },
                 } },
@@ -409,7 +435,7 @@ public partial class latoken : Exchange
                         { "selfTradePrevention", false },
                         { "trailing", false },
                         { "leverage", false },
-                        { "marketBuyByCost", true },
+                        { "marketBuyByCost", false },
                         { "marketBuyRequiresPrice", false },
                         { "iceberg", false },
                     } },
@@ -430,11 +456,19 @@ public partial class latoken : Exchange
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", null },
-                        { "trigger", false },
+                        { "trigger", true },
                         { "trailing", false },
                         { "symbolRequired", true },
                     } },
-                    { "fetchOrders", null },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", null },
+                        { "daysBack", null },
+                        { "untilDays", null },
+                        { "trigger", true },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 1000 },
@@ -486,7 +520,7 @@ public partial class latoken : Exchange
         //         "serverTime": 1570615577321
         //     }
         //
-        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "serverTime"));
+        return this.safeInteger(response, "serverTime") ?? 0;
     }
 
     /**
@@ -531,7 +565,7 @@ public partial class latoken : Exchange
         IList<object> rawMarkets = this.toArray(response);
         for (int i = 0; i < (rawMarkets?.Count ?? 0); i++)
         {
-            object market = rawMarkets[i];
+            object market = this.safeValue(rawMarkets, i);
             string? id = this.safeString(market, "id");
             // the exchange shows them inverted
             string? baseId = this.safeString(market, "baseCurrency");
@@ -609,11 +643,15 @@ public partial class latoken : Exchange
      * @method
      * @name latoken#fetchCurrencies
      * @description fetches all available currencies on an exchange
+     * @see https://api.latoken.com/doc/v2/#tag/Currency/operation/getActiveCurrencies
+     * @see https://api.latoken.com/doc/v2/#tag/Transaction/operation/getBindings
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
     public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
+        // sequential on purpose - with Promise.all the static request harness records
+        // whichever call finished last, which differs between the sync and async ports
         parameters ??= new Dictionary<string, object>();
         List<object> response = await this.publicGetCurrency(parameters);
         //
@@ -648,7 +686,45 @@ public partial class latoken : Exchange
         //         },
         //     ]
         //
-        return this.parseCurrencies(response);
+        //     [
+        //         {
+        //             "id":"0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        //             "tag":"USDT",
+        //             "bindings":[
+        //                 {
+        //                     "minAmount":"5.000000000000000000",
+        //                     "maxAmount":"0",
+        //                     "fee":"3.000000000000000000",
+        //                     "percentFee":"0.250000000000000000",
+        //                     "providerName":"ERC20",
+        //                     "id":"973d2079-1fae-4fa7-82e4-bae55eba8284",
+        //                     "currencyProvider":"4d26b9ec-4bed-4bec-ba2f-02aaca8e84a1",
+        //                     "deflation":"0"
+        //                 },
+        //             ]
+        //         },
+        //     ]
+        //
+        // no params on this one - they belong to the currency request, not to the bindings
+        List<object> bindingsResponse = await this.publicGetTransactionBindings();
+        Dictionary<string, object> bindingsById = this.indexBy(bindingsResponse, "id");
+        IList<object> rawCurrencies = this.toArray(response);
+        List<object> merged = new List<object>() {};
+        for (int i = 0; i < (rawCurrencies?.Count ?? 0); i++)
+        {
+            object rawCurrency = this.safeValue(rawCurrencies, i);
+            IDictionary<string, object> bindingEntry = this.safeDict(bindingsById, this.safeString(rawCurrency, "id"));
+            List<object> bindings = this.safeList(bindingEntry, "bindings");
+            object mergedCurrency = rawCurrency;
+            if ((bindings != null))
+            {
+                mergedCurrency = this.extend(rawCurrency, new Dictionary<string, object>() {
+                    { "bindings", bindings },
+                });
+            }
+            merged.Add(mergedCurrency);
+        }
+        return this.parseCurrencies(merged);
     }
 
     public override Dictionary<string, object> parseCurrency(object currency)
@@ -658,6 +734,40 @@ public partial class latoken : Exchange
         string? code = this.safeCurrencyCode(tag);
         string? currencyType = this.safeString(currency, "type");
         bool isCrypto = (currencyType == "CURRENCY_TYPE_CRYPTO" || currencyType == "CURRENCY_TYPE_IEO");
+        List<object> bindings = this.safeList(currency, "bindings", new List<object>() {});
+        Dictionary<string, object> networks = new Dictionary<string, object>() {};
+        for (int i = 0; i < bindings.Count; i++)
+        {
+            object binding = bindings[i];
+            string? networkId = this.safeString(binding, "providerName");
+            string? networkCode = this.networkIdToCode(networkId, code);
+            // the venue lists one provider twice on a currency (MBS, SOL_TOKEN), and both
+            // entries would land on the same unified code - keep the first one for a
+            // deterministic binding id, since withdrawals resolve the chain through it
+            if (((networkCode != null)) && !(((networkCode != null) && (networks?.ContainsKey(networkCode) == true))))
+            {
+                networks[(string)networkCode] = new Dictionary<string, object>() {
+                    { "info", binding },
+                    { "id", this.safeString(binding, "id") },
+                    { "network", networkCode },
+                    { "active", null },
+                    { "deposit", null },
+                    { "withdraw", null },
+                    { "fee", this.safeNumber(binding, "fee") },
+                    { "precision", null },
+                    { "limits", new Dictionary<string, object>() {
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(binding, "minAmount") },
+                            { "max", null },
+                        } },
+                    } },
+                };
+            }
+        }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
             { "code", code },
@@ -667,7 +777,7 @@ public partial class latoken : Exchange
             { "active", (this.safeString(currency, "status") == "CURRENCY_STATUS_ACTIVE") },
             { "deposit", null },
             { "withdraw", null },
-            { "fee", this.safeNumber(currency, "fee") },
+            { "fee", null },
             { "precision", this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals"))) },
             { "limits", new Dictionary<string, object>() {
                 { "amount", new Dictionary<string, object>() {
@@ -679,7 +789,7 @@ public partial class latoken : Exchange
                     { "max", null },
                 } },
             } },
-            { "networks", new Dictionary<string, object>() {} },
+            { "networks", networks },
         });
     }
 
@@ -729,11 +839,12 @@ public partial class latoken : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        Int64? maxTimestamp = null;
         IDictionary<string, object> types = this.safeDict(this.options, "types", new Dictionary<string, object>() {});
         string? accountType = this.safeString(types, type, type);
         Dictionary<string, object> balancesByType = this.groupBy(response, "type");
         List<object> balances = this.safeList(balancesByType, accountType, new List<object>() {});
+        IDictionary<string, object> firstBalance = this.safeDict(balances, 0);
+        Int64? maxTimestamp = this.safeInteger(firstBalance, "timestamp");
         for (int i = 0; i < balances.Count; i++)
         {
             IDictionary<string, object> balance = this.safeDict(balances, i);
@@ -874,7 +985,7 @@ public partial class latoken : Exchange
         if (((bs != null)) && ((quote != null)))
         {
             symbol = ((bs + "/") + quote);
-            if (((this.markets != null)) && ((this.markets != null && symbol != null && this.markets.ContainsKey(symbol))))
+            if (((this.markets != null)) && (((symbol != null) && (this.markets != null && symbol != null && this.markets.ContainsKey(symbol)))))
             {
                 marketResolved = this.market(symbol);
             }
@@ -989,7 +1100,7 @@ public partial class latoken : Exchange
         //        }
         //    ]
         //
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, this.toArray(symbols)));
     }
 
     public override ccxt.Trade parseTrade(object trade, object market = null)
@@ -1026,16 +1137,16 @@ public partial class latoken : Exchange
         //         "makerBuyer":false
         //     }
         //
-        object type = null;
+        string? type = null;
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "quantity");
         string? costString = this.safeString(trade, "cost");
-        bool? makerBuyer = this.safeBool(trade, "makerBuyer");
+        bool? makerBuyer = this.safeBool(trade, "makerBuyer", false);
         string? side = this.safeString(trade, "direction");
         if ((side == null))
         {
-            side = ((makerBuyer == true)) ? "sell" : "buy";
+            side = makerBuyer == true ? "sell" : "buy";
         } else
         {
             if (side == "TRADE_DIRECTION_BUY")
@@ -1047,7 +1158,7 @@ public partial class latoken : Exchange
             }
         }
         bool isBuy = (side == "buy");
-        bool isMaker = ((makerBuyer == true)) && isBuy;
+        bool isMaker = (makerBuyer == true) && isBuy;
         string takerOrMaker = isMaker ? "maker" : "taker";
         string? baseId = this.safeString(trade, "baseCurrency");
         string? quoteId = this.safeString(trade, "quoteCurrency");
@@ -1058,7 +1169,7 @@ public partial class latoken : Exchange
         if (((bs != null)) && ((quote != null)))
         {
             symbol = ((bs + "/") + quote);
-            if (((this.markets != null)) && ((this.markets != null && symbol != null && this.markets.ContainsKey(symbol))))
+            if (((this.markets != null)) && (((symbol != null) && (this.markets != null && symbol != null && this.markets.ContainsKey(symbol)))))
             {
                 marketResolved = this.market(symbol);
             }
@@ -1179,7 +1290,14 @@ public partial class latoken : Exchange
         //         "take": "FEE_SCHEME_TAKE_PROPORTION"
         //     }
         //
-        return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {             { "info", response },             { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },             { "maker", this.safeNumber(response, "makerFee") },             { "taker", this.safeNumber(response, "takerFee") },             { "percentage", null },             { "tierBased", null },         });
+        return new Dictionary<string, object>() {
+            { "info", response },
+            { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
+            { "maker", this.safeNumber(response, "makerFee") },
+            { "taker", this.safeNumber(response, "takerFee") },
+            { "percentage", null },
+            { "tierBased", null },
+        };
     }
 
     public async virtual Task<Dictionary<string, object>> FetchPrivateTradingFee(string? symbol, IDictionary<string, object>? parameters = null)
@@ -1203,7 +1321,14 @@ public partial class latoken : Exchange
         //         "take": "FEE_SCHEME_TAKE_PROPORTION"
         //     }
         //
-        return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {             { "info", response },             { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },             { "maker", this.safeNumber(response, "makerFee") },             { "taker", this.safeNumber(response, "takerFee") },             { "percentage", null },             { "tierBased", null },         });
+        return new Dictionary<string, object>() {
+            { "info", response },
+            { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
+            { "maker", this.safeNumber(response, "makerFee") },
+            { "taker", this.safeNumber(response, "takerFee") },
+            { "percentage", null },
+            { "tierBased", null },
+        };
     }
 
     /**
@@ -1348,7 +1473,7 @@ public partial class latoken : Exchange
         {
             symbol = ((bs + "/") + quote);
         }
-        bool symbolKnown = ((symbol != null)) && ((this.markets != null)) && ((this.markets != null && symbol != null && this.markets.ContainsKey(symbol)));
+        bool symbolKnown = ((symbol != null)) && ((this.markets != null)) && (((symbol != null) && (this.markets != null && symbol != null && this.markets.ContainsKey(symbol))));
         object marketResolved = market;
         if (symbolKnown)
         {
@@ -2085,12 +2210,12 @@ public partial class latoken : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiName = getValue(api, 0);
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
         Dictionary<string, object> requestHeaders = null;
         string? requestBody = null;
         string request = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));
@@ -2099,12 +2224,12 @@ public partial class latoken : Exchange
         string urlencodedQuery = this.urlencode(query);
         if ((method == "GET"))
         {
-            if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
+            if (urlencodedQuery != "")
             {
                 requestString = requestString + ("?" + urlencodedQuery);
             }
         }
-        if ((apiName is "private"))
+        if (apiName == "private")
         {
             this.checkRequiredCredentials();
             string auth = ((method + request) + urlencodedQuery);
@@ -2120,7 +2245,7 @@ public partial class latoken : Exchange
                 requestBody = this.json(query);
             }
         }
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "rest");
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -2134,7 +2259,7 @@ public partial class latoken : Exchange
         };
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
@@ -2150,14 +2275,14 @@ public partial class latoken : Exchange
         string feedback = ((this.id + " ") + (body));
         if ((message != null))
         {
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
         }
         string? error = this.safeString(response, "error");
         if ((error != null))
         {
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), error, feedback);
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), body, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), error, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

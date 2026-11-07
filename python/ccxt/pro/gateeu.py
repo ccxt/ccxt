@@ -10,7 +10,7 @@ import ccxt.async_support.gateeu as gateeuRest
 
 class gateeu(gate):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         # eslint-disable-next-line new-cap
         restInstance = gateeuRest()
         restDescribe = restInstance.describe()

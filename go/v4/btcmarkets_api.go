@@ -127,9 +127,9 @@ func (this *Btcmarkets) PrivateGetAccountsMeWithdrawalLimits(args ...any) <-chan
 	return Fetch2Result[[]any](this, "accounts/me/withdrawal-limits", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// PrivateGetAccountsMeBalances returns a channel that yields a JSON object.
-func (this *Btcmarkets) PrivateGetAccountsMeBalances(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "accounts/me/balances", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+// PrivateGetAccountsMeBalances returns a channel that yields a JSON array.
+func (this *Btcmarkets) PrivateGetAccountsMeBalances(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "accounts/me/balances", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetAccountsMeTransactions returns a channel that yields a JSON array.

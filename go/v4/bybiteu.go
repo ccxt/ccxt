@@ -13,7 +13,7 @@ func newBybiteu() *Bybiteu {
 	return p
 }
 
-func (this *Bybiteu) Describe() any {
+func (this *Bybiteu) Describe() map[string]any {
 	return this.DeepExtend(this.Bybit.Describe(), map[string]any{
 		"id":        "bybiteu",
 		"name":      "Bybit EU",

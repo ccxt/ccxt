@@ -108,8 +108,8 @@ func (this *Foxbit) V3PrivatePostOrders(args ...any) <-chan EndpointResult[map[s
 }
 
 // V3PrivatePostOrdersBatch returns a channel that yields a JSON object.
-func (this *Foxbit) V3PrivatePostOrdersBatch(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("v3PrivatePostOrdersBatch", args...)
+func (this *Foxbit) V3PrivatePostOrdersBatch(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v3PrivatePostOrdersBatch", args...))
 }
 
 // V3PrivatePostOrdersCancelReplace returns a channel that yields a JSON object.
