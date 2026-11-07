@@ -3988,7 +3988,7 @@ export default class coinbase extends Exchange {
         // 300 candles max
         const windowEnd = Precise.stringAdd (sinceString, requestedDuration.toString ());
         if (until !== undefined) {
-            let endString = this.numberToString (this.parseToInt (until / 1000));
+            let endString: Str = this.numberToString (this.parseToInt (until / 1000));
             if ((since !== undefined) && Precise.stringLt (windowEnd, endString)) {
                 endString = windowEnd;
             }
