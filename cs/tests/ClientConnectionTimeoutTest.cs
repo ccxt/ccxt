@@ -98,6 +98,7 @@ public partial class BaseTest
     {
         await testWsConnectionTimeoutReleasesOtherClients();
         await testWsConnectionTimeoutOptionsOverride();
+        await testWsConnectionTimeoutThrowingCallback();
         await testWsConnectionTimeoutExcludesBackoffAndOpenConnection();
         await testWsConnectionTimeoutClose(false);
         await testWsConnectionTimeoutClose(0);
@@ -124,8 +125,8 @@ public partial class BaseTest
         try
         {
             await stalled.Requested.WaitAsync(TimeSpan.FromSeconds(5));
-            // The second client's shorter timeout must start at its own dial,
-            // after the stalled client releases the shared connect semaphore.
+            // The second client's shorter timeout applies to its own dial;
+            // another client's stalled handshake must not delay it.
             var healthyConnected = healthyClient.connect();
             var error = await ConnectionFailure<RequestTimeout>(watching);
             await healthyConnected.WaitAsync(TimeSpan.FromSeconds(5));
@@ -170,6 +171,33 @@ public partial class BaseTest
         {
             await client.Close();
             client.webSocket.Dispose();
+        }
+    }
+
+    public async Task testWsConnectionTimeoutThrowingCallback()
+    {
+        using var server = new StalledUpgradeServer();
+        var exchange = new ccxt.pro.binance();
+        exchange.streaming["connectionTimeout"] = 200;
+        var client = exchange.client(server.url);
+        var callbackError = new InvalidOperationException("error callback failed");
+        var onError = client.onErrorCallback;
+        client.onErrorCallback = (c, e) => { onError(c, e); throw callbackError; };
+        try
+        {
+            var connecting = client.connect();
+            await server.Requested.WaitAsync(TimeSpan.FromSeconds(5));
+            var timeout = await ConnectionFailure<RequestTimeout>(connecting);
+            Assert(ReferenceEquals(timeout, client.error), "callback failure must not replace the connection timeout");
+            Assert(!exchange.clients.ContainsKey(server.url), "callback must retire the failed client before the dial settles");
+            await server.Disconnected.WaitAsync(TimeSpan.FromSeconds(5));
+        }
+        finally
+        {
+            // Close joins the dial task and propagates the callback failure.
+            var error = await ConnectionFailure<InvalidOperationException>(client.Close());
+            client.webSocket.Dispose();
+            Assert(ReferenceEquals(error, callbackError), "Close must preserve the callback error");
         }
     }
 

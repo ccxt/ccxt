@@ -14,7 +14,7 @@ func TestBinaryToBase58() {
 	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
-	assert(ccxt.IsEqual(exchange.ParseNumber(nil), nil), "GO skip trick")
+	assert((exchange.ParseNumber(nil) == nil), "GO skip trick")
 	// @SKIP_START_GO
 	// Test 1: Simple string
 	var binary1 any = HelperStrToBinary5(exchange, "hello")

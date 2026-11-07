@@ -17,7 +17,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class latoken extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'latoken',
             'name' => 'Latoken',
@@ -396,7 +396,7 @@ class latoken extends Exchange {
         ));
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         $timeDifference = $this->safe_integer($this->options, 'timeDifference');
         if ($timeDifference === null) {
             throw new ExchangeError($this->id . ' nonce() requires a numeric options["timeDifference"]');
@@ -468,7 +468,7 @@ class latoken extends Exchange {
         $result = array();
         $rawMarkets = $this->to_array($response);
         for ($i = 0; $i < count($rawMarkets); $i++) {
-            $market = $rawMarkets[$i];
+            $market = $this->safe_value($rawMarkets, $i);
             $id = $this->safe_string($market, 'id');
             // the exchange shows them inverted
             $baseId = $this->safe_string($market, 'baseCurrency');
@@ -614,7 +614,7 @@ class latoken extends Exchange {
         $rawCurrencies = $this->to_array($response);
         $merged = array();
         for ($i = 0; $i < count($rawCurrencies); $i++) {
-            $rawCurrency = $rawCurrencies[$i];
+            $rawCurrency = $this->safe_value($rawCurrencies, $i);
             $bindingEntry = $this->safe_dict($bindingsById, $this->safe_string($rawCurrency, 'id'));
             $bindings = $this->safe_list($bindingEntry, 'bindings');
             $mergedCurrency = $rawCurrency;
@@ -740,11 +740,12 @@ class latoken extends Exchange {
             'timestamp' => null,
             'datetime' => null,
         );
-        $maxTimestamp = null;
         $types = $this->safe_dict($this->options, 'types', array());
         $accountType = $this->safe_string($types, $type, $type);
         $balancesByType = $this->group_by($response, 'type');
         $balances = $this->safe_list($balancesByType, $accountType, array());
+        $firstBalance = $this->safe_dict($balances, 0);
+        $maxTimestamp = $this->safe_integer($firstBalance, 'timestamp');
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $this->safe_dict($balances, $i);
             $currencyId = $this->safe_string($balance, 'currency');
@@ -1029,10 +1030,10 @@ class latoken extends Exchange {
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'quantity');
         $costString = $this->safe_string($trade, 'cost');
-        $makerBuyer = $this->safe_bool($trade, 'makerBuyer');
+        $makerBuyer = $this->safe_bool($trade, 'makerBuyer', false);
         $side = $this->safe_string($trade, 'direction');
         if ($side === null) {
-            $side = ($makerBuyer === true) ? 'sell' : 'buy';
+            $side = $makerBuyer ? 'sell' : 'buy';
         } else {
             if ($side === 'TRADE_DIRECTION_BUY') {
                 $side = 'buy';
@@ -1041,7 +1042,7 @@ class latoken extends Exchange {
             }
         }
         $isBuy = ($side === 'buy');
-        $isMaker = ($makerBuyer === true) && $isBuy;
+        $isMaker = $makerBuyer && $isBuy;
         $takerOrMaker = $isMaker ? 'maker' : 'taker';
         $baseId = $this->safe_string($trade, 'baseCurrency');
         $quoteId = $this->safe_string($trade, 'quoteCurrency');
@@ -2081,7 +2082,7 @@ class latoken extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $urlencodedQuery = $this->urlencode($query);
         if ($method === 'GET') {
-            if (count($query) > 0) {
+            if ($urlencodedQuery !== '') {
                 $requestString .= '?' . $urlencodedQuery;
             }
         }
@@ -2107,7 +2108,7 @@ class latoken extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }

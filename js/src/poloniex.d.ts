@@ -5,7 +5,7 @@ import type { TransferEntry, Int, Leverage, OrderSide, OrderType, OrderRequest, 
  * @augments Exchange
  */
 export default class poloniex extends Exchange {
-    describe(): any;
+    describe(): Dict;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
@@ -246,7 +246,7 @@ export default class poloniex extends Exchange {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     fetchOrderTrades(id: string, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    parseBalance(response: any): Balances;
+    parseBalanceList(response: any): Balances;
     /**
      * @method
      * @name poloniex#fetchBalance
@@ -299,7 +299,7 @@ export default class poloniex extends Exchange {
      */
     fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
     prepareRequestForDepositAddress(code: string, params?: Dict): any;
-    parseDepositAddressSpecial(response: Dict, currency: any, networkEntry: Dict): DepositAddress;
+    parseDepositAddressSpecial(response: Dict, currency: Currency, networkEntry: Dict): DepositAddress;
     /**
      * @method
      * @name poloniex#transfer
@@ -481,7 +481,7 @@ export default class poloniex extends Exchange {
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     addMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
-    nonce(): number;
+    nonce(): int;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

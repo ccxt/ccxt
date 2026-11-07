@@ -490,9 +490,9 @@ public interface TypedSurface {
     default CompletableFuture<Balances> fetchBalanceAsync(Map<String, Object> params) { return this.fetchBalance((params != null ? params : new HashMap<String, Object>())); }
     default CompletableFuture<Balances> fetchBalanceAsync() { return fetchBalanceAsync(new HashMap<String, Object>()); }
 
-    default Balance fetchPartialBalance(Object part) { return Helpers.joinUnwrapped(this.fetchPartialBalance(part, new HashMap<String, Object>())); }
-    default CompletableFuture<Balance> fetchPartialBalanceAsync(Object part, Map<String, Object> params) { return this.fetchPartialBalance(part, (params != null ? params : new HashMap<String, Object>())); }
-    default CompletableFuture<Balance> fetchPartialBalanceAsync(Object part) { return fetchPartialBalanceAsync(part, new HashMap<String, Object>()); }
+    default Balance fetchPartialBalance(String part) { return Helpers.joinUnwrapped(this.fetchPartialBalance(part, new HashMap<String, Object>())); }
+    default CompletableFuture<Balance> fetchPartialBalanceAsync(String part, Map<String, Object> params) { return this.fetchPartialBalance(part, (params != null ? params : new HashMap<String, Object>())); }
+    default CompletableFuture<Balance> fetchPartialBalanceAsync(String part) { return fetchPartialBalanceAsync(part, new HashMap<String, Object>()); }
 
     default CompletableFuture<Balance> fetchFreeBalanceAsync(Map<String, Object> params) { return this.fetchFreeBalance((params != null ? params : new HashMap<String, Object>())); }
 

@@ -113,38 +113,38 @@ func (this *Bitbank) PrivateGetSpotPairs(args ...any) <-chan EndpointResult[map[
 }
 
 // PrivatePostUserSpotOrder returns a channel that yields a JSON object.
-func (this *Bitbank) PrivatePostUserSpotOrder(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privatePostUserSpotOrder", args...)
+func (this *Bitbank) PrivatePostUserSpotOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostUserSpotOrder", args...))
 }
 
 // PrivatePostUserSpotCancelOrder returns a channel that yields a JSON object.
-func (this *Bitbank) PrivatePostUserSpotCancelOrder(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privatePostUserSpotCancelOrder", args...)
+func (this *Bitbank) PrivatePostUserSpotCancelOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostUserSpotCancelOrder", args...))
 }
 
 // PrivatePostUserSpotCancelOrders returns a channel that yields a JSON object.
-func (this *Bitbank) PrivatePostUserSpotCancelOrders(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privatePostUserSpotCancelOrders", args...)
+func (this *Bitbank) PrivatePostUserSpotCancelOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostUserSpotCancelOrders", args...))
 }
 
 // PrivatePostUserSpotOrdersInfo returns a channel that yields a JSON object.
-func (this *Bitbank) PrivatePostUserSpotOrdersInfo(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privatePostUserSpotOrdersInfo", args...)
+func (this *Bitbank) PrivatePostUserSpotOrdersInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostUserSpotOrdersInfo", args...))
 }
 
 // PrivatePostUserConfirmDeposits returns a channel that yields a JSON object.
-func (this *Bitbank) PrivatePostUserConfirmDeposits(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privatePostUserConfirmDeposits", args...)
+func (this *Bitbank) PrivatePostUserConfirmDeposits(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostUserConfirmDeposits", args...))
 }
 
 // PrivatePostUserConfirmDepositsAll returns a channel that yields a JSON object.
-func (this *Bitbank) PrivatePostUserConfirmDepositsAll(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privatePostUserConfirmDepositsAll", args...)
+func (this *Bitbank) PrivatePostUserConfirmDepositsAll(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostUserConfirmDepositsAll", args...))
 }
 
 // PrivatePostUserRequestWithdrawal returns a channel that yields a JSON object.
-func (this *Bitbank) PrivatePostUserRequestWithdrawal(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privatePostUserRequestWithdrawal", args...)
+func (this *Bitbank) PrivatePostUserRequestWithdrawal(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostUserRequestWithdrawal", args...))
 }
 
 // MarketsGetSpotPairs returns a channel that yields a JSON object.

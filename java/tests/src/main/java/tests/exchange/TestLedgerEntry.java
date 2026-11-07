@@ -16,7 +16,7 @@ import java.util.Map;
 
 
 public class TestLedgerEntry extends BaseTest {
-    public static void testLedgerEntry(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object requestedCode, Object now)
+    public static void testLedgerEntry(BaseExchange exchange, Object skippedProperties, String method, Object entry, String requestedCode, Object now)
     {
         Map<String, Object> format = new HashMap<String, Object>() {{
             put( "info", new HashMap<String, Object>() {{}} );
@@ -36,16 +36,16 @@ public class TestLedgerEntry extends BaseTest {
             put( "type", "deposit" );
         }};
         List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("referenceId", "referenceAccount", "id"));
-        TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
-        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
-        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, ((Map<String, Object>)entry).get("currency"), requestedCode);
+        TestSharedMethods.AssertStructure(exchange, skippedProperties, (String) (method), entry, format, emptyAllowedFor);
+        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, (String) (method), entry, now);
+        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, (String) (method), entry, (String) (((Map<String, Object>)entry).get("currency")), requestedCode);
         //
-        TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "direction", new ArrayList<Object>(Arrays.asList("in", "out")));
-        TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "type", new ArrayList<Object>(Arrays.asList("trade", "transaction", "margin", "cashback", "referral", "transfer", "fee")));
+        TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), entry, "direction", new ArrayList<Object>(Arrays.asList("in", "out")));
+        TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), entry, "type", new ArrayList<Object>(Arrays.asList("trade", "transaction", "margin", "cashback", "referral", "transfer", "fee")));
         // TestSharedMethods.AssertInArray (exchange, skippedProperties, method, entry, 'account', ['spot', 'swap', .. ]); // todo
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", "0");
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "before", "0");
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "after", "0");
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "amount", "0");
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "before", "0");
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "after", "0");
     }
 
 }

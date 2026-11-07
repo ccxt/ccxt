@@ -4,6 +4,7 @@ import { Safety } from './safety.js';
 import { Journal } from './journal.js';
 import { SubscriptionRegistry } from './subscriptions.js';
 import { registerAllTools, SERVER_INSTRUCTIONS } from './tools/index.js';
+import { RouteCache, createRouter } from './tools/route.js';
 import type { ResolvedConfig, ServerContext } from './types.js';
 
 export interface CreateServerOptions {
@@ -13,6 +14,7 @@ export interface CreateServerOptions {
     version: string;
     journalDir?: string;
     deadRetentionMs?: number; // how long errored streams stay listable/readable (tests inject a tiny value)
+    router?: any; // an OrderRouter instance (tests inject one); defaults to one built from ccxtModule
 }
 
 // assembles a fully-wired server; server.ts feeds it the real ccxt module and loader deps,
@@ -35,6 +37,8 @@ export function createServer (options: CreateServerOptions): { server: McpServer
         safety,
         journal,
         subscriptions,
+        'router': options.router ?? createRouter (options.ccxtModule, options.version),
+        'routes': new RouteCache (),
         'version': options.version,
         'elicitationSupported': () => {
             const capabilities = server.server.getClientCapabilities ();

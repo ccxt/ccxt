@@ -28,7 +28,7 @@ public class TestUnWatchPositions extends BaseTest {
         });
 
     }
-    public CompletableFuture<Object> testUnWatchPositions(Exchange exchange, Object skippedProperties, Object symbol)
+    public CompletableFuture<Object> testUnWatchPositions(Exchange exchange, Object skippedProperties, String symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -60,7 +60,7 @@ public class TestUnWatchPositions extends BaseTest {
         Object errorResponse = null;
         try
         {
-            errorResponse = (exchange.unWatchPositions(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), new HashMap<String, Object>() {{}})).join();
+            errorResponse = (exchange.unWatchPositions(new ArrayList<String>(Arrays.asList(symbol)), new HashMap<String, Object>() {{}})).join();
         } catch(Exception e)
         {
             errorResponse = e;

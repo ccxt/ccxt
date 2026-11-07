@@ -1013,8 +1013,8 @@ func (this *Kucoin) FuturesPublicGetStatus(args ...any) <-chan EndpointResult[ma
 }
 
 // FuturesPublicGetLevel2MessageQuery returns a channel that yields a JSON object.
-func (this *Kucoin) FuturesPublicGetLevel2MessageQuery(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("futuresPublicGetLevel2MessageQuery", args...)
+func (this *Kucoin) FuturesPublicGetLevel2MessageQuery(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("futuresPublicGetLevel2MessageQuery", args...))
 }
 
 // FuturesPublicGetContractsRiskLimitSymbol returns a channel that yields a JSON object.
@@ -1353,13 +1353,13 @@ func (this *Kucoin) FuturesPrivateDeleteStopOrders(args ...any) <-chan EndpointR
 }
 
 // FuturesPrivateDeleteCopyTradeFuturesOrders returns a channel that yields a JSON object.
-func (this *Kucoin) FuturesPrivateDeleteCopyTradeFuturesOrders(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("futuresPrivateDeleteCopyTradeFuturesOrders", args...)
+func (this *Kucoin) FuturesPrivateDeleteCopyTradeFuturesOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("futuresPrivateDeleteCopyTradeFuturesOrders", args...))
 }
 
 // FuturesPrivateDeleteCopyTradeFuturesOrdersClientOrder returns a channel that yields a JSON object.
-func (this *Kucoin) FuturesPrivateDeleteCopyTradeFuturesOrdersClientOrder(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("futuresPrivateDeleteCopyTradeFuturesOrdersClientOrder", args...)
+func (this *Kucoin) FuturesPrivateDeleteCopyTradeFuturesOrdersClientOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("futuresPrivateDeleteCopyTradeFuturesOrdersClientOrder", args...))
 }
 
 // FuturesPrivateDeleteOrdersMultiCancel returns a channel that yields a JSON object.
@@ -1635,6 +1635,11 @@ func (this *Kucoin) UtaGetMarketFiatPrice(args ...any) <-chan EndpointResult[map
 // UtaV2GetMarketFundingRate returns a channel that yields a JSON object.
 func (this *Kucoin) UtaV2GetMarketFundingRate(args ...any) <-chan EndpointResult[map[string]any] {
 	return Fetch2Result[map[string]any](this, "market/funding-rate", []string{"utaV2"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(6)})
+}
+
+// UtaV2GetMarketOrderbook returns a channel that yields a JSON object.
+func (this *Kucoin) UtaV2GetMarketOrderbook(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "market/orderbook", []string{"utaV2"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(10)})
 }
 
 // UtaPrivateGetMarketOrderbook returns a channel that yields a JSON object.

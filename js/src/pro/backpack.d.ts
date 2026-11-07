@@ -1,9 +1,9 @@
 import backpackRest from '../backpack.js';
-import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Bool, Dict, NullableDict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class backpack extends backpackRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @ignore
      * @method
@@ -68,7 +68,7 @@ export default class backpack extends backpackRest {
      * @param {string} [params.channel] stockPrice or stockIndicativeQuote, matching the subscription
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTicker(symbol: string, params?: {}): Promise<any>;
+    unWatchTicker(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name backpack#watchTickers
@@ -165,7 +165,7 @@ export default class backpack extends backpackRest {
      * @param {string} [params.source] Venue only
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name backpack#watchOHLCVForSymbols
@@ -219,7 +219,7 @@ export default class backpack extends backpackRest {
      * @param {string} [params.source] Venue only
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTrades(symbol: string, params?: {}): Promise<any>;
+    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name backpack#watchTradesForSymbols
@@ -285,7 +285,7 @@ export default class backpack extends backpackRest {
      * @param {string} [params.source] Venue only
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
+    unWatchOrderBook(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name backpack#unWatchOrderBookForSymbols
@@ -301,7 +301,7 @@ export default class backpack extends backpackRest {
     handleOrderBook(client: Client, message: Dict): void;
     handleBookDelta(orderbook: WsOrderBook, delta: any): void;
     handleBidAsks(bookSide: any, bidAsks: any[]): void;
-    getCacheIndex(orderbook: any, cache: any): number;
+    getCacheIndex(orderbook: NullableDict, cache: any[]): number;
     /**
      * @method
      * @name backpack#watchOrders
@@ -394,6 +394,6 @@ export default class backpack extends backpackRest {
     unWatchPositions(symbols?: Strings, params?: Dict): Promise<any>;
     handlePositions(client: Client, message: Dict): void;
     parseWsPosition(position: Dict, market?: Market): Position;
-    handleMessage(client: Client, message: any): void;
+    handleMessage(client: Client, message: Dict): void;
     handleErrorMessage(client: Client, message: Dict): Bool;
 }
