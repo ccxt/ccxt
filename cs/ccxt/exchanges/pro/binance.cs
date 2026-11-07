@@ -2221,7 +2221,6 @@ public partial class binance : ccxt.binance
         string? interval = this.safeString(kline, "i");
         // use a reverse lookup in a static map instead
         string? unifiedTimeframe = this.findTimeframe(interval);
-        List<object> parsed = new List<object> {this.safeInteger(kline, "t"), this.safeFloat(kline, "o"), this.safeFloat(kline, "h"), this.safeFloat(kline, "l"), this.safeFloat(kline, "c"), this.safeFloat(kline, "v")};
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
         bool isSpot = this.isSpotUrl(client);
@@ -2230,7 +2229,12 @@ public partial class binance : ccxt.binance
         {
             marketType = "spot";
         }
-        string? symbol = this.safeSymbol(marketId, null, null, marketType);
+        Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
+        string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        // coin-margined contracts count "v" in contracts, "q" is the base asset volume that fetchOHLCV returns
+        bool? inverse = this.safeBool(market, "inverse");
+        string volumeKey = ((inverse == true)) ? "q" : "v";
+        List<object> parsed = new List<object> {this.safeInteger(kline, "t"), this.safeFloat(kline, "o"), this.safeFloat(kline, "h"), this.safeFloat(kline, "l"), this.safeFloat(kline, "c"), this.safeFloat(kline, volumeKey)};
         string messageHash = ((("ohlcv::" + symbol) + "::") + unifiedTimeframe);
         this.ohlcvs[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), unifiedTimeframe));
@@ -5490,7 +5494,7 @@ public partial class binance : ccxt.binance
             { "amount", this.safeString(order, "q") },
             { "cost", this.safeString(order, "Z") },
             { "average", this.safeString(order, "ap") },
-            { "filled", this.safeString(order, "z") },
+            { "filled", this.safeString2(order, "z", "aq") },
             { "remaining", null },
             { "status", status },
             { "fee", fee },

@@ -2261,6 +2261,7 @@ public partial class whitebit : Exchange
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -2279,16 +2280,39 @@ public partial class whitebit : Exchange
         };
         Int64? cappedLimit = (((limit == null)) || ((limit > 1440))) ? 1440 : limit;
         Int64? limitResolved = ((since != null)) ? cappedLimit : limit;
-        if ((since != null))
+        Int64? until = this.safeInteger(parameters, "until");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "until"));
+        if (((since != null)) || ((until != null)))
         {
-            Int64? start = this.parseToInt(((double?)since / 1000));
-            request["start"] = start;
+            // the exchange ignores a start alone: it returns the last candles that closed by the end.
+            // It refuses an end past its own clock, which may be behind this one, so an end within a
+            // timeframe of now is left out, and the latest candles it then returns cover the range
+            int duration = this.parseTimeframe(timeframeVar);
+            object endTime = null;
+            if ((until != null))
+            {
+                endTime = this.sum(this.parseToInt(((double?)until / 1000)), duration);
+            }
+            if ((since != null))
+            {
+                Int64? start = this.parseToInt(((double?)since / 1000));
+                request["start"] = start;
+                Int64 rangeEnd = this.sum(start, (duration * cappedLimit));
+                if (((endTime == null)) || (isLessThan(rangeEnd, endTime)))
+                {
+                    endTime = rangeEnd;
+                }
+            }
+            if ((!(endTime == null)) && (isLessThan(this.sum(endTime, duration), this.seconds())))
+            {
+                request["end"] = endTime;
+            }
         }
-        if (((since != null)) || ((limit != null)))
+        if (((since != null)) || ((until != null)) || ((limit != null)))
         {
             request["limit"] = cappedLimit;
         }
-        Dictionary<string, object> response = await this.v1PublicGetKline(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.v1PublicGetKline(this.extend(request, paramsOmitted));
         //
         //     {
         //         "success":true,
