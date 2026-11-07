@@ -10370,7 +10370,7 @@ class Exchange extends BaseExchange {
         return $this->safe_string($order, 'status');
     }
 
-    public function fetch_unified_order(mixed $order, $params = array()) {
+    public function fetch_unified_order(array $order, $params = array()) {
         return $this->fetchOrder($this->safe_string($order, 'id', ''), $this->safe_string($order, 'symbol'), $params);
     }
 

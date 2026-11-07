@@ -7961,11 +7961,11 @@ class Exchange extends BaseExchange {
         return $this->safe_string($order, 'status');
     }
 
-    public function fetch_unified_order(mixed $order, $params = array()) {
+    public function fetch_unified_order(array $order, $params = array()) {
         return Async\async(self::do_fetch_unified_order(...))($order, $params);
     }
 
-    private function do_fetch_unified_order(mixed $order, $params = array()) {
+    private function do_fetch_unified_order(array $order, $params = array()) {
         return Async\await($this->fetchOrder($this->safe_string($order, 'id', ''), $this->safe_string($order, 'symbol'), $params));
     }
 
