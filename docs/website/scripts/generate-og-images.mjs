@@ -18,6 +18,7 @@
 // slugs match what src/lib/source.ts resolves at runtime.
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createElement } from 'react';
 import { ImageResponse } from 'next/og.js';
 import { generate } from 'fumadocs-ui/og';
@@ -25,7 +26,8 @@ import { loader } from 'fumadocs-core/source';
 import { defineI18n } from 'fumadocs-core/i18n';
 import { frontmatter } from 'fumadocs-core/content/md/frontmatter';
 
-const root = process.cwd();
+// docs/website, wherever the script is run from (npm run sets cwd there; a direct `node` call may not)
+const root = fileURLToPath(new URL('..', import.meta.url));
 const contentDir = join(root, 'content', 'docs');
 const outDir = join(root, 'public', 'og');
 
@@ -54,8 +56,8 @@ function readIcon() {
 // the site does. Fails loudly if that file stops matching this shape.
 function readI18n() {
   const src = readFileSync(join(root, 'src', 'lib', 'i18n.ts'), 'utf8');
-  const defaultLanguage = src.match(/defaultLanguage:\s*'([^']+)'/)?.[1];
-  const languages = [...(src.match(/languages:\s*\[([^\]]*)\]/)?.[1] ?? '').matchAll(/'([^']+)'/g)].map((m) => m[1]);
+  const defaultLanguage = src.match(/defaultLanguage:\s*['"]([^'"]+)['"]/)?.[1];
+  const languages = [...(src.match(/languages:\s*\[([^\]]*)\]/)?.[1] ?? '').matchAll(/['"]([^'"]+)['"]/g)].map((m) => m[1]);
   if (!defaultLanguage || !languages.includes(defaultLanguage)) {
     throw new Error('generate-og-images: could not read defaultLanguage/languages from src/lib/i18n.ts');
   }
@@ -103,7 +105,9 @@ let bytes = await render(
   'One unified crypto trading API across 100+ exchanges — JavaScript, Python, PHP, C#, Go, Java and Rust.',
 );
 for (const page of pages) {
-  bytes += await render(join('docs', ...page.slugs, 'image.png'), page.data.title, page.data.description);
+  // fumadocs URL-encodes each slug segment; the static server decodes the request path
+  // before looking the file up, so the directories on disk must use the decoded names.
+  bytes += await render(join('docs', ...page.slugs.map(decodeURI), 'image.png'), page.data.title, page.data.description);
 }
 
 const mb = (bytes / 1024 / 1024).toFixed(1);

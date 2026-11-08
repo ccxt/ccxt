@@ -18,7 +18,10 @@ ENV NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=$NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
 ENV NEXT_PUBLIC_SITE_URL=https://docs.ccxt.com \
     NEXT_PUBLIC_AI_ENABLED=true \
     NODE_OPTIONS=--max-old-space-size=4096
-RUN npm run build
+# Drop the copy of public/ that output tracing puts into the standalone bundle (a dynamic
+# readFile path makes Turbopack trace the whole project). The runner stage copies public/
+# on its own below, so keeping both would ship every pre-rendered OG card (public/og) twice.
+RUN npm run build && rm -rf .next/standalone/public
 
 FROM node:20-slim AS runner
 WORKDIR /app
