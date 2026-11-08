@@ -1,11 +1,30 @@
 import { redact } from './redact.js';
 
 // Host limits are the principled basis for every cap in this file: Claude Code truncates
-// tool results around ~25k tokens and claude.ai/Desktop around ~150k characters, and an
-// over-cap result is silently replaced by a file-pointer string — the model loses the
-// data without knowing why. 80k characters ≈ 80% of the binding (25k-token ≈ 100k-char)
-// budget, leaving headroom for the envelope and host wrapping.
-export const MAX_RESULT_CHARS = 80000;
+// MCP tool results at 25,000 tokens by default (MAX_MCP_OUTPUT_TOKENS) and claude.ai/Desktop
+// around ~150k characters, and an over-cap result is silently replaced by a file-pointer
+// string — the model loses the data without knowing why. The binding limit is the token
+// one, so the budget is sized in estimated tokens, not characters. The common "4 chars per
+// token" rule holds for prose but not for ccxt output: number-heavy JSON (prices, rates,
+// millisecond timestamps, ISO datetimes, punctuation) tokenizes at roughly 3 chars/token,
+// so an 80k-char funding-rate scan can be ~27k tokens and blow the host cap. We therefore
+// estimate conservatively at 3 chars/token and keep 20% headroom below 25k tokens for the
+// envelope and host wrapping.
+export const HOST_RESULT_TOKEN_LIMIT = 25000;
+export const CHARS_PER_TOKEN = 3;
+export const MAX_RESULT_TOKENS = 20000;
+// the character-equivalent of the token budget (60k chars) — also comfortably below the
+// ~150k-char claude.ai/Desktop limit
+export const MAX_RESULT_CHARS = MAX_RESULT_TOKENS * CHARS_PER_TOKEN;
+
+// conservative token estimate for serialized JSON tool output
+export function estimateTokens (text: string): number {
+    return Math.ceil (text.length / CHARS_PER_TOKEN);
+}
+
+function fitsBudget (text: string): boolean {
+    return estimateTokens (text) <= MAX_RESULT_TOKENS;
+}
 
 export function jsonStringify (obj: any): string {
     return JSON.stringify (obj, (k, v) => ((v === undefined) ? null : v));
@@ -72,29 +91,40 @@ export function toContent (envelope: Envelope): { content: { type: 'text', text:
         return out;
     };
     let text = redact (jsonStringify (envelope));
-    if (text.length <= MAX_RESULT_CHARS) {
+    if (fitsBudget (text)) {
         return wrap (envelope);
     }
     if (Array.isArray (envelope.data)) {
-        const available = envelope.data.length;
-        let items = envelope.data;
-        while (items.length > 1) {
-            items = items.slice (0, Math.max (1, Math.floor (items.length / 2)));
-            const candidate: Envelope = {
-                ...envelope,
-                'data': items,
-                'meta': {
-                    ...(envelope.meta ?? {}),
-                    'truncated': true,
-                    'returned': items.length,
-                    available,
-                    'notice': 'result truncated to fit the host tool-result limit — use limit/offset or narrower filters',
-                },
-            };
-            text = redact (jsonStringify (candidate));
-            if (text.length <= MAX_RESULT_CHARS) {
-                return wrap (candidate);
+        const data = envelope.data;
+        const available = data.length;
+        const truncatedEnvelope = (count: number): Envelope => ({
+            ...envelope,
+            'data': data.slice (0, count),
+            'meta': {
+                ...(envelope.meta ?? {}),
+                'truncated': true,
+                'returned': count,
+                available,
+                'notice': 'result truncated to fit the host tool-result limit — use limit/offset or narrower filters',
+            },
+        });
+        // binary-search the longest prefix that fits, so the agent gets as much of the
+        // result as the budget allows (O(log n) serializations)
+        let low = 1;
+        let high = available - 1;
+        let best: Envelope | undefined = undefined;
+        while (low <= high) {
+            const mid = Math.floor ((low + high) / 2);
+            const candidate = truncatedEnvelope (mid);
+            if (fitsBudget (redact (jsonStringify (candidate)))) {
+                best = candidate;
+                low = mid + 1;
+            } else {
+                high = mid - 1;
             }
+        }
+        if (best !== undefined) {
+            return wrap (best);
         }
     }
     // non-array payload (e.g. a raw implicit-endpoint response) or a single item still too
@@ -109,7 +139,7 @@ export function toContent (envelope: Envelope): { content: { type: 'text', text:
         },
     };
     text = redact (jsonStringify (marker));
-    if (text.length <= MAX_RESULT_CHARS) {
+    if (fitsBudget (text)) {
         return wrap (marker);
     }
     // pathological (huge meta/error) — minimal guaranteed-valid envelope
