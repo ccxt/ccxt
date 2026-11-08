@@ -1,4 +1,4 @@
-use ccxt::{Config, ExchangeBase, Params};
+use ccxt::{Config, Params};
 
 fn rest_proxy() -> String {
     std::env::var("REST_PROXY").unwrap_or_else(|_| "http://127.0.0.1:8080".to_string())

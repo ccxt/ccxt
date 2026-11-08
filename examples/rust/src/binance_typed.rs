@@ -12,7 +12,7 @@
 // `ccxt::Binance` is transpiled from `ts/src/binance.ts` — to change its
 // behaviour, edit the TypeScript and re-run the Rust transpiler.
 
-use ccxt::{Binance, Params, ExchangeBase, TypedExchange};
+use ccxt::{Binance, Params, TypedExchange};
 
 #[tokio::main]
 async fn main() {

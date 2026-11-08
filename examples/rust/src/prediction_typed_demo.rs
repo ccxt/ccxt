@@ -6,7 +6,7 @@
 //
 // Build: `cargo run --example prediction_typed_demo`.
 use ccxt::Params;
-use ccxt_prediction::{Kalshi, Polymarket, ExchangeBase, TypedExchange};
+use ccxt_prediction::{Kalshi, Polymarket, TypedExchange};
 
 // ── A. concrete exchange — typed returns ──────────────────────────────────────
 #[allow(dead_code)]

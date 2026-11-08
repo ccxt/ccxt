@@ -8,7 +8,7 @@
 //
 // Build/run: `cargo run --bin ws_typed_demo --features ws`
 use ccxt::Params;
-use ccxt_pro::{Binance, ExchangeBase, TypedExchange};
+use ccxt_pro::{Binance, TypedExchange};
 
 const SYMBOL: &str = "BTC/USDT";
 const UPDATES: usize = 3;

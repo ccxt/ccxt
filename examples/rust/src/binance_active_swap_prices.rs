@@ -9,7 +9,7 @@
 //   cargo run --release --bin binance-active-swap-prices
 //   cargo run --release --bin binance-active-swap-prices -- 25    # first 25
 use ccxt::types::{Market, Ticker};
-use ccxt::{Binance, Config, Params, ExchangeBase, TypedExchange};
+use ccxt::{Binance, Config, Params, TypedExchange};
 
 fn f(v: Option<f64>) -> String {
     v.map(|x| format!("{x}")).unwrap_or_else(|| "—".to_string())

@@ -25,7 +25,7 @@
 // this example would actually place is checked against a 25 USD notional cap
 // first and any order that does get created is cancelled before exit.
 use ccxt::types::{Market, Order};
-use ccxt::{Binance, Config, ExchangeError, Params, ExchangeBase, TypedExchange};
+use ccxt::{Binance, Config, ExchangeError, Params, TypedExchange};
 
 /// Hard cap on the notional of any order this example is willing to send.
 const MAX_NOTIONAL_USD: f64 = 25.0;

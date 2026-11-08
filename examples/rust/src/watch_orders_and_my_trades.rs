@@ -24,7 +24,7 @@
 // BINANCE_MARKET_TYPE=future streams USD-M instead of spot, and SHOW_RAW=1
 // adds each update's raw exchange payload (CCXT's `info` field).
 use ccxt::{Config, Params};
-use ccxt_pro::{Binance, ExchangeBase, TypedExchange};
+use ccxt_pro::{Binance, TypedExchange};
 use std::collections::HashSet;
 use std::time::{Duration, Instant};
 
