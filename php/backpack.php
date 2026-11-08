@@ -3271,8 +3271,8 @@ class backpack extends Exchange {
         $marketId = $this->safe_string($position, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
         $symbol = $marketResolved['symbol'];
-        $entryPrice = $this->safe_string($position, 'entryPrice');
-        $markPrice = $this->safe_string($position, 'markPrice');
+        $entryPrice = $this->safe_number($position, 'entryPrice');
+        $markPrice = $this->safe_number($position, 'markPrice');
         $netCost = $this->safe_string($position, 'netCost');
         $hedged = false;
         $side = 'long';
@@ -3283,9 +3283,9 @@ class backpack extends Exchange {
             $hedged = null;
             $side = null;
         }
-        $unrealizedPnl = $this->safe_string($position, 'pnlUnrealized');
-        $realizedPnl = $this->safe_string($position, 'pnlRealized');
-        $liquidationPrice = $this->safe_string($position, 'estLiquidationPrice');
+        $unrealizedPnl = $this->safe_number($position, 'pnlUnrealized');
+        $realizedPnl = $this->safe_number($position, 'pnlRealized');
+        $liquidationPrice = $this->safe_number($position, 'estLiquidationPrice');
         return $this->safe_position(array(
             'info' => $position,
             'id' => $id,
@@ -3295,18 +3295,18 @@ class backpack extends Exchange {
             'lastUpdateTimestamp' => null,
             'hedged' => $hedged,
             'side' => $side,
-            'contracts' => $this->safe_string($position, 'netExposureQuantity'),
+            'contracts' => $this->safe_number($position, 'netExposureQuantity'),
             'contractSize' => null,
             'entryPrice' => $entryPrice,
             'markPrice' => $markPrice,
             'lastPrice' => null,
-            'notional' => Precise::string_abs($netCost),
+            'notional' => $this->parse_number(Precise::string_abs($netCost)),
             'leverage' => null,
             'collateral' => null,
             'initialMargin' => null,
-            'initialMarginPercentage' => $this->safe_string($position, 'imf'),
+            'initialMarginPercentage' => $this->safe_number($position, 'imf'),
             'maintenanceMargin' => null,
-            'maintenanceMarginPercentage' => $this->safe_string($position, 'mmf'),
+            'maintenanceMarginPercentage' => $this->safe_number($position, 'mmf'),
             'realizedPnl' => $realizedPnl,
             'unrealizedPnl' => $unrealizedPnl,
             'liquidationPrice' => $liquidationPrice,
