@@ -2350,9 +2350,9 @@
                 ]
             },
             {
-                "description": "spot ohlcv paginate pages 1h by 1000 candles, the second page starts 1000 candles after since",
+                "description": "spot ohlcv paginate pages 1h by 1000 candles, the first page ends 1000 candles after since",
                 "method": "fetchOHLCV",
-                "url": "https://open-api.bingx.com/openApi/spot/v1/market/kline?endTime=1725472800000&interval=1h&limit=1000&startTime=1723672799998&symbol=BTC-USDT&timeZone=0&timestamp=1709992986762",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/market/kline?endTime=1723672800000&interval=1h&limit=1000&startTime=1720072799999&symbol=BTC-USDT&timeZone=0&timestamp=1709992986762",
                 "input": [
                   "BTC/USDT",
                   "1h",
@@ -2360,14 +2360,15 @@
                   null,
                   {
                     "paginate": true,
+                    "paginationCalls": 1,
                     "until": 1725472800000
                   }
                 ]
             },
             {
-                "description": "swap ohlcv paginate pages 1h by 1000 candles, the second page starts 1000 candles after since",
+                "description": "swap ohlcv paginate pages 1h by 1000 candles, the first page ends 1000 candles after since",
                 "method": "fetchOHLCV",
-                "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?endTime=1725472800000&interval=1h&limit=1000&startTime=1723672799998&symbol=BTC-USDT&timestamp=1709992987069",
+                "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?endTime=1723672800000&interval=1h&limit=1000&startTime=1720072799999&symbol=BTC-USDT&timestamp=1709992987069",
                 "input": [
                   "BTC/USDT:USDT",
                   "1h",
@@ -2375,6 +2376,7 @@
                   null,
                   {
                     "paginate": true,
+                    "paginationCalls": 1,
                     "until": 1725472800000
                   }
                 ]
