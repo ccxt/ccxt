@@ -191,6 +191,51 @@ kept trading into the last few minutes.
 So "trading personality" depends on the setup as well as the model. If you're building an agent,
 whether it can say no is a design decision.
 
+## Follow-ups: explain the fees, or make them trade
+
+Two obvious questions came out of the first three rounds. Would the models trade better if we spelled
+out the fees? And what do Opus and Sonnet do if sitting out isn't allowed? We ran both in the same
+hour.
+
+**The fee-aware round.** Same prompt, plus a short table of each venue's maker and taker fees and one
+line of arithmetic: a market-order round trip on an OKX perpetual costs about 0.1% of notional,
+whatever the leverage. Leverage can't fix that, because it multiplies fees exactly as much as it
+multiplies P&L.
+
+| Model | Equity |
+|---|---|
+| Kimi K3.1 Pro | 105.50 |
+| Gemini Pro | 100.84 |
+| Claude Opus 5.5 | 100.00 (no trades) |
+| Claude Sonnet 5.5 | 100.00 (no trades) |
+| Claude Haiku 5.5 | 99.78 |
+| GPT-6.1 Sol | 93.80 |
+| Grok 4.7 | 92.47 |
+| Qwen 3.8 | 91.62 |
+| DeepSeek V4 Pro | 74.43 |
+
+Knowing the fees didn't change much. The models that traded made slightly *more* fills than before
+(7.3 per run against 6.4) and paid slightly more in fees. They placed a few more limit orders, but not
+enough to matter. DeepSeek read the table, then made 18 fills at up to 30x, almost all of them market
+orders, paid $14.52 in fees and finished at $74.43. Qwen did the math correctly ("the 0.1% round-trip
+cost is ~15-20% of a typical hourly move") and then lost $7 on one trade because, in its own words, it
+"abandoned my own plan and bought early below that resistance because I was impatient about the
+clock."
+
+Mostly, the fee table gave Opus and Sonnet better reasons to stay out. Opus: "Leverage wouldn't have
+helped, because fees grow with the position exactly as fast as profit and loss do."
+
+**The must-trade run.** For Opus and Sonnet only, we added one sentence: "Sitting in cash for the
+whole hour does not complete the task: you need to actually trade." Both complied with the smallest
+trade that would count:
+- **Opus** bought $95 of spot BTC with a limit order to get the maker fee, set a take-profit that never
+  filled, and finished at $99.96.
+- **Sonnet** opened a 3x ETH long with a stop and held it to the end, finishing at $99.86. On its own
+  trade: "I had no real edge. […] it was essentially a coin flip."
+
+So the Claude models can trade. With no edge in sight they'd rather not, and when made to, they keep
+the bet as small as the rules allow.
+
 ## Caveats
 
 - **Paper trading.** Prices, depth, fees and funding were real. Fills were simulated: no queue
@@ -200,7 +245,8 @@ whether it can say no is a design decision.
   one hour can swing.
 - **Two harnesses.** Claude ran in the Claude Code CLI with its system prompt replaced and built-in
   tools off. The others ran in a plain tool loop through OpenRouter. The prompt and tools were
-  identical, but the loops differ.
+  identical, but the loops differ. In Claude Code, a full five-minute `wait` sometimes timed out,
+  and the model had to fall back to shorter waits.
 - **Round one had two bugs.** Waits longer than five minutes timed out, and the paper broker refused
   to close a leveraged position while its margin was negative, which trapped DeepSeek in a losing
   trade for about 30 minutes. Both were fixed before rounds two and three.
@@ -227,6 +273,7 @@ OPENROUTER_API_KEY=... node arena.mjs --run myrun --minutes 60
 node analyze.mjs runs/myrun
 ```
 
-All three rounds cost about $34 in model usage. Edit `AGENTS` in `arena.mjs` to swap models, or
-change the prompt and see how much one sentence moves them. To give your own agent the same market
+All five runs cost about $47 in model usage. Edit `AGENTS` in `arena.mjs` to swap models, or pass
+`--variant fees` or `--variant mustTrade` to try the follow-up prompts, or change the prompt yourself
+and see how much one sentence moves them. To give your own agent the same market
 data, [install the CCXT MCP server](/docs/mcp). It takes one line.

@@ -671,8 +671,8 @@ const buildServer = () => {
     }));
 
     server.registerTool ('wait', {
-        'description': 'Do nothing for a number of minutes (0.5-5) while orders, stops and positions keep running, then get the account snapshot and any fills that happened meanwhile.',
-        'inputSchema': { 'minutes': z.number ().min (0.5).max (5) },
+        'description': 'Do nothing for a number of minutes (0.5-4) while orders, stops and positions keep running, then get the account snapshot and any fills that happened meanwhile.',
+        'inputSchema': { 'minutes': z.number ().min (0.5).max (4) },
     }, guard ('wait', async ({ minutes }) => {
         const fillsBefore = state.fills.length;
         const until = Math.min (Date.now () + minutes * 60_000, END);
