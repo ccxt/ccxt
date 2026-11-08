@@ -881,8 +881,8 @@ impl Coinone {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_569: bool = true;
-            while { if !__for_first_569 { i += 1; } __for_first_569 = false; i < (tickers.len() as i64) } {
+            let mut __for_first_570: bool = true;
+            while { if !__for_first_570 { i += 1; } __for_first_570 = false; i < (tickers.len() as i64) } {
             let mut entry: Value = self.safe_dict(tickers.clone(), Value::Int(i), &[]);
             let mut id: Option<String> = self.safe_string_k_opt(entry.clone(), "id", &[]);
             let mut baseId: Option<String> = self.safe_string_upper_k_opt(entry.clone(), "target_currency", &[]);
@@ -973,8 +973,8 @@ impl Coinone {
         let mut currencyIds: Vec<Value> = Value::Array(balances.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_570: bool = true;
-            while { if !__for_first_570 { i += 1; } __for_first_570 = false; i < (currencyIds.len() as i64) } {
+            let mut __for_first_571: bool = true;
+            while { if !__for_first_571 { i += 1; } __for_first_571 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Value = currencyIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut balance: Value = self.safe_dict(balances.clone(), currencyId.clone(), &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
@@ -1910,8 +1910,8 @@ impl Coinone {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_571: bool = true;
-            while { if !__for_first_571 { i += 1; } __for_first_571 = false; i < (keys.len() as i64) } {
+            let mut __for_first_572: bool = true;
+            while { if !__for_first_572 { i += 1; } __for_first_572 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut value: Value = self.safe_string(walletAddress.clone(), key.clone(), &[]);
             if (value == Value::Null) || (value == Value::Null) || (value.as_str() == Some("")) || (value.as_str() == Some("-1")) {

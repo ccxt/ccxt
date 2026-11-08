@@ -797,8 +797,8 @@ impl Mudrex {
         };
         {
                         let mut i: i64 = 0;
-            let mut __for_first_967: bool = true;
-            while { if !__for_first_967 { i += 1; } __for_first_967 = false; i < (rows.len() as i64) } {
+            let mut __for_first_969: bool = true;
+            while { if !__for_first_969 { i += 1; } __for_first_969 = false; i < (rows.len() as i64) } {
             let mut t: Value = rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut sym: Option<String> = self.safe_string_k_opt(t.clone(), "symbol", &[]);
             if (sym.is_none()) {
@@ -904,8 +904,8 @@ impl Mudrex {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_968: bool = true;
-                while { if !__for_first_968 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_968 = false; i.as_f64().unwrap_or(f64::NAN) < numItems } {
+                let mut __for_first_970: bool = true;
+                while { if !__for_first_970 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_970 = false; i.as_f64().unwrap_or(f64::NAN) < numItems } {
                 aggregated.push(items.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
             }
             }
@@ -919,8 +919,8 @@ impl Mudrex {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_969: bool = true;
-            while { if !__for_first_969 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_969 = false; i.as_f64().unwrap_or(f64::NAN) < ((aggregated.len() as i64) as f64) } {
+            let mut __for_first_971: bool = true;
+            while { if !__for_first_971 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_971 = false; i.as_f64().unwrap_or(f64::NAN) < ((aggregated.len() as i64) as f64) } {
             result.push(self.parse_market(aggregated.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)));
         }
         }
@@ -1586,8 +1586,8 @@ impl Mudrex {
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_970: bool = true;
-            while { if !__for_first_970 { i += 1; } __for_first_970 = false; i < (rows.len() as i64) } {
+            let mut __for_first_972: bool = true;
+            while { if !__for_first_972 { i += 1; } __for_first_972 = false; i < (rows.len() as i64) } {
             orders.push(self.parse_order(rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]));
         }
         }
@@ -1721,8 +1721,8 @@ impl Mudrex {
         let mut outPos: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_971: bool = true;
-            while { if !__for_first_971 { i += 1; } __for_first_971 = false; i < (rows.len() as i64) } {
+            let mut __for_first_973: bool = true;
+            while { if !__for_first_973 { i += 1; } __for_first_973 = false; i < (rows.len() as i64) } {
             let mut p: Value = rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut symRaw: Option<String> = self.safe_string_k_opt(p.clone(), "symbol", &[]);
             let mut m: Value = self.safe_market(&[symRaw.map(Value::from).unwrap_or(Value::Null)]);
@@ -2074,8 +2074,8 @@ impl Mudrex {
             let mut dataLength: Value = Value::Int(data.len() as i64);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_972: bool = true;
-                while { if !__for_first_972 { i += 1; } __for_first_972 = false; i < (data.len() as i64) } {
+                let mut __for_first_974: bool = true;
+                while { if !__for_first_974 { i += 1; } __for_first_974 = false; i < (data.len() as i64) } {
                 let mut entry: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
                 allRows.push(entry.clone());
                 if (self.safe_string_k(entry.clone(), "fee_type", &[]).as_str() == Some("TRANSACTION")) {
@@ -2104,8 +2104,8 @@ impl Mudrex {
         let mut transactionKeys: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_973: bool = true;
-            while { if !__for_first_973 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_973 = false; i.as_f64().unwrap_or(f64::NAN) < ((allRows.len() as i64) as f64) } {
+            let mut __for_first_975: bool = true;
+            while { if !__for_first_975 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_975 = false; i.as_f64().unwrap_or(f64::NAN) < ((allRows.len() as i64) as f64) } {
             let mut entry: Value = allRows.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut feeType: Option<String> = self.safe_string_k(entry.clone(), "fee_type", &[]).as_str().map(str::to_owned);
             let mut pairKey: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(entry.clone(), "symbol", &[Value::Str("".into())]), Value::Str(":".into())).into()), self.safe_string_k(entry.clone(), "created_at", &[Value::Str("".into())])).into()),
@@ -2122,13 +2122,13 @@ impl Mudrex {
         let mut rows: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_975: bool = true;
-            while { if !__for_first_975 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_975 = false; i.as_f64().unwrap_or(f64::NAN) < ((transactions.len() as i64) as f64) } {
+            let mut __for_first_977: bool = true;
+            while { if !__for_first_977 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_977 = false; i.as_f64().unwrap_or(f64::NAN) < ((transactions.len() as i64) as f64) } {
             let mut rebate: Value = Value::Null;
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_974: bool = true;
-                while { if !__for_first_974 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_974 = false; j.as_f64().unwrap_or(f64::NAN) < ((rebateKeys.len() as i64) as f64) } {
+                let mut __for_first_976: bool = true;
+                while { if !__for_first_976 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_976 = false; j.as_f64().unwrap_or(f64::NAN) < ((rebateKeys.len() as i64) as f64) } {
                 if (rebateKeys.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null).as_str() == transactionKeys.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null).as_str()) {
                     rebate = self.safe_string(rebateAmounts.clone(), j.clone(), &[]);
                     // blank the consumed key so the next equal fill matches the next rebate, never the same one twice

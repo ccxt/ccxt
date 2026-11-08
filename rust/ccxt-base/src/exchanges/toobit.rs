@@ -1400,8 +1400,8 @@ impl Toobit {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1120: bool = true;
-            while { if !__for_first_1120 { i += 1; } __for_first_1120 = false; i < (coins.len() as i64) } {
+            let mut __for_first_1122: bool = true;
+            while { if !__for_first_1122 { i += 1; } __for_first_1122 = false; i < (coins.len() as i64) } {
             let mut coin: Value = coins.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_currency(coin);
             if (parsed != Value::Null) {
@@ -1425,8 +1425,8 @@ impl Toobit {
         let mut rawNetworks: Vec<Value> = self.safe_list_k(rawCurrency.clone(), "chainTypes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut j: i64 = 0;
-            let mut __for_first_1121: bool = true;
-            while { if !__for_first_1121 { j += 1; } __for_first_1121 = false; j < (rawNetworks.len() as i64) } {
+            let mut __for_first_1123: bool = true;
+            while { if !__for_first_1123 { j += 1; } __for_first_1123 = false; j < (rawNetworks.len() as i64) } {
             let mut rawNetwork: Value = rawNetworks.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Option<String> = self.safe_string_k_opt(rawNetwork.clone(), "chainType", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
@@ -1658,8 +1658,8 @@ impl Toobit {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1122: bool = true;
-            while { if !__for_first_1122 { i += 1; } __for_first_1122 = false; i < (all.len() as i64) } {
+            let mut __for_first_1124: bool = true;
+            while { if !__for_first_1124 { i += 1; } __for_first_1124 = false; i < (all.len() as i64) } {
             let mut market: Value = self.safe_dict(all.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2165,8 +2165,8 @@ impl Toobit {
         let mut rows: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1123: bool = true;
-            while { if !__for_first_1123 { i += 1; } __for_first_1123 = false; i < (response.len() as i64) } {
+            let mut __for_first_1125: bool = true;
+            while { if !__for_first_1125 { i += 1; } __for_first_1125 = false; i < (response.len() as i64) } {
             let mut ticker: Value = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "s", &[]);
             if (marketId.is_some()) && (self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, &marketId.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -2332,8 +2332,8 @@ impl Toobit {
         let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1124: bool = true;
-            while { if !__for_first_1124 { i += 1; } __for_first_1124 = false; i < (tickers.len() as i64) } {
+            let mut __for_first_1126: bool = true;
+            while { if !__for_first_1126 { i += 1; } __for_first_1126 = false; i < (tickers.len() as i64) } {
             let mut parsedTicker: Value = self.parse_bid_ask_custom(tickers.get(i as usize).cloned().unwrap_or(Value::Null));
             let mut ticker: Value = self.extend(parsedTicker, &[params.clone()]);
             results.push(ticker);
@@ -2557,8 +2557,8 @@ impl Toobit {
         let mut balances: Value = self.safe_list_k(response.clone(), "balances", &[response.clone()]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1125: bool = true;
-            while { if !__for_first_1125 { i += 1; } __for_first_1125 = false; i < (balances.len() as i64) } {
+            let mut __for_first_1127: bool = true;
+            while { if !__for_first_1127 { i += 1; } __for_first_1127 = false; i < (balances.len() as i64) } {
             let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
             let mut code: Value = self.safe_currency_code(self.safe_string_k(balance.clone(), "asset", &[]), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -3311,8 +3311,8 @@ impl Toobit {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1126: bool = true;
-            while { if !__for_first_1126 { i += 1; } __for_first_1126 = false; i < (responseList.len() as i64) } {
+            let mut __for_first_1128: bool = true;
+            while { if !__for_first_1128 { i += 1; } __for_first_1128 = false; i < (responseList.len() as i64) } {
             ordersList.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), responseList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
@@ -3744,8 +3744,8 @@ impl Toobit {
         let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1127: bool = true;
-            while { if !__for_first_1127 { i += 1; } __for_first_1127 = false; i < (response.len() as i64) } {
+            let mut __for_first_1129: bool = true;
+            while { if !__for_first_1129 { i += 1; } __for_first_1129 = false; i < (response.len() as i64) } {
             let __ws_arg_30 = self.parse_transaction_with_type(response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[currency.clone(), transactType.clone()]);
             results.push(self.extend(__ws_arg_30, &[paramsUntil.clone()]));
         }

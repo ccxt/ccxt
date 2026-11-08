@@ -1781,8 +1781,8 @@ impl Deribit {
             let mut currenciesResult: Vec<Value> = self.safe_list_k(currenciesResponse, "result", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_618: bool = true;
-                while { if !__for_first_618 { i += 1; } __for_first_618 = false; i < (currenciesResult.len() as i64) } {
+                let mut __for_first_619: bool = true;
+                while { if !__for_first_619 { i += 1; } __for_first_619 = false; i < (currenciesResult.len() as i64) } {
                 let mut currencyId: Option<String> = self.safe_string_k_opt(currenciesResult.get(i as usize).cloned().unwrap_or(Value::Null), "currency", &[]);
                 let mut request: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
@@ -1870,13 +1870,13 @@ impl Deribit {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_620: bool = true;
-            while { if !__for_first_620 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_620 = false; i.as_f64().unwrap_or(f64::NAN) < ((instrumentsResponses.len() as i64) as f64) } {
+            let mut __for_first_621: bool = true;
+            while { if !__for_first_621 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_621 = false; i.as_f64().unwrap_or(f64::NAN) < ((instrumentsResponses.len() as i64) as f64) } {
             let mut instrumentsResult: Vec<Value> = self.safe_list(instrumentsResponses.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), Value::Str("result".into()), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut k: i64 = 0;
-                let mut __for_first_619: bool = true;
-                while { if !__for_first_619 { k += 1; } __for_first_619 = false; k < (instrumentsResult.len() as i64) } {
+                let mut __for_first_620: bool = true;
+                while { if !__for_first_620 { k += 1; } __for_first_620 = false; k < (instrumentsResult.len() as i64) } {
                 let mut market: Value = instrumentsResult.get(k as usize).cloned().unwrap_or(Value::Null);
                 let mut kind: Option<String> = self.safe_string_k_opt(market.clone(), "kind", &[]);
                 let mut isSpot: Value = (Value::Bool(kind.as_deref() == Some("spot")));
@@ -2031,8 +2031,8 @@ impl Deribit {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_621: bool = true;
-            while { if !__for_first_621 { i += 1; } __for_first_621 = false; i < (summaries.len() as i64) } {
+            let mut __for_first_622: bool = true;
+            while { if !__for_first_622 { i += 1; } __for_first_622 = false; i < (summaries.len() as i64) } {
             let mut data: Value = self.safe_dict(summaries.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(data.clone(), "currency", &[]);
             let mut currencyCode: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -2451,8 +2451,8 @@ impl Deribit {
         if (symbolsNormalized != Value::Null) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_622: bool = true;
-                while { if !__for_first_622 { i += 1; } __for_first_622 = false; i < (symbolsNormalized.len() as i64) } {
+                let mut __for_first_623: bool = true;
+                while { if !__for_first_623 { i += 1; } __for_first_623 = false; i < (symbolsNormalized.len() as i64) } {
                 let mut market: Value = self.market(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                 let mut marketBase: Value = self.safe_string_k(market.clone(), "base", &[]);
                 if (code != Value::Null) && (code != marketBase) {
@@ -2522,8 +2522,8 @@ impl Deribit {
         };
         {
                         let mut i: i64 = 0;
-            let mut __for_first_623: bool = true;
-            while { if !__for_first_623 { i += 1; } __for_first_623 = false; i < (result.len() as i64) } {
+            let mut __for_first_624: bool = true;
+            while { if !__for_first_624 { i += 1; } __for_first_624 = false; i < (result.len() as i64) } {
             let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ticker(result.get(i as usize).cloned().unwrap_or(Value::Null), &[]).as_map().cloned().unwrap_or_default();
             let mut symbol: Value = ticker.get("symbol").cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
@@ -2925,8 +2925,8 @@ impl Deribit {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_624: bool = true;
-            while { if !__for_first_624 { i += 1; } __for_first_624 = false; i < (fees.len() as i64) } {
+            let mut __for_first_625: bool = true;
+            while { if !__for_first_625 { i += 1; } __for_first_625 = false; i < (fees.len() as i64) } {
             let mut fee: Value = fees.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut instrumentType: Option<String> = self.safe_string_k(fee.clone(), "instrument_type", &[]).as_str().map(str::to_owned);
             if (instrumentType.as_deref() == Some("future")) {
@@ -2963,8 +2963,8 @@ impl Deribit {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_625: bool = true;
-            while { if !__for_first_625 { i += 1; } __for_first_625 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_626: bool = true;
+            while { if !__for_first_626 { i += 1; } __for_first_626 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let mut fee: Value = Value::Map({
@@ -4432,8 +4432,8 @@ impl Deribit {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_626: bool = true;
-            while { if !__for_first_626 { i += 1; } __for_first_626 = false; i < (volatilityResult.len() as i64) } {
+            let mut __for_first_627: bool = true;
+            while { if !__for_first_627 { i += 1; } __for_first_627 = false; i < (volatilityResult.len() as i64) } {
             let mut timestamp: Option<i64> = self.safe_integer(volatilityResult.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(0), &[]).as_i64();
             let mut volatilityObj: Value = self.safe_number(volatilityResult.get(i as usize).cloned().unwrap_or(Value::Null), Value::Int(1), &[]);
             result.push(Value::Map({
@@ -4940,8 +4940,8 @@ impl Deribit {
         let mut result: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_627: bool = true;
-            while { if !__for_first_627 { i += 1; } __for_first_627 = false; i < (result.len() as i64) } {
+            let mut __for_first_628: bool = true;
+            while { if !__for_first_628 { i += 1; } __for_first_628 = false; i < (result.len() as i64) } {
             let mut fr: Value = self.safe_dict(result.clone(), Value::Int(i), &[]);
             let mut rate: Value = self.parse_funding_rate(fr, &[market.clone()]);
             rates.push(rate);

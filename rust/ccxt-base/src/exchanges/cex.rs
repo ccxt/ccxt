@@ -723,8 +723,8 @@ impl Cex {
         let mut keys: Vec<Value> = Value::Array(rawNetworks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut j: i64 = 0;
-            let mut __for_first_526: bool = true;
-            while { if !__for_first_526 { j += 1; } __for_first_526 = false; j < (keys.len() as i64) } {
+            let mut __for_first_527: bool = true;
+            while { if !__for_first_527 { j += 1; } __for_first_527 = false; j < (keys.len() as i64) } {
             let mut networkId: Value = keys.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut rawNetwork: Value = self.safe_dict(rawNetworks.clone(), networkId.clone(), &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
@@ -1410,8 +1410,8 @@ impl Cex {
         let mut keys: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_527: bool = true;
-            while { if !__for_first_527 { i += 1; } __for_first_527 = false; i < (keys.len() as i64) } {
+            let mut __for_first_528: bool = true;
+            while { if !__for_first_528 { i += 1; } __for_first_528 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = Value::Null;
             if useKeyAsId.as_bool() == Some(true) {
@@ -1427,8 +1427,8 @@ impl Cex {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_528: bool = true;
-            while { if !__for_first_528 { i += 1; } __for_first_528 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_529: bool = true;
+            while { if !__for_first_529 { i += 1; } __for_first_529 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if !(matches!((&result, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 let mut market: Value = self.market(symbol.clone());
@@ -1605,8 +1605,8 @@ impl Cex {
         let mut keys: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_529: bool = true;
-            while { if !__for_first_529 { i += 1; } __for_first_529 = false; i < (keys.len() as i64) } {
+            let mut __for_first_530: bool = true;
+            while { if !__for_first_530 { i += 1; } __for_first_530 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut balance: Value = self.safe_dict(response.clone(), key.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2186,8 +2186,8 @@ impl Cex {
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_530: bool = true;
-            while { if !__for_first_530 { i += 1; } __for_first_530 = false; i < (ids.len() as i64) } {
+            let mut __for_first_531: bool = true;
+            while { if !__for_first_531 { i += 1; } __for_first_531 = false; i < (ids.len() as i64) } {
             let mut id: Value = ids.get(i as usize).cloned().unwrap_or(Value::Null);
             orders.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();

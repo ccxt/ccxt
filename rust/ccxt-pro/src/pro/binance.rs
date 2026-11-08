@@ -2891,7 +2891,6 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut interval: Option<String> = self.safe_string_k_opt(kline.clone(), "i", &[]);
         // use a reverse lookup in a static map instead
         let mut unifiedTimeframe: Value = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut parsed: Value = Value::from(vec![self.safe_integer_k(kline.clone(), "t", &[]), self.safe_float_k(kline.clone(), "o", &[]), self.safe_float_k(kline.clone(), "h", &[]), self.safe_float_k(kline.clone(), "l", &[]), self.safe_float_k(kline.clone(), "c", &[]), self.safe_float_k(kline, "v", &[])]);
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
         let mut isSpot: Value = self.is_spot_url(client.clone());
@@ -2899,7 +2898,12 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if isSpot.as_bool() == Some(true) {
             marketType = "spot".to_string();
         }
-        let mut symbol: Value = self.safe_symbol(marketId, &[Value::Null, Value::Null, Value::from(marketType)]);
+        let mut market: Value = self.safe_market(&[marketId, Value::Null, Value::Null, Value::from(marketType)]);
+        let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        // coin-margined contracts count "v" in contracts, "q" is the base asset volume that fetchOHLCV returns
+        let mut inverse: Option<bool> = self.safe_bool_k_opt(market, "inverse", &[]);
+        let mut volumeKey: Value = (if (inverse == Some(true)) { Value::Str("q".into()) } else { Value::Str("v".into()) });
+        let mut parsed: Value = Value::from(vec![self.safe_integer_k(kline.clone(), "t", &[]), self.safe_float_k(kline.clone(), "o", &[]), self.safe_float_k(kline.clone(), "h", &[]), self.safe_float_k(kline.clone(), "l", &[]), self.safe_float_k(kline.clone(), "c", &[]), self.safe_float(kline, volumeKey, &[])]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), symbol).into()), Value::Str("::".into())).into()), unifiedTimeframe).into());
         { let __be_tmp = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6624,7 +6628,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         m.insert("amount".to_string(), self.safe_string_k(order.clone(), "q", &[]));
         m.insert("cost".to_string(), self.safe_string_k(order.clone(), "Z", &[]));
         m.insert("average".to_string(), self.safe_string_k(order.clone(), "ap", &[]));
-        m.insert("filled".to_string(), self.safe_string_k(order, "z", &[]));
+        m.insert("filled".to_string(), self.safe_string2(order, Value::Str("z".into()), Value::Str("aq".into()), &[]));
         m.insert("remaining".to_string(), Value::Null);
         m.insert("status".to_string(), status);
         m.insert("fee".to_string(), fee);
@@ -7076,10 +7080,19 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 m
             });
         }
-        if (self.positions.as_map().is_some_and(|__m| type_var.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
-            return;
-        }
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(false)]);
+        if (self.positions.as_map().is_some_and(|__m| type_var.as_str().is_some_and(|__k| __m.contains_key(__k)))) {
+            // a fresh client has no snapshot future yet, which means the
+            // connection was re-established after a disconnect: positions
+            // closed while disconnected never arrive as stream deltas, so
+            // the cached positions are stale and must be reloaded
+            let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":fetchPositionsSnapshot".into())).into());
+            if ((match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) })) && (!(__ch.has_future(&messageHash))) {
+                remove(&mut self.positions, &type_var);
+            }  else {
+                return;
+            }
+        }
         if (match &(fetchPositionsSnapshot) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
             let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":fetchPositionsSnapshot".into())).into());
             if !(__ch.has_future(&messageHash)) {
@@ -7102,6 +7115,13 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             params.insert("portfolioMargin".into(), Value::Bool(true));
         }
         let mut positions: Value = crate::types::IntoRaw::into_raw(self.fetch_positions(None, Value::Map(params)).await);
+        // the client may have been replaced by a reconnect while the
+        // snapshot was in flight: a stale snapshot must not overwrite
+        // the fresh one loaded for the new client
+        let mut currentClient: Value = self.safe_value(self.clients.clone(), client.url(), &[]);
+        if !is_equal(&currentClient, &client) {
+            return Value::Null;
+        }
         if let Value::Dict(__rda) = &mut self.positions { std::sync::Arc::make_mut(__rda).insert(crate::runtime::stringify_param(&type_var), ArrayCacheBySymbolBySide::new(Value::Null)); }
         let mut cache: Value = (if let (Some(__m), Some(__k)) = (self.positions.as_map(), type_var.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         {

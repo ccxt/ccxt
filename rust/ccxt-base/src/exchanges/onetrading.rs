@@ -1102,8 +1102,8 @@ impl Onetrading {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1034: bool = true;
-            while { if !__for_first_1034 { i += 1; } __for_first_1034 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_1036: bool = true;
+            while { if !__for_first_1036 { i += 1; } __for_first_1036 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let mut tierObject: Value = (if matches!((self.safe_bool_k(market, "spot", &[Value::Bool(false)])), Value::Bool(true)) { firstSpotTier.clone() } else { firstFuturesTier.clone() });
@@ -1191,8 +1191,8 @@ impl Onetrading {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1035: bool = true;
-            while { if !__for_first_1035 { i += 1; } __for_first_1035 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_1037: bool = true;
+            while { if !__for_first_1037 { i += 1; } __for_first_1037 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let mut makerFee: Value = (if matches!((self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) { spotMakerFee.clone() } else { futuresMakerFee.clone() });
@@ -1221,8 +1221,8 @@ impl Onetrading {
         let mut makerFees: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1036: bool = true;
-            while { if !__for_first_1036 { i += 1; } __for_first_1036 = false; i < (feeTiers.len() as i64) } {
+            let mut __for_first_1038: bool = true;
+            while { if !__for_first_1038 { i += 1; } __for_first_1038 = false; i < (feeTiers.len() as i64) } {
             let mut tier: Value = self.safe_dict(feeTiers.clone(), Value::Int(i), &[]);
             let mut volume: Value = self.safe_number_k(tier.clone(), "volume", &[]);
             let mut taker: Value = self.safe_string_k(tier.clone(), "taker_fee", &[]);
@@ -1389,8 +1389,8 @@ impl Onetrading {
         let mut rawTickers: Value = self.to_array(response);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1037: bool = true;
-            while { if !__for_first_1037 { i += 1; } __for_first_1037 = false; i < (rawTickers.len() as i64) } {
+            let mut __for_first_1039: bool = true;
+            while { if !__for_first_1039 { i += 1; } __for_first_1039 = false; i < (rawTickers.len() as i64) } {
             let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ticker(rawTickers.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[]).as_map().cloned().unwrap_or_default();
             let mut symbol: Value = ticker.get("symbol").cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
@@ -1723,8 +1723,8 @@ impl Onetrading {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1038: bool = true;
-            while { if !__for_first_1038 { i += 1; } __for_first_1038 = false; i < (balances.len() as i64) } {
+            let mut __for_first_1040: bool = true;
+            while { if !__for_first_1040 { i += 1; } __for_first_1040 = false; i < (balances.len() as i64) } {
             let mut balance: Value = self.safe_dict(balances.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "currency_code", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);

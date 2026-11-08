@@ -1244,8 +1244,8 @@ impl P2b {
         let mut keys: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1039: bool = true;
-            while { if !__for_first_1039 { i += 1; } __for_first_1039 = false; i < (keys.len() as i64) } {
+            let mut __for_first_1041: bool = true;
+            while { if !__for_first_1041 { i += 1; } __for_first_1041 = false; i < (keys.len() as i64) } {
             let mut currencyId: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut balance: Value = self.safe_dict(response.clone(), currencyId.clone(), &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
@@ -1768,8 +1768,8 @@ impl P2b {
         let mut keys: Vec<Value> = Value::Array(result.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1040: bool = true;
-            while { if !__for_first_1040 { i += 1; } __for_first_1040 = false; i < (keys.len() as i64) } {
+            let mut __for_first_1042: bool = true;
+            while { if !__for_first_1042 { i += 1; } __for_first_1042 = false; i < (keys.len() as i64) } {
             let mut marketId: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketOrders: Value = result.get(marketId.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let mut parsedOrders: Value = self.parse_orders(marketOrders, &[market.clone(), sinceResolved.clone(), limit.clone()]);

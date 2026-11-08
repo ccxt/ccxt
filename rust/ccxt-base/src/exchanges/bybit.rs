@@ -5272,6 +5272,22 @@ impl Bybit {
     m
 })]);
         let mut tickerList: Value = self.safe_list_k(result, "list", &[Value::from(vec![])]);
+        if (category.as_str() == Some("spot")) {
+            // bybit.id lists spot tickers for pairs that are not in its spot instruments; such a ticker would
+            // resolve to the only market with the same id, a contract (BTCUSD -> BTC/USD:BTC), so it is skipped
+            let mut spotTickers: Value = Value::from(vec![]);
+            {
+                                let mut i: i64 = 0;
+                let mut __for_first_506: bool = true;
+                while { if !__for_first_506 { i += 1; } __for_first_506 = false; i < (tickerList.len() as i64) } {
+                let mut tickerMarket: Value = self.safe_market(&[self.safe_string_k(tickerList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), "symbol", &[]), Value::Null, Value::Null, Value::Str("spot".into())]);
+                if !matches!(self.safe_bool_k(tickerMarket, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
+                    if let Value::Arr(__a) = &mut spotTickers { std::sync::Arc::make_mut(__a).push(tickerList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)); }
+                }
+            }
+            }
+            tickerList = spotTickers;
+        }
         return self.parse_tickers(tickerList, &[parsedSymbols]);
         Value::Null
         }).await?))
@@ -5636,8 +5652,8 @@ impl Bybit {
         let mut timestamp: Option<i64> = self.safe_integer_k(response, "time", &[]).as_i64();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_506: bool = true;
-            while { if !__for_first_506 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_506 = false; i.as_f64().unwrap_or(f64::NAN) < ((tickerList.len() as i64) as f64) } {
+            let mut __for_first_507: bool = true;
+            while { if !__for_first_507 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_507 = false; i.as_f64().unwrap_or(f64::NAN) < ((tickerList.len() as i64) as f64) } {
             add_element_to_object(get_value_mut(&mut tickerList, &i), &Value::Str("timestamp".into()), Value::from(timestamp)); // will be removed inside the parser
         }
         }
@@ -5751,8 +5767,8 @@ impl Bybit {
         let mut resultList: Vec<Value> = self.safe_list_k(result, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_507: bool = true;
-            while { if !__for_first_507 { i += 1; } __for_first_507 = false; i < (resultList.len() as i64) } {
+            let mut __for_first_508: bool = true;
+            while { if !__for_first_508 { i += 1; } __for_first_508 = false; i < (resultList.len() as i64) } {
             let mut entry: Value = resultList.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "fundingRateTimestamp", &[]).as_i64();
             rates.push(Value::Map({
@@ -6315,16 +6331,16 @@ impl Bybit {
         }  else {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_509: bool = true;
-                while { if !__for_first_509 { i += 1; } __for_first_509 = false; i < (currencyList.len() as i64) } {
+                let mut __for_first_510: bool = true;
+                while { if !__for_first_510 { i += 1; } __for_first_510 = false; i < (currencyList.len() as i64) } {
                 let mut entry: Value = self.safe_dict(currencyList.clone(), Value::Int(i), &[]);
                 let mut accountType: Option<String> = self.safe_string_k(entry.clone(), "accountType", &[]).as_str().map(str::to_owned);
                 if (accountType.as_deref() == Some("UNIFIED")) || (accountType.as_deref() == Some("CONTRACT")) || (accountType.as_deref() == Some("SPOT")) {
                     let mut coins: Value = self.safe_list_k(entry.clone(), "coin", &[Value::from(vec![])]);
                     {
                                                 let mut j: i64 = 0;
-                        let mut __for_first_508: bool = true;
-                        while { if !__for_first_508 { j += 1; } __for_first_508 = false; j < (coins.len() as i64) } {
+                        let mut __for_first_509: bool = true;
+                        while { if !__for_first_509 { j += 1; } __for_first_509 = false; j < (coins.len() as i64) } {
                         let mut account: Value = self.account();
                         let mut coinEntry: Value = self.safe_dict(coins.clone(), Value::Int(j), &[]);
                         let mut loan: Option<String> = self.safe_string_k_opt(coinEntry.clone(), "borrowAmount", &[]);
@@ -7253,8 +7269,8 @@ impl Bybit {
         let mut orderSymbols: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_510: bool = true;
-            while { if !__for_first_510 { i += 1; } __for_first_510 = false; i < (orders.len() as i64) } {
+            let mut __for_first_511: bool = true;
+            while { if !__for_first_511 { i += 1; } __for_first_511 = false; i < (orders.len() as i64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             orderSymbols.push(marketId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -7300,8 +7316,8 @@ impl Bybit {
         let mut codes: Vec<Value> = self.safe_list_k(retInfo, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_511: bool = true;
-            while { if !__for_first_511 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_511 = false; i.as_f64().unwrap_or(f64::NAN) < ((codes.len() as i64) as f64) } {
+            let mut __for_first_512: bool = true;
+            while { if !__for_first_512 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_512 = false; i.as_f64().unwrap_or(f64::NAN) < ((codes.len() as i64) as f64) } {
             let mut code: Value = codes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut retCode: Option<i64> = self.safe_integer_k(code.clone(), "code", &[]).as_i64();
             if (retCode != Some(0)) {
@@ -7497,8 +7513,8 @@ impl Bybit {
         let mut orderSymbols: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_512: bool = true;
-            while { if !__for_first_512 { i += 1; } __for_first_512 = false; i < (orders.len() as i64) } {
+            let mut __for_first_513: bool = true;
+            while { if !__for_first_513 { i += 1; } __for_first_513 = false; i < (orders.len() as i64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             orderSymbols.push(symbol.clone().map(Value::from).unwrap_or(Value::Null));
@@ -7545,8 +7561,8 @@ impl Bybit {
         let mut codes: Vec<Value> = self.safe_list_k(retInfo, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_513: bool = true;
-            while { if !__for_first_513 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_513 = false; i.as_f64().unwrap_or(f64::NAN) < ((codes.len() as i64) as f64) } {
+            let mut __for_first_514: bool = true;
+            while { if !__for_first_514 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_514 = false; i.as_f64().unwrap_or(f64::NAN) < ((codes.len() as i64) as f64) } {
             let mut code: Value = codes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut retCode: Option<i64> = self.safe_integer_k(code.clone(), "code", &[]).as_i64();
             if (retCode != Some(0)) {
@@ -7690,8 +7706,8 @@ impl Bybit {
         let mut paramsOmitted: Value = self.omit(paramsValue, Value::from(vec![Value::Str("clientOrderIds".into()), Value::Str("clientOids".into())]), &[]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_514: bool = true;
-            while { if !__for_first_514 { i += 1; } __for_first_514 = false; i < (clientOrderIds.len() as i64) } {
+            let mut __for_first_515: bool = true;
+            while { if !__for_first_515 { i += 1; } __for_first_515 = false; i < (clientOrderIds.len() as i64) } {
             ordersRequests.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -7702,8 +7718,8 @@ impl Bybit {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_515: bool = true;
-            while { if !__for_first_515 { i += 1; } __for_first_515 = false; i < (ids.len() as i64) } {
+            let mut __for_first_516: bool = true;
+            while { if !__for_first_516 { i += 1; } __for_first_516 = false; i < (ids.len() as i64) } {
             ordersRequests.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -7844,8 +7860,8 @@ impl Bybit {
         let mut query: Value = params;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_516: bool = true;
-            while { if !__for_first_516 { i += 1; } __for_first_516 = false; i < (orders.len() as i64) } {
+            let mut __for_first_517: bool = true;
+            while { if !__for_first_517 { i += 1; } __for_first_517 = false; i < (orders.len() as i64) } {
             let mut order: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(order.clone(), "symbol", &[]);
             let mut market: Value = self.market(symbol.map(Value::from).unwrap_or(Value::Null));
@@ -10020,8 +10036,8 @@ impl Bybit {
         let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_517: bool = true;
-            while { if !__for_first_517 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_517 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
+            let mut __for_first_518: bool = true;
+            while { if !__for_first_518 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_518 = false; i.as_f64().unwrap_or(f64::NAN) < ((positions.len() as i64) as f64) } {
             let mut rawPosition: Value = get_value(&positions, &i);
             if (in_op(&rawPosition, &Value::Str("data".into()))) && (in_op(&rawPosition, &Value::Str("is_valid".into()))) {
                 // futures only
@@ -11741,8 +11757,8 @@ impl Bybit {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_518: bool = true;
-            while { if !__for_first_518 { i += 1; } __for_first_518 = false; i < (fees.len() as i64) } {
+            let mut __for_first_519: bool = true;
+            while { if !__for_first_519 { i += 1; } __for_first_519 = false; i < (fees.len() as i64) } {
             let mut fee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(fees.get(i as usize).cloned().unwrap_or(Value::Null), &[]).as_map().cloned().unwrap_or_default();
             let mut symbol: Value = fee.get("symbol").cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
@@ -11805,8 +11821,8 @@ impl Bybit {
         if (chainsLength != 0.0) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_519: bool = true;
-                while { if !__for_first_519 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_519 = false; i.as_f64().unwrap_or(f64::NAN) < chainsLength } {
+                let mut __for_first_520: bool = true;
+                while { if !__for_first_520 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_520 = false; i.as_f64().unwrap_or(f64::NAN) < chainsLength } {
                 let mut chain: Value = self.safe_dict(chains.clone(), i.clone(), &[]);
                 let mut networkId: Option<String> = self.safe_string_k_opt(chain.clone(), "chain", &[]);
                 let mut currencyCode: Value = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
@@ -12135,8 +12151,8 @@ impl Bybit {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_520: bool = true;
-            while { if !__for_first_520 { i += 1; } __for_first_520 = false; i < (settlements.len() as i64) } {
+            let mut __for_first_521: bool = true;
+            while { if !__for_first_521 { i += 1; } __for_first_521 = false; i < (settlements.len() as i64) } {
             result.push(self.parse_settlement(settlements.get(i as usize).cloned().unwrap_or(Value::Null), market.clone()));
         }
         }
@@ -12203,8 +12219,8 @@ impl Bybit {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_521: bool = true;
-            while { if !__for_first_521 { i += 1; } __for_first_521 = false; i < (volatility.len() as i64) } {
+            let mut __for_first_522: bool = true;
+            while { if !__for_first_522 { i += 1; } __for_first_522 = false; i < (volatility.len() as i64) } {
             let mut entry: Value = self.safe_dict(volatility.clone(), Value::Int(i), &[]);
             let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "time", &[]).as_i64();
             result.push(Value::Map({
@@ -12747,14 +12763,14 @@ impl Bybit {
         let mut keys: Vec<Value> = Value::Array(grouped.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_523: bool = true;
-            while { if !__for_first_523 { i += 1; } __for_first_523 = false; i < (keys.len() as i64) } {
+            let mut __for_first_524: bool = true;
+            while { if !__for_first_524 { i += 1; } __for_first_524 = false; i < (keys.len() as i64) } {
             let mut marketId: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut entry: Value = get_value(&grouped, &marketId);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_522: bool = true;
-                while { if !__for_first_522 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_522 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&entry).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_523: bool = true;
+                while { if !__for_first_523 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_523 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&entry).as_f64().unwrap_or(f64::NAN) } {
                 let mut id: Value = self.safe_integer_k(get_value(&entry, &j), "id", &[]);
                 add_element_to_object(get_value_mut(&mut entry, &j), &Value::Str("id".into()), id);
             }
@@ -12787,8 +12803,8 @@ impl Bybit {
         let mut tiers: Value = Value::from(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_524: bool = true;
-            while { if !__for_first_524 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_524 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_525: bool = true;
+            while { if !__for_first_525 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_525 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
             let mut tier: Value = self.safe_dict(info.clone(), i.clone(), &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(tier.clone(), "symbol", &[]);
             let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market.clone(), Value::Null, Value::Str("contract".into())]);
@@ -13363,8 +13379,8 @@ impl Bybit {
         let mut coins: Vec<Value> = self.safe_list_k(data, "coins", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_525: bool = true;
-            while { if !__for_first_525 { i += 1; } __for_first_525 = false; i < (coins.len() as i64) } {
+            let mut __for_first_526: bool = true;
+            while { if !__for_first_526 { i += 1; } __for_first_526 = false; i < (coins.len() as i64) } {
             let mut entry: Value = coins.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut id: Option<String> = self.safe_string_k_opt(entry.clone(), "coin", &[]);
             let mut disableFrom: bool = self.safe_bool_k_opt(entry.clone(), "disableFrom", &[Value::Bool(false)]).unwrap_or(false);
