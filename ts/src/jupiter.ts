@@ -1401,9 +1401,9 @@ export default class jupiter extends Exchange {
             requestHeaders['x-api-key'] = this.apiKey;
         }
         if ((api[0] === 'trigger') && (api[1] === 'private') && (path !== 'auth/refresh')) {
-            const jwt = this.safeString (this.options, 'jwt');
-            if (jwt !== undefined) {
-                requestHeaders['Authorization'] = 'Bearer ' + jwt;
+            const jwtToken = this.safeString (this.options, 'jwt');
+            if (jwtToken !== undefined) {
+                requestHeaders['Authorization'] = 'Bearer ' + jwtToken;
             }
         }
         let requestBody: any = undefined;
