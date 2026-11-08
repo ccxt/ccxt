@@ -198,7 +198,7 @@ export function nextPage (cursor: string): Envelope {
     }
     const snapshot = getSnapshot (decoded.id);
     if (snapshot === undefined) {
-        return { 'ok': false, 'error': { 'code': 'CURSOR_EXPIRED', 'message': 'this paginated result is no longer available', 'retryable': false, 'hint': 'snapshots expire after ' + (SNAPSHOT_TTL_MS / 60000) + ' minutes unread — repeat the original call to get a fresh first page' } };
+        return { 'ok': false, 'error': { 'code': 'CURSOR_EXPIRED', 'message': 'no paginated result for this cursor — it expired or never existed', 'retryable': false, 'hint': 'snapshots expire after ' + (SNAPSHOT_TTL_MS / 60000) + ' minutes unread — repeat the original call to get a fresh first page' } };
     }
     if (decoded.offset >= snapshot.items.length) {
         return { 'ok': false, 'error': { 'code': 'BAD_CURSOR', 'message': 'cursor offset ' + decoded.offset + ' is past the end of the result (' + snapshot.items.length + ' entries)', 'retryable': false, 'hint': 'the previous page had hasMore: false — there is nothing left to read' } };

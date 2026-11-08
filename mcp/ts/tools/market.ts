@@ -448,7 +448,7 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
 
     server.registerTool ('call_read_method', {
         'title': 'Call any read-only unified ccxt method',
-        'description': 'Escape hatch covering every unified read method not served by a dedicated tool (fetchFundingRate(s), fetchLedger, fetchOpenInterest(s), fetchLiquidations, fetchEvent, fetchSettlements, …). Only fetch*/load* methods are accepted — writes are structurally rejected. Get the signature first with describe_method. Bulk methods without a symbol filter return every market (okx fetchFundingRates ≈ 800 entries, ~127k tokens) — shape them server-side with sortBy/limit/fields to get only what you need in one response, e.g. {"method": "fetchFundingRates", "sortBy": "-fundingRate", "limit": 20, "fields": ["fundingRate", "nextFundingDatetime"]}. Docs: https://docs.ccxt.com/',
+        'description': 'Escape hatch covering every unified read method not served by a dedicated tool (fetchFundingRate(s), fetchLedger, fetchOpenInterest(s), fetchLiquidations, fetchEvent, fetchSettlements, …). Only fetch*/load* methods are accepted — writes are structurally rejected. Get the signature first with describe_method. Bulk methods without a symbol filter return every market (okx fetchFundingRates ≈ 800 entries, ~127k tokens) — shape them server-side with sortBy/limit/fields to get only what you need in one response, e.g. {"method": "fetchFundingRates", "sortBy": "-fundingRate", "limit": 20, "fields": ["fundingRate", "fundingDatetime", "interval"]} (fundingDatetime is the upcoming settlement; nextFundingDatetime is the one after it and many exchanges leave it null). Docs: https://docs.ccxt.com/',
         'inputSchema': {
             'exchange': exchangeParam,
             'method': z.string ().describe ('unified method name matching ^(fetch|load), e.g. "fetchFundingRate"'),
@@ -456,14 +456,15 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
             'account': z.string ().optional ().describe ('configured account name — required for private reads like fetchLedger'),
             'includeInfo': z.boolean ().optional ().describe ('keep the raw exchange payload inside unified structures'),
             'sortBy': z.string ().optional ().describe ('sort a list result (array, or map keyed by symbol) by this field of each entry, applied server-side before limit; prefix "-" for descending, e.g. "-fundingRate". Entries missing the field sort last'),
-            'limit': z.number ().int ().positive ().optional ().describe ('keep only the first N entries of a list result (after sortBy). Server-side: the exchange call is unchanged — for the exchange\'s own limit argument use "args"'),
-            'fields': z.array (z.string ()).min (1).optional ().describe ('keep only these top-level fields of each entry (or of a single structure), e.g. ["fundingRate", "nextFundingDatetime"]; array rows also keep "symbol"'),
+            'limit': z.number ().int ().positive ().optional ().describe ('keep only N entries of a list result (after sortBy). Server-side: the exchange call is unchanged — for the exchange\'s own limit argument use "args"'),
+            'offset': z.number ().int ().nonnegative ().optional ().describe ('skip this many entries (after sortBy) — with limit, walks a sorted list slice by slice'),
+            'fields': z.array (z.string ()).min (1).optional ().describe ('keep only these top-level fields of each entry (or of a single structure), e.g. ["fundingRate", "fundingDatetime"]; nulls are kept, names that exist on no entry are reported in meta.unknownFields; array rows also keep "symbol"'),
             'marketType': marketTypeParam,
             'prediction': predictionParam,
             'params': paramsParam,
         },
         'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
-    }, async ({ exchange: exchangeId, method, args, account: accountName, includeInfo, sortBy, limit, fields, marketType, prediction, params }) => run ({ 'tool': 'call_read_method', 'exchange': exchangeId, 'account': accountName }, async () => {
+    }, async ({ exchange: exchangeId, method, args, account: accountName, includeInfo, sortBy, limit, offset, fields, marketType, prediction, params }) => run ({ 'tool': 'call_read_method', 'exchange': exchangeId, 'account': accountName }, async () => {
         if (method.startsWith ('watch') || method.endsWith ('Ws') || method.startsWith ('un')) {
             return { 'ok': false, 'error': { 'code': 'USE_WATCH_TOOLS', 'message': method + ' is a WebSocket/streaming method — call_read_method is for one-shot reads', 'retryable': false, 'hint': 'for live streaming use watch_subscribe (' + method + ') then watch_read; for a single snapshot use the fetch* equivalent (e.g. fetchTicker)' } };
         }
@@ -490,7 +491,7 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
         const callArgs = buildArgs (exchange, method, args ?? [], params);
         const result = await exchange[method] (...callArgs);
         const data = includeInfo === true ? result : stripInfo (result);
-        const shaped = shapeResult (data, { fields, sortBy, limit });
+        const shaped = shapeResult (data, { fields, sortBy, limit, offset });
         return ok (shaped.data, { 'exchange': exchange.id, method, ...shaped.meta });
     }));
 

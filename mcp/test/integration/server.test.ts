@@ -98,9 +98,10 @@ test ('call_read_method: sortBy/limit/fields shape a bulk read into one small re
     const top = await call (client, 'call_read_method', { 'exchange': 'fakex', 'method': 'fetchFundingRates', 'sortBy': '-fundingRate', 'limit': 5, 'fields': [ 'fundingRate', 'nextFundingDatetime' ] });
     assert.equal (top.ok, true);
     assert.equal (top.meta.paginated, undefined, 'fits in one response');
-    assert.equal (top.meta.total, 700);
-    assert.equal (top.meta.returned, 5);
-    assert.equal (top.meta.hasMore, true);
+    assert.equal (top.meta.matched, 700);
+    assert.deepEqual (top.meta.window, { 'offset': 0, 'count': 5 });
+    const next = await call (client, 'call_read_method', { 'exchange': 'fakex', 'method': 'fetchFundingRates', 'sortBy': '-fundingRate', 'limit': 5, 'offset': 5, 'fields': [ 'fundingRate' ] });
+    assert.equal (Object.keys (next.data)[0], 'COIN694/USDT:USDT', 'offset continues the sorted list');
     assert.deepEqual (Object.keys (top.data), [ 'COIN699/USDT:USDT', 'COIN698/USDT:USDT', 'COIN697/USDT:USDT', 'COIN696/USDT:USDT', 'COIN695/USDT:USDT' ]);
     assert.deepEqual (Object.keys (top.data['COIN699/USDT:USDT']).sort (), [ 'fundingRate', 'nextFundingDatetime' ]);
     const bad = await call (client, 'call_read_method', { 'exchange': 'fakex', 'method': 'fetchFundingRates', 'sortBy': 'rate' });
