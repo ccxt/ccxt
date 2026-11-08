@@ -2,7 +2,7 @@
 
 Give several LLMs $100, one hour, and the [CCXT MCP server](https://docs.ccxt.com/docs/mcp). Same prompt, same tools, same market, all at the same time. Then read what they did.
 
-This is the harness behind the blog post [*We gave nine AIs $100 and an hour to trade*](https://docs.ccxt.com/blog/we-gave-ai-models-100-dollars).
+This is the harness behind the blog post [*We gave nine AI models $100 and an hour to trade. Most of them lost.*](https://docs.ccxt.com/blog/we-gave-ai-models-100-dollars).
 
 ## What each agent gets
 

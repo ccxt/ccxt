@@ -1,6 +1,6 @@
 ---
 title: "We gave nine AI models $100 and an hour to trade. Most of them lost."
-description: Same one-line prompt, same tools, same market, same hour, three times over. Two Claude models refused to play, DeepSeek couldn't sit still, and the fees ate nearly everyone.
+description: Same one-line prompt, same tools, same market, same hour, three times over. Two Claude models refused to play, DeepSeek swung from −28% to +8%, and fees ate everything the rest made.
 author: CCXT Team
 date: 2026-11-07T22:00:00Z
 tags: [ai, mcp, experiments]
@@ -15,9 +15,9 @@ We gave it to nine models at the same moment, with the same tools: the [CCXT MCP
 for live market data from 100+ exchanges, and a trading account. Then we left them alone. We ran it
 three times.
 
-We weren't trying to crown the best trader. One hour on $100 is mostly noise, and we say more
-about that at the end. What we wanted to see was what each model *does* with an open-ended "make me
-money" and a big toolbox. They turned out to be very different.
+We weren't trying to crown the best trader. One hour on $100 is mostly noise, and the results prove
+it. What we wanted to see was what each model *does* with an open-ended "make me money" and a big
+toolbox. They turned out to be very different.
 
 ## The setup
 
@@ -40,9 +40,24 @@ The prompt, the paper broker and the analysis scripts are in
 
 ## The results
 
-ROUND3_RESULTS_PLACEHOLDER
+Equity after one hour, starting from $100:
+
+| Model | Round 1 | Round 2 | Round 3 | Average |
+|---|---|---|---|---|
+| Grok 4.7 | 97.93 | 96.37 | **109.26** | **101.19** |
+| Claude Opus 5.5 | 100.00 | 100.00 | 100.00 | 100.00 |
+| Claude Sonnet 5.5 | 100.00 | 100.00 | 100.00 | 100.00 |
+| Kimi K3.1 Pro | **111.25** | 94.29 | 94.13 | 99.89 |
+| Claude Haiku 5.5 | 99.93 | 99.75 | 99.83 | 99.84 |
+| GPT-6.1 Sol | 98.38 | 98.82 | 100.63 | 99.28 |
+| Gemini Pro | 86.63 | 91.64 | 98.70 | 92.32 |
+| Qwen 3.8 | – | 94.48 | 89.54 | 92.01 |
+| DeepSeek V4 Pro | 91.32 | 72.34 | 107.80 | 90.49 |
 
 ![Equity after one hour, per model and round](/images/blog/ai-trading-final-equity.png)
+
+Of 26 runs, six never placed an order, and all six were Claude Opus or Sonnet. Of the 20 runs that
+did trade, 16 lost money. Only Grok finished above $100 on average, by $1.19.
 
 Here's how round one played out minute by minute:
 
@@ -59,65 +74,80 @@ after the session ended, priced the $1 transfer at 1% of the account, and conclu
 
 > A dollar not lost is the best expected outcome I can see from the options available.
 
-Sonnet checked the balance once and stopped. Asked afterwards what it did, it was harder on itself
-than we would have been:
+Sonnet checked the balance, sometimes a chart, and stopped. Both replied `DONE` within the first
+minute of round three.
 
-> I didn't look at any market data, so I never tested whether an edge existed. […] I was also wrong to
-> say "DONE" when you told me 60 minutes were still left.
+When we asked them afterwards what they'd done, both turned on themselves. Sonnet: "That was too
+passive, and I should have said so." Opus: "I also answered DONE with 60 minutes left instead of
+using that time to look more carefully." They knew they'd quit early. They just didn't do anything
+about it while the clock was running.
 
 ### Claude Haiku: a token position
 
-Haiku bought something small and unleveraged each time (0.0005 BTC at 1x, then $95 of spot ETH),
-said it had no edge, and replied `DONE` with most of the hour left. It never finished more than 25
-cents away from $100.
+Haiku bought something small and unleveraged each time (0.0005 BTC, then $95 of spot ETH, then $50
+of spot BTC), said it had no edge, and mostly left it alone. It never finished more than 25 cents
+away from $100.
 
 ### GPT-6.1: the risk manager
 
-GPT traded like someone who has been burned before. One or two positions per round, always with a
-stop placed seconds after the fill, sized so the stop costs a dollar or two, then long waits. When a
-trade failed it wrote "I'm winding down the remaining position rather than increasing leverage to
-chase the loss" and did exactly that. Small losses, every time.
-
-### Gemini: one big bet
-
-Gemini spent its first two minutes paging through every perpetual on OKX, then put most of the account into
-shorts at 25–35x. In round one it shorted ZEC at 30x, was up to $112 and collected $1.86 of funding
-at the 16:00 settlement. Then a bounce hit its stop, it re-entered at 35x, and it closed the hour at
-$86.63. In round two it opened three 25x shorts with take-profits and no stops at all.
+GPT traded like someone who has been burned before. One or two positions per round, a stop placed
+right after the fill, positions sized so the stop costs a few dollars, then long waits. After a
+loss it wrote: "I'm winding down the remaining position rather than increasing leverage to chase
+the loss." It finished between $98.38 and $100.63 every time.
 
 ### Grok: the scalper, and the Anthropic short
 
-Grok was the busiest model at the table (190 tool calls in round two), constantly re-reading
-1-minute candles and nudging stops by fractions of a cent. It also spotted that OKX lists a pre-IPO
+Grok was the busiest model at the table (190 tool calls in round two). It constantly re-read
+1-minute candles and nudged stops by fractions of a cent. It also spotted that OKX lists a pre-IPO
 `ANTHROPIC/USDT:USDT` perpetual and spent a while weighing a short on it ("ANTHROPIC is the best
 short trade") before talking itself out of it and shorting XRP instead.
 
-### DeepSeek: couldn't sit still
+Its style was always the same: short the weakest coin, trail the stop. That lost a little in
+rounds one and two and made $9.26 in round three, which is enough to top the averages.
 
-DeepSeek was the first to trade and the slowest to stop. Round two's log reads like a slow tilt:
+### Gemini: one big bet
+
+Gemini spent its first two minutes paging through every perpetual on OKX, then put most of the
+account to work at once. In round one it shorted ZEC at 30x, was up to $112 and collected $1.86 of
+funding at the 16:00 settlement. Then a bounce hit its stop, it re-entered at 35x, and it closed the
+hour at $86.63. In round two it opened three 25x shorts with take-profits and no stops at all. In
+round three it built a long/short pair trade instead and lost $1.30.
+
+### DeepSeek: same style, opposite results
+
+DeepSeek had a position on within about a minute of every start, at 25–30x. Round two's log
+reads like a slow tilt:
 
 > Long 0.015 BTC at $75,780, 15x. No stops — I'll manage this manually. […] All or nothing. 460M PEPE
 > short at 30x. 10 minutes to go.
 
-It ended that round at $72.34 after $12.87 in fees. Its own summary is better than anything we could
-write:
+It ended that round at $72.34 after $12.87 in fees. Its own summary was blunt:
 
 > I overtraded — 8 round-trips in an hour — churning roughly $10 in fees on a $100 account […] the
 > chop after the initial selloff rewarded patience, and I had none.
 
+In round three it did the same thing: PEPE shorts at 25–30x, no stops this time, $10.29 in fees.
+PEPE broke its daily low, and DeepSeek finished at $107.80, second in that round. Same model, same
+prompt, same behaviour, $35 apart.
+
 ### Kimi: the best run, and the fees that came with it
 
-Kimi produced the only real win: **$111.25** in round one, from momentum trades on ZEC, XRP and ACT
-with trailing stops and clean, readable reasoning. But it paid $11.14 in fees to make $11.25, so it
-had made about twice that before costs. In round two the same style gave back $5.71.
+Kimi produced the best single hour: **$111.25** in round one, from momentum trades on ZEC, XRP and
+ACT with trailing stops and clean, readable reasoning. But it paid $11.14 in fees to make $11.25, so
+it had made about twice that before costs. In rounds two and three the same style lost about $6
+each time.
 
 ### Qwen: the order-book reader
 
-Qwen (rounds two and three only; see the caveats) was the most analytical. It found a "capitulation
-flush" on 40× normal volume, went long ETH into a 22:1 bid/ask imbalance, hedged it with an OP short
-as a "rotation spread", and then noticed the 5,502 ETH bid wall it was relying on had been pulled.
-It was a lot of sophistication for a market where BTC moved 0.18% in 40 minutes. It lost $5.52, $3.20 of it
-in fees.
+Qwen ran only in rounds two and three (see the caveats) and was the most analytical. In round two it
+found a "capitulation flush" on 40× normal volume, went long ETH into a 22:1 bid/ask imbalance,
+hedged it with an OP short as a "rotation spread", and then noticed the 5,502 ETH bid wall it was
+relying on had been pulled. That was a lot of sophistication for a market where BTC moved 0.18% in
+40 minutes.
+
+Round three cost it $10.46. Its post-mortem was the most honest of the day:
+
+> The other three were me manufacturing signals out of noise.
 
 ## What nobody did
 
@@ -126,33 +156,37 @@ model that traded did the same thing: **leveraged OKX perpetuals, mostly short, 
 money was already on.**
 
 Nobody moved cash to another exchange. Nobody tried an arbitrage, opened a prediction market or ran a
-funding carry on purpose. A few models looked at prices on Bitget or Gate, or tried Binance and got geo-blocked, and moved on. It
-was a red day for altcoins (−3 to −7%), so they shorted the weakest names they could find.
+funding carry on purpose. A few models looked at prices on Bitget, Gate or KuCoin, or tried Binance
+and got geo-blocked, and moved on. It was a red day for altcoins (−3 to −7%), so they shorted the
+weakest names they could find.
 
 ## Fees ate the hour
 
-Across the 18 runs that traded, the number of fills correlated negatively with P&L (r ≈ −0.44). At
-25x leverage a $100 account trades $2,500 of notional, and OKX charges taker fees on the notional.
-That's over $1 every time a position opens and again when it closes, against a market that barely
-moved.
+Add up the 20 runs that traded and, **before fees, they made $1.66 between them. They paid $68.64 in
+fees.** The models were close to a coin flip on direction, and the costs did the rest.
 
-LI.FI reported the same pattern in its
+Leverage is why the fees were so large. At 25x a $100 account trades $2,500 of notional, and OKX
+charges its taker fee on the notional: over $1 every time a position opens, and again when it
+closes. BTC never left a $350 range during any of the three hours.
+
+LI.FI found something similar in its
 [seven-day agent competition](https://li.fi/knowledge-hub/we-let-5-llms-trade-crypto-autonomously-and-the-result-shocked-us):
-the more an agent traded, the worse it did.
+the more an agent traded, the worse it did. In our data that link was weaker (DeepSeek won one round
+with 10 fills and lost another with 16), but the total is hard to argue with.
 
 ## Compared to Alpha Arena and LI.FI
 
 In Nof1's [Alpha Arena](https://decrypt.co/345006/ai-crypto-trading-showdown-deepseek-grok-winning-gemini-implodes),
 six models traded $10,000 each of real money on Hyperliquid for weeks. DeepSeek
 [came out on top](https://www.scmp.com/tech/tech-trends/article/3329784/deepseek-outperforms-ai-rivals-real-money-real-market-crypto-showdown),
-and GPT-5 and Gemini [lost more than half](https://blog.pickmytrade.io/claude-vs-chatgpt-vs-gemini-vs-grok-trading-2026/). In LI.FI's run, Claude Opus 4.6 was the "restless" one: 38
-trades and last place.
+and GPT-5 and Gemini [lost more than half](https://blog.pickmytrade.io/claude-vs-chatgpt-vs-gemini-vs-grok-trading-2026/).
+In LI.FI's run, Claude Opus 4.6 was the "restless" one: 38 trades and last place.
 
 Our Claude models did the opposite and barely traded. The likely reason is the harness, not the
 model. Both of those experiments ask the model for a decision every few minutes, so "hold" is just
 one option on a menu that comes back 48 times a day. Ours gave each model one open-ended task and let
-it say it was finished. Given a way to decline, Claude declined every time. Every other model kept
-trading into the last few minutes.
+it say it was finished. Given a way to decline, Opus and Sonnet declined every time. Every other model
+kept trading into the last few minutes.
 
 So "trading personality" depends on the setup as well as the model. If you're building an agent,
 whether it can say no is a design decision.
@@ -161,8 +195,9 @@ whether it can say no is a design decision.
 
 - **Paper trading.** Prices, depth, fees and funding were real. Fills were simulated: no queue
   position, no latency, and stops fill at the book after they trigger.
-- **Three hours, one market.** All three rounds ran on the same quiet, alt-negative afternoon (BTC
-  between roughly $75,400 and $76,200). A trending day could reward the aggressive models instead.
+- **Three hours, one quiet market.** All three rounds ran on November 7, 2026 (15:25, 16:29 and 19:58
+  UTC). A trending day could reward the aggressive models instead, and round three shows how much
+  one hour can swing.
 - **Two harnesses.** Claude ran in the Claude Code CLI with its system prompt replaced and built-in
   tools off. The others ran in a plain tool loop through OpenRouter. The prompt and tools were
   identical, but the loops differ.
@@ -172,8 +207,8 @@ whether it can say no is a design decision.
 - **Qwen missed round one**, because of a data-retention setting on our OpenRouter account.
 - **No Binance or Bybit.** Both block the US cloud region the arena ran from.
 - **One rough edge on our side.** Asking `ccxt-mcp` for every OKX funding rate at once returned a
-  result too large to show, and Opus gave up on the scan. That one is on us. We're tightening the
-  server's size limits.
+  result too large to show, and Opus gave up on that scan. That one is on us, and we're tightening
+  the server's size limits.
 
 ## Run it yourself
 
@@ -192,6 +227,6 @@ OPENROUTER_API_KEY=... node arena.mjs --run myrun --minutes 60
 node analyze.mjs runs/myrun
 ```
 
-All nine models cost us about $35 in API calls for three hours. Edit `AGENTS` in `arena.mjs` to swap
-models, or change the prompt and see how much one sentence moves them. To give your own agent the
-same market data, [install the CCXT MCP server](/docs/mcp). It takes one line.
+All three rounds cost about $34 in model usage. Edit `AGENTS` in `arena.mjs` to swap models, or
+change the prompt and see how much one sentence moves them. To give your own agent the same market
+data, [install the CCXT MCP server](/docs/mcp). It takes one line.

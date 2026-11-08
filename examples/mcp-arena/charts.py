@@ -60,14 +60,14 @@ for y, a in enumerate(agents):
     ax.plot([min(present), max(present)], [y, y], color=GRID, lw=6, solid_capstyle='round', zorder=1)
     for i, v in enumerate(vals):
         if v is not None:
-            ax.scatter(v, y + (i - (len(vals) - 1) / 2) * 0.16, s=60, color=ROUND_COLORS[i], zorder=3, edgecolor='white', linewidth=1.2, label=('Round ' + str(i + 1)) if y == 0 or a == agents[-1] else None)
+            ax.scatter(v, y - (i - (len(vals) - 1) / 2) * 0.16, s=60, color=ROUND_COLORS[i], zorder=3, edgecolor='white', linewidth=1.2, label=('Round ' + str(i + 1)) if y == 0 or a == agents[-1] else None)
 ax.set_yticks(range(len(agents)))
 ax.set_yticklabels([LABELS[a] for a in agents])
 ax.set_xlabel('Equity after one hour (started at $100)')
 ax.grid(axis='x', color=GRID, lw=0.8)
 ax.tick_params(axis='y', length=0)
 handles = [plt.Line2D([], [], marker='o', ls='', color=c, markersize=8, label='Round ' + str(i + 1)) for i, c in enumerate(ROUND_COLORS[:len(rounds)])]
-ax.legend(handles=handles, frameon=False, loc='lower right')
+ax.legend(handles=handles, frameon=False, loc='lower center', bbox_to_anchor=(0.5, 1.0), ncol=len(handles))
 fig.tight_layout()
 fig.savefig(os.path.join(out, 'ai-trading-final-equity.png'))
 
