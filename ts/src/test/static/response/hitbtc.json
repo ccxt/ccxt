@@ -18,7 +18,7 @@
                     }
                 ],
                 "httpResponseByUrl": {
-                    "till=1792540799000&symbols=BTCUSDT_PERP&limit=3": {
+                    "till=1792540799000": {
                         "BTCUSDT_PERP": [
                             {
                                 "timestamp": "2026-10-20T16:00:00.003Z",
@@ -43,7 +43,7 @@
                             }
                         ]
                     },
-                    "till=1792454400001&symbols=BTCUSDT_PERP&limit=3": {
+                    "till=1792454400001": {
                         "BTCUSDT_PERP": [
                             {
                                 "timestamp": "2026-10-19T16:00:00.008Z",
@@ -68,7 +68,7 @@
                             }
                         ]
                     },
-                    "till=1792368000001&symbols=BTCUSDT_PERP&limit=3": {
+                    "till=1792368000001": {
                         "BTCUSDT_PERP": [
                             {
                                 "timestamp": "2026-10-18T16:00:00.002Z",
@@ -93,7 +93,7 @@
                             }
                         ]
                     },
-                    "until=1792540799000&symbols=BTCUSDT_PERP&from=1792368000000&limit=3": {
+                    "from=1792368000000": {
                         "BTCUSDT_PERP": [
                             {
                                 "timestamp": "2026-10-25T08:00:00.003Z",
@@ -118,7 +118,7 @@
                             }
                         ]
                     },
-                    "until=1792540799000&symbols=BTCUSDT_PERP&from=1792454399999&limit=3": {
+                    "from=1792454399999": {
                         "BTCUSDT_PERP": [
                             {
                                 "timestamp": "2026-10-25T08:00:00.003Z",
