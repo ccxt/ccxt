@@ -19,10 +19,10 @@ tokio = { version = "1", features = ["full"] }
 ```
 
 ```rust
-use ccxt::{Binance, Params, ExchangeBase, TypedExchange};
+use ccxt::{Binance, Params, ExchangeBase, ExchangeRuntime};
 
 let mut exchange = Binance::new(None);
-exchange.try_load_markets(false).await?;
+exchange.load_markets(false, ()).await?;
 let ticker = exchange.fetch_ticker("BTC/USDT", Params::none()).await?;
 ```
 

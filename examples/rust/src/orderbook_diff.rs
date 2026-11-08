@@ -17,7 +17,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use ccxt::Params;
-use ccxt::{Binance, TypedExchange};
+use ccxt::{Binance, ExchangeRuntime};
 use tokio::sync::RwLock;
 use tokio::time::MissedTickBehavior;
 
@@ -48,7 +48,7 @@ fn wall_ms() -> u128 {
 async fn run_fetcher(symbol: &'static str, books: SharedBooks, every: Duration, rounds: Option<u64>) {
     let mut exchange = Binance::new(None);
     let t0 = Instant::now();
-    if let Err(e) = exchange.try_load_markets(false).await {
+    if let Err(e) = exchange.load_markets(false, ()).await {
         eprintln!("[{symbol}] load_markets failed: {e}");
         return;
     }

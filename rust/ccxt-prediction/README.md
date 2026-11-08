@@ -5,10 +5,10 @@ Polymarket, Limitless, Myriad and others.
 
 ```rust
 use ccxt::Params;
-use ccxt_prediction::{Kalshi, ExchangeBase, TypedExchange};
+use ccxt_prediction::{Kalshi, ExchangeBase, ExchangeRuntime};
 
 let mut exchange = Kalshi::new(None);
-exchange.try_load_markets(false).await?;
+exchange.load_markets(false, ()).await?;
 
 let ticker = exchange.fetch_ticker("KXBTCD", Params::none()).await?;
 ```

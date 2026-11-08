@@ -6,13 +6,13 @@
 //
 // Build: `cargo run --example prediction_typed_demo`.
 use ccxt::Params;
-use ccxt_prediction::{Kalshi, Polymarket, TypedExchange};
+use ccxt_prediction::{Kalshi, Polymarket, TypedExchange, ExchangeRuntime};
 
 // ── A. concrete exchange — typed returns ──────────────────────────────────────
 #[allow(dead_code)]
 async fn demo() {
     let mut k = Kalshi::new(None);
-    let _ = k.try_load_markets(false).await; // -> Result<Vec<Market>>
+    let _ = k.load_markets(false, ()).await; // -> Result<Markets>
 
     match k.fetch_ticker("KXBTCD", Params::none()).await {
         Ok(t) => println!("kalshi {} last={:?}", t.symbol, t.last),
@@ -27,7 +27,7 @@ async fn demo() {
         Box::new(Polymarket::new(None)),
     ];
     for ex in &mut venues {
-        let _ = ex.try_load_markets(false).await;
+        let _ = ex.load_markets(false, ()).await;
         let _ = ex.fetch_ticker("BTC", Params::none()).await; // inherent on dyn TypedExchange
     }
 }

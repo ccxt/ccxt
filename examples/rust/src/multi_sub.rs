@@ -30,7 +30,7 @@ fn build() -> Box<dyn TypedExchange> {
 async fn part_a(secs: u64) {
     println!("── Part A: one {EXCHANGE} instance, watchOrderBook + watchTrades on ONE connection ──");
     let mut ex = build();
-    ex.try_load_markets(false).await.expect("load_markets failed");
+    ex.load_markets(false, ()).await.expect("load_markets failed");
 
     let deadline = Instant::now() + Duration::from_secs(secs);
     let (mut ob_updates, mut trade_events, mut trade_count) = (0u64, 0u64, 0u64);
@@ -66,7 +66,7 @@ async fn part_a(secs: u64) {
 // deadline (the loop only re-checks the clock between awaits).
 async fn count_book(secs: u64, counter: Arc<AtomicU64>) {
     let mut ex = build();
-    ex.try_load_markets(false).await.expect("load_markets failed");
+    ex.load_markets(false, ()).await.expect("load_markets failed");
     eprintln!("  [book task] markets loaded, subscribing…");
     let deadline = Instant::now() + Duration::from_secs(secs);
     let mut first = true;
@@ -87,7 +87,7 @@ async fn count_book(secs: u64, counter: Arc<AtomicU64>) {
 
 async fn count_trades(secs: u64, counter: Arc<AtomicU64>) {
     let mut ex = build();
-    ex.try_load_markets(false).await.expect("load_markets failed");
+    ex.load_markets(false, ()).await.expect("load_markets failed");
     eprintln!("  [trades task] markets loaded, subscribing…");
     let deadline = Instant::now() + Duration::from_secs(secs);
     let mut first = true;

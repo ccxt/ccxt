@@ -30,12 +30,12 @@ exchange structs. Unified methods take Rust primitives plus `Params` and return
 `Result<T, ExchangeError>` with a native type (`Ticker`, `Order`, …).
 
 ```rust
-use ccxt::{Binance, Params, ExchangeBase, TypedExchange};
+use ccxt::{Binance, Params, ExchangeBase, ExchangeRuntime};
 
 #[tokio::main]
 async fn main() -> Result<(), ccxt::ExchangeError> {
     let mut ex = Binance::new(None);
-    ex.try_load_markets(false).await?;
+    ex.load_markets(false, ()).await?;
     let ticker = ex.fetch_ticker("BTC/USDT", Params::none()).await?;
     println!("last = {:?}", ticker.last);
     Ok(())
@@ -43,8 +43,9 @@ async fn main() -> Result<(), ccxt::ExchangeError> {
 ```
 
 Each exchange `Deref`s to the base `Exchange` (fields such as `id`, `has`,
-`markets`), and `TypedExchange::call_raw(name, args)` dispatches any method by
-name and returns the dynamic `Value` for methods without a typed signature.
+`markets`). A `Box<dyn TypedExchange>` (`from_id`) carries the same base-spec
+methods, plus `call::<R>(name, args)` to dispatch any method by name (`R = Value`
+for methods without a typed signature).
 
 ## Feature flags
 

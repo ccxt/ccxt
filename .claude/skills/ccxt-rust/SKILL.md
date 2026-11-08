@@ -53,12 +53,12 @@ tokio = { version = "1", features = ["full"] }
 ### REST API
 
 ```rust
-use ccxt::{Binance, Params, ExchangeBase, TypedExchange};
+use ccxt::{Binance, Params, ExchangeBase, ExchangeRuntime};
 
 #[tokio::main]
 async fn main() -> Result<(), ccxt::ExchangeError> {
     let mut exchange = Binance::new(None);
-    exchange.try_load_markets(false).await?;
+    exchange.load_markets(false, ()).await?;
 
     let ticker = exchange.fetch_ticker("BTC/USDT", Params::none()).await?;
     println!("{} last={:?} bid={:?} ask={:?}", ticker.symbol, ticker.last, ticker.bid, ticker.ask);
@@ -70,12 +70,12 @@ async fn main() -> Result<(), ccxt::ExchangeError> {
 
 ```rust
 use ccxt::Params;
-use ccxt_pro::{Binance, ExchangeBase, TypedExchange};
+use ccxt_pro::{Binance, ExchangeBase, ExchangeRuntime};
 
 #[tokio::main]
 async fn main() -> Result<(), ccxt::ExchangeError> {
     let mut exchange = Binance::new(None);
-    exchange.try_load_markets(false).await?;
+    exchange.load_markets(false, ()).await?;
 
     loop {
         let ticker = exchange.watch_ticker("BTC/USDT", Params::none()).await?;
@@ -208,7 +208,7 @@ let mut a = Binance::with_config(Config::new().sandbox(true));
 
 // or afterwards — returns Err(NotSupported) when the venue has no testnet
 let mut b = Binance::new(None);
-b.try_set_sandbox_mode(true)?;   // TypedExchange in scope
+b.set_sandbox_mode(true)?;
 ```
 
 ### Choosing an exchange at runtime
@@ -223,16 +223,16 @@ for id in ["binance", "bybit", "okx"] {
     let Some(mut exchange) = from_id_with_config(id, Config::new().enable_rate_limit(true)) else {
         continue; // unknown id
     };
-    exchange.try_load_markets(false).await?;
+    exchange.load_markets(false, ()).await?;
     let ticker = exchange.fetch_ticker("BTC/USDT", Params::none()).await?;
     println!("{id} {:?}", ticker.last);
 }
 ```
 
-`TypedExchange` is object-safe and blanket-implemented for every exchange; it carries
-`try_load_markets`, `try_market`, `try_set_sandbox_mode`, `call_raw` and `base()`. The typed
-unified methods are inherent on each concrete struct and on `dyn TypedExchange`, so generic code
-takes a trait object:
+`TypedExchange` is blanket-implemented for every exchange. `dyn TypedExchange` carries the
+base-spec methods under the same names and signatures as each concrete struct (`load_markets`,
+`market`, `set_sandbox_mode`, `fetch_ticker`, …), plus `call::<R>(name, args)` for by-name
+dispatch, and `Deref`s to the base `Exchange`. Generic code takes a trait object:
 
 ```rust
 async fn best_bid(ex: &mut dyn TypedExchange) -> Result<Option<f64>, ccxt::ExchangeError> {
@@ -278,8 +278,9 @@ the same thing on every venue — CCXT translates them into whatever the exchang
 ### Loading markets
 
 ```rust
-// Fallible and typed (TypedExchange in scope)
-let markets: Vec<ccxt::types::Market> = exchange.try_load_markets(false).await?;
+// keyed by unified symbol; a `Market` decodes when read
+let markets: ccxt::types::Markets = exchange.load_markets(false, ()).await?;
+let btc = markets.get("BTC/USDT");
 ```
 
 Loading markets is required before any call that resolves a unified symbol.
@@ -289,7 +290,7 @@ Loading markets is required before any call that resolves a unified symbol.
 Trading rules can be checked locally, before sending an order and without an extra request:
 
 ```rust
-let market = exchange.try_market("BTC/USDT")?;      // Err(BadSymbol) when not listed
+let market = exchange.market("BTC/USDT")?;          // Err(BadSymbol) when not listed
 println!("{} {} active={}", market.symbol, market.market_type, market.active);
 println!("min amount {:?}  min cost {:?}", market.limits.amount.min, market.limits.cost.min);
 println!("amount step {:?}  price tick {:?}", market.precision.amount, market.precision.price);
@@ -446,10 +447,10 @@ All examples use `ccxt_pro`. Load markets once before watching.
 
 ```rust
 use ccxt::Params;
-use ccxt_pro::{Binance, ExchangeBase, TypedExchange};
+use ccxt_pro::{Binance, ExchangeBase, ExchangeRuntime};
 
 let mut exchange = Binance::new(None);
-exchange.try_load_markets(false).await?;
+exchange.load_markets(false, ()).await?;
 
 loop {
     match exchange.watch_ticker("BTC/USDT", Params::none()).await {
@@ -510,10 +511,10 @@ These multiplex over a single WebSocket connection instead of opening one per sy
 
 ```rust
 use ccxt::{Config, Params};
-use ccxt_pro::{Binance, ExchangeBase, TypedExchange};
+use ccxt_pro::{Binance, ExchangeBase, ExchangeRuntime};
 
 let mut exchange = Binance::with_config(Config::new().api_key("KEY").secret("SECRET"));
-exchange.try_load_markets(false).await?;
+exchange.load_markets(false, ()).await?;
 
 loop {
     let orders = exchange.watch_orders(Some("BTC/USDT"), None, None, Params::none()).await?;
@@ -540,8 +541,8 @@ concurrently. Either interleave them in one loop, or give each stream its own in
 ```rust
 let mut a = ccxt_pro::Binance::new(None);
 let mut b = ccxt_pro::Binance::new(None);
-a.try_load_markets(false).await?;
-b.try_load_markets(false).await?;
+a.load_markets(false, ()).await?;
+b.load_markets(false, ()).await?;
 
 let (btc, eth) = tokio::join!(
     a.watch_ticker("BTC/USDT", Params::none()),
@@ -829,12 +830,11 @@ async fn fetch_with_retry(ex: &mut ccxt::Binance, symbol: &str) -> Result<ccxt::
 
 ### Errors from `load_markets`
 
-`load_markets` returns a `Value` and **panics** on failure. Use `try_load_markets`, which returns
-`Result<Vec<Market>, ExchangeError>` — loading really can fail (a venue outage, or a venue whose
-currency load is authenticated rejecting bad credentials).
+`load_markets` returns `Result<Markets, ExchangeError>` — loading really can fail (a venue
+outage, or a venue whose currency load is authenticated rejecting bad credentials).
 
 ```rust
-if let Err(e) = exchange.try_load_markets(false).await {
+if let Err(e) = exchange.load_markets(false, ()).await {
     eprintln!("cannot load markets: [{}] {}", e.kind, e.message);
     return;
 }
@@ -900,21 +900,21 @@ Helpers re-exported at the crate root: `get_value`, `safe_string`, `safe_number`
 let supports_ws_orders = ccxt::safe_bool(&exchange.has, "createOrderWs", Some(false));
 ```
 
-**3. `call_raw`** — dispatch any method on the exchange by name, including ones with no typed
+**3. `call`** — dispatch any method on the exchange by name, including ones with no typed
 signature (exchange-specific implicit endpoints such as `public_get_ticker_price`). Names are
-`snake_case`; the result is a `Value`:
+`snake_case`; `call::<Value>` returns the raw result:
 
 ```rust
 use ccxt::{TypedExchange, Value};
 
 let mut ex: Box<dyn TypedExchange> = Box::new(ccxt::Binance::new(None));
 let result: Value = ex
-    .call_raw("public_get_ticker_price", vec![Value::Null])
+    .call("public_get_ticker_price", vec![Value::Null])
     .await?;
 ```
 
-`call_raw` is on `TypedExchange`, which every exchange implements, so it also works on a
-concrete `Binance` with the trait in scope.
+`call` is on `dyn TypedExchange`; a concrete `Binance` calls its implicit endpoints directly
+(`exchange.public_get_ticker_price(..)`).
 
 ## Prediction Markets
 
@@ -925,10 +925,10 @@ unified API, but prices are quoted **0–1** (USDC per outcome share) and the tr
 
 ```rust
 use ccxt::Params;
-use ccxt_prediction::{Kalshi, Polymarket, ExchangeBase, TypedExchange};
+use ccxt_prediction::{Kalshi, Polymarket, ExchangeBase, ExchangeRuntime};
 
 let mut ex = Polymarket::new(None);
-ex.try_load_markets(false).await?;   // outcomes load automatically
+ex.load_markets(false, ()).await?;   // outcomes load automatically
 
 // An outcome handle looks like 'TRUMP_OUT_PRESIDENT_2027:YES'
 let handle = "TRUMP_OUT_PRESIDENT_2027:YES";
@@ -947,7 +947,7 @@ if let Some(id) = order.id {
   `create_order`, `cancel_order`, …) take an **outcome handle** where a REST venue takes a symbol.
 - Event discovery is typed too: `fetch_events(params) -> Vec<PredictionEvent>`,
   `fetch_event(id, params) -> PredictionEvent`. Methods still taking `Value` (e.g. `fetch_outcomes`)
-  can also be reached via `call_raw`.
+  can also be reached via `call`.
 
 - Venues are driven generically through `Box<dyn TypedExchange>` (`ccxt_prediction::from_id`),
   the same trait as in `ccxt`.
@@ -1134,7 +1134,7 @@ let ticker = ex.fetch_ticker("BTC/USDT", Params::none()).await?;   // BadSymbol
 
 // Correct
 let mut ex = Binance::new(None);
-ex.try_load_markets(false).await?;
+ex.load_markets(false, ()).await?;
 let ticker = ex.fetch_ticker("BTC/USDT", Params::none()).await?;
 ```
 
@@ -1148,16 +1148,6 @@ exchange.apiKey = "...".into();
 // Correct
 exchange.set_verbose(true);
 exchange.set_api_key("...");
-```
-
-### Using `load_markets` where failure matters
-
-```rust
-// Risky — the dynamic base `load_markets` panics on a venue outage or bad credentials
-exchange.load_markets(&[]).await;
-
-// Correct
-exchange.try_load_markets(false).await?;
 ```
 
 ### Ordering error arms from general to specific
@@ -1194,7 +1184,7 @@ loop {
 
 // Correct — one connection, push updates
 let mut ws = ccxt_pro::Binance::new(None);
-ws.try_load_markets(false).await?;
+ws.load_markets(false, ()).await?;
 loop {
     let t = ws.watch_ticker("BTC/USDT", Params::none()).await?;
 }
@@ -1232,9 +1222,10 @@ Wrap it in a `tokio::sync::Mutex` (which serialises the calls) or give each task
 Two `watch_*` calls from the same instance cannot be awaited concurrently. Use `*_for_symbols`, or a
 second instance.
 
-**`no method named 'try_load_markets' found`**
-Bring the trait into scope: `use ccxt::TypedExchange;` (`try_load_markets`, `try_market`,
-`try_set_sandbox_mode`, `call_raw` live on it).
+**`no method named 'load_markets' found`**
+On a concrete struct, bring the traits into scope: `use ccxt::{ExchangeBase, ExchangeRuntime};`
+(`market`/`set_sandbox_mode`/`fetch_*` live on `ExchangeBase`, `load_markets` on
+`ExchangeRuntime`). On a `Box<dyn TypedExchange>` they are inherent.
 
 **`no method named 'fetch_ticker' found`**
 The exchange was not compiled in (check the crate's `features`), or the venue does not implement
@@ -1293,7 +1284,7 @@ The Rust port is newer than the other bindings. Current gaps:
 - **No typed `un_watch_*` and no `close()`** — see
   [Closing connections](#closing-connections).
 - **Not every method is typed** — unified methods have typed signatures; exchange-specific
-  helpers and implicit endpoints go through `call_raw`.
+  helpers and implicit endpoints go through `call` on `dyn TypedExchange`.
 - **Integer precision** — JSON integers above `u64::MAX` fall back to `f64`; values up to
   `u64::MAX` are preserved losslessly.
 

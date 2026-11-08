@@ -3,13 +3,13 @@
 // sandbox (testnet) routing on a typed exchange.
 //
 //   1. at construction, through `Config`
-//   2. afterwards, through `set_verbose` / `try_set_sandbox_mode`
+//   2. afterwards, through `set_verbose` / `set_sandbox_mode`
 //
 // Each mode makes one real public request so the `[ccxt]` log line shows the
 // host actually being used — that URL is the proof sandbox took effect.
 //
 //   cargo run --release --bin exchange-verbose-sandbox
-use ccxt::{Binance, Config, TypedExchange};
+use ccxt::{Binance, Config, ExchangeBase};
 
 fn state(label: &str, ex: &Binance) {
     println!(
@@ -39,23 +39,23 @@ async fn run() {
     state("Binance::new(None)", &b);
 
     b.set_verbose(true);
-    if let Err(e) = b.try_set_sandbox_mode(true) {
-        println!("  try_set_sandbox_mode   [{}] {}", e.kind, e.message);
+    if let Err(e) = b.set_sandbox_mode(true) {
+        println!("  set_sandbox_mode   [{}] {}", e.kind, e.message);
     }
     state("after setters", &b);
     ping(&mut b).await;
 
     println!("\n── setters also turn things back off");
     b.set_verbose(false);
-    if let Err(e) = b.try_set_sandbox_mode(false) {
-        println!("  try_set_sandbox_mode   [{}] {}", e.kind, e.message);
+    if let Err(e) = b.set_sandbox_mode(false) {
+        println!("  set_sandbox_mode   [{}] {}", e.kind, e.message);
     }
     state("after reverting", &b);
     ping(&mut b).await;
 
     println!("\n── a venue with no testnet reports it instead of failing silently");
     let mut c = ccxt::Bitstamp::new(None);
-    match c.try_set_sandbox_mode(true) {
+    match c.set_sandbox_mode(true) {
         Ok(()) => println!("  bitstamp               enabled (unexpected)"),
         Err(e) => println!("  bitstamp               [{}] {}", e.kind, e.message),
     }

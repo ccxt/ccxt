@@ -4753,7 +4753,7 @@ function mapParamKind(printedParam: string): 'map' | undefined {
 /** Dispatch argument for a native-map parameter (position `index` in `args`). The temp is built on the arm's
  *  own line so a generated dispatch arm stays within the 400-char line budget. */
 // Typed unified-method parameters (printer `typedUnified`) and their `args[i]` dispatch lowering.
-const TYPED_PARAM_KINDS = new Set(['str', 'optstr', 'f64', 'optf64', 'opti64', 'i64', 'optstrvec', 'strvecvec', 'orderreqs', 'params']);
+const TYPED_PARAM_KINDS = new Set(['str', 'optstr', 'f64', 'optf64', 'opti64', 'i64', 'optstrvec', 'strvecvec', 'orderreqs', 'params', 'flag']);
 
 function typedParamKind(param: string): string | undefined {
     if (/:\s*&str$/.test(param)) return 'str';
@@ -4767,6 +4767,7 @@ function typedParamKind(param: string): string | undefined {
     // `OrderRequest[]` / `CancellationRequest[]` / `Order` decode through `types::FromRaw`
     if (/:\s*(?:Vec<crate::types::\w+>|crate::types::\w+)$/.test(param)) return 'orderreqs';
     if (/:\s*impl Into<crate::Params>/.test(param)) return 'params';
+    if (/:\s*bool$/.test(param)) return 'flag';
     return undefined;
 }
 
@@ -4781,7 +4782,16 @@ function typedDispatchArg(kind: string, i: number): string {
         : kind === 'optstrvec' ? `${arg}.to_opt_str_vec()`
         : kind === 'strvecvec' ? `${arg}.to_str_vec_vec()`
         : kind === 'orderreqs' ? `crate::types::FromRaw::from_raw(${arg})`
+        : kind === 'flag' ? `args.get(${i}).is_some_and(crate::Value::is_truthy)`
         : arg;
+}
+
+/** The typed parameter `kind` read from the boxed `Value` expression `v` (a `DerivedExchange` slot argument). */
+function typedFromValue(kind: string, v: string): string {
+    return kind === 'str' ? `${v}.as_str().unwrap_or_default()`
+        : kind === 'optstr' ? `${v}.as_str()`
+        : kind === 'flag' ? `${v}.is_truthy()`
+        : v;
 }
 
 // A typed method's `Result<T>` boxed back to the dispatcher's `Value`.
@@ -7216,7 +7226,7 @@ export class RustTranspilerBuilder {
         return {
             verbose: false,
             // Unified methods whose core signature is typed (`&str`/`Option<i64>`/`Params` -> `Result<T>`).
-            rust: { typedUnified: ['fetchTicker', 'fetchTickers', 'fetchOrderBook', 'fetchTrades', 'fetchOHLCV', 'fetchOrder', 'fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchMyTrades', 'createOrder', 'editOrder', 'cancelOrder', 'cancelAllOrders', 'fetchBalance', 'fetchMarkets', 'fetchCurrencies', 'fetchPositions', 'fetchPosition', 'watchTicker', 'watchTickers', 'watchOrderBook', 'watchTrades', 'watchOHLCV', 'watchOrders', 'watchBalance', 'fetchDeposits', 'fetchWithdrawals', 'fetchDepositsWithdrawals', 'fetchTransactions', 'fetchDepositAddress', 'fetchDepositAddresses', 'withdraw', 'transfer', 'fetchTransfers', 'fetchLedger', 'fetchTradingFee', 'fetchTradingFees', 'fetchDepositWithdrawFees',
+            rust: { typedUnified: ['loadMarkets', 'market', 'setSandboxMode', 'fetchTicker', 'fetchTickers', 'fetchOrderBook', 'fetchTrades', 'fetchOHLCV', 'fetchOrder', 'fetchOrders', 'fetchOpenOrders', 'fetchClosedOrders', 'fetchMyTrades', 'createOrder', 'editOrder', 'cancelOrder', 'cancelAllOrders', 'fetchBalance', 'fetchMarkets', 'fetchCurrencies', 'fetchPositions', 'fetchPosition', 'watchTicker', 'watchTickers', 'watchOrderBook', 'watchTrades', 'watchOHLCV', 'watchOrders', 'watchBalance', 'fetchDeposits', 'fetchWithdrawals', 'fetchDepositsWithdrawals', 'fetchTransactions', 'fetchDepositAddress', 'fetchDepositAddresses', 'withdraw', 'transfer', 'fetchTransfers', 'fetchLedger', 'fetchTradingFee', 'fetchTradingFees', 'fetchDepositWithdrawFees',
                 'fetchFundingRate', 'fetchFundingRates', 'fetchFundingRateHistory', 'fetchFundingHistory', 'fetchLeverage', 'fetchLeverages', 'setLeverage', 'setMarginMode', 'fetchMarginMode', 'fetchMarginModes', 'addMargin', 'reduceMargin', 'fetchOpenInterest', 'fetchOpenInterestHistory', 'fetchMarkPrice', 'fetchMarkPrices', 'fetchLiquidations', 'fetchMyLiquidations', 'fetchPositionsHistory', 'closePosition', 'closeAllPositions', 'fetchLeverageTiers', 'fetchMarketLeverageTiers', 'fetchGreeks', 'fetchOption', 'fetchOptionChain', 'fetchBidsAsks', 'fetchLastPrices', 'fetchStatus', 'fetchTime',
                 'watchTradesForSymbols', 'watchOrderBookForSymbols', 'watchOHLCVForSymbols', 'watchMyTrades', 'watchMyTradesForSymbols', 'watchOrdersForSymbols', 'watchPositions', 'watchPositionForSymbols', 'watchPosition', 'watchBidsAsks', 'watchLiquidations', 'watchLiquidationsForSymbols', 'watchMyLiquidations', 'watchMyLiquidationsForSymbols', 'watchFundingRate', 'watchFundingRates', 'watchFundingRatesForSymbols', 'watchMarkPrice', 'watchMarkPrices', 'unWatchBidsAsks', 'unWatchFundingRate', 'unWatchFundingRates', 'unWatchMarkPrice', 'unWatchMarkPrices', 'unWatchMyTrades', 'unWatchOHLCV', 'unWatchOHLCVForSymbols', 'unWatchOrderBook', 'unWatchOrderBookForSymbols', 'unWatchOrders', 'unWatchPositions', 'unWatchTicker', 'unWatchTickers', 'unWatchTrades', 'unWatchTradesForSymbols', 'cancelAllOrdersWs', 'cancelOrderWs', 'createOrderWs', 'editOrderWs', 'fetchBalanceWs', 'fetchClosedOrdersWs', 'fetchCurrenciesWs', 'fetchDepositsWs', 'fetchMarketsWs', 'fetchMyTradesWs', 'fetchOHLCVWs', 'fetchOpenOrdersWs', 'fetchOrderBookWs', 'fetchOrdersByStatusWs', 'fetchOrdersWs', 'fetchOrderWs', 'fetchPositionsForSymbolWs', 'fetchPositionsWs', 'fetchPositionWs', 'fetchTickersWs', 'fetchTickerWs', 'fetchTradesWs', 'fetchTradingFeesWs', 'fetchWithdrawalsWs', 'fetchEvents', 'fetchEvent', 'fetchSettlements',
                 'fetchOpenOrder', 'fetchClosedOrder', 'fetchCanceledOrders', 'fetchCanceledAndClosedOrders', 'fetchOrderTrades', 'cancelOrders', 'createOrders', 'editOrders', 'createLimitOrder', 'createMarketOrder', 'createLimitBuyOrder', 'createLimitSellOrder', 'createMarketBuyOrder', 'createMarketSellOrder', 'createMarketOrderWithCost', 'createMarketBuyOrderWithCost', 'createMarketSellOrderWithCost', 'createPostOnlyOrder', 'createReduceOnlyOrder', 'createStopOrder', 'createStopLimitOrder', 'createStopMarketOrder', 'createStopLossOrder', 'createTakeProfitOrder', 'createTriggerOrder', 'createTrailingAmountOrder', 'createTrailingPercentOrder', 'createOrderWithTakeProfitAndStopLoss', 'createTwapOrder',
@@ -10854,7 +10864,7 @@ export class RustTranspilerBuilder {
         const recv = m[1];
         const decls = region.match(new RegExp(`let (?:mut )?${recv}\\b`, 'g')) ?? [];
         if (decls.length !== 1) return false;
-        return new RegExp(`let (?:mut )?${recv}\\s*:\\s*Value\\s*=\\s*self\\.market\\(`).test(region);
+        return new RegExp(`let (?:mut )?${recv}\\s*:\\s*Value\\s*=\\s*(?:crate::types::IntoRaw::into_raw\\()?self\\.market\\(`).test(region);
     }
 
     /** True when a printed RHS can only evaluate to `Value::Bool(..)` / Null. */
@@ -11682,7 +11692,7 @@ export class RustTranspilerBuilder {
             const boolPrefix = /^!?(?:is_true|is_equal|is_greater_than|is_greater_than_or_equal|is_less_than|is_less_than_or_equal|is_array|is_object|is_string|is_number|is_bool|is_integer|is_function|is_instance|starts_with|ends_with|in_op)\(/;
             const cloned = args.map(a => {
                 const t = a.trim();
-                if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(t) && t !== 'self' && t !== 'None') return `${t}.clone()`;
+                if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(t) && !['self', 'None', 'true', 'false'].includes(t)) return `${t}.clone()`;
                 if (boolPrefix.test(t)) return `Value::Bool(${t})`;
                 return a;
             }).join(', ');
@@ -12302,22 +12312,24 @@ export class RustTranspilerBuilder {
             const sig = traitDispatches[name];
             if (!sig) continue;
             const retType = (m[4] || '').trim();
-            if (!/->\s*(crate::)?Value\b/.test(retType)) continue;
+            const typedRet = /->\s*crate::Result</.test(retType);
+            if (!/->\s*(crate::)?Value\b/.test(retType) && !typedRet) continue;
             // Build the forwarding call. The trait method takes fixed-arity
             // `Value` args; we pull them from the inherent method's params.
             const argList = m[3];
             const params = mapParamSplitArgs(argList).slice(1).map(s => s.trim()).filter(p => p.length > 0);
             // Classify each inherent param: 'value' (a fixed Value),
             // 'slice' (the `optional_args: &[Value]` bag), or unknown.
-            type ParamInfo = { name: string, kind: 'value' | 'slice' | 'other' };
+            type ParamInfo = { name: string, kind: 'value' | 'slice' | 'typed' | 'other' };
             const paramInfo: ParamInfo[] = [];
             for (const p of params) {
                 const nameMatch = p.match(/^(mut\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*:\s*(.*)$/);
                 if (!nameMatch) { paramInfo.push({ name: '', kind: 'other' }); continue; }
                 const ty = nameMatch[3].trim();
-                let kind: 'value' | 'slice' | 'other' = 'other';
+                let kind: 'value' | 'slice' | 'typed' | 'other' = 'other';
                 if (/^&\[/.test(ty))          kind = 'slice';
                 else if (/^Value\b/.test(ty)) kind = 'value';
+                else if (typedParamKind(p) === 'str') kind = 'typed';
                 paramInfo.push({ name: nameMatch[2], kind });
             }
             const sliceIdx = paramInfo.findIndex(p => p.kind === 'slice');
@@ -12334,6 +12346,9 @@ export class RustTranspilerBuilder {
                 if (info && info.kind === 'value') {
                     return `${info.name}.clone()`;
                 }
+                if (info && info.kind === 'typed') {
+                    return `crate::Value::from(${info.name})`;
+                }
                 // Trait arg lands past the fixed inherent params — pull
                 // it from the optional_args slice.
                 if (sliceIdx >= 0 && i >= sliceIdx) {
@@ -12349,7 +12364,7 @@ export class RustTranspilerBuilder {
             const callExpr = `crate::exchange::DerivedExchange::${name}(self, ${callArgs.join(', ')})`;
             const preamble =
                 `\n        // virtual-dispatch (static: DerivedExchange::${name}(self, ...))\n` +
-                `        { let __v = ${callExpr}; if !matches!(__v, crate::Value::Null) { return __v; } }\n`;
+                `        { let __v = ${callExpr}; if !matches!(__v, crate::Value::Null) { return ${typedRet ? 'Ok(crate::types::FromRaw::from_raw(__v))' : '__v'}; } }\n`;
             if (this.superShimmedVirtualMethods().has(name)) {
                 // overrides that call super.X() reach `X_non_virtual`, so the virtual hop cannot recurse
                 const fwd = paramInfo.map(p => p.name).join(', ');
@@ -12468,7 +12483,7 @@ export class RustTranspilerBuilder {
             // sync dispatch_ws_handler, which already void-wraps them).
             const isValue = /->\s*(crate::)?Value\b/.test(retType);
             const isTyped = /->\s*crate::Result</.test(retType);
-            if (!isValue && !isAsync) continue;
+            if (!isValue && !isAsync && !isTyped) continue;
             const isVoid = !isValue && !isTyped;
             // Skip if there's no `self` receiver.
             if (!/\bself\b/.test(argList)) continue;
@@ -12633,8 +12648,8 @@ ${arms.join('\n')}
     /// `_ => self.call_dynamic_base(method, args).await`.
     emitCallDynamicBaseTrait(content: string): string {
         const sigs = this.collectExchangeMethodSignatures(content, /* allowNoPub */ true);
-        const handWritten: Array<{ name: string, isAsync: boolean, paramKinds: string[] }> = [
-            { name: 'load_markets',    isAsync: true,  paramKinds: ['slice'] },
+        const handWritten: Array<{ name: string, isAsync: boolean, paramKinds: string[], isTyped?: boolean }> = [
+            { name: 'load_markets',    isAsync: true,  paramKinds: ['flag', 'params'], isTyped: true },
             { name: 'fetch',           isAsync: true,  paramKinds: ['value', 'slice'] },
             { name: 'call_method',     isAsync: true,  paramKinds: ['value', 'slice'] },
         ];
@@ -12715,8 +12730,8 @@ ${arms.join('\n')}
         // `_ => Null` — and the live test reading `exchange.markets`
         // sees nothing. Mirror the Go path where the `LoadMarkets`
         // wrapper is in the typed `ICoreExchange` interface.
-        const handWritten: Array<{ name: string, isAsync: boolean, paramKinds: string[] }> = [
-            { name: 'load_markets',    isAsync: true,  paramKinds: ['slice'] },
+        const handWritten: Array<{ name: string, isAsync: boolean, paramKinds: string[], isTyped?: boolean }> = [
+            { name: 'load_markets',    isAsync: true,  paramKinds: ['flag', 'params'], isTyped: true },
             { name: 'fetch',           isAsync: true,  paramKinds: ['value', 'slice'] },
             { name: 'call_method',     isAsync: true,  paramKinds: ['value', 'slice'] },
         ];
@@ -12949,6 +12964,9 @@ ${arms.join('\n')}
                 if (kind === 'value') {
                     callArgs.push(args[traitIdx] ?? 'crate::Value::Null');
                     traitIdx++;
+                } else if (TYPED_PARAM_KINDS.has(kind)) {
+                    callArgs.push(typedFromValue(kind, args[traitIdx] ?? 'crate::Value::Null'));
+                    traitIdx++;
                 } else if (kind === 'slice') {
                     const rest = args.slice(traitIdx)
                         .map(a => `${a}.clone()`).join(', ');
@@ -12967,10 +12985,10 @@ ${arms.join('\n')}
                 // genuinely-mut virtuals.
                 out.push(`        #[allow(invalid_reference_casting)]`);
                 out.push(`        let me = unsafe { &mut *(self as *const ${coreName} as *mut ${coreName}) };`);
-                out.push(`        ${coreName}::${name}(me, ${callArgs.join(', ')})`);
+                out.push(`        ${typedResult(`${coreName}::${name}(me, ${callArgs.join(', ')})`, (inh as any).isTyped)}`);
             } else {
                 // Inherent method takes `&self` — forward directly, no cast, sound.
-                out.push(`        ${coreName}::${name}(self, ${callArgs.join(', ')})`);
+                out.push(`        ${typedResult(`${coreName}::${name}(self, ${callArgs.join(', ')})`, (inh as any).isTyped)}`);
             }
             out.push(`    }`);
         }
@@ -13825,7 +13843,7 @@ impl std::ops::DerefMut for ${coreName} {
 
     /**
      * The typed unified methods on `dyn TypedExchange` (any boxed exchange): same signature and
-     * argument lowering as the base trait method, dispatched by name through `call_raw`.
+     * argument lowering as the base trait method, dispatched by name through `call`.
      */
     emitDynTypedSurface(content: string, skip: Set<string>): string {
         const re = /^    fn (\w+)\(&mut self((?:, [^\n]*?)?)\) -> impl ::std::future::Future<Output = crate::Result<(.+?)>> \+ Send \{ async move \{\n\s*let __args: Vec<Value> = vec!\[(.*)\];$/gm;
@@ -13834,7 +13852,7 @@ impl std::ops::DerefMut for ${coreName} {
             if (skip.has(m[1])) continue;
             out.push(`    pub fn ${m[1]}<'a>(&'a mut self${m[2]}) -> impl ::std::future::Future<Output = crate::Result<${m[3]}>> + Send + 'a {`,
                 `        let __args: Vec<Value> = vec![${m[4]}];`,
-                `        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("${m[1]}", __args).await?)) }`,
+                `        async move { self.call("${m[1]}", __args).await }`,
                 '    }');
         }
         return out.length ? `\nimpl dyn crate::exchange::TypedExchange {\n${out.join('\n')}\n}\n` : '';

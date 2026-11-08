@@ -149,7 +149,7 @@ async fn run() {
     let mut ex = Binance::with_config(cfg);
     let rss_new = rss_mb();
     let load0 = Instant::now();
-    if let Err(e) = ex.try_load_markets(false).await {
+    if let Err(e) = ex.load_markets(false, ()).await {
         eprintln!("load_markets [{}] {}", e.kind, e.message);
         return;
     }

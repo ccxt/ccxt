@@ -539,7 +539,7 @@ fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
                 // markets_by_id → expired option) but clone only the one
                 // market it returns — not the whole markets map.
                 let core: &$core = unsafe { &*(ptr as *const $core) };
-                core.market(Value::Str(symbol.to_string().into()))
+                ccxt::types::IntoRaw::into_raw(core.market(symbol))
             }
             fn has_market(ptr: *mut (), symbol: &str) -> bool {
                 let core: &$core = unsafe { &*(ptr as *const $core) };

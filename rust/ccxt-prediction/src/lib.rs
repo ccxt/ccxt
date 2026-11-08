@@ -14,5 +14,7 @@ pub use ccxt_base::{
     ExchangeError, Exchange, TypedExchange, Result, Params, Config,
 };
 pub use ccxt_base::exchange_generated::ExchangeBase;
+// `load_markets` is hand-written runtime, so it lives on this sibling trait
+pub use ccxt_base::exchange::ExchangeRuntime;
 pub use ccxt_base::prediction_exchange_generated::PredictionBase;
 pub use ccxt_base::prediction::*;

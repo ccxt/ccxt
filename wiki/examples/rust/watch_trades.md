@@ -1,6 +1,6 @@
 ```rust
 use ccxt::Params;
-use ccxt_pro::{Binance, ExchangeBase, TypedExchange};
+use ccxt_pro::{Binance, ExchangeRuntime};
 
 // run it by doing: cargo run --bin watch_trades --features ws --release -- BTC/USDT
 
@@ -10,7 +10,7 @@ async fn run() {
         .unwrap_or_else(|| "BTC/USDT".to_string());
 
     let mut exchange = Binance::new(None);
-    if let Err(e) = exchange.try_load_markets(false).await {
+    if let Err(e) = exchange.load_markets(false, ()).await {
         println!("load_markets failed [{}]: {}", e.kind, e.message);
         return;
     }

@@ -13,7 +13,7 @@
 // `ccxt::Binance` is transpiled from `ts/src/binance.ts` — to change its
 // behaviour, edit the TypeScript and re-run the Rust transpiler.
 
-use ccxt::{Binance, Params, ExchangeBase, TypedExchange};
+use ccxt::{Binance, Params, ExchangeRuntime};
 
 #[tokio::main]
 async fn main() {
@@ -24,12 +24,12 @@ async fn main() {
     // come from the base `Exchange` via `Deref`.
     let mut binance = Binance::new(None);
 
-    // 1. try_load_markets — required to resolve a unified symbol to the
+    // 1. load_markets — required to resolve a unified symbol to the
     //    exchange-specific id used downstream. It comes from the
     //    `TypedExchange` trait and returns the markets typed; a failed load
     //    is an `Err`, not a panic.
-    println!("→ try_load_markets() …");
-    if let Err(e) = binance.try_load_markets(false).await {
+    println!("→ load_markets() …");
+    if let Err(e) = binance.load_markets(false, ()).await {
         eprintln!("   ✗ [{}] {}", e.kind, e.message);
         return;
     }

@@ -8,7 +8,7 @@
 //
 // Build/run: `cargo run --bin ws_typed_demo --features ws`
 use ccxt::Params;
-use ccxt_pro::{Binance, TypedExchange};
+use ccxt_pro::{Binance, TypedExchange, ExchangeRuntime};
 
 const SYMBOL: &str = "BTC/USDT";
 const UPDATES: usize = 3;
@@ -19,7 +19,7 @@ async fn main() {
 
     // ── A. concrete exchange — typed returns ──────────────────────────────────
     let mut b = Binance::new(None);
-    if let Err(e) = b.try_load_markets(false).await {
+    if let Err(e) = b.load_markets(false, ()).await {
         eprintln!("load_markets [{}] {}", e.kind, e.message);
         return;
     }
@@ -76,7 +76,7 @@ async fn main() {
     // Same object-safe pattern as the REST `iexchange_demo`, but over `watch_*`.
     println!("\n→ same surface through Box<dyn TypedExchange>");
     let mut ex: Box<dyn TypedExchange> = Box::new(Binance::new(None));
-    let _ = ex.try_load_markets(false).await;
+    let _ = ex.load_markets(false, ()).await;
     match ex.watch_ticker(SYMBOL, Params::none()).await {
         Ok(t) => println!("   last={:?}", t.last),
         Err(e) => eprintln!("   x [{}] {}", e.kind, e.message),

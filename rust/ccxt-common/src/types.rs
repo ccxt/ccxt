@@ -1500,7 +1500,6 @@ impl DepositWithdrawFee {
 // Collection aliases (mirror the plural names used in Go's exchange_types.go)
 // -----------------------------------------------------------------------------
 
-pub type Markets       = HashMap<String, Market>;
 pub type Currencies    = HashMap<String, Currency>;
 pub type Tickers       = HashMap<String, Ticker>;
 pub type OrderBooks    = HashMap<String, OrderBook>;
@@ -2006,6 +2005,33 @@ raw_struct!(Account, BorrowRate, IsolatedBorrowRate, MarginLoan, Conversion, ADL
 /// An untyped unified return (`setLeverage`, `setMarginMode`, unsubscribe acks) passes the payload through.
 impl FromRaw for Value { fn from_raw(v: Value) -> Self { v } }
 impl IntoRaw for Value { fn into_raw(self) -> Value { self } }
+/// The loaded markets keyed by unified symbol (`load_markets`). Holds the exchange's
+/// market dict as is; a `Market` decodes when read, so passing it around costs nothing.
+#[derive(Debug, Clone, Default)]
+pub struct Markets {
+    pub raw: Value,
+}
+
+impl Markets {
+    pub fn len(&self) -> usize { self.raw.as_map().map_or(0, |m| m.len()) }
+    pub fn is_empty(&self) -> bool { self.len() == 0 }
+    pub fn contains(&self, symbol: &str) -> bool { self.raw.as_map().is_some_and(|m| m.contains_key(symbol)) }
+    /// One market by unified symbol.
+    pub fn get(&self, symbol: &str) -> Option<Market> { self.raw.as_map()?.get(symbol).cloned().map(Market::from_value) }
+    /// The unified symbols, in load order.
+    pub fn symbols(&self) -> Vec<String> { self.raw.as_map().map_or_else(Vec::new, |m| m.keys().cloned().collect()) }
+    /// Every market with its symbol, decoded in load order.
+    pub fn iter(&self) -> impl Iterator<Item = (&str, Market)> + '_ {
+        self.raw.as_map().into_iter().flat_map(|m| m.iter()).map(|(k, v)| (k.as_str(), Market::from_value(v.clone())))
+    }
+}
+
+impl FromRaw for Markets { fn from_raw(v: Value) -> Self { Markets { raw: v } } }
+impl IntoRaw for Markets { fn into_raw(self) -> Value { self.raw } }
+
+/// A unit return (`setSandboxMode`): the body's trailing `Null` carries nothing.
+impl FromRaw for () { fn from_raw(_v: Value) -> Self {} }
+impl IntoRaw for () { fn into_raw(self) -> Value { Value::Null } }
 /// An integral scalar return (`fetchTime`); any other shape reads `None`.
 impl FromRaw for Option<i64> { fn from_raw(v: Value) -> Self { v.as_i64() } }
 impl IntoRaw for Option<i64> { fn into_raw(self) -> Value { Value::from(self) } }

@@ -1079,7 +1079,13 @@ pub trait ExchangeBase:
  * @description set the sandbox mode for the exchange
  * @param {boolean} enabled true to enable sandbox mode, false to disable it
  */
-    fn set_sandbox_mode(&mut self, mut enabled: Value) {
+    fn set_sandbox_mode(&mut self, enabled: bool) -> crate::Result<()> {
+        let __args: Vec<Value> = vec![Value::from(enabled)];
+        let mut __it = __args.into_iter();
+        let mut enabled = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(futures::FutureExt::now_or_never(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         if enabled.as_bool() == Some(true) {
             if (matches!(&self.urls, Value::Dict(__d) if __d.contains_key("test"))) {
                 if matches!(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str(_)) {
@@ -1105,7 +1111,9 @@ pub trait ExchangeBase:
             // set flag
             self.isSandboxModeEnabled = Value::Bool(false);
         }
-}
+        Value::Null
+        })).expect("a sync body never awaits")?))
+    }
 
 /*
  * @method
@@ -2341,11 +2349,11 @@ pub trait ExchangeBase:
         // sanbox mode
         let mut isSandbox: bool = self.safe_bool2_opt(self.options.clone(), Value::Str("sandbox".into()), Value::Str("testnet".into()), &[Value::Bool(false)]).unwrap_or(false);
         if isSandbox {
-            self.set_sandbox_mode(Value::Bool(true));
+            crate::types::IntoRaw::into_raw(self.set_sandbox_mode(true));
         }
         // compatibility for sandbox/testnet options in userConfig
         if matches!(((match userConfig.get("sandbox") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Bool(false) })), Value::Bool(true)) || matches!(((match userConfig.get("testnet") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Bool(false) })), Value::Bool(true)) {
-            self.set_sandbox_mode(Value::Bool(true));
+            crate::types::IntoRaw::into_raw(self.set_sandbox_mode(true));
         }
 }
 
@@ -2530,7 +2538,7 @@ pub trait ExchangeBase:
          * @param {object} [defaultValue] return default value if no result found
          * @returns {object} returns feature value
          */
-        let mut market: indexmap::IndexMap<String, Value> = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.clone()).as_map().cloned().unwrap_or_default();
+        let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
         return self.feature_value_by_type(market.get("type").cloned().unwrap_or(Value::Null), market.get("subType").cloned().unwrap_or(Value::Null), &[methodName, paramName, defaultValue]);
 
     Value::Null
@@ -4528,7 +4536,7 @@ pub trait ExchangeBase:
                         let mut i: i64 = 0;
             let mut __for_first_111: bool = true;
             while { if !__for_first_111 { i += 1; } __for_first_111 = false; i < (symbols.len() as i64) } {
-            result.push(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)));
+            result.push(crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, (symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default())));
         }
         }
         return Value::from(result);
@@ -4572,7 +4580,7 @@ pub trait ExchangeBase:
                         let mut i: i64 = 0;
             let mut __for_first_112: bool = true;
             while { if !__for_first_112 { i += 1; } __for_first_112 = false; i < (symbols.len() as i64) } {
-            let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+            let mut market: Value = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, (symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
             if sameTypeOnly.as_bool() == Some(true) && (marketType != Value::Null) {
                 if (market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() != marketType.as_str()) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" symbols must be of the same type, either ".into())).into()), marketType).into()), Value::Str(" or ".into())).into()),
@@ -5651,7 +5659,7 @@ pub trait ExchangeBase:
 }
 
     fn market_id(&self, mut symbol: Value) -> Value {
-        let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.clone());
+        let mut market: Value = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()));
         if (market != Value::Null) {
             return market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
         }
@@ -5664,7 +5672,7 @@ pub trait ExchangeBase:
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" symbol() requires a symbol argument".into()))));
         }
-        let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.clone());
+        let mut market: Value = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()));
         return self.safe_string_k(market, "symbol", &[symbol]);
 
     Value::Null
@@ -6276,7 +6284,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (symbol == Value::Null) {
             return Value::Null;
         }
-        return <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol);
+        return crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()));
 
     Value::Null
 }
@@ -6559,7 +6567,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         if (self.has.as_map().and_then(|__m| __m.get("fetchBorrowRates")).cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.as_map().and_then(|__m| __m.get("fetchBorrowRates")).cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchCrossBorrowRate() is not supported yet".into()))));
         }
@@ -6584,7 +6592,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        self.load_markets(&[]).await;
+        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         if (self.has.as_map().and_then(|__m| __m.get("fetchBorrowRates")).cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.as_map().and_then(|__m| __m.get("fetchBorrowRates")).cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchIsolatedBorrowRate() is not supported yet".into()))));
         }
@@ -7136,8 +7144,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchPositionsADLRank")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchPositionsADLRank")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
-            self.load_markets(&[]).await;
-            let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol);
+            crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+            let mut market: Value = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()));
             let mut symbolResolved: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut ranks: Value = crate::types::IntoRaw::into_raw(self.fetch_positions_adl_rank((Value::from(vec![symbolResolved.clone()])).to_opt_str_vec(), params).await);
             let mut rank: Value = self.safe_dict(ranks, Value::Int(0), &[]);
@@ -7746,13 +7754,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn market(&self, mut symbol: Value) -> Value {
+    fn market(&self, symbol: &str) -> crate::Result<crate::types::Market> {
         // virtual-dispatch (static: DerivedExchange::market(self, ...))
-        { let __v = crate::exchange::DerivedExchange::market(self, symbol.clone()); if !matches!(__v, crate::Value::Null) { return __v; } }
+        { let __v = crate::exchange::DerivedExchange::market(self, crate::Value::from(symbol)); if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); } }
         self.market_non_virtual(symbol)
     }
 
-    fn market_non_virtual(&self, mut symbol: Value) -> Value {
+    fn market_non_virtual(&self, symbol: &str) -> crate::Result<crate::types::Market> {
+        let __args: Vec<Value> = vec![Value::from(symbol)];
+        let mut __it = __args.into_iter();
+        let mut symbol = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(futures::FutureExt::now_or_never(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" market() requires a symbol argument".into()))));
         }
@@ -7781,9 +7795,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return <Self as crate::exchange_generated::ExchangeBase>::create_expired_option_market(self, symbol.clone());
         }
         panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" does not have market symbol ".into())).into()), symbol)));
-
-    Value::Null
-}
+        Value::Null
+        })).expect("a sync body never awaits")?))
+    }
 
     fn create_expired_option_market(&self, mut symbol: Value) -> Value {
         // virtual-dispatch (static: DerivedExchange::create_expired_option_market(self, ...))
@@ -7826,7 +7840,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (cost == Value::Null) {
             return Value::Null;
         }
-        let mut market: indexmap::IndexMap<String, Value> = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol).as_map().cloned().unwrap_or_default();
+        let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
         return self.decimal_to_precision(cost, Value::Int(crate::runtime::TRUNCATE), self.safe_string2(market.get("precision").cloned().unwrap_or(Value::Null), Value::Str("cost".into()), Value::Str("price".into()), &[]), &[self.precisionMode.clone(), self.paddingMode.clone()]);
 
     Value::Null
@@ -7836,7 +7850,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (price == Value::Null) {
             return Value::Null;
         }
-        let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol);
+        let mut market: Value = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()));
         let mut result: Value = self.decimal_to_precision(price, Value::Int(crate::runtime::ROUND), market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null), &[self.precisionMode.clone(), self.paddingMode.clone()]);
         if (result.as_str() == Some("0")) {
             let mut pricePrecision: Value = self.number_to_string(market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null));
@@ -7855,7 +7869,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (amount == Value::Null) {
             return Value::Null;
         }
-        let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol);
+        let mut market: Value = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()));
         let mut result: Value = self.decimal_to_precision(amount, Value::Int(crate::runtime::TRUNCATE), market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null), &[self.precisionMode.clone(), self.paddingMode.clone()]);
         if (result.as_str() == Some("0")) {
             let mut amountPrecision: Value = self.number_to_string(market.as_map().and_then(|__m| __m.get("precision")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null));
@@ -7874,7 +7888,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (fee == Value::Null) {
             return Value::Null;
         }
-        let mut market: indexmap::IndexMap<String, Value> = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol).as_map().cloned().unwrap_or_default();
+        let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
         return self.decimal_to_precision(fee, Value::Int(crate::runtime::ROUND), market.get("precision").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("price")).cloned().unwrap_or(Value::Null), &[self.precisionMode.clone(), self.paddingMode.clone()]);
 
     Value::Null
@@ -8062,7 +8076,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchLeverageTiers")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchLeverageTiers")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
-            let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.clone());
+            let mut market: Value = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()));
             if !matches!(self.safe_bool_k(market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchMarketLeverageTiers() supports contract markets only".into()))));
             }
@@ -8695,8 +8709,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchFundingRates")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchFundingRates")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
-            self.load_markets(&[]).await;
-            let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol);
+            crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+            let mut market: Value = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()));
             let mut symbolResolved: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if !matches!(self.safe_bool_k(market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() supports contract markets only".into()))));
@@ -8731,8 +8745,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchFundingIntervals")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchFundingIntervals")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
-            self.load_markets(&[]).await;
-            let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol);
+            crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+            let mut market: Value = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()));
             let mut symbolResolved: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if !matches!(self.safe_bool_k(market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingInterval() supports contract markets only".into()))));
@@ -8915,7 +8929,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut markets: Value = self.markets.clone();
         let mut marketsById: Value = self.markets_by_id.clone();
         if ((markets != Value::Null) && (matches!((&markets, &account), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) || ((marketsById != Value::Null) && (matches!((&marketsById, &account), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) {
-            let mut market: indexmap::IndexMap<String, Value> = <Self as crate::exchange_generated::ExchangeBase>::market(self, account.clone()).as_map().cloned().unwrap_or_default();
+            let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, account.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
             return market.get("id").cloned().unwrap_or(Value::Null);
         }  else {
             return account;
@@ -9130,7 +9144,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (firstMarket.is_none()) {
             return Value::Null;
         }
-        let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, firstMarket.map(Value::from).unwrap_or(Value::Null));
+        let mut market: Value = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, firstMarket.as_deref().unwrap_or_default()));
         return market;
 
     Value::Null
@@ -10163,7 +10177,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     fn load_markets_and_sign_in(&mut self) -> impl ::std::future::Future<Output = Value> + Send { async move {
-        promise_all(&Value::from(vec![self.load_markets(&[]).await, self.sign_in(&[]).await])).await;
+        promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await), self.sign_in(&[]).await])).await;
 
     Value::Null
 } }
@@ -10761,8 +10775,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchMarkPrices")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchMarkPrices")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
-            self.load_markets(&[]).await;
-            let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol);
+            crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+            let mut market: Value = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()));
             let mut symbolResolved: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut tickers: Value = crate::types::IntoRaw::into_raw(self.fetch_mark_prices((Value::from(vec![symbolResolved.clone()])).to_opt_str_vec(), params).await);
             let mut ticker: Value = self.safe_dict(tickers, symbolResolved.clone(), &[]);
@@ -11719,8 +11733,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchTickersWs")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchTickersWs")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
-            self.load_markets(&[]).await;
-            let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol);
+            crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+            let mut market: Value = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()));
             let mut symbolResolved: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut tickers: Value = crate::types::IntoRaw::into_raw(self.fetch_tickers_ws((Value::from(vec![symbolResolved.clone()])).to_opt_str_vec(), params).await);
             let mut ticker: Value = self.safe_dict(tickers, symbolResolved.clone(), &[]);
@@ -12121,8 +12135,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchTickers")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchTickers")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
-            self.load_markets(&[]).await;
-            let mut market: Value = <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol);
+            crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+            let mut market: Value = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()));
             let mut symbolResolved: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut tickers: Value = crate::types::IntoRaw::into_raw(self.fetch_tickers((Value::from(vec![symbolResolved.clone()])).to_opt_str_vec(), params).await);
             let mut ticker: Value = self.safe_dict(tickers, symbolResolved.clone(), &[]);
@@ -13618,15 +13632,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "is_trigger_order" => self.is_trigger_order(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "is_uta_enabled" => self.is_uta_enabled(&args[..]).await,
             "load_accounts" => self.load_accounts(&args[..]).await,
-            "load_markets" => self.load_markets(&args[..]).await,
+            "load_markets" => crate::types::IntoRaw::into_raw(self.load_markets(args.get(0).is_some_and(crate::Value::is_truthy), args.get(1).cloned().unwrap_or_default()).await),
             "load_markets_and_sign_in" => self.load_markets_and_sign_in().await,
             "load_time_difference" => self.load_time_difference(&args[..]).await,
             "load_trading_limits" => self.load_trading_limits(&args[..]).await,
-            "market" => <Self as crate::exchange_generated::ExchangeBase>::market(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "market" => crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, args.get(0).and_then(crate::Value::as_str).unwrap_or_default())),
             "market_codes" => self.market_codes(&args[..]),
             "market_id" => self.market_id(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "market_ids" => self.market_ids(&args[..]),
-            "market_non_virtual" => self.market_non_virtual(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "market_non_virtual" => crate::types::IntoRaw::into_raw(self.market_non_virtual(args.get(0).and_then(crate::Value::as_str).unwrap_or_default())),
             "market_or_null" => self.market_or_null(&args[..]),
             "market_symbols" => self.market_symbols(&args[..]),
             "markets_for_symbols" => self.markets_for_symbols(&args[..]),
@@ -13769,6 +13783,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "set_markets" => self.set_markets(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "set_markets_from_exchange" => self.set_markets_from_exchange(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "set_position_mode" => self.set_position_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+            "set_sandbox_mode" => crate::types::IntoRaw::into_raw(self.set_sandbox_mode(args.get(0).is_some_and(crate::Value::is_truthy))),
             "set_take_profit_and_stop_loss_params" => self.set_take_profit_and_stop_loss_params(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
             "sign" => <Self as crate::exchange_generated::ExchangeBase>::sign(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "sign_in" => self.sign_in(&args[..]).await,
@@ -13854,962 +13869,962 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 impl dyn crate::exchange::TypedExchange {
     pub fn fetch_accounts<'a>(&'a mut self, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Account>>> + Send + 'a {
         let __args: Vec<Value> = vec![params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_accounts", __args).await?)) }
+        async move { self.call("fetch_accounts", __args).await }
     }
     pub fn watch_liquidations<'a>(&'a mut self, symbol: &str, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Liquidation>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("watch_liquidations", __args).await?)) }
+        async move { self.call("watch_liquidations", __args).await }
     }
     pub fn watch_liquidations_for_symbols<'a>(&'a mut self, symbols: Vec<String>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Liquidation>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(Some(symbols)), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("watch_liquidations_for_symbols", __args).await?)) }
+        async move { self.call("watch_liquidations_for_symbols", __args).await }
     }
     pub fn watch_my_liquidations<'a>(&'a mut self, symbol: &str, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Liquidation>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("watch_my_liquidations", __args).await?)) }
+        async move { self.call("watch_my_liquidations", __args).await }
     }
     pub fn watch_my_liquidations_for_symbols<'a>(&'a mut self, symbols: Vec<String>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Liquidation>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(Some(symbols)), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("watch_my_liquidations_for_symbols", __args).await?)) }
+        async move { self.call("watch_my_liquidations_for_symbols", __args).await }
     }
     pub fn un_watch_orders<'a>(&'a mut self, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::Value>> + Send + 'a {
         let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("un_watch_orders", __args).await?)) }
+        async move { self.call("un_watch_orders", __args).await }
     }
     pub fn un_watch_trades<'a>(&'a mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::Value>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("un_watch_trades", __args).await?)) }
+        async move { self.call("un_watch_trades", __args).await }
     }
     pub fn un_watch_trades_for_symbols<'a>(&'a mut self, symbols: Vec<String>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::Value>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(Some(symbols)), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("un_watch_trades_for_symbols", __args).await?)) }
+        async move { self.call("un_watch_trades_for_symbols", __args).await }
     }
     pub fn watch_ohlcv_for_symbols<'a>(&'a mut self, symbolsAndTimeframes: Vec<Vec<String>>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::OHLCVsBySymbol>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(Some(symbolsAndTimeframes)), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("watch_ohlcv_for_symbols", __args).await?)) }
+        async move { self.call("watch_ohlcv_for_symbols", __args).await }
     }
     pub fn un_watch_ohlcv_for_symbols<'a>(&'a mut self, symbolsAndTimeframes: Vec<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::Value>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(Some(symbolsAndTimeframes)), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("un_watch_ohlcv_for_symbols", __args).await?)) }
+        async move { self.call("un_watch_ohlcv_for_symbols", __args).await }
     }
     pub fn un_watch_order_book_for_symbols<'a>(&'a mut self, symbols: Vec<String>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::Value>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(Some(symbols)), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("un_watch_order_book_for_symbols", __args).await?)) }
+        async move { self.call("un_watch_order_book_for_symbols", __args).await }
     }
     pub fn un_watch_positions<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::Value>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("un_watch_positions", __args).await?)) }
+        async move { self.call("un_watch_positions", __args).await }
     }
     pub fn un_watch_ticker<'a>(&'a mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::Value>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("un_watch_ticker", __args).await?)) }
+        async move { self.call("un_watch_ticker", __args).await }
     }
     pub fn un_watch_mark_price<'a>(&'a mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::Value>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("un_watch_mark_price", __args).await?)) }
+        async move { self.call("un_watch_mark_price", __args).await }
     }
     pub fn un_watch_mark_prices<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::Value>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("un_watch_mark_prices", __args).await?)) }
+        async move { self.call("un_watch_mark_prices", __args).await }
     }
     pub fn fetch_deposit_addresses<'a>(&'a mut self, codes: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::DepositAddress>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(codes), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_deposit_addresses", __args).await?)) }
+        async move { self.call("fetch_deposit_addresses", __args).await }
     }
     pub fn fetch_margin_mode<'a>(&'a mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::MarginMode>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_margin_mode", __args).await?)) }
+        async move { self.call("fetch_margin_mode", __args).await }
     }
     pub fn fetch_margin_modes<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::MarginModes>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_margin_modes", __args).await?)) }
+        async move { self.call("fetch_margin_modes", __args).await }
     }
     pub fn un_watch_order_book<'a>(&'a mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::Value>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("un_watch_order_book", __args).await?)) }
+        async move { self.call("un_watch_order_book", __args).await }
     }
     pub fn fetch_time<'a>(&'a mut self, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Option<i64>>> + Send + 'a {
         let __args: Vec<Value> = vec![params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_time", __args).await?)) }
+        async move { self.call("fetch_time", __args).await }
     }
     pub fn fetch_cross_borrow_rates<'a>(&'a mut self, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::CrossBorrowRates>> + Send + 'a {
         let __args: Vec<Value> = vec![params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_cross_borrow_rates", __args).await?)) }
+        async move { self.call("fetch_cross_borrow_rates", __args).await }
     }
     pub fn fetch_isolated_borrow_rates<'a>(&'a mut self, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::IsolatedBorrowRates>> + Send + 'a {
         let __args: Vec<Value> = vec![params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_isolated_borrow_rates", __args).await?)) }
+        async move { self.call("fetch_isolated_borrow_rates", __args).await }
     }
     pub fn fetch_leverage_tiers<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::LeverageTiers>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_leverage_tiers", __args).await?)) }
+        async move { self.call("fetch_leverage_tiers", __args).await }
     }
     pub fn fetch_funding_rates<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::FundingRates>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_funding_rates", __args).await?)) }
+        async move { self.call("fetch_funding_rates", __args).await }
     }
     pub fn fetch_funding_intervals<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::FundingRates>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_funding_intervals", __args).await?)) }
+        async move { self.call("fetch_funding_intervals", __args).await }
     }
     pub fn watch_funding_rate<'a>(&'a mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::FundingRate>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("watch_funding_rate", __args).await?)) }
+        async move { self.call("watch_funding_rate", __args).await }
     }
     pub fn watch_funding_rates<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::FundingRates>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("watch_funding_rates", __args).await?)) }
+        async move { self.call("watch_funding_rates", __args).await }
     }
     pub fn un_watch_funding_rates<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::Value>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("un_watch_funding_rates", __args).await?)) }
+        async move { self.call("un_watch_funding_rates", __args).await }
     }
     pub fn watch_funding_rates_for_symbols<'a>(&'a mut self, symbols: Vec<String>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::FundingRates>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(Some(symbols)), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("watch_funding_rates_for_symbols", __args).await?)) }
+        async move { self.call("watch_funding_rates_for_symbols", __args).await }
     }
     pub fn transfer<'a>(&'a mut self, code: &str, amount: f64, fromAccount: &str, toAccount: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Transfer>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), Value::from(fromAccount), Value::from(toAccount), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("transfer", __args).await?)) }
+        async move { self.call("transfer", __args).await }
     }
     pub fn withdraw<'a>(&'a mut self, code: &str, amount: f64, address: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Transaction>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), Value::from(address), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("withdraw", __args).await?)) }
+        async move { self.call("withdraw", __args).await }
     }
     pub fn create_deposit_address<'a>(&'a mut self, code: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::DepositAddress>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(code), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_deposit_address", __args).await?)) }
+        async move { self.call("create_deposit_address", __args).await }
     }
     pub fn set_leverage<'a>(&'a mut self, leverage: i64, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Value>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(leverage), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("set_leverage", __args).await?)) }
+        async move { self.call("set_leverage", __args).await }
     }
     pub fn fetch_leverage<'a>(&'a mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Leverage>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_leverage", __args).await?)) }
+        async move { self.call("fetch_leverage", __args).await }
     }
     pub fn fetch_leverages<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Leverages>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_leverages", __args).await?)) }
+        async move { self.call("fetch_leverages", __args).await }
     }
     pub fn add_margin<'a>(&'a mut self, symbol: &str, amount: f64, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::MarginModification>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(amount), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("add_margin", __args).await?)) }
+        async move { self.call("add_margin", __args).await }
     }
     pub fn reduce_margin<'a>(&'a mut self, symbol: &str, amount: f64, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::MarginModification>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(amount), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("reduce_margin", __args).await?)) }
+        async move { self.call("reduce_margin", __args).await }
     }
     pub fn set_margin<'a>(&'a mut self, symbol: &str, amount: f64, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::MarginModification>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(amount), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("set_margin", __args).await?)) }
+        async move { self.call("set_margin", __args).await }
     }
     pub fn fetch_long_short_ratio<'a>(&'a mut self, symbol: &str, timeframe: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::LongShortRatio>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_long_short_ratio", __args).await?)) }
+        async move { self.call("fetch_long_short_ratio", __args).await }
     }
     pub fn fetch_long_short_ratio_history<'a>(&'a mut self, symbol: Option<&str>, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::LongShortRatio>>> + Send + 'a {
         let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), timeframe.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_long_short_ratio_history", __args).await?)) }
+        async move { self.call("fetch_long_short_ratio_history", __args).await }
     }
     pub fn fetch_margin_adjustment_history<'a>(&'a mut self, symbol: Option<&str>, type_var: Option<&str>, since: Option<f64>, limit: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::MarginModification>>> + Send + 'a {
         let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), type_var.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_margin_adjustment_history", __args).await?)) }
+        async move { self.call("fetch_margin_adjustment_history", __args).await }
     }
     pub fn set_margin_mode<'a>(&'a mut self, marginMode: &str, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Value>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(marginMode), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("set_margin_mode", __args).await?)) }
+        async move { self.call("set_margin_mode", __args).await }
     }
     pub fn fetch_deposit_addresses_by_network<'a>(&'a mut self, code: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::DepositAddresses>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(code), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_deposit_addresses_by_network", __args).await?)) }
+        async move { self.call("fetch_deposit_addresses_by_network", __args).await }
     }
     pub fn fetch_open_interest_history<'a>(&'a mut self, symbol: &str, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::OpenInterest>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_open_interest_history", __args).await?)) }
+        async move { self.call("fetch_open_interest_history", __args).await }
     }
     pub fn fetch_open_interests<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::OpenInterests>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_open_interests", __args).await?)) }
+        async move { self.call("fetch_open_interests", __args).await }
     }
     pub fn repay_cross_margin<'a>(&'a mut self, code: &str, amount: f64, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::MarginLoan>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("repay_cross_margin", __args).await?)) }
+        async move { self.call("repay_cross_margin", __args).await }
     }
     pub fn repay_isolated_margin<'a>(&'a mut self, symbol: &str, code: &str, amount: f64, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::MarginLoan>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(code), Value::from(amount), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("repay_isolated_margin", __args).await?)) }
+        async move { self.call("repay_isolated_margin", __args).await }
     }
     pub fn borrow_cross_margin<'a>(&'a mut self, code: &str, amount: f64, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::MarginLoan>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("borrow_cross_margin", __args).await?)) }
+        async move { self.call("borrow_cross_margin", __args).await }
     }
     pub fn borrow_isolated_margin<'a>(&'a mut self, symbol: &str, code: &str, amount: f64, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::MarginLoan>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(code), Value::from(amount), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("borrow_isolated_margin", __args).await?)) }
+        async move { self.call("borrow_isolated_margin", __args).await }
     }
     pub fn borrow_margin<'a>(&'a mut self, code: &str, amount: f64, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::MarginLoan>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("borrow_margin", __args).await?)) }
+        async move { self.call("borrow_margin", __args).await }
     }
     pub fn repay_margin<'a>(&'a mut self, code: &str, amount: f64, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::MarginLoan>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("repay_margin", __args).await?)) }
+        async move { self.call("repay_margin", __args).await }
     }
     pub fn fetch_ohlcv<'a>(&'a mut self, symbol: &str, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::OHLCV>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_ohlcv", __args).await?)) }
+        async move { self.call("fetch_ohlcv", __args).await }
     }
     pub fn fetch_spot_ohlcv<'a>(&'a mut self, symbol: &str, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::OHLCV>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_spot_ohlcv", __args).await?)) }
+        async move { self.call("fetch_spot_ohlcv", __args).await }
     }
     pub fn fetch_contract_ohlcv<'a>(&'a mut self, symbol: &str, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::OHLCV>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_contract_ohlcv", __args).await?)) }
+        async move { self.call("fetch_contract_ohlcv", __args).await }
     }
     pub fn fetch_ohlcv_ws<'a>(&'a mut self, symbol: &str, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::OHLCV>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_ohlcv_ws", __args).await?)) }
+        async move { self.call("fetch_ohlcv_ws", __args).await }
     }
     pub fn watch_ohlcv<'a>(&'a mut self, symbol: &str, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::OHLCV>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("watch_ohlcv", __args).await?)) }
+        async move { self.call("watch_ohlcv", __args).await }
     }
     pub fn fetch_borrow_interest<'a>(&'a mut self, code: Option<&str>, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::BorrowInterest>>> + Send + 'a {
         let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_borrow_interest", __args).await?)) }
+        async move { self.call("fetch_borrow_interest", __args).await }
     }
     pub fn fetch_ledger<'a>(&'a mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::LedgerEntry>>> + Send + 'a {
         let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_ledger", __args).await?)) }
+        async move { self.call("fetch_ledger", __args).await }
     }
     pub fn fetch_ledger_entry<'a>(&'a mut self, id: &str, code: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::LedgerEntry>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(id), code.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_ledger_entry", __args).await?)) }
+        async move { self.call("fetch_ledger_entry", __args).await }
     }
     pub fn fetch_balance<'a>(&'a mut self, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Balances>> + Send + 'a {
         let __args: Vec<Value> = vec![params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_balance", __args).await?)) }
+        async move { self.call("fetch_balance", __args).await }
     }
     pub fn fetch_balance_ws<'a>(&'a mut self, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Balances>> + Send + 'a {
         let __args: Vec<Value> = vec![params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_balance_ws", __args).await?)) }
+        async move { self.call("fetch_balance_ws", __args).await }
     }
     pub fn watch_balance<'a>(&'a mut self, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Balances>> + Send + 'a {
         let __args: Vec<Value> = vec![params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("watch_balance", __args).await?)) }
+        async move { self.call("watch_balance", __args).await }
     }
     pub fn fetch_partial_balance<'a>(&'a mut self, part: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Balances>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(part), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_partial_balance", __args).await?)) }
+        async move { self.call("fetch_partial_balance", __args).await }
     }
     pub fn fetch_free_balance<'a>(&'a mut self, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Balances>> + Send + 'a {
         let __args: Vec<Value> = vec![params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_free_balance", __args).await?)) }
+        async move { self.call("fetch_free_balance", __args).await }
     }
     pub fn fetch_used_balance<'a>(&'a mut self, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Balances>> + Send + 'a {
         let __args: Vec<Value> = vec![params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_used_balance", __args).await?)) }
+        async move { self.call("fetch_used_balance", __args).await }
     }
     pub fn fetch_total_balance<'a>(&'a mut self, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Balances>> + Send + 'a {
         let __args: Vec<Value> = vec![params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_total_balance", __args).await?)) }
+        async move { self.call("fetch_total_balance", __args).await }
     }
     pub fn fetch_status<'a>(&'a mut self, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Status>> + Send + 'a {
         let __args: Vec<Value> = vec![params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_status", __args).await?)) }
+        async move { self.call("fetch_status", __args).await }
     }
     pub fn fetch_deposit_withdraw_fees<'a>(&'a mut self, codes: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::DepositWithdrawFees>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(codes), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_deposit_withdraw_fees", __args).await?)) }
+        async move { self.call("fetch_deposit_withdraw_fees", __args).await }
     }
     pub fn fetch_deposit_withdraw_fee<'a>(&'a mut self, code: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::DepositWithdrawFee>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(code), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_deposit_withdraw_fee", __args).await?)) }
+        async move { self.call("fetch_deposit_withdraw_fee", __args).await }
     }
     pub fn fetch_cross_borrow_rate<'a>(&'a mut self, code: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::BorrowRate>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(code), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_cross_borrow_rate", __args).await?)) }
+        async move { self.call("fetch_cross_borrow_rate", __args).await }
     }
     pub fn fetch_isolated_borrow_rate<'a>(&'a mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::IsolatedBorrowRate>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_isolated_borrow_rate", __args).await?)) }
+        async move { self.call("fetch_isolated_borrow_rate", __args).await }
     }
     pub fn fetch_spot_tickers<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Tickers>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_spot_tickers", __args).await?)) }
+        async move { self.call("fetch_spot_tickers", __args).await }
     }
     pub fn fetch_contract_tickers<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Tickers>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_contract_tickers", __args).await?)) }
+        async move { self.call("fetch_contract_tickers", __args).await }
     }
     pub fn fetch_order_books<'a>(&'a mut self, symbols: Option<Vec<String>>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::OrderBooks>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_order_books", __args).await?)) }
+        async move { self.call("fetch_order_books", __args).await }
     }
     pub fn un_watch_tickers<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::Value>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("un_watch_tickers", __args).await?)) }
+        async move { self.call("un_watch_tickers", __args).await }
     }
     pub fn un_watch_funding_rate<'a>(&'a mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::Value>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("un_watch_funding_rate", __args).await?)) }
+        async move { self.call("un_watch_funding_rate", __args).await }
     }
     pub fn create_twap_order<'a>(&'a mut self, symbol: &str, side: &str, amount: f64, duration: f64, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(side), Value::from(amount), Value::from(duration), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_twap_order", __args).await?)) }
+        async move { self.call("create_twap_order", __args).await }
     }
     pub fn create_convert_trade<'a>(&'a mut self, id: &str, fromCode: &str, toCode: &str, amount: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Conversion>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(id), Value::from(fromCode), Value::from(toCode), Value::from(amount), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_convert_trade", __args).await?)) }
+        async move { self.call("create_convert_trade", __args).await }
     }
     pub fn fetch_convert_trade<'a>(&'a mut self, id: &str, code: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Conversion>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(id), code.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_convert_trade", __args).await?)) }
+        async move { self.call("fetch_convert_trade", __args).await }
     }
     pub fn fetch_convert_trade_history<'a>(&'a mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Conversion>>> + Send + 'a {
         let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_convert_trade_history", __args).await?)) }
+        async move { self.call("fetch_convert_trade_history", __args).await }
     }
     pub fn fetch_position_mode<'a>(&'a mut self, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::PositionModeInfo>> + Send + 'a {
         let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_position_mode", __args).await?)) }
+        async move { self.call("fetch_position_mode", __args).await }
     }
     pub fn fetch_adl_rank<'a>(&'a mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::ADL>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_adl_rank", __args).await?)) }
+        async move { self.call("fetch_adl_rank", __args).await }
     }
     pub fn fetch_positions_adl_rank<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::ADL>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_positions_adl_rank", __args).await?)) }
+        async move { self.call("fetch_positions_adl_rank", __args).await }
     }
     pub fn fetch_position_adl_rank<'a>(&'a mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::ADL>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_position_adl_rank", __args).await?)) }
+        async move { self.call("fetch_position_adl_rank", __args).await }
     }
     pub fn create_spot_orders<'a>(&'a mut self, orders: Vec<crate::types::OrderRequest>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send + 'a {
         let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(orders), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_spot_orders", __args).await?)) }
+        async move { self.call("create_spot_orders", __args).await }
     }
     pub fn create_contract_orders<'a>(&'a mut self, orders: Vec<crate::types::OrderRequest>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send + 'a {
         let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(orders), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_contract_orders", __args).await?)) }
+        async move { self.call("create_contract_orders", __args).await }
     }
     pub fn cancel_spot_order<'a>(&'a mut self, id: &str, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(id), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("cancel_spot_order", __args).await?)) }
+        async move { self.call("cancel_spot_order", __args).await }
     }
     pub fn cancel_contract_order<'a>(&'a mut self, id: &str, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(id), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("cancel_contract_order", __args).await?)) }
+        async move { self.call("cancel_contract_order", __args).await }
     }
     pub fn cancel_all_spot_orders<'a>(&'a mut self, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send + 'a {
         let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("cancel_all_spot_orders", __args).await?)) }
+        async move { self.call("cancel_all_spot_orders", __args).await }
     }
     pub fn cancel_all_contract_orders<'a>(&'a mut self, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send + 'a {
         let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("cancel_all_contract_orders", __args).await?)) }
+        async move { self.call("cancel_all_contract_orders", __args).await }
     }
     pub fn cancel_orders_for_symbols<'a>(&'a mut self, orders: Vec<crate::types::CancellationRequest>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send + 'a {
         let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(orders), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("cancel_orders_for_symbols", __args).await?)) }
+        async move { self.call("cancel_orders_for_symbols", __args).await }
     }
     pub fn fetch_my_liquidations<'a>(&'a mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Liquidation>>> + Send + 'a {
         let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_my_liquidations", __args).await?)) }
+        async move { self.call("fetch_my_liquidations", __args).await }
     }
     pub fn fetch_liquidations<'a>(&'a mut self, symbol: &str, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Liquidation>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_liquidations", __args).await?)) }
+        async move { self.call("fetch_liquidations", __args).await }
     }
     pub fn fetch_greeks<'a>(&'a mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Greeks>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_greeks", __args).await?)) }
+        async move { self.call("fetch_greeks", __args).await }
     }
     pub fn fetch_all_greeks<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::AllGreeks>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_all_greeks", __args).await?)) }
+        async move { self.call("fetch_all_greeks", __args).await }
     }
     pub fn fetch_option_chain<'a>(&'a mut self, code: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::OptionChain>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(code), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_option_chain", __args).await?)) }
+        async move { self.call("fetch_option_chain", __args).await }
     }
     pub fn fetch_option<'a>(&'a mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::OptionContract>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_option", __args).await?)) }
+        async move { self.call("fetch_option", __args).await }
     }
     pub fn fetch_convert_quote<'a>(&'a mut self, fromCode: &str, toCode: &str, amount: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Conversion>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(fromCode), Value::from(toCode), Value::from(amount), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_convert_quote", __args).await?)) }
+        async move { self.call("fetch_convert_quote", __args).await }
     }
     pub fn fetch_deposits_withdrawals<'a>(&'a mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Transaction>>> + Send + 'a {
         let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_deposits_withdrawals", __args).await?)) }
+        async move { self.call("fetch_deposits_withdrawals", __args).await }
     }
     pub fn fetch_deposits<'a>(&'a mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Transaction>>> + Send + 'a {
         let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_deposits", __args).await?)) }
+        async move { self.call("fetch_deposits", __args).await }
     }
     pub fn fetch_withdrawals<'a>(&'a mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Transaction>>> + Send + 'a {
         let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_withdrawals", __args).await?)) }
+        async move { self.call("fetch_withdrawals", __args).await }
     }
     pub fn fetch_deposits_ws<'a>(&'a mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Transaction>>> + Send + 'a {
         let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_deposits_ws", __args).await?)) }
+        async move { self.call("fetch_deposits_ws", __args).await }
     }
     pub fn fetch_withdrawals_ws<'a>(&'a mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Transaction>>> + Send + 'a {
         let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_withdrawals_ws", __args).await?)) }
+        async move { self.call("fetch_withdrawals_ws", __args).await }
     }
     pub fn fetch_funding_rate_history<'a>(&'a mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::FundingRateHistory>>> + Send + 'a {
         let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_funding_rate_history", __args).await?)) }
+        async move { self.call("fetch_funding_rate_history", __args).await }
     }
     pub fn fetch_funding_history<'a>(&'a mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::FundingHistory>>> + Send + 'a {
         let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_funding_history", __args).await?)) }
+        async move { self.call("fetch_funding_history", __args).await }
     }
     pub fn fetch_deposit_address<'a>(&'a mut self, code: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::DepositAddress>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(code), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_deposit_address", __args).await?)) }
+        async move { self.call("fetch_deposit_address", __args).await }
     }
     pub fn fetch_contract_deposit_address<'a>(&'a mut self, code: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::DepositAddress>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(code), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_contract_deposit_address", __args).await?)) }
+        async move { self.call("fetch_contract_deposit_address", __args).await }
     }
     pub fn fetch_market_leverage_tiers<'a>(&'a mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::LeverageTier>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_market_leverage_tiers", __args).await?)) }
+        async move { self.call("fetch_market_leverage_tiers", __args).await }
     }
     pub fn fetch_last_prices<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::LastPrices>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_last_prices", __args).await?)) }
+        async move { self.call("fetch_last_prices", __args).await }
     }
     pub fn fetch_trading_fees<'a>(&'a mut self, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::TradingFees>> + Send + 'a {
         let __args: Vec<Value> = vec![params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_trading_fees", __args).await?)) }
+        async move { self.call("fetch_trading_fees", __args).await }
     }
     pub fn fetch_trading_fees_ws<'a>(&'a mut self, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::TradingFees>> + Send + 'a {
         let __args: Vec<Value> = vec![params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_trading_fees_ws", __args).await?)) }
+        async move { self.call("fetch_trading_fees_ws", __args).await }
     }
     pub fn fetch_convert_currencies<'a>(&'a mut self, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Currencies>> + Send + 'a {
         let __args: Vec<Value> = vec![params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_convert_currencies", __args).await?)) }
+        async move { self.call("fetch_convert_currencies", __args).await }
     }
     pub fn fetch_funding_rate<'a>(&'a mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::FundingRate>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_funding_rate", __args).await?)) }
+        async move { self.call("fetch_funding_rate", __args).await }
     }
     pub fn fetch_funding_interval<'a>(&'a mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::FundingRate>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_funding_interval", __args).await?)) }
+        async move { self.call("fetch_funding_interval", __args).await }
     }
     pub fn fetch_mark_ohlcv<'a>(&'a mut self, symbol: &str, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::OHLCV>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_mark_ohlcv", __args).await?)) }
+        async move { self.call("fetch_mark_ohlcv", __args).await }
     }
     pub fn fetch_index_ohlcv<'a>(&'a mut self, symbol: &str, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::OHLCV>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_index_ohlcv", __args).await?)) }
+        async move { self.call("fetch_index_ohlcv", __args).await }
     }
     pub fn fetch_premium_index_ohlcv<'a>(&'a mut self, symbol: &str, timeframe: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::OHLCV>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_premium_index_ohlcv", __args).await?)) }
+        async move { self.call("fetch_premium_index_ohlcv", __args).await }
     }
     pub fn fetch_transactions<'a>(&'a mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Transaction>>> + Send + 'a {
         let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_transactions", __args).await?)) }
+        async move { self.call("fetch_transactions", __args).await }
     }
     pub fn fetch_transfer<'a>(&'a mut self, id: &str, code: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Transfer>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(id), code.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_transfer", __args).await?)) }
+        async move { self.call("fetch_transfer", __args).await }
     }
     pub fn fetch_transfers<'a>(&'a mut self, code: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Transfer>>> + Send + 'a {
         let __args: Vec<Value> = vec![code.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_transfers", __args).await?)) }
+        async move { self.call("fetch_transfers", __args).await }
     }
     pub fn un_watch_ohlcv<'a>(&'a mut self, symbol: &str, timeframe: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::Value>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("un_watch_ohlcv", __args).await?)) }
+        async move { self.call("un_watch_ohlcv", __args).await }
     }
     pub fn withdraw_ws<'a>(&'a mut self, code: &str, amount: f64, address: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Transaction>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(code), Value::from(amount), Value::from(address), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("withdraw_ws", __args).await?)) }
+        async move { self.call("withdraw_ws", __args).await }
     }
     pub fn un_watch_my_trades<'a>(&'a mut self, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::Value>> + Send + 'a {
         let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("un_watch_my_trades", __args).await?)) }
+        async move { self.call("un_watch_my_trades", __args).await }
     }
     pub fn fetch_orders_by_status_ws<'a>(&'a mut self, status: &str, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(status), symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_orders_by_status_ws", __args).await?)) }
+        async move { self.call("fetch_orders_by_status_ws", __args).await }
     }
     pub fn un_watch_bids_asks<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::Value>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("un_watch_bids_asks", __args).await?)) }
+        async move { self.call("un_watch_bids_asks", __args).await }
     }
     pub fn close_position<'a>(&'a mut self, symbol: &str, side: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), side.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("close_position", __args).await?)) }
+        async move { self.call("close_position", __args).await }
     }
     pub fn close_all_positions<'a>(&'a mut self, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Position>>> + Send + 'a {
         let __args: Vec<Value> = vec![params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("close_all_positions", __args).await?)) }
+        async move { self.call("close_all_positions", __args).await }
     }
     pub fn edit_orders<'a>(&'a mut self, orders: Vec<crate::types::OrderRequest>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send + 'a {
         let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(orders), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("edit_orders", __args).await?)) }
+        async move { self.call("edit_orders", __args).await }
     }
     pub fn fetch_canceled_and_closed_orders<'a>(&'a mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send + 'a {
         let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_canceled_and_closed_orders", __args).await?)) }
+        async move { self.call("fetch_canceled_and_closed_orders", __args).await }
     }
     pub fn fetch_position_history<'a>(&'a mut self, symbol: &str, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Position>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_position_history", __args).await?)) }
+        async move { self.call("fetch_position_history", __args).await }
     }
     pub fn fetch_positions_history<'a>(&'a mut self, symbols: Option<Vec<String>>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Position>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_positions_history", __args).await?)) }
+        async move { self.call("fetch_positions_history", __args).await }
     }
     pub fn fetch_positions_risk<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Position>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_positions_risk", __args).await?)) }
+        async move { self.call("fetch_positions_risk", __args).await }
     }
     pub fn fetch_positions_for_symbol<'a>(&'a mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Position>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_positions_for_symbol", __args).await?)) }
+        async move { self.call("fetch_positions_for_symbol", __args).await }
     }
     pub fn fetch_positions_for_symbol_ws<'a>(&'a mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Position>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_positions_for_symbol_ws", __args).await?)) }
+        async move { self.call("fetch_positions_for_symbol_ws", __args).await }
     }
     pub fn watch_position<'a>(&'a mut self, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Position>> + Send + 'a {
         let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("watch_position", __args).await?)) }
+        async move { self.call("watch_position", __args).await }
     }
     pub fn watch_my_trades_for_symbols<'a>(&'a mut self, symbols: Vec<String>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Trade>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(Some(symbols)), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("watch_my_trades_for_symbols", __args).await?)) }
+        async move { self.call("watch_my_trades_for_symbols", __args).await }
     }
     pub fn watch_trades_for_symbols<'a>(&'a mut self, symbols: Vec<String>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Trade>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(Some(symbols)), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("watch_trades_for_symbols", __args).await?)) }
+        async move { self.call("watch_trades_for_symbols", __args).await }
     }
     pub fn fetch_bids_asks<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Tickers>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_bids_asks", __args).await?)) }
+        async move { self.call("fetch_bids_asks", __args).await }
     }
     pub fn fetch_mark_price<'a>(&'a mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Ticker>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_mark_price", __args).await?)) }
+        async move { self.call("fetch_mark_price", __args).await }
     }
     pub fn fetch_mark_prices<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Tickers>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_mark_prices", __args).await?)) }
+        async move { self.call("fetch_mark_prices", __args).await }
     }
     pub fn watch_bids_asks<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Tickers>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("watch_bids_asks", __args).await?)) }
+        async move { self.call("watch_bids_asks", __args).await }
     }
     pub fn watch_mark_price<'a>(&'a mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Ticker>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("watch_mark_price", __args).await?)) }
+        async move { self.call("watch_mark_price", __args).await }
     }
     pub fn watch_mark_prices<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Tickers>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("watch_mark_prices", __args).await?)) }
+        async move { self.call("watch_mark_prices", __args).await }
     }
     pub fn fetch_l3_order_book<'a>(&'a mut self, symbol: &str, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::OrderBookL3>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_l3_order_book", __args).await?)) }
+        async move { self.call("fetch_l3_order_book", __args).await }
     }
     pub fn watch_order_book_for_symbols<'a>(&'a mut self, symbols: Vec<String>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::OrderBook>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(Some(symbols)), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("watch_order_book_for_symbols", __args).await?)) }
+        async move { self.call("watch_order_book_for_symbols", __args).await }
     }
     pub fn watch_orders_for_symbols<'a>(&'a mut self, symbols: Vec<String>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(Some(symbols)), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("watch_orders_for_symbols", __args).await?)) }
+        async move { self.call("watch_orders_for_symbols", __args).await }
     }
     pub fn cancel_all_orders_ws<'a>(&'a mut self, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send + 'a {
         let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("cancel_all_orders_ws", __args).await?)) }
+        async move { self.call("cancel_all_orders_ws", __args).await }
     }
     pub fn cancel_order_ws<'a>(&'a mut self, id: &str, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(id), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("cancel_order_ws", __args).await?)) }
+        async move { self.call("cancel_order_ws", __args).await }
     }
     pub fn cancel_orders_ws<'a>(&'a mut self, ids: Vec<String>, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(Some(ids)), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("cancel_orders_ws", __args).await?)) }
+        async move { self.call("cancel_orders_ws", __args).await }
     }
     pub fn create_limit_buy_order_ws<'a>(&'a mut self, symbol: &str, amount: f64, price: f64, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(amount), Value::from(price), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_limit_buy_order_ws", __args).await?)) }
+        async move { self.call("create_limit_buy_order_ws", __args).await }
     }
     pub fn create_limit_order_ws<'a>(&'a mut self, symbol: &str, side: &str, amount: f64, price: f64, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(side), Value::from(amount), Value::from(price), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_limit_order_ws", __args).await?)) }
+        async move { self.call("create_limit_order_ws", __args).await }
     }
     pub fn create_limit_sell_order_ws<'a>(&'a mut self, symbol: &str, amount: f64, price: f64, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(amount), Value::from(price), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_limit_sell_order_ws", __args).await?)) }
+        async move { self.call("create_limit_sell_order_ws", __args).await }
     }
     pub fn create_market_buy_order_ws<'a>(&'a mut self, symbol: &str, amount: f64, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(amount), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_market_buy_order_ws", __args).await?)) }
+        async move { self.call("create_market_buy_order_ws", __args).await }
     }
     pub fn create_market_order_with_cost_ws<'a>(&'a mut self, symbol: &str, side: &str, cost: f64, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(side), Value::from(cost), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_market_order_with_cost_ws", __args).await?)) }
+        async move { self.call("create_market_order_with_cost_ws", __args).await }
     }
     pub fn create_market_order_ws<'a>(&'a mut self, symbol: &str, side: &str, amount: f64, price: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(side), Value::from(amount), Value::from(price), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_market_order_ws", __args).await?)) }
+        async move { self.call("create_market_order_ws", __args).await }
     }
     pub fn create_market_sell_order_ws<'a>(&'a mut self, symbol: &str, amount: f64, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(amount), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_market_sell_order_ws", __args).await?)) }
+        async move { self.call("create_market_sell_order_ws", __args).await }
     }
     pub fn create_order_with_take_profit_and_stop_loss_ws<'a>(&'a mut self, symbol: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, takeProfit: Option<f64>, stopLoss: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), Value::from(takeProfit), Value::from(stopLoss), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_order_with_take_profit_and_stop_loss_ws", __args).await?)) }
+        async move { self.call("create_order_with_take_profit_and_stop_loss_ws", __args).await }
     }
     pub fn create_order_ws<'a>(&'a mut self, symbol: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_order_ws", __args).await?)) }
+        async move { self.call("create_order_ws", __args).await }
     }
     pub fn create_orders_ws<'a>(&'a mut self, orders: Vec<crate::types::OrderRequest>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send + 'a {
         let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(orders), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_orders_ws", __args).await?)) }
+        async move { self.call("create_orders_ws", __args).await }
     }
     pub fn create_post_only_order_ws<'a>(&'a mut self, symbol: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_post_only_order_ws", __args).await?)) }
+        async move { self.call("create_post_only_order_ws", __args).await }
     }
     pub fn create_reduce_only_order_ws<'a>(&'a mut self, symbol: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_reduce_only_order_ws", __args).await?)) }
+        async move { self.call("create_reduce_only_order_ws", __args).await }
     }
     pub fn create_stop_limit_order_ws<'a>(&'a mut self, symbol: &str, side: &str, amount: f64, price: f64, triggerPrice: f64, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(side), Value::from(amount), Value::from(price), Value::from(triggerPrice), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_stop_limit_order_ws", __args).await?)) }
+        async move { self.call("create_stop_limit_order_ws", __args).await }
     }
     pub fn create_stop_loss_order_ws<'a>(&'a mut self, symbol: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, stopLossPrice: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), Value::from(stopLossPrice), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_stop_loss_order_ws", __args).await?)) }
+        async move { self.call("create_stop_loss_order_ws", __args).await }
     }
     pub fn create_stop_market_order_ws<'a>(&'a mut self, symbol: &str, side: &str, amount: f64, triggerPrice: f64, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(side), Value::from(amount), Value::from(triggerPrice), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_stop_market_order_ws", __args).await?)) }
+        async move { self.call("create_stop_market_order_ws", __args).await }
     }
     pub fn create_stop_order_ws<'a>(&'a mut self, symbol: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, triggerPrice: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), Value::from(triggerPrice), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_stop_order_ws", __args).await?)) }
+        async move { self.call("create_stop_order_ws", __args).await }
     }
     pub fn create_take_profit_order_ws<'a>(&'a mut self, symbol: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, takeProfitPrice: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), Value::from(takeProfitPrice), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_take_profit_order_ws", __args).await?)) }
+        async move { self.call("create_take_profit_order_ws", __args).await }
     }
     pub fn create_trailing_amount_order_ws<'a>(&'a mut self, symbol: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, trailingAmount: Option<f64>, trailingTriggerPrice: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), Value::from(trailingAmount), Value::from(trailingTriggerPrice), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_trailing_amount_order_ws", __args).await?)) }
+        async move { self.call("create_trailing_amount_order_ws", __args).await }
     }
     pub fn create_trailing_percent_order_ws<'a>(&'a mut self, symbol: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, trailingPercent: Option<f64>, trailingTriggerPrice: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), Value::from(trailingPercent), Value::from(trailingTriggerPrice), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_trailing_percent_order_ws", __args).await?)) }
+        async move { self.call("create_trailing_percent_order_ws", __args).await }
     }
     pub fn create_trigger_order_ws<'a>(&'a mut self, symbol: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, triggerPrice: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), Value::from(triggerPrice), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_trigger_order_ws", __args).await?)) }
+        async move { self.call("create_trigger_order_ws", __args).await }
     }
     pub fn edit_order_ws<'a>(&'a mut self, id: &str, symbol: &str, type_var: &str, side: &str, amount: Option<f64>, price: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(id), Value::from(symbol), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("edit_order_ws", __args).await?)) }
+        async move { self.call("edit_order_ws", __args).await }
     }
     pub fn fetch_closed_orders_ws<'a>(&'a mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send + 'a {
         let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_closed_orders_ws", __args).await?)) }
+        async move { self.call("fetch_closed_orders_ws", __args).await }
     }
     pub fn fetch_my_trades_ws<'a>(&'a mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Trade>>> + Send + 'a {
         let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_my_trades_ws", __args).await?)) }
+        async move { self.call("fetch_my_trades_ws", __args).await }
     }
     pub fn fetch_open_orders_ws<'a>(&'a mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send + 'a {
         let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_open_orders_ws", __args).await?)) }
+        async move { self.call("fetch_open_orders_ws", __args).await }
     }
     pub fn fetch_order_book_ws<'a>(&'a mut self, symbol: &str, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::OrderBook>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_order_book_ws", __args).await?)) }
+        async move { self.call("fetch_order_book_ws", __args).await }
     }
     pub fn fetch_order_ws<'a>(&'a mut self, id: &str, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(id), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_order_ws", __args).await?)) }
+        async move { self.call("fetch_order_ws", __args).await }
     }
     pub fn fetch_orders_ws<'a>(&'a mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send + 'a {
         let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_orders_ws", __args).await?)) }
+        async move { self.call("fetch_orders_ws", __args).await }
     }
     pub fn fetch_position_ws<'a>(&'a mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Position>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_position_ws", __args).await?)) }
+        async move { self.call("fetch_position_ws", __args).await }
     }
     pub fn fetch_positions_ws<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Position>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_positions_ws", __args).await?)) }
+        async move { self.call("fetch_positions_ws", __args).await }
     }
     pub fn fetch_ticker_ws<'a>(&'a mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Ticker>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_ticker_ws", __args).await?)) }
+        async move { self.call("fetch_ticker_ws", __args).await }
     }
     pub fn fetch_tickers_ws<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Tickers>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_tickers_ws", __args).await?)) }
+        async move { self.call("fetch_tickers_ws", __args).await }
     }
     pub fn fetch_trades_ws<'a>(&'a mut self, symbol: &str, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Trade>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_trades_ws", __args).await?)) }
+        async move { self.call("fetch_trades_ws", __args).await }
     }
     pub fn fetch_trades<'a>(&'a mut self, symbol: &str, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Trade>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_trades", __args).await?)) }
+        async move { self.call("fetch_trades", __args).await }
     }
     pub fn watch_trades<'a>(&'a mut self, symbol: &str, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Trade>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("watch_trades", __args).await?)) }
+        async move { self.call("watch_trades", __args).await }
     }
     pub fn fetch_order_book<'a>(&'a mut self, symbol: &str, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::OrderBook>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_order_book", __args).await?)) }
+        async move { self.call("fetch_order_book", __args).await }
     }
     pub fn watch_order_book<'a>(&'a mut self, symbol: &str, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::OrderBook>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("watch_order_book", __args).await?)) }
+        async move { self.call("watch_order_book", __args).await }
     }
     pub fn fetch_open_interest<'a>(&'a mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::OpenInterest>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_open_interest", __args).await?)) }
+        async move { self.call("fetch_open_interest", __args).await }
     }
     pub fn edit_limit_buy_order<'a>(&'a mut self, id: &str, symbol: &str, amount: f64, price: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(id), Value::from(symbol), Value::from(amount), Value::from(price), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("edit_limit_buy_order", __args).await?)) }
+        async move { self.call("edit_limit_buy_order", __args).await }
     }
     pub fn edit_limit_sell_order<'a>(&'a mut self, id: &str, symbol: &str, amount: f64, price: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(id), Value::from(symbol), Value::from(amount), Value::from(price), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("edit_limit_sell_order", __args).await?)) }
+        async move { self.call("edit_limit_sell_order", __args).await }
     }
     pub fn edit_limit_order<'a>(&'a mut self, id: &str, symbol: &str, side: &str, amount: f64, price: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(id), Value::from(symbol), Value::from(side), Value::from(amount), Value::from(price), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("edit_limit_order", __args).await?)) }
+        async move { self.call("edit_limit_order", __args).await }
     }
     pub fn edit_order<'a>(&'a mut self, id: &str, symbol: &str, type_var: &str, side: &str, amount: Option<f64>, price: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(id), Value::from(symbol), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("edit_order", __args).await?)) }
+        async move { self.call("edit_order", __args).await }
     }
     pub fn edit_order_with_client_order_id<'a>(&'a mut self, clientOrderId: &str, symbol: &str, type_var: &str, side: &str, amount: Option<f64>, price: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(clientOrderId), Value::from(symbol), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("edit_order_with_client_order_id", __args).await?)) }
+        async move { self.call("edit_order_with_client_order_id", __args).await }
     }
     pub fn fetch_position<'a>(&'a mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Position>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_position", __args).await?)) }
+        async move { self.call("fetch_position", __args).await }
     }
     pub fn watch_positions<'a>(&'a mut self, symbols: Option<Vec<String>>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Position>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("watch_positions", __args).await?)) }
+        async move { self.call("watch_positions", __args).await }
     }
     pub fn watch_position_for_symbols<'a>(&'a mut self, symbols: Option<Vec<String>>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Position>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("watch_position_for_symbols", __args).await?)) }
+        async move { self.call("watch_position_for_symbols", __args).await }
     }
     pub fn fetch_positions<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Position>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_positions", __args).await?)) }
+        async move { self.call("fetch_positions", __args).await }
     }
     pub fn fetch_ticker<'a>(&'a mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Ticker>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_ticker", __args).await?)) }
+        async move { self.call("fetch_ticker", __args).await }
     }
     pub fn watch_ticker<'a>(&'a mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Ticker>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("watch_ticker", __args).await?)) }
+        async move { self.call("watch_ticker", __args).await }
     }
     pub fn fetch_tickers<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Tickers>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_tickers", __args).await?)) }
+        async move { self.call("fetch_tickers", __args).await }
     }
     pub fn watch_tickers<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Tickers>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("watch_tickers", __args).await?)) }
+        async move { self.call("watch_tickers", __args).await }
     }
     pub fn fetch_order<'a>(&'a mut self, id: &str, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(id), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_order", __args).await?)) }
+        async move { self.call("fetch_order", __args).await }
     }
     pub fn fetch_order_with_client_order_id<'a>(&'a mut self, clientOrderId: &str, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(clientOrderId), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_order_with_client_order_id", __args).await?)) }
+        async move { self.call("fetch_order_with_client_order_id", __args).await }
     }
     pub fn fetch_order_status<'a>(&'a mut self, id: &str, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Option<String>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(id), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_order_status", __args).await?)) }
+        async move { self.call("fetch_order_status", __args).await }
     }
     pub fn fetch_unified_order<'a>(&'a mut self, order: crate::types::Order, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(order), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_unified_order", __args).await?)) }
+        async move { self.call("fetch_unified_order", __args).await }
     }
     pub fn create_order<'a>(&'a mut self, symbol: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_order", __args).await?)) }
+        async move { self.call("create_order", __args).await }
     }
     pub fn create_trailing_amount_order<'a>(&'a mut self, symbol: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, trailingAmount: Option<f64>, trailingTriggerPrice: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), Value::from(trailingAmount), Value::from(trailingTriggerPrice), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_trailing_amount_order", __args).await?)) }
+        async move { self.call("create_trailing_amount_order", __args).await }
     }
     pub fn create_trailing_percent_order<'a>(&'a mut self, symbol: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, trailingPercent: Option<f64>, trailingTriggerPrice: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), Value::from(trailingPercent), Value::from(trailingTriggerPrice), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_trailing_percent_order", __args).await?)) }
+        async move { self.call("create_trailing_percent_order", __args).await }
     }
     pub fn create_market_order_with_cost<'a>(&'a mut self, symbol: &str, side: &str, cost: f64, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(side), Value::from(cost), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_market_order_with_cost", __args).await?)) }
+        async move { self.call("create_market_order_with_cost", __args).await }
     }
     pub fn create_market_buy_order_with_cost<'a>(&'a mut self, symbol: &str, cost: f64, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(cost), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_market_buy_order_with_cost", __args).await?)) }
+        async move { self.call("create_market_buy_order_with_cost", __args).await }
     }
     pub fn create_market_sell_order_with_cost<'a>(&'a mut self, symbol: &str, cost: f64, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(cost), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_market_sell_order_with_cost", __args).await?)) }
+        async move { self.call("create_market_sell_order_with_cost", __args).await }
     }
     pub fn create_trigger_order<'a>(&'a mut self, symbol: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, triggerPrice: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), Value::from(triggerPrice), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_trigger_order", __args).await?)) }
+        async move { self.call("create_trigger_order", __args).await }
     }
     pub fn create_stop_loss_order<'a>(&'a mut self, symbol: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, stopLossPrice: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), Value::from(stopLossPrice), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_stop_loss_order", __args).await?)) }
+        async move { self.call("create_stop_loss_order", __args).await }
     }
     pub fn create_take_profit_order<'a>(&'a mut self, symbol: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, takeProfitPrice: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), Value::from(takeProfitPrice), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_take_profit_order", __args).await?)) }
+        async move { self.call("create_take_profit_order", __args).await }
     }
     pub fn create_order_with_take_profit_and_stop_loss<'a>(&'a mut self, symbol: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, takeProfit: Option<f64>, stopLoss: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), Value::from(takeProfit), Value::from(stopLoss), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_order_with_take_profit_and_stop_loss", __args).await?)) }
+        async move { self.call("create_order_with_take_profit_and_stop_loss", __args).await }
     }
     pub fn create_orders<'a>(&'a mut self, orders: Vec<crate::types::OrderRequest>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send + 'a {
         let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(orders), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_orders", __args).await?)) }
+        async move { self.call("create_orders", __args).await }
     }
     pub fn cancel_order<'a>(&'a mut self, id: &str, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(id), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("cancel_order", __args).await?)) }
+        async move { self.call("cancel_order", __args).await }
     }
     pub fn cancel_order_with_client_order_id<'a>(&'a mut self, clientOrderId: &str, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(clientOrderId), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("cancel_order_with_client_order_id", __args).await?)) }
+        async move { self.call("cancel_order_with_client_order_id", __args).await }
     }
     pub fn cancel_orders<'a>(&'a mut self, ids: Vec<String>, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(Some(ids)), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("cancel_orders", __args).await?)) }
+        async move { self.call("cancel_orders", __args).await }
     }
     pub fn cancel_orders_with_client_order_ids<'a>(&'a mut self, clientOrderIds: Vec<String>, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(Some(clientOrderIds)), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("cancel_orders_with_client_order_ids", __args).await?)) }
+        async move { self.call("cancel_orders_with_client_order_ids", __args).await }
     }
     pub fn cancel_all_orders<'a>(&'a mut self, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send + 'a {
         let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("cancel_all_orders", __args).await?)) }
+        async move { self.call("cancel_all_orders", __args).await }
     }
     pub fn cancel_unified_order<'a>(&'a mut self, order: crate::types::Order, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(order), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("cancel_unified_order", __args).await?)) }
+        async move { self.call("cancel_unified_order", __args).await }
     }
     pub fn fetch_orders<'a>(&'a mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send + 'a {
         let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_orders", __args).await?)) }
+        async move { self.call("fetch_orders", __args).await }
     }
     pub fn fetch_order_trades<'a>(&'a mut self, id: &str, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Trade>>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(id), symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_order_trades", __args).await?)) }
+        async move { self.call("fetch_order_trades", __args).await }
     }
     pub fn watch_orders<'a>(&'a mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send + 'a {
         let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("watch_orders", __args).await?)) }
+        async move { self.call("watch_orders", __args).await }
     }
     pub fn fetch_open_orders<'a>(&'a mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send + 'a {
         let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_open_orders", __args).await?)) }
+        async move { self.call("fetch_open_orders", __args).await }
     }
     pub fn fetch_closed_orders<'a>(&'a mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send + 'a {
         let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_closed_orders", __args).await?)) }
+        async move { self.call("fetch_closed_orders", __args).await }
     }
     pub fn fetch_canceled_orders<'a>(&'a mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Order>>> + Send + 'a {
         let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_canceled_orders", __args).await?)) }
+        async move { self.call("fetch_canceled_orders", __args).await }
     }
     pub fn fetch_my_trades<'a>(&'a mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Trade>>> + Send + 'a {
         let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_my_trades", __args).await?)) }
+        async move { self.call("fetch_my_trades", __args).await }
     }
     pub fn watch_my_trades<'a>(&'a mut self, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::Trade>>> + Send + 'a {
         let __args: Vec<Value> = vec![symbol.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("watch_my_trades", __args).await?)) }
+        async move { self.call("watch_my_trades", __args).await }
     }
     pub fn create_limit_order<'a>(&'a mut self, symbol: &str, side: &str, amount: f64, price: f64, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(side), Value::from(amount), Value::from(price), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_limit_order", __args).await?)) }
+        async move { self.call("create_limit_order", __args).await }
     }
     pub fn create_market_order<'a>(&'a mut self, symbol: &str, side: &str, amount: f64, price: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(side), Value::from(amount), Value::from(price), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_market_order", __args).await?)) }
+        async move { self.call("create_market_order", __args).await }
     }
     pub fn create_limit_buy_order<'a>(&'a mut self, symbol: &str, amount: f64, price: f64, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(amount), Value::from(price), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_limit_buy_order", __args).await?)) }
+        async move { self.call("create_limit_buy_order", __args).await }
     }
     pub fn create_limit_sell_order<'a>(&'a mut self, symbol: &str, amount: f64, price: f64, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(amount), Value::from(price), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_limit_sell_order", __args).await?)) }
+        async move { self.call("create_limit_sell_order", __args).await }
     }
     pub fn create_market_buy_order<'a>(&'a mut self, symbol: &str, amount: f64, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(amount), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_market_buy_order", __args).await?)) }
+        async move { self.call("create_market_buy_order", __args).await }
     }
     pub fn create_market_sell_order<'a>(&'a mut self, symbol: &str, amount: f64, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(amount), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_market_sell_order", __args).await?)) }
+        async move { self.call("create_market_sell_order", __args).await }
     }
     pub fn create_post_only_order<'a>(&'a mut self, symbol: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_post_only_order", __args).await?)) }
+        async move { self.call("create_post_only_order", __args).await }
     }
     pub fn create_reduce_only_order<'a>(&'a mut self, symbol: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_reduce_only_order", __args).await?)) }
+        async move { self.call("create_reduce_only_order", __args).await }
     }
     pub fn create_stop_order<'a>(&'a mut self, symbol: &str, type_var: &str, side: &str, amount: f64, price: Option<f64>, triggerPrice: Option<f64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(type_var), Value::from(side), Value::from(amount), Value::from(price), Value::from(triggerPrice), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_stop_order", __args).await?)) }
+        async move { self.call("create_stop_order", __args).await }
     }
     pub fn create_stop_limit_order<'a>(&'a mut self, symbol: &str, side: &str, amount: f64, price: f64, triggerPrice: f64, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(side), Value::from(amount), Value::from(price), Value::from(triggerPrice), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_stop_limit_order", __args).await?)) }
+        async move { self.call("create_stop_limit_order", __args).await }
     }
     pub fn create_stop_market_order<'a>(&'a mut self, symbol: &str, side: &str, amount: f64, triggerPrice: f64, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::Order>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(side), Value::from(amount), Value::from(triggerPrice), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("create_stop_market_order", __args).await?)) }
+        async move { self.call("create_stop_market_order", __args).await }
     }
     pub fn fetch_trading_fee<'a>(&'a mut self, symbol: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::TradingFee>> + Send + 'a {
         let __args: Vec<Value> = vec![Value::from(symbol), params.into().into_value()];
-        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_trading_fee", __args).await?)) }
+        async move { self.call("fetch_trading_fee", __args).await }
     }
 }

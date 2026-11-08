@@ -73,7 +73,7 @@ async fn trade_on(id: &str, place: bool) {
         }
     };
 
-    let markets = match ex.try_load_markets(false).await {
+    let markets = match ex.load_markets(false, ()).await {
         Ok(m) if !m.is_empty() => m,
         Ok(_) => {
             println!("  markets did not load");
@@ -86,7 +86,7 @@ async fn trade_on(id: &str, place: bool) {
     };
     println!("  markets      {}", markets.len());
 
-    let market: Market = match ex.try_market(SYMBOL) {
+    let market: Market = match ex.market(SYMBOL) {
         Ok(m) => m,
         Err(e) => {
             println!("  market       {}", fmt_err(&e));

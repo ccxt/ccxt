@@ -291,7 +291,7 @@ impl Upbit {
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            self.load_markets(&[]).await;
+            crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let mut symbolsRequested: Value = (if (symbols == Value::Null) { self.symbols.clone() } else { symbols });
         let mut symbolsNormalized: Value = self.market_symbols(&[symbolsRequested]);
@@ -363,7 +363,7 @@ impl Upbit {
         let mut __it = __args.into_iter();
         let mut symbol = __it.next().unwrap_or_default();
         let __optional_args: Vec<Value> = __it.collect();
-        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        Ok(crate::types::FromRaw::from_raw(futures::FutureExt::now_or_never(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -371,7 +371,7 @@ impl Upbit {
 }));
         return self.watch_public_multiple(Value::from(vec![symbol]), Value::Str("ticker".into()), &[]).await;
         Value::Null
-        }).await?))
+        })).expect("a sync body never awaits")?))
     }
 
 /*
@@ -761,8 +761,8 @@ impl Upbit {
         let mut messageHashResolved: Value = messageHash.clone();
         let mut channelKey: Value = channel.clone();
         if (symbol != Value::Null) {
-            self.load_markets(&[]).await;
-            let mut market: Value = self.market(symbol);
+            crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
             let mut symbolResolved: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
             request.insert("codes".into(), self.market_ids(&[Value::from(vec![symbolResolved.clone()])]));
             messageHashResolved = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbolResolved).into());
@@ -833,7 +833,7 @@ impl Upbit {
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            self.load_markets(&[]).await;
+            crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let mut channel: String = "myOrder".to_string();
         let mut messageHash: String = "myOrder".to_string();
@@ -872,7 +872,7 @@ impl Upbit {
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            self.load_markets(&[]).await;
+            crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let mut channel: String = "myOrder".to_string();
         let mut messageHash: String = "myTrades".to_string();
@@ -1155,7 +1155,7 @@ impl Upbit {
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            self.load_markets(&[]).await;
+            crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let mut channel: String = "myAsset".to_string();
         let mut messageHash: String = "myAsset".to_string();

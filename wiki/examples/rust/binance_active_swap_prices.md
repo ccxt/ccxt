@@ -10,7 +10,7 @@
 //   cargo run --release --bin binance-active-swap-prices
 //   cargo run --release --bin binance-active-swap-prices -- 25    # first 25
 use ccxt::types::{Market, Ticker};
-use ccxt::{Binance, Config, Params, ExchangeBase, TypedExchange};
+use ccxt::{Binance, Config, Params, ExchangeRuntime};
 
 fn f(v: Option<f64>) -> String {
     v.map(|x| format!("{x}")).unwrap_or_else(|| "—".to_string())
@@ -35,8 +35,8 @@ async fn run() {
     );
 
     // 2. Load the market table once.
-    let all: Vec<Market> = match binance.try_load_markets(false).await {
-        Ok(markets) => markets,
+    let all: Vec<Market> = match binance.load_markets(false, ()).await {
+        Ok(markets) => markets.iter().map(|(_, m)| m).collect(),
         Err(e) => {
             eprintln!("load_markets failed [{}]: {}", e.kind, e.message);
             return;

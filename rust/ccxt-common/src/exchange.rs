@@ -1899,9 +1899,10 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
 
     /// Loads markets (and currencies), dispatching `fetch_markets` /
     /// `fetch_currencies` / `set_markets` to the derived overrides.
-    fn load_markets(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
-        let reload = optional_args.get(0).cloned().unwrap_or(Value::Bool(false));
-        let reload_b = matches!(reload, Value::Bool(true));
+    fn load_markets(&mut self, reload: bool, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = Result<crate::types::Markets>> + Send { async move {
+        let _ = params.into();
+        let markets = crate::runtime::call_typed(async move {
+        let reload_b = reload;
         if !reload_b && !self.markets.is_null() {
             return self.markets.clone();
         }
@@ -1960,6 +1961,8 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             }
         }
         self.markets.clone()
+        }).await?;
+        Ok(crate::types::FromRaw::from_raw(markets))
     } }
 
     // ── super.X() shims — call the BASE (ExchangeBase) method, fully-qualified
@@ -1968,7 +1971,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         <Self as crate::exchange_generated::ExchangeBase>::describe(self)
     }
     fn super_set_sandbox_mode(&mut self, enabled: Value) {
-        <Self as crate::exchange_generated::ExchangeBase>::set_sandbox_mode(self, enabled);
+        crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::set_sandbox_mode(self, enabled.is_truthy()));
     }
     fn super_safe_market(&self, id: Value, market: Value, delim: Value, market_type: Value) -> Value {
         <Self as crate::exchange_generated::ExchangeBase>::safe_market(self, &[id, market, delim, market_type])
@@ -1977,7 +1980,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         <Self as crate::exchange_generated::ExchangeBase>::handle_market_type_and_params(self, method_name, &[market, params, default_value])
     }
     fn super_market(&self, symbol: Value) -> Value {
-        <Self as crate::exchange_generated::ExchangeBase>::market_non_virtual(self, symbol)
+        crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market_non_virtual(self, symbol.as_str().unwrap_or_default()))
     }
     fn super_amount_to_precision(&self, symbol: Value, amount: Value) -> Value {
         <Self as crate::exchange_generated::ExchangeBase>::amount_to_precision(self, symbol, amount)
@@ -2002,7 +2005,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         crate::types::IntoRaw::into_raw(typed)
     } }
     fn super_load_markets(&mut self, reload: Value, params: Value) -> impl ::std::future::Future<Output = Value> + Send { async move {
-        self.load_markets(&[reload, params]).await
+        crate::types::IntoRaw::into_raw(<Self as ExchangeRuntime>::load_markets(self, reload.is_truthy(), params).await)
     } }
 }
 
@@ -2085,69 +2088,73 @@ pub trait CallDynamicChecked: crate::exchange_generated::ExchangeBase {
 
 impl<T: crate::exchange_generated::ExchangeBase> CallDynamicChecked for T {}
 
-/// Object-safe surface every exchange implements (blanket over `ExchangeBase`), so
-/// `Box<dyn TypedExchange>` can hold any venue; its typed unified methods are inherent.
-#[async_trait::async_trait]
-pub trait TypedExchange: Send {
-    /// Dispatch a snake_case unified method by name; a panic surfaces as `Err`.
-    async fn call_raw(&mut self, method: &str, args: Vec<Value>) -> Result<Value>;
+/// The object-safe slots behind `dyn TypedExchange`. Private: callers only see the
+/// base-spec names inherent on `dyn TypedExchange` (and on every venue struct).
+mod typed_slots {
+    use super::{Exchange, Result, Value};
 
-    /// Loads and caches markets, returning them typed; a failed load is an `Err`, not a panic.
-    async fn try_load_markets(&mut self, reload: bool) -> Result<Vec<crate::types::Market>>;
-
-    /// One loaded market, typed (the venue's `market` override applies). `Err(BadSymbol)` when not listed.
-    fn try_market(&self, symbol: &str) -> Result<crate::types::Market>;
-
-    /// Swap to the testnet/sandbox endpoints (or back). `Err(NotSupported)` without a `urls.test`.
-    fn try_set_sandbox_mode(&mut self, on: bool) -> Result<()>;
-
-    /// The base `Exchange` (fields and setup accessors such as `markets()` / `set_verbose()`).
-    fn base(&self) -> &Exchange;
-    fn base_mut(&mut self) -> &mut Exchange;
-}
-
-#[async_trait::async_trait]
-impl<T: crate::exchange_generated::ExchangeBase> TypedExchange for T {
-    async fn call_raw(&mut self, method: &str, args: Vec<Value>) -> Result<Value> {
-        crate::runtime::call_typed(crate::exchange_generated::ExchangeBase::call_dynamic(self, method, args)).await
+    #[async_trait::async_trait]
+    pub trait Slots: Send {
+        async fn slot_call(&mut self, method: &str, args: Vec<Value>) -> Result<Value>;
+        fn slot_market(&self, symbol: &str) -> Result<crate::types::Market>;
+        fn slot_base(&self) -> &Exchange;
+        fn slot_base_mut(&mut self) -> &mut Exchange;
     }
 
-    async fn try_load_markets(&mut self, reload: bool) -> Result<Vec<crate::types::Market>> {
-        // by name, so a venue's own `load_markets` override runs
-        crate::runtime::call_typed(crate::exchange_generated::ExchangeBase::call_dynamic(self, "load_markets", vec![Value::Bool(reload), Value::Null])).await?;
-        Ok(<T as std::ops::Deref>::deref(self).markets())
-    }
-
-    fn try_market(&self, symbol: &str) -> Result<crate::types::Market> {
-        let sym = Value::from(symbol);
-        crate::runtime::catch_typed(|| crate::types::Market::from_value(crate::exchange_generated::ExchangeBase::market(self, sym)))
-    }
-
-    fn try_set_sandbox_mode(&mut self, on: bool) -> Result<()> {
-        let has_test = !matches!(crate::runtime::get_value(&self.urls, &Value::Str("test".into())), Value::Null);
-        if on && !has_test {
-            return Err(crate::exchange_errors::not_supported(format!("{} does not have a sandbox URL", <T as std::ops::Deref>::deref(self).id())));
+    #[async_trait::async_trait]
+    impl<T: crate::exchange_generated::ExchangeBase> Slots for T {
+        async fn slot_call(&mut self, method: &str, args: Vec<Value>) -> Result<Value> {
+            crate::runtime::call_typed(crate::exchange_generated::ExchangeBase::call_dynamic(self, method, args)).await
         }
-        crate::runtime::catch_typed(move || crate::exchange_generated::ExchangeBase::set_sandbox_mode(self, Value::Bool(on)))
+        fn slot_market(&self, symbol: &str) -> Result<crate::types::Market> {
+            crate::exchange_generated::ExchangeBase::market(self, symbol)
+        }
+        fn slot_base(&self) -> &Exchange { <T as std::ops::Deref>::deref(self) }
+        fn slot_base_mut(&mut self) -> &mut Exchange { <T as std::ops::DerefMut>::deref_mut(self) }
     }
-
-    fn base(&self) -> &Exchange { <T as std::ops::Deref>::deref(self) }
-    fn base_mut(&mut self) -> &mut Exchange { <T as std::ops::DerefMut>::deref_mut(self) }
 }
+
+/// Every exchange (blanket over `ExchangeBase`), so `Box<dyn TypedExchange>` can hold
+/// any venue. `dyn TypedExchange` carries the base-spec methods with the same names and
+/// signatures as each venue struct (`load_markets`, `market`, `set_sandbox_mode`,
+/// `fetch_ticker`, …) and `Deref`s to the base `Exchange` for setup accessors.
+#[allow(private_bounds)]
+pub trait TypedExchange: typed_slots::Slots {}
+
+impl<T: crate::exchange_generated::ExchangeBase> TypedExchange for T {}
 
 impl std::ops::Deref for dyn TypedExchange {
     type Target = Exchange;
-    fn deref(&self) -> &Exchange { self.base() }
+    fn deref(&self) -> &Exchange { typed_slots::Slots::slot_base(self) }
 }
 
 impl std::ops::DerefMut for dyn TypedExchange {
-    fn deref_mut(&mut self) -> &mut Exchange { self.base_mut() }
+    fn deref_mut(&mut self) -> &mut Exchange { typed_slots::Slots::slot_base_mut(self) }
 }
 
 impl dyn TypedExchange {
-    /// `call_raw` decoded into a typed unified return, e.g. `call::<Ticker>("fetch_ticker", args)`.
+    /// A unified method by snake_case name (any unified method or implicit endpoint),
+    /// decoded into its typed return, e.g. `call::<Ticker>("fetch_ticker", args)`.
     pub async fn call<R: crate::types::FromRaw>(&mut self, method: &str, args: Vec<Value>) -> Result<R> {
-        Ok(R::from_raw(self.call_raw(method, args).await?))
+        Ok(R::from_raw(typed_slots::Slots::slot_call(self, method, args).await?))
+    }
+
+    /// Loads and caches markets through the venue's override, keyed by symbol.
+    pub async fn load_markets(&mut self, reload: bool, params: impl Into<crate::Params> + Send) -> Result<crate::types::Markets> {
+        self.call("load_markets", vec![Value::Bool(reload), params.into().into_value()]).await
+    }
+
+    /// One loaded market, typed (the venue's `market` override applies). `Err(BadSymbol)` when not listed.
+    pub fn market(&self, symbol: &str) -> Result<crate::types::Market> {
+        typed_slots::Slots::slot_market(self, symbol)
+    }
+
+    /// Swap to the testnet/sandbox endpoints (or back), through the venue's override.
+    /// `Err(NotSupported)` without a `urls.test`.
+    pub fn set_sandbox_mode(&mut self, enabled: bool) -> Result<()> {
+        // a sync method: its dispatch arm completes on the first poll
+        let call = self.call::<Value>("set_sandbox_mode", vec![Value::Bool(enabled)]);
+        futures::FutureExt::now_or_never(call).expect("set_sandbox_mode never awaits").map(|_| ())
     }
 }
 

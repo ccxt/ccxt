@@ -74,7 +74,7 @@ fn helperTestInitSandbox() {
     //
     let mut exchange3 = crate::tests_support::make_exchange(opts.clone());
     helperTestSandboxState(exchange3.clone_self(), Value::Bool(false));
-    exchange3.set_sandbox_mode(Value::Bool(true));
+    ccxt::types::IntoRaw::into_raw(exchange3.set_sandbox_mode(true));
     helperTestSandboxState(exchange3.clone_self(), Value::Bool(true));
     //
     // CASE B: when sandbox is enabled
@@ -82,7 +82,7 @@ fn helperTestInitSandbox() {
     add_element_to_object(get_value_mut(&mut opts, &Value::Str("options".into())), &Value::Str("sandbox".into()), Value::Bool(true));
     let mut exchange4 = crate::tests_support::make_exchange(opts.clone());
     helperTestSandboxState(exchange4.clone_self(), Value::Bool(true));
-    exchange4.set_sandbox_mode(Value::Bool(false));
+    ccxt::types::IntoRaw::into_raw(exchange4.set_sandbox_mode(false));
     helperTestSandboxState(exchange4.clone_self(), Value::Bool(false));
     //
     // CASE C: passed 'sandbox' within userConfig
@@ -92,7 +92,7 @@ fn helperTestInitSandbox() {
     if let Value::Dict(__d) = &mut opts { std::sync::Arc::make_mut(__d).insert("sandbox".into(), Value::Bool(true)); }
     let mut exchange5 = crate::tests_support::make_exchange(opts.clone());
     helperTestSandboxState(exchange5.clone_self(), Value::Bool(true));
-    exchange5.set_sandbox_mode(Value::Bool(false));
+    ccxt::types::IntoRaw::into_raw(exchange5.set_sandbox_mode(false));
     helperTestSandboxState(exchange5.clone_self(), Value::Bool(false));
 }
 fn helperTestInitMarket() {
@@ -133,9 +133,9 @@ fn helperTestProperties() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("userAgents".into())) != Value::Null))));
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1525: bool = true;
-        while { if !__for_first_1525 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-            } __for_first_1525 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_0: bool = true;
+        while { if !__for_first_0 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+            } __for_first_0 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
         let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
         let mut userAgent: Value = get_value(&crate::tests_support::shared::exchange_prop(&exchange.clone_self(), Value::Str("userAgents".into())), &key);
         assert!(ccxt::runtime::is_true(&(Value::Bool(userAgent != Value::Null))));

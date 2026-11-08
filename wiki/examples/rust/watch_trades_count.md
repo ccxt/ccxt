@@ -57,7 +57,7 @@ async fn run() {
     });
 
     let t0 = Instant::now();
-    let _ = ex.try_load_markets(false).await;
+    let _ = ex.load_markets(false, ()).await;
     let load_s = t0.elapsed().as_secs_f64();
 
     let window = Duration::from_secs(secs());

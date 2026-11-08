@@ -1,7 +1,7 @@
 ```rust
 use ccxt::types::Market;
-use ccxt::{Config, Params};
-use ccxt_pro::{Binance, ExchangeBase, TypedExchange};
+use ccxt::{Config, Params, ExchangeRuntime};
+use ccxt_pro::{Binance, ExchangeBase};
 
 const SYMBOL: &str = "BTC/USDT";
 const MAX_NOTIONAL_USD: f64 = 25.0;
@@ -47,11 +47,11 @@ async fn run() {
 
     // One instance: watch_order_book (WS) and create_order (REST) both come off it.
     let mut exchange = Binance::with_config(cfg);
-    if let Err(e) = exchange.try_load_markets(false).await {
+    if let Err(e) = exchange.load_markets(false, ()).await {
         println!("load_markets failed [{}]: {}", e.kind, e.message);
         return;
     }
-    let market = match exchange.try_market(SYMBOL) {
+    let market = match exchange.market(SYMBOL) {
         Ok(m) => m,
         Err(e) => {
             println!("[{}] {}", e.kind, e.message);

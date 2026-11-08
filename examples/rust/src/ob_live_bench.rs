@@ -30,7 +30,7 @@ async fn run() {
     // linear-only so the "BTCUSDT" WS id resolves to the perpetual, not spot.
     let cfg = Config::new().option("fetchMarkets", Params::new().with_strs("types", &["linear"]));
     let mut ex: Box<dyn TypedExchange> = from_id_with_config(&id, cfg).expect("no typed WS wrapper");
-    ex.try_load_markets(false).await.expect("load_markets failed");
+    ex.load_markets(false, ()).await.expect("load_markets failed");
     println!("Streaming {id} {sym} watch_order_book for {run_secs}s…");
 
     let start = Instant::now();
