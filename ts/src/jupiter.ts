@@ -1409,8 +1409,25 @@ export default class jupiter extends Exchange {
         let requestBody: any = undefined;
         if (method !== 'GET') {
             if ((api[0] === 'studio') && (path === 'dbc-pool/submit')) {
-                requestHeaders['Content-Type'] = 'multipart/form-data';
-                requestBody = params;
+                const boundary = '--------------------------' + this.randomBytes (12);
+                const eol = '\r\n';
+                requestHeaders['Content-Type'] = 'multipart/form-data; boundary=' + boundary;
+                let multipartBody = '';
+                const bodyKeys = Object.keys (params);
+                for (let i = 0; i < bodyKeys.length; i++) {
+                    const bodyKey = bodyKeys[i];
+                    const fieldValue = params[bodyKey];
+                    if (fieldValue === undefined || fieldValue === null) {
+                        continue;
+                    }
+                    let encodedValue = fieldValue;
+                    if (typeof fieldValue !== 'string') {
+                        encodedValue = this.json (fieldValue);
+                    }
+                    multipartBody += '--' + boundary + eol + 'Content-Disposition: form-data; name="' + bodyKey + '"' + eol + eol + encodedValue + eol;
+                }
+                multipartBody += '--' + boundary + '--' + eol;
+                requestBody = multipartBody;
             } else {
                 requestHeaders['Content-Type'] = 'application/json';
                 requestBody = this.json (params);

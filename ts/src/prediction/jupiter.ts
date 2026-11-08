@@ -144,7 +144,11 @@ export default class jupiter extends Exchange {
             this.indexEventOutcomes (event);
             events.push (event);
         }
-        return this.applyEventFetchParams (events, params, (query === undefined) ? undefined : [ query ]);
+        let queryList: Strings = undefined;
+        if (query !== undefined) {
+            queryList = [ query ];
+        }
+        return this.applyEventFetchParams (events, params, queryList);
     }
 
     /**

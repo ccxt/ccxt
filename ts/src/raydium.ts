@@ -2,7 +2,7 @@ import Exchange from './abstract/raydium.js';
 import { ArgumentsRequired, BadRequest, BadSymbol, ExchangeError, InvalidOrder, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-import type { Currencies, CurrencyInterface, Conversion, Dict, Int, Market, Num, OHLCV, Str, Strings, Ticker, Trade } from './base/types.js';
+import type { Currencies, CurrencyInterface, Conversion, Dict, Int, Market, Num, OHLCV, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 /**
  * @class raydium
@@ -604,15 +604,16 @@ export default class raydium extends Exchange {
      * @param {object} [params] extra parameters specific to the endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by market symbol
      */
-    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Dict> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         await this.loadMarkets ();
+        const symbolsNormalized = this.marketSymbols (symbols);
         let response: any;
-        if (symbols !== undefined) {
+        if (symbolsNormalized !== undefined) {
             const ids: string[] = [];
-            for (let i = 0; i < symbols.length; i++) {
-                const marketId = this.market (symbols[i])['id'];
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const marketId = this.market (symbolsNormalized[i])['id'];
                 if (marketId === undefined) {
-                    throw new BadSymbol (this.id + ' fetchTickers() could not resolve a pool id for ' + symbols[i]);
+                    throw new BadSymbol (this.id + ' fetchTickers() could not resolve a pool id for ' + symbolsNormalized[i]);
                 }
                 ids.push (marketId);
             }
@@ -628,17 +629,15 @@ export default class raydium extends Exchange {
             response = await this.apiV3PublicGetPoolsInfoList (request);
         }
         const rows = this.extractRows (response);
-        const result: Dict = {};
+        const result: Ticker[] = [];
         for (let i = 0; i < rows.length; i++) {
             const parsedMarket = this.parseMarket (rows[i]);
             if (parsedMarket === undefined) {
                 throw new ExchangeError (this.id + ' fetchTickers() could not parse a pool market');
             }
-            if (result[parsedMarket['symbol']] === undefined) {
-                result[parsedMarket['symbol']] = this.parseTicker (rows[i], parsedMarket);
-            }
+            result.push (this.parseTicker (rows[i], parsedMarket));
         }
-        return result;
+        return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -1803,8 +1802,25 @@ export default class raydium extends Exchange {
             requestHeaders['ray-token'] = rayToken;
             delete requestParams['rayToken'];
             if (apiName === 'launchForum') {
-                requestHeaders['Content-Type'] = 'multipart/form-data';
-                requestBody = requestParams;
+                const boundary = '--------------------------' + this.randomBytes (12);
+                const eol = '\r\n';
+                requestHeaders['Content-Type'] = 'multipart/form-data; boundary=' + boundary;
+                let multipartBody = '';
+                const bodyKeys = Object.keys (requestParams);
+                for (let i = 0; i < bodyKeys.length; i++) {
+                    const bodyKey = bodyKeys[i];
+                    const fieldValue = requestParams[bodyKey];
+                    if (fieldValue === undefined || fieldValue === null) {
+                        continue;
+                    }
+                    let encodedValue = fieldValue;
+                    if (typeof fieldValue !== 'string') {
+                        encodedValue = this.json (fieldValue);
+                    }
+                    multipartBody += '--' + boundary + eol + 'Content-Disposition: form-data; name="' + bodyKey + '"' + eol + eol + encodedValue + eol;
+                }
+                multipartBody += '--' + boundary + '--' + eol;
+                requestBody = multipartBody;
             } else {
                 requestHeaders['Content-Type'] = 'application/json';
                 requestBody = this.json (requestParams);
