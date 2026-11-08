@@ -1,6 +1,6 @@
 ```rust
 use ccxt::types::OHLCV;
-use ccxt::{from_id, Params, TypedExchange, TypedExchangeExt};
+use ccxt::{from_id, Params, TypedExchange};
 
 
 // to run it cargo run --manifest-path examples/rust/Cargo.toml --bin multi_exchange_ohlcv_chart

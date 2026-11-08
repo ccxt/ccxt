@@ -5,8 +5,8 @@
 // runtime bugs stand out from environmental failures.
 //
 // Each venue is built by id with `ccxt_pro::from_id`; because the method under
-// test is chosen at runtime (CCXT_METHOD), it's dispatched via the typed
-// `TypedExchange::call_raw` (the typed crate's dynamic escape hatch).
+// test is chosen at runtime (CCXT_METHOD), it's dispatched by name via
+// `TypedExchange::call_raw` (the dynamic escape hatch, `Result<Value>`).
 use std::future::Future;
 use std::panic::AssertUnwindSafe;
 use std::pin::Pin;
@@ -30,7 +30,7 @@ const CANDIDATES: &[&str] = &[
     "BTC/KRW",
 ];
 
-// Every pro venue with a typed WS wrapper (`ccxt_pro::from_id`).
+// Every pro exchange constructible by id (`ccxt_pro::from_id`).
 const VENUES: &[&str] = &[
     "alpaca",
     "apex",
@@ -178,7 +178,7 @@ fn classify(method: &str, result: &Value, sym: &str) -> String {
 }
 
 async fn watch_probe(mut ex: Box<dyn TypedExchange>) -> String {
-    // `call_raw` is the TypedExchange dynamic escape hatch: `Result<Value>`.
+    // `call_raw` dispatches by name and returns the raw `Result<Value>`.
     let lm = ex.call_raw("load_markets", vec![]);
     let markets =
         match tokio::time::timeout(Duration::from_secs(40), AssertUnwindSafe(lm).catch_unwind())

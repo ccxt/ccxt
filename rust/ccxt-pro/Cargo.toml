@@ -20,7 +20,7 @@ path = "src/lib.rs"
 # Pick venues instead to cut build time and memory by two orders of magnitude:
 #   ccxt-pro = { version = "…", default-features = false, features = ["binance", "kraken"] }
 default = ["all"]
-# BEGIN GENERATED FEATURES (emitted by build/generateRustWrappers.ts)
+# BEGIN GENERATED FEATURES (emitted by build/rustTranspiler.ts)
 alpaca = ["ccxt-base/alpaca"]
 apex = ["ccxt-base/apex"]
 aster = ["ccxt-base/aster"]
@@ -107,12 +107,8 @@ all = ["alpaca", "apex", "aster", "backpack", "bequant", "binance", "binancecoin
 ccxt-base = { path = "../ccxt-base", version = "4.5.92", features = ["engine"] }
 
 # The generated WS venues (`src/pro/<id>.rs`, emitted by build/rustTranspiler.ts)
-# and typed wrappers (`src/pro_typed/`, `typed.rs`, emitted by
-# build/generateRustWrappers.ts) reference exactly three external crates
-# directly: `indexmap::IndexMap` (Value::Map backing store), `futures::FutureExt`
-# (`.boxed()` on watch* futures) and `#[async_trait::async_trait]`. Everything
-# else — HTTP, crypto, WS transport, decimal math — is reached through
-# `ccxt_base::*` re-exports, so it is not re-declared here.
-async-trait = "0.1"
+# reference exactly two external crates directly: `indexmap::IndexMap` (Value::Map
+# backing store) and `futures::FutureExt` (`.boxed()` on watch* futures).
+# Everything else is reached through `ccxt_base::*` re-exports.
 futures = "0.3"
 indexmap = { version = "2", features = ["serde"] }

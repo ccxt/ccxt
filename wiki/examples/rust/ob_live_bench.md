@@ -7,7 +7,7 @@
 //
 //   cargo run --release --features ws --bin ob_live_bench -- [run_secs]
 use ccxt::{Config, Params};
-use ccxt_pro::{from_id_with_config, TypedExchange, TypedExchangeExt};
+use ccxt_pro::{from_id_with_config, TypedExchange};
 use std::time::{Duration, Instant};
 
 fn cpu_secs() -> f64 {
@@ -31,7 +31,7 @@ async fn run() {
     // linear-only so the "BTCUSDT" WS id resolves to the perpetual, not spot.
     let cfg = Config::new().option("fetchMarkets", Params::new().with_strs("types", &["linear"]));
     let mut ex: Box<dyn TypedExchange> = from_id_with_config(&id, cfg).expect("no typed WS wrapper");
-    ex.load_markets(false).await;
+    ex.try_load_markets(false).await.expect("load_markets failed");
     println!("Streaming {id} {sym} watch_order_book for {run_secs}s…");
 
     let start = Instant::now();

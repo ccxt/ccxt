@@ -1,6 +1,6 @@
-// ccxt-rust side of the binance-rs comparison — on the TYPED layer.
+// ccxt-rust side of the binance-rs comparison — on the typed API.
 //
-// `ccxt_pro::Binance` is the concrete typed WebSocket wrapper. Two ways to
+// `ccxt_pro::Binance` is the concrete WebSocket exchange. Two ways to
 // watch N books, both multiplexed over ONE connection:
 //
 //   agg (default) — `watch_order_book_for_symbols(symbols, ..) -> Result<OrderBook>`
@@ -24,7 +24,7 @@ use ccxt::{Config, Params, Value};
 
 /// `(symbol, a, b)` — bids/asks for a book, or `(trades_in_batch, 0)` for the tape.
 pub type WatchResult = (String, usize, usize);
-use ccxt_pro::Binance;
+use ccxt_pro::{Binance, ExchangeBase, TypedExchange};
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
@@ -149,7 +149,10 @@ async fn run() {
     let mut ex = Binance::with_config(cfg);
     let rss_new = rss_mb();
     let load0 = Instant::now();
-    ex.load_markets(false).await;
+    if let Err(e) = ex.try_load_markets(false).await {
+        eprintln!("load_markets [{}] {}", e.kind, e.message);
+        return;
+    }
     let load_s = load0.elapsed().as_secs_f64();
     let rss_markets = rss_mb();
     let markets = ex.markets();

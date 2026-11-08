@@ -1,18 +1,18 @@
-// Typed prediction-market API demo — the `ccxt_prediction::<Venue>` wrappers
+// Prediction-market API demo — the `ccxt_prediction::<Venue>` exchanges
 // (Kalshi, Polymarket, Limitless, …) expose the unified `fetch_*` methods with
-// native Rust return types, exactly like the REST `ccxt::<Exchange>` wrappers,
-// but over the prediction-market Cores. Compile-check only (no `.await` to
+// native Rust return types, exactly like the REST `ccxt::<Exchange>` structs.
+// Compile-check only (no `.await` to
 // completion in `main`, so no network traffic).
 //
 // Build: `cargo run --example prediction_typed_demo`.
 use ccxt::Params;
-use ccxt_prediction::{Kalshi, Polymarket, TypedExchange, TypedExchangeExt};
+use ccxt_prediction::{Kalshi, Polymarket, ExchangeBase, TypedExchange};
 
-// ── A. concrete wrapper — typed returns ──────────────────────────────────────
+// ── A. concrete exchange — typed returns ──────────────────────────────────────
 #[allow(dead_code)]
 async fn demo() {
     let mut k = Kalshi::new(None);
-    k.load_markets(false).await;
+    let _ = k.try_load_markets(false).await; // -> Result<Vec<Market>>
 
     match k.fetch_ticker("KXBTCD", Params::none()).await {
         Ok(t) => println!("kalshi {} last={:?}", t.symbol, t.last),
@@ -27,8 +27,8 @@ async fn demo() {
         Box::new(Polymarket::new(None)),
     ];
     for ex in &mut venues {
-        ex.load_markets(false).await;
-        let _ = ex.fetch_ticker("BTC", Params::none()).await; // via TypedExchangeExt
+        let _ = ex.try_load_markets(false).await;
+        let _ = ex.fetch_ticker("BTC", Params::none()).await; // inherent on dyn TypedExchange
     }
 }
 

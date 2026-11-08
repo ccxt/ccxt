@@ -1,5 +1,5 @@
 use ccxt::types::{Market, Order, Ticker};
-use ccxt::{from_id_with_config, Config, ExchangeError, Params, TypedExchange, TypedExchangeExt};
+use ccxt::{from_id_with_config, Config, ExchangeError, Params, TypedExchange};
 
 const EXCHANGES: &[&str] = &["binance", "bybit"];
 
@@ -72,15 +72,20 @@ async fn trade_on(id: &str, place: bool) {
         }
     };
 
-    ex.load_markets(false).await;
-    let markets = ex.markets();
-    if markets.is_empty() {
-        println!("  markets did not load");
-        return;
-    }
+    let markets = match ex.try_load_markets(false).await {
+        Ok(m) if !m.is_empty() => m,
+        Ok(_) => {
+            println!("  markets did not load");
+            return;
+        }
+        Err(e) => {
+            println!("  markets      {}", fmt_err(&e));
+            return;
+        }
+    };
     println!("  markets      {}", markets.len());
 
-    let market: Market = match ex.market(SYMBOL) {
+    let market: Market = match ex.try_market(SYMBOL) {
         Ok(m) => m,
         Err(e) => {
             println!("  market       {}", fmt_err(&e));

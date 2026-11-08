@@ -1034,8 +1034,76 @@ impl Exchange {
     }
 
 
-    fn is_verbose(&self) -> bool {
+    /// Whether request/response logging is on.
+    pub fn is_verbose(&self) -> bool {
         matches!(self.verbose, Value::Bool(true))
+    }
+
+    // Setup accessors, reached on every exchange through its `Deref<Target = Exchange>`.
+    // Setters take Rust primitives and return `&mut Self` so they chain.
+
+    /// Every loaded market, typed. Empty until markets are loaded.
+    pub fn markets(&self) -> Vec<crate::types::Market> {
+        match &self.markets {
+            Value::Dict(d) => d.values().cloned().map(crate::types::Market::from_value).collect(),
+            _ => Vec::new(),
+        }
+    }
+
+    /// Every loaded currency, typed. Empty until markets are loaded.
+    pub fn currencies(&self) -> Vec<crate::types::Currency> {
+        match &self.currencies {
+            Value::Dict(d) => d.values().cloned().map(crate::types::Currency::from_value).collect(),
+            _ => Vec::new(),
+        }
+    }
+
+    /// Unified symbols of every loaded market, sorted.
+    pub fn symbols(&self) -> Vec<String> {
+        let mut out: Vec<String> = self.markets().into_iter().map(|m| m.symbol).collect();
+        out.sort();
+        out
+    }
+
+    /// The ccxt id of this exchange, e.g. binance.
+    pub fn id(&self) -> String {
+        match &self.id { Value::Str(s) => s.to_string(), _ => String::new() }
+    }
+
+    /// Whether sandbox/testnet endpoints are in use.
+    pub fn is_sandbox_mode_enabled(&self) -> bool {
+        matches!(self.isSandboxModeEnabled, Value::Bool(true))
+    }
+
+    /// Log every HTTP request and response to stderr.
+    pub fn set_verbose(&mut self, on: bool) -> &mut Self { self.verbose = Value::Bool(on); self }
+    /// Client-side rate limiting (on by default).
+    pub fn set_enable_rate_limit(&mut self, on: bool) -> &mut Self { self.enableRateLimit = Value::Bool(on); self }
+    /// Milliseconds per rate-limit token; read on every throttled call.
+    pub fn set_rate_limit_ms(&mut self, ms: i64) -> &mut Self { self.rateLimit = Value::Int(ms); self }
+    /// HTTP request timeout in milliseconds.
+    pub fn set_timeout_ms(&mut self, ms: i64) -> &mut Self { self.timeout = Value::Int(ms); self }
+    pub fn set_api_key(&mut self, v: &str) -> &mut Self { self.apiKey = Value::from(v); self }
+    pub fn set_secret(&mut self, v: &str) -> &mut Self { self.secret = Value::from(v); self }
+    pub fn set_password(&mut self, v: &str) -> &mut Self { self.password = Value::from(v); self }
+    pub fn set_uid(&mut self, v: &str) -> &mut Self { self.uid = Value::from(v); self }
+    pub fn set_wallet_address(&mut self, v: &str) -> &mut Self { self.walletAddress = Value::from(v); self }
+    pub fn set_private_key(&mut self, v: &str) -> &mut Self { self.privateKey = Value::from(v); self }
+    pub fn set_token(&mut self, v: &str) -> &mut Self { self.token = Value::from(v); self }
+    /// REST proxies: set at most one (conflicting proxy settings are rejected per request).
+    pub fn set_http_proxy(&mut self, url: &str) -> &mut Self { self.httpProxy = Value::from(url); self }
+    pub fn set_https_proxy(&mut self, url: &str) -> &mut Self { self.httpsProxy = Value::from(url); self }
+    pub fn set_socks_proxy(&mut self, url: &str) -> &mut Self { self.socksProxy = Value::from(url); self }
+    /// WebSocket proxy, dialed with an HTTP CONNECT tunnel by the `watch*` transport.
+    pub fn set_ws_proxy(&mut self, url: &str) -> &mut Self { self.wsProxy = Value::from(url); self }
+
+    /// Merge entries into `options` the way `Config::options` does; nested objects combine.
+    pub fn set_options(&mut self, options: crate::Params) -> &mut Self {
+        let merged = crate::Config::new().options(crate::Params::from(self.options.clone()))
+            .options(options)
+            .into_value();
+        self.options = crate::runtime::get_value(&merged, &Value::Str("options".into()));
+        self
     }
 
 
@@ -2016,6 +2084,72 @@ pub trait CallDynamicChecked: crate::exchange_generated::ExchangeBase {
 }
 
 impl<T: crate::exchange_generated::ExchangeBase> CallDynamicChecked for T {}
+
+/// Object-safe surface every exchange implements (blanket over `ExchangeBase`), so
+/// `Box<dyn TypedExchange>` can hold any venue; its typed unified methods are inherent.
+#[async_trait::async_trait]
+pub trait TypedExchange: Send {
+    /// Dispatch a snake_case unified method by name; a panic surfaces as `Err`.
+    async fn call_raw(&mut self, method: &str, args: Vec<Value>) -> Result<Value>;
+
+    /// Loads and caches markets, returning them typed; a failed load is an `Err`, not a panic.
+    async fn try_load_markets(&mut self, reload: bool) -> Result<Vec<crate::types::Market>>;
+
+    /// One loaded market, typed (the venue's `market` override applies). `Err(BadSymbol)` when not listed.
+    fn try_market(&self, symbol: &str) -> Result<crate::types::Market>;
+
+    /// Swap to the testnet/sandbox endpoints (or back). `Err(NotSupported)` without a `urls.test`.
+    fn try_set_sandbox_mode(&mut self, on: bool) -> Result<()>;
+
+    /// The base `Exchange` (fields and setup accessors such as `markets()` / `set_verbose()`).
+    fn base(&self) -> &Exchange;
+    fn base_mut(&mut self) -> &mut Exchange;
+}
+
+#[async_trait::async_trait]
+impl<T: crate::exchange_generated::ExchangeBase> TypedExchange for T {
+    async fn call_raw(&mut self, method: &str, args: Vec<Value>) -> Result<Value> {
+        crate::runtime::call_typed(crate::exchange_generated::ExchangeBase::call_dynamic(self, method, args)).await
+    }
+
+    async fn try_load_markets(&mut self, reload: bool) -> Result<Vec<crate::types::Market>> {
+        // by name, so a venue's own `load_markets` override runs
+        crate::runtime::call_typed(crate::exchange_generated::ExchangeBase::call_dynamic(self, "load_markets", vec![Value::Bool(reload), Value::Null])).await?;
+        Ok(<T as std::ops::Deref>::deref(self).markets())
+    }
+
+    fn try_market(&self, symbol: &str) -> Result<crate::types::Market> {
+        let sym = Value::from(symbol);
+        crate::runtime::catch_typed(|| crate::types::Market::from_value(crate::exchange_generated::ExchangeBase::market(self, sym)))
+    }
+
+    fn try_set_sandbox_mode(&mut self, on: bool) -> Result<()> {
+        let has_test = !matches!(crate::runtime::get_value(&self.urls, &Value::Str("test".into())), Value::Null);
+        if on && !has_test {
+            return Err(crate::exchange_errors::not_supported(format!("{} does not have a sandbox URL", <T as std::ops::Deref>::deref(self).id())));
+        }
+        crate::runtime::catch_typed(move || crate::exchange_generated::ExchangeBase::set_sandbox_mode(self, Value::Bool(on)))
+    }
+
+    fn base(&self) -> &Exchange { <T as std::ops::Deref>::deref(self) }
+    fn base_mut(&mut self) -> &mut Exchange { <T as std::ops::DerefMut>::deref_mut(self) }
+}
+
+impl std::ops::Deref for dyn TypedExchange {
+    type Target = Exchange;
+    fn deref(&self) -> &Exchange { self.base() }
+}
+
+impl std::ops::DerefMut for dyn TypedExchange {
+    fn deref_mut(&mut self) -> &mut Exchange { self.base_mut() }
+}
+
+impl dyn TypedExchange {
+    /// `call_raw` decoded into a typed unified return, e.g. `call::<Ticker>("fetch_ticker", args)`.
+    pub async fn call<R: crate::types::FromRaw>(&mut self, method: &str, args: Vec<Value>) -> Result<R> {
+        Ok(R::from_raw(self.call_raw(method, args).await?))
+    }
+}
 
 /// A minimal Core wrapping a bare `Exchange` with NO overrides. Lets code that
 /// only has an `Exchange` value — `Value` snapshots (value.rs), the constructor

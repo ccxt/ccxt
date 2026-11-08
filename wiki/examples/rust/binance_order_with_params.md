@@ -33,7 +33,7 @@
 // full validation and creates nothing. The opt-in path is capped at 25 USD
 // notional per order and cancels whatever it creates.
 use ccxt::types::{Market, Order};
-use ccxt::{Binance, Config, ExchangeError, Params};
+use ccxt::{Binance, Config, ExchangeError, Params, ExchangeBase, TypedExchange};
 
 /// Hard cap on the notional of any order this example is willing to send.
 const MAX_NOTIONAL_USD: f64 = 25.0;
@@ -171,7 +171,7 @@ async fn run() {
         return;
     }
     ex.set_verbose(true);
-    let market = match ex.market(SYMBOL) {
+    let market = match ex.try_market(SYMBOL) {
         Ok(m) => m,
         Err(e) => {
             println!("\n{}: {}", e.kind, first_line(&e.message));

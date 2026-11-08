@@ -11,7 +11,7 @@
 //     Rust's auto-deref on the dot operator (`self.markets`, `self.safe_string`,
 //     `self.derived()`, …), exactly as a normal exchange Core does over
 //     `Exchange`; and
-//   * a prediction venue Core (`KalshiCore { exchange: PredictionExchange }`)
+//   * a prediction venue Core (`Kalshi { exchange: PredictionExchange }`)
 //     `Deref`s to `PredictionExchange`, so its own overrides win, then
 //     PredictionExchange's unified overrides (createOrder, fetchTicker, …), then
 //     the shared `Exchange` base — the correct method-resolution order.

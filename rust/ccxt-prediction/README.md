@@ -1,14 +1,14 @@
 # ccxt-prediction
 
-Typed prediction-market API for [CCXT](https://github.com/ccxt/ccxt) in Rust — Kalshi,
+Prediction-market API for [CCXT](https://github.com/ccxt/ccxt) in Rust — Kalshi,
 Polymarket, Limitless, Myriad and others.
 
 ```rust
 use ccxt::Params;
-use ccxt_prediction::Kalshi;
+use ccxt_prediction::{Kalshi, ExchangeBase, TypedExchange};
 
 let mut exchange = Kalshi::new(None);
-exchange.load_markets(false).await;
+exchange.try_load_markets(false).await?;
 
 let ticker = exchange.fetch_ticker("KXBTCD", Params::none()).await?;
 ```

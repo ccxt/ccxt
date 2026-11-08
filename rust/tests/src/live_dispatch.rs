@@ -389,8 +389,8 @@ pub async fn dispatch(ex: &mut Value, method: &str, args: Vec<Value>) -> Value {
 
 fn build_core(id: &str, cfg: Value, ws: bool) -> Option<CoreEntry> {
     // Field access on `core.last_request_*` auto-derefs through each
-    // Core's `Deref` chain (root: `BinanceCore → Exchange`; subclass:
-    // `BinanceusCore → BinanceCore → Exchange`) — so this one expression
+    // Core's `Deref` chain (root: `Binance → Exchange`; subclass:
+    // `Binanceus → Binance → Exchange`) — so this one expression
     // works for every Core type without per-subclass plumbing.
     macro_rules! arm { ($name:ident, $core:ident) => {
         if id == stringify!($name) {

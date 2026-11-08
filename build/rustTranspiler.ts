@@ -341,7 +341,7 @@ class Proof {
                 if (this.localTagFree(ret[1], body, r)) { verdict = true; break; }
                 continue;
             }
-            if (new RegExp('\\b[A-Za-z0-9_]+Core::' + name + '\\(').test(body)) { verdict = true; break; }
+            if (new RegExp('\\b[A-Z][a-z0-9]*::' + name + '\\(').test(body)) { verdict = true; break; }
         }
         this.calls.set(key * 100000 + (name.charCodeAt(0) || 0), verdict);
         return verdict;
@@ -7166,8 +7166,8 @@ const EXCHANGES_WS_FOLDER    = `${RUST_PRO_BASE}/pro`;
 // regular exchange (e.g. `hyperliquid`) don't clobber each other.
 const PREDICTION_EXCHANGES_FOLDER = `${RUST_BASE}/prediction`;
 
-// Cargo feature that gates a transpiled Core in ccxt-base. Shared with
-// build/generateRustWrappers.ts, which emits the matching [features] entries.
+// Cargo feature that gates a transpiled exchange in ccxt-base; `writeCargoFeatures`
+// emits the matching [features] entries.
 export function rustFeatureName (id: string, prediction = false): string {
     return prediction ? `prediction-${id}` : id;
 }
@@ -12158,8 +12158,8 @@ export class RustTranspilerBuilder {
     }
 
     /**
-     * `crate::exchanges::kucoin::KucoinCore` → `./rust/ccxt-base/src/exchanges/kucoin`
-     * `crate::pro::kucoin::KucoinCore`       → `./rust/ccxt-pro/src/pro/kucoin`
+     * `crate::exchanges::kucoin::Kucoin` → `./rust/ccxt-base/src/exchanges/kucoin`
+     * `crate::pro::kucoin::Kucoin`       → `./rust/ccxt-pro/src/pro/kucoin`
      *
      * The transpiled WS venues live in the sibling `ccxt-pro` crate, while
      * `ccxt-base/src/pro/` keeps only the hand-written infra (cache,
@@ -12213,7 +12213,7 @@ export class RustTranspilerBuilder {
                 } catch (_) { /* file may not exist (no implicit API) */ }
             }
             hops.push(defined);
-            const pm = coreSrc.match(/pub\s+parent:\s*(crate::[A-Za-z0-9_:]+Core)\b/);
+            const pm = coreSrc.match(/pub\s+parent:\s*(crate::(?:exchanges|pro|prediction)::[a-z0-9_]+::\w+)/);
             mod = pm ? pm[1] : null;
         }
         this._parentHopsCache.set(parentCore, hops);
@@ -12981,7 +12981,7 @@ ${arms.join('\n')}
     // ── exchange file creation ────────────────────────────────────────────────
 
     createRustExchange(className: string, rustResult: any, ws = false, isPrediction = false): string {
-        const coreName = capitalize(className) + 'Core';
+        const coreName = capitalize(className);
         const header = this.createGeneratedHeader().join('\n');
 
         // Go-style inheritance: a `class X extends Y` (Y a real exchange,
@@ -13013,14 +13013,14 @@ ${arms.join('\n')}
                 if (ws && rawParent.endsWith('Rest')) {
                     const restId = rawParent.slice(0, -4).toLowerCase();
                     parentMod  = restId;
-                    parentCore = `crate::exchanges::${restId}::${capitalize(restId)}Core`;
+                    parentCore = `crate::exchanges::${restId}::${capitalize(restId)}`;
                 } else if (ws) {
                     // WS-extends-WS (bequant, binanceusdm, …).
                     parentMod  = rawParent.toLowerCase();
-                    parentCore = `crate::pro::${parentMod}::${capitalize(rawParent)}Core`;
+                    parentCore = `crate::pro::${parentMod}::${capitalize(rawParent)}`;
                 } else {
                     parentMod  = rawParent.toLowerCase();
-                    parentCore = `crate::exchanges::${parentMod}::${capitalize(rawParent)}Core`;
+                    parentCore = `crate::exchanges::${parentMod}::${capitalize(rawParent)}`;
                 }
             }
         } catch { /* no parent */ }
@@ -13053,13 +13053,13 @@ ${arms.join('\n')}
                 (_full, restId) => {
                     const id = restId.toLowerCase();
                     const cap = restId.charAt(0).toUpperCase() + restId.slice(1);
-                    return `crate::exchanges::${id}::${cap}Core`;
+                    return `crate::exchanges::${id}::${cap}`;
                 },
             );
             // Now the zero-arg `<Id>Core::new()` form (from `new
             // <id>Rest()`) needs an explicit `None` config arg.
             content = content.replace(
-                /(crate::exchanges::[a-z][a-zA-Z0-9_]*::[A-Z][A-Za-z0-9]*Core::new)\(\)/g,
+                /(crate::exchanges::[a-z][a-zA-Z0-9_]*::[A-Z][a-z0-9]*::new)\(\)/g,
                 '$1(None)',
             );
             // Zero-arg `<book>.reset()` — rewrite to `.reset0()` since
@@ -13297,7 +13297,7 @@ ${arms.join('\n')}
             content = this.regexAll(content, this.getWsRegexes());
         }
 
-        // Rename the struct/impl to CoreName convention (BinanceCore)
+        // Rename the struct/impl to CoreName convention (Binance)
         content = content
             .replace(new RegExp(`pub struct ${capitalize(className)}\\b`, 'g'), `pub struct ${coreName}`)
             .replace(new RegExp(`pub struct ${className}\\b`, 'gi'), `pub struct ${coreName}`)
@@ -13462,6 +13462,11 @@ impl ${coreName} {
         let mut s = ${newInit};
         s.init();
         s
+    }
+
+    /// Construct from the typed [\`crate::Config\`] builder; \`Config::none()\` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
     }
 
     pub fn init(&mut self) {
@@ -13684,7 +13689,7 @@ impl std::ops::DerefMut for ${coreName} {
         }
 
         // Prune orphans — on a FULL run (no explicit subset requested) any
-        // generated `<id>.rs` / `<id>_api.rs` / `<id>_typed.rs` whose exchange
+        // generated `<id>.rs` / `<id>_api.rs` whose exchange
         // id is no longer in the current id list is a stale leftover from an
         // exchange that upstream removed or renamed (e.g. gateio→gate,
         // huobi→htx, or a delisted venue). The transpiler never revisits it
@@ -13697,7 +13702,7 @@ impl std::ops::DerefMut for ${coreName} {
             const validIds = new Set(ids);
             for (const f of fs.readdirSync(outFolder)) {
                 if (!f.endsWith('.rs') || f === 'mod.rs') continue;
-                const baseId = basename(f, '.rs').replace(/_(api|typed)$/, '');
+                const baseId = basename(f, '.rs').replace(/_api$/, '');
                 if (validIds.has(baseId)) continue;
                 // Only delete files we actually generated. Hand-written infra
                 // modules live in these folders too (e.g. `pro/cache.rs`,
@@ -13819,6 +13824,142 @@ impl std::ops::DerefMut for ${coreName} {
     }
 
     /**
+     * The typed unified methods on `dyn TypedExchange` (any boxed exchange): same signature and
+     * argument lowering as the base trait method, dispatched by name through `call_raw`.
+     */
+    emitDynTypedSurface(content: string, skip: Set<string>): string {
+        const re = /^    fn (\w+)\(&mut self((?:, [^\n]*?)?)\) -> impl ::std::future::Future<Output = crate::Result<(.+?)>> \+ Send \{ async move \{\n\s*let __args: Vec<Value> = vec!\[(.*)\];$/gm;
+        const out: string[] = [];
+        for (const m of content.matchAll(re)) {
+            if (skip.has(m[1])) continue;
+            out.push(`    pub fn ${m[1]}<'a>(&'a mut self${m[2]}) -> impl ::std::future::Future<Output = crate::Result<${m[3]}>> + Send + 'a {`,
+                `        let __args: Vec<Value> = vec![${m[4]}];`,
+                `        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("${m[1]}", __args).await?)) }`,
+                '    }');
+        }
+        return out.length ? `\nimpl dyn crate::exchange::TypedExchange {\n${out.join('\n')}\n}\n` : '';
+    }
+
+    /** Venue struct re-exports plus a `from_id` factory over them, for a venue `mod.rs`. */
+    venueRegistry(ids: string[], feature: (id: string) => string): string {
+        const gate = (n: string) => `#[cfg(feature = "${feature(n)}")]`;
+        const L: string[] = [];
+        for (const n of ids) L.push(gate(n), `pub use ${n}::${capitalize(n)};`);
+        L.push('',
+            '/// Construct an exchange by id as a `Box<dyn TypedExchange>`; `None` for an unknown id.',
+            'pub fn from_id(id: &str, config: Option<crate::Value>) -> Option<Box<dyn crate::exchange::TypedExchange>> {',
+            '    match id {');
+        for (const n of ids) L.push(`        ${gate(n)}`, `        ${JSON.stringify(n)} => Some(Box::new(${n}::${capitalize(n)}::new(config))),`);
+        L.push('        _ => None,', '    }', '}', '',
+            '/// [`from_id`] with the typed [`crate::Config`] builder.',
+            'pub fn from_id_with_config(id: &str, config: crate::Config) -> Option<Box<dyn crate::exchange::TypedExchange>> {',
+            '    from_id(id, config.into_option())',
+            '}');
+        return L.join('\n');
+    }
+
+    /** Ids of the transpiled exchanges in a folder (no `_api` siblings, no hand-written infra). */
+    transpiledIds(folder: string): string[] {
+        if (!fs.existsSync(folder)) return [];
+        return fs.readdirSync(folder)
+            .filter(f => f.endsWith('.rs') && !f.endsWith('_api.rs') && f !== 'mod.rs')
+            .filter(f => !['cache.rs', 'order_book.rs', 'ws_client.rs'].includes(f))
+            .map(f => basename(f, '.rs'))
+            .sort();
+    }
+
+    /** `<id> -> parent id` from each exchange's `pub parent: crate::<module>::<parent>::<Parent>` field. */
+    exchangeParents(folder: string, modulePath: string): Map<string, string> {
+        const parents = new Map<string, string>();
+        const re = new RegExp(`\\bpub\\s+parent:\\s*crate::${modulePath}::([a-z0-9_]+)::\\w+`);
+        for (const id of this.transpiledIds(folder)) {
+            const m = fs.readFileSync(`${folder}/${id}.rs`, 'utf-8').match(re);
+            if (m) parents.set(id, m[1]);
+        }
+        return parents;
+    }
+
+    /** Rewrites the `BEGIN/END GENERATED FEATURES` block of a crate's Cargo.toml. */
+    replaceGeneratedFeatures(manifest: string, lines: string[]) {
+        const src = fs.readFileSync(manifest, 'utf-8');
+        const begin = src.indexOf('# BEGIN GENERATED FEATURES');
+        const end = src.indexOf('# END GENERATED FEATURES');
+        if (begin === -1 || end === -1 || end < begin) {
+            throw new Error(`${manifest}: missing BEGIN/END GENERATED FEATURES markers`);
+        }
+        const beginLineEnd = src.indexOf('\n', begin) + 1;
+        const out = src.slice(0, beginLineEnd) + lines.join('\n') + '\n' + src.slice(end);
+        if (out !== src) fs.writeFileSync(manifest, out, 'utf-8');
+    }
+
+    /**
+     * One cargo feature per exchange in each crate, so a consumer compiles only the venues it uses:
+     * ccxt-base `<id>` (a derived venue pulls its parent) and `prediction-<id>`; ccxt / ccxt-prediction /
+     * ccxt-pro forward to the engine feature, a pro venue also to its pro parent.
+     */
+    writeCargoFeatures() {
+        const restIds = this.transpiledIds(EXCHANGES_FOLDER);
+        const restParents = this.exchangeParents(EXCHANGES_FOLDER, 'exchanges');
+        const predictionIds = this.transpiledIds(PREDICTION_EXCHANGES_FOLDER);
+        const proIds = this.transpiledIds(EXCHANGES_WS_FOLDER);
+        const proParents = this.exchangeParents(EXCHANGES_WS_FOLDER, 'pro');
+        const list = (ids: string[]) => `[${ids.map(i => JSON.stringify(i)).join(', ')}]`;
+        const base: string[] = restIds.map(id => `${id} = ${restParents.has(id) ? list([restParents.get(id)]) : '[]'}`);
+        for (const id of predictionIds) base.push(`${rustFeatureName(id, true)} = []`);
+        base.push(`all-exchanges = ${list(restIds)}`);
+        base.push(`all-prediction = ${list(predictionIds.map(id => rustFeatureName(id, true)))}`);
+        this.replaceGeneratedFeatures('./rust/ccxt-base/Cargo.toml', base);
+        const rest = restIds.map(id => `${id} = ${list([`ccxt-base/${id}`])}`);
+        rest.push(`all = ${list(restIds)}`);
+        this.replaceGeneratedFeatures('./rust/ccxt/Cargo.toml', rest);
+        const prediction = predictionIds.map(id => `${id} = ${list([`ccxt-base/${rustFeatureName(id, true)}`])}`);
+        prediction.push(`all = ${list(predictionIds)}`);
+        this.replaceGeneratedFeatures('./rust/ccxt-prediction/Cargo.toml', prediction);
+        const pro = proIds.map(id => {
+            const parent = proParents.get(id);
+            return `${id} = ${list(parent && parent !== id ? [`ccxt-base/${id}`, parent] : [`ccxt-base/${id}`])}`;
+        });
+        pro.push(`all = ${list(proIds)}`);
+        this.replaceGeneratedFeatures('./rust/ccxt-pro/Cargo.toml', pro);
+    }
+
+    /**
+     * `rust/tests/src/generated_cores.rs`: every exchange the test harness can dispatch to, plus the
+     * `for_each_core!` / `for_each_ws_core!` / `for_each_prediction_core!` macros it walks. A prediction
+     * venue is aliased `Pred<Id>`, a pro venue `Ws<Id>`; a prediction-only venue is also imported bare.
+     */
+    writeTestCoreRegistry() {
+        const rest = this.transpiledIds(EXCHANGES_FOLDER);
+        const pro = this.transpiledIds(EXCHANGES_WS_FOLDER);
+        const pred = this.transpiledIds(PREDICTION_EXCHANGES_FOLDER);
+        const predOnly = pred.filter(id => !rest.includes(id));
+        const L: string[] = [
+            ...this.createGeneratedHeader(),
+            '#![allow(unused_imports)]',
+            '',
+            'pub(crate) use ccxt::exchanges::{',
+            ...rest.map(id => `    ${id}::${capitalize(id)},`),
+            '};',
+            '',
+        ];
+        if (predOnly.length) L.push('pub(crate) use ccxt::prediction::{', ...predOnly.map(id => `    ${id}::${capitalize(id)},`), '};', '');
+        for (const id of pred) L.push(`pub(crate) use ccxt::prediction::${id}::${capitalize(id)} as Pred${capitalize(id)};`);
+        if (pred.length) L.push('');
+        if (pro.length) L.push('pub(crate) use ccxt_pro::pro::{', ...pro.map(id => `    ${id}::${capitalize(id)} as Ws${capitalize(id)},`), '};', '');
+        const macro = (name: string, rows: string[]) => [`macro_rules! ${name} {`, '    ($cb:ident) => {', ...rows, '    };', '}', `pub(crate) use ${name};`, ''];
+        L.push(...macro('for_each_core', [...rest, ...predOnly].sort().map(id => `        $cb!(${id}, ${capitalize(id)});`)));
+        L.push(...macro('for_each_ws_core', pro.map(id => `        $cb!(${id}, Ws${capitalize(id)});`)));
+        L.push(...macro('for_each_prediction_core', pred.map(id => `        $cb!(${id}, Pred${capitalize(id)});`)));
+        overwriteFileAndFolder('./rust/tests/src/generated_cores.rs', L.join('\n'));
+    }
+
+    /** Cargo features + test registry, both read from the exchange files on disk. */
+    writeRustRegistries() {
+        this.writeCargoFeatures();
+        this.writeTestCoreRegistry();
+    }
+
+    /**
      * Writes a `mod.rs` (or `mod` declarations) listing all transpiled exchanges.
      */
     writeModFile(folder: string, names: string[]) {
@@ -13831,7 +13972,7 @@ impl std::ops::DerefMut for ${coreName} {
         // boundary buys, not a feature flag).
         if (folder === EXCHANGES_WS_FOLDER) {
             const venues = names
-                .filter(n => n !== 'mod' && !n.endsWith('_api') && !n.endsWith('_typed'))
+                .filter(n => n !== 'mod' && !n.endsWith('_api'))
                 .sort();
             const wsLines = [
                 '// Re-export the hand-written pro infra (cache / order_book /',
@@ -13842,6 +13983,8 @@ impl std::ops::DerefMut for ${coreName} {
                 'pub use ccxt_base::pro::*;',
                 '',
                 ...venues.map(n => `#[cfg(feature = "${n}")]\npub mod ${n};`),
+                '',
+                this.venueRegistry(venues, n => n),
             ];
             const wsContent = [
                 ...this.createGeneratedHeader(),
@@ -13851,18 +13994,9 @@ impl std::ops::DerefMut for ${coreName} {
             overwriteFileAndFolder(`${folder}/mod.rs`, wsContent);
             return;
         }
-        // Each exchange gets its main `<id>.rs` plus optional siblings:
-        //   `<id>_api.rs`    — auto-generated implicit-endpoint wrappers
-        //                      (by `build/generateImplicitAPI.ts`); e.g.
-        //                      `binance.sapi_get_account_info(...)`.
-        //   `<id>_typed.rs`  — hand-written (or codegen'd) typed wrapper
-        //                      analogous to Go's `<id>_wrapper.go`; e.g.
-        //                      `Binance::fetch_ticker_typed(...)`.
-        // Both get a `pub mod` line when the file is present on disk.
-        // We filter the `_api`/`_typed` suffixes out of `names` so the
-        // existence checks below are the sole source of those module
-        // lines (avoids duplicate `pub mod` emission if a future change
-        // accidentally includes them in `names`).
+        // Each exchange gets its main `<id>.rs` plus an optional `<id>_api.rs`
+        // sibling (implicit-endpoint methods by `build/generateImplicitAPI.ts`),
+        // which gets a `pub mod` line when the file is present on disk.
         // Hand-written non-exchange modules that live alongside the
         // transpiled exchanges (e.g. `pro/cache.rs`, `pro/order_book.rs`).
         // Filter them out of `names` (the existence check below is the
@@ -13870,7 +14004,6 @@ impl std::ops::DerefMut for ${coreName} {
         const HAND_WRITTEN_SIBLINGS = new Set(['cache', 'order_book', 'ws_client']);
         const baseNames = names.filter(
             n => !n.endsWith('_api')
-              && !n.endsWith('_typed')
               && !HAND_WRITTEN_SIBLINGS.has(n),
         );
         const lines: string[] = [];
@@ -13884,8 +14017,8 @@ impl std::ops::DerefMut for ${coreName} {
         // REST features are the bare id; prediction Cores share ids with REST
         // venues (binance, hyperliquid, …) so theirs carry a `prediction-`
         // prefix. The feature lists themselves are emitted into each crate's
-        // Cargo.toml by build/generateRustWrappers.ts (rustFeatureName is the
-        // shared naming rule).
+        // Cargo.toml by `writeCargoFeatures` (rustFeatureName is the shared
+        // naming rule).
         const isPredictionFolder = folder === PREDICTION_EXCHANGES_FOLDER;
         for (const n of baseNames) {
             const gate = `#[cfg(feature = "${rustFeatureName(n, isPredictionFolder)}")]\n`;
@@ -13893,9 +14026,10 @@ impl std::ops::DerefMut for ${coreName} {
             if (fs.existsSync(`${folder}/${n}_api.rs`)) {
                 lines.push(`${gate}pub mod ${n}_api;`);
             }
-            if (fs.existsSync(`${folder}/${n}_typed.rs`)) {
-                lines.push(`${gate}pub mod ${n}_typed;`);
-            }
+        }
+        if (folder === EXCHANGES_FOLDER || isPredictionFolder) {
+            lines.push('');
+            lines.push(this.venueRegistry(baseNames, n => rustFeatureName(n, isPredictionFolder)));
         }
         // Re-export the hand-written pro types at the module root so
         // existing `use ccxt::pro::ArrayCache;` style imports keep
@@ -14382,6 +14516,12 @@ impl std::ops::DerefMut for ${coreName} {
             '\n',
         );
 
+        if (isExchangeBase || isPredictionBase) {
+            const inherited = isPredictionBase && fs.existsSync(BASE_METHODS_FILE)
+                ? new Set([...fs.readFileSync(BASE_METHODS_FILE, 'utf8').matchAll(/^    pub fn (\w+)<'a>\(&'a mut self/gm)].map(m => m[1]))
+                : new Set<string>();
+            finalFile += this.emitDynTypedSurface(finalFile, inherited);
+        }
         fs.writeFileSync(outFile, splitLongRustLines(borrowLiteralBoxes(finalFile)));
         log.green('Transpiled base methods to', (outFile as any).yellow);
     }
@@ -15859,6 +15999,7 @@ impl std::ops::DerefMut for ${coreName} {
         const inputExchanges = process.argv.slice(2).filter(x => !x.startsWith('--'));
         const options = { rustFolder: EXCHANGES_WS_FOLDER, exchanges: inputExchanges };
         await this.transpileDerivedExchangeFiles(tsFolder, options, '.ts', force, true);
+        this.writeRustRegistries();
     }
 
     // ── main entry ─────────────────────────────────────────────────────────────
@@ -15899,6 +16040,7 @@ impl std::ops::DerefMut for ${coreName} {
             }
         }
 
+        if (!child) this.writeRustRegistries();
         if (child || exchanges.length > 0 || baseOnly) return;
 
         this.transpileErrorHierarchy();
@@ -16934,6 +17076,7 @@ if (isMainEntry(import.meta.url)) {
                 .sort();
             t.writeModFile(folder, onDisk);
         }
+        t.writeRustRegistries();
     } else if (baseOnly) {
         t.transpileBaseMethods('./ts/src/base/Exchange.ts');
         t.transpileErrorHierarchy();

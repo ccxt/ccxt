@@ -1,5 +1,5 @@
 use ccxt::Params;
-use ccxt_pro::Binance;
+use ccxt_pro::{Binance, ExchangeBase, TypedExchange};
 
 // run it by doing: cargo run --bin watch_trades --features ws --release -- BTC/USDT
 

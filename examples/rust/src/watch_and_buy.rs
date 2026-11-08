@@ -1,6 +1,6 @@
 use ccxt::types::Market;
 use ccxt::{Config, Params};
-use ccxt_pro::Binance;
+use ccxt_pro::{Binance, ExchangeBase, TypedExchange};
 
 const SYMBOL: &str = "BTC/USDT";
 const MAX_NOTIONAL_USD: f64 = 25.0;
@@ -50,7 +50,7 @@ async fn run() {
         println!("load_markets failed [{}]: {}", e.kind, e.message);
         return;
     }
-    let market = match exchange.market(SYMBOL) {
+    let market = match exchange.try_market(SYMBOL) {
         Ok(m) => m,
         Err(e) => {
             println!("[{}] {}", e.kind, e.message);

@@ -15,7 +15,7 @@
 //
 //   cargo run --features ws --bin multi_sub -- [secs]   (default 20)
 use ccxt::Params;
-use ccxt_pro::{from_id, TypedExchange, TypedExchangeExt};
+use ccxt_pro::{from_id, TypedExchange};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -31,7 +31,7 @@ fn build() -> Box<dyn TypedExchange> {
 async fn part_a(secs: u64) {
     println!("── Part A: one {EXCHANGE} instance, watchOrderBook + watchTrades on ONE connection ──");
     let mut ex = build();
-    ex.load_markets(false).await;
+    ex.try_load_markets(false).await.expect("load_markets failed");
 
     let deadline = Instant::now() + Duration::from_secs(secs);
     let (mut ob_updates, mut trade_events, mut trade_count) = (0u64, 0u64, 0u64);
@@ -67,7 +67,7 @@ async fn part_a(secs: u64) {
 // deadline (the loop only re-checks the clock between awaits).
 async fn count_book(secs: u64, counter: Arc<AtomicU64>) {
     let mut ex = build();
-    ex.load_markets(false).await;
+    ex.try_load_markets(false).await.expect("load_markets failed");
     eprintln!("  [book task] markets loaded, subscribing…");
     let deadline = Instant::now() + Duration::from_secs(secs);
     let mut first = true;
@@ -88,7 +88,7 @@ async fn count_book(secs: u64, counter: Arc<AtomicU64>) {
 
 async fn count_trades(secs: u64, counter: Arc<AtomicU64>) {
     let mut ex = build();
-    ex.load_markets(false).await;
+    ex.try_load_markets(false).await.expect("load_markets failed");
     eprintln!("  [trades task] markets loaded, subscribing…");
     let deadline = Instant::now() + Duration::from_secs(secs);
     let mut first = true;

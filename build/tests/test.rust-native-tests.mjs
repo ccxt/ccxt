@@ -14,7 +14,7 @@ test('runtime, generator, shared base and dependency changes select native tests
         'rust/ccxt-base/tests/regression.rs', 'rust/ccxt-base/Cargo.toml',
         'rust/ccxt-common/Cargo.toml',
         'rust/Cargo.toml', 'rust/Cargo.lock', 'ts/src/base/ws/Cache.ts',
-        'build/rustTranspiler.ts', 'build/generateRustWrappers.ts',
+        'build/rustTranspiler.ts',
         'build/rustFutureGenerator.ts', 'build/rust/helpers/new-pass.mjs',
         'build/granular-rust-build.ts', 'build/cache-remove-call.js',
         'package.json', 'package-lock.json', '.github/workflows/rust.yml',

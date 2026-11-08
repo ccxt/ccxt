@@ -442,10 +442,10 @@ ccxt-pro = { version = "4.5.75", default-features = false, features = ["binance"
 With three exchanges a fresh build takes ~30 s and 2.5 GB instead of minutes and tens of GB (see [rust/BUILD-BENCHMARK.md](rust/BUILD-BENCHMARK.md)). A derived exchange pulls in its parent (`binanceus` → `binance`), `ccxt-prediction` has its own list (`polymarket`, `kalshi`, …), and `from_id` only knows the exchanges compiled in.
 
 ```rust
-use ccxt::{Binance, Params};
+use ccxt::{Binance, Params, ExchangeBase, TypedExchange};
 
 let mut exchange = Binance::new(None);
-exchange.load_markets(false).await;
+exchange.try_load_markets(false).await?;
 
 let ticker = exchange.fetch_ticker("BTC/USDT", Params::none()).await?;
 println!("{} {:?}", ticker.symbol, ticker.last);
@@ -906,10 +906,10 @@ You can check different examples in the `java/examples` folder.
 
 ### Rust
 
-Every exchange has a typed wrapper returning native Rust types — `Ticker`, `Order`, `Market`, `OrderBook` — instead of a dynamic value. Methods are `async` and return `Result<T, ExchangeError>`.
+Every exchange is a struct whose unified methods return native Rust types — `Ticker`, `Order`, `Market`, `OrderBook` — instead of a dynamic value. Methods are `async` and return `Result<T, ExchangeError>`.
 
 ```rust
-use ccxt::{Binance, Config, Params};
+use ccxt::{Binance, Config, Params, ExchangeBase, TypedExchange};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -918,7 +918,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .api_key("MY KEY")
             .secret("MY SECRET"),
     );
-    exchange.load_markets(false).await;
+    exchange.try_load_markets(false).await?;
 
     let order = exchange
         .create_order("BTC/USDT", "limit", "buy", 0.001, Some(50000.0), Params::none())
@@ -933,7 +933,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 Neither construction nor the trailing `params` argument requires touching a dynamic value — both are builders over Rust primitives. `Config` nests `options` exactly as the other bindings do.
 
 ```rust
-use ccxt::{Binance, Config, Params};
+use ccxt::{Binance, Config, Params, ExchangeBase, TypedExchange};
 
 let mut exchange = Binance::with_config(
     Config::new()
@@ -960,11 +960,11 @@ let order = exchange
     .await?;
 ```
 
-Settings can also be changed after construction; the setters chain.
+Settings can also be changed after construction.
 
 ```rust
 exchange.set_verbose(true);
-exchange.set_sandbox_mode(true);
+exchange.try_set_sandbox_mode(true)?;
 ```
 
 #### Markets
@@ -972,7 +972,7 @@ exchange.set_sandbox_mode(true);
 Market metadata is typed too, so trading rules can be checked before sending an order without any extra request.
 
 ```rust
-let market = exchange.market("BTC/USDT")?;
+let market = exchange.try_market("BTC/USDT")?;
 println!("{} {}", market.symbol, market.market_type);
 println!("{:?} {:?}", market.limits.amount.min, market.limits.cost.min);
 println!("{:?}", market.precision.amount);
@@ -999,16 +999,16 @@ match exchange.create_order("BTC/USDT", "limit", "buy", 0.001, Some(50000.0), Pa
 
 #### Choosing an exchange at runtime
 
-`from_id_with_config` builds any supported venue from its id, and the typed API is still available through the trait object.
+`from_id_with_config` builds any compiled-in venue from its id as a `Box<dyn TypedExchange>`; the unified methods keep their typed returns on the trait object.
 
 ```rust
-use ccxt::{from_id_with_config, Config, Params, TypedExchangeExt};
+use ccxt::{from_id_with_config, Config, Params, TypedExchange};
 
 for id in ["binance", "bybit", "okx"] {
     let Some(mut exchange) = from_id_with_config(id, Config::new()) else { continue };
-    exchange.load_markets(false).await;
+    exchange.try_load_markets(false).await?;
 
-    let market = exchange.market("BTC/USDT")?;
+    let market = exchange.try_market("BTC/USDT")?;
     let ticker = exchange.fetch_ticker("BTC/USDT", Params::none()).await?;
     println!("{id} {:?} {:?}", ticker.last, market.limits.cost.min);
 }
@@ -1020,10 +1020,10 @@ WebSocket support lives in the `ccxt-pro` crate, with the same typed returns.
 
 ```rust
 use ccxt::Params;
-use ccxt_pro::Binance;
+use ccxt_pro::{Binance, ExchangeBase, TypedExchange};
 
 let mut exchange = Binance::new(None);
-exchange.load_markets(false).await;
+exchange.try_load_markets(false).await?;
 
 loop {
     let orderbook = exchange.watch_order_book("BTC/USDT", Some(10), Params::none()).await?;

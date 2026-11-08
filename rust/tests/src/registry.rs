@@ -10,7 +10,7 @@ use ccxt::Value;
 // Every venue Core the harness dispatches to, straight from the generated
 // list. `live_dispatch.rs` already globs this; registry.rs used to repeat the
 // names by hand, so adding an exchange (revolutx) broke the build here with
-// "cannot find type RevolutxCore in this scope" until someone remembered to
+// "cannot find type Revolutx in this scope" until someone remembered to
 // edit this list too. The glob keeps `for_each_core!` and the names it expands
 // to from drifting apart.
 use crate::generated_cores::*;
