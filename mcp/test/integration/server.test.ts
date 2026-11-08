@@ -66,6 +66,33 @@ test ('call_read_method: reads pass, writes and watch are structurally rejected'
     await client.close ();
 });
 
+test ('call_read_method: an oversized result is paged through next_page from one snapshot', async () => {
+    const { client, ctx } = await connect ({});
+    const first = await call (client, 'call_read_method', { 'exchange': 'fakex', 'method': 'fetchFundingRates', 'marketType': 'swap' });
+    assert.equal (first.ok, true);
+    assert.equal (first.meta.paginated, true);
+    assert.equal (first.meta.total, 700);
+    assert.equal (first.meta.method, 'fetchFundingRates');
+    const merged: Record<string, any> = { ...first.data };
+    let page = first;
+    let pages = 1;
+    while (page.meta.hasMore) {
+        page = await call (client, 'next_page', { 'cursor': page.meta.nextCursor });
+        assert.equal (page.ok, true);
+        Object.assign (merged, page.data);
+        pages += 1;
+    }
+    assert.ok (pages > 1);
+    assert.equal (Object.keys (merged).length, 700, 'nothing is lost across pages');
+    assert.equal (merged['COIN699/USDT:USDT'].info, undefined, 'info is still stripped');
+    // pages come from the stored snapshot: the exchange was hit once
+    const exchange: any = await ctx.pools.getPublic ('fakex', 'swap', false);
+    assert.equal (exchange.fundingRatesFetches, 1);
+    const bad = await call (client, 'next_page', { 'cursor': 'garbage' });
+    assert.equal (bad.error.code, 'BAD_CURSOR');
+    await client.close ();
+});
+
 test ('describe_method keyword search: token-matched and defaults to a complete reference', async () => {
     const { client } = await connect ({});
     // multi-word query must hit camelCase names via token matching

@@ -2,7 +2,7 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { ServerContext } from '../types.js';
 import { accountSummary } from '../types.js';
-import { ok, project, stripInfo, TICKER_FIELDS, MARKET_FIELDS, TRADE_FIELDS, EVENT_FIELDS } from '../format.js';
+import { ok, project, stripInfo, nextPage, TICKER_FIELDS, MARKET_FIELDS, TRADE_FIELDS, EVENT_FIELDS } from '../format.js';
 import { run, clampLimit, parseSince, marketTypeMismatchNotice, exchangeParam, predictionParam, paramsParam, sinceParam } from './common.js';
 import { methodSignature, methodDocs, featuresSlice, unifiedMethods, implicitVerb, isImplicitMethod, listImplicitMethods } from '../introspect.js';
 import { requireTier } from '../safety.js';
@@ -526,6 +526,15 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
         const result = await exchange[method] (params ?? {});
         return ok (result, { 'exchange': exchange.id, method, 'docsUrl': exchange.urls?.doc });
     }));
+
+    server.registerTool ('next_page', {
+        'title': 'Get the next page of a large result',
+        'description': 'Any tool whose result is too large for one response returns its first page with meta.paginated, meta.total, meta.hasMore and meta.nextCursor. Pass that nextCursor here to get the next page; keep going while hasMore is true. Pages are cut from one server-side snapshot taken at the original call (no extra exchange requests, no drift between pages) and expire after 10 minutes unread — on CURSOR_EXPIRED repeat the original call.',
+        'inputSchema': {
+            'cursor': z.string ().describe ('meta.nextCursor from the previous page, unchanged'),
+        },
+        'annotations': { 'readOnlyHint': true, 'openWorldHint': false },
+    }, async ({ cursor }) => run ({ 'tool': 'next_page' }, async () => nextPage (cursor)));
 
     server.registerTool ('get_safety_status', {
         'title': 'Show safety and configuration status',
