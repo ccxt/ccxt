@@ -2338,7 +2338,7 @@ class extended(Exchange, ImplicitAPI):
         lastUpdateTimestamp = self.safe_integer_2(position, 'updatedAt', 'updatedTime')
         lastUpdateTimestamp = self.safe_integer(position, 'closedTime', lastUpdateTimestamp)
         side = self.safe_string_lower(position, 'side')
-        margin = self.safe_string(position, 'margin')
+        margin = self.safe_number(position, 'margin')
         return self.safe_position({
             'info': position,
             'id': self.safe_string(position, 'id'),
@@ -2350,24 +2350,24 @@ class extended(Exchange, ImplicitAPI):
             'initialMarginPercentage': None,
             'maintenanceMargin': None,
             'maintenanceMarginPercentage': None,
-            'entryPrice': self.safe_string(position, 'openPrice'),
-            'notional': self.safe_string(position, 'value'),
-            'leverage': self.safe_string(position, 'leverage'),
-            'unrealizedPnl': self.safe_string(position, 'unrealisedPnl'),
-            'realizedPnl': self.safe_string(position, 'realisedPnl'),
-            'contracts': self.safe_string(position, 'size'),
-            'contractSize': self.safe_string(marketResolved, 'contractSize'),
+            'entryPrice': self.safe_number(position, 'openPrice'),
+            'notional': self.safe_number(position, 'value'),
+            'leverage': self.safe_number(position, 'leverage'),
+            'unrealizedPnl': self.safe_number(position, 'unrealisedPnl'),
+            'realizedPnl': self.safe_number(position, 'realisedPnl'),
+            'contracts': self.safe_number(position, 'size'),
+            'contractSize': self.safe_number(marketResolved, 'contractSize'),
             'marginRatio': None,
-            'liquidationPrice': self.safe_string(position, 'liquidationPrice'),
-            'markPrice': self.safe_string(position, 'markPrice'),
-            'lastPrice': self.safe_string(position, 'exitPrice'),
+            'liquidationPrice': self.safe_number(position, 'liquidationPrice'),
+            'markPrice': self.safe_number(position, 'markPrice'),
+            'lastPrice': self.safe_number(position, 'exitPrice'),
             'collateral': margin,
             'marginMode': None,
             'side': side,
             'percentage': None,
             'hedged': None,
-            'stopLossPrice': self.safe_string(position, 'slTriggerPrice'),
-            'takeProfitPrice': self.safe_string(position, 'tpTriggerPrice'),
+            'stopLossPrice': self.safe_number(position, 'slTriggerPrice'),
+            'takeProfitPrice': self.safe_number(position, 'tpTriggerPrice'),
         })
 
     def get_extended_stark_amount(self, amount: str, resolution: Int, roundUp: bool = False) -> str:
