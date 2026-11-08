@@ -3829,8 +3829,8 @@ public partial class backpack : Exchange
         string? marketId = this.safeString(position, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
-        string? entryPrice = this.safeString(position, "entryPrice");
-        string? markPrice = this.safeString(position, "markPrice");
+        double? entryPrice = this.safeNumber(position, "entryPrice");
+        double? markPrice = this.safeNumber(position, "markPrice");
         string? netCost = this.safeString(position, "netCost");
         bool? hedged = false;
         string? side = "long";
@@ -3843,9 +3843,9 @@ public partial class backpack : Exchange
             hedged = null;
             side = null;
         }
-        string? unrealizedPnl = this.safeString(position, "pnlUnrealized");
-        string? realizedPnl = this.safeString(position, "pnlRealized");
-        string? liquidationPrice = this.safeString(position, "estLiquidationPrice");
+        double? unrealizedPnl = this.safeNumber(position, "pnlUnrealized");
+        double? realizedPnl = this.safeNumber(position, "pnlRealized");
+        double? liquidationPrice = this.safeNumber(position, "estLiquidationPrice");
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", id },
@@ -3855,18 +3855,18 @@ public partial class backpack : Exchange
             { "lastUpdateTimestamp", null },
             { "hedged", hedged },
             { "side", side },
-            { "contracts", this.safeString(position, "netExposureQuantity") },
+            { "contracts", this.safeNumber(position, "netExposureQuantity") },
             { "contractSize", null },
             { "entryPrice", entryPrice },
             { "markPrice", markPrice },
             { "lastPrice", null },
-            { "notional", Precise.stringAbs(netCost) },
+            { "notional", this.parseNumber(Precise.stringAbs(netCost)) },
             { "leverage", null },
             { "collateral", null },
             { "initialMargin", null },
-            { "initialMarginPercentage", this.safeString(position, "imf") },
+            { "initialMarginPercentage", this.safeNumber(position, "imf") },
             { "maintenanceMargin", null },
-            { "maintenanceMarginPercentage", this.safeString(position, "mmf") },
+            { "maintenanceMarginPercentage", this.safeNumber(position, "mmf") },
             { "realizedPnl", realizedPnl },
             { "unrealizedPnl", unrealizedPnl },
             { "liquidationPrice", liquidationPrice },
