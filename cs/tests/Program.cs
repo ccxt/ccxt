@@ -230,6 +230,7 @@ public class Tests
 
     static async Task WsClientKeepAliveTimeoutTests()
     {
+        baseTestInstance.testWsClientResolveMissingHash();
         await baseTestInstance.testWsClientKeepAliveTimeout();
         Helper.Green(" [C#] WebSocketClient keepalive timeout closes the socket tests passed");
     }
