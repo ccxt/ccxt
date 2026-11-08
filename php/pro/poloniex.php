@@ -1537,7 +1537,7 @@ class poloniex extends \ccxt\async\poloniex {
             $this->handle_authenticate($client, $message);
         } elseif ($type === null) {
             $this->handle_order_request($client, $message);
-        } else {
+        } elseif ($method !== null) {
             $data = $this->safe_list($message, 'data', array());
             $dataLength = count($data);
             if ($dataLength > 0) {

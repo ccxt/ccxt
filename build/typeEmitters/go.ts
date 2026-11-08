@@ -373,6 +373,10 @@ function goTypeFor (ir: TypesIR, field: IRField): string | undefined {
         // every port models the raw exchange payload as the untyped map
         return 'map[string]any';
     }
+    // a required bare `boolean` is never undefined: a plain Go bool
+    if (!field.optional && field.tsType.trim () === 'boolean') {
+        return 'bool';
+    }
     // TS scalar aliases are nullable unions (`Num` = number | undefined). A bare
     // `number` stays ambiguous, so only the nullable aliases pin the Go width.
     const scalarAliases = unionMembers (field.tsType);
@@ -473,6 +477,9 @@ function defaultExpr (goType: string, key: string, accessor: string, isInfo: boo
     }
     if (goType === '*bool') {
         return 'SafeBoolTyped(' + accessor + ', "' + key + '")';
+    }
+    if (goType === 'bool') {
+        return 'derefScalar(' + accessor + '["' + key + '"]) == true';
     }
     if (goType === 'map[string]any') {
         if (isInfo) {
@@ -640,7 +647,7 @@ function planInterface (ir: TypesIR, goName: string, type: IRType, learned: Lear
             continue;
         } else if (goType === undefined) {
             goType = learnedType;
-        } else if (learnedType !== undefined && baseGoType (learnedType) === baseGoType (goType)) {
+        } else if (learnedType !== undefined && baseGoType (learnedType) === baseGoType (goType) && goType !== 'bool') {
             // the port may hold the value behind a pointer, that is its own choice
             goType = learnedType;
         }

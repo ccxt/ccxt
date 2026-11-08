@@ -1207,7 +1207,6 @@ public partial class blofin : Exchange
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -1217,13 +1216,8 @@ public partial class blofin : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
-        bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
-        if ((paginate == true))
-        {
-            return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, paramsPaginate, "tradeId", "after", null, 100));
-        }
+        // the endpoint returns the latest trades only and ignores 'after' / 'before', so there is no cursor to paginate with
+        IDictionary<string, object> paramsNoPaginate = ((IDictionary<string, object>)this.omit(parameters, "paginate"));
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
@@ -1233,7 +1227,7 @@ public partial class blofin : Exchange
         {
             request["limit"] = limit; // default 100
         }
-        (string?, object) methodparamsMethodVariable = this.handleOptionStringAndParams(paramsPaginate, "fetchTrades", "method", "publicGetMarketTrades");
+        (string?, object) methodparamsMethodVariable = this.handleOptionStringAndParams(paramsNoPaginate, "fetchTrades", "method", "publicGetMarketTrades");
         string? method = methodparamsMethodVariable.Item1;
         IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
         if ((method == "publicGetMarketTrades"))
@@ -1824,8 +1818,12 @@ public partial class blofin : Exchange
         if ((feeCostString != null))
         {
             string? feeCostSigned = Precise.stringAbs(feeCostString);
-            string? feeCurrencyId = this.safeString(order, "feeCcy", "USDT");
+            string? feeCurrencyId = this.safeString(order, "feeCcy");
             string? feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            if ((feeCurrencyCode == null))
+            {
+                feeCurrencyCode = this.safeString(marketResolved, "settle");
+            }
             fee = new Dictionary<string, object>() {
                 { "cost", this.parseNumber(feeCostSigned) },
                 { "currency", feeCurrencyCode },

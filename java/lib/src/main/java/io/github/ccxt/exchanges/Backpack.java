@@ -4019,8 +4019,8 @@ public class Backpack extends BackpackApi
         String marketId = this.safeString(position, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) marketResolved.get("symbol");
-        String entryPrice = this.safeString(position, "entryPrice");
-        String markPrice = this.safeString(position, "markPrice");
+        Double entryPrice = this.safeNumber(position, "entryPrice", (Object) null);
+        Double markPrice = this.safeNumber(position, "markPrice", (Object) null);
         String netCost = this.safeString(position, "netCost");
         Boolean hedged = false;
         String side = "long";
@@ -4033,9 +4033,9 @@ public class Backpack extends BackpackApi
             hedged = null;
             side = null;
         }
-        String unrealizedPnl = this.safeString(position, "pnlUnrealized");
-        String realizedPnl = this.safeString(position, "pnlRealized");
-        String liquidationPrice = this.safeString(position, "estLiquidationPrice");
+        Double unrealizedPnl = this.safeNumber(position, "pnlUnrealized", (Object) null);
+        Double realizedPnl = this.safeNumber(position, "pnlRealized", (Object) null);
+        Double liquidationPrice = this.safeNumber(position, "estLiquidationPrice", (Object) null);
         HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
         mapLiteral11.put("info", position);
         mapLiteral11.put("id", id);
@@ -4045,18 +4045,18 @@ public class Backpack extends BackpackApi
         mapLiteral11.put("lastUpdateTimestamp", null);
         mapLiteral11.put("hedged", hedged);
         mapLiteral11.put("side", side);
-        mapLiteral11.put("contracts", this.safeString(position, "netExposureQuantity"));
+        mapLiteral11.put("contracts", this.safeNumber(position, "netExposureQuantity", (Object) null));
         mapLiteral11.put("contractSize", null);
         mapLiteral11.put("entryPrice", entryPrice);
         mapLiteral11.put("markPrice", markPrice);
         mapLiteral11.put("lastPrice", null);
-        mapLiteral11.put("notional", Precise.stringAbs(netCost));
+        mapLiteral11.put("notional", this.parseNumber(Precise.stringAbs(netCost)));
         mapLiteral11.put("leverage", null);
         mapLiteral11.put("collateral", null);
         mapLiteral11.put("initialMargin", null);
-        mapLiteral11.put("initialMarginPercentage", this.safeString(position, "imf"));
+        mapLiteral11.put("initialMarginPercentage", this.safeNumber(position, "imf", (Object) null));
         mapLiteral11.put("maintenanceMargin", null);
-        mapLiteral11.put("maintenanceMarginPercentage", this.safeString(position, "mmf"));
+        mapLiteral11.put("maintenanceMarginPercentage", this.safeNumber(position, "mmf", (Object) null));
         mapLiteral11.put("realizedPnl", realizedPnl);
         mapLiteral11.put("unrealizedPnl", unrealizedPnl);
         mapLiteral11.put("liquidationPrice", liquidationPrice);

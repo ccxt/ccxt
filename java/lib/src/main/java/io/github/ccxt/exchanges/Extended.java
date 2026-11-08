@@ -2948,7 +2948,7 @@ public class Extended extends ExtendedApi
         Long lastUpdateTimestamp = (Long) this.safeInteger2(position, "updatedAt", "updatedTime");
         lastUpdateTimestamp = (Long) this.safeInteger(position, "closedTime", lastUpdateTimestamp);
         String side = this.safeStringLower(position, "side");
-        String margin = this.safeString(position, "margin");
+        Double margin = this.safeNumber(position, "margin", (Object) null);
         HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
         mapLiteral12.put("info", position);
         mapLiteral12.put("id", this.safeString(position, "id"));
@@ -2960,24 +2960,24 @@ public class Extended extends ExtendedApi
         mapLiteral12.put("initialMarginPercentage", null);
         mapLiteral12.put("maintenanceMargin", null);
         mapLiteral12.put("maintenanceMarginPercentage", null);
-        mapLiteral12.put("entryPrice", this.safeString(position, "openPrice"));
-        mapLiteral12.put("notional", this.safeString(position, "value"));
-        mapLiteral12.put("leverage", this.safeString(position, "leverage"));
-        mapLiteral12.put("unrealizedPnl", this.safeString(position, "unrealisedPnl"));
-        mapLiteral12.put("realizedPnl", this.safeString(position, "realisedPnl"));
-        mapLiteral12.put("contracts", this.safeString(position, "size"));
-        mapLiteral12.put("contractSize", this.safeString(marketResolved, "contractSize"));
+        mapLiteral12.put("entryPrice", this.safeNumber(position, "openPrice", (Object) null));
+        mapLiteral12.put("notional", this.safeNumber(position, "value", (Object) null));
+        mapLiteral12.put("leverage", this.safeNumber(position, "leverage", (Object) null));
+        mapLiteral12.put("unrealizedPnl", this.safeNumber(position, "unrealisedPnl", (Object) null));
+        mapLiteral12.put("realizedPnl", this.safeNumber(position, "realisedPnl", (Object) null));
+        mapLiteral12.put("contracts", this.safeNumber(position, "size", (Object) null));
+        mapLiteral12.put("contractSize", this.safeNumber(marketResolved, "contractSize", (Object) null));
         mapLiteral12.put("marginRatio", null);
-        mapLiteral12.put("liquidationPrice", this.safeString(position, "liquidationPrice"));
-        mapLiteral12.put("markPrice", this.safeString(position, "markPrice"));
-        mapLiteral12.put("lastPrice", this.safeString(position, "exitPrice"));
+        mapLiteral12.put("liquidationPrice", this.safeNumber(position, "liquidationPrice", (Object) null));
+        mapLiteral12.put("markPrice", this.safeNumber(position, "markPrice", (Object) null));
+        mapLiteral12.put("lastPrice", this.safeNumber(position, "exitPrice", (Object) null));
         mapLiteral12.put("collateral", margin);
         mapLiteral12.put("marginMode", null);
         mapLiteral12.put("side", side);
         mapLiteral12.put("percentage", null);
         mapLiteral12.put("hedged", null);
-        mapLiteral12.put("stopLossPrice", this.safeString(position, "slTriggerPrice"));
-        mapLiteral12.put("takeProfitPrice", this.safeString(position, "tpTriggerPrice"));
+        mapLiteral12.put("stopLossPrice", this.safeNumber(position, "slTriggerPrice", (Object) null));
+        mapLiteral12.put("takeProfitPrice", this.safeNumber(position, "tpTriggerPrice", (Object) null));
         return this.safePosition(mapLiteral12);
     }
 

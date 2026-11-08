@@ -2752,7 +2752,7 @@ public partial class extended : Exchange
         Int64? lastUpdateTimestamp = this.safeInteger2(position, "updatedAt", "updatedTime");
         lastUpdateTimestamp = this.safeInteger(position, "closedTime", lastUpdateTimestamp);
         string? side = this.safeStringLower(position, "side");
-        string? margin = this.safeString(position, "margin");
+        double? margin = this.safeNumber(position, "margin");
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", this.safeString(position, "id") },
@@ -2764,24 +2764,24 @@ public partial class extended : Exchange
             { "initialMarginPercentage", null },
             { "maintenanceMargin", null },
             { "maintenanceMarginPercentage", null },
-            { "entryPrice", this.safeString(position, "openPrice") },
-            { "notional", this.safeString(position, "value") },
-            { "leverage", this.safeString(position, "leverage") },
-            { "unrealizedPnl", this.safeString(position, "unrealisedPnl") },
-            { "realizedPnl", this.safeString(position, "realisedPnl") },
-            { "contracts", this.safeString(position, "size") },
-            { "contractSize", this.safeString(marketResolved, "contractSize") },
+            { "entryPrice", this.safeNumber(position, "openPrice") },
+            { "notional", this.safeNumber(position, "value") },
+            { "leverage", this.safeNumber(position, "leverage") },
+            { "unrealizedPnl", this.safeNumber(position, "unrealisedPnl") },
+            { "realizedPnl", this.safeNumber(position, "realisedPnl") },
+            { "contracts", this.safeNumber(position, "size") },
+            { "contractSize", this.safeNumber(marketResolved, "contractSize") },
             { "marginRatio", null },
-            { "liquidationPrice", this.safeString(position, "liquidationPrice") },
-            { "markPrice", this.safeString(position, "markPrice") },
-            { "lastPrice", this.safeString(position, "exitPrice") },
+            { "liquidationPrice", this.safeNumber(position, "liquidationPrice") },
+            { "markPrice", this.safeNumber(position, "markPrice") },
+            { "lastPrice", this.safeNumber(position, "exitPrice") },
             { "collateral", margin },
             { "marginMode", null },
             { "side", side },
             { "percentage", null },
             { "hedged", null },
-            { "stopLossPrice", this.safeString(position, "slTriggerPrice") },
-            { "takeProfitPrice", this.safeString(position, "tpTriggerPrice") },
+            { "stopLossPrice", this.safeNumber(position, "slTriggerPrice") },
+            { "takeProfitPrice", this.safeNumber(position, "tpTriggerPrice") },
         });
     }
 

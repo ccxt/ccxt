@@ -2992,8 +2992,8 @@ class backpack(Exchange, ImplicitAPI):
         marketId = self.safe_string(position, 'symbol')
         marketResolved = self.safe_market(marketId, market)
         symbol = marketResolved['symbol']
-        entryPrice = self.safe_string(position, 'entryPrice')
-        markPrice = self.safe_string(position, 'markPrice')
+        entryPrice = self.safe_number(position, 'entryPrice')
+        markPrice = self.safe_number(position, 'markPrice')
         netCost = self.safe_string(position, 'netCost')
         hedged = False
         side = 'long'
@@ -3002,9 +3002,9 @@ class backpack(Exchange, ImplicitAPI):
         if netCost is None:
             hedged = None
             side = None
-        unrealizedPnl = self.safe_string(position, 'pnlUnrealized')
-        realizedPnl = self.safe_string(position, 'pnlRealized')
-        liquidationPrice = self.safe_string(position, 'estLiquidationPrice')
+        unrealizedPnl = self.safe_number(position, 'pnlUnrealized')
+        realizedPnl = self.safe_number(position, 'pnlRealized')
+        liquidationPrice = self.safe_number(position, 'estLiquidationPrice')
         return self.safe_position({
             'info': position,
             'id': id,
@@ -3014,18 +3014,18 @@ class backpack(Exchange, ImplicitAPI):
             'lastUpdateTimestamp': None,
             'hedged': hedged,
             'side': side,
-            'contracts': self.safe_string(position, 'netExposureQuantity'),
+            'contracts': self.safe_number(position, 'netExposureQuantity'),
             'contractSize': None,
             'entryPrice': entryPrice,
             'markPrice': markPrice,
             'lastPrice': None,
-            'notional': Precise.string_abs(netCost),
+            'notional': self.parse_number(Precise.string_abs(netCost)),
             'leverage': None,
             'collateral': None,
             'initialMargin': None,
-            'initialMarginPercentage': self.safe_string(position, 'imf'),
+            'initialMarginPercentage': self.safe_number(position, 'imf'),
             'maintenanceMargin': None,
-            'maintenanceMarginPercentage': self.safe_string(position, 'mmf'),
+            'maintenanceMarginPercentage': self.safe_number(position, 'mmf'),
             'realizedPnl': realizedPnl,
             'unrealizedPnl': unrealizedPnl,
             'liquidationPrice': liquidationPrice,

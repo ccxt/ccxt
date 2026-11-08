@@ -3729,8 +3729,8 @@ impl HtxCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_764: bool = true;
-            while { if !__for_first_764 { i += 1; } __for_first_764 = false; i < (symbolsValue.len() as i64) } {
+            let mut __for_first_765: bool = true;
+            while { if !__for_first_765 { i += 1; } __for_first_765 = false; i < (symbolsValue.len() as i64) } {
             let mut symbol: Value = symbolsValue.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), self.fetch_trading_limits_by_id(self.market_id(symbol.clone()), &[params.clone()]).await); }
         }
@@ -3836,8 +3836,8 @@ impl HtxCore {
         let mut keys: Vec<Value> = Value::Array(types.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_765: bool = true;
-            while { if !__for_first_765 { i += 1; } __for_first_765 = false; i < (keys.len() as i64) } {
+            let mut __for_first_766: bool = true;
+            while { if !__for_first_766 { i += 1; } __for_first_766 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             if matches!(self.safe_bool(types.clone(), key.clone(), &[Value::Bool(false)]), Value::Bool(true)) {
                 if (key.as_str() == Some("spot")) {
@@ -3854,8 +3854,8 @@ impl HtxCore {
         let mut responses: Vec<Value> = promise_all(&Value::from(promises)).await.as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_766: bool = true;
-            while { if !__for_first_766 { i += 1; } __for_first_766 = false; i < (responses.len() as i64) } {
+            let mut __for_first_767: bool = true;
+            while { if !__for_first_767 { i += 1; } __for_first_767 = false; i < (responses.len() as i64) } {
             allMarkets = self.array_concat(allMarkets.clone(), responses.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
@@ -4003,8 +4003,8 @@ impl HtxCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_767: bool = true;
-            while { if !__for_first_767 { i += 1; } __for_first_767 = false; i < (markets.len() as i64) } {
+            let mut __for_first_768: bool = true;
+            while { if !__for_first_768 { i += 1; } __for_first_768 = false; i < (markets.len() as i64) } {
             let mut market: Value = markets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketType: Value = Value::Null;
             let mut baseId: Value = Value::Null;
@@ -4260,8 +4260,8 @@ impl HtxCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_768: bool = true;
-            while { if !__for_first_768 { i += 1; } __for_first_768 = false; i < (futureMarkets.len() as i64) } {
+            let mut __for_first_769: bool = true;
+            while { if !__for_first_769 { i += 1; } __for_first_769 = false; i < (futureMarkets.len() as i64) } {
             let mut market: Value = self.safe_dict(futureMarkets.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5353,13 +5353,13 @@ impl HtxCore {
         let mut result: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_770: bool = true;
-            while { if !__for_first_770 { i += 1; } __for_first_770 = false; i < (data.len() as i64) } {
+            let mut __for_first_771: bool = true;
+            while { if !__for_first_771 { i += 1; } __for_first_771 = false; i < (data.len() as i64) } {
             let mut trades: Vec<Value> = self.safe_list_k(data.get(i as usize).cloned().unwrap_or(Value::Null), "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_769: bool = true;
-                while { if !__for_first_769 { j += 1; } __for_first_769 = false; j < (trades.len() as i64) } {
+                let mut __for_first_770: bool = true;
+                while { if !__for_first_770 { j += 1; } __for_first_770 = false; j < (trades.len() as i64) } {
                 let mut trade: Value = self.parse_trade(trades.get(j as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
                 if let Value::Arr(__a) = &mut result { std::sync::Arc::make_mut(__a).push(trade); }
             }
@@ -5658,8 +5658,8 @@ impl HtxCore {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_771: bool = true;
-            while { if !__for_first_771 { i += 1; } __for_first_771 = false; i < (accounts.len() as i64) } {
+            let mut __for_first_772: bool = true;
+            while { if !__for_first_772 { i += 1; } __for_first_772 = false; i < (accounts.len() as i64) } {
             let mut account: Value = self.safe_dict(accounts.clone(), Value::Int(i), &[]);
             let mut info: Value = self.safe_dict_k(account.clone(), "info", &[]);
             let mut subtype: Option<String> = self.safe_string_k_opt(info, "subtype", &[]);
@@ -5783,8 +5783,8 @@ impl HtxCore {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_772: bool = true;
-            while { if !__for_first_772 { j += 1; } __for_first_772 = false; j < (chains.len() as i64) } {
+            let mut __for_first_773: bool = true;
+            while { if !__for_first_773 { j += 1; } __for_first_773 = false; j < (chains.len() as i64) } {
             let mut chainEntry: Value = chains.get(j as usize).cloned().unwrap_or(Value::Null);
             let mut uniqueChainId: Option<String> = self.safe_string_k_opt(chainEntry.clone(), "chain", &[]); // i.e. usdterc20, trc20usdt ...
             let mut title: Value = self.safe_string2(chainEntry.clone(), Value::Str("baseChain".into()), Value::Str("displayName".into()), &[]); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
@@ -6147,8 +6147,8 @@ impl HtxCore {
             let mut details: Value = self.safe_list_k(data.clone(), "details", &[Value::from(vec![])]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_773: bool = true;
-                while { if !__for_first_773 { i += 1; } __for_first_773 = false; i < (details.len() as i64) } {
+                let mut __for_first_774: bool = true;
+                while { if !__for_first_774 { i += 1; } __for_first_774 = false; i < (details.len() as i64) } {
                 let mut balance: Value = self.safe_dict(details.clone(), Value::Int(i), &[]);
                 let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "currency", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -6165,8 +6165,8 @@ impl HtxCore {
             if isolated {
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_776: bool = true;
-                    while { if !__for_first_776 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_776 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                    let mut __for_first_777: bool = true;
+                    while { if !__for_first_777 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_777 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                     let mut entry: Value = self.safe_dict(data.clone(), i.clone(), &[]);
                     let mut balances: Value = self.safe_list_k(entry, "list", &[Value::from(vec![])]);
                     let mut subResult: indexmap::IndexMap<String, Value> = ({
@@ -6175,8 +6175,8 @@ impl HtxCore {
                     });
                     {
                                                 let mut j: i64 = 0;
-                        let mut __for_first_774: bool = true;
-                        while { if !__for_first_774 { j += 1; } __for_first_774 = false; j < (balances.len() as i64) } {
+                        let mut __for_first_775: bool = true;
+                        while { if !__for_first_775 { j += 1; } __for_first_775 = false; j < (balances.len() as i64) } {
                         let mut balance: Value = balances.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
                         let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "currency", &[]);
                         let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -6188,8 +6188,8 @@ impl HtxCore {
                     let mut subCodes: Vec<Value> = Value::Array(subResult.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
                     {
                                                 let mut j: i64 = 0;
-                        let mut __for_first_775: bool = true;
-                        while { if !__for_first_775 { j += 1; } __for_first_775 = false; j < (subCodes.len() as i64) } {
+                        let mut __for_first_776: bool = true;
+                        while { if !__for_first_776 { j += 1; } __for_first_776 = false; j < (subCodes.len() as i64) } {
                         let mut subCode: Value = subCodes.get(j as usize).cloned().unwrap_or(Value::Null);
                         result = self.merge_balance_account(result.clone(), subCode.clone(), subResult.get(subCode.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
                     }
@@ -6201,8 +6201,8 @@ impl HtxCore {
                 let mut balances: Value = self.safe_list_k(data.clone(), "list", &[Value::from(vec![])]);
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_777: bool = true;
-                    while { if !__for_first_777 { i += 1; } __for_first_777 = false; i < (balances.len() as i64) } {
+                    let mut __for_first_778: bool = true;
+                    while { if !__for_first_778 { i += 1; } __for_first_778 = false; i < (balances.len() as i64) } {
                     let mut balance: Value = balances.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                     let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "currency", &[]);
                     let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -6216,8 +6216,8 @@ impl HtxCore {
         }  else if inverse {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_778: bool = true;
-                while { if !__for_first_778 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_778 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_779: bool = true;
+                while { if !__for_first_779 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_779 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut balance: Value = self.safe_dict(data.clone(), i.clone(), &[]);
                 let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "symbol", &[]);
                 let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -6963,8 +6963,8 @@ impl HtxCore {
                 self.load_accounts(&[]).await;
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_779: bool = true;
-                    while { if !__for_first_779 { i += 1; } __for_first_779 = false; i < (self.accounts.len() as i64) } {
+                    let mut __for_first_780: bool = true;
+                    while { if !__for_first_780 { i += 1; } __for_first_780 = false; i < (self.accounts.len() as i64) } {
                     let mut account: Value = self.accounts.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                     if (self.safe_string_k(account.clone(), "type", &[]).as_str() == Some("spot")) {
                         accountId = self.safe_string_k_opt(account, "id", &[]);
@@ -8354,8 +8354,8 @@ impl HtxCore {
         let mut marginMode: Value = Value::Null;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_780: bool = true;
-            while { if !__for_first_780 { i += 1; } __for_first_780 = false; i < (orders.len() as i64) } {
+            let mut __for_first_781: bool = true;
+            while { if !__for_first_781 { i += 1; } __for_first_781 = false; i < (orders.len() as i64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             if (symbol == Value::Null) {
@@ -8966,8 +8966,8 @@ impl HtxCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_781: bool = true;
-            while { if !__for_first_781 { i += 1; } __for_first_781 = false; i < (data.len() as i64) } {
+            let mut __for_first_782: bool = true;
+            while { if !__for_first_782 { i += 1; } __for_first_782 = false; i < (data.len() as i64) } {
             let mut order: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             result.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -8981,8 +8981,8 @@ impl HtxCore {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_782: bool = true;
-            while { if !__for_first_782 { i += 1; } __for_first_782 = false; i < (success.len() as i64) } {
+            let mut __for_first_783: bool = true;
+            while { if !__for_first_783 { i += 1; } __for_first_783 = false; i < (success.len() as i64) } {
             let mut order: Value = success.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             result.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -8995,8 +8995,8 @@ impl HtxCore {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_783: bool = true;
-            while { if !__for_first_783 { i += 1; } __for_first_783 = false; i < (failed.len() as i64) } {
+            let mut __for_first_784: bool = true;
+            while { if !__for_first_784 { i += 1; } __for_first_784 = false; i < (failed.len() as i64) } {
             let mut order: Value = failed.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             result.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9310,8 +9310,8 @@ impl HtxCore {
         let mut addresses: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_784: bool = true;
-            while { if !__for_first_784 { i += 1; } __for_first_784 = false; i < (allAddresses.len() as i64) } {
+            let mut __for_first_785: bool = true;
+            while { if !__for_first_785 { i += 1; } __for_first_785 = false; i < (allAddresses.len() as i64) } {
             let mut address: Value = allAddresses.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut noteMatch: bool = (note == Value::Null) || (self.safe_string_k(address.clone(), "note", &[]).as_str() == note.as_str());
             let mut networkMatch: bool = (networkCode == Value::Null) || (self.safe_string_k(address.clone(), "network", &[]).as_str() == networkCode.as_str());
@@ -10116,8 +10116,8 @@ impl HtxCore {
         if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_785: bool = true;
-                while { if !__for_first_785 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_785 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_786: bool = true;
+                while { if !__for_first_786 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_786 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(data.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 let mut entry: Value = get_value(&data, &i);
                 let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "contract_code", &[]);
                 let mut symbolInner: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]);
@@ -10138,8 +10138,8 @@ impl HtxCore {
             let mut result: Value = self.safe_list_k(data, "data", &[Value::from(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_786: bool = true;
-                while { if !__for_first_786 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_786 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
+                let mut __for_first_787: bool = true;
+                while { if !__for_first_787 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_787 = false; i.as_f64().unwrap_or(f64::NAN) < ((result.len() as i64) as f64) } {
                 let mut entry: Value = get_value(&result, &i);
                 add_element_to_object(&mut entry, &Value::Str("current_page".into()), cursor.clone());
                 crate::set_value(&mut result, &i, entry.clone());
@@ -11176,8 +11176,8 @@ impl HtxCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_787: bool = true;
-            while { if !__for_first_787 { i += 1; } __for_first_787 = false; i < (data.len() as i64) } {
+            let mut __for_first_788: bool = true;
+            while { if !__for_first_788 { i += 1; } __for_first_788 = false; i < (data.len() as i64) } {
             let mut position: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_position(position, &[]);
             let __ws_arg_136 = self.iso8601(Value::from(timestamp));
@@ -11268,8 +11268,8 @@ impl HtxCore {
             let mut marketId: Option<String> = self.safe_string_k_opt(market.clone(), "id", &[]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_788: bool = true;
-                while { if !__for_first_788 { i += 1; } __for_first_788 = false; i < (positions.len() as i64) } {
+                let mut __for_first_789: bool = true;
+                while { if !__for_first_789 { i += 1; } __for_first_789 = false; i < (positions.len() as i64) } {
                 let mut entry: Value = positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 if (self.safe_string_k(entry.clone(), "contract_code", &[]).as_str() == marketId.as_deref()) {
                     position = entry;
@@ -11508,15 +11508,15 @@ impl HtxCore {
         let mut brackets: Value = self.safe_list_k(info, "list", &[Value::from(vec![])]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_790: bool = true;
-            while { if !__for_first_790 { i += 1; } __for_first_790 = false; i < (brackets.len() as i64) } {
+            let mut __for_first_791: bool = true;
+            while { if !__for_first_791 { i += 1; } __for_first_791 = false; i < (brackets.len() as i64) } {
             let mut item: Value = self.safe_dict(brackets.clone(), Value::Int(i), &[]);
             let mut leverage: Option<String> = self.safe_string_k_opt(item.clone(), "lever_rate", &[]);
             let mut ladders: Vec<Value> = self.safe_list_k(item, "ladders", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut k: i64 = 0;
-                let mut __for_first_789: bool = true;
-                while { if !__for_first_789 { k += 1; } __for_first_789 = false; k < (ladders.len() as i64) } {
+                let mut __for_first_790: bool = true;
+                while { if !__for_first_790 { k += 1; } __for_first_790 = false; k < (ladders.len() as i64) } {
                 let mut bracket: Value = ladders.get(k as usize).cloned().unwrap_or(Value::Null);
                 let mut adjustFactor: Option<String> = self.safe_string_k_opt(bracket.clone(), "adjust_factor", &[]);
                 if let Value::Arr(__a) = &mut tiers { std::sync::Arc::make_mut(__a).push(Value::Map({
@@ -12409,8 +12409,8 @@ impl HtxCore {
         let mut result: indexmap::IndexMap<String, Value> = self.deposit_withdraw_fee(fee).as_map().cloned().unwrap_or_default();
         {
                         let mut j: i64 = 0;
-            let mut __for_first_791: bool = true;
-            while { if !__for_first_791 { j += 1; } __for_first_791 = false; j < (chains.len() as i64) } {
+            let mut __for_first_792: bool = true;
+            while { if !__for_first_792 { j += 1; } __for_first_792 = false; j < (chains.len() as i64) } {
             let mut chainEntry: Value = self.safe_dict(chains.clone(), Value::Int(j), &[]);
             let mut networkId: Option<String> = self.safe_string_k_opt(chainEntry.clone(), "chain", &[]);
             let mut withdrawFeeType: Option<String> = self.safe_string_k(chainEntry.clone(), "withdrawFeeType", &[]).as_str().map(str::to_owned);
@@ -12507,8 +12507,8 @@ impl HtxCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_793: bool = true;
-            while { if !__for_first_793 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_793 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&settlements).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_794: bool = true;
+            while { if !__for_first_794 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_794 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&settlements).as_f64().unwrap_or(f64::NAN) } {
             let mut settlement: Value = self.safe_dict(settlements.clone(), i.clone(), &[]);
             let mut list: Value = self.safe_list_k(settlement.clone(), "list", &[]);
             if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
@@ -12524,8 +12524,8 @@ impl HtxCore {
                 });
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_792: bool = true;
-                    while { if !__for_first_792 { j += 1; } __for_first_792 = false; j < (list.len() as i64) } {
+                    let mut __for_first_793: bool = true;
+                    while { if !__for_first_793 { j += 1; } __for_first_793 = false; j < (list.len() as i64) } {
                     let mut item: Value = self.safe_dict(list.clone(), Value::Int(j), &[]);
                     let mut parsedSettlement: Value = self.parse_settlement(item, market.clone());
                     result.push(self.extend(parsedSettlement, &[Value::Map(timestampDetails.clone())]));

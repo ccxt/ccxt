@@ -9043,7 +9043,7 @@ func (this *Binance) ParseOrder(order any, optionalArgs ...any) Order {
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, marketType)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
-	var filled *string = this.SafeString2(order, "executedQty", "filledQty", "0")
+	var filled *string = this.SafeStringN(order, []any{"executedQty", "filledQty", "actualQty"}, "0")                                      // actualQty: algo orders
 	var timestamp *int64 = this.SafeIntegerN(order, []any{"time", "createTime", "workingTime", "transactTime", "updateTime", "createdAt"}) // order of the keys matters here
 	var lastTradeTimestamp *int64 = nil
 	if (InOp(order, "transactTime")) || (InOp(order, "updateTime")) || (InOp(order, "updatedAt")) {

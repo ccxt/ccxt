@@ -43,7 +43,7 @@ classifiers = [
 # all dependencies are pinned to exact versions to protect against
 # malicious or vulnerable releases of downstream dependencies
 dependencies = [
-    "certifi>=2026.6.17",
+    "certifi>=2026.10.19",
     "requests>=2.32,<3",
     "cryptography>=50,<51",
     "typing_extensions==4.16.0",
@@ -103,7 +103,7 @@ type = [
     "mypy==1.6.1",
 ]
 dev = [
-    "certifi==2026.6.17",
+    "certifi==2026.10.23",
     "requests>=2.32,<3",
     "cryptography>=50,<51",
     "typing_extensions==4.16.0",

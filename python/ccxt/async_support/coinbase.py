@@ -3732,7 +3732,7 @@ class coinbase(Exchange, ImplicitAPI):
             limitValue = self.parse_to_int(limit)
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limitValue, timeframe, paramsPaginate, 299)
+            return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 299)
         market = self.market(symbol)
         request = {
             'product_id': market['id'],
@@ -3749,11 +3749,15 @@ class coinbase(Exchange, ImplicitAPI):
             now = str(self.seconds())
             sinceString = Precise.string_sub(now, str(requestedDuration))
         request['start'] = sinceString
+        # 300 candles max
+        windowEnd = Precise.string_add(sinceString, str(requestedDuration))
         if until is not None:
-            request['end'] = self.number_to_string(self.parse_to_int(until / 1000))
+            endString = self.number_to_string(self.parse_to_int(until / 1000))
+            if (since is not None) and Precise.string_lt(windowEnd, endString):
+                endString = windowEnd
+            request['end'] = endString
         else:
-            # 300 candles max
-            request['end'] = Precise.string_add(sinceString, str(requestedDuration))
+            request['end'] = windowEnd
         response = None
         usePrivate, paramsUsePrivate = self.handle_option_bool_and_params(paramsOmitted, 'fetchOHLCV', 'usePrivate', False)
         if usePrivate:

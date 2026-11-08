@@ -2563,6 +2563,7 @@ func (this *Whitebit) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *Whitebit) FetchOHLCVAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]OHLCV] {
@@ -2605,15 +2606,34 @@ func (this *Whitebit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		}
 		return limit
 	}()
-	if since != nil {
-		var start int64 = this.ParseToInt(float64(*since) / 1000)
-		request["start"] = start
+	var until *int64 = this.SafeInteger(params, "until")
+	var paramsOmitted map[string]any = this.OmitDict(params, "until")
+	if (since != nil) || (until != nil) {
+		// the exchange ignores a start alone: it returns the last candles that closed by the end.
+		// It refuses an end past its own clock, which may be behind this one, so an end within a
+		// timeframe of now is left out, and the latest candles it then returns cover the range
+		var duration int64 = this.ParseTimeframe(timeframe)
+		var endTime any = nil
+		if until != nil {
+			endTime = this.Sum(this.ParseToInt(float64(*until)/1000), duration)
+		}
+		if since != nil {
+			var start int64 = this.ParseToInt(float64(*since) / 1000)
+			request["start"] = start
+			var rangeEnd any = this.Sum(start, Multiply(duration, cappedLimit))
+			if (endTime == nil) || (IsLessThan(rangeEnd, endTime)) {
+				endTime = rangeEnd
+			}
+		}
+		if (endTime != nil) && (IsLessThan(this.Sum(endTime, duration), this.Seconds())) {
+			request["end"] = endTime
+		}
 	}
-	if (since != nil) || (limit != nil) {
+	if (since != nil) || (until != nil) || (limit != nil) {
 		request["limit"] = cappedLimit
 	}
 
-	r1 := <-this.V1PublicGetKline(this.Extend(request, params))
+	r1 := <-this.V1PublicGetKline(this.Extend(request, paramsOmitted))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -5825,11 +5845,11 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes421719 []any = r.Value
-		if retRes421719 == nil {
+		var retRes423719 []any = r.Value
+		if retRes423719 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes421719)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes423719)}
 		}
 		return nil
 	}
@@ -6349,6 +6369,7 @@ func (this *Whitebit) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, e
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *Whitebit) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLCV, error) {

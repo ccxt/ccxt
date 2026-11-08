@@ -6565,7 +6565,7 @@ class binance(Exchange, ImplicitAPI):
             marketType = 'contract'
         marketResolved = self.safe_market(marketId, market, None, marketType)
         symbol = marketResolved['symbol']
-        filled = self.safe_string_2(order, 'executedQty', 'filledQty', '0')
+        filled = self.safe_string_n(order, ['executedQty', 'filledQty', 'actualQty'], '0')  # actualQty: algo orders
         timestamp = self.safe_integer_n(order, ['time', 'createTime', 'workingTime', 'transactTime', 'updateTime', 'createdAt'])  # order of the keys matters here
         lastTradeTimestamp = None
         if ('transactTime' in order) or ('updateTime' in order) or ('updatedAt' in order):

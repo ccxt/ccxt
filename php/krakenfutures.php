@@ -128,7 +128,6 @@ class krakenfutures extends Exchange {
                         'notifications' => array( 'cost' => 1 ),
                         'accounts' => array( 'cost' => 1 ),
                         'openorders' => array( 'cost' => 1 ),
-                        'recentorders' => array( 'cost' => 1 ),
                         'fills' => array( 'cost' => 1 ),
                         'transfers' => array( 'cost' => 1 ),
                         'leveragepreferences' => array( 'cost' => 1 ),

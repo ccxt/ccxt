@@ -1519,6 +1519,7 @@ func (this *Btcmarkets) cancelOrderBody(ch chan AsyncResult[Order], id any, opti
 func (this *Btcmarkets) CalculateFee(symbol any, typeVar any, side any, amount any, price any, optionalArgs ...any) any {
 	/**
 	 * @method
+	 * @name btcmarkets#calculateFee
 	 * @description calculates the presumptive fee that would be charged for an order
 	 * @param {string} symbol unified market symbol
 	 * @param {string} type not used by btcmarkets.calculateFee
@@ -1776,11 +1777,11 @@ func (this *Btcmarkets) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes130915 []any = OrdersToList(r.Value)
-	if retRes130915 == nil {
+	var retRes131015 []any = OrdersToList(r.Value)
+	if retRes131015 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes130915)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes131015)}
 	}
 	return nil
 }

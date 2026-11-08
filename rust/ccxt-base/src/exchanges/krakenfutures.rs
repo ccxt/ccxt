@@ -364,11 +364,6 @@ impl KrakenfuturesCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
-        m.insert("recentorders".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
-    m
-}));
         m.insert("fills".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
@@ -929,8 +924,8 @@ impl KrakenfuturesCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_863: bool = true;
-            while { if !__for_first_863 { i += 1; } __for_first_863 = false; i < (instruments.len() as i64) } {
+            let mut __for_first_865: bool = true;
+            while { if !__for_first_865 { i += 1; } __for_first_865 = false; i < (instruments.len() as i64) } {
             let mut market: Value = instruments.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
             let mut marketType: Option<String> = self.safe_string_k_opt(market.clone(), "type", &[]);
@@ -1065,8 +1060,8 @@ impl KrakenfuturesCore {
         let mut currencies: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_864: bool = true;
-            while { if !__for_first_864 { i += 1; } __for_first_864 = false; i < (settlementCurrencies.len() as i64) } {
+            let mut __for_first_866: bool = true;
+            while { if !__for_first_866 { i += 1; } __for_first_866 = false; i < (settlementCurrencies.len() as i64) } {
             let mut code: Value = self.safe_string(settlementCurrencies.clone(), Value::Int(i), &[Value::Str("".into())]);
             if let Value::Arr(__a) = &mut currencies { std::sync::Arc::make_mut(__a).push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1416,8 +1411,8 @@ impl KrakenfuturesCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_865: bool = true;
-            while { if !__for_first_865 { i += 1; } __for_first_865 = false; i < (feeSchedules.len() as i64) } {
+            let mut __for_first_867: bool = true;
+            while { if !__for_first_867 { i += 1; } __for_first_867 = false; i < (feeSchedules.len() as i64) } {
             let mut schedule: Value = feeSchedules.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut uid: Option<String> = self.safe_string_k_opt(schedule.clone(), "uid", &[]);
             if (uid.is_some()) {
@@ -1432,8 +1427,8 @@ impl KrakenfuturesCore {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_866: bool = true;
-            while { if !__for_first_866 { i += 1; } __for_first_866 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_868: bool = true;
+            while { if !__for_first_868 { i += 1; } __for_first_868 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let mut uid: Option<String> = self.safe_string_opt(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("feeScheduleUid".into()), &[]);
@@ -1469,8 +1464,8 @@ impl KrakenfuturesCore {
         let mut takerFee: Value = Value::Null;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_867: bool = true;
-            while { if !__for_first_867 { i += 1; } __for_first_867 = false; i < (tiers.len() as i64) } {
+            let mut __for_first_869: bool = true;
+            while { if !__for_first_869 { i += 1; } __for_first_869 = false; i < (tiers.len() as i64) } {
             let mut tier: Value = self.safe_dict(tiers.clone(), Value::Int(i), &[]);
             let mut tierVolume: Option<String> = self.safe_string_k_opt(tier.clone(), "usdVolume", &[]);
             if (volume == Value::Null) || crate::precise::Precise::stringGe(&volume, &tierVolume.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
@@ -1705,8 +1700,8 @@ impl KrakenfuturesCore {
             let mut length: Value = Value::Int(elements.len() as i64);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_868: bool = true;
-                while { if !__for_first_868 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_868 = false; i.as_f64().unwrap_or(f64::NAN) < length.as_f64().unwrap_or(f64::NAN) } {
+                let mut __for_first_870: bool = true;
+                while { if !__for_first_870 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_870 = false; i.as_f64().unwrap_or(f64::NAN) < length.as_f64().unwrap_or(f64::NAN) } {
                 let mut index: Value = (match (&((match (&(length), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })),
                     &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
                 let mut element: Value = self.safe_dict(elements.clone(), index, &[]);
@@ -2129,8 +2124,8 @@ impl KrakenfuturesCore {
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_869: bool = true;
-            while { if !__for_first_869 { i += 1; } __for_first_869 = false; i < (orders.len() as i64) } {
+            let mut __for_first_871: bool = true;
+            while { if !__for_first_871 { i += 1; } __for_first_871 = false; i < (orders.len() as i64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             let mut type_var: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "type", &[]);
@@ -2304,8 +2299,8 @@ impl KrakenfuturesCore {
         if clientOrderIdsLength > ((0i64) as f64) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_870: bool = true;
-                while { if !__for_first_870 { i += 1; } __for_first_870 = false; i < (clientOrderIds.len() as i64) } {
+                let mut __for_first_872: bool = true;
+                while { if !__for_first_872 { i += 1; } __for_first_872 = false; i < (clientOrderIds.len() as i64) } {
                 orders.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("order".to_string(), Value::Str("cancel".into()));
@@ -2317,8 +2312,8 @@ impl KrakenfuturesCore {
         }  else {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_871: bool = true;
-                while { if !__for_first_871 { i += 1; } __for_first_871 = false; i < (ids.len() as i64) } {
+                let mut __for_first_873: bool = true;
+                while { if !__for_first_873 { i += 1; } __for_first_873 = false; i < (ids.len() as i64) } {
                 orders.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("order".to_string(), Value::Str("cancel".into()));
@@ -2430,8 +2425,8 @@ impl KrakenfuturesCore {
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_872: bool = true;
-            while { if !__for_first_872 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_872 = false; i.as_f64().unwrap_or(f64::NAN) < ((orderEvents.len() as i64) as f64) } {
+            let mut __for_first_874: bool = true;
+            while { if !__for_first_874 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_874 = false; i.as_f64().unwrap_or(f64::NAN) < ((orderEvents.len() as i64) as f64) } {
             let mut orderEvent: Value = self.safe_dict(orderEvents.clone(), Value::Int(0), &[]);
             let mut order: Value = self.safe_dict_k(orderEvent, "order", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2627,8 +2622,8 @@ impl KrakenfuturesCore {
         let mut closedOrders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_873: bool = true;
-            while { if !__for_first_873 { i += 1; } __for_first_873 = false; i < (allOrders.len() as i64) } {
+            let mut __for_first_875: bool = true;
+            while { if !__for_first_875 { i += 1; } __for_first_875 = false; i < (allOrders.len() as i64) } {
             let mut order: Value = self.safe_dict(allOrders.clone(), Value::Int(i), &[]);
             let mut event: Value = self.safe_dict_k(order, "event", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2715,8 +2710,8 @@ impl KrakenfuturesCore {
         let mut canceledAndRejected: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_874: bool = true;
-            while { if !__for_first_874 { i += 1; } __for_first_874 = false; i < (allOrders.len() as i64) } {
+            let mut __for_first_876: bool = true;
+            while { if !__for_first_876 { i += 1; } __for_first_876 = false; i < (allOrders.len() as i64) } {
             let mut order: Value = self.safe_dict(allOrders.clone(), Value::Int(i), &[]);
             let mut event: Value = self.safe_dict_k(order, "event", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3206,8 +3201,8 @@ impl KrakenfuturesCore {
             let mut executions: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_875: bool = true;
-                while { if !__for_first_875 { i += 1; } __for_first_875 = false; i < (orderEvents.len() as i64) } {
+                let mut __for_first_877: bool = true;
+                while { if !__for_first_877 { i += 1; } __for_first_877 = false; i < (orderEvents.len() as i64) } {
                 let mut item: Value = orderEvents.get(i as usize).cloned().unwrap_or(Value::Null);
                 if (self.safe_string_k(item.clone(), "type", &[]).as_str() == Some("EXECUTION")) {
                     executions.push(item.clone());
@@ -3263,8 +3258,8 @@ impl KrakenfuturesCore {
             let mut vwapSum: Value = Value::Str("0.0".into());
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_876: bool = true;
-                while { if !__for_first_876 { i += 1; } __for_first_876 = false; i < (trades.len() as i64) } {
+                let mut __for_first_878: bool = true;
+                while { if !__for_first_878 { i += 1; } __for_first_878 = false; i < (trades.len() as i64) } {
                 let mut trade: Value = self.safe_dict(trades.clone(), Value::Int(i), &[]);
                 let mut tradeAmount: Option<String> = self.safe_string_k_opt(trade.clone(), "amount", &[]);
                 let mut tradePrice: Option<String> = self.safe_string_k_opt(trade, "price", &[]);
@@ -3498,8 +3493,8 @@ impl KrakenfuturesCore {
         let mut rows: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_877: bool = true;
-            while { if !__for_first_877 { i += 1; } __for_first_877 = false; i < (logs.len() as i64) } {
+            let mut __for_first_879: bool = true;
+            while { if !__for_first_879 { i += 1; } __for_first_879 = false; i < (logs.len() as i64) } {
             let mut row: Value = logs.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut asset: Value = self.safe_string_k(row.clone(), "asset", &[]);
             let mut contract: Value = self.safe_string_k(row.clone(), "contract", &[]);
@@ -3957,8 +3952,8 @@ impl KrakenfuturesCore {
         let mut currencyIds: Vec<Value> = Value::Array(balances.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_878: bool = true;
-            while { if !__for_first_878 { i += 1; } __for_first_878 = false; i < (currencyIds.len() as i64) } {
+            let mut __for_first_880: bool = true;
+            while { if !__for_first_880 { i += 1; } __for_first_880 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Value = currencyIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut balance: Value = (if let (Some(__m), Some(__k)) = (balances.as_map(), currencyId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
@@ -4016,8 +4011,8 @@ impl KrakenfuturesCore {
         let mut fundingRates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_879: bool = true;
-            while { if !__for_first_879 { i += 1; } __for_first_879 = false; i < (tickers.len() as i64) } {
+            let mut __for_first_881: bool = true;
+            while { if !__for_first_881 { i += 1; } __for_first_881 = false; i < (tickers.len() as i64) } {
             let mut entry: Value = self.safe_dict(tickers.clone(), Value::Int(i), &[]);
             let mut entry_symbol: Option<String> = self.safe_string_k_opt(entry.clone(), "symbol", &[]);
             if (marketIds != Value::Null) {
@@ -4160,8 +4155,8 @@ impl KrakenfuturesCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_880: bool = true;
-            while { if !__for_first_880 { i += 1; } __for_first_880 = false; i < (rates.len() as i64) } {
+            let mut __for_first_882: bool = true;
+            while { if !__for_first_882 { i += 1; } __for_first_882 = false; i < (rates.len() as i64) } {
             let mut item: Value = self.safe_dict(rates.clone(), Value::Int(i), &[]);
             let mut datetime: Option<String> = self.safe_string_k_opt(item.clone(), "timestamp", &[]);
             result.push(Value::Map({
@@ -4324,8 +4319,8 @@ impl KrakenfuturesCore {
         let mut updates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_881: bool = true;
-            while { if !__for_first_881 { i += 1; } __for_first_881 = false; i < (elements.len() as i64) } {
+            let mut __for_first_883: bool = true;
+            while { if !__for_first_883 { i += 1; } __for_first_883 = false; i < (elements.len() as i64) } {
             let mut event: Value = self.safe_dict_k(elements.get(i as usize).cloned().unwrap_or(Value::Null), "event", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4586,8 +4581,8 @@ impl KrakenfuturesCore {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_882: bool = true;
-            while { if !__for_first_882 { i += 1; } __for_first_882 = false; i < (marginLevels.len() as i64) } {
+            let mut __for_first_884: bool = true;
+            while { if !__for_first_884 { i += 1; } __for_first_884 = false; i < (marginLevels.len() as i64) } {
             let mut tier: Value = marginLevels.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut initialMargin: Option<String> = self.safe_string_k_opt(tier.clone(), "initialMargin", &[]);
             let mut minNotional: Option<f64> = self.safe_number2_opt(tier.clone(), Value::Str("numNonContractUnits".into()), Value::Str("contracts".into()), &[]);

@@ -834,7 +834,7 @@ class backpack extends backpack$1["default"] {
         //     },
         //
         return [
-            this.parse8601(this.safeString(ohlcv, 'T')),
+            this.parse8601(this.safeString(ohlcv, 't')),
             this.safeNumber(ohlcv, 'o'),
             this.safeNumber(ohlcv, 'h'),
             this.safeNumber(ohlcv, 'l'),

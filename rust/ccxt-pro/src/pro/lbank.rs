@@ -980,8 +980,8 @@ if _try_result.is_err() {
         let mut rawTrades: Vec<Value> = (match message.get("trades") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![rawTrade]) }).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_465: bool = true;
-            while { if !__for_first_465 { i += 1; } __for_first_465 = false; i < (rawTrades.len() as i64) } {
+            let mut __for_first_467: bool = true;
+            while { if !__for_first_467 { i += 1; } __for_first_467 = false; i < (rawTrades.len() as i64) } {
             let mut trade: Value = self.parse_ws_trade(rawTrades.get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
             if let Value::Dict(__rda) = &mut trade { std::sync::Arc::make_mut(__rda).insert("symbol".to_string(), symbol.clone()); }
             stored.append(trade);
