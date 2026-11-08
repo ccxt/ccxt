@@ -4462,8 +4462,8 @@ func (this *Backpack) ParsePosition(position any, optionalArgs ...any) Position 
 	var marketId *string = this.SafeString(position, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
-	var entryPrice *string = this.SafeString(position, "entryPrice")
-	var markPrice *string = this.SafeString(position, "markPrice")
+	var entryPrice *float64 = this.SafeNumber(position, "entryPrice")
+	var markPrice *float64 = this.SafeNumber(position, "markPrice")
 	var netCost *string = this.SafeString(position, "netCost")
 	var hedged any = false
 	var side any = "long"
@@ -4474,9 +4474,9 @@ func (this *Backpack) ParsePosition(position any, optionalArgs ...any) Position 
 		hedged = nil
 		side = nil
 	}
-	var unrealizedPnl *string = this.SafeString(position, "pnlUnrealized")
-	var realizedPnl *string = this.SafeString(position, "pnlRealized")
-	var liquidationPrice *string = this.SafeString(position, "estLiquidationPrice")
+	var unrealizedPnl *float64 = this.SafeNumber(position, "pnlUnrealized")
+	var realizedPnl *float64 = this.SafeNumber(position, "pnlRealized")
+	var liquidationPrice *float64 = this.SafeNumber(position, "estLiquidationPrice")
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          id,
@@ -4486,18 +4486,18 @@ func (this *Backpack) ParsePosition(position any, optionalArgs ...any) Position 
 		"lastUpdateTimestamp":         nil,
 		"hedged":                      hedged,
 		"side":                        side,
-		"contracts":                   this.SafeString(position, "netExposureQuantity"),
+		"contracts":                   this.SafeNumber(position, "netExposureQuantity"),
 		"contractSize":                nil,
 		"entryPrice":                  entryPrice,
 		"markPrice":                   markPrice,
 		"lastPrice":                   nil,
-		"notional":                    Precise.StringAbs(netCost),
+		"notional":                    this.ParseNumber(Precise.StringAbs(netCost)),
 		"leverage":                    nil,
 		"collateral":                  nil,
 		"initialMargin":               nil,
-		"initialMarginPercentage":     this.SafeString(position, "imf"),
+		"initialMarginPercentage":     this.SafeNumber(position, "imf"),
 		"maintenanceMargin":           nil,
-		"maintenanceMarginPercentage": this.SafeString(position, "mmf"),
+		"maintenanceMarginPercentage": this.SafeNumber(position, "mmf"),
 		"realizedPnl":                 realizedPnl,
 		"unrealizedPnl":               unrealizedPnl,
 		"liquidationPrice":            liquidationPrice,
