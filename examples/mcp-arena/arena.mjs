@@ -45,7 +45,7 @@ const AGENTS = [
     { 'id': 'kimi', 'kind': 'openrouter', 'model': 'moonshotai/kimi-k3.1-pro' },
 ];
 
-const SYSTEM = `You are an autonomous trading agent running unattended. Nobody will answer questions during the session.
+const BASE_SYSTEM = `You are an autonomous trading agent running unattended. Nobody will answer questions during the session.
 
 You have two sets of tools:
 - ccxt: the CCXT MCP server. Live public market data from 100+ crypto exchanges and prediction markets (tickers, order books, candles, trades, funding rates, WebSocket streams).
@@ -53,7 +53,24 @@ You have two sets of tools:
 
 The session lasts ${MINUTES} minutes of wall-clock time. When it ends, everything in the account is valued in USD at market prices, with open positions marked to market. Use the wait tool when you want time to pass.`;
 
-const TASK = `Here's $100. You have one hour. Make as much money as you can.`;
+// prompt variants (--variant): base | fees | mustTrade | feesMustTrade
+const VARIANT = args.variant ?? 'base';
+
+const FEES = `
+
+Trading costs on these venues, charged on the full position notional (so leverage multiplies fees exactly as much as it multiplies P&L):
+- okx: perpetuals 0.05% taker / 0.02% maker; spot 0.15% taker / 0.10% maker
+- bitget: perpetuals 0.06% / 0.02%; spot 0.20% / 0.20%
+- gate: perpetuals 0.05% / 0.02%; spot 0.20% / 0.20%
+- kucoin: spot 0.10% / 0.10%
+- hyperliquid: perpetuals 0.045% / 0.015%
+Market orders also pay the spread and any slippage through the book. A round trip with market orders on an okx perpetual costs about 0.1% of notional, so the price has to move more than that before a trade makes money, whatever the leverage.`;
+
+const MUST_TRADE = ' Sitting in cash for the whole hour does not complete the task: you need to actually trade.';
+
+const SYSTEM = BASE_SYSTEM + ((VARIANT === 'fees' || VARIANT === 'feesMustTrade') ? FEES : '');
+
+const TASK = `Here's $100. You have one hour. Make as much money as you can.` + ((VARIANT === 'mustTrade' || VARIANT === 'feesMustTrade') ? MUST_TRADE : '');
 
 const DONE_HINT = 'If you are finished, reply DONE.';
 
@@ -365,11 +382,12 @@ const main = async () => {
         throw new Error ('set OPENROUTER_API_KEY');
     }
     fs.mkdirSync (RUN_DIR, { 'recursive': true });
-    const start = Date.now () + 20_000; // brokers warm up, then everyone starts together
+    // brokers warm up, then everyone starts together; --startAt (ms) aligns separate arena processes
+    const start = args.startAt ? Number (args.startAt) : Date.now () + 20_000;
     const end = start + MINUTES * 60_000;
-    fs.writeFileSync (path.join (RUN_DIR, 'run.json'), JSON.stringify ({ RUN, MINUTES, 'start': new Date (start).toISOString (), 'end': new Date (end).toISOString (), 'system': SYSTEM, 'task': TASK, 'agents': agents }, null, 2));
+    fs.writeFileSync (path.join (RUN_DIR, 'run.json'), JSON.stringify ({ RUN, MINUTES, 'start': new Date (start).toISOString (), 'end': new Date (end).toISOString (), 'variant': VARIANT, 'system': SYSTEM, 'task': TASK, 'agents': agents }, null, 2));
     const brokers = [];
-    let port = 7810;
+    let port = Number (args.portBase ?? 7810);
     for (const a of agents) {
         a.port = port++;
         a.dir = path.join (RUN_DIR, a.id);
