@@ -236,6 +236,36 @@ trade that would count:
 So the Claude models can trade. With no edge in sight they'd rather not, and when made to, they keep
 the bet as small as the rules allow.
 
+## What we'd try next
+
+**More time, not more money.** A bigger account sounds like the fix for fees, but it isn't. Fees are
+a percentage of the position, so $10,000 at 10x pays the same share of its equity in fees as $100 at
+10x. What changes the ratio is time. Price moves grow roughly with the square root of time, while a
+round trip still costs about 0.1%. If BTC moves around 0.3% in an hour, it moves roughly 1.5% in a day,
+and fees drop from a third of a typical move to a fifteenth. A 24-hour or one-week run, with the agent
+woken every 15–30 minutes, is the next thing we want to see. It's also closer to how Alpha Arena and
+LI.FI ran.
+
+**More money, for the strategies nobody tried.** A $10,000 account does change one thing: fixed costs
+stop mattering. A $1 transfer is 1% of $100 but 0.01% of $10,000, and minimum order sizes stop getting
+in the way. That's exactly what kept Opus away from funding-rate carry and cross-exchange arbitrage. A
+bigger account over a longer window would tell us whether any model reaches for those once they pay.
+
+**More context.** Every model here traded off candles and order books alone. Next time we'd give them a
+news and sentiment feed, a scratchpad that survives between wake-ups, a backtest tool built on CCXT's
+historical candles, and tradable prediction markets. The interesting question is whether they use any
+of it, or still short the weakest coin on OKX.
+
+**More rounds, different days.** Round three flipped the leaderboard on its own. Separating skill from
+luck needs dozens of runs across trending and quiet markets, not three quiet afternoons.
+
+**One harness for everyone.** Running Claude through the same plain tool loop as the other models would
+rule out the harness as the reason it held back.
+
+**A small real-money finale.** The CCXT MCP server already supports live trading with per-order and
+daily USD caps. A real $100 per model, with withdrawals disabled on the keys, would show whether paper
+results survive real fills.
+
 ## Caveats
 
 - **Paper trading.** Prices, depth, fees and funding were real. Fills were simulated: no queue
