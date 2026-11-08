@@ -69,9 +69,10 @@ class mudrex extends mudrex$1["default"] {
         const messageHash = 'ticker:' + symbolValue;
         const url = this.urls['api']['ws'];
         this.setBrokerHeaders();
-        const baseIdString = (market['baseId'] !== undefined) ? market['baseId'] : '';
-        const quoteIdString = (market['quoteId'] !== undefined) ? market['quoteId'] : '';
-        const assetId = baseIdString.toLowerCase() + quoteIdString.toLowerCase();
+        const baseIdString = this.safeString(market, 'baseId', '');
+        const quoteIdString = this.safeString(market, 'quoteId', '');
+        let assetId = baseIdString.toLowerCase();
+        assetId = assetId + quoteIdString.toLowerCase();
         const subscribe = {
             'id': this.requestId(),
             'method': 'SUBSCRIBE',
@@ -92,9 +93,11 @@ class mudrex extends mudrex$1["default"] {
             for (let i = 0; i < symbolsNormalized.length; i++) {
                 const market = this.market(symbolsNormalized[i]);
                 messageHashes.push('ticker:' + market['symbol']);
-                const baseIdString = (market['baseId'] !== undefined) ? market['baseId'] : '';
-                const quoteIdString = (market['quoteId'] !== undefined) ? market['quoteId'] : '';
-                assets.push(baseIdString.toLowerCase() + quoteIdString.toLowerCase());
+                const baseIdString = this.safeString(market, 'baseId', '');
+                const quoteIdString = this.safeString(market, 'quoteId', '');
+                let assetId = baseIdString.toLowerCase();
+                assetId = assetId + quoteIdString.toLowerCase();
+                assets.push(assetId);
             }
         }
         const url = this.urls['api']['ws'];
@@ -133,8 +136,8 @@ class mudrex extends mudrex$1["default"] {
         if (priceType === 'mark') {
             prefix = 'markKline';
         }
-        const streamBaseId = (market['baseId'] !== undefined) ? market['baseId'] : '';
-        const streamQuoteId = (market['quoteId'] !== undefined) ? market['quoteId'] : '';
+        const streamBaseId = this.safeString(market, 'baseId', '');
+        const streamQuoteId = this.safeString(market, 'quoteId', '');
         const stream = prefix + '@' + interval + '@' + streamBaseId.toLowerCase() + streamQuoteId.toLowerCase();
         const messageHash = stream;
         const url = this.urls['api']['ws'];
@@ -174,7 +177,7 @@ class mudrex extends mudrex$1["default"] {
     handleErrorMessage(client, message) {
         const error = this.safeDict(message, 'error', {});
         const code = this.safeString(error, 'code');
-        const msg = this.safeString(error, 'msg');
+        const msg = this.safeString(error, 'msg', '');
         const feedback = this.id + ' ' + msg;
         if (code === '429') {
             throw new errors.RateLimitExceeded(feedback);

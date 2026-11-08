@@ -36,12 +36,12 @@ public partial class testMainClass : BaseTest
             now = exchange.milliseconds();
             if ((success) && ((response != null)))
             {
-                assert(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(logText, "must return an array. "), exchange.json(response)));
+                assert(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), ((object)(logText == null ? null : logText + "must return an array. " + (string)(object)(exchange.json(response)))));
                 for (int i = 0; i < getArrayLength(response); i++)
                 {
                     object trade = getValue(response, i);
                     object symbol = getValue(trade, "symbol");
-                    assert((symbol != null), add(add(logText, "returned a trade without a symbol "), exchange.json(trade)));
+                    assert((symbol != null), ((object)(logText == null ? null : logText + "returned a trade without a symbol " + (string)(object)(exchange.json(trade)))));
                     testTrade(exchange, skippedProperties, method, trade, ((string)symbol), now, true);
                     testSharedMethods.assertInArray(exchange, skippedProperties, method, trade, "symbol", symbols);
                     if (!isTrue(exchange.inArray(symbol, returnedSymbols)))
@@ -57,11 +57,11 @@ public partial class testMainClass : BaseTest
             }
         }
         int receivedLength = (returnedSymbols?.Count ?? 0);
-        assert(receivedLength > 0, add(logText, "did not receive trades for any symbol"));
+        assert(receivedLength > 0, ((object)(logText == null ? null : logText + "did not receive trades for any symbol")));
         if (!allReceived)
         {
             // an illiquid symbol may not trade inside the window, that is the market and not a bug
-            Console.WriteLine(add(add(logText, "warning: only received part of symbols before the deadline: "), exchange.json(returnedSymbols)));
+            Console.WriteLine(((object)(logText == null ? null : logText + "warning: only received part of symbols before the deadline: " + (string)(object)(exchange.json(returnedSymbols)))));
         }
         return true;
     }

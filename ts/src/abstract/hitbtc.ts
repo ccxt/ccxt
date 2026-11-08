@@ -129,7 +129,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('public/futures/candles/open_interest/{symbol}', [ 'public' ], 'GET', params, { 'cost': 10 });
     }
 
-    privateGetSpotBalance (params = {}): Promise<Dict> {
+    privateGetSpotBalance (params = {}): Promise<List> {
         return this.request ('spot/balance', [ 'private' ], 'GET', params, { 'cost': 15 });
     }
 
@@ -205,7 +205,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('margin-settings', [ 'private' ], 'GET', params, { 'cost': 15 });
     }
 
-    privateGetFuturesBalance (params = {}): Promise<Dict> {
+    privateGetFuturesBalance (params = {}): Promise<List> {
         return this.request ('futures/balance', [ 'private' ], 'GET', params, { 'cost': 15 });
     }
 
@@ -261,7 +261,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('user/api-keys', [ 'private' ], 'GET', params, { 'cost': 15 });
     }
 
-    privateGetWalletBalance (params = {}): Promise<Dict> {
+    privateGetWalletBalance (params = {}): Promise<List> {
         return this.request ('wallet/balance', [ 'private' ], 'GET', params, { 'cost': 30 });
     }
 

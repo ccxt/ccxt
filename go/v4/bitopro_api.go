@@ -103,13 +103,13 @@ func (this *Bitopro) PrivateGetOrdersOpen(args ...any) <-chan EndpointResult[map
 }
 
 // PrivatePostOrdersPair returns a channel that yields a JSON object.
-func (this *Bitopro) PrivatePostOrdersPair(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privatePostOrdersPair", args...)
+func (this *Bitopro) PrivatePostOrdersPair(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostOrdersPair", args...))
 }
 
 // PrivatePostOrdersBatch returns a channel that yields a JSON object.
-func (this *Bitopro) PrivatePostOrdersBatch(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privatePostOrdersBatch", args...)
+func (this *Bitopro) PrivatePostOrdersBatch(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostOrdersBatch", args...))
 }
 
 // PrivatePostWalletWithdrawCurrency returns a channel that yields a JSON object.
@@ -123,8 +123,8 @@ func (this *Bitopro) PrivatePutOrders(args ...any) <-chan EndpointResult[map[str
 }
 
 // PrivateDeleteOrdersPairId returns a channel that yields a JSON object.
-func (this *Bitopro) PrivateDeleteOrdersPairId(args ...any) <-chan AsyncResult[any] {
-	return this.callEndpointAsync("privateDeleteOrdersPairId", args...)
+func (this *Bitopro) PrivateDeleteOrdersPairId(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateDeleteOrdersPairId", args...))
 }
 
 // PrivateDeleteOrdersAll returns a channel that yields a JSON object.

@@ -16,7 +16,7 @@ use ccxt\pro\ArrayCacheBySymbolById;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class hitbtc extends \ccxt\async\hitbtc {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), $this->describe_data());
     }
 
@@ -102,7 +102,8 @@ class hitbtc extends \ccxt\async\hitbtc {
          * @return {array} response from exchange
          */
         $this->check_required_credentials();
-        $url = $this->urls['api']['ws']['private'];
+        $wsUrls = $this->safe_dict($this->urls['api'], 'ws');
+        $url = $this->safe_string($wsUrls, 'private');
         $messageHash = 'authenticated';
         $client = $this->client($url);
         $future = $client->reusableFuture($messageHash);
@@ -164,11 +165,13 @@ class hitbtc extends \ccxt\async\hitbtc {
         $symbolsNormalized = $this->market_symbols($symbols);
         $isBatch = mb_strpos($name, 'batch') !== false;
         $resolvedPerSymbol = !$isBatch || ($messageHashPrefix === 'orderbooks'); // handleOrderBook resolves only per-symbol hashes, also on the batch channels
-        $url = $this->urls['api']['ws']['public'];
+        $wsUrls = $this->safe_dict($this->urls['api'], 'ws');
+        $url = $this->safe_string($wsUrls, 'public');
         $messageHashes = array();
         if ($symbolsNormalized !== null && $resolvedPerSymbol) {
             for ($i = 0; $i < count($symbolsNormalized); $i++) {
-                $messageHashes[] = $messageHashPrefix . '::' . $symbolsNormalized[$i];
+                $symbolId = $symbolsNormalized[$i];
+                $messageHashes[] = $messageHashPrefix . '::' . $symbolId;
             }
         } else {
             $messageHashes[] = $messageHashPrefix;
@@ -242,11 +245,13 @@ class hitbtc extends \ccxt\async\hitbtc {
             Async\await($this->load_markets());
         }
         Async\await($this->authenticate());
-        $url = $this->urls['api']['ws']['private'];
+        $wsUrls = $this->safe_dict($this->urls['api'], 'ws');
+        $url = $this->safe_string($wsUrls, 'private');
         $splitName = explode('_subscribe', $name);
-        $messageHash = $this->safe_string($splitName, 0, '');
+        $messageHashBase = $this->safe_string($splitName, 0, '');
+        $messageHash = $messageHashBase;
         if ($symbol !== null) {
-            $messageHash = $messageHash . '::' . $symbol;
+            $messageHash = $messageHashBase . '::' . $symbol;
         }
         $requestId = $this->incrementing_nonce();
         $subscribe = array(
@@ -274,8 +279,10 @@ class hitbtc extends \ccxt\async\hitbtc {
             Async\await($this->load_markets());
         }
         Async\await($this->authenticate());
-        $url = $this->urls['api']['ws']['private'];
-        $messageHash = (string) $this->incrementing_nonce();
+        $wsUrls = $this->safe_dict($this->urls['api'], 'ws');
+        $url = $this->safe_string($wsUrls, 'private');
+        $requestId = $this->incrementing_nonce();
+        $messageHash = $this->number_to_string($requestId);
         $subscribe = array(
             'method' => $name,
             'params' => $params,
@@ -378,7 +385,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $market = $this->safe_market($marketId);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_symbol($marketId, $market);
             $item = $data[$marketId];
             $messageHash = 'orderbooks::' . $symbol;
             if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
@@ -411,12 +418,6 @@ class hitbtc extends \ccxt\async\hitbtc {
         $price = $this->safe_number($delta, 0);
         $amount = $this->safe_number($delta, 1);
         $bookside->store($price, $amount);
-    }
-
-    public function handle_deltas(mixed $bookside, array $deltas) {
-        for ($i = 0; $i < count($deltas); $i++) {
-            $this->handle_delta($bookside, $deltas[$i]);
-        }
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -548,7 +549,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $market = $this->safe_market($marketId);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_symbol($marketId, $market);
             $ticker = $this->parse_ws_ticker($data[$marketId], $market);
             $this->tickers[$symbol] = $ticker;
             $result[] = $ticker;
@@ -682,7 +683,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $market = $this->safe_market($marketId);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_symbol($marketId, $market);
             $ticker = $this->parse_ws_bid_ask($data[$marketId], $market);
             $this->bidsasks[$symbol] = $ticker;
             $result[] = $ticker;
@@ -816,7 +817,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $marketId = $marketIds[$i];
             $market = $this->safe_market($marketId);
             $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_symbol($marketId, $market);
             $stored = $this->safe_value($this->trades, $symbol);
             if ($stored === null) {
                 $stored = new ArrayCache($tradesLimit);
@@ -892,14 +893,15 @@ class hitbtc extends \ccxt\async\hitbtc {
         $period = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $name = 'candles/' . $period;
         $market = $this->market($symbol);
-        $request = array(
-            'params' => array(
-                'symbols' => array( $market['id'] ),
-            ),
+        $subscribeParams = array(
+            'symbols' => array( $market['id'] ),
         );
         if ($limit !== null) {
-            $request['params']['limit'] = $limit;
+            $subscribeParams['limit'] = $limit;
         }
+        $request = array(
+            'params' => $subscribeParams,
+        );
         $ohlcv = Async\await($this->subscribe_public($name, $name, array( $symbol ), $this->deep_extend($request, $params)));
         $limitResolved = $limit;
         if ($this->newUpdates) {
@@ -980,7 +982,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $market = $this->safe_market($marketId);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_symbol($marketId, $market);
             $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
             $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
             if ($stored === null) {
@@ -1141,10 +1143,10 @@ class hitbtc extends \ccxt\async\hitbtc {
     }
 
     public function handle_order_helper(Client $client, array $message, array $order) {
-        $orders = $this->orders;
-        if ($orders === null) {
+        if ($this->orders === null) {
             return;
         }
+        $orders = $this->orders;
         $marketId = $this->safe_string_lower_2($order, 'instrument', 'symbol');
         $method = $this->safe_string($message, 'method', '');
         $splitMethod = explode('_order', $method);
@@ -1460,7 +1462,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $request['symbol'] = $market['id'];
         }
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('fetchOpenOrdersWs', $market, $params);
-        $marginMode = $this->handle_margin_mode_and_params('fetchOpenOrdersWs', $paramsMarketType)[0];
+        list($marginMode) = $this->handle_margin_mode_and_params('fetchOpenOrdersWs', $paramsMarketType);
         if ($marketType === 'swap') {
             return Async\await($this->trade_request('futures_get_orders', $request));
         } elseif (($marketType === 'margin') || ($marginMode !== null)) {
@@ -1495,7 +1497,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         // in that window invisible to the consumer forever (same class as
         // issue #26773); the free/used/total aggregates are rebuilt from the
         // merged currencies by safeBalance
-        $balance = $this->parse_balance($params);
+        $balance = $this->parseBalanceList($params);
         if ($this->balance === null) {
             $this->balance = array();
         }
@@ -1592,7 +1594,7 @@ class hitbtc extends \ccxt\async\hitbtc {
                 'spot_balance' => array($this, 'handle_balance'),
                 'futures_balance' => array($this, 'handle_balance'),
             );
-            $method = ($channel === null) ? null : $this->safe_value($methods, $channel);
+            $method = $this->safe_value($methods, $channel);
             if ($method !== null) {
                 $method($client, $message);
             }
@@ -1660,9 +1662,9 @@ class hitbtc extends \ccxt\async\hitbtc {
         //        "result": true
         //    }
         //
-        $success = $this->safe_bool($message, 'result');
+        $success = $this->safe_bool($message, 'result', false);
         $messageHash = 'authenticated';
-        if ($success === true) {
+        if ($success) {
             $future = $this->safe_value($client->futures, $messageHash);
             $future->resolve(true);
         } else {

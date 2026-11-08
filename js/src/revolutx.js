@@ -215,11 +215,8 @@ export default class revolutx extends Exchange {
     }
     sign(path, api = ['public'], method = 'GET', params = {}) {
         let requestHeaders = undefined;
-        let requestBody = undefined;
         const implodedPath = this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        const queryKeys = Object.keys(query);
-        const queryLength = queryKeys.length;
         const apiName = api[0];
         const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
@@ -228,27 +225,26 @@ export default class revolutx extends Exchange {
         const baseUrl = baseApiUrl;
         let url = baseUrl + '/' + implodedPath;
         let queryString = '';
+        let bodyString = '';
         if (apiName === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds().toString();
             if (method === 'GET') {
-                if (queryLength > 0) {
-                    queryString = this.urlencode(query);
+                queryString = this.urlencode(query);
+                if (queryString !== '') {
                     url += '?' + queryString;
                 }
             }
             else if (method === 'DELETE') {
-                if (queryLength > 0) {
-                    queryString = this.urlencode(query);
+                queryString = this.urlencode(query);
+                if (queryString !== '') {
                     url += '?' + queryString;
                 }
             }
             else {
-                requestBody = this.json(query);
+                bodyString = this.json(query);
             }
             const requestPath = '/api/' + implodedPath;
-            const bodyValue = requestBody;
-            const bodyString = (bodyValue !== undefined) ? bodyValue : '';
             const message = timestamp + method.toUpperCase() + requestPath + queryString + bodyString;
             const signature = eddsa(this.encode(message), this.privateKey, ed25519);
             requestHeaders = {
@@ -257,23 +253,23 @@ export default class revolutx extends Exchange {
                 'X-Revx-Signature': signature,
             };
             if (method === 'POST' || method === 'PUT') {
-                requestHeaders['Content-Type'] = 'application/json';
+                requestHeaders = this.extend(requestHeaders, { 'Content-Type': 'application/json' });
             }
         }
         else {
             if (method === 'GET') {
-                if (queryLength > 0) {
-                    queryString = this.urlencode(query);
+                queryString = this.urlencode(query);
+                if (queryString !== '') {
                     url += '?' + queryString;
                 }
             }
             else {
-                requestBody = this.json(query);
+                bodyString = this.json(query);
                 requestHeaders = { 'Content-Type': 'application/json' };
             }
         }
         const headersResult = requestHeaders;
-        const bodyResult = requestBody;
+        const bodyResult = (bodyString !== '') ? bodyString : undefined;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     /**
@@ -785,10 +781,7 @@ export default class revolutx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market(symbol);
-        }
+        const market = this.market(symbol);
         const request = {};
         if (market !== undefined) {
             request['symbol'] = market['id'];
@@ -847,7 +840,11 @@ export default class revolutx extends Exchange {
         //         { "currency": "USD", "available": "50000.00", "reserved": "1000.00", "total": "51000.00", "staked": "32.00000000" }
         //     ]
         //
-        const data = Array.isArray(response) ? response : this.safeList(response, 'data', []);
+        let payload = response;
+        if (Array.isArray(payload)) {
+            payload = { 'data': payload };
+        }
+        const data = this.safeList(payload, 'data', []);
         const result = { 'info': response };
         for (let i = 0; i < data.length; i++) {
             const balance = this.safeDict(data, i, {});

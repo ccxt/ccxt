@@ -63,7 +63,7 @@ class ImplicitAPI:
     private_post_v1_clearing_status = privatePostV1ClearingStatus = Entry[_Dict]('v1/clearing/status', ['private'], 'POST', {'cost': 1})
     private_post_v1_clearing_cancel = privatePostV1ClearingCancel = Entry[_Dict]('v1/clearing/cancel', ['private'], 'POST', {'cost': 1})
     private_post_v1_clearing_confirm = privatePostV1ClearingConfirm = Entry[_Dict]('v1/clearing/confirm', ['private'], 'POST', {'cost': 1})
-    private_post_v1_balances = privatePostV1Balances = Entry[_Dict]('v1/balances', ['private'], 'POST', {'cost': 1})
+    private_post_v1_balances = privatePostV1Balances = Entry[_List]('v1/balances', ['private'], 'POST', {'cost': 1})
     private_post_v1_balances_staking = privatePostV1BalancesStaking = Entry[_List]('v1/balances/staking', ['private'], 'POST', {'cost': 1})
     private_post_v1_notionalbalances_currency = privatePostV1NotionalbalancesCurrency = Entry[_List]('v1/notionalbalances/{currency}', ['private'], 'POST', {'cost': 1})
     private_post_v1_transfers = privatePostV1Transfers = Entry[_List]('v1/transfers', ['private'], 'POST', {'cost': 1})

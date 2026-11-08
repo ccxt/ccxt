@@ -1,11 +1,11 @@
 import Exchange from './abstract/blofin.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Currencies, CurrencyInterface, DepositAddress, DepositWithdrawFees, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, PositionModeInfo } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Currencies, CurrencyInterface, DepositAddress, DepositWithdrawFees, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, PositionModeInfo, NullableDict } from './base/types.js';
 /**
  * @class blofin
  * @augments Exchange
  */
 export default class blofin extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name blofin#fetchMarkets
@@ -69,7 +69,6 @@ export default class blofin extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
@@ -115,7 +114,7 @@ export default class blofin extends Exchange {
      */
     fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     parseBalanceByType(response: Dict): Balances;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     parseFundingBalance(response: Dict): Balances;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     /**
@@ -320,7 +319,7 @@ export default class blofin extends Exchange {
      * @param {string} [params.clientId] look up by the client-supplied id instead, with id set to undefined
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    fetchWithdrawal(id: string, code?: Str, params?: Dict): Promise<Transaction>;
+    fetchWithdrawal(id: Str, code?: Str, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name blofin#withdraw
@@ -359,7 +358,7 @@ export default class blofin extends Exchange {
     parseTransactionDepositStatus(status: Str): Str;
     parseLedgerEntryType(type: Str): Str;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
-    parseIds(ids: any): any;
+    parseIds(ids: any): Strings;
     /**
      * @method
      * @name blofin#cancelOrders
@@ -547,6 +546,6 @@ export default class blofin extends Exchange {
      */
     fetchPositionsADLRank(symbols?: Strings, params?: Dict): Promise<ADL[]>;
     parseADLRank(info: Dict, market?: Market): ADL;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
 }

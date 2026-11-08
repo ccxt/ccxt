@@ -25,7 +25,7 @@ use const ccxt\SIGNIFICANT_DIGITS;
 use const ccxt\TICK_SIZE;
 
 class polymarket extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'polymarket',
             'name' => 'Polymarket',
@@ -429,8 +429,8 @@ class polymarket extends Exchange {
             $this->publicGetInfoAssets($params),
         );
         $responses = Async\await(Promise\all($promises));
-        $instruments = $responses[0];
-        $assets = $responses[1];
+        $instruments = $this->safe_list($responses, 0, array());
+        $assets = $this->safe_list($responses, 1, array());
         $result = array();
         for ($i = 0; $i < count($instruments); $i++) {
             $instrument = $instruments[$i];
@@ -706,14 +706,14 @@ class polymarket extends Exchange {
         //     ]
         //
         $merged = array();
-        $statistics = $responses[1];
+        $statistics = $this->safe_list($responses, 1, array());
         for ($i = 0; $i < count($statistics); $i++) {
             $entry = $statistics[$i];
             $instrumentId = $this->safe_string($entry, 'instrument_id');
             // the 24 hourly kline rows are dropped from the merged payload to keep tickers light, candles are served by fetchOHLCV
             $merged[$instrumentId] = $this->omit($entry, 'klines');
         }
-        $bbos = $responses[2];
+        $bbos = $this->safe_list($responses, 2, array());
         for ($i = 0; $i < count($bbos); $i++) {
             $entry = $bbos[$i];
             $instrumentId = $this->safe_string($entry, 'instrument_id');
@@ -721,7 +721,7 @@ class polymarket extends Exchange {
             // the tickers endpoint timestamp wins the merge below because most unified fields come from it - bbo rows carry a slightly newer sampling time
             $merged[$instrumentId] = $this->extend($previous, $entry);
         }
-        $tickers = $responses[0];
+        $tickers = $this->safe_list($responses, 0, array());
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $entry = $tickers[$i];
@@ -1308,7 +1308,7 @@ class polymarket extends Exchange {
         $fallback = $this->safe_dict($schedule, 0, array());
         $result = array();
         for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+            $symbol = $this->safe_string($this->symbols, $i, '');
             $market = $this->market($symbol);
             $category = $this->safe_string($market['info'], 'category');
             $entry = $this->safe_dict($byCategory, $category, $fallback);
@@ -1436,10 +1436,12 @@ class polymarket extends Exchange {
             'params' => $params,
         );
         $orders = Async\await($this->create_orders(array( $order ), $params));
-        $first = $orders[0];
-        if ($first['status'] === 'rejected') {
-            $errorId = $this->safe_string($first['info'], 'error');
-            $feedback = $this->id . ' createOrder() rejected => ' . $this->json($first['info']);
+        $first = $this->safe_dict($orders, 0, array());
+        $firstStatus = $this->safe_string($first, 'status');
+        if ($firstStatus === 'rejected') {
+            $firstInfo = $this->safe_dict($first, 'info', array());
+            $errorId = $this->safe_string($firstInfo, 'error');
+            $feedback = $this->id . ' createOrder() rejected => ' . $this->json($firstInfo);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorId, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorId, $feedback);
             throw new InvalidOrder($feedback);
@@ -1497,9 +1499,9 @@ class polymarket extends Exchange {
         //
         $results = array();
         for ($i = 0; $i < count($response); $i++) {
-            $ack = $response[$i];
+            $ack = $this->safe_dict($response, $i, array());
             $marketInner = $ordersMarkets[$i];
-            $echo = $ordersEntries[$i];
+            $echo = $this->safe_dict($ordersEntries, $i, array());
             $status = $this->safe_string($ack, 'status');
             $merged = $this->extend($echo, array(
                 'oid' => $this->safe_integer($ack, 'oid'),
@@ -1577,7 +1579,7 @@ class polymarket extends Exchange {
         } else {
             $numericIds = array();
             for ($i = 0; $i < count($ids); $i++) {
-                $numericIds[] = $this->parse_to_int($ids[$i]);
+                $numericIds[] = $this->parse_to_int($this->safe_string($ids, $i));
             }
             $signable = array( 'cancelOrders', $numericIds );
             $bodyOp = array(
@@ -1594,7 +1596,7 @@ class polymarket extends Exchange {
         //
         $results = array();
         for ($i = 0; $i < count($response); $i++) {
-            $ack = $response[$i];
+            $ack = $this->safe_dict($response, $i, array());
             $status = $this->safe_string($ack, 'status');
             $unified = ($status === 'err') ? 'rejected' : 'canceled';
             $merged = array(
@@ -2135,7 +2137,7 @@ class polymarket extends Exchange {
         // select the requested row explicitly in case the documented
         // order_id filter is ever ignored the way the tickers one is
         for ($i = 0; $i < count($response); $i++) {
-            $row = $response[$i];
+            $row = $this->safe_dict($response, $i, array());
             $rowId = $this->safe_string($row, 'order_id');
             if ($rowId === $id) {
                 return $this->parse_order($row, $market);
@@ -2231,8 +2233,9 @@ class polymarket extends Exchange {
         $market = null;
         $request = array();
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['instrument_id'] = $market['id'];
+            $symbolMarket = $this->market($symbol);
+            $market = $symbolMarket;
+            $request['instrument_id'] = $symbolMarket['id'];
         }
         if ($since !== null) {
             $request['start_timestamp'] = $since;
@@ -2549,7 +2552,7 @@ class polymarket extends Exchange {
         // select the requested row explicitly in case the documented
         // instrument_id filter is ever ignored the way the tickers one is
         for ($i = 0; $i < count($response); $i++) {
-            $row = $response[$i];
+            $row = $this->safe_dict($response, $i, array());
             $rowId = $this->safe_string($row, 'instrument_id');
             if ($rowId === $market['id']) {
                 return $this->parse_leverage($row, $market);
@@ -2592,9 +2595,9 @@ class polymarket extends Exchange {
          */
         $leverage = Async\await($this->fetch_leverage($symbol, $params));
         return array(
-            'info' => $leverage['info'],
-            'symbol' => $leverage['symbol'],
-            'marginMode' => $leverage['marginMode'],
+            'info' => $this->safe_dict($leverage, 'info'),
+            'symbol' => $this->safe_string($leverage, 'symbol'),
+            'marginMode' => $this->safe_string($leverage, 'marginMode'),
         );
     }
 
@@ -2877,11 +2880,11 @@ class polymarket extends Exchange {
         return Async\await($this->create_proxy_credentials($params));
     }
 
-    public function sign_perps_op(mixed $signable, mixed $bodyOp, $params = array()): PromiseInterface {
+    public function sign_perps_op(array $signable, array $bodyOp, $params = array()): PromiseInterface {
         return Async\async(self::do_sign_perps_op(...))($signable, $bodyOp, $params);
     }
 
-    private function do_sign_perps_op(mixed $signable, mixed $bodyOp, $params = array()) {
+    private function do_sign_perps_op(array $signable, array $bodyOp, $params = array()) {
         /**
          * @ignore
          * signs a trading operation with the session proxy key - the compact $signable array is msgpack-$encoded and keccak-hashed, the hash is signed inside an EIP-712 Op struct and the structured operation travels next to the $signature
@@ -2954,10 +2957,11 @@ class polymarket extends Exchange {
         // per-instrument decimals, deliberately for any magnitude - a six
         // digit integer price coarsens to an effective step of ten
         $market = $this->market($symbol);
+        $precision = $this->safe_dict($market, 'precision', array());
         $significant = $this->decimal_to_precision($price, ROUND, 5, SIGNIFICANT_DIGITS);
-        $result = $this->decimal_to_precision($significant, ROUND, $market['precision']['price'], TICK_SIZE);
+        $result = $this->decimal_to_precision($significant, ROUND, $precision['price'], TICK_SIZE);
         if ($result === '0') {
-            throw new InvalidOrder($this->id . ' price of ' . $market['symbol'] . ' must be greater than minimum price precision of ' . $this->number_to_string($market['precision']['price']));
+            throw new InvalidOrder($this->id . ' price of ' . $market['symbol'] . ' must be greater than minimum price precision of ' . $this->number_to_string($precision['price']));
         }
         return $result;
     }
@@ -2968,15 +2972,16 @@ class polymarket extends Exchange {
         }
         // quantities carry the same five significant figures cap
         $market = $this->market($symbol);
+        $precision = $this->safe_dict($market, 'precision', array());
         $significant = $this->decimal_to_precision($amount, TRUNCATE, 5, SIGNIFICANT_DIGITS);
-        $result = $this->decimal_to_precision($significant, TRUNCATE, $market['precision']['amount'], TICK_SIZE);
+        $result = $this->decimal_to_precision($significant, TRUNCATE, $precision['amount'], TICK_SIZE);
         if ($result === '0') {
-            throw new InvalidOrder($this->id . ' amount of ' . $market['symbol'] . ' must be greater than minimum amount precision of ' . $this->number_to_string($market['precision']['amount']));
+            throw new InvalidOrder($this->id . ' amount of ' . $market['symbol'] . ' must be greater than minimum amount precision of ' . $this->number_to_string($precision['amount']));
         }
         return $result;
     }
 
-    public function calculate_rate_limiter_cost(array $api, mixed $method, mixed $path, mixed $params, $config = array()) {
+    public function calculate_rate_limiter_cost(array $api, string $method, string $path, mixed $params, $config = array()) {
         if ($path === 'account/orders') {
             return (is_array($params) && array_key_exists('order_id' ?? '', $params)) ? 1 : 10;
         }
@@ -2986,8 +2991,7 @@ class polymarket extends Exchange {
         if (($path === 'trade/orders') || ($path === 'trade/orders-coid')) {
             $op = $this->safe_dict($params, 'op', array());
             $args = $this->safe_list($op, 'args', array());
-            $argsLength = count($args);
-            return $this->sum(1, $this->parse_to_int($argsLength / 20));
+            return $this->sum(1, $this->parse_to_int(strlen($args) / 20));
         }
         if ($path === 'info/book') {
             $depth = $this->safe_integer($params, 'depth', 100);
@@ -3005,7 +3009,9 @@ class polymarket extends Exchange {
 
     public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $apiType = $api[0];
-        $url = $this->urls['api'][$apiType] . '/' . $this->implode_params($path, $params);
+        $baseUrl = $this->safe_string($this->urls['api'], $apiType, '');
+        $implodedPath = $this->implode_params($path, $params);
+        $url = $baseUrl . '/' . $implodedPath;
         $query = $this->omit($params, $this->extract_params($path));
         $headersResolved = array(
             'Accept' => 'application/json',
@@ -3021,7 +3027,7 @@ class polymarket extends Exchange {
                 $keys = is_array($query) ? array_keys($query) : array();
                 $keysLength = count($keys);
                 if ($keysLength > 0) {
-                    $url .= '?' . $this->urlencode($query);
+                    $url = $baseUrl . '/' . $implodedPath . '?' . $this->urlencode($query);
                 }
             }
             if ($apiType === 'private') {
@@ -3033,7 +3039,7 @@ class polymarket extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }
