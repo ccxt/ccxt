@@ -15,7 +15,7 @@ func newBtcbox() *Btcbox {
 	return p
 }
 
-func (this *Btcbox) Describe() any {
+func (this *Btcbox) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "btcbox",
 		"name":      "BtcBox",
@@ -282,8 +282,8 @@ func (this *Btcbox) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 		panic(r.Err)
 	}
 	var response1response2Variable []any = ListTyped(r.Value)
-	response1 := GetValue(response1response2Variable, 0)
-	response2 := GetValue(response1response2Variable, 1)
+	response1 := response1response2Variable[0]
+	response2 := response1response2Variable[1]
 	//
 	var result2Data map[string]any = SafeMapTyped(response2, "data")
 	var marketIds []string = ObjectKeys(response1)
@@ -299,15 +299,9 @@ func (this *Btcbox) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 		var symbol string = *baseCurr + "/" + *quote
 		var fee *float64 = func() *float64 {
 			if id == "BTC" {
-				if derefNum, isNum := this.ParseNumber("0.0005").(float64); isNum {
-					return &derefNum
-				}
-				return nil
+				return this.ParseNumber("0.0005")
 			}
-			if derefNum, isNum := this.ParseNumber("0.0010").(float64); isNum {
-				return &derefNum
-			}
-			return nil
+			return this.ParseNumber("0.0010")
 		}()
 		var details map[string]any = SafeMapTyped(result2Data, id)
 		var tradeDetails map[string]any = SafeMapTyped(details, "trade")
@@ -368,7 +362,7 @@ func (this *Btcbox) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(markets)}
 	return nil
 }
-func (this *Btcbox) ParseMarket(market any) any {
+func (this *Btcbox) ParseMarket(market any) map[string]any {
 	var baseId *string = this.SafeString(market, "base")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quoteId *string = this.SafeString(market, "quote")
@@ -432,15 +426,21 @@ func (this *Btcbox) ParseBalance(response any) map[string]any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var codes []string = ObjectKeys(this.Currencies)
+	var codes []string = nil
+	if this.Currencies != nil {
+		codes = make([]string, 0, len(this.Currencies))
+		for objectKey := range this.Currencies {
+			codes = append(codes, objectKey)
+		}
+	}
 	for i := 0; i < len(codes); i++ {
 		var code string = codes[i]
 		var currency map[string]any = this.Currency(code)
-		var currencyId *string = SafeStringPtr(currency["id"])
-		var free string = *currencyId + "_balance"
+		var currencyId string = *this.SafeString(currency, "id", "")
+		var free string = currencyId + "_balance"
 		if InOp(response, free) {
 			var account map[string]any = this.Account()
-			var used string = *currencyId + "_lock"
+			var used string = currencyId + "_lock"
 			account["free"] = this.SafeString(response, free)
 			account["used"] = this.SafeString(response, used)
 			result[code] = account
@@ -596,7 +596,7 @@ func (this *Btcbox) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var response map[string]any = MapTyped(r1.Raw)
+	var response map[string]any = r1.Value
 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(response, market)}
 	return nil
@@ -634,7 +634,7 @@ func (this *Btcbox) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var response map[string]any = MapTyped(r1.Raw)
+	var response map[string]any = r1.Value
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(response, symbols))}
 	return nil
@@ -716,11 +716,11 @@ func (this *Btcbox) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 		request["coin"] = market["baseId"]
 	}
 
-	listEp677 := <-this.PublicGetOrders(this.Extend(request, params))
-	if listEp677.Err != nil {
-		panic(listEp677.Err)
+	responseRecv := <-this.PublicGetOrders(this.Extend(request, params))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp677.Value
+	var response []any = responseRecv.Value
 
 	//
 	//     [
@@ -930,12 +930,12 @@ func (this *Btcbox) ParseOrder(order any, optionalArgs ...any) Order {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Btcbox) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Btcbox) FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Btcbox) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Btcbox) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -983,12 +983,12 @@ func (this *Btcbox) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalA
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
-func (this *Btcbox) FetchOrdersByTypeAsync(typeVar any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Btcbox) FetchOrdersByTypeAsync(typeVar string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.fetchOrdersByTypeBody(ch, typeVar, optionalArgs...)
 	return ch
 }
-func (this *Btcbox) fetchOrdersByTypeBody(ch chan AsyncResult[[]Order], typeVar any, optionalArgs ...any) any {
+func (this *Btcbox) fetchOrdersByTypeBody(ch chan AsyncResult[[]Order], typeVar string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1019,11 +1019,11 @@ func (this *Btcbox) fetchOrdersByTypeBody(ch chan AsyncResult[[]Order], typeVar 
 		"coin": market["baseId"],
 	}
 
-	listEp952 := <-this.PrivatePostTradeList(this.Extend(request, params))
-	if listEp952.Err != nil {
-		panic(listEp952.Err)
+	responseRecv := <-this.PrivatePostTradeList(this.Extend(request, params))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp952.Value
+	var response []any = responseRecv.Value
 	//
 	// [
 	//      {
@@ -1039,7 +1039,7 @@ func (this *Btcbox) fetchOrdersByTypeBody(ch chan AsyncResult[[]Order], typeVar 
 	// status (open/closed/canceled) is undefined
 	// btcbox does not return status, but we know it's 'open' as we queried for open orders
 	var extra map[string]any = map[string]any{}
-	if IsEqual(typeVar, "open") {
+	if typeVar == "open" {
 		extra["status"] = "open"
 	}
 
@@ -1128,31 +1128,31 @@ func (this *Btcbox) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	}
 	return nil
 }
-func (this *Btcbox) Nonce() any {
+func (this *Btcbox) Nonce() int64 {
 	return this.Milliseconds()
 }
-func (this *Btcbox) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"public"})
+func (this *Btcbox) Sign(path string, optionalArgs ...any) map[string]any {
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiName string = api[0]
 	var apiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
-	var url any = *apiUrl + "/" + this.Version + "/" + path
-	if apiName != nil && *apiName == "public" {
-		if len(ObjectKeys(params)) > 0 {
-			url = Add(url, "?"+this.Urlencode(params))
+	var url string = *apiUrl + "/" + this.Version + "/" + path
+	if apiName == "public" {
+		if paramsMap, _ := params.(map[string]any); len(paramsMap) > 0 {
+			url = *apiUrl + "/" + this.Version + "/" + path + "?" + this.Urlencode(params)
 		}
-	} else if apiName != nil && *apiName == "webApi" {
-		url = Add(Add(this.Urls["www"], "/"), path)
+	} else if apiName == "webApi" {
+		url = *this.SafeString(this.Urls, "www", "") + "/" + path
 	} else {
 		this.CheckRequiredCredentials()
-		var nonce string = ToString(this.Nonce())
+		var nonce *string = this.NumberToString(this.Nonce())
 		var query map[string]any = this.Extend(map[string]any{
 			"key":   this.ApiKey,
 			"nonce": nonce,
@@ -1178,21 +1178,21 @@ func (this *Btcbox) Sign(path string, optionalArgs ...any) any {
 		"headers": nil,
 	}
 }
-func (this *Btcbox) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Btcbox) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil // resort to defaultErrorHandler
 	}
 	// typical error response: {"result":false,"code":"401"}
-	if IsGreaterThanOrEqual(httpCode, 400) {
+	if code >= 400 {
 		return nil // resort to defaultErrorHandler
 	}
 	var result *bool = this.SafeBool(response, "result")
 	if (result == nil) || (result != nil && *result) {
 		return nil // either public API (no error codes expected) or success
 	}
-	var code *string = this.SafeString(response, "code")
+	var codeError *string = this.SafeString(response, "code")
 	var feedback string = this.Id + " " + body
-	this.ThrowExactlyMatchedException(this.Exceptions, code, feedback)
+	this.ThrowExactlyMatchedException(this.Exceptions, codeError, feedback)
 	panic(ExchangeError(feedback))
 }
 func (this *Btcbox) RequestAsync(path any, optionalArgs ...any) <-chan AsyncResult[any] {
@@ -1203,7 +1203,7 @@ func (this *Btcbox) RequestAsync(path any, optionalArgs ...any) <-chan AsyncResu
 func (this *Btcbox) requestBody(ch chan AsyncResult[any], path any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	api := GetArg(optionalArgs, 0, []any{"public"})
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
@@ -1219,11 +1219,11 @@ func (this *Btcbox) requestBody(ch chan AsyncResult[any], path any, optionalArgs
 	response := r.Value
 	if IsString(response) {
 		// sometimes the exchange returns whitespace prepended to json
-		response = this.Strip(response)
-		if !this.IsJsonEncodedObject(response) {
-			panic(ExchangeError(Add(this.Id+" ", response)))
+		var strippedResponse string = this.Strip(response)
+		if !this.IsJsonEncodedObject(strippedResponse) {
+			panic(ExchangeError(this.Id + " " + strippedResponse))
 		}
-		response = JsonParse(response)
+		response = JsonParse(strippedResponse)
 	}
 
 	ch <- AsyncResult[any]{Value: response}
@@ -1239,7 +1239,7 @@ func NewBtcbox(userConfig map[string]any) *Btcbox {
 func (this *Btcbox) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

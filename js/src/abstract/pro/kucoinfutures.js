@@ -985,6 +985,9 @@ class kucoin extends _kucoin {
     utaV2GetMarketFundingRate(params = {}) {
         return this.request('market/funding-rate', ['utaV2'], 'GET', params, { 'cost': 6 });
     }
+    utaV2GetMarketOrderbook(params = {}) {
+        return this.request('market/orderbook', ['utaV2'], 'GET', params, { 'cost': 10 });
+    }
     utaPrivateGetMarketOrderbook(params = {}) {
         return this.request('market/orderbook', ['utaPrivate'], 'GET', params, { 'cost': 6 });
     }

@@ -5,8 +5,9 @@ import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBoo
  * @augments Exchange
  */
 export default class lighter extends Exchange {
-    describe(): any;
+    describe(): Dict;
     loadAccount(chainId: any, privateKey: Str, apiKeyIndex: string, accountIndex: string, params?: Dict): Promise<any>;
+    setAuthEntry(accIdx: string, keyIdx: string, entry: Dict): void;
     initAuthObject(strAccountIndex: string, strApiKeyIndex: string): void;
     getLighterPrivateKey(strAccountIndex: string, strApiKeyIndex: string): Str;
     /**
@@ -24,13 +25,13 @@ export default class lighter extends Exchange {
     pow(n: string, m: string): Str;
     hashMessage(message: string): string;
     signHash(hash: string, privateKey: string): string;
-    signL1AndPrepareTxInfo(txInfo: any, message: any, privateKey: string): string;
+    signL1AndPrepareTxInfo(txInfo: string, message: string, privateKey: string): string;
     handleBuilderFeeApproval(accountIndex: number, apiKeyIndex: number): Promise<boolean>;
     checkIfStandardTier(accountIndex: number): Promise<boolean>;
     approveBuilderFee(builder: number, takerFeeRate: number, makerFeeRate: number, accountIndex: number, apiKeyIndex: number, params?: Dict): Promise<Dict>;
     changeApiKey(params?: Dict): Promise<any>;
     setSandboxMode(enable: boolean): void;
-    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): any[];
+    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Dict[];
     fetchNonce(accountIndex: any, apiKeyIndex: any, params?: Dict): Promise<Int>;
     signAndCreateOrder(method: string, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price?: Num, params?: Dict): Promise<any[]>;
     /**
@@ -456,5 +457,5 @@ export default class lighter extends Exchange {
         body: undefined;
         headers: NullableDict;
     };
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

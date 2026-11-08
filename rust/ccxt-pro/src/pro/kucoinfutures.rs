@@ -265,12 +265,12 @@ impl KucoinfuturesCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("futuresPublicGetAllTickers".into()));
             m
         });
-        let __ws_arg_0 = self.extend(request, &[params]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         return self.fetch_tickers(&[symbols, __ws_arg_0]).await;
 
     Value::Null
@@ -297,21 +297,21 @@ impl KucoinfuturesCore {
         }
         let mut currency: Value = self.currency(code.clone());
         let mut amountToPrecision: Value = self.currency_to_precision(code, amount, &[]);
-        let mut request: Value = Value::Map({
+        let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), self.safe_string_k(currency.clone(), "id", &[]));
                 m.insert("amount".to_string(), amountToPrecision.clone());
             m
         });
-        let mut toAccountString: Value = self.parse_transfer_type(toAccount.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null);
+        let mut toAccountString: Value = self.parse_transfer_type(toAccount.clone()).map(Value::from).unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
         if (toAccountString.as_str() == Some("TRADE")) || (toAccountString.as_str() == Some("MAIN")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("recAccountType".into(), toAccountString); }
-            let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+            request.insert("recAccountType".into(), toAccountString);
+            let __ws_arg_1 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.parent.parent.futures_private_post_transfer_out(&[__ws_arg_1]).await;
         }  else if (toAccount.as_str() == Some("future")) || (toAccount.as_str() == Some("swap")) || (toAccount.as_str() == Some("contract")) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("payAccountType".into(), self.parse_transfer_type(fromAccount.clone()).map(|__s| Value::Str(__s.into())).unwrap_or(Value::Null)); }
-            let __ws_arg_2 = self.extend(request, &[params]);
+            request.insert("payAccountType".into(), self.parse_transfer_type(fromAccount.clone()).map(Value::from).unwrap_or(Value::Null));
+            let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
             response = self.parent.parent.futures_private_post_transfer_in(&[__ws_arg_2]).await;
         }  else {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" transfer() only supports transfers between future/swap, spot and funding accounts".into()))));
@@ -334,12 +334,12 @@ impl KucoinfuturesCore {
 }
 
     pub fn parse_transfer_type(&self, mut transferType: Value) -> Option<String> {
-        let mut transferTypes: Value = Value::Map({
+        let mut transferTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("spot".to_string(), Value::Str("TRADE".into()));
                 m.insert("funding".to_string(), Value::Str("MAIN".into()));
             m
         });
-        return self.safe_string_upper(transferTypes, transferType.clone(), &[transferType.clone()]).as_str().map(str::to_owned);
+        return self.safe_string_upper(Value::Map(transferTypes), transferType.clone(), &[transferType.clone()]).as_str().map(str::to_owned);
 }
 }

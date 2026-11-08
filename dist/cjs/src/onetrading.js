@@ -725,7 +725,7 @@ class onetrading extends onetrading$1["default"] {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            const tierObject = (market['spot'] === true) ? firstSpotTier : firstFuturesTier;
+            const tierObject = (this.safeBool(market, 'spot', false)) ? firstSpotTier : firstFuturesTier;
             result[symbol] = {
                 'info': spotFees,
                 'symbol': symbol,
@@ -792,8 +792,8 @@ class onetrading extends onetrading$1["default"] {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            const makerFee = (market['spot'] === true) ? spotMakerFee : futuresMakerFee;
-            const takerFee = (market['spot'] === true) ? spotTakerFee : futuresTakerFee;
+            const makerFee = (this.safeBool(market, 'spot', false)) ? spotMakerFee : futuresMakerFee;
+            const takerFee = (this.safeBool(market, 'spot', false)) ? spotTakerFee : futuresTakerFee;
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1116,7 +1116,9 @@ class onetrading extends onetrading$1["default"] {
         if (periodUnit === undefined) {
             throw new errors.ExchangeError(this.id + ' fetchOHLCV() missing periodUnit');
         }
-        const [period, unit] = periodUnit.split('/');
+        const periodUnitParts = periodUnit.split('/');
+        const period = periodUnitParts[0];
+        const unit = periodUnitParts[1];
         const durationInSeconds = this.parseTimeframe(timeframe);
         const duration = durationInSeconds * 1000;
         const limitResolved = (limit === undefined) ? 1500 : limit;

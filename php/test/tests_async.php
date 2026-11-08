@@ -6,7 +6,6 @@ use \React\Async;
 use \React\Promise;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
-use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\InvalidProxySettings;
 use ccxt\OperationFailed;
@@ -1256,7 +1255,7 @@ class testMainClass {
                     $tests['fetchPositions'] = [$symbol]; // this test fetches all positions for 1 symbol
                     $tests['fetchPosition'] = [$symbol];
                     $tests['fetchPositionRisk'] = [$symbol];
-                    $tests['setPositionMode'] = [$symbol];
+                    $tests['setPositionMode'] = [false, $symbol];
                     $tests['setMarginMode'] = [$symbol];
                     $tests['fetchOpenInterestHistory'] = [$symbol];
                     $tests['fetchFundingRateHistory'] = [$symbol];
@@ -1926,12 +1925,7 @@ class testMainClass {
                 }
             } catch(\Throwable $e) {
                 if (!($e instanceof InvalidProxySettings)) {
-                    // if it's not a BadRequest, it means our request was not created succesfully
-                    // so we might have an error in the request creation
-                    $this->request_tests_failed = true;
-                    $creation_error_message = '[' . $this->lang . '][STATIC_REQUEST]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . exception_message($e);
-                    dump('[TEST_FAILURE]' . $creation_error_message);
-                    return true;
+                    throw $e;
                 }
                 $output = $exchange->last_request_body;
                 $request_url = $exchange->last_request_url;
@@ -2363,7 +2357,8 @@ class testMainClass {
             }
             $accounts = $exchange->safe_list($exchange_data, 'accounts');
             if ($accounts !== null && $accounts !== null) {
-                $exchange->accounts = $accounts;
+                // the field is a List<object>: assign the call, not the untyped local
+                $exchange->accounts = $exchange->safe_list($exchange_data, 'accounts');
             }
             // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
             $exchange->extend_exchange_options($global_options);
@@ -3725,7 +3720,7 @@ class testMainClass {
             $token_expires = $exchange->milliseconds() + 100000;
             $exchange->options['v2TokenExpires'] = $token_expires;
             $exchange->options['portfolio'] = 'random';
-            $id = 'nfqkvdjp';
+            $id = 'ccxt';
             assert($exchange->options['brokerId'] === $id, 'id not in options');
             $client_order_id = null;
             try {
@@ -3738,7 +3733,8 @@ class testMainClass {
                 $query = $this->urlencoded_to_dict($url_parts[1]);
                 $client_order_id = $query['label'];
             }
-            assert($client_order_id !== null && str_starts_with($client_order_id, ((string) $id)) === true, 'clientOrderId does not start with id');
+            // the label is built as "<brokerId>-<uuid22>", so assert the hyphenated prefix to ensure the uuid suffix was appended after the ccxt broker id
+            assert($client_order_id !== null && str_starts_with($client_order_id, $id . '-') === true, 'clientOrderId ' . $client_order_id . ' does not start with the brokerId prefix ' . $id . '-');
             if (!is_sync()) {
                 \React\Async\await(close($exchange));
             }

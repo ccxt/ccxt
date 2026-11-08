@@ -74,10 +74,11 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         if ((symbol != null))
         {
             market = this.market(symbol);
-            messageHash = add(messageHash, (":" + ((market.ContainsKey("id") ? market["id"] : null))));
-            productIds.Add((market.ContainsKey("id") ? market["id"] : null));
+            string? marketId = this.safeString(market, "id", "");
+            messageHash = ((object)(messageHash == null ? null : messageHash + (":" + marketId)));
+            productIds.Add(marketId);
         }
-        object url = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        object url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " urls.api.ws is not set")) ;
@@ -85,7 +86,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         if (((IDictionary<string, object>)parameters).ContainsKey("signature"))
         {
             // need to distinguish between public trades and user trades
-            url = (url + "?");
+            url = ((object)(url == null ? null : url + "?"));
         }
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "subscribe" },
@@ -109,17 +110,18 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         List<object> messageHashes = new List<object>() {};
         List<object> productIds = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
             string? symbol = ((string)symbolsNormalized[i]);
             market = this.market(symbol);
-            productIds.Add((market.ContainsKey("id") ? market["id"] : null));
-            messageHashes.Add(add(add(messageHashStart, ":"), (market.ContainsKey("symbol") ? market["symbol"] : null)));
+            string? marketId = this.safeString(market, "id", "");
+            productIds.Add(marketId);
+            messageHashes.Add(add(add(messageHashStart, ":"), this.safeString(market, "symbol", "")));
         }
-        object url = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws");
+        object url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         if ((url == null))
         {
             throw new ExchangeError ((this.id + " urls.api.ws is not set")) ;
@@ -127,7 +129,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         if (((IDictionary<string, object>)parameters).ContainsKey("signature"))
         {
             // need to distinguish between public trades and user trades
-            url = (url + "?");
+            url = ((object)(url == null ? null : url + "?"));
         }
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "subscribe" },
@@ -219,7 +221,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -244,7 +246,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         string name = "matches";
         object trades = await this.subscribeMultiple(name, symbolsNormalized, name, parameters);
         IDictionary<string, object> first = this.safeDict(trades, 0);
@@ -254,7 +256,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -288,7 +290,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -304,7 +306,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
     public async override Task<List<ccxt.Trade>> WatchMyTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -320,7 +322,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -340,7 +342,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
         string name = "user";
         string messageHash = "orders";
         object authentication = this.authenticate();
@@ -352,7 +354,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.toArray(orders), since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -386,7 +388,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(orders, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(this.toArray(orders), since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -411,15 +413,14 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         IList<object> marketIds = this.marketIds(symbolsNormalized);
         List<object> messageHashes = new List<object>() {};
         for (int i = 0; i < symbolsLength; i++)
         {
-            string? marketId = ((string)(marketIds != null && i < marketIds.Count ? marketIds[i] : null));
-            messageHashes.Add(((name + ":") + marketId));
+            messageHashes.Add(((name + ":") + this.safeString(marketIds, i, "")));
         }
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "product_ids", marketIds },
@@ -434,7 +435,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         };
         object authentication = this.authenticate();
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchMultiple(url, messageHashes, this.extend(request, authentication), messageHashes, subscription));
-        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
+        return (orderbook as IOrderBook).limit().Copy();
     }
 
     /**
@@ -456,8 +457,8 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        string messageHash = ((name + ":") + ((market.ContainsKey("id") ? market["id"] : null)));
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string messageHash = ((name + ":") + this.safeString(market, "id", ""));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "product_ids", new List<object>() {(market.ContainsKey("id") ? market["id"] : null)} },
@@ -472,7 +473,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         };
         object authentication = this.authenticate();
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, this.extend(request, authentication), messageHash, subscription));
-        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
+        return (orderbook as IOrderBook).limit().Copy();
     }
 
     public virtual object handleTrade(WebSocketClient client, Dictionary<string, object> message)
@@ -525,13 +526,12 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             ccxt.Trade trade = this.parseWsTrade(message);
             string type = "myTrades";
             string messageHash = ((type + ":") + marketId);
-            ccxt.pro.ArrayCache tradesArray = this.myTrades;
-            if ((tradesArray == null))
+            if ((this.myTrades == null))
             {
                 Int64? limit = this.safeInteger(this.options, "myTradesLimit", 1000);
-                tradesArray = new ArrayCacheBySymbolById(limit);
-                this.myTrades = tradesArray;
+                this.myTrades = new ArrayCacheBySymbolById(limit);
             }
+            ccxt.pro.ArrayCache tradesArray = this.myTrades;
             tradesArray.append(ccxt.BaseExchange.FromTrade(trade));
             client.resolve(tradesArray, messageHash);
         }
@@ -593,18 +593,19 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         Dictionary<string, object> parsed = ccxt.BaseExchange.FromTrade(base.parseTrade(trade));
         string? feeRate = null;
         bool isMaker = false;
-        if ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("maker_fee_rate")))
+        string? makerFeeRate = this.safeString(trade, "maker_fee_rate");
+        if ((makerFeeRate != null))
         {
             isMaker = true;
             parsed["takerOrMaker"] = "maker";
-            feeRate = this.safeString(trade, "maker_fee_rate");
+            feeRate = makerFeeRate;
         } else
         {
             parsed["takerOrMaker"] = "taker";
             feeRate = this.safeString(trade, "taker_fee_rate");
             // side always represents the maker side of the trade
             // so if we're taker, we invert it
-            string? currentSide = ((string)(parsed != null && parsed.ContainsKey("side") ? parsed["side"] : null));
+            string? currentSide = this.safeString(parsed, "side");
             parsed["side"] = this.safeString(new Dictionary<string, object>() {
                 { "buy", "sell" },
                 { "sell", "buy" },
@@ -616,12 +617,13 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             idKey = "maker_order_id";
         }
         parsed["order"] = this.safeString(trade, idKey);
-        Dictionary<string, object> marketResolved = this.market((parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
+        string? parsedSymbol = ((string)(parsed != null && parsed.ContainsKey("symbol") ? parsed["symbol"] : null));
+        Dictionary<string, object> marketResolved = this.market(parsedSymbol);
         string? feeCurrency = ((string)(marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null));
         string? feeCost = null;
-        if ((!((parsed != null && parsed.ContainsKey("cost") ? parsed["cost"] : null) == null)) && ((feeRate != null)))
+        string? cost = this.safeString(parsed, "cost");
+        if (((cost != null)) && ((feeRate != null)))
         {
-            string? cost = this.safeString(parsed, "cost");
             feeCost = Precise.stringMul(cost, feeRate);
         }
         parsed["fee"] = new Dictionary<string, object>() {
@@ -721,12 +723,10 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         //         "reason": "filled"
         //     }
         //
-        ccxt.pro.ArrayCache currentOrders = this.orders;
-        if ((currentOrders == null))
+        if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
-            currentOrders = new ArrayCacheBySymbolById(limit);
-            this.orders = currentOrders;
+            this.orders = new ArrayCacheBySymbolById(limit);
         }
         string? type = this.safeString(message, "type");
         string? marketId = this.safeString(message, "product_id");
@@ -737,11 +737,11 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             string? orderId = this.safeString(message, "order_id");
             string? makerOrderId = this.safeString(message, "maker_order_id");
             string? takerOrderId = this.safeString(message, "taker_order_id");
-            ccxt.pro.ArrayCache orders = this.orders;
-            if ((orders == null))
+            if ((this.orders == null))
             {
                 return;
             }
+            ccxt.pro.ArrayCache orders = this.orders;
             IDictionary<string, object> previousOrders = this.safeDict((orders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
             IDictionary<string, object> previousOrder = this.safeDict(previousOrders, orderId);
             if ((previousOrder == null))
@@ -767,18 +767,15 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                     if (type == "match")
                     {
                         ccxt.Trade trade = this.parseWsTrade(message);
-                        if (((previousOrder != null && previousOrder.ContainsKey("trades") ? previousOrder["trades"] : null) == null))
-                        {
-                            previousOrder["trades"] = new List<object>() {};
-                        }
-                        ((IList<object>)(previousOrder != null && previousOrder.ContainsKey("trades") ? previousOrder["trades"] : null)).Add(ccxt.BaseExchange.FromTrade(trade));
+                        List<object> previousTrades = this.safeList(previousOrder, "trades", new List<object>() {});
+                        previousTrades.Add(ccxt.BaseExchange.FromTrade(trade));
+                        previousOrder["trades"] = previousTrades;
                         previousOrder["lastTradeTimestamp"] = (((object)trade.timestamp));
                         string? totalCost = "0";
                         string? totalAmount = "0";
-                        object trades = (previousOrder != null && previousOrder.ContainsKey("trades") ? previousOrder["trades"] : null);
-                        for (int i = 0; i < getArrayLength(trades); i++)
+                        for (int i = 0; i < (previousTrades?.Count ?? 0); i++)
                         {
-                            IDictionary<string, object> tradeEntry = this.safeDict(trades, i);
+                            IDictionary<string, object> tradeEntry = this.safeDict(previousTrades, i);
                             totalCost = this.safeString(tradeEntry, "cost", "0");
                             totalAmount = this.safeString(tradeEntry, "amount", "0");
                         }
@@ -791,31 +788,29 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                         if ((previousOrderFilled != null))
                         {
                             previousOrder["filled"] = this.parseNumber(Precise.stringAdd(previousOrderFilled, this.safeString(ccxt.BaseExchange.FromTrade(trade), "amount")));
-                            if (!((previousOrder != null && previousOrder.ContainsKey("amount") ? previousOrder["amount"] : null) == null))
+                            if ((this.safeString(previousOrder, "amount") != null))
                             {
                                 previousOrder["remaining"] = this.parseNumber(Precise.stringSub(this.safeString(previousOrder, "amount"), this.safeString(previousOrder, "filled")));
                             }
                         }
-                        if (((previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null) == null))
+                        if ((this.safeDict(previousOrder, "fee") == null))
                         {
                             previousOrder["fee"] = new Dictionary<string, object>() {
                                 { "cost", 0 },
                                 { "currency", this.safeString((ccxt.BaseExchange.FromFee((object)trade.fee)), "currency") },
                             };
                         }
-                        if ((!(getValue((previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null), "cost") == null)) && (!(this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost") == null)))
+                        IDictionary<string, object> previousOrderFee = this.safeDict(previousOrder, "fee", new Dictionary<string, object>() {});
+                        if ((!(this.safeNumber(previousOrderFee, "cost") == null)) && (!(this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost") == null)))
                         {
-                            ((IDictionary<string,object>)(previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null))["cost"] = this.sum(getValue((previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null), "cost"), this.safeNumber((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost"));
-                            IDictionary<string, object> previousOrderFee = this.safeDict(previousOrder, "fee");
-                            IDictionary<string, object> tradeFee = this.safeDict(ccxt.BaseExchange.FromTrade(trade), "fee");
-                            ((IDictionary<string,object>)(previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null))["cost"] = this.parseNumber(Precise.stringAdd(this.safeString(previousOrderFee, "cost"), this.safeString(tradeFee, "cost")));
+                            ((IDictionary<string,object>)(previousOrder != null && previousOrder.ContainsKey("fee") ? previousOrder["fee"] : null))["cost"] = this.parseNumber(Precise.stringAdd(this.safeString(previousOrderFee, "cost"), this.safeString((ccxt.BaseExchange.FromFee((object)trade.fee)), "cost")));
                         }
                         // update the newUpdates count
                         orders.append(previousOrder);
                         client.resolve(orders, messageHash);
                     } else if ((type == "received") || (type == "done"))
                     {
-                        Dictionary<string, object> info = this.extend((previousOrder != null && previousOrder.ContainsKey("info") ? previousOrder["info"] : null), message);
+                        Dictionary<string, object> info = this.extend(previousInfo, message);
                         Dictionary<string, object> order = ccxt.BaseExchange.FromOrder(this.parseWsOrder(info));
                         List<object> keys = new List<object>(order.Keys);
                         // update the reference
@@ -828,7 +823,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                             }
                         }
                         // update the newUpdates count
-                        if ((orders == null))
+                        if ((this.orders == null))
                         {
                             return;
                         }
@@ -924,7 +919,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             {
                 this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
             }
-            string messageHash = ("ticker:" + symbol);
+            string messageHash = ("ticker:" + this.safeString(ccxt.BaseExchange.FromTicker(ticker), "symbol", ""));
             string idMessageHash = ("ticker:" + marketId);
             client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
             client.resolve(ccxt.BaseExchange.FromTicker(ticker), idMessageHash);
@@ -1035,12 +1030,12 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         string name = "level2";
-        string messageHash = ((name + ":") + marketId);
+        string messageHash = ((name + ":") + this.safeString(market, "id", ""));
         IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageHash, new Dictionary<string, object>() {});
         Int64? limit = this.safeInteger(subscription, "limit");
         if (type == "snapshot")
         {
-            if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+            if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
             {
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             }
@@ -1107,7 +1102,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         //     }
         //
         string? errMsg = this.safeString(message, "message");
-        string? reason = this.safeString(message, "reason");
+        string? reason = this.safeString(message, "reason", "");
         try
         {
             if (errMsg == "Authentication Failed")

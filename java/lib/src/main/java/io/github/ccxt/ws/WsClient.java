@@ -7,6 +7,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -82,11 +83,11 @@ public class WsClient {
 
     // State — typed as Object for compatibility with transpiled code that casts these
     public String url;
-    public Object futures = new ConcurrentHashMap<String, Future>();
-    public Object subscriptions = new ConcurrentHashMap<String, Object>();
-    public Object rejections = new ConcurrentHashMap<String, Object>();
+    public final Map<String, Future> futures = new ConcurrentHashMap<String, Future>();
+    public final Map<String, Object> subscriptions = new ConcurrentHashMap<String, Object>();
+    public final Map<String, Object> rejections = new ConcurrentHashMap<String, Object>();
     public volatile boolean isConnected = false;
-    public final AtomicBoolean startedConnecting = new AtomicBoolean(false);
+    public volatile boolean startedConnecting = false; // written under connectedLock
     public volatile long connectionEstablished = 0;
     public volatile CompletableFuture<Boolean> connected;
     public volatile long lastPong = 0;
@@ -290,7 +291,8 @@ public class WsClient {
         // future references, see https://github.com/ccxt/ccxt/issues/23490 and
         // WsClientConcurrencyTest.testConnectIsAtomic
         synchronized (connectedLock) {
-            if (this.startedConnecting.compareAndSet(false, true)) {
+            if (!this.startedConnecting) {
+                this.startedConnecting = true;
                 if (backoffDelay > 0) {
                     CompletableFuture.delayedExecutor(backoffDelay,
                             java.util.concurrent.TimeUnit.MILLISECONDS, Exchange.VIRTUAL_EXECUTOR)
@@ -483,7 +485,7 @@ public class WsClient {
         }
         this.isConnected = false;
         synchronized (connectedLock) {
-            this.startedConnecting.set(false);
+            this.startedConnecting = false;
         }
         // this.error stays set: BaseExchange.onClose reads it as the terminal marker
         if (this.onCloseCallback != null) {
@@ -520,7 +522,7 @@ public class WsClient {
             this.connected = new CompletableFuture<>();
             // cleared only after the fresh future is installed - a connect() caller
             // that wins the CAS must be guaranteed to read the new future
-            this.startedConnecting.set(false);
+            this.startedConnecting = false;
         }
 
         synchronized (futuresSync) {
@@ -679,7 +681,9 @@ public class WsClient {
             this.channel.writeAndFlush(new CloseWebSocketFrame());
         }
         this.isConnected = false;
-        this.startedConnecting.set(false);
+        synchronized (connectedLock) {
+            this.startedConnecting = false;
+        }
 
         // Wake the ping loop so it exits without waiting for the next keepAlive tick.
         Thread pt = this.pingThread;
@@ -721,7 +725,7 @@ public class WsClient {
                     .execute(() -> {
                         // Serialize with connect()'s CAS on startedConnecting.
                         synchronized (connectedLock) {
-                            if (this.isConnected || this.startedConnecting.get()) {
+                            if (this.isConnected || this.startedConnecting) {
                                 executorShutdownScheduled.set(false);
                                 return;
                             }

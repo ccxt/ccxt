@@ -67,9 +67,9 @@ func (this *Bitflyer) PrivateGetGetpermissions(args ...any) <-chan EndpointResul
 	return Fetch2Result[[]any](this, "getpermissions", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// PrivateGetGetbalance returns a channel that yields a JSON object.
-func (this *Bitflyer) PrivateGetGetbalance(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "getbalance", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+// PrivateGetGetbalance returns a channel that yields a JSON array.
+func (this *Bitflyer) PrivateGetGetbalance(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "getbalance", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // PrivateGetGetbalancehistory returns a channel that yields a JSON array.

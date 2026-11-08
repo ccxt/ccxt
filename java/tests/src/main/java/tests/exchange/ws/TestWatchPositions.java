@@ -17,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestWatchPositions extends BaseTest {
-    public CompletableFuture<Object> testWatchPositions(Exchange exchange, Object skippedProperties, Object symbol)
+    public CompletableFuture<Object> testWatchPositions(Exchange exchange, Object skippedProperties, String symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -31,7 +31,7 @@ public class TestWatchPositions extends BaseTest {
             Boolean success = true;
             try
             {
-                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
+                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{new ArrayList<String>(Arrays.asList(symbol)), (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
                 if (java.util.Objects.equals(response, null))
                 {
                     throw new RuntimeException((String)(exchange.id + " watch returned undefined response")) ;
@@ -56,9 +56,9 @@ public class TestWatchPositions extends BaseTest {
                 now = exchange.milliseconds();
                 for (var i = 0; i < Helpers.getArrayLength(response); i++)
                 {
-                    TestPosition.testPosition(exchange, skippedProperties, method, Helpers.GetValue(response, i), null, now);
+                    TestPosition.testPosition(exchange, skippedProperties, method, Helpers.GetValue(response, i), (String) (null), now);
                 }
-                TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, response);
+                TestSharedMethods.AssertTimestampOrder(exchange, method, (String) (symbol), response);
             }
             //
             // Test with specific symbol
@@ -67,7 +67,7 @@ public class TestWatchPositions extends BaseTest {
             Boolean success2 = true;
             try
             {
-                positionsForSymbols = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(symbol))), (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
+                positionsForSymbols = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchPositions", new Object[]{new ArrayList<String>(Arrays.asList(symbol)), (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
                 if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
@@ -86,9 +86,9 @@ public class TestWatchPositions extends BaseTest {
                 now = exchange.milliseconds();
                 for (var i = 0; i < ((List<?>)positionsForSymbols).size(); i++)
                 {
-                    TestPosition.testPosition(exchange, skippedProperties, method, (positionsForSymbols == null || i < 0 || i >= ((List<?>)positionsForSymbols).size() ? null : ((List<?>)positionsForSymbols).get(i)), symbol, now);
+                    TestPosition.testPosition(exchange, skippedProperties, method, (positionsForSymbols == null || i < 0 || i >= ((List<?>)positionsForSymbols).size() ? null : ((List<?>)positionsForSymbols).get(i)), (String) (symbol), now);
                 }
-                TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, positionsForSymbols);
+                TestSharedMethods.AssertTimestampOrder(exchange, method, (String) (symbol), positionsForSymbols);
             }
         }
         return true;

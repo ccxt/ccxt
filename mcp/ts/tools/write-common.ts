@@ -17,7 +17,7 @@ export interface WriteCall {
 // journaled write dispatch: intent (fsync) -> call -> result | error. A timeout or network
 // failure after dispatch maps to UNKNOWN_OUTCOME (never auto-retried) with the intent's
 // clientOrderId in the reconcile hint.
-export async function executeWrite (ctx: ServerContext, call: WriteCall, fn: () => Promise<any>): Promise<{ result?: any, error?: Envelope, intentId: string }> {
+export async function executeWrite (ctx: ServerContext, call: WriteCall, fn: () => Promise<any>): Promise<{ result?: any, error?: Envelope, cause?: any, intentId: string }> {
     const intentId = crypto.randomUUID ();
     const base = {
         'ts': new Date ().toISOString (),
@@ -43,6 +43,9 @@ export async function executeWrite (ctx: ServerContext, call: WriteCall, fn: () 
                 'mutating': true,
                 'clientOrderId': call.clientOrderId,
             }),
+            // the original exception, for callers (execute_route) that must rethrow it so the
+            // caller's own error-class logic (e.g. OrderRouter's outcome-unknown test) still works
+            'cause': error,
             intentId,
         };
     }
