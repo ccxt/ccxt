@@ -452,6 +452,140 @@
                     }
                 ]
             }
+        ],
+        "watchOrderBook": [
+            {
+                "description": "checksum frame between snapshot and update: the book keeps its rows and the next update applies (C# read the rows through safeList and threw, #31132)",
+                "input": [
+                    "BTC/USD"
+                ],
+                "url": "wss://api-pub.bitfinex.com/ws/2",
+                "messages": [
+                    {
+                        "event": "subscribed",
+                        "channel": "book",
+                        "chanId": 200,
+                        "symbol": "tBTCUSD",
+                        "prec": "P0",
+                        "freq": "F0",
+                        "len": "25",
+                        "pair": "BTCUSD"
+                    },
+                    [
+                        200,
+                        [
+                            [
+                                100,
+                                2,
+                                1.5
+                            ],
+                            [
+                                99,
+                                1,
+                                0.5
+                            ],
+                            [
+                                101,
+                                1,
+                                -2
+                            ],
+                            [
+                                102,
+                                3,
+                                -1
+                            ]
+                        ]
+                    ],
+                    [
+                        200,
+                        "cs",
+                        -710736408
+                    ],
+                    [
+                        200,
+                        [
+                            100,
+                            3,
+                            2.5
+                        ]
+                    ]
+                ],
+                "sentMessages": [
+                    {
+                        "event": "subscribe",
+                        "channel": "book",
+                        "symbol": "tBTCUSD",
+                        "prec": "P0",
+                        "freq": "F0"
+                    },
+                    {
+                        "event": "conf",
+                        "flags": 131072
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                100,
+                                1.5,
+                                2
+                            ],
+                            [
+                                99,
+                                0.5,
+                                1
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                101,
+                                2,
+                                1
+                            ],
+                            [
+                                102,
+                                1,
+                                3
+                            ]
+                        ],
+                        "timestamp": null,
+                        "datetime": null,
+                        "nonce": null,
+                        "symbol": "BTC/USD"
+                    },
+                    {
+                        "bids": [
+                            [
+                                100,
+                                2.5,
+                                3
+                            ],
+                            [
+                                99,
+                                0.5,
+                                1
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                101,
+                                2,
+                                1
+                            ],
+                            [
+                                102,
+                                1,
+                                3
+                            ]
+                        ],
+                        "timestamp": null,
+                        "datetime": null,
+                        "nonce": null,
+                        "symbol": "BTC/USD"
+                    }
+                ]
+            }
         ]
     }
 }
