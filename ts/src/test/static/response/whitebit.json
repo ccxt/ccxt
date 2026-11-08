@@ -35,6 +35,194 @@
                         "datetime": "2026-03-16T08:00:00.000Z"
                     }
                 ]
+            },
+            {
+                "description": "paginate walks back from until with endDate; whitebit returns the newest rows first and ignored until_timestamp, so fixed 8h windows got the latest rows instead of the requested days",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1792368000000,
+                    null,
+                    {
+                        "paginate": true,
+                        "maxEntriesPerRequest": 3,
+                        "until": 1792540799000
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "endDate=1792540799&limit=3": [
+                        {
+                            "fundingTime": "1792512000",
+                            "fundingRate": "-0.00001955",
+                            "market": "BTC_PERP",
+                            "settlementPrice": "82555",
+                            "rateCalculatedTime": "1792483200"
+                        },
+                        {
+                            "fundingTime": "1792483200",
+                            "fundingRate": "0.00009568",
+                            "market": "BTC_PERP",
+                            "settlementPrice": "81412.1",
+                            "rateCalculatedTime": "1792454400"
+                        },
+                        {
+                            "fundingTime": "1792454400",
+                            "fundingRate": "0.00004576",
+                            "market": "BTC_PERP",
+                            "settlementPrice": "81839.5",
+                            "rateCalculatedTime": "1792425600"
+                        }
+                    ],
+                    "endDate=1792454399&limit=3": [
+                        {
+                            "fundingTime": "1792425600",
+                            "fundingRate": "0.0001",
+                            "market": "BTC_PERP",
+                            "settlementPrice": "81895.4",
+                            "rateCalculatedTime": "1792396800"
+                        },
+                        {
+                            "fundingTime": "1792396800",
+                            "fundingRate": "-0.00014795",
+                            "market": "BTC_PERP",
+                            "settlementPrice": "82675.2",
+                            "rateCalculatedTime": "1792368000"
+                        },
+                        {
+                            "fundingTime": "1792368000",
+                            "fundingRate": "0.00009204",
+                            "market": "BTC_PERP",
+                            "settlementPrice": "82036.9",
+                            "rateCalculatedTime": "1792339200"
+                        }
+                    ],
+                    "startDate=1792368000&until_timestamp=1792540799&limit=3": [
+                        {
+                            "fundingTime": "1792915200",
+                            "fundingRate": "0.0001",
+                            "market": "BTC_PERP",
+                            "settlementPrice": "80657.3",
+                            "rateCalculatedTime": "1792886400"
+                        },
+                        {
+                            "fundingTime": "1792886400",
+                            "fundingRate": "0.0001",
+                            "market": "BTC_PERP",
+                            "settlementPrice": "80802.6",
+                            "rateCalculatedTime": "1792857600"
+                        },
+                        {
+                            "fundingTime": "1792857600",
+                            "fundingRate": "0.0001",
+                            "market": "BTC_PERP",
+                            "settlementPrice": "79768.3",
+                            "rateCalculatedTime": "1792828800"
+                        }
+                    ],
+                    "startDate=1792454400&until_timestamp=1792540799&limit=3": [
+                        {
+                            "fundingTime": "1792915200",
+                            "fundingRate": "0.0001",
+                            "market": "BTC_PERP",
+                            "settlementPrice": "80657.3",
+                            "rateCalculatedTime": "1792886400"
+                        },
+                        {
+                            "fundingTime": "1792886400",
+                            "fundingRate": "0.0001",
+                            "market": "BTC_PERP",
+                            "settlementPrice": "80802.6",
+                            "rateCalculatedTime": "1792857600"
+                        },
+                        {
+                            "fundingTime": "1792857600",
+                            "fundingRate": "0.0001",
+                            "market": "BTC_PERP",
+                            "settlementPrice": "79768.3",
+                            "rateCalculatedTime": "1792828800"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "fundingTime": "1792368000",
+                            "fundingRate": "0.00009204",
+                            "market": "BTC_PERP",
+                            "settlementPrice": "82036.9",
+                            "rateCalculatedTime": "1792339200"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.00009204,
+                        "timestamp": 1792368000000,
+                        "datetime": "2026-10-19T00:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "fundingTime": "1792396800",
+                            "fundingRate": "-0.00014795",
+                            "market": "BTC_PERP",
+                            "settlementPrice": "82675.2",
+                            "rateCalculatedTime": "1792368000"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": -0.00014795,
+                        "timestamp": 1792396800000,
+                        "datetime": "2026-10-19T08:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "fundingTime": "1792425600",
+                            "fundingRate": "0.0001",
+                            "market": "BTC_PERP",
+                            "settlementPrice": "81895.4",
+                            "rateCalculatedTime": "1792396800"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.0001,
+                        "timestamp": 1792425600000,
+                        "datetime": "2026-10-19T16:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "fundingTime": "1792454400",
+                            "fundingRate": "0.00004576",
+                            "market": "BTC_PERP",
+                            "settlementPrice": "81839.5",
+                            "rateCalculatedTime": "1792425600"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.00004576,
+                        "timestamp": 1792454400000,
+                        "datetime": "2026-10-20T00:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "fundingTime": "1792483200",
+                            "fundingRate": "0.00009568",
+                            "market": "BTC_PERP",
+                            "settlementPrice": "81412.1",
+                            "rateCalculatedTime": "1792454400"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.00009568,
+                        "timestamp": 1792483200000,
+                        "datetime": "2026-10-20T08:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "fundingTime": "1792512000",
+                            "fundingRate": "-0.00001955",
+                            "market": "BTC_PERP",
+                            "settlementPrice": "82555",
+                            "rateCalculatedTime": "1792483200"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": -0.00001955,
+                        "timestamp": 1792512000000,
+                        "datetime": "2026-10-20T16:00:00.000Z"
+                    }
+                ]
             }
         ],
         "fetchTickers": [
