@@ -6,6 +6,7 @@ import { ok, project, stripInfo, nextPage, TICKER_FIELDS, MARKET_FIELDS, TRADE_F
 import { run, clampLimit, parseSince, marketTypeMismatchNotice, exchangeParam, predictionParam, paramsParam, sinceParam } from './common.js';
 import { methodSignature, methodDocs, featuresSlice, unifiedMethods, implicitVerb, isImplicitMethod, listImplicitMethods } from '../introspect.js';
 import { requireTier } from '../safety.js';
+import { shapeResult } from '../shape.js';
 
 const marketTypeParam = z.string ().optional ().describe ('market type routing for exchanges with several (e.g. "spot", "swap", "future", "option") — sets options.defaultType on a dedicated instance');
 
@@ -174,7 +175,7 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
             'quote': z.string ().optional ().describe ('quote currency filter, e.g. "USDT"'),
             'settle': z.string ().optional ().describe ('settle currency filter (derivatives)'),
             'activeOnly': z.boolean ().optional ().describe ('only active markets (default true)'),
-            'limit': z.number ().int ().optional ().describe ('max results (default 50, max 200)'),
+            'limit': z.number ().int ().optional ().describe ('max results (default 50, max 100)'),
             'offset': z.number ().int ().optional ().describe ('pagination offset'),
             'reload': z.boolean ().optional ().describe ('force-refresh the markets cache'),
             'prediction': predictionParam,
@@ -185,7 +186,8 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
         if (args.reload === true) {
             await exchange.loadMarkets (true);
         }
-        const limit = clampLimit (args.limit, 50, 200);
+        // 100 full market rows ≈ 13k tokens; 200 (≈ 26k) overflowed the host tool-result limit
+        const limit = clampLimit (args.limit, 50, 100);
         const offset = Math.max (0, args.offset ?? 0);
         const activeOnly = args.activeOnly !== false;
         const query = args.query?.toLowerCase ();
@@ -446,19 +448,22 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
 
     server.registerTool ('call_read_method', {
         'title': 'Call any read-only unified ccxt method',
-        'description': 'Escape hatch covering every unified read method not served by a dedicated tool (fetchFundingRate, fetchLedger, fetchOpenInterest, fetchLiquidations, fetchEvent, fetchSettlements, …). Only fetch*/load* methods are accepted — writes are structurally rejected. Get the signature first with describe_method. Docs: https://docs.ccxt.com/',
+        'description': 'Escape hatch covering every unified read method not served by a dedicated tool (fetchFundingRate(s), fetchLedger, fetchOpenInterest(s), fetchLiquidations, fetchEvent, fetchSettlements, …). Only fetch*/load* methods are accepted — writes are structurally rejected. Get the signature first with describe_method. Bulk methods without a symbol filter return every market (okx fetchFundingRates ≈ 800 entries, ~127k tokens) — shape them server-side with sortBy/limit/fields to get only what you need in one response, e.g. {"method": "fetchFundingRates", "sortBy": "-fundingRate", "limit": 20, "fields": ["fundingRate", "nextFundingDatetime"]}. Docs: https://docs.ccxt.com/',
         'inputSchema': {
             'exchange': exchangeParam,
             'method': z.string ().describe ('unified method name matching ^(fetch|load), e.g. "fetchFundingRate"'),
             'args': z.array (z.union ([ z.string (), z.number (), z.boolean (), z.null () ])).optional ().describe ('positional arguments per the describe_method usage line; ISO8601 strings become ms timestamps; null skips an optional argument'),
             'account': z.string ().optional ().describe ('configured account name — required for private reads like fetchLedger'),
             'includeInfo': z.boolean ().optional ().describe ('keep the raw exchange payload inside unified structures'),
+            'sortBy': z.string ().optional ().describe ('sort a list result (array, or map keyed by symbol) by this field of each entry, applied server-side before limit; prefix "-" for descending, e.g. "-fundingRate". Entries missing the field sort last'),
+            'limit': z.number ().int ().positive ().optional ().describe ('keep only the first N entries of a list result (after sortBy). Server-side: the exchange call is unchanged — for the exchange\'s own limit argument use "args"'),
+            'fields': z.array (z.string ()).min (1).optional ().describe ('keep only these top-level fields of each entry (or of a single structure), e.g. ["fundingRate", "nextFundingDatetime"]; array rows also keep "symbol"'),
             'marketType': marketTypeParam,
             'prediction': predictionParam,
             'params': paramsParam,
         },
         'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
-    }, async ({ exchange: exchangeId, method, args, account: accountName, includeInfo, marketType, prediction, params }) => run ({ 'tool': 'call_read_method', 'exchange': exchangeId, 'account': accountName }, async () => {
+    }, async ({ exchange: exchangeId, method, args, account: accountName, includeInfo, sortBy, limit, fields, marketType, prediction, params }) => run ({ 'tool': 'call_read_method', 'exchange': exchangeId, 'account': accountName }, async () => {
         if (method.startsWith ('watch') || method.endsWith ('Ws') || method.startsWith ('un')) {
             return { 'ok': false, 'error': { 'code': 'USE_WATCH_TOOLS', 'message': method + ' is a WebSocket/streaming method — call_read_method is for one-shot reads', 'retryable': false, 'hint': 'for live streaming use watch_subscribe (' + method + ') then watch_read; for a single snapshot use the fetch* equivalent (e.g. fetchTicker)' } };
         }
@@ -485,7 +490,8 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
         const callArgs = buildArgs (exchange, method, args ?? [], params);
         const result = await exchange[method] (...callArgs);
         const data = includeInfo === true ? result : stripInfo (result);
-        return ok (data, { 'exchange': exchange.id, method });
+        const shaped = shapeResult (data, { fields, sortBy, limit });
+        return ok (shaped.data, { 'exchange': exchange.id, method, ...shaped.meta });
     }));
 
     server.registerTool ('call_implicit_get', {
