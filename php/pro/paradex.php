@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -14,7 +15,7 @@ use ccxt\pro\ArrayCacheBySymbolById;
 use ccxt\pro\ArrayCacheBySymbolBySide;
 
 class paradex extends \ccxt\async\paradex {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -78,6 +79,23 @@ class paradex extends \ccxt\async\paradex {
         return $requestId;
     }
 
+    public function subscribe_request(string $channel): array {
+        /**
+         * @ignore
+         * builds a json-rpc subscribe request, its id is kept in the subscription passed to watch, so an error reply reaches only the watchers of that request
+         * @param {string} $channel the $channel to subscribe to
+         * @return {array} the subscribe request
+         */
+        return array(
+            'jsonrpc' => '2.0',
+            'id' => $this->request_id(),
+            'method' => 'subscribe',
+            'params' => array(
+                'channel' => $channel,
+            ),
+        );
+    }
+
     public function authenticate($params = array()) {
         return Async\async(self::do_authenticate(...))($params);
     }
@@ -90,15 +108,19 @@ class paradex extends \ccxt\async\paradex {
         $authenticated = $this->safe_value($client->subscriptions, $messageHash);
         if ($authenticated === null) {
             $token = Async\await($this->authenticateRest());
+            $requestId = $this->request_id();
             $request = array(
                 'jsonrpc' => '2.0',
-                'id' => $this->request_id(),
+                'id' => $requestId,
                 'method' => 'auth',
                 'params' => array(
                     'bearer' => $token,
                 ),
             );
-            $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash);
+            $subscription = array(
+                'id' => $requestId,
+            );
+            $this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, $subscription);
         }
         return Async\await($future);
     }
@@ -111,13 +133,39 @@ class paradex extends \ccxt\async\paradex {
         //         "result": { "node_id": "73cf456f7cb78d59" }
         //     }
         //
+        // the future stays resolved, so later private watches on this connection skip the auth request
+        $future = $this->safe_value($client->futures, 'authenticated');
+        if ($future !== null) {
+            $future->resolve(true);
+        }
+    }
+
+    public function handle_request_reply(Client $client, array $message) {
+        //
+        // auth
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 1,
+        //         "result": { "node_id": "73cf456f7cb78d59" }
+        //     }
+        //
+        // subscribe
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 2,
+        //         "result": { "channel": "orders.ALL" }
+        //     }
+        //
+        // only the reply to the auth request resolves the auth, a subscribe ack carries a channel instead of a node id
+        $requestId = $this->safe_string($message, 'id');
+        $authSubscription = $this->safe_dict($client->subscriptions, 'authenticated');
+        $authRequestId = $this->safe_string($authSubscription, 'id');
         $result = $this->safe_dict($message, 'result');
-        if ($result !== null) {
-            // client.resolve (true, messageHash);
-            $future = $this->safe_value($client->futures, 'authenticated');
-            if ($future !== null) {
-                $future->resolve(true);
-            }
+        $isAuth = (($requestId !== null) && ($requestId === $authRequestId)) || ($this->safe_string($result, 'node_id') !== null);
+        if ($isAuth) {
+            $this->handle_authentication_message($client, $message);
         }
     }
 
@@ -140,22 +188,18 @@ class paradex extends \ccxt\async\paradex {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $messageHash = 'trades.';
+        $messageHash = 'trades.ALL';
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $messageHash .= $market['id'];
-        } else {
-            $messageHash .= 'ALL';
+            $messageHash = 'trades.' . $market['id'];
         }
         $url = $this->get_ws_url();
-        $request = array(
-            'jsonrpc' => '2.0',
-            'method' => 'subscribe',
-            'params' => array(
-                'channel' => $messageHash,
-            ),
+        $request = $this->subscribe_request($messageHash);
+        $subscription = array(
+            'id' => $request['id'],
+            'messageHashes' => array( $messageHash ),
         );
-        $trades = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
+        $trades = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, $subscription));
         $limitResolved = $limit;
         if ($this->newUpdates) {
             $limitResolved = $trades->getLimit($symbol, $limit);
@@ -224,14 +268,12 @@ class paradex extends \ccxt\async\paradex {
         $market = $this->market($symbol);
         $messageHash = $this->get_order_book_channel($market['id']);
         $url = $this->get_ws_url();
-        $request = array(
-            'jsonrpc' => '2.0',
-            'method' => 'subscribe',
-            'params' => array(
-                'channel' => $messageHash,
-            ),
+        $request = $this->subscribe_request($messageHash);
+        $subscription = array(
+            'id' => $request['id'],
+            'messageHashes' => array( $messageHash ),
         );
-        $orderbook = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
+        $orderbook = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, $subscription));
         return $orderbook->limit();
     }
 
@@ -270,7 +312,7 @@ class paradex extends \ccxt\async\paradex {
         $marketId = $this->safe_string($data, 'market');
         $market = $this->safe_market($marketId);
         $timestamp = $this->safe_integer($data, 'last_updated_at');
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
@@ -323,15 +365,13 @@ class paradex extends \ccxt\async\paradex {
         // option too, thousands of messages a second, all decoded only to be filtered out
         $channel = 'markets_summary.' . $market['id'];
         $url = $this->get_ws_url();
-        $request = array(
-            'jsonrpc' => '2.0',
-            'method' => 'subscribe',
-            'params' => array(
-                'channel' => $channel,
-            ),
-        );
         $messageHash = 'markets_summary.' . $market['symbol'];
-        return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $channel));
+        $request = $this->subscribe_request($channel);
+        $subscription = array(
+            'id' => $request['id'],
+            'messageHashes' => array( $messageHash ),
+        );
+        return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $channel, $subscription));
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -354,13 +394,6 @@ class paradex extends \ccxt\async\paradex {
         $symbolsNormalized = $this->market_symbols($symbols);
         $channel = 'markets_summary';
         $url = $this->get_ws_url();
-        $request = array(
-            'jsonrpc' => '2.0',
-            'method' => 'subscribe',
-            'params' => array(
-                'channel' => $channel,
-            ),
-        );
         $messageHashes = array();
         if ($symbolsNormalized !== null && (gettype($symbolsNormalized) === 'array' && array_keys($symbolsNormalized) === array_keys(array_keys($symbolsNormalized)))) {
             for ($i = 0; $i < count($symbolsNormalized); $i++) {
@@ -370,7 +403,11 @@ class paradex extends \ccxt\async\paradex {
         } else {
             $messageHashes[] = $channel;
         }
-        $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes));
+        $request = $this->subscribe_request($channel);
+        $subscription = array(
+            'id' => $request['id'],
+        );
+        $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes, $subscription));
         if ($this->newUpdates) {
             $result = array();
             $newTickerSymbol = $this->safe_string($newTicker, 'symbol');
@@ -403,24 +440,20 @@ class paradex extends \ccxt\async\paradex {
         }
         Async\await($this->authenticate());
         $messageHash = 'orders';
-        $channel = 'orders.';
+        $channel = 'orders.ALL';
         $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $channel .= $market['id'];
-            $messageHash .= ':' . $symbolResolved;
-        } else {
-            $channel .= 'ALL';
+            $channel = 'orders.' . $market['id'];
+            $messageHash = 'orders:' . $symbolResolved;
         }
         $url = $this->get_ws_url();
-        $request = array(
-            'jsonrpc' => '2.0',
-            'method' => 'subscribe',
-            'params' => array(
-                'channel' => $channel,
-            ),
+        $request = $this->subscribe_request($channel);
+        $subscription = array(
+            'id' => $request['id'],
+            'messageHashes' => array( $messageHash ),
         );
-        $orders = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $channel));
+        $orders = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $channel, $subscription));
         $limitResolved = $limit;
         if ($this->newUpdates) {
             $limitResolved = $orders->getLimit($symbolResolved, $limit);
@@ -494,24 +527,20 @@ class paradex extends \ccxt\async\paradex {
         }
         Async\await($this->authenticate());
         $messageHash = 'myTrades';
-        $channel = 'fills.';
+        $channel = 'fills.ALL';
         $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $channel .= $market['id'];
-            $messageHash .= ':' . $symbolResolved;
-        } else {
-            $channel .= 'ALL';
+            $channel = 'fills.' . $market['id'];
+            $messageHash = 'myTrades:' . $symbolResolved;
         }
         $url = $this->get_ws_url();
-        $request = array(
-            'jsonrpc' => '2.0',
-            'method' => 'subscribe',
-            'params' => array(
-                'channel' => $channel,
-            ),
+        $request = $this->subscribe_request($channel);
+        $subscription = array(
+            'id' => $request['id'],
+            'messageHashes' => array( $messageHash ),
         );
-        $trades = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $channel));
+        $trades = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $channel, $subscription));
         $limitResolved = $limit;
         if ($this->newUpdates) {
             $limitResolved = $trades->getLimit($symbolResolved, $limit);
@@ -585,13 +614,6 @@ class paradex extends \ccxt\async\paradex {
         // one channel carries every market
         $channel = 'positions';
         $url = $this->get_ws_url();
-        $request = array(
-            'jsonrpc' => '2.0',
-            'method' => 'subscribe',
-            'params' => array(
-                'channel' => $channel,
-            ),
-        );
         $messageHashes = array();
         $symbolsLength = 0;
         if ($symbolsNormalized !== null) {
@@ -604,7 +626,12 @@ class paradex extends \ccxt\async\paradex {
                 $messageHashes[] = $channel . ':' . ($symbolsNormalized)[$i];
             }
         }
-        $newPositions = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), array( $channel )));
+        $request = $this->subscribe_request($channel);
+        $subscription = array(
+            'id' => $request['id'],
+            'messageHashes' => $messageHashes,
+        );
+        $newPositions = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), array( $channel ), $subscription));
         if ($this->newUpdates) {
             return $newPositions;
         }
@@ -688,14 +715,13 @@ class paradex extends \ccxt\async\paradex {
         Async\await($this->authenticate());
         $channel = 'account';
         $url = $this->get_ws_url();
-        $request = array(
-            'jsonrpc' => '2.0',
-            'method' => 'subscribe',
-            'params' => array(
-                'channel' => $channel,
-            ),
+        $messageHash = 'balance';
+        $request = $this->subscribe_request($channel);
+        $subscription = array(
+            'id' => $request['id'],
+            'messageHashes' => array( $messageHash ),
         );
-        return Async\await($this->watch($url, 'balance', $this->deep_extend($request, $params), $channel));
+        return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $channel, $subscription));
     }
 
     public function handle_balance(Client $client, array $message) {
@@ -828,15 +854,13 @@ class paradex extends \ccxt\async\paradex {
         $symbolValue = $this->symbol($symbol);
         $channel = 'funding_data';
         $url = $this->get_ws_url();
-        $request = array(
-            'jsonrpc' => '2.0',
-            'method' => 'subscribe',
-            'params' => array(
-                'channel' => $channel,
-            ),
-        );
         $messageHash = $channel . '.' . $symbolValue;
-        return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
+        $request = $this->subscribe_request($channel);
+        $subscription = array(
+            'id' => $request['id'],
+            'messageHashes' => array( $messageHash ),
+        );
+        return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, $subscription));
     }
 
     public function watch_funding_rates(?array $symbols = null, $params = array()): PromiseInterface {
@@ -859,13 +883,6 @@ class paradex extends \ccxt\async\paradex {
         $symbolsNormalized = $this->market_symbols($symbols);
         $channel = 'funding_data';
         $url = $this->get_ws_url();
-        $request = array(
-            'jsonrpc' => '2.0',
-            'method' => 'subscribe',
-            'params' => array(
-                'channel' => $channel,
-            ),
-        );
         $messageHashes = array();
         if ($symbolsNormalized !== null) {
             $symbolsLength = count($symbolsNormalized);
@@ -880,7 +897,11 @@ class paradex extends \ccxt\async\paradex {
         } else {
             $messageHashes[] = $channel;
         }
-        $newFundingRates = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes));
+        $request = $this->subscribe_request($channel);
+        $subscription = array(
+            'id' => $request['id'],
+        );
+        $newFundingRates = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes, $subscription));
         if ($this->newUpdates) {
             $result = array();
             $newFundingRatesSymbol = $this->safe_string($newFundingRates, 'symbol');
@@ -914,7 +935,7 @@ class paradex extends \ccxt\async\paradex {
         $params = $this->safe_dict($message, 'params', array());
         $data = $this->safe_dict($params, 'data', array());
         $fundingRate = $this->parse_funding_rate_ws($data);
-        $symbol = $fundingRate['symbol'];
+        $symbol = $this->safe_string($fundingRate, 'symbol');
         $this->fundingRates[$symbol] = $fundingRate;
         $channel = $this->safe_string($params, 'channel');
         // watchFundingRates without symbols waits on the bare channel
@@ -994,12 +1015,12 @@ class paradex extends \ccxt\async\paradex {
         if ($templateId === 1) {
             $data = $this->parse_sbe_trade($frameHex, $blockLength, $frameLength);
             if ($data !== null) {
-                $channel = 'trades.' . $data['market'];
+                $channel = 'trades.' . $this->safe_string($data, 'market', '');
             }
         } elseif ($templateId === 3) {
             $data = $this->parse_sbe_order_book($frameHex, $blockLength, $frameLength);
             if ($data !== null) {
-                $channel = $this->get_order_book_channel($data['market']);
+                $channel = $this->get_order_book_channel($this->safe_string($data, 'market'));
             }
         } elseif ($templateId === 4) {
             $data = $this->parse_sbe_market_summary($frameHex, $blockLength, $frameLength);
@@ -1010,12 +1031,12 @@ class paradex extends \ccxt\async\paradex {
         } elseif ($templateId === 20) {
             $data = $this->parse_sbe_order($frameHex, $blockLength, $frameLength);
             if ($data !== null) {
-                $channel = 'orders.' . $data['market'];
+                $channel = 'orders.' . $this->safe_string($data, 'market', '');
             }
         } elseif ($templateId === 21) {
             $data = $this->parse_sbe_fill($frameHex, $blockLength, $frameLength);
             if ($data !== null) {
-                $channel = 'fills.' . $data['market'];
+                $channel = 'fills.' . $this->safe_string($data, 'market', '');
             }
         } elseif ($templateId === 22) {
             $data = $this->parse_sbe_position($frameHex, $blockLength, $frameLength);
@@ -1124,10 +1145,11 @@ class paradex extends \ccxt\async\paradex {
         return '0x' . mb_substr($raw, $start, 64 - $start);
     }
 
-    public function sbe_read_var_strings(string $frameHex, float $offset, float $count, float $frameLength): mixed {
-        // the var-data section: count strings, each prefixed with a uint8 length. Returns undefined
+    public function sbe_read_var_strings(string $frameHex, float $offset, float $count, float $frameLength): array {
+        // the var-data section: count strings, each prefixed with a uint8 length. Returns an empty list
         // when the frame ends before all of them, and only the strings present when a trailing one is
-        // absent, which is how a field appended to var-data reads on a frame from before it
+        // absent, which is how a field appended to var-data reads on a frame from before it.
+        // Every caller guards on the count it needs, so an empty list and a short one read alike
         $result = array();
         $end = $this->parse_to_int($frameLength);
         $total = $this->parse_to_int($count);
@@ -1139,7 +1161,7 @@ class paradex extends \ccxt\async\paradex {
             $length = $this->parse_to_int($this->sbe_read_uint($frameHex, $position, 1));
             $next = $this->parse_to_int($this->sum($position, 1, $length));
             if ($next > $end) {
-                return null;
+                return array();
             }
             $result[] = $this->sbe_read_string($frameHex, $position + 1, $length);
             $position = $next;
@@ -1159,7 +1181,7 @@ class paradex extends \ccxt\async\paradex {
             return null;
         }
         $strings = $this->sbe_read_var_strings($frameHex, $this->sum($blockLength, 8), 2, $frameLength);
-        $stringsLength = ($strings === null) ? 0 : count($strings);
+        $stringsLength = count($strings);
         if ($stringsLength < 1) {
             return null;
         }
@@ -1168,7 +1190,7 @@ class paradex extends \ccxt\async\paradex {
         return array(
             // the full trade id, absent only on frames that predate it, the int64 tradeId cannot hold it
             'id' => $this->safe_string($strings, 1),
-            'market' => $strings[0],
+            'market' => $this->safe_string($strings, 0),
             'side' => $this->sbe_read_enum($frameHex, 32, $sides),
             'size' => $this->sbe_read_decimal($frameHex, 41),
             'price' => $this->sbe_read_decimal($frameHex, 33),
@@ -1217,13 +1239,13 @@ class paradex extends \ccxt\async\paradex {
             }
         }
         $strings = $this->sbe_read_var_strings($frameHex, $position, 1, $frameLength);
-        $stringsLength = ($strings === null) ? 0 : count($strings);
+        $stringsLength = count($strings);
         if ($stringsLength < 1) {
             return null;
         }
         return array(
             'seq_no' => $this->sbe_read_int64($frameHex, 16),
-            'market' => $strings[0],
+            'market' => $this->safe_string($strings, 0),
             'last_updated_at' => $this->sbe_read_timestamp($frameHex, 8),
             'update_type' => 's',
             'inserts' => $inserts,
@@ -1246,7 +1268,7 @@ class paradex extends \ccxt\async\paradex {
             return null;
         }
         $strings = $this->sbe_read_var_strings($frameHex, $this->sum($blockLength, 8), 1, $frameLength);
-        $stringsLength = ($strings === null) ? 0 : count($strings);
+        $stringsLength = count($strings);
         if ($stringsLength < 1) {
             return null;
         }
@@ -1256,7 +1278,7 @@ class paradex extends \ccxt\async\paradex {
             $settlementTwapEstimate = $this->sbe_read_decimal($frameHex, 248);
         }
         return array(
-            'symbol' => $strings[0],
+            'symbol' => $this->safe_string($strings, 0),
             'mark_price' => $this->sbe_read_decimal($frameHex, 24),
             'last_traded_price' => $this->sbe_read_decimal($frameHex, 40),
             'bid' => $this->sbe_read_decimal($frameHex, 72),
@@ -1284,12 +1306,12 @@ class paradex extends \ccxt\async\paradex {
             return null;
         }
         $strings = $this->sbe_read_var_strings($frameHex, $this->sum($blockLength, 8), 1, $frameLength);
-        $stringsLength = ($strings === null) ? 0 : count($strings);
+        $stringsLength = count($strings);
         if ($stringsLength < 1) {
             return null;
         }
         return array(
-            'market' => $strings[0],
+            'market' => $this->safe_string($strings, 0),
             'funding_index' => $this->sbe_read_decimal($frameHex, 32),
             'funding_premium' => $this->sbe_read_decimal($frameHex, 48),
             'funding_rate' => $this->sbe_read_decimal($frameHex, 24),
@@ -1313,7 +1335,7 @@ class paradex extends \ccxt\async\paradex {
             return null;
         }
         $strings = $this->sbe_read_var_strings($frameHex, $this->sum($blockLength, 8), 4, $frameLength);
-        $stringsLength = ($strings === null) ? 0 : count($strings);
+        $stringsLength = count($strings);
         if ($stringsLength < 4) {
             return null;
         }
@@ -1326,13 +1348,13 @@ class paradex extends \ccxt\async\paradex {
         $order = array(
             'account' => $this->sbe_read_address($frameHex, 84),
             'avg_fill_price' => $this->sbe_read_decimal($frameHex, 60),
-            'client_id' => $strings[1],
+            'client_id' => $this->safe_string($strings, 1),
             'created_at' => $this->sbe_read_timestamp($frameHex, 68),
             'flags' => $flags,
-            'id' => $strings[0],
+            'id' => $this->safe_string($strings, 0),
             'instruction' => $this->sbe_read_enum($frameHex, 27, $timeInForces),
             'last_updated_at' => $this->sbe_read_timestamp($frameHex, 76),
-            'market' => $strings[2],
+            'market' => $this->safe_string($strings, 2),
             'price' => $this->sbe_read_decimal($frameHex, 28),
             'published_at' => $this->sbe_read_timestamp($frameHex, 124),
             'received_at' => $this->sbe_read_timestamp($frameHex, 116),
@@ -1347,8 +1369,9 @@ class paradex extends \ccxt\async\paradex {
             'type' => $this->sbe_read_enum($frameHex, 26, $orderTypes),
         );
         // an empty cancel reason is sent for every live order, parseOrder reads any reason as canceled
-        if ($strings[3] !== '') {
-            $order['cancel_reason'] = $strings[3];
+        $cancelReason = $this->safe_string($strings, 3, '');
+        if ($cancelReason !== '') {
+            $order['cancel_reason'] = $cancelReason;
         }
         return $order;
     }
@@ -1381,7 +1404,7 @@ class paradex extends \ccxt\async\paradex {
             return null;
         }
         $strings = $this->sbe_read_var_strings($frameHex, $this->sum($blockLength, 8), 6, $frameLength);
-        $stringsLength = ($strings === null) ? 0 : count($strings);
+        $stringsLength = count($strings);
         if ($stringsLength < 5) {
             return null;
         }
@@ -1390,15 +1413,15 @@ class paradex extends \ccxt\async\paradex {
         $liquidities = array( '1' => 'MAKER', '2' => 'TAKER' );
         $fill = array(
             'account' => $this->sbe_read_address($frameHex, 67),
-            'client_id' => $strings[2],
+            'client_id' => $this->safe_string($strings, 2),
             'created_at' => $this->sbe_read_timestamp($frameHex, 59),
             'fee' => $this->sbe_read_decimal($frameHex, 43),
             'fee_currency' => $this->safe_string($strings, 5),
             'fill_type' => $this->sbe_read_enum($frameHex, 24, $fillTypes),
-            'id' => $strings[0],
+            'id' => $this->safe_string($strings, 0),
             'liquidity' => $this->sbe_read_enum($frameHex, 26, $liquidities),
-            'market' => $strings[4],
-            'order_id' => $strings[1],
+            'market' => $this->safe_string($strings, 4),
+            'order_id' => $this->safe_string($strings, 1),
             'price' => $this->sbe_read_decimal($frameHex, 27),
             'realized_funding' => $this->sbe_read_decimal($frameHex, 107),
             'realized_pnl' => $this->sbe_read_decimal($frameHex, 51),
@@ -1429,7 +1452,7 @@ class paradex extends \ccxt\async\paradex {
             return null;
         }
         $strings = $this->sbe_read_var_strings($frameHex, $this->sum($blockLength, 8), 2, $frameLength);
-        $stringsLength = ($strings === null) ? 0 : count($strings);
+        $stringsLength = count($strings);
         if ($stringsLength < 1) {
             return null;
         }
@@ -1450,12 +1473,12 @@ class paradex extends \ccxt\async\paradex {
             'cost' => $this->sbe_read_decimal($frameHex, 129),
             'cost_usd' => $this->sbe_read_decimal($frameHex, 137),
             // the JSON channel's id, one position per account and market
-            'id' => $account . '-' . $strings[0],
+            'id' => $account . '-' . $this->safe_string($strings, 0, ''),
             'last_fill_id' => $this->safe_string($strings, 1),
             'last_updated_at' => $this->sbe_read_timestamp($frameHex, 81),
             'leverage' => $this->sbe_read_decimal($frameHex, 73),
             'liquidation_price' => $this->sbe_read_decimal($frameHex, 65),
-            'market' => $strings[0],
+            'market' => $this->safe_string($strings, 0),
             'realized_positional_pnl' => $this->sbe_read_decimal($frameHex, 49),
             'seq_no' => $this->sbe_read_int64($frameHex, 16),
             'side' => $side,
@@ -1480,7 +1503,7 @@ class paradex extends \ccxt\async\paradex {
             return null;
         }
         $strings = $this->sbe_read_var_strings($frameHex, $this->sum($blockLength, 8), 1, $frameLength);
-        $stringsLength = ($strings === null) ? 0 : count($strings);
+        $stringsLength = count($strings);
         if ($stringsLength < 1) {
             return null;
         }
@@ -1493,7 +1516,7 @@ class paradex extends \ccxt\async\paradex {
             'maintenance_margin_requirement' => $this->sbe_read_decimal($frameHex, 48),
             'margin_cushion' => $this->sbe_read_decimal($frameHex, 112),
             'seq_no' => $this->sbe_read_int64($frameHex, 16),
-            'settlement_asset' => $strings[0],
+            'settlement_asset' => $this->safe_string($strings, 0),
             'status' => $this->sbe_read_enum($frameHex, 120, $statuses),
             'total_collateral' => $this->sbe_read_decimal($frameHex, 24),
             'updated_at' => $this->sbe_read_timestamp($frameHex, 72),
@@ -1522,29 +1545,65 @@ class paradex extends \ccxt\async\paradex {
         $error = $this->safe_dict($message, 'error');
         if ($error === null) {
             return true;
-        } else {
+        }
+        try {
+            $feedback = $this->id . ' ' . $this->json($error);
             $errorCode = $this->safe_string($error, 'code');
             if ($errorCode !== null) {
-                $feedback = $this->id . ' ' . $this->json($error);
-                $this->throw_exactly_matched_exception($this->exceptions['exact'], '-32600', $feedback);
-                $messageString = $this->safe_string($error, 'message');
-                if ($messageString !== null) {
-                    $this->throw_broadly_matched_exception($this->exceptions['broad'], $messageString, $feedback);
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
+            }
+            $messageString = $this->safe_string($error, 'message');
+            if ($messageString !== null) {
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $messageString, $feedback);
+            }
+            throw new ExchangeError($feedback);
+        } catch (Exception $e) {
+            // the subscription of every request sent keeps its id, so the request this error answers is found
+            // by it. A failed subscribe or auth is forgotten, so that the next watch sends it again
+            $requestId = $this->safe_string($message, 'id');
+            $handled = false;
+            if ($requestId !== null) {
+                $subscribeHashes = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
+                for ($i = 0; $i < count($subscribeHashes); $i++) {
+                    $subscribeHash = $subscribeHashes[$i];
+                    $subscription = $this->safe_dict($client->subscriptions, $subscribeHash);
+                    if ($this->safe_string($subscription, 'id') === $requestId) {
+                        $handled = true;
+                        unset($client->subscriptions[$subscribeHash]);
+                        // watchMultiple subscribes per message hash, so the subscribe hash is what its watcher waits on
+                        $messageHashes = $this->safe_list($subscription, 'messageHashes', array( $subscribeHash ));
+                        for ($j = 0; $j < count($messageHashes); $j++) {
+                            $client->reject($e, $messageHashes[$j]);
+                        }
+                    }
                 }
             }
-            return false;
-        }
-    }
-
-    public function handle_message(Client $client, mixed $message) {
-        $parsedMessage = $message;
-        if ($this->is_binary_message($message)) {
-            $parsedMessage = $this->parse_sbe_message($message);
-            if ($parsedMessage === null) {
-                return;
+            if (!$handled) {
+                // not a reply to a known request, every watcher on the connection gets the error,
+                // and the next private watch authenticates again instead of waiting on a rejected future
+                if (is_array($client->subscriptions) && array_key_exists('authenticated' ?? '', $client->subscriptions)) {
+                    unset($client->subscriptions['authenticated']);
+                }
+                $client->reject($e);
             }
         }
-        if ($this->handle_error_message($client, $parsedMessage) !== true) {
+        return false;
+    }
+
+    public function handle_binary_message(Client $client, mixed $message) {
+        $parsedMessage = $this->parse_sbe_message($message);
+        if ($parsedMessage === null) {
+            return;
+        }
+        $this->handle_stream_message($client, $parsedMessage);
+    }
+
+    public function handle_message(Client $client, array $message) {
+        $this->handle_stream_message($client, $message);
+    }
+
+    public function handle_stream_message(Client $client, array $message) {
+        if ($this->handle_error_message($client, $message) !== true) {
             return;
         }
         //
@@ -1575,12 +1634,12 @@ class paradex extends \ccxt\async\paradex {
         //         }
         //     }
         //
-        $result = $this->safe_dict($parsedMessage, 'result');
+        $result = $this->safe_dict($message, 'result');
         if ($result !== null) {
-            $this->handle_authentication_message($client, $parsedMessage);
+            $this->handle_request_reply($client, $message);
             return;
         }
-        $data = $this->safe_dict($parsedMessage, 'params');
+        $data = $this->safe_dict($message, 'params');
         if ($data !== null) {
             $channel = $this->safe_string($data, 'channel');
             $parts = explode('.', $channel);
@@ -1597,7 +1656,7 @@ class paradex extends \ccxt\async\paradex {
             );
             $method = $this->safe_value($methods, $name);
             if ($method !== null) {
-                $method($client, $parsedMessage);
+                $method($client, $message);
             }
         }
     }

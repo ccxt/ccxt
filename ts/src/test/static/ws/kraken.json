@@ -1617,6 +1617,141 @@
                     "req_id"
                 ]
             }
+        ],
+        "unWatchTrades": [
+            {
+                "description": "spot trades unsubscribe acknowledged for the symbol",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    "BTC/USD"
+                ],
+                "url": "wss://ws.kraken.com/v2",
+                "messages": [
+                    {
+                        "method": "unsubscribe",
+                        "req_id": 1,
+                        "result": {
+                            "channel": "trade",
+                            "symbol": "BTC/USD"
+                        },
+                        "success": true,
+                        "time_in": "2026-10-26T16:12:36.610321Z",
+                        "time_out": "2026-10-26T16:12:36.610321Z"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "unsubscribe",
+                        "params": {
+                            "channel": "trade",
+                            "symbol": [
+                                "BTC/USD"
+                            ]
+                        },
+                        "req_id": 1
+                    }
+                ],
+                "sentSkipKeys": [
+                    "req_id"
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchTradesForSymbols": [
+            {
+                "description": "spot trades unsubscribe for two symbols in one request, kraken acknowledges each symbol separately",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    [
+                        "BTC/USD",
+                        "XRP/USD"
+                    ]
+                ],
+                "url": "wss://ws.kraken.com/v2",
+                "messages": [
+                    {
+                        "method": "unsubscribe",
+                        "req_id": 1,
+                        "result": {
+                            "channel": "trade",
+                            "symbol": "BTC/USD"
+                        },
+                        "success": true,
+                        "time_in": "2026-10-26T16:12:36.610321Z",
+                        "time_out": "2026-10-26T16:12:36.610321Z"
+                    },
+                    {
+                        "method": "unsubscribe",
+                        "req_id": 1,
+                        "result": {
+                            "channel": "trade",
+                            "symbol": "XRP/USD"
+                        },
+                        "success": true,
+                        "time_in": "2026-10-26T16:12:36.610321Z",
+                        "time_out": "2026-10-26T16:12:36.610321Z"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "unsubscribe",
+                        "params": {
+                            "channel": "trade",
+                            "symbol": [
+                                "BTC/USD",
+                                "XRP/USD"
+                            ]
+                        },
+                        "req_id": 1
+                    }
+                ],
+                "sentSkipKeys": [
+                    "req_id"
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOHLCV": [
+            {
+                "description": "spot ohlcv 5m unsubscribe, the acknowledgement echoes the interval in minutes",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see lighter.json",
+                "input": [
+                    "BTC/USD",
+                    "5m"
+                ],
+                "url": "wss://ws.kraken.com/v2",
+                "messages": [
+                    {
+                        "method": "unsubscribe",
+                        "req_id": 1,
+                        "result": {
+                            "channel": "ohlc",
+                            "interval": 5,
+                            "symbol": "BTC/USD"
+                        },
+                        "success": true,
+                        "time_in": "2026-10-26T16:12:36.610481Z",
+                        "time_out": "2026-10-26T16:12:36.610481Z"
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "unsubscribe",
+                        "params": {
+                            "channel": "ohlc",
+                            "symbol": [
+                                "BTC/USD"
+                            ],
+                            "interval": 5
+                        },
+                        "req_id": 1
+                    }
+                ],
+                "sentSkipKeys": [
+                    "req_id"
+                ],
+                "parsedResponse": true
+            }
         ]
     }
 }

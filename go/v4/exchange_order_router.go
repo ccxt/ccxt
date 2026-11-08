@@ -12,7 +12,7 @@ package ccxt
 //      python/ccxt/base/order_router.py
 //      php/OrderRouter.php
 //      cs/ccxt/base/OrderRouter.cs
-//      rust/ccxt-base/src/order_router.rs
+//      rust/ccxt-common/src/order_router.rs
 //
 //  The rules that keep the six ports honest, all of them observed here:
 //
@@ -166,6 +166,10 @@ type OrderRouter struct {
 	ApiKey  string
 	BaseUrl string
 
+	// UserAgent is sent as the User-Agent header when non-empty, so the router service can
+	// attribute traffic to the integration that made it
+	UserAgent string
+
 	// Venues this router trades through, held once instead of passed to every call.
 	// FetchRoute and Execute both fall back to these; a call-site argument wins.
 	Venues map[string]IExchange
@@ -221,6 +225,7 @@ type OrderRouter struct {
 //	baseUrl        string  router base url, defaults to https://docs.ccxt.com/router/api
 //	timeoutMs      float   request timeout in milliseconds, defaults to 30000
 //	maxNotionalUsd float   per-trade USD notional cap, an opt-in guardrail; 0 (the default) means NO CAP
+//	userAgent      string  optional User-Agent header sent with every router request, so the service can attribute traffic, e.g. 'ccxt-mcp/1.2.3 (ccxt 4.5.6)'; "" (the default) keeps net/http's default
 func NewOrderRouter(config map[string]any) (*OrderRouter, error) {
 	// The service dropped API keys in favour of per-IP rate limiting, so an empty key is the
 	// normal case and must not error. A key supplied anyway is CARRIED rather than ignored, so
@@ -241,6 +246,7 @@ func NewOrderRouter(config map[string]any) (*OrderRouter, error) {
 	timeoutMs := routerNumberAt(config, "timeoutMs", OrderRouterDefaultTimeoutMs)
 	router := &OrderRouter{
 		ApiKey:          apiKey,
+		UserAgent:       routerStringAt(config, "userAgent", ""),
 		BaseUrl:         baseUrl,
 		Venues:          routerVenuesAt(config, "venues"),
 		TrackBalances:   routerBoolAt(config, "trackBalances", false),
@@ -859,6 +865,9 @@ func (this *OrderRouter) WatchRoute(fromAsset string, toAsset string, params map
 	if requestId := routerStringAt(params, "requestId", ""); requestId != "" && len(requestId) <= 200 {
 		header.Set("x-request-id", requestId)
 	}
+	if this.UserAgent != "" {
+		header.Set("User-Agent", this.UserAgent)
+	}
 	dialer := websocket.Dialer{
 		// the timeout guards the HANDSHAKE only. A stream that has opened is meant to sit idle
 		// between market moves, and killing it for being quiet would defeat the point.
@@ -1117,6 +1126,12 @@ func (this *OrderRouter) Request(url string, method string, requestBody map[stri
 		request.Header.Set("x-api-key", this.ApiKey)
 	}
 	request.Header.Set("Accept", "application/json")
+	// only when configured: an empty value keeps net/http's own default rather than sending a
+	// blank one. (Browsers forbid setting User-Agent, so the TS port silently drops it there;
+	// no such restriction applies here.)
+	if this.UserAgent != "" {
+		request.Header.Set("User-Agent", this.UserAgent)
+	}
 	if method == "POST" {
 		request.Header.Set("Content-Type", "application/json")
 	}
@@ -2485,14 +2500,9 @@ func (this *OrderRouter) Execute(plan map[string]any, venues map[string]IExchang
 // symbol -> market dictionary the pure layer speaks.
 func routerVenueMarkets(venue IExchange) map[string]any {
 	markets := map[string]any{}
-	loaded := venue.GetMarkets()
-	if loaded == nil {
-		return markets
+	for key, value := range venue.GetMarkets() {
+		markets[key] = value
 	}
-	loaded.Range(func(key any, value any) bool {
-		markets[ToString(key)] = value
-		return true
-	})
 	return markets
 }
 

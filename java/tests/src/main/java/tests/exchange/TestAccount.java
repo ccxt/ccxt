@@ -16,7 +16,7 @@ import java.util.Map;
 
 
 public class TestAccount extends BaseTest {
-    public static void testAccount(BaseExchange exchange, Object skippedProperties, Object method, Object entry)
+    public static void testAccount(BaseExchange exchange, Object skippedProperties, String method, Object entry)
     {
         Map<String, Object> format = new HashMap<String, Object>() {{
             put( "info", new HashMap<String, Object>() {{}} );
@@ -25,8 +25,8 @@ public class TestAccount extends BaseTest {
             put( "id", "12345" );
         }};
         List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("code", "id"));
-        TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
-        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, ((Map<String, Object>)entry).get("code"));
+        TestSharedMethods.AssertStructure(exchange, skippedProperties, (String) (method), entry, format, emptyAllowedFor);
+        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, (String) (method), entry, (String) (((Map<String, Object>)entry).get("code")));
     }
 
 }

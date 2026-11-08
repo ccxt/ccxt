@@ -51,7 +51,6 @@ Paradex is a decentralized exchange built on the StarkWare layer 2 scaling solut
 or alternatively you can provide the startknet private key and public key by setting exchange.options['paradexAccount'] with  add {"privateKey": A, "publicKey": B, "address": C}
 
 
-
 ```javascript
 paradex.paradex ()
 ```
@@ -176,7 +175,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
-| params.price | <code>string</code> | No | "last", "mark", "index", default is "last" |
+| params.price | <code>string</code> | No | "last", "mark", "index" (sent as "underlying"), default is "last" |
 
 
 ```javascript

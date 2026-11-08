@@ -108,15 +108,15 @@ const TYPE_OVERRIDES: Record<string, Record<string, string>> = {
     'Ticker': { 'Info': 'any' },
     'Trade': { 'Info': 'any' },
     'Order': { 'Info': 'any' },
-    'FundingRate': { 'Info': 'any' }, // gochan32 U31
-    'OpenInterest': { 'Info': 'any' }, // gochan32 U31
-    'Leverage': { 'Info': 'any' }, // gochanw2 W32
-    'Status': { 'Info': 'any' }, // gochanw4
-    'PositionModeInfo': { 'Info': 'any' }, // gochanw4
-    'DepositWithdrawFee': { 'Info': 'any' }, // gochanw4
-    'Account': { 'Info': 'any' }, // gochanw4
-    'MarginLoan': { 'Info': 'any' }, // gochanw5
-    'MarketInterface': { 'Info': 'any' }, // gochanw8
+    'FundingRate': { 'Info': 'any' },
+    'OpenInterest': { 'Info': 'any' },
+    'Leverage': { 'Info': 'any' },
+    'Status': { 'Info': 'any' },
+    'PositionModeInfo': { 'Info': 'any' },
+    'DepositWithdrawFee': { 'Info': 'any' },
+    'Account': { 'Info': 'any' },
+    'MarginLoan': { 'Info': 'any' },
+    'MarketInterface': { 'Info': 'any' },
 };
 
 /** TS string-literal union aliases emitted as Go `type X string` + one const per member. */
@@ -373,6 +373,10 @@ function goTypeFor (ir: TypesIR, field: IRField): string | undefined {
         // every port models the raw exchange payload as the untyped map
         return 'map[string]any';
     }
+    // a required bare `boolean` is never undefined: a plain Go bool
+    if (!field.optional && field.tsType.trim () === 'boolean') {
+        return 'bool';
+    }
     // TS scalar aliases are nullable unions (`Num` = number | undefined). A bare
     // `number` stays ambiguous, so only the nullable aliases pin the Go width.
     const scalarAliases = unionMembers (field.tsType);
@@ -473,6 +477,9 @@ function defaultExpr (goType: string, key: string, accessor: string, isInfo: boo
     }
     if (goType === '*bool') {
         return 'SafeBoolTyped(' + accessor + ', "' + key + '")';
+    }
+    if (goType === 'bool') {
+        return 'derefScalar(' + accessor + '["' + key + '"]) == true';
     }
     if (goType === 'map[string]any') {
         if (isInfo) {
@@ -640,7 +647,7 @@ function planInterface (ir: TypesIR, goName: string, type: IRType, learned: Lear
             continue;
         } else if (goType === undefined) {
             goType = learnedType;
-        } else if (learnedType !== undefined && baseGoType (learnedType) === baseGoType (goType)) {
+        } else if (learnedType !== undefined && baseGoType (learnedType) === baseGoType (goType) && goType !== 'bool') {
             // the port may hold the value behind a pointer, that is its own choice
             goType = learnedType;
         }

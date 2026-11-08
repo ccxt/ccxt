@@ -67,7 +67,7 @@ public partial class coinone : ccxt.coinone
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "request_type", "SUBSCRIBE" },
             { "channel", "ORDERBOOK" },
@@ -78,7 +78,7 @@ public partial class coinone : ccxt.coinone
         };
         Dictionary<string, object> message = this.extend(request, parameters);
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, message, messageHash));
-        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
+        return (orderbook as IOrderBook).limit().Copy();
     }
 
     public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
@@ -162,7 +162,7 @@ public partial class coinone : ccxt.coinone
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ("ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "request_type", "SUBSCRIBE" },
             { "channel", "TICKER" },
@@ -218,7 +218,7 @@ public partial class coinone : ccxt.coinone
         client.resolve((this.tickers != null && symbol != null && this.tickers.ContainsKey(symbol) ? this.tickers[symbol] : null), messageHash);
     }
 
-    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, object market = null)
+    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, IDictionary<string, object>? market = null)
     {
         //
         //     {
@@ -300,7 +300,7 @@ public partial class coinone : ccxt.coinone
         }
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ("trade:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "request_type", "SUBSCRIBE" },
             { "channel", "TRADE" },
@@ -338,7 +338,7 @@ public partial class coinone : ccxt.coinone
         //
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         ccxt.Trade trade = this.parseWsTrade(data);
-        string? symbol = trade.symbol;
+        string? symbol = this.safeString(ccxt.BaseExchange.FromTrade(trade), "symbol", "");
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbol));
         if ((stored == null))
         {
@@ -447,7 +447,7 @@ public partial class coinone : ccxt.coinone
             for (int i = 0; i < keys.Count; i++)
             {
                 string? key = ((string)keys[i]);
-                if (topic.IndexOf(((string)keys[i]), StringComparison.Ordinal) >= 0)
+                if (topic.IndexOf(key, StringComparison.Ordinal) >= 0)
                 {
                     object method = (key != null && methods.ContainsKey(key) ? methods[key] : null);
                     DynamicInvoker.InvokeMethod(method, new object[] { client, message});

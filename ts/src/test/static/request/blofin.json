@@ -13,6 +13,41 @@
                 ]
             }
         ],
+        "fetchOrder": [
+            {
+                "description": "fetch order by id",
+                "method": "fetchOrder",
+                "url": "https://openapi.blofin.com/api/v1/trade/order-detail?instId=BTC-USDT&orderId=1001",
+                "input": [
+                    "1001",
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fetch order by clientOrderId",
+                "method": "fetchOrder",
+                "url": "https://openapi.blofin.com/api/v1/trade/order-detail?instId=BTC-USDT&clientOrderId=abc1",
+                "input": [
+                    "1001",
+                    "BTC/USDT:USDT",
+                    {
+                        "clientOrderId": "abc1"
+                    }
+                ]
+            },
+            {
+                "description": "fetch tpsl order",
+                "method": "fetchOrder",
+                "url": "https://openapi.blofin.com/api/v1/trade/order-tpsl-detail?instId=BTC-USDT&tpslId=1001",
+                "input": [
+                    "1001",
+                    "BTC/USDT:USDT",
+                    {
+                        "tpsl": true
+                    }
+                ]
+            }
+        ],
         "fetchDepositAddress": [
             {
                 "description": "deposit address for USDT on TRC20",
@@ -483,6 +518,19 @@
                     "BTC/USDT:USDT",
                     null,
                     5
+                ]
+            },
+            {
+                "description": "paginate is not sent to the exchange",
+                "method": "fetchTrades",
+                "url": "https://openapi.blofin.com/api/v1/market/trades?instId=BTC-USDT&limit=5",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    5,
+                    {
+                        "paginate": true
+                    }
                 ]
             },
             {

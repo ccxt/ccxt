@@ -13,7 +13,7 @@ func newFmfwio() *Fmfwio {
 	return p
 }
 
-func (this *Fmfwio) Describe() any {
+func (this *Fmfwio) Describe() map[string]any {
 	return this.DeepExtend(this.Hitbtc.Describe(), map[string]any{
 		"id":        "fmfwio",
 		"name":      "FMFW.io",

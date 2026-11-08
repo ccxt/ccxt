@@ -926,6 +926,200 @@
                         "updated_date": 1787668901000
                     }
                 }
+            },
+            {
+                "description": "fetch conditional (trigger) order",
+                "method": "fetchOrder",
+                "input": [
+                    "7a52e92e-8639-4fe1-abaa-68d3a2d5234b"
+                ],
+                "httpResponse": {
+                    "data": {
+                        "id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                        "client_order_id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                        "symbol": "BTC/USD",
+                        "side": "buy",
+                        "type": "conditional",
+                        "quantity": "0.003",
+                        "filled_quantity": "0",
+                        "leaves_quantity": "0.003",
+                        "amount": "353.70",
+                        "status": "new",
+                        "time_in_force": "gtc",
+                        "execution_instructions": [],
+                        "conditional": {
+                            "trigger_price": "118000.00",
+                            "type": "limit",
+                            "trigger_direction": "le",
+                            "limit_price": "117900.00",
+                            "time_in_force": "gtc",
+                            "execution_instructions": [
+                                "allow_taker"
+                            ]
+                        },
+                        "created_date": 1785309833816,
+                        "updated_date": 1785313433816
+                    }
+                },
+                "parsedResponse": {
+                    "id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                    "clientOrderId": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                    "symbol": "BTC/USD",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "amount": 0.003,
+                    "price": 117900,
+                    "triggerPrice": 118000,
+                    "cost": 0,
+                    "filled": 0,
+                    "remaining": 0.003,
+                    "timestamp": 1785309833816,
+                    "datetime": "2026-07-29T07:23:53.816Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1785313433816,
+                    "status": "open",
+                    "average": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": 118000,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "info": {
+                        "id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                        "client_order_id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                        "symbol": "BTC/USD",
+                        "side": "buy",
+                        "type": "conditional",
+                        "quantity": "0.003",
+                        "filled_quantity": "0",
+                        "leaves_quantity": "0.003",
+                        "amount": "353.70",
+                        "status": "new",
+                        "time_in_force": "gtc",
+                        "execution_instructions": [],
+                        "conditional": {
+                            "trigger_price": "118000.00",
+                            "type": "limit",
+                            "trigger_direction": "le",
+                            "limit_price": "117900.00",
+                            "time_in_force": "gtc",
+                            "execution_instructions": [
+                                "allow_taker"
+                            ]
+                        },
+                        "created_date": 1785309833816,
+                        "updated_date": 1785313433816
+                    }
+                }
+            },
+            {
+                "description": "fetch TP/SL order with both legs",
+                "method": "fetchOrder",
+                "input": [
+                    "7a52e92e-8639-4fe1-abaa-68d3a2d5234b"
+                ],
+                "httpResponse": {
+                    "data": {
+                        "id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                        "client_order_id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                        "symbol": "BTC/USD",
+                        "side": "sell",
+                        "type": "tpsl",
+                        "quantity": "0.002",
+                        "filled_quantity": "0",
+                        "leaves_quantity": "0.002",
+                        "status": "new",
+                        "time_in_force": "gtc",
+                        "execution_instructions": [],
+                        "take_profit": {
+                            "trigger_price": "125000.00",
+                            "type": "limit",
+                            "trigger_direction": "ge",
+                            "limit_price": "124900.00",
+                            "time_in_force": "gtc",
+                            "execution_instructions": [
+                                "allow_taker"
+                            ]
+                        },
+                        "stop_loss": {
+                            "trigger_price": "115000.00",
+                            "type": "market",
+                            "trigger_direction": "le",
+                            "time_in_force": "ioc",
+                            "execution_instructions": [
+                                "allow_taker"
+                            ]
+                        },
+                        "created_date": 1785309833816,
+                        "updated_date": 1785313433816
+                    }
+                },
+                "parsedResponse": {
+                    "id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                    "clientOrderId": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                    "symbol": "BTC/USD",
+                    "type": null,
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": "sell",
+                    "amount": 0.002,
+                    "price": null,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "filled": 0,
+                    "remaining": 0.002,
+                    "timestamp": 1785309833816,
+                    "datetime": "2026-07-29T07:23:53.816Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1785313433816,
+                    "status": "open",
+                    "average": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": 125000,
+                    "stopLossPrice": 115000,
+                    "info": {
+                        "id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                        "client_order_id": "7a52e92e-8639-4fe1-abaa-68d3a2d5234b",
+                        "symbol": "BTC/USD",
+                        "side": "sell",
+                        "type": "tpsl",
+                        "quantity": "0.002",
+                        "filled_quantity": "0",
+                        "leaves_quantity": "0.002",
+                        "status": "new",
+                        "time_in_force": "gtc",
+                        "execution_instructions": [],
+                        "take_profit": {
+                            "trigger_price": "125000.00",
+                            "type": "limit",
+                            "trigger_direction": "ge",
+                            "limit_price": "124900.00",
+                            "time_in_force": "gtc",
+                            "execution_instructions": [
+                                "allow_taker"
+                            ]
+                        },
+                        "stop_loss": {
+                            "trigger_price": "115000.00",
+                            "type": "market",
+                            "trigger_direction": "le",
+                            "time_in_force": "ioc",
+                            "execution_instructions": [
+                                "allow_taker"
+                            ]
+                        },
+                        "created_date": 1785309833816,
+                        "updated_date": 1785313433816
+                    }
+                }
             }
         ],
         "fetchOpenOrders": [

@@ -15,7 +15,7 @@ func newBlockchaincom() *Blockchaincom {
 	return p
 }
 
-func (this *Blockchaincom) Describe() any {
+func (this *Blockchaincom) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "blockchaincom",
 		"secret":    nil,
@@ -400,12 +400,9 @@ func (this *Blockchaincom) fetchMarketsBody(ch chan AsyncResult[[]MarketInterfac
 		var minOrderSizeScaleString *string = this.SafeString(market, "min_order_size_scale")
 		var minOrderSizeScalePrecisionString any = this.ParsePrecision(minOrderSizeScaleString)
 		var minOrderSizePreciseString *string = Precise.StringMul(minOrderSizeString, minOrderSizeScalePrecisionString)
-		var minOrderSize *float64
-		if derefNum, isNum := this.ParseNumber(minOrderSizePreciseString).(float64); isNum {
-			minOrderSize = &derefNum
-		}
+		var minOrderSize *float64 = this.ParseNumber(minOrderSizePreciseString)
 		// maximum order size
-		var maxOrderSize any = nil
+		var maxOrderSize *float64 = nil
 		var maxOrderSizeRaw *string = this.SafeString(market, "max_order_size")
 		if maxOrderSizeRaw == nil || *maxOrderSizeRaw != "0" {
 			var maxOrderSizeScaleString *string = this.SafeString(market, "max_order_size_scale")
@@ -496,12 +493,7 @@ func (this *Blockchaincom) fetchOrderBookBody(ch chan AsyncResult[OrderBook], sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes43815 map[string]any = StructResultMap(r.Value, OrderBookToMap)
-	if retRes43815 == nil {
-		ch <- AsyncResult[OrderBook]{}
-	} else {
-		ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(retRes43815)}
-	}
+	ch <- AsyncResult[OrderBook]{Value: r.Value}
 	return nil
 }
 
@@ -697,11 +689,11 @@ func (this *Blockchaincom) fetchTickersBody(ch chan AsyncResult[map[string]Ticke
 		}
 	}
 
-	listEp664 := <-this.PublicGetTickers(params)
-	if listEp664.Err != nil {
-		panic(listEp664.Err)
+	tickersRecv := <-this.PublicGetTickers(params)
+	if tickersRecv.Err != nil {
+		panic(tickersRecv.Err)
 	}
-	var tickers []any = listEp664.Value
+	var tickers []any = tickersRecv.Value
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(tickers, symbols))}
 	return nil
@@ -1170,11 +1162,11 @@ func (this *Blockchaincom) fetchOrdersByStateBody(ch chan AsyncResult[[]Order], 
 		request["symbol"] = market["id"]
 	}
 
-	listEp1096 := <-this.PrivateGetOrders(this.Extend(request, params))
-	if listEp1096.Err != nil {
-		panic(listEp1096.Err)
+	responseRecv := <-this.PrivateGetOrders(this.Extend(request, params))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp1096.Value
+	var response []any = responseRecv.Value
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
 	return nil
@@ -1204,11 +1196,11 @@ func (this *Blockchaincom) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	var datetime *string = this.Iso8601(timestamp)
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, "-")
-	var symbol *string = SafeStringPtr(marketResolved["symbol"])
+	var symbol *string = this.SafeString(marketResolved, "symbol", "")
 	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(trade, "fee")
 	if feeCostString != nil {
-		var feeCurrency *string = SafeStringPtr(marketResolved["quote"])
+		var feeCurrency *string = this.SafeString(marketResolved, "quote", "")
 		fee = map[string]any{
 			"cost":     feeCostString,
 			"currency": feeCurrency,
@@ -1275,11 +1267,11 @@ func (this *Blockchaincom) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optio
 		market = this.Market(symbol)
 	}
 
-	listEp1194 := <-this.PrivateGetFills(this.Extend(request, params))
-	if listEp1194.Err != nil {
-		panic(listEp1194.Err)
+	tradesRecv := <-this.PrivateGetFills(this.Extend(request, params))
+	if tradesRecv.Err != nil {
+		panic(tradesRecv.Err)
 	}
-	var trades []any = listEp1194.Value
+	var trades []any = tradesRecv.Value
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit, params))} // need to define
 	return nil
@@ -1385,12 +1377,14 @@ func (this *Blockchaincom) ParseTransaction(transaction any, optionalArgs ...any
 	var currencyId *string = this.SafeString(transaction, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var state *string = this.SafeString(transaction, "state")
-	if InOp(transaction, "depositId") {
+	var depositId *string = this.SafeString(transaction, "depositId")
+	var withdrawalId *string = this.SafeString(transaction, "withdrawalId")
+	if depositId != nil {
 		typeVar = SafeStringPtr("deposit")
-		id = this.SafeString(transaction, "depositId")
-	} else if InOp(transaction, "withdrawalId") {
+		id = depositId
+	} else if withdrawalId != nil {
 		typeVar = SafeStringPtr("withdrawal")
-		id = this.SafeString(transaction, "withdrawalId")
+		id = withdrawalId
 	}
 	var feeCost *float64 = func() *float64 {
 		if typeVar != nil && *typeVar == "withdrawal" {
@@ -1532,11 +1526,11 @@ func (this *Blockchaincom) fetchWithdrawalsBody(ch chan AsyncResult[[]Transactio
 		currency = this.Currency(code)
 	}
 
-	listEp1431 := <-this.PrivateGetWithdrawals(this.Extend(request, params))
-	if listEp1431.Err != nil {
-		panic(listEp1431.Err)
+	responseRecv := <-this.PrivateGetWithdrawals(this.Extend(request, params))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp1431.Value
+	var response []any = responseRecv.Value
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(response, currency, since, limit))}
 	return nil
@@ -1628,11 +1622,11 @@ func (this *Blockchaincom) fetchDepositsBody(ch chan AsyncResult[[]Transaction],
 		currency = this.Currency(code)
 	}
 
-	listEp1513 := <-this.PrivateGetDeposits(this.Extend(request, params))
-	if listEp1513.Err != nil {
-		panic(listEp1513.Err)
+	responseRecv := <-this.PrivateGetDeposits(this.Extend(request, params))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp1513.Value
+	var response []any = responseRecv.Value
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(response, currency, since, limit))}
 	return nil
@@ -1766,12 +1760,12 @@ func (this *Blockchaincom) fetchBalanceBody(ch chan AsyncResult[Balances], optio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Blockchaincom) FetchOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Blockchaincom) FetchOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Blockchaincom) fetchOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Blockchaincom) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// note: only works with exchange-order-id
@@ -1818,22 +1812,22 @@ func (this *Blockchaincom) fetchOrderBody(ch chan AsyncResult[Order], id any, op
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response)}
 	return nil
 }
-func (this *Blockchaincom) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"public"})
+func (this *Blockchaincom) Sign(path string, optionalArgs ...any) map[string]any {
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var requestPath string = "/" + this.ImplodeParams(path, params)
-	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiName string = api[0]
 	var apiUrl *string = this.SafeString(this.Urls["api"], apiName)
 	if apiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var url string = *apiUrl + requestPath
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var isPrivate bool = (apiName != nil && *apiName == "private")
+	var isPrivate bool = (apiName == "private")
 	var privateHeaders map[string]any = map[string]any{
 		"X-API-Token": this.Secret,
 	}
@@ -1844,16 +1838,17 @@ func (this *Blockchaincom) Sign(path string, optionalArgs ...any) any {
 	var isPrivatePost bool = isPrivate && (method != "GET")
 	var requestBody *string = nil
 	if isPrivatePost {
-		requestBody = SafeStringPtr(this.Json(query))
+		jsonText := this.Json(query)
+		requestBody = &jsonText
 	}
-	if apiName != nil && *apiName == "public" {
-		if len(ObjectKeys(query)) > 0 {
+	if apiName == "public" {
+		if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 			url += "?" + this.Urlencode(query)
 		}
 	} else if isPrivate {
 		this.CheckRequiredCredentials()
 		if method == "GET" {
-			if len(ObjectKeys(query)) > 0 {
+			if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {
 				url += "?" + this.Urlencode(query)
 			}
 		} else {
@@ -1867,7 +1862,7 @@ func (this *Blockchaincom) Sign(path string, optionalArgs ...any) any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Blockchaincom) HandleErrors(code any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Blockchaincom) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	// {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
 	if response == nil {
 		return nil
@@ -1880,11 +1875,10 @@ func (this *Blockchaincom) HandleErrors(code any, reason any, url any, method an
 	}
 	var errorCode *string = this.SafeString(response, "status")
 	var errorMessage *string = this.SafeString(response, "error")
-	if !IsEqual(code, nil) {
-		var feedback string = this.Id + " " + this.Json(response)
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
-		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
-	}
+	// code is an int: it is never undefined, the guard was dead
+	var feedback string = this.Id + " " + this.Json(response)
+	this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorCode, feedback)
+	this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
 	return nil
 }
 
@@ -1897,7 +1891,7 @@ func NewBlockchaincom(userConfig map[string]any) *Blockchaincom {
 func (this *Blockchaincom) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

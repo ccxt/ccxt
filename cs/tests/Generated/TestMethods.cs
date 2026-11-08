@@ -273,7 +273,7 @@ public partial class testMainClass
         return add(message, res);
     }
 
-    public async virtual Task<object> testMethod(object methodName, BaseExchange exchange, object args, object isPublic)
+    public async virtual Task<object> testMethod(object methodName, BaseExchange exchange, object args, bool? isPublic)
     {
         // todo: temporary skip for c#
         if (((string)methodName).IndexOf("OrderBook", StringComparison.Ordinal) >= 0 && isEqual(this.ext, "cs"))
@@ -292,7 +292,7 @@ public partial class testMainClass
         bool isConstructorTest = (isEqual(methodName, "afterConstruct"));
         bool isFeatureTest = (isEqual(methodName, "features"));
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
-        if (!isTrue(isPublic) && (inOp(this.checkedPublicTests, methodName)) && !isFetchCurrencies)
+        if (isPublic != true && (inOp(this.checkedPublicTests, methodName)) && !isFetchCurrencies)
         {
             return true;
         }
@@ -341,7 +341,7 @@ public partial class testMainClass
         }
         dump(this.addPadding("[INFO] TESTING DONE", 25), name, methodName);
         // add to the list of successed tests
-        if (isTrue(isPublic))
+        if (isPublic == true)
         {
             ((IDictionary<string,object>)this.checkedPublicTests)[(string)methodName] = true;
         }
@@ -412,7 +412,7 @@ public partial class testMainClass
         return finalSkips;
     }
 
-    public async virtual Task<object> testSafe(object methodName, BaseExchange exchange, object args = null, object isPublic = null)
+    public async virtual Task<object> testSafe(object methodName, BaseExchange exchange, object args = null, bool? isPublic = null)
     {
         // `testSafe` method does not throw an exception, instead mutes it. The reason we
         // mute the thrown exceptions here is because we don't want to stop the whole
@@ -505,7 +505,7 @@ public partial class testMainClass
                         return true;
                     }
                     // If public test faces authentication error, we don't break (see comments under `testSafe` method)
-                    if (isTrue(isPublic) && isTrue(isAuthError))
+                    if (isPublic == true && isTrue(isAuthError))
                     {
                         if (isTrue(this.info))
                         {
@@ -524,7 +524,7 @@ public partial class testMainClass
         return true;
     }
 
-    public virtual object getLastRequestUrl(BaseExchange exchange)
+    public virtual string? getLastRequestUrl(BaseExchange exchange)
     {
         object fetchCache = exchange.getFetchCache();
         object url = "";
@@ -537,7 +537,7 @@ public partial class testMainClass
                 url = exchange.safeString(lastRequest, "url", "");
             }
         }
-        return url;
+        return ((string?)((object)(url)));
     }
 
     public async virtual Task<object> runPublicTests(BaseExchange exchange, object symbols)
@@ -594,7 +594,7 @@ public partial class testMainClass
         return true;
     }
 
-    public async virtual Task<object> runTests(BaseExchange exchange, object tests, object isPublicTest)
+    public async virtual Task<object> runTests(BaseExchange exchange, object tests, bool? isPublicTest)
     {
         List<object> testNames = new List<object>(((IDictionary<string,object>)tests).Keys);
         List<object> promises = new List<object>() {};
@@ -618,7 +618,7 @@ public partial class testMainClass
                 failedMethods.Add(testName);
             }
         }
-        string testPrefixString = isTrue(isPublicTest) ? "PUBLIC_TESTS" : "PRIVATE_TESTS";
+        string testPrefixString = isPublicTest == true ? "PUBLIC_TESTS" : "PRIVATE_TESTS";
         if ((failedMethods?.Count ?? 0) > 0)
         {
             string errorsString = String.Join(", ", ((IList<object>)failedMethods).ToArray());
@@ -689,7 +689,7 @@ public partial class testMainClass
         return code;
     }
 
-    public virtual object getMarketsFromExchange(BaseExchange exchange, object spot = null)
+    public virtual object getMarketsFromExchange(BaseExchange exchange, bool? spot = null)
     {
         spot ??= true;
         Dictionary<string, object> res = new Dictionary<string, object>() {};
@@ -699,10 +699,10 @@ public partial class testMainClass
         {
             string? key = ((string)keys[i]);
             object market = getValue(markets, key);
-            if (isTrue(spot) && (isEqual(getValue(market, "spot"), true)))
+            if (spot == true && (isEqual(getValue(market, "spot"), true)))
             {
                 res[(string)getValue(market, "symbol")] = market;
-            } else if (!isTrue(spot) && (!isEqual(getValue(market, "spot"), true)))
+            } else if (spot != true && (!isEqual(getValue(market, "spot"), true)))
             {
                 res[(string)getValue(market, "symbol")] = market;
             }
@@ -710,14 +710,14 @@ public partial class testMainClass
         return res;
     }
 
-    public virtual object getValidSymbol(BaseExchange exchange, object spot = null)
+    public virtual object getValidSymbol(BaseExchange exchange, bool? spot = null)
     {
         spot ??= true;
         object currentTypeMarkets = this.getMarketsFromExchange(exchange, spot);
         List<object> codes = new List<object>() {"BTC", "ETH", "XRP", "LTC", "BNB", "DASH", "DOGE", "ETC", "TRX", "USDT", "USDC", "USD", "GUSD", "EUR", "TUSD", "CNY", "JPY", "BRL"};
         List<object> spotSymbols = new List<object>() {"BTC/USDT", "BTC/USDC", "BTC/USD", "BTC/CNY", "BTC/EUR", "BTC/AUD", "BTC/BRL", "BTC/JPY", "ETH/USDT", "ETH/USDC", "ETH/USD", "ETH/CNY", "ETH/EUR", "ETH/AUD", "ETH/BRL", "ETH/JPY", "EUR/USDT", "EUR/USD", "EUR/USDC", "USDT/EUR", "USD/EUR", "USDC/EUR", "BTC/ETH", "ETH/BTC"};
         List<object> swapSymbols = new List<object>() {"BTC/USDT:USDT", "BTC/USD:USDT", "BTC/USDC:USDC", "BTC/USD:USDC", "BTC/USD:USD", "ETH/USDT:USDT", "ETH/USD:USDT", "ETH/USDC:USDC", "ETH/USD:USDC", "ETH/USD:USD", "BTC/USD:BTC", "ETH/USD:ETH"};
-        List<object> targetSymbols = isTrue(spot) ? spotSymbols : swapSymbols;
+        List<object> targetSymbols = spot == true ? spotSymbols : swapSymbols;
         object symbol = this.getTestSymbol(exchange, spot, targetSymbols);
         // if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
         if ((symbol == null))
@@ -1451,7 +1451,7 @@ public partial class testMainClass
                 tests["fetchPositions"] = new List<object>() {symbol}; // this test fetches all positions for 1 symbol
                 tests["fetchPosition"] = new List<object>() {symbol};
                 tests["fetchPositionRisk"] = new List<object>() {symbol};
-                tests["setPositionMode"] = new List<object>() {symbol};
+                tests["setPositionMode"] = new List<object>() {false, symbol};
                 tests["setMarginMode"] = new List<object>() {symbol};
                 tests["fetchOpenInterestHistory"] = new List<object>() {symbol};
                 tests["fetchFundingRateHistory"] = new List<object>() {symbol};
@@ -1592,7 +1592,7 @@ public partial class testMainClass
         }
     }
 
-    public virtual void assertStaticError(object cond, object message, object calculatedOutput, object storedOutput, object key = null)
+    public virtual void assertStaticError(bool? cond, object message, object calculatedOutput, object storedOutput, object key = null)
     {
         //  -----------------------------------------------------------------------------
         //  --- Init of static tests functions------------------------------------------
@@ -1603,7 +1603,7 @@ public partial class testMainClass
         // That is cheap in JS but O(tree²) in the Rust port (each level
         // re-serialises its whole subtree) — it made `--responseTests`
         // take minutes. Bail out before stringifying when the check holds.
-        if (isTrue(cond))
+        if (cond == true)
         {
             return;
         }
@@ -1614,7 +1614,7 @@ public partial class testMainClass
         {
             errorMessage = (("[" + (key)) + "]");
         }
-        errorMessage = add(errorMessage, (((" computed: " + (storedString)) + " stored: ") + (calculatedString)));
+        errorMessage = ((object)(errorMessage == null ? null : errorMessage + (string)(object)((((" computed: " + (storedString)) + " stored: ") + (calculatedString)))));
         assert(cond, errorMessage);
     }
 
@@ -1689,7 +1689,7 @@ public partial class testMainClass
             return null;
         }
         List<object> urlParts = ((string)url).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
-        object res = "";
+        string res = "";
         for (int i = 0; i < urlParts.Count; i++)
         {
             if (i > 2)
@@ -1699,12 +1699,12 @@ public partial class testMainClass
                 {
                     // handle urls like this: /v1/account/accounts?AccessK
                     List<object> currentParts = current.Split(new [] {((string)"?")}, StringSplitOptions.None).ToList<object>();
-                    res = (res + ("/"));
-                    res = add(res, (currentParts != null && 0 < currentParts.Count ? currentParts[0] : null));
+                    res = res + "/";
+                    res = res + ((currentParts != null && 0 < currentParts.Count ? currentParts[0] : null));
                     break;
                 }
-                res = (res + ("/"));
-                res = (res + (current));
+                res = res + "/";
+                res = res + current;
             }
         }
         return res;
@@ -2030,7 +2030,7 @@ public partial class testMainClass
         return true;  // c# requ
     }
 
-    public virtual object assertNewAndStoredOutput(BaseExchange exchange, object skipKeys, object newOutput, object storedOutput, object strictTypeCheck = null, object assertingKey = null)
+    public virtual object assertNewAndStoredOutput(BaseExchange exchange, object skipKeys, object newOutput, object storedOutput, bool? strictTypeCheck = null, object assertingKey = null)
     {
         strictTypeCheck ??= true;
         object res = true;
@@ -2070,9 +2070,9 @@ public partial class testMainClass
         if (!isEqual(storedUrl, requestUrl))
         {
             // remove the host part from the url
-            object firstPath = this.removeHostnamefromUrl(storedUrl);
-            object secondPath = this.removeHostnamefromUrl(requestUrl);
-            this.assertStaticError(isEqual(firstPath, secondPath), "url mismatch", firstPath, secondPath);
+            string? firstPath = ((string)this.removeHostnamefromUrl(storedUrl));
+            string? secondPath = ((string)this.removeHostnamefromUrl(requestUrl));
+            this.assertStaticError((firstPath == secondPath), "url mismatch", firstPath, secondPath);
         }
         // body (aka storedOutput and newOutput) is not defined and information is in the url
         // example: "https://open-api.bingx.com/openApi/spot/v1/trade/order?quoteOrderQty=5&side=BUY&symbol=LTC-USDT&timestamp=1698777135343&type=MARKET&signature=d55a7e4f7f9dbe56c4004c9f3ab340869d3cb004e2f0b5b861e5fbd1762fd9a0
@@ -2355,7 +2355,7 @@ public partial class testMainClass
         return false;
     }
 
-    public async virtual Task<object> injectWsMessages(BaseExchange exchange, object url, object messages, object sequential = null)
+    public async virtual Task<object> injectWsMessages(BaseExchange exchange, object url, object messages, bool? sequential = null)
     {
         // before every frame, wait until the watch flow is actually awaiting
         // something — a fixed head-start sleep is not enough on slow ci
@@ -2398,7 +2398,7 @@ public partial class testMainClass
             }
         }
         await exchange.sleep(50);
-        if (isTrue(sequential))
+        if (sequential == true)
         {
             // a watch call of a sequence can register its future after every
             // frame was already consumed — keep rejecting until the watch side
@@ -2601,7 +2601,7 @@ public partial class testMainClass
         return true;  // in c# methods that will be used with promiseAll need to return something
     }
 
-    public virtual BaseExchange initOfflineExchange(object exchangeName, object isWs = null)
+    public virtual BaseExchange initOfflineExchange(object exchangeName, bool? isWs = null)
     {
         // prediction exchanges load their outcome markets from an event -> markets -> outcomes
         // fixture (static/events/<id>.json) instead of the markets/currencies fixtures. this is the
@@ -2771,7 +2771,8 @@ public partial class testMainClass
         object accounts = exchange.safeList(exchangeData, "accounts");
         if ((accounts != null) && (accounts != null))
         {
-            exchange.accounts = accounts;
+            // the field is a List<object>: assign the call, not the untyped local
+            exchange.accounts = exchange.safeList(exchangeData, "accounts");
         }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         exchange.extendExchangeOptions(globalOptions);
@@ -4312,7 +4313,7 @@ public partial class testMainClass
         object tokenExpires = add(exchange.milliseconds(), 100000);
         ((IDictionary<string,object>)exchange.options)["v2TokenExpires"] = tokenExpires;
         ((IDictionary<string,object>)exchange.options)["portfolio"] = "random";
-        string id = "nfqkvdjp";
+        string id = "ccxt";
         assert(isEqual(getValue(exchange.options, "brokerId"), id), "id not in options");
         object clientOrderId = null;
         try
@@ -4327,7 +4328,8 @@ public partial class testMainClass
             object query = this.urlencodedToDict((urlParts != null && 1 < urlParts.Count ? urlParts[1] : null));
             clientOrderId = getValue(query, "label");
         }
-        assert((clientOrderId != null) && (((string)clientOrderId).StartsWith(((string)((object)id).ToString())) == true), "clientOrderId does not start with id");
+        // the label is built as "<brokerId>-<uuid22>", so assert the hyphenated prefix to ensure the uuid suffix was appended after the ccxt broker id
+        assert((clientOrderId != null) && (((string)clientOrderId).StartsWith((id + "-")) == true), (((("clientOrderId " + (clientOrderId)) + " does not start with the brokerId prefix ") + id) + "-"));
         if (!isTrue(isSync()))
         {
             await close(exchange);

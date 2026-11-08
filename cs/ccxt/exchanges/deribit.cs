@@ -116,7 +116,7 @@ public partial class deribit : Exchange
                     { "rest", "https://www.deribit.com" },
                 } },
                 { "www", "https://www.deribit.com" },
-                { "doc", new List<object>() {"https://docs.deribit.com/v2", "https://github.com/deribit"} },
+                { "doc", new List<object>() {"https://docs.deribit.com", "https://github.com/deribit"} },
                 { "fees", "https://www.deribit.com/pages/information/fees" },
                 { "referral", new Dictionary<string, object>() {
                     { "url", "https://www.deribit.com/reg-1189.4038" },
@@ -790,55 +790,54 @@ public partial class deribit : Exchange
     {
         // support expired option contracts
         string quote = "USD";
-        object settle = null;
+        string settle = "";
         List<object> optionParts = ((string)symbol).Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
         List<object> symbolBase = ((string)symbol).Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
-        object bs = null;
+        bool hasSlash = ((string)symbol).IndexOf("/", StringComparison.Ordinal) > -1;
+        bool hasUsdc = ((string)symbol).IndexOf("USDC", StringComparison.Ordinal) > -1;
+        string? bs = null;
         string? expiry = null;
-        if (((string)symbol).IndexOf("/", StringComparison.Ordinal) > -1)
+        if (hasSlash)
         {
-            bs = this.safeString(symbolBase, 0);
+            bs = this.safeString(symbolBase, 0, "");
             expiry = this.safeString(optionParts, 1);
-            if (((string)symbol).IndexOf("USDC", StringComparison.Ordinal) > -1)
-            {
-                bs = add(bs, "_USDC");
-            }
         } else
         {
-            bs = this.safeString(optionParts, 0);
+            bs = this.safeString(optionParts, 0, "");
             expiry = this.convertMarketIdExpireDate(this.safeString(optionParts, 1));
         }
-        if (((string)symbol).IndexOf("USDC", StringComparison.Ordinal) > -1)
+        if ((bs == null))
+        {
+            throw new ExchangeError ((this.id + " createExpiredOptionMarket() missing base")) ;
+        }
+        // the slash form of a usdc instrument carries its settlement currency in the base
+        string baseSuffix = "";
+        if (hasSlash && hasUsdc)
+        {
+            baseSuffix = "_USDC";
+        }
+        string baseResolved = (bs + baseSuffix);
+        if (hasUsdc)
         {
             quote = "USDC";
             settle = "USDC";
         } else
         {
-            settle = bs;
+            // no usdc suffix on this path, so the resolved base is the settle currency
+            settle = baseResolved;
         }
-        object splitBase = bs;
-        if ((bs == null))
-        {
-            throw new ExchangeError ((this.id + " createExpiredOptionMarket() missing base")) ;
-        }
-        if (((string)bs).IndexOf("_", StringComparison.Ordinal) > -1)
-        {
-            List<object> splitSymbol = ((string)bs).Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
-            splitBase = this.safeString(splitSymbol, 0);
-        }
-        string? strike = this.safeString(optionParts, 2);
-        string? optionType = this.safeString(optionParts, 3);
+        // the part of the base before the first underscore, or the whole base when it has none
+        string splitBase = this.safeString(baseResolved.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>(), 0, "");
+        string? strike = this.safeString(optionParts, 2, "");
+        string? optionType = this.safeString(optionParts, 3, "");
         string? datetime = this.convertExpireDate(expiry);
-        Int64? timestamp = this.parse8601(datetime);
-        object id = add(add(add(add(add(add(bs, "-"), this.convertExpireDateToMarketIdDate(expiry)), "-"), strike), "-"), optionType);
-        object symbolExpired = add(add(add(add(add(add(add(add(add(add(splitBase, "/"), quote), ":"), settle), "-"), expiry), "-"), strike), "-"), optionType);
-        return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {
-            { "id", id },
-            { "symbol", symbolExpired },
-            { "base", bs },
+        return new Dictionary<string, object>() {
+            { "id", (((baseResolved + "-") + this.convertExpireDateToMarketIdDate(expiry)) + (((("-" + strike) + "-") + optionType))) },
+            { "symbol", (((((((splitBase + "/") + quote) + ":") + settle) + "-") + expiry) + (((("-" + strike) + "-") + optionType))) },
+            { "base", baseResolved },
             { "quote", quote },
             { "settle", settle },
-            { "baseId", bs },
+            { "baseId", baseResolved },
             { "quoteId", quote },
             { "settleId", settle },
             { "active", false },
@@ -852,7 +851,7 @@ public partial class deribit : Exchange
             { "margin", false },
             { "contract", true },
             { "contractSize", null },
-            { "expiry", timestamp },
+            { "expiry", this.parse8601(datetime) },
             { "expiryDatetime", datetime },
             { "optionType", (optionType == "C") ? "call" : "put" },
             { "strike", this.parseNumber(strike) },
@@ -875,7 +874,7 @@ public partial class deribit : Exchange
                 } },
             } },
             { "info", null },
-        });
+        };
     }
 
     public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, string? delimiter = null, object marketType = null)
@@ -893,7 +892,7 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://docs.deribit.com/#public-get_time
+     * @see https://docs.deribit.com/api-reference/supporting/public-get_time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -911,14 +910,14 @@ public partial class deribit : Exchange
         //         "testnet": false
         //     }
         //
-        return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "result"));
+        return this.safeInteger(response, "result") ?? 0;
     }
 
     /**
      * @method
      * @name deribit#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://docs.deribit.com/#public-get_currencies
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -1000,7 +999,7 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://docs.deribit.com/#public-status
+     * @see https://docs.deribit.com/api-reference/supporting/public-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
@@ -1030,7 +1029,7 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchAccounts
      * @description fetch all the accounts associated with a profile
-     * @see https://docs.deribit.com/#private-get_subaccounts
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_subaccounts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
@@ -1108,8 +1107,8 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchMarkets
      * @description retrieves data on all markets for deribit
-     * @see https://docs.deribit.com/#public-get_currencies
-     * @see https://docs.deribit.com/#public-get_instruments
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_instruments
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -1298,13 +1297,13 @@ public partial class deribit : Exchange
                     symbol = ((((bs + "/") + quote) + ":") + settle);
                     if (option || future)
                     {
-                        symbol = add(add(symbol, "-"), this.yymmdd(expiry, ""));
+                        symbol = ((object)(symbol == null ? null : symbol + "-" + (string)(object)(this.yymmdd(expiry, ""))));
                         if (option)
                         {
                             strike = this.safeNumber(market, "strike");
                             optionType = this.safeString(market, "option_type");
                             string letter = (optionType == "call") ? "C" : "P";
-                            symbol = add(add(add(add(symbol, "-"), this.numberToString(strike)), "-"), letter);
+                            symbol = ((object)(symbol == null ? null : symbol + "-" + this.numberToString(strike) + "-" + letter));
                         }
                     }
                     inverse = ((quote != settle));
@@ -1383,7 +1382,7 @@ public partial class deribit : Exchange
             { "info", balance },
         };
         List<object> summaries = new List<object>() {};
-        if (inOp(balance, "summaries"))
+        if ((balance != null && ((IDictionary<string, object>)balance).ContainsKey("summaries")))
         {
             summaries = this.safeList(balance, "summaries", new List<object>() {});
         } else
@@ -1411,8 +1410,8 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.deribit.com/#private-get_account_summary
-     * @see https://docs.deribit.com/#private-get_account_summaries
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summary
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summaries
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.code] unified currency code of the currency for the balance, if defined 'privateGetGetAccountSummary' will be used, otherwise 'privateGetGetAccountSummaries' will be used
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -1489,7 +1488,7 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#createDepositAddress
      * @description create a currency deposit address
-     * @see https://docs.deribit.com/#private-create_deposit_address
+     * @see https://docs.deribit.com/api-reference/wallet/private-create_deposit_address
      * @param {string} code unified currency code of the currency for the deposit address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -1528,7 +1527,7 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
-     * @see https://docs.deribit.com/#private-get_current_deposit_address
+     * @see https://docs.deribit.com/api-reference/wallet/private-get_current_deposit_address
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
@@ -1651,7 +1650,7 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.deribit.com/#public-ticker
+     * @see https://docs.deribit.com/api-reference/market-data/public-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1704,7 +1703,7 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://docs.deribit.com/#public-get_book_summary_by_currency
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.code] *required* the currency code to fetch the tickers for, eg. 'BTC', 'ETH'
@@ -1717,7 +1716,7 @@ public partial class deribit : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         string? code = this.safeString2(parameters, "code", "currency");
         string? type = null;
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"code"}));
@@ -1729,7 +1728,7 @@ public partial class deribit : Exchange
                 string? marketBase = this.safeString(market, "base");
                 if ((code != null) && (code != marketBase))
                 {
-                    throw new BadRequest ((this.id + " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency")) ;
+                    throw new BadRequest ((this.id + " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency")) ;
                 }
                 if ((code == null))
                 {
@@ -1748,20 +1747,15 @@ public partial class deribit : Exchange
         };
         if ((type != null))
         {
-            string? requestType = null;
             if (type == "spot")
             {
-                requestType = "spot";
+                request["kind"] = "spot";
             } else if (type == "future" || (type == "contract"))
             {
-                requestType = "future";
+                request["kind"] = "future";
             } else if (type == "option")
             {
-                requestType = "option";
-            }
-            if ((requestType != null))
-            {
-                request["kind"] = requestType;
+                request["kind"] = "option";
             }
         }
         Dictionary<string, object> response = await this.publicGetGetBookSummaryByCurrency(this.extend(request, paramsOmitted));
@@ -1813,7 +1807,7 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.deribit.com/#public-get_tradingview_chart_data
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_tradingview_chart_data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1850,7 +1844,7 @@ public partial class deribit : Exchange
         int defaultLimit = 1000;
         Int64? windowLimit = ((limit == null)) ? defaultLimit : limit;
         Int64? limitResolved = (((since == null)) && ((limit == null))) ? defaultLimit : limit;
-        object sinceResolved = ((since == null)) ? null : mathMax(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(since, 1), 0);
+        object sinceResolved = ((since == null)) ? null : mathMax((since - 1), 0);
         if ((since == null))
         {
             request["start_timestamp"] = (now - ((((windowLimit - 1)) * duration) * 1000));
@@ -1952,7 +1946,7 @@ public partial class deribit : Exchange
         // For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         string? amount = this.safeString(trade, "amount");
         string? cost = Precise.stringMul(amount, priceString);
-        if ((((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true))
+        if ((this.safeBool(marketResolved, "inverse", false) == true))
         {
             cost = Precise.stringDiv(amount, priceString);
         }
@@ -1994,8 +1988,8 @@ public partial class deribit : Exchange
     /**
      * @method
      * @name deribit#fetchTrades
-     * @see https://docs.deribit.com/#public-get_last_trades_by_instrument
-     * @see https://docs.deribit.com/#public-get_last_trades_by_instrument_and_time
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_last_trades_by_instrument
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_last_trades_by_instrument_and_time
      * @description get the list of most recent trades for a particular symbol.
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -2072,7 +2066,7 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchTradingFees
      * @description fetch the trading fees for multiple markets
-     * @see https://docs.deribit.com/#private-get_account_summary
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summary
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
@@ -2185,13 +2179,13 @@ public partial class deribit : Exchange
                 { "maker", (market.ContainsKey("maker") ? market["maker"] : null) },
                 { "taker", (market.ContainsKey("taker") ? market["taker"] : null) },
             };
-            if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) == true))
+            if ((this.safeBool(market, "swap", false) == true))
             {
                 fee = this.extend(fee, perpetualFee);
-            } else if ((((market.ContainsKey("future") ? market["future"] : null) as bool?) == true))
+            } else if ((this.safeBool(market, "future", false) == true))
             {
                 fee = this.extend(fee, futureFee);
-            } else if ((((market.ContainsKey("option") ? market["option"] : null) as bool?) == true))
+            } else if ((this.safeBool(market, "option", false) == true))
             {
                 fee = this.extend(fee, optionFee);
             }
@@ -2204,7 +2198,7 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.deribit.com/#public-get_order_book
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_order_book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2414,7 +2408,7 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://docs.deribit.com/#private-get_order_state
+     * @see https://docs.deribit.com/api-reference/trading/private-get_order_state
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2472,8 +2466,8 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#createOrder
      * @description create a trade order
-     * @see https://docs.deribit.com/#private-buy
-     * @see https://docs.deribit.com/#private-sell
+     * @see https://docs.deribit.com/api-reference/trading/private-buy
+     * @see https://docs.deribit.com/api-reference/trading/private-sell
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -2519,7 +2513,7 @@ public partial class deribit : Exchange
         bool isStopOrder = isStopLossOrder || isTakeProfitOrder;
         bool isLimitOrder = ((type == "limit")) || isStopLimit || isTakeLimit;
         bool isMarketOrder = ((type == "market")) || isStopMarket || isTakeMarket;
-        object exchangeSpecificPostOnly = this.safeValue(parameters, "post_only");
+        bool? exchangeSpecificPostOnly = this.safeBool(parameters, "post_only");
         bool postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificPostOnly, parameters);
         if (isLimitOrder)
         {
@@ -2649,9 +2643,9 @@ public partial class deribit : Exchange
         //     }
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        object order = this.safeValue(result, "order");
-        List<object> trades = this.safeList(result, "trades", new List<object>() {});
-        ((IDictionary<string,object>)order)["trades"] = trades;
+        Dictionary<string, object> order = this.extend(this.safeValue(result, "order"), new Dictionary<string, object>() {
+            { "trades", this.safeList(result, "trades", new List<object>() {}) },
+        });
         return this.parseOrder(order, market);
     }
 
@@ -2659,7 +2653,7 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#editOrder
      * @description edit a trade order
-     * @see https://docs.deribit.com/#private-edit
+     * @see https://docs.deribit.com/api-reference/trading/private-edit
      * @param {string} id edit order id
      * @param {string} [symbol] unified symbol of the market to edit an order in
      * @param {string} [type] 'market' or 'limit'
@@ -2702,9 +2696,9 @@ public partial class deribit : Exchange
         }
         Dictionary<string, object> response = await this.privateGetEdit(this.extend(request, paramsOmitted));
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        object order = this.safeValue(result, "order");
-        List<object> trades = this.safeList(result, "trades", new List<object>() {});
-        ((IDictionary<string,object>)order)["trades"] = trades;
+        Dictionary<string, object> order = this.extend(this.safeValue(result, "order"), new Dictionary<string, object>() {
+            { "trades", this.safeList(result, "trades", new List<object>() {}) },
+        });
         return this.parseOrder(order);
     }
 
@@ -2712,7 +2706,7 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#cancelOrder
      * @description cancels an open order
-     * @see https://docs.deribit.com/#private-cancel
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel
      * @param {string} id order id
      * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2737,8 +2731,8 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#cancelAllOrders
      * @description cancel all open orders
-     * @see https://docs.deribit.com/#private-cancel_all
-     * @see https://docs.deribit.com/#private-cancel_all_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel_all
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel_all_by_instrument
      * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2778,8 +2772,8 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://docs.deribit.com/#private-get_open_orders_by_currency
-     * @see https://docs.deribit.com/#private-get_open_orders_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_currency
+     * @see https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_instrument
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -2816,8 +2810,8 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
-     * @see https://docs.deribit.com/#private-get_order_history_by_currency
-     * @see https://docs.deribit.com/#private-get_order_history_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_order_history_by_currency
+     * @see https://docs.deribit.com/api-reference/trading/private-get_order_history_by_instrument
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2861,7 +2855,7 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://docs.deribit.com/#private-get_user_trades_by_order
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_order
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2921,10 +2915,10 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://docs.deribit.com/#private-get_user_trades_by_currency
-     * @see https://docs.deribit.com/#private-get_user_trades_by_currency_and_time
-     * @see https://docs.deribit.com/#private-get_user_trades_by_instrument
-     * @see https://docs.deribit.com/#private-get_user_trades_by_instrument_and_time
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_currency
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_currency_and_time
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument_and_time
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -3015,7 +3009,7 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchDeposits
      * @description fetch all deposits made to an account
-     * @see https://docs.deribit.com/#private-get_deposits
+     * @see https://docs.deribit.com/api-reference/wallet/private-get_deposits
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -3071,7 +3065,7 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://docs.deribit.com/#private-get_withdrawals
+     * @see https://docs.deribit.com/api-reference/wallet/private-get_withdrawals
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -3238,8 +3232,7 @@ public partial class deribit : Exchange
         //
         string? contract = this.safeString(position, "instrument_name");
         Dictionary<string, object> marketResolved = this.safeMarket(contract, market);
-        string? side = this.safeString(position, "direction");
-        side = (side == "buy") ? "long" : "short";
+        string side = ((this.safeString(position, "direction") == "buy")) ? "long" : "short";
         string? unrealizedPnl = this.safeString(position, "floating_profit_loss");
         string? initialMarginString = this.safeString(position, "initial_margin");
         string? notionalString = this.safeString(position, "size_currency");
@@ -3281,7 +3274,7 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchPosition
      * @description fetch data on a single open contract trade position
-     * @see https://docs.deribit.com/#private-get_position
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_position
      * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -3332,7 +3325,7 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchPositions
      * @description fetch all open positions
-     * @see https://docs.deribit.com/#private-get_positions
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.currency] currency code filter for positions
@@ -3386,14 +3379,14 @@ public partial class deribit : Exchange
         //     }
         //
         List<object> result = this.safeList(response, "result");
-        return ccxt.BaseExchange.ToPositionList(this.parsePositions(result, symbols));
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(result, this.toArray(symbols)));
     }
 
     /**
      * @method
      * @name deribit#fetchVolatilityHistory
      * @description fetch the historical volatility of an option market based on an underlying asset
-     * @see https://docs.deribit.com/#public-get_historical_volatility
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_historical_volatility
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
@@ -3463,7 +3456,7 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchTransfers
      * @description fetch a history of internal transfers made on an account
-     * @see https://docs.deribit.com/#private-get_transfers
+     * @see https://docs.deribit.com/api-reference/wallet/private-get_transfers
      * @param {string} code unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of  transfers structures to retrieve
@@ -3532,8 +3525,8 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://docs.deribit.com/#private-submit_transfer_to_user
-     * @see https://docs.deribit.com/#private-submit_transfer_to_subaccount
+     * @see https://docs.deribit.com/api-reference/wallet/private-submit_transfer_to_user
+     * @see https://docs.deribit.com/api-reference/wallet/private-submit_transfer_to_subaccount
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
@@ -3638,7 +3631,7 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#withdraw
      * @description make a withdrawal
-     * @see https://docs.deribit.com/#private-withdraw
+     * @see https://docs.deribit.com/api-reference/wallet/private-withdraw
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
@@ -3703,12 +3696,12 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchDepositWithdrawFees
      * @description fetch deposit and withdraw fees
-     * @see https://docs.deribit.com/#public-get_currencies
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
      * @param {string[]|undefined} codes list of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
+    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(IList<object> codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3746,7 +3739,7 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchFundingRate
      * @description fetch the current funding rate
-     * @see https://docs.deribit.com/#public-get_funding_rate_value
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_funding_rate_value
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.start_timestamp] fetch funding rate starting from this timestamp
@@ -3785,7 +3778,7 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchFundingRateHistory
      * @description fetch the current funding rate
-     * @see https://docs.deribit.com/#public-get_funding_rate_history
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_funding_rate_history
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch funding rate history for
      * @param {int} [limit] the maximum number of entries to retrieve
@@ -3820,22 +3813,30 @@ public partial class deribit : Exchange
         Int64 month = ((((30L * 24L) * 60) * 60) * 1000);
         Int64 defaultSince = (now - month);
         Int64? sinceResolved = ((since == null)) ? defaultSince : since;
-        Int64? time = ((since == null)) ? now : (since + month);
+        Int64? time = now;
+        if ((since != null))
+        {
+            time = this.parseToInt((since + month));
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
             { "start_timestamp", (sinceResolved - 1) },
         };
         Int64? until = this.safeInteger2(paramsPaginate, "until", "end_timestamp");
         object paramsUntil = ((until != null)) ? this.omit(paramsPaginate, new List<object>() {"until"}) : paramsPaginate;
-        Int64? endTimestamp = ((until != null)) ? until : time;
+        Int64? endTimestamp = time;
+        if ((until != null))
+        {
+            endTimestamp = this.parseToInt(until);
+        }
         request["end_timestamp"] = endTimestamp;
-        bool isPaginationCall = ((paramsUntil is IDictionary<string, object> inOpDict0 && inOpDict0.ContainsKey("isDeribitPaginationCall")));
+        bool? isPaginationCall = this.safeBool(paramsUntil, "isDeribitPaginationCall", false);
         object paramsOmitted = paramsUntil;
-        if (isPaginationCall)
+        if ((isPaginationCall == true))
         {
             paramsOmitted = this.omit(paramsUntil, "isDeribitPaginationCall");
         }
-        if (isPaginationCall)
+        if ((isPaginationCall == true))
         {
             if ((limit == null))
             {
@@ -3920,7 +3921,7 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchLiquidations
      * @description retrieves the public liquidations of a trading pair
-     * @see https://docs.deribit.com/#public-get_last_settlements_by_currency
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_last_settlements_by_currency
      * @param {string} symbol unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -3943,9 +3944,9 @@ public partial class deribit : Exchange
             return ccxt.BaseExchange.ToLiquidationList(await this.fetchPaginatedCallCursor("fetchLiquidations", symbol, since, limit, paramsPaginate, "continuation", "continuation", null));
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
-            throw new NotSupported ((((this.id + " fetchLiquidations() does not support ") + ((market.ContainsKey("type") ? market["type"] : null))) + " markets")) ;
+            throw new NotSupported ((((this.id + " fetchLiquidations() does not support ") + this.safeString(market, "type", "")) + " markets")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
@@ -3988,7 +3989,7 @@ public partial class deribit : Exchange
         string? cursor = this.safeString(result, "continuation");
         List<object> settlements = this.safeList(result, "settlements", new List<object>() {});
         object settlementsWithCursor = this.addPaginationCursorToResult(cursor, settlements);
-        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(settlementsWithCursor, market, since, limit));
+        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(this.toArray(settlementsWithCursor), market, since, limit));
     }
 
     public virtual object addPaginationCursorToResult(object cursor, IList<object> data)
@@ -3998,10 +3999,10 @@ public partial class deribit : Exchange
             int dataLength = data?.Count ?? 0;
             if (dataLength > 0)
             {
-                object first = (data != null && 0 < data.Count ? data[0] : null);
-                object last = (data != null && (dataLength - 1) < data.Count ? data[(dataLength - 1)] : null);
-                ((IDictionary<string,object>)first)["continuation"] = cursor;
-                ((IDictionary<string,object>)last)["continuation"] = cursor;
+                IDictionary<string, object> first = this.safeDict(data, 0, new Dictionary<string, object>() {});
+                IDictionary<string, object> last = this.safeDict(data, (dataLength - 1), new Dictionary<string, object>() {});
+                first["continuation"] = cursor;
+                last["continuation"] = cursor;
                 ((List<object>)data)[Convert.ToInt32(0)] = first;
                 ((List<object>)data)[Convert.ToInt32((dataLength - 1))] = last;
             }
@@ -4013,7 +4014,7 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchMyLiquidations
      * @description retrieves the users liquidated positions
-     * @see https://docs.deribit.com/#private-get_settlement_history_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_settlement_history_by_instrument
      * @param {string} symbol unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -4032,9 +4033,9 @@ public partial class deribit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+        if ((this.safeBool(market, "spot", false) == true))
         {
-            throw new NotSupported ((((this.id + " fetchMyLiquidations() does not support ") + ((market.ContainsKey("type") ? market["type"] : null))) + " markets")) ;
+            throw new NotSupported ((((this.id + " fetchMyLiquidations() does not support ") + this.safeString(market, "type", "")) + " markets")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument_name", (market.ContainsKey("id") ? market["id"] : null) },
@@ -4110,7 +4111,7 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchGreeks
      * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
-     * @see https://docs.deribit.com/#public-ticker
+     * @see https://docs.deribit.com/api-reference/market-data/public-ticker
      * @param {string} symbol unified symbol of the market to fetch greeks for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
@@ -4249,7 +4250,7 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchOption
      * @description fetches option data that is commonly found in an option chain
-     * @see https://docs.deribit.com/#public-get_book_summary_by_instrument
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_instrument
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
@@ -4307,7 +4308,7 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchOptionChain
      * @description fetches data for an underlying asset that is commonly found in an option chain
-     * @see https://docs.deribit.com/#public-get_book_summary_by_currency
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency
      * @param {string} code base currency to fetch an option chain for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
@@ -4416,7 +4417,7 @@ public partial class deribit : Exchange
      * @method
      * @name deribit#fetchOpenInterest
      * @description Retrieves the open interest of a symbol
-     * @see https://docs.deribit.com/?shell#public-get_book_summary_by_instrument
+     * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_instrument
      * @param {string} symbol unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
@@ -4429,7 +4430,7 @@ public partial class deribit : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "contract", false) == true))
         {
             throw new BadRequest ((this.id + " fetchOpenInterest() supports contract markets only")) ;
         }
@@ -4505,7 +4506,7 @@ public partial class deribit : Exchange
         double? openInterest = this.safeNumber(interest, "open_interest");
         double? openInterestAmount = null;
         double? openInterestValue = null;
-        if (((((marketResolved != null && marketResolved.ContainsKey("option") ? marketResolved["option"] : null) as bool?) == true)) || (((((marketResolved != null && marketResolved.ContainsKey("future") ? marketResolved["future"] : null) as bool?) == true)) && ((((marketResolved != null && marketResolved.ContainsKey("linear") ? marketResolved["linear"] : null) as bool?) == true))))
+        if ((this.safeBool(marketResolved, "option", false) == true) || ((this.safeBool(marketResolved, "future", false) == true) && (this.safeBool(marketResolved, "linear", false) == true)))
         {
             openInterestAmount = openInterest;
         } else
@@ -4527,21 +4528,21 @@ public partial class deribit : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiName = getValue(api, 0);
-        string request = (((((("/" + "api/") + this.version) + "/") + (apiName)) + "/") + path);
-        if ((apiName is "public"))
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
+        string request = (((((("/" + "api/") + this.version) + "/") + apiName) + "/") + path);
+        if (apiName == "public")
         {
             if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
             {
                 request = request + ("?" + this.urlencode(parameters));
             }
         }
-        if ((apiName is "private"))
+        if (apiName == "private")
         {
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
@@ -4557,7 +4558,7 @@ public partial class deribit : Exchange
             Dictionary<string, object> signedHeaders = new Dictionary<string, object>() {
                 { "Authorization", (((((((("deri-hmac-sha256 id=" + this.apiKey) + ",ts=") + timestamp) + ",sig=") + signature) + ",") + "nonce=") + nonce) },
             };
-            string? baseApiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+            string? baseApiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "rest");
             if ((baseApiUrl == null))
             {
                 throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -4570,7 +4571,7 @@ public partial class deribit : Exchange
                 { "headers", signedHeaders },
             };
         }
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "rest");
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -4584,7 +4585,7 @@ public partial class deribit : Exchange
         };
     }
 
-    public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if (((response == null)) || ((response == null)))
         {

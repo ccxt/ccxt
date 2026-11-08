@@ -19,7 +19,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class deribit extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'deribit',
             'name' => 'Deribit',
@@ -132,7 +132,7 @@ class deribit extends Exchange {
                 ),
                 'www' => 'https://www.deribit.com',
                 'doc' => array(
-                    'https://docs.deribit.com/v2',
+                    'https://docs.deribit.com',
                     'https://github.com/deribit',
                 ),
                 'fees' => 'https://www.deribit.com/pages/information/fees',
@@ -528,48 +528,48 @@ class deribit extends Exchange {
     public function create_expired_option_market(string $symbol): array {
         // support expired option contracts
         $quote = 'USD';
-        $settle = null;
+        $settle = '';
         $optionParts = explode('-', $symbol);
         $symbolBase = explode('/', $symbol);
+        $hasSlash = mb_strpos($symbol, '/') > -1;
+        $hasUsdc = mb_strpos($symbol, 'USDC') > -1;
         $base = null;
         $expiry = null;
-        if (mb_strpos($symbol, '/') > -1) {
-            $base = $this->safe_string($symbolBase, 0);
+        if ($hasSlash) {
+            $base = $this->safe_string($symbolBase, 0, '');
             $expiry = $this->safe_string($optionParts, 1);
-            if (mb_strpos($symbol, 'USDC') > -1) {
-                $base = $base . '_USDC';
-            }
         } else {
-            $base = $this->safe_string($optionParts, 0);
+            $base = $this->safe_string($optionParts, 0, '');
             $expiry = $this->convert_market_id_expire_date($this->safe_string($optionParts, 1));
         }
-        if (mb_strpos($symbol, 'USDC') > -1) {
-            $quote = 'USDC';
-            $settle = 'USDC';
-        } else {
-            $settle = $base;
-        }
-        $splitBase = $base;
         if ($base === null) {
             throw new ExchangeError($this->id . ' createExpiredOptionMarket() missing base');
         }
-        if (mb_strpos($base, '_') > -1) {
-            $splitSymbol = explode('_', $base);
-            $splitBase = $this->safe_string($splitSymbol, 0);
+        // the slash form of a usdc instrument carries its settlement currency in the base
+        $baseSuffix = '';
+        if ($hasSlash && $hasUsdc) {
+            $baseSuffix = '_USDC';
         }
-        $strike = $this->safe_string($optionParts, 2);
-        $optionType = $this->safe_string($optionParts, 3);
+        $baseResolved = $base . $baseSuffix;
+        if ($hasUsdc) {
+            $quote = 'USDC';
+            $settle = 'USDC';
+        } else {
+            // no usdc suffix on this path, so the resolved base is the settle currency
+            $settle = $baseResolved;
+        }
+        // the part of the base before the first underscore, or the whole base when it has none
+        $splitBase = $this->safe_string(explode('_', $baseResolved), 0, '');
+        $strike = $this->safe_string($optionParts, 2, '');
+        $optionType = $this->safe_string($optionParts, 3, '');
         $datetime = $this->convert_expire_date($expiry);
-        $timestamp = $this->parse8601($datetime);
-        $id = $base . '-' . $this->convert_expire_date_to_market_id_date($expiry) . '-' . $strike . '-' . $optionType;
-        $symbolExpired = $splitBase . '/' . $quote . ':' . $settle . '-' . $expiry . '-' . $strike . '-' . $optionType;
         return array(
-            'id' => $id,
-            'symbol' => $symbolExpired,
-            'base' => $base,
+            'id' => $baseResolved . '-' . $this->convert_expire_date_to_market_id_date($expiry) . ('-' . $strike . '-' . $optionType),
+            'symbol' => $splitBase . '/' . $quote . ':' . $settle . '-' . $expiry . ('-' . $strike . '-' . $optionType),
+            'base' => $baseResolved,
             'quote' => $quote,
             'settle' => $settle,
-            'baseId' => $base,
+            'baseId' => $baseResolved,
             'quoteId' => $quote,
             'settleId' => $settle,
             'active' => false,
@@ -583,7 +583,7 @@ class deribit extends Exchange {
             'margin' => false,
             'contract' => true,
             'contractSize' => null,
-            'expiry' => $timestamp,
+            'expiry' => $this->parse8601($datetime),
             'expiryDatetime' => $datetime,
             'optionType' => ($optionType === 'C') ? 'call' : 'put',
             'strike' => $this->parse_number($strike),
@@ -626,7 +626,7 @@ class deribit extends Exchange {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
-         * @see https://docs.deribit.com/#public-get_time
+         * @see https://docs.deribit.com/api-reference/supporting/public-get_time
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
@@ -653,7 +653,7 @@ class deribit extends Exchange {
         /**
          * fetches all available currencies on an exchange
          *
-         * @see https://docs.deribit.com/#public-get_currencies
+         * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
@@ -734,7 +734,7 @@ class deribit extends Exchange {
         /**
          * the latest known information on the availability of the exchange API
          *
-         * @see https://docs.deribit.com/#public-status
+         * @see https://docs.deribit.com/api-reference/supporting/public-status
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
@@ -772,7 +772,7 @@ class deribit extends Exchange {
         /**
          * fetch all the accounts associated with a profile
          *
-         * @see https://docs.deribit.com/#private-get_subaccounts
+         * @see https://docs.deribit.com/api-reference/account-management/private-get_subaccounts
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=account-structure account structures~ indexed by the account type
@@ -850,8 +850,8 @@ class deribit extends Exchange {
         /**
          * retrieves data on all markets for deribit
          *
-         * @see https://docs.deribit.com/#public-get_currencies
-         * @see https://docs.deribit.com/#public-get_instruments
+         * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
+         * @see https://docs.deribit.com/api-reference/market-data/public-get_instruments
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
@@ -1097,7 +1097,7 @@ class deribit extends Exchange {
         return $result;
     }
 
-    public function parse_balance(mixed $balance): array {
+    public function parse_balance(array $balance): array {
         $result = array(
             'info' => $balance,
         );
@@ -1130,8 +1130,8 @@ class deribit extends Exchange {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
-         * @see https://docs.deribit.com/#private-get_account_summary
-         * @see https://docs.deribit.com/#private-get_account_summaries
+         * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summary
+         * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summaries
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->code] unified currency $code of the currency for the balance, if defined 'privateGetGetAccountSummary' will be used, otherwise 'privateGetGetAccountSummaries' will be used
@@ -1207,7 +1207,7 @@ class deribit extends Exchange {
         /**
          * create a $currency deposit $address
          *
-         * @see https://docs.deribit.com/#private-create_deposit_address
+         * @see https://docs.deribit.com/api-reference/wallet/private-create_deposit_address
          *
          * @param {string} $code unified $currency $code of the $currency for the deposit $address
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1253,7 +1253,7 @@ class deribit extends Exchange {
         /**
          * fetch the deposit $address for a $currency associated with this account
          *
-         * @see https://docs.deribit.com/#private-get_current_deposit_address
+         * @see https://docs.deribit.com/api-reference/wallet/private-get_current_deposit_address
          *
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1382,7 +1382,7 @@ class deribit extends Exchange {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
-         * @see https://docs.deribit.com/#public-ticker
+         * @see https://docs.deribit.com/api-reference/market-data/public-ticker
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1436,7 +1436,7 @@ class deribit extends Exchange {
         /**
          * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
          *
-         * @see https://docs.deribit.com/#public-get_book_summary_by_currency
+         * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency
          *
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1455,7 +1455,7 @@ class deribit extends Exchange {
                 $market = $this->market($symbolsNormalized[$i]);
                 $marketBase = $this->safe_string($market, 'base');
                 if ($code !== null && $code !== $marketBase) {
-                    throw new BadRequest($this->id . ' fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here => https://docs.deribit.com/#public-get_book_summary_by_currency');
+                    throw new BadRequest($this->id . ' fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here => https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency');
                 }
                 if ($code === null) {
                     $code = $this->safe_string($market, 'base');
@@ -1471,16 +1471,12 @@ class deribit extends Exchange {
             'currency' => $currency['id'],
         );
         if ($type !== null) {
-            $requestType = null;
             if ($type === 'spot') {
-                $requestType = 'spot';
+                $request['kind'] = 'spot';
             } elseif ($type === 'future' || ($type === 'contract')) {
-                $requestType = 'future';
+                $request['kind'] = 'future';
             } elseif ($type === 'option') {
-                $requestType = 'option';
-            }
-            if ($requestType !== null) {
-                $request['kind'] = $requestType;
+                $request['kind'] = 'option';
             }
         }
         $response = Async\await($this->publicGetGetBookSummaryByCurrency($this->extend($request, $paramsOmitted)));
@@ -1534,7 +1530,7 @@ class deribit extends Exchange {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
-         * @see https://docs.deribit.com/#public-get_tradingview_chart_data
+         * @see https://docs.deribit.com/api-reference/market-data/public-get_tradingview_chart_data
          *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
@@ -1659,7 +1655,7 @@ class deribit extends Exchange {
         // For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         $amount = $this->safe_string($trade, 'amount');
         $cost = Precise::string_mul($amount, $priceString);
-        if ($marketResolved['inverse'] === true) {
+        if ($this->safe_bool($marketResolved, 'inverse', false)) {
             $cost = Precise::string_div($amount, $priceString);
         }
         $liquidity = $this->safe_string($trade, 'liquidity');
@@ -1702,8 +1698,8 @@ class deribit extends Exchange {
     private function do_fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          *
-         * @see https://docs.deribit.com/#public-get_last_trades_by_instrument
-         * @see https://docs.deribit.com/#public-get_last_trades_by_instrument_and_time
+         * @see https://docs.deribit.com/api-reference/market-data/public-get_last_trades_by_instrument
+         * @see https://docs.deribit.com/api-reference/market-data/public-get_last_trades_by_instrument_and_time
          *
          * get the list of most recent $trades for a particular $symbol->
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
@@ -1776,7 +1772,7 @@ class deribit extends Exchange {
         /**
          * fetch the trading $fees for multiple markets
          *
-         * @see https://docs.deribit.com/#private-get_account_summary
+         * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summary
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by $market $symbols
@@ -1881,11 +1877,11 @@ class deribit extends Exchange {
                 'maker' => $market['maker'],
                 'taker' => $market['taker'],
             );
-            if ($market['swap'] === true) {
+            if ($this->safe_bool($market, 'swap', false)) {
                 $fee = $this->extend($fee, $perpetualFee);
-            } elseif ($market['future'] === true) {
+            } elseif ($this->safe_bool($market, 'future', false)) {
                 $fee = $this->extend($fee, $futureFee);
-            } elseif ($market['option'] === true) {
+            } elseif ($this->safe_bool($market, 'option', false)) {
                 $fee = $this->extend($fee, $optionFee);
             }
             $parsedFees[$symbol] = $fee;
@@ -1901,7 +1897,7 @@ class deribit extends Exchange {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
-         * @see https://docs.deribit.com/#public-get_order_book
+         * @see https://docs.deribit.com/api-reference/market-data/public-get_order_book
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
@@ -2101,7 +2097,7 @@ class deribit extends Exchange {
         /**
          * fetches information on an order made by the user
          *
-         * @see https://docs.deribit.com/#private-get_order_state
+         * @see https://docs.deribit.com/api-reference/trading/private-get_order_state
          *
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
@@ -2159,8 +2155,8 @@ class deribit extends Exchange {
         /**
          * create a trade $order
          *
-         * @see https://docs.deribit.com/#private-buy
-         * @see https://docs.deribit.com/#private-sell
+         * @see https://docs.deribit.com/api-reference/trading/private-buy
+         * @see https://docs.deribit.com/api-reference/trading/private-sell
          *
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
@@ -2212,7 +2208,7 @@ class deribit extends Exchange {
         $isStopOrder = $isStopLossOrder || $isTakeProfitOrder;
         $isLimitOrder = ($type === 'limit') || $isStopLimit || $isTakeLimit;
         $isMarketOrder = ($type === 'market') || $isStopMarket || $isTakeMarket;
-        $exchangeSpecificPostOnly = $this->safe_value($params, 'post_only');
+        $exchangeSpecificPostOnly = $this->safe_bool($params, 'post_only');
         $postOnly = $this->is_post_only($isMarketOrder, $exchangeSpecificPostOnly, $params);
         if ($isLimitOrder) {
             $request['type'] = 'limit';
@@ -2324,9 +2320,7 @@ class deribit extends Exchange {
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
-        $order = $this->safe_value($result, 'order');
-        $trades = $this->safe_list($result, 'trades', array());
-        $order['trades'] = $trades;
+        $order = $this->extend($this->safe_value($result, 'order'), array( 'trades' => $this->safe_list($result, 'trades', array()) ));
         return $this->parse_order($order, $market);
     }
 
@@ -2338,7 +2332,7 @@ class deribit extends Exchange {
         /**
          * edit a trade $order
          *
-         * @see https://docs.deribit.com/#private-edit
+         * @see https://docs.deribit.com/api-reference/trading/private-edit
          *
          * @param {string} $id edit $order $id
          * @param {string} [$symbol] unified $symbol of the market to edit an $order in
@@ -2379,9 +2373,7 @@ class deribit extends Exchange {
         }
         $response = Async\await($this->privateGetEdit($this->extend($request, $paramsOmitted)));
         $result = $this->safe_dict($response, 'result', array());
-        $order = $this->safe_value($result, 'order');
-        $trades = $this->safe_list($result, 'trades', array());
-        $order['trades'] = $trades;
+        $order = $this->extend($this->safe_value($result, 'order'), array( 'trades' => $this->safe_list($result, 'trades', array()) ));
         return $this->parse_order($order);
     }
 
@@ -2393,7 +2385,7 @@ class deribit extends Exchange {
         /**
          * cancels an open order
          *
-         * @see https://docs.deribit.com/#private-cancel
+         * @see https://docs.deribit.com/api-reference/trading/private-cancel
          *
          * @param {string} $id order $id
          * @param {string} $symbol not used by cancelOrder ()
@@ -2419,8 +2411,8 @@ class deribit extends Exchange {
         /**
          * cancel all open orders
          *
-         * @see https://docs.deribit.com/#private-cancel_all
-         * @see https://docs.deribit.com/#private-cancel_all_by_instrument
+         * @see https://docs.deribit.com/api-reference/trading/private-cancel_all
+         * @see https://docs.deribit.com/api-reference/trading/private-cancel_all_by_instrument
          *
          * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2463,8 +2455,8 @@ class deribit extends Exchange {
         /**
          * fetch all unfilled currently open orders
          *
-         * @see https://docs.deribit.com/#private-get_open_orders_by_currency
-         * @see https://docs.deribit.com/#private-get_open_orders_by_instrument
+         * @see https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_currency
+         * @see https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_instrument
          *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
@@ -2500,8 +2492,8 @@ class deribit extends Exchange {
         /**
          * fetches information on multiple closed orders made by the user
          *
-         * @see https://docs.deribit.com/#private-get_order_history_by_currency
-         * @see https://docs.deribit.com/#private-get_order_history_by_instrument
+         * @see https://docs.deribit.com/api-reference/trading/private-get_order_history_by_currency
+         * @see https://docs.deribit.com/api-reference/trading/private-get_order_history_by_instrument
          *
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -2542,7 +2534,7 @@ class deribit extends Exchange {
         /**
          * fetch all the trades made from a single order
          *
-         * @see https://docs.deribit.com/#private-get_user_trades_by_order
+         * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_order
          *
          * @param {string} $id order $id
          * @param {string} $symbol unified market $symbol
@@ -2603,10 +2595,10 @@ class deribit extends Exchange {
         /**
          * fetch all $trades made by the user
          *
-         * @see https://docs.deribit.com/#private-get_user_trades_by_currency
-         * @see https://docs.deribit.com/#private-get_user_trades_by_currency_and_time
-         * @see https://docs.deribit.com/#private-get_user_trades_by_instrument
-         * @see https://docs.deribit.com/#private-get_user_trades_by_instrument_and_time
+         * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_currency
+         * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_currency_and_time
+         * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument
+         * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument_and_time
          *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
@@ -2691,7 +2683,7 @@ class deribit extends Exchange {
         /**
          * fetch all deposits made to an account
          *
-         * @see https://docs.deribit.com/#private-get_deposits
+         * @see https://docs.deribit.com/api-reference/wallet/private-get_deposits
          *
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
@@ -2746,7 +2738,7 @@ class deribit extends Exchange {
         /**
          * fetch all withdrawals made from an account
          *
-         * @see https://docs.deribit.com/#private-get_withdrawals
+         * @see https://docs.deribit.com/api-reference/wallet/private-get_withdrawals
          *
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
@@ -2904,8 +2896,7 @@ class deribit extends Exchange {
         //
         $contract = $this->safe_string($position, 'instrument_name');
         $marketResolved = $this->safe_market($contract, $market);
-        $side = $this->safe_string($position, 'direction');
-        $side = ($side === 'buy') ? 'long' : 'short';
+        $side = ($this->safe_string($position, 'direction') === 'buy') ? 'long' : 'short';
         $unrealizedPnl = $this->safe_string($position, 'floating_profit_loss');
         $initialMarginString = $this->safe_string($position, 'initial_margin');
         $notionalString = $this->safe_string($position, 'size_currency');
@@ -2951,7 +2942,7 @@ class deribit extends Exchange {
         /**
          * fetch data on a single open contract trade position
          *
-         * @see https://docs.deribit.com/#private-get_position
+         * @see https://docs.deribit.com/api-reference/account-management/private-get_position
          *
          * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3003,7 +2994,7 @@ class deribit extends Exchange {
         /**
          * fetch all open positions
          *
-         * @see https://docs.deribit.com/#private-get_positions
+         * @see https://docs.deribit.com/api-reference/account-management/private-get_positions
          *
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3064,7 +3055,7 @@ class deribit extends Exchange {
         /**
          * fetch the historical volatility of an option market based on an underlying asset
          *
-         * @see https://docs.deribit.com/#public-get_historical_volatility
+         * @see https://docs.deribit.com/api-reference/market-data/public-get_historical_volatility
          *
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3133,7 +3124,7 @@ class deribit extends Exchange {
         /**
          * fetch a history of internal $transfers made on an account
          *
-         * @see https://docs.deribit.com/#private-get_transfers
+         * @see https://docs.deribit.com/api-reference/wallet/private-get_transfers
          *
          * @param {string} $code unified $currency $code of the $currency transferred
          * @param {int} [$since] the earliest time in ms to fetch $transfers for
@@ -3201,8 +3192,8 @@ class deribit extends Exchange {
         /**
          * transfer $currency internally between wallets on the same account
          *
-         * @see https://docs.deribit.com/#private-submit_transfer_to_user
-         * @see https://docs.deribit.com/#private-submit_transfer_to_subaccount
+         * @see https://docs.deribit.com/api-reference/wallet/private-submit_transfer_to_user
+         * @see https://docs.deribit.com/api-reference/wallet/private-submit_transfer_to_subaccount
          *
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
@@ -3303,7 +3294,7 @@ class deribit extends Exchange {
         /**
          * make a withdrawal
          *
-         * @see https://docs.deribit.com/#private-withdraw
+         * @see https://docs.deribit.com/api-reference/wallet/private-withdraw
          *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
@@ -3367,7 +3358,7 @@ class deribit extends Exchange {
         /**
          * fetch deposit and withdraw fees
          *
-         * @see https://docs.deribit.com/#public-get_currencies
+         * @see https://docs.deribit.com/api-reference/market-data/public-get_currencies
          *
          * @param {string[]|null} $codes list of unified currency $codes
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3411,7 +3402,7 @@ class deribit extends Exchange {
         /**
          * fetch the current funding rate
          *
-         * @see https://docs.deribit.com/#public-get_funding_rate_value
+         * @see https://docs.deribit.com/api-reference/market-data/public-get_funding_rate_value
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3451,7 +3442,7 @@ class deribit extends Exchange {
         /**
          * fetch the current funding $rate
          *
-         * @see https://docs.deribit.com/#public-get_funding_rate_history
+         * @see https://docs.deribit.com/api-reference/market-data/public-get_funding_rate_history
          *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest $time in ms to fetch funding $rate history for
@@ -3478,16 +3469,22 @@ class deribit extends Exchange {
         $month = 30 * 24 * 60 * 60 * 1000;
         $defaultSince = $now - $month;
         $sinceResolved = ($since === null) ? $defaultSince : $since;
-        $time = ($since === null) ? $now : $since . $month;
+        $time = $now;
+        if ($since !== null) {
+            $time = $this->parse_to_int($since . $month);
+        }
         $request = array(
             'instrument_name' => $market['id'],
             'start_timestamp' => $sinceResolved - 1,
         );
         $until = $this->safe_integer_2($paramsPaginate, 'until', 'end_timestamp');
         $paramsUntil = ($until !== null) ? $this->omit($paramsPaginate, array( 'until' )) : $paramsPaginate;
-        $endTimestamp = ($until !== null) ? $until : $time;
+        $endTimestamp = $time;
+        if ($until !== null) {
+            $endTimestamp = $this->parse_to_int($until);
+        }
         $request['end_timestamp'] = $endTimestamp;
-        $isPaginationCall = (is_array($paramsUntil) && array_key_exists('isDeribitPaginationCall' ?? '', $paramsUntil));
+        $isPaginationCall = $this->safe_bool($paramsUntil, 'isDeribitPaginationCall', false);
         $paramsOmitted = $paramsUntil;
         if ($isPaginationCall) {
             $paramsOmitted = $this->omit($paramsUntil, 'isDeribitPaginationCall');
@@ -3577,7 +3574,7 @@ class deribit extends Exchange {
         /**
          * retrieves the public liquidations of a trading pair
          *
-         * @see https://docs.deribit.com/#public-get_last_settlements_by_currency
+         * @see https://docs.deribit.com/api-reference/market-data/public-get_last_settlements_by_currency
          *
          * @param {string} $symbol unified CCXT $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch liquidations for
@@ -3594,8 +3591,8 @@ class deribit extends Exchange {
             return Async\await($this->fetch_paginated_call_cursor('fetchLiquidations', $symbol, $since, $limit, $paramsPaginate, 'continuation', 'continuation', null));
         }
         $market = $this->market($symbol);
-        if ($market['spot'] === true) {
-            throw new NotSupported($this->id . ' fetchLiquidations() does not support ' . $market['type'] . ' markets');
+        if ($this->safe_bool($market, 'spot', false)) {
+            throw new NotSupported($this->id . ' fetchLiquidations() does not support ' . $this->safe_string($market, 'type', '') . ' markets');
         }
         $request = array(
             'instrument_name' => $market['id'],
@@ -3643,8 +3640,8 @@ class deribit extends Exchange {
         if ($cursor !== null) {
             $dataLength = count($data);
             if ($dataLength > 0) {
-                $first = $data[0];
-                $last = $data[$dataLength - 1];
+                $first = $this->safe_dict($data, 0, array());
+                $last = $this->safe_dict($data, $dataLength - 1, array());
                 $first['continuation'] = $cursor;
                 $last['continuation'] = $cursor;
                 $data[0] = $first;
@@ -3662,7 +3659,7 @@ class deribit extends Exchange {
         /**
          * retrieves the users liquidated positions
          *
-         * @see https://docs.deribit.com/#private-get_settlement_history_by_instrument
+         * @see https://docs.deribit.com/api-reference/trading/private-get_settlement_history_by_instrument
          *
          * @param {string} $symbol unified CCXT $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch liquidations for
@@ -3677,8 +3674,8 @@ class deribit extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['spot'] === true) {
-            throw new NotSupported($this->id . ' fetchMyLiquidations() does not support ' . $market['type'] . ' markets');
+        if ($this->safe_bool($market, 'spot', false)) {
+            throw new NotSupported($this->id . ' fetchMyLiquidations() does not support ' . $this->safe_string($market, 'type', '') . ' markets');
         }
         $request = array(
             'instrument_name' => $market['id'],
@@ -3755,7 +3752,7 @@ class deribit extends Exchange {
         /**
          * fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
          *
-         * @see https://docs.deribit.com/#public-ticker
+         * @see https://docs.deribit.com/api-reference/market-data/public-ticker
          *
          * @param {string} $symbol unified $symbol of the $market to fetch greeks for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3894,7 +3891,7 @@ class deribit extends Exchange {
         /**
          * fetches option data that is commonly found in an option $chain
          *
-         * @see https://docs.deribit.com/#public-get_book_summary_by_instrument
+         * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_instrument
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3953,7 +3950,7 @@ class deribit extends Exchange {
         /**
          * fetches data for an underlying asset that is commonly found in an option chain
          *
-         * @see https://docs.deribit.com/#public-get_book_summary_by_currency
+         * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_currency
          *
          * @param {string} $code base $currency to fetch an option chain for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4062,7 +4059,7 @@ class deribit extends Exchange {
         /**
          * Retrieves the open interest of a $symbol
          *
-         * @see https://docs.deribit.com/?shell#public-get_book_summary_by_instrument
+         * @see https://docs.deribit.com/api-reference/market-data/public-get_book_summary_by_instrument
          *
          * @param {string} $symbol unified CCXT $market $symbol
          * @param {array} [$params] exchange specific parameters
@@ -4072,7 +4069,7 @@ class deribit extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['contract'] !== true) {
+        if (!$this->safe_bool($market, 'contract', false)) {
             throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
         }
         $request = array(
@@ -4146,7 +4143,7 @@ class deribit extends Exchange {
         $openInterest = $this->safe_number($interest, 'open_interest');
         $openInterestAmount = null;
         $openInterestValue = null;
-        if (($marketResolved['option'] === true) || (($marketResolved['future'] === true) && ($marketResolved['linear'] === true))) {
+        if (($this->safe_bool($marketResolved, 'option', false)) || (($this->safe_bool($marketResolved, 'future', false)) && ($this->safe_bool($marketResolved, 'linear', false)))) {
             $openInterestAmount = $openInterest;
         } else {
             $openInterestValue = $openInterest;
@@ -4161,7 +4158,7 @@ class deribit extends Exchange {
         ), $marketResolved);
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 
@@ -4202,7 +4199,7 @@ class deribit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if (($response === null) || ($response === null)) {
             return null; // fallback to default error handler
         }

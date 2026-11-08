@@ -27,7 +27,7 @@ class ImplicitAPI:
     private_post_getclosedorders = privatePostGetClosedOrders = Entry[_Dict]('GetClosedOrders', ['private'], 'POST', {'cost': 1})
     private_post_getclosedfilledorders = privatePostGetClosedFilledOrders = Entry[_Dict]('GetClosedFilledOrders', ['private'], 'POST', {'cost': 1})
     private_post_getorderdetails = privatePostGetOrderDetails = Entry[_Dict]('GetOrderDetails', ['private'], 'POST', {'cost': 1})
-    private_post_getaccounts = privatePostGetAccounts = Entry[_Dict]('GetAccounts', ['private'], 'POST', {'cost': 1})
+    private_post_getaccounts = privatePostGetAccounts = Entry[_List]('GetAccounts', ['private'], 'POST', {'cost': 1})
     private_post_gettransactions = privatePostGetTransactions = Entry[_Dict]('GetTransactions', ['private'], 'POST', {'cost': 1})
     private_post_getfiatbankaccounts = privatePostGetFiatBankAccounts = Entry[_List]('GetFiatBankAccounts', ['private'], 'POST', {'cost': 1})
     private_post_getdigitalcurrencydepositaddress = privatePostGetDigitalCurrencyDepositAddress = Entry[_Dict]('GetDigitalCurrencyDepositAddress', ['private'], 'POST', {'cost': 1})
