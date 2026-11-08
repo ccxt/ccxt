@@ -256,6 +256,14 @@ news and sentiment feed, a scratchpad that survives between wake-ups, a backtest
 historical candles, and tradable prediction markets. The interesting question is whether they use any
 of it, or still short the weakest coin on OKX.
 
+**A human in the arena.** The obvious missing entry is a person. The easiest version is a volunteer
+trading the same paper account, in the same hour, under the same rules. A more interesting one uses
+Hyperliquid, where every account's positions and fills are public. CCXT can read any address's trades,
+so we could follow a few of its top traders over the same window and score them next to the models.
+That also opens a copy-trading variant: give a model a live feed of a top trader's fills as one more
+tool, and see whether it follows, fades or ignores them. We'd also add two dumb baselines that every
+model should beat: buy-and-hold BTC, and a random trader that flips a coin at the same leverage.
+
 **More rounds, different days.** Round three flipped the leaderboard on its own. Separating skill from
 luck needs dozens of runs across trending and quiet markets, not three quiet afternoons.
 
