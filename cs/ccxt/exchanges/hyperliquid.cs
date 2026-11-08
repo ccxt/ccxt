@@ -911,6 +911,17 @@ public partial class hyperliquid : Exchange
         List<object> second = this.safeList(response, 1, new List<object>() {});
         List<object> meta = this.safeList(first, "universe", new List<object>() {});
         List<object> tokens = this.safeList(first, "tokens", new List<object>() {});
+        // a pair names its tokens by their "index", which isn't their place in the list (the list has gaps)
+        Dictionary<string, object> tokensByIndex = new Dictionary<string, object>() {};
+        for (int i = 0; i < tokens.Count; i++)
+        {
+            IDictionary<string, object> token = this.safeDict(tokens, i, new Dictionary<string, object>() {});
+            string? tokenIndex = this.safeString(token, "index");
+            if ((tokenIndex != null))
+            {
+                tokensByIndex[(string)tokenIndex] = token;
+            }
+        }
         List<object> markets = new List<object>() {};
         for (int i = 0; i < meta.Count; i++)
         {
@@ -929,10 +940,10 @@ public partial class hyperliquid : Exchange
             double? taker = this.safeNumber(fees, "taker");
             double? maker = this.safeNumber(fees, "maker");
             List<object> tokensPos = this.safeList(market, "tokens", new List<object>() {});
-            Int64? baseTokenPos = this.safeInteger(tokensPos, 0);
-            Int64? quoteTokenPos = this.safeInteger(tokensPos, 1);
-            IDictionary<string, object> baseTokenInfo = this.safeDict(tokens, baseTokenPos, new Dictionary<string, object>() {});
-            IDictionary<string, object> quoteTokenInfo = this.safeDict(tokens, quoteTokenPos, new Dictionary<string, object>() {});
+            string? baseTokenIndex = this.safeString(tokensPos, 0);
+            string? quoteTokenIndex = this.safeString(tokensPos, 1);
+            IDictionary<string, object> baseTokenInfo = this.safeDict(tokensByIndex, baseTokenIndex, new Dictionary<string, object>() {});
+            IDictionary<string, object> quoteTokenInfo = this.safeDict(tokensByIndex, quoteTokenIndex, new Dictionary<string, object>() {});
             string? baseName = this.safeString(baseTokenInfo, "name");
             string? quoteId = this.safeString(quoteTokenInfo, "name");
             if ((baseName == null) || (quoteId == null))

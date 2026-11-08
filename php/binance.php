@@ -6801,7 +6801,7 @@ class binance extends Exchange {
         }
         $marketResolved = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $marketResolved['symbol'];
-        $filled = $this->safe_string_2($order, 'executedQty', 'filledQty', '0');
+        $filled = $this->safe_string_n($order, array( 'executedQty', 'filledQty', 'actualQty' ), '0'); // actualQty: algo orders
         $timestamp = $this->safe_integer_n($order, array( 'time', 'createTime', 'workingTime', 'transactTime', 'updateTime', 'createdAt' )); // order of the keys matters here
         $lastTradeTimestamp = null;
         if ((is_array($order) && array_key_exists('transactTime' ?? '', $order)) || (is_array($order) && array_key_exists('updateTime' ?? '', $order)) || (is_array($order) && array_key_exists('updatedAt' ?? '', $order))) {

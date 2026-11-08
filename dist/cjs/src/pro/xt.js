@@ -1215,7 +1215,7 @@ class xt extends xt$1["default"] {
                 const cacheLength = orderbook.cache.length;
                 const snapshotDelay = this.handleOption('watchOrderBook', 'snapshotDelay', 25);
                 if (cacheLength === snapshotDelay) {
-                    this.spawn(this.loadOrderBook, client, messageHash, symbol);
+                    this.spawn(this.loadOrderBook, client, messageHash, symbol, undefined, {});
                 }
                 orderbook.cache.push(data);
                 return;

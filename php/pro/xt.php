@@ -1330,7 +1330,7 @@ class xt extends \ccxt\async\xt {
                 $cacheLength = count($orderbook->cache);
                 $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 25);
                 if ($cacheLength === $snapshotDelay) {
-                    $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol);
+                    $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, null, array());
                 }
                 $orderbook->cache[] = $data;
                 return;

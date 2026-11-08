@@ -48,7 +48,6 @@
 Set rateLimit to 1000 if fully verified
 
 
-
 ```javascript
 kraken.kraken ()
 ```

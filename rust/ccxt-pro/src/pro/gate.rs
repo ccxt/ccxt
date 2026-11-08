@@ -1934,13 +1934,15 @@ impl Gate {
         //     "channel": "spot.candlesticks",
         //     "event": "update",
         //     "result": {
-        //       "t": "1606292580", // total volume
-        //       "v": "2362.32035", // volume
+        //       "t": "1606292580", // timestamp
+        //       "v": "2362.32035", // volume in the quote currency
         //       "c": "19128.1", // close
         //       "h": "19128.1", // high
         //       "l": "19128.1", // low
         //       "o": "19128.1", // open
-        //       "n": "1m_BTC_USDT" // sub
+        //       "n": "1m_BTC_USDT", // sub
+        //       "a": "0.12349", // volume in the base currency
+        //       "w": false // window closed
         //     }
         //   }
         //
@@ -1973,8 +1975,12 @@ impl Gate {
             let mut timeframe: Value = self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut prefix: Value = Value::Str(format!("{}{}", timeframe, Value::Str("_".into())).into());
             let mut marketId: Value = subscription.as_str().zip(prefix.as_str()).map(|(__s, __p)| Value::Str(__s.replace(__p, "").into())).unwrap_or_else(|| subscription.clone());
-            let mut symbol: Value = self.safe_symbol(marketId, &[Value::Null, Value::Str("_".into()), Value::from(marketType.clone())]);
-            let mut parsed: Value = self.parse_ohlcv(ohlcv, &[]);
+            let mut symbol: Value = self.safe_symbol(marketId, &[Value::Null, Value::Str("_".into()), Value::str(marketType.clone())]);
+            let mut parsed: Value = self.parse_ohlcv(ohlcv.clone(), &[]);
+            if ((marketType == "spot")) {
+                // spot's "v" is the volume in the quote currency, "a" in the base currency, which fetchOHLCV returns
+                parsed = Value::from(vec![self.safe_timestamp_k(ohlcv.clone(), "t", &[]), self.safe_number_k(ohlcv.clone(), "o", &[]), self.safe_number_k(ohlcv.clone(), "h", &[]), self.safe_number_k(ohlcv.clone(), "l", &[]), self.safe_number_k(ohlcv.clone(), "c", &[]), self.safe_number_k(ohlcv, "a", &[])]);
+            }
             { let __be_tmp = self.safe_value(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

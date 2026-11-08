@@ -46,6 +46,8 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 put( "watchOrders", true );
                 put( "watchOrderBook", true );
                 put( "watchOHLCV", true );
+                put( "unWatchTrades", true );
+                put( "unWatchOHLCV", true );
                 put( "watchPositions", null );
                 put( "watchOrderBookForSymbols", false );
                 put( "watchTradesForSymbols", false );
@@ -832,6 +834,136 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
+    }
+
+    public CompletableFuture<Object> unSubscribePublic(String method, String subMessageHash, Object marketParams, Map<String, Object> subscription, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
+            Long requestId = this.requestId();
+            String messageHash = ("unsubscribe:" + subMessageHash);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "method", method );
+                put( "id", requestId );
+                put( "params", marketParams );
+            }};
+            Map<String, Object> unsubscription = this.extend(subscription, new HashMap<String, Object>() {{
+                put( "id", requestId );
+                put( "unsubscribe", true );
+                put( "subMessageHash", subMessageHash );
+                put( "messageHash", messageHash );
+            }});
+            return (this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, unsubscription)).join();
+        });
+
+    }
+
+    /**
+     * @method
+     * @name phemex#unWatchTrades
+     * @description unWatches from the stream channel
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#unsubscribe-trade
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#unsubscribe-trade
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#unsubscribe-trade
+     * @param {string} symbol unified symbol of the market to unwatch the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> market = this.market(symbol);
+            String symbolValue = (String) market.get("symbol");
+            Boolean isUsdtSwap = (java.util.Objects.equals(market.get("swap"), true)) && (java.util.Objects.equals(market.get("settle"), "USDT"));
+            String name = "trade";
+            if (Boolean.TRUE.equals(isUsdtSwap))
+            {
+                name = "trade_p";
+            }
+            Map<String, Object> subscription = new HashMap<String, Object>() {{
+                put( "topic", "trades" );
+                put( "symbols", new ArrayList<Object>(Arrays.asList(symbolValue)) );
+            }};
+            return (this.unSubscribePublic((name + ".unsubscribe"), ("trade:" + symbolValue), new ArrayList<Object>(Arrays.asList(market.get("id"))), subscription, parameters)).join();
+        });
+
+    }
+
+    /**
+     * @method
+     * @name phemex#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#unsubscribe-kline
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#unsubscribe-kline
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#unsubscribe-kline
+     * @param {string} symbol unified symbol of the market to unwatch the candles for
+     * @param {string} [timeframe] the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    public CompletableFuture<Object> unWatchOHLCV(String symbol, String timeframe, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> market = this.market(symbol);
+            String symbolValue = (String) market.get("symbol");
+            Boolean isUsdtSwap = (java.util.Objects.equals(market.get("swap"), true)) && (java.util.Objects.equals(market.get("settle"), "USDT"));
+            String name = "kline";
+            if (Boolean.TRUE.equals(isUsdtSwap))
+            {
+                name = "kline_p";
+            }
+            Map<String, Object> subscription = new HashMap<String, Object>() {{
+                put( "topic", "ohlcv" );
+                put( "symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbolValue, java.util.Objects.requireNonNullElse(timeframe, "1m"))))) );
+            }};
+            // phemex drops only the given interval when it is sent along with the symbol
+            List<Object> marketParams = new ArrayList<Object>(Arrays.asList(market.get("id"), this.safeInteger(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"))));
+            return (this.unSubscribePublic((name + ".unsubscribe"), ((("kline:" + java.util.Objects.requireNonNullElse(timeframe, "1m")) + ":") + symbolValue), marketParams, subscription, parameters)).join();
+        });
+
+    }
+
+    public void handleUnSubscription(Client client, Map<String, Object> message)
+    {
+        //
+        // phemex answers subscribe and unsubscribe requests alike, so the answer is matched to a pending unsubscribe by id
+        //
+        //     { "error": null, "id": 3, "result": { "status": "success" } }
+        //     { "error": { "code": 6001, "message": "invalid argument" }, "id": 2, "result": null }
+        //
+        String id = this.safeString(message, "id");
+        List<Object> subscriptionHashes = new ArrayList<Object>(client.subscriptions.keySet());
+        for (var i = 0; i < ((List<?>)subscriptionHashes).size(); i++)
+        {
+            Object subscriptionHash = (subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i));
+            Object subscription = (client.subscriptions == null || subscriptionHash == null ? null : client.subscriptions.get(subscriptionHash));
+            Boolean isUnSubscription = (Boolean) this.safeBool(subscription, "unsubscribe", false);
+            String subscriptionId = this.safeString(subscription, "id");
+            if (Boolean.TRUE.equals(isUnSubscription) && (!java.util.Objects.equals(subscriptionId, null)) && (java.util.Objects.equals(subscriptionId, id)))
+            {
+                String subMessageHash = this.safeString(subscription, "subMessageHash");
+                String messageHash = this.safeString(subscription, "messageHash");
+                Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error", (Object) null);
+                if (!java.util.Objects.equals(error, null))
+                {
+                    // the stream stays subscribed, so drop only the pending unsubscribe
+                    client.subscriptions.remove((String)subscriptionHash);
+                    client.reject(new ExchangeError(((this.id + " ") + this.json(error))), subscriptionHash);
+                    return;
+                }
+                this.cleanUnsubscription(client, (String) (subMessageHash), (String) (messageHash), false);
+                this.cleanCache(subscription);
+                return;
+            }
+        }
     }
 
     public void customHandleDelta(Object bookside, Object delta, Map<String, Object> market)
@@ -1711,6 +1843,11 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 Helpers.callDynamically(this, method, new Object[] {client, message});
                 return;
             }
+        }
+        if ((message.containsKey("result")) || (message.containsKey("error")))
+        {
+            this.handleUnSubscription(client, message);
+            return;
         }
         String methodName = this.safeString(message, "method", "");
         if ((message.containsKey("market24h")) || (message.containsKey("spot_market24h")) || (((String)methodName).indexOf("perp_market24h_pack_p") >= 0))

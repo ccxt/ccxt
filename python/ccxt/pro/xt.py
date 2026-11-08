@@ -1130,7 +1130,7 @@ class xt(ccxt.async_support.xt):
                 cacheLength = len(orderbook.cache)
                 snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 25)
                 if cacheLength == snapshotDelay:
-                    self.spawn(self.load_order_book, client, messageHash, symbol)
+                    self.spawn(self.load_order_book, client, messageHash, symbol, None, {})
                 orderbook.cache.append(data)
                 return
             if obAsks is not None:

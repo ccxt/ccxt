@@ -2062,14 +2062,6 @@ class binance extends \ccxt\async\binance {
         $interval = $this->safe_string($kline, 'i');
         // use a reverse lookup in a static map instead
         $unifiedTimeframe = $this->find_timeframe($interval);
-        $parsed = array(
-            $this->safe_integer($kline, 't'),
-            $this->safe_float($kline, 'o'),
-            $this->safe_float($kline, 'h'),
-            $this->safe_float($kline, 'l'),
-            $this->safe_float($kline, 'c'),
-            $this->safe_float($kline, 'v'),
-        );
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
         $isSpot = $this->is_spot_url($client);
@@ -2077,7 +2069,19 @@ class binance extends \ccxt\async\binance {
         if ($isSpot) {
             $marketType = 'spot';
         }
-        $symbol = $this->safe_symbol($marketId, null, null, $marketType);
+        $market = $this->safe_market($marketId, null, null, $marketType);
+        $symbol = $market['symbol'];
+        // coin-margined contracts count "v" in contracts, "q" is the base asset volume that fetchOHLCV returns
+        $inverse = $this->safe_bool($market, 'inverse');
+        $volumeKey = ($inverse === true) ? 'q' : 'v';
+        $parsed = array(
+            $this->safe_integer($kline, 't'),
+            $this->safe_float($kline, 'o'),
+            $this->safe_float($kline, 'h'),
+            $this->safe_float($kline, 'l'),
+            $this->safe_float($kline, 'c'),
+            $this->safe_float($kline, $volumeKey),
+        );
         $messageHash = 'ohlcv::' . $symbol . '::' . $unifiedTimeframe;
         $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
         $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $unifiedTimeframe);
@@ -5015,7 +5019,7 @@ class binance extends \ccxt\async\binance {
             'amount' => $this->safe_string($order, 'q'),
             'cost' => $this->safe_string($order, 'Z'),
             'average' => $this->safe_string($order, 'ap'),
-            'filled' => $this->safe_string($order, 'z'),
+            'filled' => $this->safe_string_2($order, 'z', 'aq'), // aq: ALGO_UPDATE executed quantity
             'remaining' => null,
             'status' => $status,
             'fee' => $fee,
@@ -5403,10 +5407,19 @@ class binance extends \ccxt\async\binance {
         if ($this->positions === null) {
             $this->positions = array();
         }
-        if (is_array($this->positions) && array_key_exists($type ?? '', $this->positions)) {
-            return;
-        }
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
+        if (is_array($this->positions) && array_key_exists($type ?? '', $this->positions)) {
+            // a fresh client has no snapshot future yet, which means the
+            // connection was re-established after a disconnect: positions
+            // closed while disconnected never arrive as stream deltas, so
+            // the cached positions are stale and must be reloaded
+            $messageHash = $type . ':fetchPositionsSnapshot';
+            if (($fetchPositionsSnapshot === true) && (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)))) {
+                unset($this->positions[$type]);
+            } else {
+                return;
+            }
+        }
         if ($fetchPositionsSnapshot === true) {
             $messageHash = $type . ':fetchPositionsSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
@@ -5430,6 +5443,13 @@ class binance extends \ccxt\async\binance {
             $params['portfolioMargin'] = true;
         }
         $positions = Async\await($this->fetch_positions(null, $params));
+        // the client may have been replaced by a reconnect while the
+        // snapshot was in flight: a stale snapshot must not overwrite
+        // the fresh one loaded for the new client
+        $currentClient = $this->safe_value($this->clients, $client->url);
+        if ($currentClient !== $client) {
+            return;
+        }
         $this->positions[$type] = new ArrayCacheBySymbolBySide();
         $cache = $this->positions[$type];
         for ($i = 0; $i < count($positions); $i++) {

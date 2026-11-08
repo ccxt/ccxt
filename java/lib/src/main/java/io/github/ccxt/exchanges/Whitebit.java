@@ -2355,6 +2355,7 @@ public class Whitebit extends WhitebitApi
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
@@ -2373,16 +2374,39 @@ public class Whitebit extends WhitebitApi
             }};
             Long cappedLimit = ((((java.util.Objects.equals(limit, null)) || ((limit > 1440))))) ? 1440L : limit;
             Long limitResolved = (((!java.util.Objects.equals(since, null)))) ? cappedLimit : limit;
-            if (!java.util.Objects.equals(since, null))
+            Long until = this.safeInteger(parameters, "until");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "until");
+            if ((!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(until, null)))
             {
-                Long start = this.parseToInt((((double) since) / ((double) 1000)));
-                request.put("start", start);
+                // the exchange ignores a start alone: it returns the last candles that closed by the end.
+                // It refuses an end past its own clock, which may be behind this one, so an end within a
+                // timeframe of now is left out, and the latest candles it then returns cover the range
+                int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
+                Object endTime = null;
+                if (!java.util.Objects.equals(until, null))
+                {
+                    endTime = this.sum(this.parseToInt((((double) until) / ((double) 1000))), duration);
+                }
+                if (!java.util.Objects.equals(since, null))
+                {
+                    Long start = this.parseToInt((((double) since) / ((double) 1000)));
+                    request.put("start", start);
+                    Object rangeEnd = this.sum(start, Helpers.multiply(duration, cappedLimit));
+                    if ((java.util.Objects.equals(endTime, null)) || (((endTime != null && !(((Number) rangeEnd).doubleValue() >= ((Number) endTime).doubleValue())))))
+                    {
+                        endTime = rangeEnd;
+                    }
+                }
+                if ((!java.util.Objects.equals(endTime, null)) && (((!(((Number) this.sum(endTime, duration)).doubleValue() >= (this.seconds()))))))
+                {
+                    request.put("end", endTime);
+                }
             }
-            if ((!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(limit, null)))
+            if ((!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(until, null)) || (!java.util.Objects.equals(limit, null)))
             {
                 request.put("limit", cappedLimit);
             }
-            Map<String, Object> response = (this.v1PublicGetKline(this.extend(request, parameters))).join();
+            Map<String, Object> response = (this.v1PublicGetKline(this.extend(request, paramsOmitted))).join();
             //
             //     {
             //         "success":true,

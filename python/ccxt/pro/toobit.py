@@ -26,11 +26,11 @@ class toobit(ccxt.async_support.toobit):
                 'watchOrderBook': True,
                 'watchOrderBookForSymbols': True,
                 'watchOrders': True,
+                'watchPositions': True,
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': True,
-                # 'watchPosition': false,
             },
             'urls': {
                 'api': {

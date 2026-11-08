@@ -1042,16 +1042,13 @@ class blofin extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically $paginate by calling this endpoint multiple times
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchTrades', 'paginate', false);
-        if ($paginate) {
-            return Async\await($this->fetch_paginated_call_cursor('fetchTrades', $symbol, $since, $limit, $paramsPaginate, 'tradeId', 'after', null, 100));
-        }
+        // the endpoint returns the latest trades only and ignores 'after' / 'before', so there is no cursor to paginate with
+        $paramsNoPaginate = $this->omit($params, 'paginate');
         $market = $this->market($symbol);
         $request = array(
             'instId' => $market['id'],
@@ -1060,7 +1057,7 @@ class blofin extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100
         }
-        list($method, $paramsMethod) = $this->handle_option_string_and_params($paramsPaginate, 'fetchTrades', 'method', 'publicGetMarketTrades');
+        list($method, $paramsMethod) = $this->handle_option_string_and_params($paramsNoPaginate, 'fetchTrades', 'method', 'publicGetMarketTrades');
         if ($method === 'publicGetMarketTrades') {
             $response = Async\await($this->publicGetMarketTrades($this->extend($request, $paramsMethod)));
         }
@@ -1596,8 +1593,11 @@ class blofin extends Exchange {
         $fee = null;
         if ($feeCostString !== null) {
             $feeCostSigned = Precise::string_abs($feeCostString);
-            $feeCurrencyId = $this->safe_string($order, 'feeCcy', 'USDT');
+            $feeCurrencyId = $this->safe_string($order, 'feeCcy');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
+            if ($feeCurrencyCode === null) {
+                $feeCurrencyCode = $this->safe_string($marketResolved, 'settle');
+            }
             $fee = array(
                 'cost' => $this->parse_number($feeCostSigned),
                 'currency' => $feeCurrencyCode,

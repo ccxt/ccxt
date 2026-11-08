@@ -8786,7 +8786,7 @@ public class Binance extends BinanceApi
         }
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, marketType);
         String symbol = (String) marketResolved.get("symbol");
-        String filled = this.safeString2(order, "executedQty", "filledQty", "0");
+        String filled = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("executedQty", "filledQty", "actualQty")), "0"); // actualQty: algo orders
         Long timestamp = this.safeIntegerN(order, new ArrayList<Object>(Arrays.asList("time", "createTime", "workingTime", "transactTime", "updateTime", "createdAt"))); // order of the keys matters here
         Long lastTradeTimestamp = null;
         if ((((Map<?, ?>)order).containsKey("transactTime")) || (((Map<?, ?>)order).containsKey("updateTime")) || (((Map<?, ?>)order).containsKey("updatedAt")))

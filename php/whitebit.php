@@ -1883,6 +1883,7 @@ class whitebit extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
@@ -1895,14 +1896,33 @@ class whitebit extends Exchange {
         );
         $cappedLimit = (($limit === null) || ($limit > 1440)) ? 1440 : $limit;
         $limitResolved = ($since !== null) ? $cappedLimit : $limit;
-        if ($since !== null) {
-            $start = $this->parse_to_int($since / 1000);
-            $request['start'] = $start;
+        $until = $this->safe_integer($params, 'until');
+        $paramsOmitted = $this->omit($params, 'until');
+        if (($since !== null) || ($until !== null)) {
+            // the exchange ignores a start alone: it returns the last candles that closed by the end.
+            // It refuses an end past its own clock, which may be behind this one, so an end within a
+            // timeframe of now is left out, and the latest candles it then returns cover the range
+            $duration = $this->parse_timeframe($timeframe);
+            $endTime = null;
+            if ($until !== null) {
+                $endTime = $this->sum($this->parse_to_int($until / 1000), $duration);
+            }
+            if ($since !== null) {
+                $start = $this->parse_to_int($since / 1000);
+                $request['start'] = $start;
+                $rangeEnd = $this->sum($start, $duration * $cappedLimit);
+                if (($endTime === null) || ($rangeEnd < $endTime)) {
+                    $endTime = $rangeEnd;
+                }
+            }
+            if (($endTime !== null) && ($this->sum($endTime, $duration) < $this->seconds())) {
+                $request['end'] = $endTime;
+            }
         }
-        if (($since !== null) || ($limit !== null)) {
+        if (($since !== null) || ($until !== null) || ($limit !== null)) {
             $request['limit'] = $cappedLimit;
         }
-        $response = $this->v1PublicGetKline($this->extend($request, $params));
+        $response = $this->v1PublicGetKline($this->extend($request, $paramsOmitted));
         //
         //     {
         //         "success":true,

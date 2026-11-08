@@ -1815,7 +1815,7 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 			var cacheLength int = ccxt.GetArrayLength(orderbook.GetCache())
 			var snapshotDelay any = this.HandleOption("watchOrderBook", "snapshotDelay", 25)
 			if ccxt.IsEqual(cacheLength, snapshotDelay) {
-				this.Spawn(this.LoadOrderBookAsync, client, messageHash, symbol)
+				this.Spawn(this.LoadOrderBookAsync, client, messageHash, symbol, nil, map[string]any{})
 			}
 			ccxt.AppendToArray(orderbook.GetCache(), data)
 			return

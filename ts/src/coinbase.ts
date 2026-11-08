@@ -3966,7 +3966,7 @@ export default class coinbase extends Exchange {
         }
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limitValue, timeframe, paramsPaginate, 299) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 299) as OHLCV[];
         }
         const market = this.market (symbol);
         const request: Dict = {
@@ -3985,11 +3985,16 @@ export default class coinbase extends Exchange {
             sinceString = Precise.stringSub (now, requestedDuration.toString ());
         }
         request['start'] = sinceString;
+        // 300 candles max
+        const windowEnd = Precise.stringAdd (sinceString, requestedDuration.toString ());
         if (until !== undefined) {
-            request['end'] = this.numberToString (this.parseToInt (until / 1000));
+            let endString: Str = this.numberToString (this.parseToInt (until / 1000));
+            if ((since !== undefined) && Precise.stringLt (windowEnd, endString)) {
+                endString = windowEnd;
+            }
+            request['end'] = endString;
         } else {
-            // 300 candles max
-            request['end'] = Precise.stringAdd (sinceString, requestedDuration.toString ());
+            request['end'] = windowEnd;
         }
         let response = undefined;
         const [ usePrivate, paramsUsePrivate ] = this.handleOptionBoolAndParams (paramsOmitted, 'fetchOHLCV', 'usePrivate', false);

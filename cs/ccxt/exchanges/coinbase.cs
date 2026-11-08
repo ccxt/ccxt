@@ -4430,7 +4430,7 @@ public partial class coinbase : Exchange
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
-            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitValue,timeframeVar, paramsPaginate, 299));
+            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 299));
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -4451,13 +4451,19 @@ public partial class coinbase : Exchange
             sinceString = Precise.stringSub(now, ((object)requestedDuration).ToString());
         }
         request["start"] = sinceString;
+        // 300 candles max
+        string? windowEnd = Precise.stringAdd(sinceString, ((object)requestedDuration).ToString());
         if ((until != null))
         {
-            request["end"] = this.numberToString(this.parseToInt(((double?)until / 1000)));
+            string? endString = this.numberToString(this.parseToInt(((double?)until / 1000)));
+            if (((since != null)) && Precise.stringLt(windowEnd, endString))
+            {
+                endString = windowEnd;
+            }
+            request["end"] = endString;
         } else
         {
-            // 300 candles max
-            request["end"] = Precise.stringAdd(sinceString, ((object)requestedDuration).ToString());
+            request["end"] = windowEnd;
         }
         Dictionary<string, object> response = null;
         (bool?, object) usePrivateparamsUsePrivateVariable = this.handleOptionBoolAndParams(paramsOmitted, "fetchOHLCV", "usePrivate", false);

@@ -1006,17 +1006,14 @@ class blofin extends blofin$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchTrades', 'paginate', false);
-        if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchTrades', symbol, since, limit, paramsPaginate, 'tradeId', 'after', undefined, 100);
-        }
+        // the endpoint returns the latest trades only and ignores 'after' / 'before', so there is no cursor to paginate with
+        const paramsNoPaginate = this.omit(params, 'paginate');
         const market = this.market(symbol);
         const request = {
             'instId': market['id'],
@@ -1025,7 +1022,7 @@ class blofin extends blofin$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        const [method, paramsMethod] = this.handleOptionStringAndParams(paramsPaginate, 'fetchTrades', 'method', 'publicGetMarketTrades');
+        const [method, paramsMethod] = this.handleOptionStringAndParams(paramsNoPaginate, 'fetchTrades', 'method', 'publicGetMarketTrades');
         if (method === 'publicGetMarketTrades') {
             response = await this.publicGetMarketTrades(this.extend(request, paramsMethod));
         }
@@ -1540,8 +1537,11 @@ class blofin extends blofin$1["default"] {
         let fee = undefined;
         if (feeCostString !== undefined) {
             const feeCostSigned = Precise["default"].stringAbs(feeCostString);
-            const feeCurrencyId = this.safeString(order, 'feeCcy', 'USDT');
-            const feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            const feeCurrencyId = this.safeString(order, 'feeCcy');
+            let feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            if (feeCurrencyCode === undefined) {
+                feeCurrencyCode = this.safeString(marketResolved, 'settle');
+            }
             fee = {
                 'cost': this.parseNumber(feeCostSigned),
                 'currency': feeCurrencyCode,

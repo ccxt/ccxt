@@ -895,7 +895,7 @@ class backpack extends \ccxt\async\backpack {
         //     },
         //
         return array(
-            $this->parse8601($this->safe_string($ohlcv, 'T')),
+            $this->parse8601($this->safe_string($ohlcv, 't')),
             $this->safe_number($ohlcv, 'o'),
             $this->safe_number($ohlcv, 'h'),
             $this->safe_number($ohlcv, 'l'),

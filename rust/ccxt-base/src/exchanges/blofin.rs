@@ -1829,7 +1829,6 @@ impl Blofin {
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
     pub async fn fetch_trades(&mut self, symbol: &str, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Trade>> {
@@ -1848,12 +1847,8 @@ impl Blofin {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        if paginate.as_bool() == Some(true) {
-            return self.fetch_paginated_call_cursor(Value::Str("fetchTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("tradeId".into()), Value::Str("after".into()), Value::Null, Value::Int(100)]).await;
-        }
+        // the endpoint returns the latest trades only and ignores 'after' / 'before', so there is no cursor to paginate with
+        let mut paramsNoPaginate: Value = self.omit(params, Value::Str("paginate".into()), &[]);
         let mut market: Value = self.market(symbol);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1864,7 +1859,7 @@ impl Blofin {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone()); // default 100
         }
-        let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(paramsPaginate, Value::Str("fetchTrades".into()), Value::Str("method".into()), &[Value::Str("publicGetMarketTrades".into())]).as_array().cloned().unwrap_or_default();
+        let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(paramsNoPaginate, Value::Str("fetchTrades".into()), Value::Str("method".into()), &[Value::Str("publicGetMarketTrades".into())]).as_array().cloned().unwrap_or_default();
         let mut method: Value = methodparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMethod: Value = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null);
         if (method.as_str() == Some("publicGetMarketTrades")) {
@@ -2499,8 +2494,11 @@ impl Blofin {
         let mut fee: Value = Value::Null;
         if (feeCostString.is_some()) {
             let mut feeCostSigned: Value = crate::precise::Precise::stringAbs(&feeCostString.clone().map(Value::from).unwrap_or(Value::Null));
-            let mut feeCurrencyId: Value = self.safe_string_k(order.clone(), "feeCcy", &[Value::Str("USDT".into())]);
-            let mut feeCurrencyCode: Value = self.safe_currency_code(feeCurrencyId, &[]);
+            let mut feeCurrencyId: Option<String> = self.safe_string_k_opt(order.clone(), "feeCcy", &[]);
+            let mut feeCurrencyCode: Value = self.safe_currency_code(feeCurrencyId.map(Value::from).unwrap_or(Value::Null), &[]);
+            if (feeCurrencyCode == Value::Null) {
+                feeCurrencyCode = self.safe_string_k(marketResolved.clone(), "settle", &[]);
+            }
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), self.parse_number(feeCostSigned, &[]));

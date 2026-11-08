@@ -1388,7 +1388,7 @@ public partial class xt : ccxt.xt
                 object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 25);
                 if (isEqual(cacheLength, snapshotDelay))
                 {
-                    this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol});
+                    this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol, null, new Dictionary<string, object>() {}});
                 }
                 (orderbook as ccxt.pro.OrderBook).cache.Add(data);
                 return;

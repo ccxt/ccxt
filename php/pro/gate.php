@@ -1262,13 +1262,15 @@ class gate extends \ccxt\async\gate {
         //     "channel": "spot.candlesticks",
         //     "event": "update",
         //     "result": {
-        //       "t": "1606292580", // total volume
-        //       "v": "2362.32035", // volume
+        //       "t": "1606292580", // timestamp
+        //       "v": "2362.32035", // volume in the quote currency
         //       "c": "19128.1", // close
         //       "h": "19128.1", // high
         //       "l": "19128.1", // low
         //       "o": "19128.1", // open
-        //       "n": "1m_BTC_USDT" // sub
+        //       "n": "1m_BTC_USDT", // sub
+        //       "a": "0.12349", // volume in the base currency
+        //       "w": false // window closed
         //     }
         //   }
         //
@@ -1297,6 +1299,17 @@ class gate extends \ccxt\async\gate {
             $marketId = str_replace($prefix, '', $subscription);
             $symbol = $this->safe_symbol($marketId, null, '_', $marketType);
             $parsed = $this->parse_ohlcv($ohlcv);
+            if ($marketType === 'spot') {
+                // spot's "v" is the volume in the quote currency, "a" in the base currency, which fetchOHLCV returns
+                $parsed = array(
+                    $this->safe_timestamp($ohlcv, 't'),
+                    $this->safe_number($ohlcv, 'o'),
+                    $this->safe_number($ohlcv, 'h'),
+                    $this->safe_number($ohlcv, 'l'),
+                    $this->safe_number($ohlcv, 'c'),
+                    $this->safe_number($ohlcv, 'a'),
+                );
+            }
             $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
             $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
             if ($stored === null) {

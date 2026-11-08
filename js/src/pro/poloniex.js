@@ -1424,7 +1424,7 @@ export default class poloniex extends poloniexRest {
         else if (type === undefined) {
             this.handleOrderRequest(client, message);
         }
-        else {
+        else if (method !== undefined) {
             const data = this.safeList(message, 'data', []);
             const dataLength = data.length;
             if (dataLength > 0) {

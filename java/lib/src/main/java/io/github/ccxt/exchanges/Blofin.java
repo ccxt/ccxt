@@ -1270,7 +1270,6 @@ public class Blofin extends BlofinApi
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public CompletableFuture<List<Trade>> fetchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
@@ -1282,13 +1281,8 @@ public class Blofin extends BlofinApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTrades", "paginate", false);
-            Boolean paginate = paginateparamsPaginateVariable.first();
-            Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
-            if (Boolean.TRUE.equals(paginate))
-            {
-                return (this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, paramsPaginate, "tradeId", "after", (Long) null, 100L)).join();
-            }
+            // the endpoint returns the latest trades only and ignores 'after' / 'before', so there is no cursor to paginate with
+            Map<String, Object> paramsNoPaginate = this.omit(parameters, "paginate");
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instId", market.get("id") );
@@ -1298,7 +1292,7 @@ public class Blofin extends BlofinApi
             {
                 request.put("limit", limit); // default 100
             }
-            Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPaginate), "fetchTrades", "method", "publicGetMarketTrades");
+            Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams(paramsNoPaginate, "fetchTrades", "method", "publicGetMarketTrades");
             String method = methodparamsMethodVariable.first();
             Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
             if (java.util.Objects.equals(method, "publicGetMarketTrades"))
@@ -1905,12 +1899,18 @@ public class Blofin extends BlofinApi
         if (!java.util.Objects.equals(feeCostString, null))
         {
             String feeCostSigned = Precise.stringAbs(feeCostString);
-            String feeCurrencyId = this.safeString(order, "feeCcy", "USDT");
+            String feeCurrencyId = this.safeString(order, "feeCcy");
             String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
-            fee = new HashMap<String, Object>() {{
-                put( "cost", Blofin.this.parseNumber(feeCostSigned) );
-                put( "currency", feeCurrencyCode );
-            }};
+            if (java.util.Objects.equals(feeCurrencyCode, null))
+            {
+                feeCurrencyCode = this.safeString(marketResolved, "settle");
+            }
+            {
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("cost", this.parseNumber(feeCostSigned));
+                hx4NewMap1.put("currency", feeCurrencyCode);
+                fee = hx4NewMap1;
+            }
         }
         String clientOrderId = this.safeString(order, "clientOrderId");
         if ((!java.util.Objects.equals(clientOrderId, null)) && (clientOrderId.length() < 1))

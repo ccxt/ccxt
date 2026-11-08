@@ -1162,12 +1162,12 @@ impl Coinmate {
         m.insert("ask".to_string(), self.safe_number_k(ticker.clone(), "ask", &[]));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("askVolume".to_string(), Value::Null);
-        m.insert("open".to_string(), Value::Null);
+        m.insert("open".to_string(), self.safe_number_k(ticker.clone(), "open", &[]));
         m.insert("close".to_string(), last.clone());
         m.insert("last".to_string(), last);
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
-        m.insert("percentage".to_string(), Value::Null);
+        m.insert("percentage".to_string(), self.safe_number_k(ticker.clone(), "change", &[]));
         m.insert("average".to_string(), Value::Null);
         m.insert("baseVolume".to_string(), self.safe_number_k(ticker.clone(), "amount", &[]));
         m.insert("quoteVolume".to_string(), Value::Null);

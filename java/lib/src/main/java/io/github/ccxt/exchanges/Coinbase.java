@@ -4623,7 +4623,7 @@ public class Coinbase extends CoinbaseApi
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitValue, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, 299L)).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, 299L)).join();
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -4644,13 +4644,19 @@ public class Coinbase extends CoinbaseApi
                 sinceString = Precise.stringSub(now, String.valueOf(requestedDuration));
             }
             request.put("start", sinceString);
+            // 300 candles max
+            String windowEnd = Precise.stringAdd(sinceString, String.valueOf(requestedDuration));
             if (!java.util.Objects.equals(until, null))
             {
-                request.put("end", this.numberToString(this.parseToInt((((double) until) / ((double) 1000)))));
+                String endString = this.numberToString(this.parseToInt((((double) until) / ((double) 1000))));
+                if ((!java.util.Objects.equals(since, null)) && Precise.stringLt(windowEnd, endString))
+                {
+                    endString = windowEnd;
+                }
+                request.put("end", endString);
             } else
             {
-                // 300 candles max
-                request.put("end", Precise.stringAdd(sinceString, String.valueOf(requestedDuration)));
+                request.put("end", windowEnd);
             }
             Map<String, Object> response = null;
             Pair<Boolean, Map<String, Object>> usePrivateparamsUsePrivateVariable = this.handleOptionBoolAndParams(paramsOmitted, "fetchOHLCV", "usePrivate", false);
