@@ -87,6 +87,7 @@ export default class jupiter extends Exchange {
             },
             'requiredCredentials': {
                 'apiKey': true,
+                'secret': false,
             },
             'precisionMode': DECIMAL_PLACES,
             'options': {
@@ -198,7 +199,8 @@ export default class jupiter extends Exchange {
         const event = this.parseJupiterEvent ({ 'eventId': eventId, 'markets': [ marketData ] });
         this.indexEventOutcomes (event);
         const markets = event['markets'];
-        if (markets.length === 0) {
+        const marketsLength = markets.length;
+        if (marketsLength === 0) {
             throw new ExchangeError (this.id + ' fetchEventMarket() returned no market for ' + marketId);
         }
         return markets[0];
@@ -339,7 +341,8 @@ export default class jupiter extends Exchange {
         const slug = this.safeString (params, 'slug');
         const category = this.safeString (params, 'category');
         const tags = this.safeList (params, 'tags', []);
-        const hasScope = query !== undefined || eventId !== undefined || slug !== undefined || category !== undefined || tags.length > 0;
+        const tagsLength = tags.length;
+        const hasScope = query !== undefined || eventId !== undefined || slug !== undefined || category !== undefined || tagsLength > 0;
         let events: PredictionEvent[] = [];
         if (hasScope) {
             events = await this.fetchEvents (params);
@@ -486,14 +489,20 @@ export default class jupiter extends Exchange {
         request['marketId'] = marketId;
         const response = await this.publicGetOrderbookMarketId (request);
         const raw = this.safeDict (response, 'data', response);
-        const side = this.safeString (outcomeMarket, 'outcome', '').endsWith (':YES') ? 'yes' : 'no';
+        const outcomeHandle = this.safeString (outcomeMarket, 'outcome', '');
+        let side = 'no';
+        if (outcomeHandle.endsWith (':YES')) {
+            side = 'yes';
+        }
         const bidKey = (side === 'yes') ? 'yes_dollars' : 'no_dollars';
         const oppositeBidKey = (side === 'yes') ? 'no_dollars' : 'yes_dollars';
         const bids = this.parsePredictionBookSide (this.safeList (raw, bidKey, []), limit);
         const oppositeBids = this.parsePredictionBookSide (this.safeList (raw, oppositeBidKey, []));
-        const asks: [Num, Num][] = [];
-        for (let i = oppositeBids.length - 1; i >= 0; i--) {
-            const level = oppositeBids[i];
+        const oppositeBidsLength = oppositeBids.length;
+        let asks: [Num, Num][] = [];
+        for (let i = 0; i < oppositeBidsLength; i++) {
+            const reverseIndex = oppositeBidsLength - 1 - i;
+            const level = oppositeBids[reverseIndex];
             if (level === undefined) {
                 continue;
             }
@@ -507,8 +516,9 @@ export default class jupiter extends Exchange {
                 asks.push ([ askPrice, amount ]);
             }
         }
-        if (limit !== undefined && asks.length > limit) {
-            asks.splice (limit, asks.length - limit);
+        const asksLength = asks.length;
+        if (limit !== undefined && asksLength > limit) {
+            asks = this.arraySlice (asks, 0, limit);
         }
         const book: Dict = {
             'bids': bids,
@@ -880,7 +890,8 @@ export default class jupiter extends Exchange {
      */
     override async fetchPosition (outcome: string, params: Dict = {}): Promise<PredictionPosition> {
         const positions = await this.fetchPositions ([ outcome ], params);
-        if (positions.length === 0) {
+        const positionsLength = positions.length;
+        if (positionsLength === 0) {
             throw new BadSymbol (this.id + ' fetchPosition() found no position for ' + outcome);
         }
         return positions[0];
@@ -979,7 +990,7 @@ export default class jupiter extends Exchange {
             'outcome': marketId + ':' + label,
             'outcomeId': this.safeString (raw, 'pubkey'),
             'market': marketId,
-            'timestamp': (updatedAt === undefined) ? undefined : ((updatedAt < 1000000000000) ? updatedAt * 1000 : updatedAt),
+            'timestamp': this.parseJupiterTimestamp (updatedAt),
             'info': raw,
         });
     }
@@ -1024,7 +1035,8 @@ export default class jupiter extends Exchange {
             let yesLabel = 'Yes';
             let noLabel = 'No';
             const marketOptions = this.safeList (rawMarket, 'marketOptions', []);
-            if (marketOptions.length > 0) {
+            const marketOptionsLength = marketOptions.length;
+            if (marketOptionsLength > 0) {
                 const option = marketOptions[0] as Dict;
                 const optionLabel = this.safeString (option, 'label');
                 const optionIsYes = this.safeBool (option, 'buyYes', true);
@@ -1106,7 +1118,11 @@ export default class jupiter extends Exchange {
         }
         const marketId = this.safeString (order, 'marketId');
         const isYes = this.safeBool (order, 'isYes', true);
-        const defaultOutcome = (marketId === undefined) ? undefined : marketId + ':' + ((isYes) ? 'YES' : 'NO');
+        let defaultOutcome = undefined;
+        if (marketId !== undefined) {
+            const outcomeSide = (isYes) ? 'YES' : 'NO';
+            defaultOutcome = marketId + ':' + outcomeSide;
+        }
         const outcome = this.safeString (order, 'outcome', defaultOutcome);
         if (outcome === undefined) {
             throw new ExchangeError (this.id + ' prediction order response is missing an outcome handle or market id');
@@ -1120,6 +1136,15 @@ export default class jupiter extends Exchange {
         const timestamp = this.parseJupiterTimestamp (this.safeInteger (order, 'createdAt'));
         const priceUsd = this.safeNumber2 (order, 'avgFillPriceUsd', 'maxFillPriceUsd');
         const costUsd = this.safeNumber2 (order, 'sizeUsd', 'depositAmount');
+        let outcomeId = undefined;
+        if (marketId !== undefined) {
+            const outcomeSide = (isYes) ? 'YES' : 'NO';
+            outcomeId = marketId + ':' + outcomeSide;
+        }
+        let defaultLabel = 'No';
+        if (isYes) {
+            defaultLabel = 'Yes';
+        }
         return {
             'id': this.safeString (order, 'orderPubkey', this.safeString (order, 'pubkey', this.safeString (order, 'id'))),
             'clientOrderId': undefined,
@@ -1139,8 +1164,8 @@ export default class jupiter extends Exchange {
             'reduceOnly': false,
             'postOnly': false,
             'outcome': this.safeString (market, 'outcome', outcome),
-            'outcomeId': this.safeString (market, 'outcomeId', (marketId === undefined) ? undefined : marketId + ':' + ((isYes) ? 'YES' : 'NO')),
-            'label': this.safeString (market, 'label', (isYes) ? 'Yes' : 'No'),
+            'outcomeId': this.safeString (market, 'outcomeId', outcomeId),
+            'label': this.safeString (market, 'label', defaultLabel),
             'market': this.safeString (market, 'market', marketId),
             'event': this.safeString (market, 'event'),
             'trades': [],
@@ -1167,7 +1192,19 @@ export default class jupiter extends Exchange {
         }
         const marketId = this.safeString (trade, 'marketId', this.safeString (market, 'marketId'));
         const isYes = this.safeBool (trade, 'isYes', this.safeString (trade, 'side', '').toLowerCase () === 'yes');
-        const defaultOutcome = (marketId === undefined) ? undefined : marketId + ':' + ((isYes) ? 'YES' : 'NO');
+        let defaultSide = 'sell';
+        if (this.safeBool (trade, 'isBuy', true)) {
+            defaultSide = 'buy';
+        }
+        let defaultLabel = 'No';
+        if (isYes) {
+            defaultLabel = 'Yes';
+        }
+        let defaultOutcome = undefined;
+        if (marketId !== undefined) {
+            const outcomeSide = (isYes) ? 'YES' : 'NO';
+            defaultOutcome = marketId + ':' + outcomeSide;
+        }
         const outcome = this.safeString (trade, 'outcome', this.safeString (market, 'outcome', defaultOutcome));
         if (outcome === undefined) {
             throw new ExchangeError (this.id + ' trade response is missing an outcome handle or market id');
@@ -1183,7 +1220,7 @@ export default class jupiter extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'type': 'market',
-            'side': this.safeString (trade, 'action', (this.safeBool (trade, 'isBuy', true)) ? 'buy' : 'sell'),
+            'side': this.safeString (trade, 'action', defaultSide),
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
@@ -1191,7 +1228,7 @@ export default class jupiter extends Exchange {
             'fee': undefined,
             'outcome': outcome,
             'outcomeId': this.safeString (market, 'outcomeId', this.safeString (trade, 'positionPubkey')),
-            'label': this.safeString (market, 'label', (isYes) ? 'Yes' : 'No'),
+            'label': this.safeString (market, 'label', defaultLabel),
             'market': this.safeString (market, 'market', marketId),
         };
     }

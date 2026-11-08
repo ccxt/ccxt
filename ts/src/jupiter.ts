@@ -153,6 +153,7 @@ export default class jupiter extends Exchange {
             },
             'requiredCredentials': {
                 'apiKey': true,
+                'secret': false,
             },
             'precisionMode': DECIMAL_PLACES,
             'options': {
@@ -786,7 +787,7 @@ export default class jupiter extends Exchange {
      */
     parsePoolFee (fee: Dict, poolId: string, type: string): Dict {
         const info = this.safeDict (fee, 'info', fee);
-        const amount = this.safeString2 (fee, 'unclaimedAmount', 'unclaimedFee');
+        const amount = this.safeNumber2 (fee, 'unclaimedAmount', 'unclaimedFee');
         return this.extend ({}, fee, {
             'id': this.safeString (fee, 'id', poolId),
             'poolId': this.safeString (fee, 'poolId', poolId),
@@ -795,7 +796,7 @@ export default class jupiter extends Exchange {
             'currency': this.safeString2 (fee, 'currency', 'quoteMint'),
             'amount': amount,
             'unclaimedAmount': amount,
-            'totalAmount': this.safeString2 (fee, 'totalAmount', 'totalFee'),
+            'totalAmount': this.safeNumber2 (fee, 'totalAmount', 'totalFee'),
             'info': info,
         });
     }
@@ -988,7 +989,8 @@ export default class jupiter extends Exchange {
      * @returns {object} created dca order id and deposit transaction signature
      */
     override async createDCAOrder (params: Dict = {}): Promise<Dict> {
-        return await this.triggerPrivatePostOrdersDca (params);
+        const response = await this.triggerPrivatePostOrdersDca (params);
+        return this.parseDCAOrder (response);
     }
 
     /**
@@ -1009,7 +1011,11 @@ export default class jupiter extends Exchange {
         }
         const response = await this.triggerPrivateGetOrdersHistoryDca (request);
         const orders = (Array.isArray (response)) ? response : this.safeList (response, 'orders', []);
-        return orders as Dict[];
+        const result: Dict[] = [];
+        for (let i = 0; i < orders.length; i++) {
+            result.push (this.parseDCAOrder (orders[i]));
+        }
+        return result;
     }
 
     /**
@@ -1022,7 +1028,26 @@ export default class jupiter extends Exchange {
      * @returns {object} dca order details
      */
     override async fetchDCAOrder (id: string, params: Dict = {}): Promise<Dict> {
-        return await this.triggerPrivateGetOrdersHistoryDcaId (this.extend ({ 'id': id }, params));
+        const response = await this.triggerPrivateGetOrdersHistoryDcaId (this.extend ({ 'id': id }, params));
+        return this.parseDCAOrder (response);
+    }
+
+    /**
+     * @ignore
+     * @param {object} order raw Jupiter Trigger DCA order
+     * @returns {object} normalized DCA order fields with the original response in info
+     */
+    parseDCAOrder (order: Dict): Dict {
+        const data = this.safeDict (order, 'data', this.safeDict (order, 'order', order));
+        const info = this.safeDict (order, 'info', order);
+        return this.extend ({}, data, {
+            'id': this.safeString (data, 'id', this.safeString (data, 'publicKey')),
+            'owner': this.safeString (data, 'owner', this.safeString (data, 'user')),
+            'inputCurrency': this.safeString (data, 'inputCurrency', this.safeString (data, 'inputMint')),
+            'outputCurrency': this.safeString (data, 'outputCurrency', this.safeString (data, 'outputMint')),
+            'status': this.safeString (data, 'status', this.safeString (data, 'state')),
+            'info': info,
+        });
     }
 
     /**
@@ -1150,7 +1175,11 @@ export default class jupiter extends Exchange {
         if (currency === undefined && mintOverride === undefined) {
             currency = await this.lookupJupiterCurrency (symbol);
         }
-        const mint = this.safeString (params, 'mint', (currency === undefined) ? symbol : currency['id']);
+        let defaultMint = symbol;
+        if (currency !== undefined) {
+            defaultMint = currency['id'];
+        }
+        const mint = this.safeString (params, 'mint', defaultMint);
         const query = this.omit (params, [ 'mint' ]);
         query['ids'] = mint;
         const response = await this.publicGetPriceV3 (query);
@@ -1171,7 +1200,11 @@ export default class jupiter extends Exchange {
      * @returns {object} a ticker structure
      */
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
-        const symbol = this.safeString (ticker, 'symbol', (market === undefined) ? undefined : market['symbol']);
+        let defaultSymbol = undefined;
+        if (market !== undefined) {
+            defaultSymbol = market['symbol'];
+        }
+        const symbol = this.safeString (ticker, 'symbol', defaultSymbol);
         const parsed = this.safeTicker ({
             'info': ticker,
             'symbol': symbol,

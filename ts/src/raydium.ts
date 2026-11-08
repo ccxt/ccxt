@@ -209,7 +209,10 @@ export default class raydium extends Exchange {
                     },
                 },
             },
-            'requiredCredentials': {},
+            'requiredCredentials': {
+                'apiKey': false,
+                'secret': false,
+            },
             'precisionMode': DECIMAL_PLACES,
             'options': {
                 'defaultType': 'spot',
@@ -280,7 +283,7 @@ export default class raydium extends Exchange {
      */
     parsePoolFee (fee: Dict, positionId: string, type: string): Dict {
         const info = this.safeDict (fee, 'info', fee);
-        const amount = this.safeString2 (fee, 'unclaimedAmount', 'unclaimedFee');
+        const amount = this.safeNumber2 (fee, 'unclaimedAmount', 'unclaimedFee');
         return this.extend ({}, fee, {
             'id': this.safeString (fee, 'id', positionId),
             'poolId': this.safeString (fee, 'poolId'),
@@ -289,7 +292,7 @@ export default class raydium extends Exchange {
             'currency': this.safeString2 (fee, 'currency', 'quoteMint'),
             'amount': amount,
             'unclaimedAmount': amount,
-            'totalAmount': this.safeString2 (fee, 'totalAmount', 'totalFee'),
+            'totalAmount': this.safeNumber2 (fee, 'totalAmount', 'totalFee'),
             'info': info,
         });
     }
@@ -476,11 +479,13 @@ export default class raydium extends Exchange {
                     rows.push (row);
                 }
             }
-            if (rows.length === 0) {
+            let rowsLength = rows.length;
+            if (rowsLength === 0) {
                 const searchResponse = await this.launchMintPublicGetGetSearch ({ 'text': query });
                 rows = this.extractRows (searchResponse);
+                rowsLength = rows.length;
             }
-            if (rows.length === 0 && query.length >= 32) {
+            if (rowsLength === 0 && query.length >= 32) {
                 const response = await this.apiV3PublicGetMintIds ({ 'mints': query });
                 rows = this.extractRows (response);
             }
@@ -551,7 +556,8 @@ export default class raydium extends Exchange {
         }
         const response = await this.apiV3PublicGetPoolsInfoIds ({ 'ids': poolId });
         const rows = this.extractRows (response);
-        if (rows.length === 0) {
+        const rowsLength = rows.length;
+        if (rowsLength === 0) {
             throw new BadSymbol (this.id + ' fetchTicker() could not find pool ' + poolId);
         }
         return this.parseTicker (rows[0], market);
@@ -654,7 +660,11 @@ export default class raydium extends Exchange {
         const poolId = this.safeString (params, 'poolId', market['id']);
         const request = this.omit (params, [ 'poolId' ]);
         request['poolId'] = poolId;
-        request['limit'] = this.safeInteger (request, 'limit', (limit === undefined) ? 50 : limit);
+        let defaultLimit = limit;
+        if (defaultLimit === undefined) {
+            defaultLimit = 50;
+        }
+        request['limit'] = this.safeInteger (request, 'limit', defaultLimit);
         const response = await this.launchHistoryPublicGetTrade (request);
         const rows = this.extractRows (response);
         const result: Trade[] = [];
@@ -691,11 +701,19 @@ export default class raydium extends Exchange {
         }
         await this.loadMarkets ();
         const market = (symbol === undefined) ? undefined : this.market (symbol);
-        const poolId = this.safeString (params, 'poolId', (market === undefined) ? undefined : market['id']);
+        let defaultPoolId = undefined;
+        if (market !== undefined) {
+            defaultPoolId = market['id'];
+        }
+        const poolId = this.safeString (params, 'poolId', defaultPoolId);
         const request = this.omit (params, [ 'walletAddress', 'owner', 'poolId' ]);
         request['poolId'] = poolId;
         request['owner'] = owner;
-        request['limit'] = this.safeInteger (request, 'limit', (limit === undefined) ? 50 : limit);
+        let defaultLimit = limit;
+        if (defaultLimit === undefined) {
+            defaultLimit = 50;
+        }
+        request['limit'] = this.safeInteger (request, 'limit', defaultLimit);
         const response = await this.launchHistoryPublicGetTrade (request);
         const rows = this.extractRows (response);
         const result: Trade[] = [];
@@ -761,7 +779,11 @@ export default class raydium extends Exchange {
         const request = this.omit (params, [ 'poolId' ]);
         request['poolId'] = poolId;
         request['interval'] = timeframe;
-        request['limit'] = this.safeInteger (request, 'limit', (limit === undefined) ? 300 : limit);
+        let defaultLimit = limit;
+        if (defaultLimit === undefined) {
+            defaultLimit = 300;
+        }
+        request['limit'] = this.safeInteger (request, 'limit', defaultLimit);
         const response = await this.launchHistoryPublicGetKline (request);
         const rows = this.extractRows (response);
         const result: OHLCV[] = [];
@@ -930,7 +952,8 @@ export default class raydium extends Exchange {
     override async fetchPoolMintAddresses (id: string, params: Dict = {}): Promise<Dict> {
         const response = await this.apiV3PublicGetPoolsInfoIds (this.extend ({ 'ids': id }, params));
         const rows = this.extractRows (response);
-        if (rows.length === 0) {
+        const rowsLength = rows.length;
+        if (rowsLength === 0) {
             throw new BadSymbol (this.id + ' fetchPoolMintAddresses() could not find pool ' + id);
         }
         const pool = rows[0];
@@ -1628,7 +1651,11 @@ export default class raydium extends Exchange {
         const amount = this.safeNumber (order, 'amount', this.safeNumber (order, 'totalAmount', this.safeNumber (order, 'amountIn')));
         const filled = this.safeNumber2 (order, 'filledAmount', 'executedAmount', 0);
         const timestamp = this.safeInteger2 (order, 'createdAt', 'timestamp');
-        const status = this.safeString (order, 'status', (historical) ? 'closed' : 'open');
+        let defaultStatus = 'open';
+        if (historical) {
+            defaultStatus = 'closed';
+        }
+        const status = this.safeString (order, 'status', defaultStatus);
         let normalizedStatus = status;
         if (status === 'cancelled' || status === 'canceled') {
             normalizedStatus = 'canceled';
