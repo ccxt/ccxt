@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::bitopro::BitoproCore;
+use super::bitopro::Bitopro;
 use crate::exchange::ExchangeRuntime;
 
-impl BitoproCore {
+impl Bitopro {
     /// Auto-generated wrapper for the `publicGetOrderBookPair` implicit endpoint.
     pub async fn public_get_order_book_pair(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_order_book_pair".into()), optional_args).await

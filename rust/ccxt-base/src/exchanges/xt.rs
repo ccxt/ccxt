@@ -16,19 +16,24 @@ use crate::exchange::ExchangeRuntime;
 use crate::exchange::CallDynamicChecked;
 
 
-pub struct XtCore {
+pub struct Xt {
     pub exchange: crate::exchange::Exchange,
 }
 
-impl XtCore {
+impl Xt {
     pub fn new(config: Option<crate::Value>) -> Self {
         let mut s = Self { exchange: crate::exchange::Exchange::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = XtCore::describe(self);
+        let described = Xt::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -42,78 +47,78 @@ impl XtCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for XtCore {
+impl crate::exchange::DerivedExchange for Xt {
     fn nonce(&self, ) -> crate::Value {
-        // Forward to the inherent method on XtCore.
-        XtCore::nonce(self, )
+        // Forward to the inherent method on Xt.
+        Xt::nonce(self, )
     }
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on XtCore.
-        XtCore::parse_ticker(self, ticker, &[market])
+        // Forward to the inherent method on Xt.
+        Xt::parse_ticker(self, ticker, &[market])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on XtCore.
-        XtCore::parse_trade(self, trade, &[market])
+        // Forward to the inherent method on Xt.
+        Xt::parse_trade(self, trade, &[market])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on XtCore.
-        XtCore::parse_order(self, order, &[market])
+        // Forward to the inherent method on Xt.
+        Xt::parse_order(self, order, &[market])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on XtCore.
-        XtCore::parse_market(self, market)
+        // Forward to the inherent method on Xt.
+        Xt::parse_market(self, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on XtCore.
-        XtCore::parse_ohlcv(self, ohlcv, &[market])
+        // Forward to the inherent method on Xt.
+        Xt::parse_ohlcv(self, ohlcv, &[market])
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on XtCore.
-        XtCore::parse_position(self, position, &[market])
+        // Forward to the inherent method on Xt.
+        Xt::parse_position(self, position, &[market])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on XtCore.
-        XtCore::parse_funding_rate(self, rate, &[market])
+        // Forward to the inherent method on Xt.
+        Xt::parse_funding_rate(self, rate, &[market])
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on XtCore.
-        XtCore::parse_deposit_address(self, depositAddress, &[currency])
+        // Forward to the inherent method on Xt.
+        Xt::parse_deposit_address(self, depositAddress, &[currency])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on XtCore.
-        XtCore::parse_ledger_entry(self, entry, &[currency])
+        // Forward to the inherent method on Xt.
+        Xt::parse_ledger_entry(self, entry, &[currency])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on XtCore.
-        XtCore::parse_transfer(self, transfer, &[currency])
+        // Forward to the inherent method on Xt.
+        Xt::parse_transfer(self, transfer, &[currency])
     }
     fn parse_open_interest(&self, interest: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on XtCore.
-        XtCore::parse_open_interest(self, interest, &[market])
+        // Forward to the inherent method on Xt.
+        Xt::parse_open_interest(self, interest, &[market])
     }
     fn parse_margin_modification(&self, data: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on XtCore.
-        XtCore::parse_margin_modification(self, data, &[market])
+        // Forward to the inherent method on Xt.
+        Xt::parse_margin_modification(self, data, &[market])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on XtCore.
-        XtCore::parse_transaction(self, transaction, &[currency])
+        // Forward to the inherent method on Xt.
+        Xt::parse_transaction(self, transaction, &[currency])
     }
     fn parse_market_leverage_tiers(&self, info: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on XtCore.
-        XtCore::parse_market_leverage_tiers(self, info, &[market])
+        // Forward to the inherent method on Xt.
+        Xt::parse_market_leverage_tiers(self, info, &[market])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on XtCore.
-        XtCore::sign(self, path, &[api, method, params, headers, body])
+        // Forward to the inherent method on Xt.
+        Xt::sign(self, path, &[api, method, params, headers, body])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on XtCore.
-        XtCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        // Forward to the inherent method on Xt.
+        Xt::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for XtCore {
+impl crate::exchange_generated::ExchangeBase for Xt {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -203,16 +208,16 @@ impl crate::exchange_generated::ExchangeBase for XtCore {
     }
 }
 
-impl std::ops::Deref for XtCore {
+impl std::ops::Deref for Xt {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { &self.exchange }
 }
 
-impl std::ops::DerefMut for XtCore {
+impl std::ops::DerefMut for Xt {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { &mut self.exchange }
 }
 
-impl XtCore {
+impl Xt {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

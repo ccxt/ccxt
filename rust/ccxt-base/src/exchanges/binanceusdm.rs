@@ -16,19 +16,24 @@ use crate::exchange::ExchangeRuntime;
 use crate::exchange::CallDynamicChecked;
 
 
-pub struct BinanceusdmCore {
-    pub parent: crate::exchanges::binance::BinanceCore,
+pub struct Binanceusdm {
+    pub parent: crate::exchanges::binance::Binance,
 }
 
-impl BinanceusdmCore {
+impl Binanceusdm {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { parent: crate::exchanges::binance::BinanceCore::new(config) };
+        let mut s = Self { parent: crate::exchanges::binance::Binance::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = BinanceusdmCore::describe(self);
+        let described = Binanceusdm::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -42,7 +47,7 @@ impl BinanceusdmCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for BinanceusdmCore {
+impl crate::exchange::DerivedExchange for Binanceusdm {
     fn nonce(&self, ) -> crate::Value {
         crate::exchange::DerivedExchange::nonce(&self.parent)
     }
@@ -171,7 +176,7 @@ impl crate::exchange::DerivedExchange for BinanceusdmCore {
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for BinanceusdmCore {
+impl crate::exchange_generated::ExchangeBase for Binanceusdm {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -186,16 +191,16 @@ impl crate::exchange_generated::ExchangeBase for BinanceusdmCore {
     }
 }
 
-impl std::ops::Deref for BinanceusdmCore {
+impl std::ops::Deref for Binanceusdm {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { std::ops::Deref::deref(&self.parent) }
 }
 
-impl std::ops::DerefMut for BinanceusdmCore {
+impl std::ops::DerefMut for Binanceusdm {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { std::ops::DerefMut::deref_mut(&mut self.parent) }
 }
 
-impl BinanceusdmCore {
+impl Binanceusdm {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

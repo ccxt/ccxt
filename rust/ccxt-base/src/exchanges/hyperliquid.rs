@@ -16,19 +16,24 @@ use crate::exchange::ExchangeRuntime;
 use crate::exchange::CallDynamicChecked;
 
 
-pub struct HyperliquidCore {
+pub struct Hyperliquid {
     pub exchange: crate::exchange::Exchange,
 }
 
-impl HyperliquidCore {
+impl Hyperliquid {
     pub fn new(config: Option<crate::Value>) -> Self {
         let mut s = Self { exchange: crate::exchange::Exchange::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = HyperliquidCore::describe(self);
+        let described = Hyperliquid::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -42,86 +47,86 @@ impl HyperliquidCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for HyperliquidCore {
+impl crate::exchange::DerivedExchange for Hyperliquid {
     fn nonce(&self, ) -> crate::Value {
-        // Forward to the inherent method on HyperliquidCore.
-        HyperliquidCore::nonce(self, )
+        // Forward to the inherent method on Hyperliquid.
+        Hyperliquid::nonce(self, )
     }
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on HyperliquidCore.
-        HyperliquidCore::parse_ticker(self, ticker, &[market])
+        // Forward to the inherent method on Hyperliquid.
+        Hyperliquid::parse_ticker(self, ticker, &[market])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on HyperliquidCore.
-        HyperliquidCore::parse_trade(self, trade, &[market])
+        // Forward to the inherent method on Hyperliquid.
+        Hyperliquid::parse_trade(self, trade, &[market])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on HyperliquidCore.
-        HyperliquidCore::parse_order(self, order, &[market])
+        // Forward to the inherent method on Hyperliquid.
+        Hyperliquid::parse_order(self, order, &[market])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on HyperliquidCore.
-        HyperliquidCore::parse_market(self, market)
+        // Forward to the inherent method on Hyperliquid.
+        Hyperliquid::parse_market(self, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on HyperliquidCore.
-        HyperliquidCore::parse_ohlcv(self, ohlcv, &[market])
+        // Forward to the inherent method on Hyperliquid.
+        Hyperliquid::parse_ohlcv(self, ohlcv, &[market])
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on HyperliquidCore.
-        HyperliquidCore::parse_position(self, position, &[market])
+        // Forward to the inherent method on Hyperliquid.
+        Hyperliquid::parse_position(self, position, &[market])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on HyperliquidCore.
-        HyperliquidCore::parse_funding_rate(self, rate, &[market])
+        // Forward to the inherent method on Hyperliquid.
+        Hyperliquid::parse_funding_rate(self, rate, &[market])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on HyperliquidCore.
-        HyperliquidCore::parse_ledger_entry(self, entry, &[currency])
+        // Forward to the inherent method on Hyperliquid.
+        Hyperliquid::parse_ledger_entry(self, entry, &[currency])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on HyperliquidCore.
-        HyperliquidCore::parse_transfer(self, transfer, &[currency])
+        // Forward to the inherent method on Hyperliquid.
+        Hyperliquid::parse_transfer(self, transfer, &[currency])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on HyperliquidCore.
-        HyperliquidCore::parse_currency(self, currency)
+        // Forward to the inherent method on Hyperliquid.
+        Hyperliquid::parse_currency(self, currency)
     }
     fn parse_open_interest(&self, interest: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on HyperliquidCore.
-        HyperliquidCore::parse_open_interest(self, interest, &[market])
+        // Forward to the inherent method on Hyperliquid.
+        Hyperliquid::parse_open_interest(self, interest, &[market])
     }
     fn parse_liquidation(&self, liquidation: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on HyperliquidCore.
-        HyperliquidCore::parse_liquidation(self, liquidation, &[market])
+        // Forward to the inherent method on Hyperliquid.
+        Hyperliquid::parse_liquidation(self, liquidation, &[market])
     }
     fn parse_margin_modification(&self, data: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on HyperliquidCore.
-        HyperliquidCore::parse_margin_modification(self, data, &[market])
+        // Forward to the inherent method on Hyperliquid.
+        Hyperliquid::parse_margin_modification(self, data, &[market])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on HyperliquidCore.
-        HyperliquidCore::parse_transaction(self, transaction, &[currency])
+        // Forward to the inherent method on Hyperliquid.
+        Hyperliquid::parse_transaction(self, transaction, &[currency])
     }
     fn parse_income(&self, info: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on HyperliquidCore.
-        HyperliquidCore::parse_income(self, info, &[market])
+        // Forward to the inherent method on Hyperliquid.
+        Hyperliquid::parse_income(self, info, &[market])
     }
     fn market(&self, symbol: crate::Value) -> crate::Value {
-        // Forward to the inherent method on HyperliquidCore.
-        HyperliquidCore::market(self, symbol)
+        // Forward to the inherent method on Hyperliquid.
+        Hyperliquid::market(self, symbol)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on HyperliquidCore.
-        HyperliquidCore::sign(self, path, &[api, method, params, headers, body])
+        // Forward to the inherent method on Hyperliquid.
+        Hyperliquid::sign(self, path, &[api, method, params, headers, body])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on HyperliquidCore.
-        HyperliquidCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        // Forward to the inherent method on Hyperliquid.
+        Hyperliquid::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for HyperliquidCore {
+impl crate::exchange_generated::ExchangeBase for Hyperliquid {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -242,16 +247,16 @@ impl crate::exchange_generated::ExchangeBase for HyperliquidCore {
     }
 }
 
-impl std::ops::Deref for HyperliquidCore {
+impl std::ops::Deref for Hyperliquid {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { &self.exchange }
 }
 
-impl std::ops::DerefMut for HyperliquidCore {
+impl std::ops::DerefMut for Hyperliquid {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { &mut self.exchange }
 }
 
-impl HyperliquidCore {
+impl Hyperliquid {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

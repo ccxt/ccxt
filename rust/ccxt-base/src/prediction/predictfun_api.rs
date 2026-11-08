@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::predictfun::PredictfunCore;
+use super::predictfun::Predictfun;
 use crate::exchange::ExchangeRuntime;
 
-impl PredictfunCore {
+impl Predictfun {
     /// Auto-generated wrapper for the `predictfunGetV1AuthMessage` implicit endpoint.
     pub async fn predictfun_get_v1_auth_message(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("predictfun_get_v1_auth_message".into()), optional_args).await

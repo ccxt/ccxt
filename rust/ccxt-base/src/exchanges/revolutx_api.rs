@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::revolutx::RevolutxCore;
+use super::revolutx::Revolutx;
 use crate::exchange::ExchangeRuntime;
 
-impl RevolutxCore {
+impl Revolutx {
     /// Auto-generated wrapper for the `publicGet20PublicOrderBookSymbol` implicit endpoint.
     pub async fn public_get20_public_order_book_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get20_public_order_book_symbol".into()), optional_args).await

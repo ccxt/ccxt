@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::poloniex::PoloniexCore;
+use super::poloniex::Poloniex;
 use crate::exchange::ExchangeRuntime;
 
-impl PoloniexCore {
+impl Poloniex {
     /// Auto-generated wrapper for the `publicGetMarkets` implicit endpoint.
     pub async fn public_get_markets(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_markets".into()), optional_args).await

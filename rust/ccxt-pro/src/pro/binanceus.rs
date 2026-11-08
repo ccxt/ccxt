@@ -17,19 +17,24 @@ use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
-pub struct BinanceusCore {
-    pub parent: crate::pro::binance::BinanceCore,
+pub struct Binanceus {
+    pub parent: crate::pro::binance::Binance,
 }
 
-impl BinanceusCore {
+impl Binanceus {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { parent: crate::pro::binance::BinanceCore::new(config) };
+        let mut s = Self { parent: crate::pro::binance::Binance::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = BinanceusCore::describe(self);
+        let described = Binanceus::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -43,7 +48,7 @@ impl BinanceusCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for BinanceusCore {
+impl crate::exchange::DerivedExchange for Binanceus {
     fn nonce(&self, ) -> crate::Value {
         crate::exchange::DerivedExchange::nonce(&self.parent)
     }
@@ -172,7 +177,7 @@ impl crate::exchange::DerivedExchange for BinanceusCore {
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for BinanceusCore {
+impl crate::exchange_generated::ExchangeBase for Binanceus {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -186,19 +191,19 @@ impl crate::exchange_generated::ExchangeBase for BinanceusCore {
     }
 }
 
-impl std::ops::Deref for BinanceusCore {
+impl std::ops::Deref for Binanceus {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { std::ops::Deref::deref(&self.parent) }
 }
 
-impl std::ops::DerefMut for BinanceusCore {
+impl std::ops::DerefMut for Binanceus {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { std::ops::DerefMut::deref_mut(&mut self.parent) }
 }
 
-impl BinanceusCore {
+impl Binanceus {
     pub fn describe(&self) -> Value {
         // eslint-disable-next-line new-cap
-        let mut restInstance = crate::exchanges::binanceus::BinanceusCore::new(None);
+        let mut restInstance = crate::exchanges::binanceus::Binanceus::new(None);
         let mut restDescribe: Value = restInstance.describe();
         let mut parentWsDescribe: Value = self.parent.describe_data();
         let mut extended: Value = self.deep_extend(restDescribe, &[parentWsDescribe]);

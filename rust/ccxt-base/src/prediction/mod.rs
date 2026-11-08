@@ -37,3 +37,52 @@ pub mod predictfun_api;
 pub mod sxbet;
 #[cfg(feature = "prediction-sxbet")]
 pub mod sxbet_api;
+
+#[cfg(feature = "prediction-binance")]
+pub use binance::Binance;
+#[cfg(feature = "prediction-hyperliquid")]
+pub use hyperliquid::Hyperliquid;
+#[cfg(feature = "prediction-kalshi")]
+pub use kalshi::Kalshi;
+#[cfg(feature = "prediction-limitless")]
+pub use limitless::Limitless;
+#[cfg(feature = "prediction-myriad")]
+pub use myriad::Myriad;
+#[cfg(feature = "prediction-opinion")]
+pub use opinion::Opinion;
+#[cfg(feature = "prediction-polymarket")]
+pub use polymarket::Polymarket;
+#[cfg(feature = "prediction-predictfun")]
+pub use predictfun::Predictfun;
+#[cfg(feature = "prediction-sxbet")]
+pub use sxbet::Sxbet;
+
+/// Construct an exchange by id as a `Box<dyn TypedExchange>`; `None` for an unknown id.
+pub fn from_id(id: &str, config: Option<crate::Value>) -> Option<Box<dyn crate::exchange::TypedExchange>> {
+    match id {
+        #[cfg(feature = "prediction-binance")]
+        "binance" => Some(Box::new(binance::Binance::new(config))),
+        #[cfg(feature = "prediction-hyperliquid")]
+        "hyperliquid" => Some(Box::new(hyperliquid::Hyperliquid::new(config))),
+        #[cfg(feature = "prediction-kalshi")]
+        "kalshi" => Some(Box::new(kalshi::Kalshi::new(config))),
+        #[cfg(feature = "prediction-limitless")]
+        "limitless" => Some(Box::new(limitless::Limitless::new(config))),
+        #[cfg(feature = "prediction-myriad")]
+        "myriad" => Some(Box::new(myriad::Myriad::new(config))),
+        #[cfg(feature = "prediction-opinion")]
+        "opinion" => Some(Box::new(opinion::Opinion::new(config))),
+        #[cfg(feature = "prediction-polymarket")]
+        "polymarket" => Some(Box::new(polymarket::Polymarket::new(config))),
+        #[cfg(feature = "prediction-predictfun")]
+        "predictfun" => Some(Box::new(predictfun::Predictfun::new(config))),
+        #[cfg(feature = "prediction-sxbet")]
+        "sxbet" => Some(Box::new(sxbet::Sxbet::new(config))),
+        _ => None,
+    }
+}
+
+/// [`from_id`] with the typed [`crate::Config`] builder.
+pub fn from_id_with_config(id: &str, config: crate::Config) -> Option<Box<dyn crate::exchange::TypedExchange>> {
+    from_id(id, config.into_option())
+}

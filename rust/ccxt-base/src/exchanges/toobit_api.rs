@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::toobit::ToobitCore;
+use super::toobit::Toobit;
 use crate::exchange::ExchangeRuntime;
 
-impl ToobitCore {
+impl Toobit {
     /// Auto-generated wrapper for the `commonGetApiV1Time` implicit endpoint.
     pub async fn common_get_api_v1_time(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("common_get_api_v1_time".into()), optional_args).await

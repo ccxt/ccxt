@@ -17,19 +17,24 @@ use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
-pub struct BitstampCore {
-    pub parent: crate::exchanges::bitstamp::BitstampCore,
+pub struct Bitstamp {
+    pub parent: crate::exchanges::bitstamp::Bitstamp,
 }
 
-impl BitstampCore {
+impl Bitstamp {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { parent: crate::exchanges::bitstamp::BitstampCore::new(config) };
+        let mut s = Self { parent: crate::exchanges::bitstamp::Bitstamp::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = BitstampCore::describe(self);
+        let described = Bitstamp::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -43,7 +48,7 @@ impl BitstampCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for BitstampCore {
+impl crate::exchange::DerivedExchange for Bitstamp {
     fn nonce(&self, ) -> crate::Value {
         crate::exchange::DerivedExchange::nonce(&self.parent)
     }
@@ -172,7 +177,7 @@ impl crate::exchange::DerivedExchange for BitstampCore {
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for BitstampCore {
+impl crate::exchange_generated::ExchangeBase for Bitstamp {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -204,7 +209,7 @@ impl crate::exchange_generated::ExchangeBase for BitstampCore {
         })
     }
 }
-impl BitstampCore {
+impl Bitstamp {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
@@ -246,16 +251,16 @@ impl BitstampCore {
     }
 }
 
-impl std::ops::Deref for BitstampCore {
+impl std::ops::Deref for Bitstamp {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { std::ops::Deref::deref(&self.parent) }
 }
 
-impl std::ops::DerefMut for BitstampCore {
+impl std::ops::DerefMut for Bitstamp {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { std::ops::DerefMut::deref_mut(&mut self.parent) }
 }
 
-impl BitstampCore {
+impl Bitstamp {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

@@ -17,19 +17,24 @@ use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
-pub struct AlpacaCore {
-    pub parent: crate::exchanges::alpaca::AlpacaCore,
+pub struct Alpaca {
+    pub parent: crate::exchanges::alpaca::Alpaca,
 }
 
-impl AlpacaCore {
+impl Alpaca {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { parent: crate::exchanges::alpaca::AlpacaCore::new(config) };
+        let mut s = Self { parent: crate::exchanges::alpaca::Alpaca::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = AlpacaCore::describe(self);
+        let described = Alpaca::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -43,13 +48,13 @@ impl AlpacaCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for AlpacaCore {
+impl crate::exchange::DerivedExchange for Alpaca {
     fn nonce(&self, ) -> crate::Value {
         crate::exchange::DerivedExchange::nonce(&self.parent)
     }
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on AlpacaCore.
-        AlpacaCore::parse_ticker(self, ticker, &[market])
+        // Forward to the inherent method on Alpaca.
+        Alpaca::parse_ticker(self, ticker, &[market])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_trade(&self.parent, trade, market)
@@ -115,8 +120,8 @@ impl crate::exchange::DerivedExchange for AlpacaCore {
         crate::exchange::DerivedExchange::parse_account(&self.parent, account)
     }
     fn parse_my_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on AlpacaCore.
-        AlpacaCore::parse_my_trade(self, trade, &[market])
+        // Forward to the inherent method on Alpaca.
+        Alpaca::parse_my_trade(self, trade, &[market])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_transaction(&self.parent, transaction, currency)
@@ -174,7 +179,7 @@ impl crate::exchange::DerivedExchange for AlpacaCore {
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for AlpacaCore {
+impl crate::exchange_generated::ExchangeBase for Alpaca {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -200,7 +205,7 @@ impl crate::exchange_generated::ExchangeBase for AlpacaCore {
         })
     }
 }
-impl AlpacaCore {
+impl Alpaca {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
@@ -237,16 +242,16 @@ impl AlpacaCore {
     }
 }
 
-impl std::ops::Deref for AlpacaCore {
+impl std::ops::Deref for Alpaca {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { std::ops::Deref::deref(&self.parent) }
 }
 
-impl std::ops::DerefMut for AlpacaCore {
+impl std::ops::DerefMut for Alpaca {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { std::ops::DerefMut::deref_mut(&mut self.parent) }
 }
 
-impl AlpacaCore {
+impl Alpaca {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

@@ -16,19 +16,24 @@ use crate::exchange::ExchangeRuntime;
 use crate::exchange::CallDynamicChecked;
 
 
-pub struct FoxbitCore {
+pub struct Foxbit {
     pub exchange: crate::exchange::Exchange,
 }
 
-impl FoxbitCore {
+impl Foxbit {
     pub fn new(config: Option<crate::Value>) -> Self {
         let mut s = Self { exchange: crate::exchange::Exchange::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = FoxbitCore::describe(self);
+        let described = Foxbit::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -42,54 +47,54 @@ impl FoxbitCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for FoxbitCore {
+impl crate::exchange::DerivedExchange for Foxbit {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on FoxbitCore.
-        FoxbitCore::parse_ticker(self, ticker, &[market])
+        // Forward to the inherent method on Foxbit.
+        Foxbit::parse_ticker(self, ticker, &[market])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on FoxbitCore.
-        FoxbitCore::parse_trade(self, trade, &[market])
+        // Forward to the inherent method on Foxbit.
+        Foxbit::parse_trade(self, trade, &[market])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on FoxbitCore.
-        FoxbitCore::parse_order(self, order, &[market])
+        // Forward to the inherent method on Foxbit.
+        Foxbit::parse_order(self, order, &[market])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on FoxbitCore.
-        FoxbitCore::parse_market(self, market)
+        // Forward to the inherent method on Foxbit.
+        Foxbit::parse_market(self, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on FoxbitCore.
-        FoxbitCore::parse_ohlcv(self, ohlcv, &[market])
+        // Forward to the inherent method on Foxbit.
+        Foxbit::parse_ohlcv(self, ohlcv, &[market])
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on FoxbitCore.
-        FoxbitCore::parse_deposit_address(self, depositAddress, &[currency])
+        // Forward to the inherent method on Foxbit.
+        Foxbit::parse_deposit_address(self, depositAddress, &[currency])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on FoxbitCore.
-        FoxbitCore::parse_ledger_entry(self, entry, &[currency])
+        // Forward to the inherent method on Foxbit.
+        Foxbit::parse_ledger_entry(self, entry, &[currency])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on FoxbitCore.
-        FoxbitCore::parse_currency(self, currency)
+        // Forward to the inherent method on Foxbit.
+        Foxbit::parse_currency(self, currency)
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on FoxbitCore.
-        FoxbitCore::parse_transaction(self, transaction, &[currency])
+        // Forward to the inherent method on Foxbit.
+        Foxbit::parse_transaction(self, transaction, &[currency])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on FoxbitCore.
-        FoxbitCore::sign(self, path, &[api, method, params, headers, body])
+        // Forward to the inherent method on Foxbit.
+        Foxbit::sign(self, path, &[api, method, params, headers, body])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on FoxbitCore.
-        FoxbitCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        // Forward to the inherent method on Foxbit.
+        Foxbit::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for FoxbitCore {
+impl crate::exchange_generated::ExchangeBase for Foxbit {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -145,16 +150,16 @@ impl crate::exchange_generated::ExchangeBase for FoxbitCore {
     }
 }
 
-impl std::ops::Deref for FoxbitCore {
+impl std::ops::Deref for Foxbit {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { &self.exchange }
 }
 
-impl std::ops::DerefMut for FoxbitCore {
+impl std::ops::DerefMut for Foxbit {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { &mut self.exchange }
 }
 
-impl FoxbitCore {
+impl Foxbit {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

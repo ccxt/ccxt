@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::htx::HtxCore;
+use super::htx::Htx;
 use crate::exchange::ExchangeRuntime;
 
-impl HtxCore {
+impl Htx {
     /// Auto-generated wrapper for the `v2PublicGetReferenceCurrencies` implicit endpoint.
     pub async fn v2_public_get_reference_currencies(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v2_public_get_reference_currencies".into()), optional_args).await

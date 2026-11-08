@@ -16,19 +16,24 @@ use crate::exchange::ExchangeRuntime;
 use crate::exchange::CallDynamicChecked;
 
 
-pub struct ApexCore {
+pub struct Apex {
     pub exchange: crate::exchange::Exchange,
 }
 
-impl ApexCore {
+impl Apex {
     pub fn new(config: Option<crate::Value>) -> Self {
         let mut s = Self { exchange: crate::exchange::Exchange::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = ApexCore::describe(self);
+        let described = Apex::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -42,66 +47,66 @@ impl ApexCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for ApexCore {
+impl crate::exchange::DerivedExchange for Apex {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on ApexCore.
-        ApexCore::parse_ticker(self, ticker, &[market])
+        // Forward to the inherent method on Apex.
+        Apex::parse_ticker(self, ticker, &[market])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on ApexCore.
-        ApexCore::parse_trade(self, trade, &[market])
+        // Forward to the inherent method on Apex.
+        Apex::parse_trade(self, trade, &[market])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on ApexCore.
-        ApexCore::parse_order(self, order, &[market])
+        // Forward to the inherent method on Apex.
+        Apex::parse_order(self, order, &[market])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on ApexCore.
-        ApexCore::parse_market(self, market)
+        // Forward to the inherent method on Apex.
+        Apex::parse_market(self, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on ApexCore.
-        ApexCore::parse_ohlcv(self, ohlcv, &[market])
+        // Forward to the inherent method on Apex.
+        Apex::parse_ohlcv(self, ohlcv, &[market])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
-        // Forward to the inherent method on ApexCore.
-        ApexCore::parse_balance(self, response)
+        // Forward to the inherent method on Apex.
+        Apex::parse_balance(self, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on ApexCore.
-        ApexCore::parse_position(self, position, &[market])
+        // Forward to the inherent method on Apex.
+        Apex::parse_position(self, position, &[market])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on ApexCore.
-        ApexCore::parse_transfer(self, transfer, &[currency])
+        // Forward to the inherent method on Apex.
+        Apex::parse_transfer(self, transfer, &[currency])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on ApexCore.
-        ApexCore::parse_currency(self, currency)
+        // Forward to the inherent method on Apex.
+        Apex::parse_currency(self, currency)
     }
     fn parse_open_interest(&self, interest: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on ApexCore.
-        ApexCore::parse_open_interest(self, interest, &[market])
+        // Forward to the inherent method on Apex.
+        Apex::parse_open_interest(self, interest, &[market])
     }
     fn parse_account(&self, account: crate::Value) -> crate::Value {
-        // Forward to the inherent method on ApexCore.
-        ApexCore::parse_account(self, account)
+        // Forward to the inherent method on Apex.
+        Apex::parse_account(self, account)
     }
     fn parse_income(&self, info: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on ApexCore.
-        ApexCore::parse_income(self, info, &[market])
+        // Forward to the inherent method on Apex.
+        Apex::parse_income(self, info, &[market])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on ApexCore.
-        ApexCore::sign(self, path, &[api, method, params, headers, body])
+        // Forward to the inherent method on Apex.
+        Apex::sign(self, path, &[api, method, params, headers, body])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on ApexCore.
-        ApexCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        // Forward to the inherent method on Apex.
+        Apex::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for ApexCore {
+impl crate::exchange_generated::ExchangeBase for Apex {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -156,16 +161,16 @@ impl crate::exchange_generated::ExchangeBase for ApexCore {
     }
 }
 
-impl std::ops::Deref for ApexCore {
+impl std::ops::Deref for Apex {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { &self.exchange }
 }
 
-impl std::ops::DerefMut for ApexCore {
+impl std::ops::DerefMut for Apex {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { &mut self.exchange }
 }
 
-impl ApexCore {
+impl Apex {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

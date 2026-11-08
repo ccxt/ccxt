@@ -17,19 +17,24 @@ use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
-pub struct AsterCore {
-    pub parent: crate::exchanges::aster::AsterCore,
+pub struct Aster {
+    pub parent: crate::exchanges::aster::Aster,
 }
 
-impl AsterCore {
+impl Aster {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { parent: crate::exchanges::aster::AsterCore::new(config) };
+        let mut s = Self { parent: crate::exchanges::aster::Aster::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = AsterCore::describe(self);
+        let described = Aster::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -43,7 +48,7 @@ impl AsterCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for AsterCore {
+impl crate::exchange::DerivedExchange for Aster {
     fn nonce(&self, ) -> crate::Value {
         crate::exchange::DerivedExchange::nonce(&self.parent)
     }
@@ -172,7 +177,7 @@ impl crate::exchange::DerivedExchange for AsterCore {
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for AsterCore {
+impl crate::exchange_generated::ExchangeBase for Aster {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -222,7 +227,7 @@ impl crate::exchange_generated::ExchangeBase for AsterCore {
         })
     }
 }
-impl AsterCore {
+impl Aster {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
@@ -285,16 +290,16 @@ impl AsterCore {
     }
 }
 
-impl std::ops::Deref for AsterCore {
+impl std::ops::Deref for Aster {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { std::ops::Deref::deref(&self.parent) }
 }
 
-impl std::ops::DerefMut for AsterCore {
+impl std::ops::DerefMut for Aster {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { std::ops::DerefMut::deref_mut(&mut self.parent) }
 }
 
-impl AsterCore {
+impl Aster {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

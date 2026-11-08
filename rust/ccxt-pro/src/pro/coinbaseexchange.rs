@@ -17,19 +17,24 @@ use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
-pub struct CoinbaseexchangeCore {
-    pub parent: crate::exchanges::coinbaseexchange::CoinbaseexchangeCore,
+pub struct Coinbaseexchange {
+    pub parent: crate::exchanges::coinbaseexchange::Coinbaseexchange,
 }
 
-impl CoinbaseexchangeCore {
+impl Coinbaseexchange {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { parent: crate::exchanges::coinbaseexchange::CoinbaseexchangeCore::new(config) };
+        let mut s = Self { parent: crate::exchanges::coinbaseexchange::Coinbaseexchange::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = CoinbaseexchangeCore::describe(self);
+        let described = Coinbaseexchange::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -43,13 +48,13 @@ impl CoinbaseexchangeCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for CoinbaseexchangeCore {
+impl crate::exchange::DerivedExchange for Coinbaseexchange {
     fn nonce(&self, ) -> crate::Value {
         crate::exchange::DerivedExchange::nonce(&self.parent)
     }
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on CoinbaseexchangeCore.
-        CoinbaseexchangeCore::parse_ticker(self, ticker, &[market])
+        // Forward to the inherent method on Coinbaseexchange.
+        Coinbaseexchange::parse_ticker(self, ticker, &[market])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_trade(&self.parent, trade, market)
@@ -173,7 +178,7 @@ impl crate::exchange::DerivedExchange for CoinbaseexchangeCore {
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for CoinbaseexchangeCore {
+impl crate::exchange_generated::ExchangeBase for Coinbaseexchange {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -207,7 +212,7 @@ impl crate::exchange_generated::ExchangeBase for CoinbaseexchangeCore {
         })
     }
 }
-impl CoinbaseexchangeCore {
+impl Coinbaseexchange {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
@@ -245,16 +250,16 @@ impl CoinbaseexchangeCore {
     }
 }
 
-impl std::ops::Deref for CoinbaseexchangeCore {
+impl std::ops::Deref for Coinbaseexchange {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { std::ops::Deref::deref(&self.parent) }
 }
 
-impl std::ops::DerefMut for CoinbaseexchangeCore {
+impl std::ops::DerefMut for Coinbaseexchange {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { std::ops::DerefMut::deref_mut(&mut self.parent) }
 }
 
-impl CoinbaseexchangeCore {
+impl Coinbaseexchange {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

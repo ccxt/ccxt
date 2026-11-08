@@ -17,19 +17,24 @@ use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
-pub struct PolymarketCore {
-    pub parent: crate::exchanges::polymarket::PolymarketCore,
+pub struct Polymarket {
+    pub parent: crate::exchanges::polymarket::Polymarket,
 }
 
-impl PolymarketCore {
+impl Polymarket {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { parent: crate::exchanges::polymarket::PolymarketCore::new(config) };
+        let mut s = Self { parent: crate::exchanges::polymarket::Polymarket::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = PolymarketCore::describe(self);
+        let described = Polymarket::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -43,7 +48,7 @@ impl PolymarketCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for PolymarketCore {
+impl crate::exchange::DerivedExchange for Polymarket {
     fn nonce(&self, ) -> crate::Value {
         crate::exchange::DerivedExchange::nonce(&self.parent)
     }
@@ -172,7 +177,7 @@ impl crate::exchange::DerivedExchange for PolymarketCore {
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for PolymarketCore {
+impl crate::exchange_generated::ExchangeBase for Polymarket {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -206,7 +211,7 @@ impl crate::exchange_generated::ExchangeBase for PolymarketCore {
         })
     }
 }
-impl PolymarketCore {
+impl Polymarket {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
@@ -251,16 +256,16 @@ impl PolymarketCore {
     }
 }
 
-impl std::ops::Deref for PolymarketCore {
+impl std::ops::Deref for Polymarket {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { std::ops::Deref::deref(&self.parent) }
 }
 
-impl std::ops::DerefMut for PolymarketCore {
+impl std::ops::DerefMut for Polymarket {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { std::ops::DerefMut::deref_mut(&mut self.parent) }
 }
 
-impl PolymarketCore {
+impl Polymarket {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

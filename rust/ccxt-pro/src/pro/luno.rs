@@ -17,19 +17,24 @@ use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
-pub struct LunoCore {
-    pub parent: crate::exchanges::luno::LunoCore,
+pub struct Luno {
+    pub parent: crate::exchanges::luno::Luno,
 }
 
-impl LunoCore {
+impl Luno {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { parent: crate::exchanges::luno::LunoCore::new(config) };
+        let mut s = Self { parent: crate::exchanges::luno::Luno::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = LunoCore::describe(self);
+        let described = Luno::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -43,7 +48,7 @@ impl LunoCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for LunoCore {
+impl crate::exchange::DerivedExchange for Luno {
     fn nonce(&self, ) -> crate::Value {
         crate::exchange::DerivedExchange::nonce(&self.parent)
     }
@@ -51,8 +56,8 @@ impl crate::exchange::DerivedExchange for LunoCore {
         crate::exchange::DerivedExchange::parse_ticker(&self.parent, ticker, market)
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on LunoCore.
-        LunoCore::parse_trade(self, trade, &[market])
+        // Forward to the inherent method on Luno.
+        Luno::parse_trade(self, trade, &[market])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_order(&self.parent, order, market)
@@ -173,7 +178,7 @@ impl crate::exchange::DerivedExchange for LunoCore {
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for LunoCore {
+impl crate::exchange_generated::ExchangeBase for Luno {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -194,7 +199,7 @@ impl crate::exchange_generated::ExchangeBase for LunoCore {
         })
     }
 }
-impl LunoCore {
+impl Luno {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
@@ -218,16 +223,16 @@ impl LunoCore {
     }
 }
 
-impl std::ops::Deref for LunoCore {
+impl std::ops::Deref for Luno {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { std::ops::Deref::deref(&self.parent) }
 }
 
-impl std::ops::DerefMut for LunoCore {
+impl std::ops::DerefMut for Luno {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { std::ops::DerefMut::deref_mut(&mut self.parent) }
 }
 
-impl LunoCore {
+impl Luno {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

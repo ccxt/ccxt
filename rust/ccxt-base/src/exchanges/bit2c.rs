@@ -16,19 +16,24 @@ use crate::exchange::ExchangeRuntime;
 use crate::exchange::CallDynamicChecked;
 
 
-pub struct Bit2cCore {
+pub struct Bit2c {
     pub exchange: crate::exchange::Exchange,
 }
 
-impl Bit2cCore {
+impl Bit2c {
     pub fn new(config: Option<crate::Value>) -> Self {
         let mut s = Self { exchange: crate::exchange::Exchange::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = Bit2cCore::describe(self);
+        let described = Bit2c::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -42,44 +47,44 @@ impl Bit2cCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for Bit2cCore {
+impl crate::exchange::DerivedExchange for Bit2c {
     fn nonce(&self, ) -> crate::Value {
-        // Forward to the inherent method on Bit2cCore.
-        Bit2cCore::nonce(self, )
+        // Forward to the inherent method on Bit2c.
+        Bit2c::nonce(self, )
     }
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on Bit2cCore.
-        Bit2cCore::parse_ticker(self, ticker, &[market])
+        // Forward to the inherent method on Bit2c.
+        Bit2c::parse_ticker(self, ticker, &[market])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on Bit2cCore.
-        Bit2cCore::parse_trade(self, trade, &[market])
+        // Forward to the inherent method on Bit2c.
+        Bit2c::parse_trade(self, trade, &[market])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on Bit2cCore.
-        Bit2cCore::parse_order(self, order, &[market])
+        // Forward to the inherent method on Bit2c.
+        Bit2c::parse_order(self, order, &[market])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
-        // Forward to the inherent method on Bit2cCore.
-        Bit2cCore::parse_balance(self, response)
+        // Forward to the inherent method on Bit2c.
+        Bit2c::parse_balance(self, response)
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on Bit2cCore.
-        Bit2cCore::parse_deposit_address(self, depositAddress, &[currency])
+        // Forward to the inherent method on Bit2c.
+        Bit2c::parse_deposit_address(self, depositAddress, &[currency])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on Bit2cCore.
+        // Forward to the inherent method on Bit2c.
         #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const Bit2cCore as *mut Bit2cCore) };
-        Bit2cCore::sign(me, path, &[api, method, params, headers, body])
+        let me = unsafe { &mut *(self as *const Bit2c as *mut Bit2c) };
+        Bit2c::sign(me, path, &[api, method, params, headers, body])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on Bit2cCore.
-        Bit2cCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        // Forward to the inherent method on Bit2c.
+        Bit2c::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for Bit2cCore {
+impl crate::exchange_generated::ExchangeBase for Bit2c {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -114,16 +119,16 @@ impl crate::exchange_generated::ExchangeBase for Bit2cCore {
     }
 }
 
-impl std::ops::Deref for Bit2cCore {
+impl std::ops::Deref for Bit2c {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { &self.exchange }
 }
 
-impl std::ops::DerefMut for Bit2cCore {
+impl std::ops::DerefMut for Bit2c {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { &mut self.exchange }
 }
 
-impl Bit2cCore {
+impl Bit2c {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

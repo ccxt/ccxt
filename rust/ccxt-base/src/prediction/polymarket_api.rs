@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::polymarket::PolymarketCore;
+use super::polymarket::Polymarket;
 use crate::exchange::ExchangeRuntime;
 
-impl PolymarketCore {
+impl Polymarket {
     /// Auto-generated wrapper for the `gammaPublicGetStatus` implicit endpoint.
     pub async fn gamma_public_get_status(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("gamma_public_get_status".into()), optional_args).await

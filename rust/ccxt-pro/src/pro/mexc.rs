@@ -17,19 +17,24 @@ use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
-pub struct MexcCore {
-    pub parent: crate::exchanges::mexc::MexcCore,
+pub struct Mexc {
+    pub parent: crate::exchanges::mexc::Mexc,
 }
 
-impl MexcCore {
+impl Mexc {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { parent: crate::exchanges::mexc::MexcCore::new(config) };
+        let mut s = Self { parent: crate::exchanges::mexc::Mexc::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = MexcCore::describe(self);
+        let described = Mexc::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -43,7 +48,7 @@ impl MexcCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for MexcCore {
+impl crate::exchange::DerivedExchange for Mexc {
     fn nonce(&self, ) -> crate::Value {
         crate::exchange::DerivedExchange::nonce(&self.parent)
     }
@@ -172,7 +177,7 @@ impl crate::exchange::DerivedExchange for MexcCore {
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for MexcCore {
+impl crate::exchange_generated::ExchangeBase for Mexc {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -219,7 +224,7 @@ impl crate::exchange_generated::ExchangeBase for MexcCore {
         })
     }
 }
-impl MexcCore {
+impl Mexc {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
@@ -281,16 +286,16 @@ impl MexcCore {
     }
 }
 
-impl std::ops::Deref for MexcCore {
+impl std::ops::Deref for Mexc {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { std::ops::Deref::deref(&self.parent) }
 }
 
-impl std::ops::DerefMut for MexcCore {
+impl std::ops::DerefMut for Mexc {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { std::ops::DerefMut::deref_mut(&mut self.parent) }
 }
 
-impl MexcCore {
+impl Mexc {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

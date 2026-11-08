@@ -17,19 +17,24 @@ use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
-pub struct LighterCore {
-    pub parent: crate::exchanges::lighter::LighterCore,
+pub struct Lighter {
+    pub parent: crate::exchanges::lighter::Lighter,
 }
 
-impl LighterCore {
+impl Lighter {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { parent: crate::exchanges::lighter::LighterCore::new(config) };
+        let mut s = Self { parent: crate::exchanges::lighter::Lighter::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = LighterCore::describe(self);
+        let described = Lighter::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -43,7 +48,7 @@ impl LighterCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for LighterCore {
+impl crate::exchange::DerivedExchange for Lighter {
     fn nonce(&self, ) -> crate::Value {
         crate::exchange::DerivedExchange::nonce(&self.parent)
     }
@@ -172,7 +177,7 @@ impl crate::exchange::DerivedExchange for LighterCore {
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for LighterCore {
+impl crate::exchange_generated::ExchangeBase for Lighter {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -222,7 +227,7 @@ impl crate::exchange_generated::ExchangeBase for LighterCore {
         })
     }
 }
-impl LighterCore {
+impl Lighter {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
@@ -286,16 +291,16 @@ impl LighterCore {
     }
 }
 
-impl std::ops::Deref for LighterCore {
+impl std::ops::Deref for Lighter {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { std::ops::Deref::deref(&self.parent) }
 }
 
-impl std::ops::DerefMut for LighterCore {
+impl std::ops::DerefMut for Lighter {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { std::ops::DerefMut::deref_mut(&mut self.parent) }
 }
 
-impl LighterCore {
+impl Lighter {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

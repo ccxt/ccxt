@@ -17,19 +17,24 @@ use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
-pub struct GateCore {
-    pub parent: crate::exchanges::gate::GateCore,
+pub struct Gate {
+    pub parent: crate::exchanges::gate::Gate,
 }
 
-impl GateCore {
+impl Gate {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { parent: crate::exchanges::gate::GateCore::new(config) };
+        let mut s = Self { parent: crate::exchanges::gate::Gate::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = GateCore::describe(self);
+        let described = Gate::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -43,7 +48,7 @@ impl GateCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for GateCore {
+impl crate::exchange::DerivedExchange for Gate {
     fn nonce(&self, ) -> crate::Value {
         crate::exchange::DerivedExchange::nonce(&self.parent)
     }
@@ -172,7 +177,7 @@ impl crate::exchange::DerivedExchange for GateCore {
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for GateCore {
+impl crate::exchange_generated::ExchangeBase for Gate {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -231,7 +236,7 @@ impl crate::exchange_generated::ExchangeBase for GateCore {
         })
     }
 }
-impl GateCore {
+impl Gate {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
@@ -307,16 +312,16 @@ impl GateCore {
     }
 }
 
-impl std::ops::Deref for GateCore {
+impl std::ops::Deref for Gate {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { std::ops::Deref::deref(&self.parent) }
 }
 
-impl std::ops::DerefMut for GateCore {
+impl std::ops::DerefMut for Gate {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { std::ops::DerefMut::deref_mut(&mut self.parent) }
 }
 
-impl GateCore {
+impl Gate {
     pub fn describe(&self) -> Value {
         let mut superDescribe: Value = self.parent.describe();
         return self.deep_extend(superDescribe, &[self.describe_data()]);

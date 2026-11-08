@@ -17,19 +17,24 @@ use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
-pub struct DydxCore {
-    pub parent: crate::exchanges::dydx::DydxCore,
+pub struct Dydx {
+    pub parent: crate::exchanges::dydx::Dydx,
 }
 
-impl DydxCore {
+impl Dydx {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { parent: crate::exchanges::dydx::DydxCore::new(config) };
+        let mut s = Self { parent: crate::exchanges::dydx::Dydx::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = DydxCore::describe(self);
+        let described = Dydx::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -43,7 +48,7 @@ impl DydxCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for DydxCore {
+impl crate::exchange::DerivedExchange for Dydx {
     fn nonce(&self, ) -> crate::Value {
         crate::exchange::DerivedExchange::nonce(&self.parent)
     }
@@ -172,7 +177,7 @@ impl crate::exchange::DerivedExchange for DydxCore {
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for DydxCore {
+impl crate::exchange_generated::ExchangeBase for Dydx {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -193,7 +198,7 @@ impl crate::exchange_generated::ExchangeBase for DydxCore {
         })
     }
 }
-impl DydxCore {
+impl Dydx {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
@@ -218,16 +223,16 @@ impl DydxCore {
     }
 }
 
-impl std::ops::Deref for DydxCore {
+impl std::ops::Deref for Dydx {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { std::ops::Deref::deref(&self.parent) }
 }
 
-impl std::ops::DerefMut for DydxCore {
+impl std::ops::DerefMut for Dydx {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { std::ops::DerefMut::deref_mut(&mut self.parent) }
 }
 
-impl DydxCore {
+impl Dydx {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

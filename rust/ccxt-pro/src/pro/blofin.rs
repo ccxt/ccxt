@@ -17,19 +17,24 @@ use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
-pub struct BlofinCore {
-    pub parent: crate::exchanges::blofin::BlofinCore,
+pub struct Blofin {
+    pub parent: crate::exchanges::blofin::Blofin,
 }
 
-impl BlofinCore {
+impl Blofin {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { parent: crate::exchanges::blofin::BlofinCore::new(config) };
+        let mut s = Self { parent: crate::exchanges::blofin::Blofin::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = BlofinCore::describe(self);
+        let described = Blofin::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -43,7 +48,7 @@ impl BlofinCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for BlofinCore {
+impl crate::exchange::DerivedExchange for Blofin {
     fn nonce(&self, ) -> crate::Value {
         crate::exchange::DerivedExchange::nonce(&self.parent)
     }
@@ -172,7 +177,7 @@ impl crate::exchange::DerivedExchange for BlofinCore {
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for BlofinCore {
+impl crate::exchange_generated::ExchangeBase for Blofin {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -215,7 +220,7 @@ impl crate::exchange_generated::ExchangeBase for BlofinCore {
         })
     }
 }
-impl BlofinCore {
+impl Blofin {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
@@ -268,16 +273,16 @@ impl BlofinCore {
     }
 }
 
-impl std::ops::Deref for BlofinCore {
+impl std::ops::Deref for Blofin {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { std::ops::Deref::deref(&self.parent) }
 }
 
-impl std::ops::DerefMut for BlofinCore {
+impl std::ops::DerefMut for Blofin {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { std::ops::DerefMut::deref_mut(&mut self.parent) }
 }
 
-impl BlofinCore {
+impl Blofin {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::xt::XtCore;
+use super::xt::Xt;
 use crate::exchange::ExchangeRuntime;
 
-impl XtCore {
+impl Xt {
     /// Auto-generated wrapper for the `publicSpotGetCurrencies` implicit endpoint.
     pub async fn public_spot_get_currencies(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_spot_get_currencies".into()), optional_args).await

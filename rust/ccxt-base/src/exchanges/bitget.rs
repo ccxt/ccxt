@@ -16,19 +16,24 @@ use crate::exchange::ExchangeRuntime;
 use crate::exchange::CallDynamicChecked;
 
 
-pub struct BitgetCore {
+pub struct Bitget {
     pub exchange: crate::exchange::Exchange,
 }
 
-impl BitgetCore {
+impl Bitget {
     pub fn new(config: Option<crate::Value>) -> Self {
         let mut s = Self { exchange: crate::exchange::Exchange::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = BitgetCore::describe(self);
+        let described = Bitget::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -42,110 +47,110 @@ impl BitgetCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for BitgetCore {
+impl crate::exchange::DerivedExchange for Bitget {
     fn nonce(&self, ) -> crate::Value {
-        // Forward to the inherent method on BitgetCore.
-        BitgetCore::nonce(self, )
+        // Forward to the inherent method on Bitget.
+        Bitget::nonce(self, )
     }
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_ticker(self, ticker, &[market])
+        // Forward to the inherent method on Bitget.
+        Bitget::parse_ticker(self, ticker, &[market])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_trade(self, trade, &[market])
+        // Forward to the inherent method on Bitget.
+        Bitget::parse_trade(self, trade, &[market])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_order(self, order, &[market])
+        // Forward to the inherent method on Bitget.
+        Bitget::parse_order(self, order, &[market])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_market(self, market)
+        // Forward to the inherent method on Bitget.
+        Bitget::parse_market(self, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_ohlcv(self, ohlcv, &[market])
+        // Forward to the inherent method on Bitget.
+        Bitget::parse_ohlcv(self, ohlcv, &[market])
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_position(self, position, &[market])
+        // Forward to the inherent method on Bitget.
+        Bitget::parse_position(self, position, &[market])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_funding_rate(self, rate, &[market])
+        // Forward to the inherent method on Bitget.
+        Bitget::parse_funding_rate(self, rate, &[market])
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_deposit_address(self, depositAddress, &[currency])
+        // Forward to the inherent method on Bitget.
+        Bitget::parse_deposit_address(self, depositAddress, &[currency])
     }
     fn parse_ledger_entry(&self, entry: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_ledger_entry(self, entry, &[currency])
+        // Forward to the inherent method on Bitget.
+        Bitget::parse_ledger_entry(self, entry, &[currency])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_transfer(self, transfer, &[currency])
+        // Forward to the inherent method on Bitget.
+        Bitget::parse_transfer(self, transfer, &[currency])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_currency(self, currency)
+        // Forward to the inherent method on Bitget.
+        Bitget::parse_currency(self, currency)
     }
     fn parse_open_interest(&self, interest: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_open_interest(self, interest, &[market])
+        // Forward to the inherent method on Bitget.
+        Bitget::parse_open_interest(self, interest, &[market])
     }
     fn parse_liquidation(&self, liquidation: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_liquidation(self, liquidation, &[market])
+        // Forward to the inherent method on Bitget.
+        Bitget::parse_liquidation(self, liquidation, &[market])
     }
     fn parse_margin_modification(&self, data: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_margin_modification(self, data, &[market])
+        // Forward to the inherent method on Bitget.
+        Bitget::parse_margin_modification(self, data, &[market])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_transaction(self, transaction, &[currency])
+        // Forward to the inherent method on Bitget.
+        Bitget::parse_transaction(self, transaction, &[currency])
     }
     fn parse_borrow_interest(&self, info: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_borrow_interest(self, info, &[market])
+        // Forward to the inherent method on Bitget.
+        Bitget::parse_borrow_interest(self, info, &[market])
     }
     fn parse_margin_mode(&self, margin_mode: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_margin_mode(self, margin_mode, &[market])
+        // Forward to the inherent method on Bitget.
+        Bitget::parse_margin_mode(self, margin_mode, &[market])
     }
     fn parse_conversion(&self, conversion: crate::Value, from_currency: crate::Value, to_currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_conversion(self, conversion, &[from_currency, to_currency])
+        // Forward to the inherent method on Bitget.
+        Bitget::parse_conversion(self, conversion, &[from_currency, to_currency])
     }
     fn parse_borrow_rate(&self, info: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_borrow_rate(self, info, &[currency])
+        // Forward to the inherent method on Bitget.
+        Bitget::parse_borrow_rate(self, info, &[currency])
     }
     fn parse_leverage(&self, leverage: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_leverage(self, leverage, &[market])
+        // Forward to the inherent method on Bitget.
+        Bitget::parse_leverage(self, leverage, &[market])
     }
     fn parse_market_leverage_tiers(&self, info: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_market_leverage_tiers(self, info, &[market])
+        // Forward to the inherent method on Bitget.
+        Bitget::parse_market_leverage_tiers(self, info, &[market])
     }
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitgetCore.
-        BitgetCore::parse_deposit_withdraw_fee(self, fee, &[currency])
+        // Forward to the inherent method on Bitget.
+        Bitget::parse_deposit_withdraw_fee(self, fee, &[currency])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitgetCore.
-        BitgetCore::sign(self, path, &[api, method, params, headers, body])
+        // Forward to the inherent method on Bitget.
+        Bitget::sign(self, path, &[api, method, params, headers, body])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitgetCore.
-        BitgetCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        // Forward to the inherent method on Bitget.
+        Bitget::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for BitgetCore {
+impl crate::exchange_generated::ExchangeBase for Bitget {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -273,16 +278,16 @@ impl crate::exchange_generated::ExchangeBase for BitgetCore {
     }
 }
 
-impl std::ops::Deref for BitgetCore {
+impl std::ops::Deref for Bitget {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { &self.exchange }
 }
 
-impl std::ops::DerefMut for BitgetCore {
+impl std::ops::DerefMut for Bitget {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { &mut self.exchange }
 }
 
-impl BitgetCore {
+impl Bitget {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

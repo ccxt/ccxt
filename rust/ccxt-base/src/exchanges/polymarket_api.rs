@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::polymarket::PolymarketCore;
+use super::polymarket::Polymarket;
 use crate::exchange::ExchangeRuntime;
 
-impl PolymarketCore {
+impl Polymarket {
     /// Auto-generated wrapper for the `publicGetInfoPing` implicit endpoint.
     pub async fn public_get_info_ping(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_info_ping".into()), optional_args).await

@@ -17,19 +17,24 @@ use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
-pub struct MudrexCore {
-    pub parent: crate::exchanges::mudrex::MudrexCore,
+pub struct Mudrex {
+    pub parent: crate::exchanges::mudrex::Mudrex,
 }
 
-impl MudrexCore {
+impl Mudrex {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { parent: crate::exchanges::mudrex::MudrexCore::new(config) };
+        let mut s = Self { parent: crate::exchanges::mudrex::Mudrex::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = MudrexCore::describe(self);
+        let described = Mudrex::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -43,7 +48,7 @@ impl MudrexCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for MudrexCore {
+impl crate::exchange::DerivedExchange for Mudrex {
     fn nonce(&self, ) -> crate::Value {
         crate::exchange::DerivedExchange::nonce(&self.parent)
     }
@@ -172,7 +177,7 @@ impl crate::exchange::DerivedExchange for MudrexCore {
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for MudrexCore {
+impl crate::exchange_generated::ExchangeBase for Mudrex {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -190,7 +195,7 @@ impl crate::exchange_generated::ExchangeBase for MudrexCore {
         })
     }
 }
-impl MudrexCore {
+impl Mudrex {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
@@ -212,16 +217,16 @@ impl MudrexCore {
     }
 }
 
-impl std::ops::Deref for MudrexCore {
+impl std::ops::Deref for Mudrex {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { std::ops::Deref::deref(&self.parent) }
 }
 
-impl std::ops::DerefMut for MudrexCore {
+impl std::ops::DerefMut for Mudrex {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { std::ops::DerefMut::deref_mut(&mut self.parent) }
 }
 
-impl MudrexCore {
+impl Mudrex {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::derive::DeriveCore;
+use super::derive::Derive;
 use crate::exchange::ExchangeRuntime;
 
-impl DeriveCore {
+impl Derive {
     /// Auto-generated wrapper for the `publicGetGetAllCurrencies` implicit endpoint.
     pub async fn public_get_get_all_currencies(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_get_all_currencies".into()), optional_args).await

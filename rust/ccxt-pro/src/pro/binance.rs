@@ -17,19 +17,24 @@ use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
-pub struct BinanceCore {
-    pub parent: crate::exchanges::binance::BinanceCore,
+pub struct Binance {
+    pub parent: crate::exchanges::binance::Binance,
 }
 
-impl BinanceCore {
+impl Binance {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { parent: crate::exchanges::binance::BinanceCore::new(config) };
+        let mut s = Self { parent: crate::exchanges::binance::Binance::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = BinanceCore::describe(self);
+        let described = Binance::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -43,7 +48,7 @@ impl BinanceCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for BinanceCore {
+impl crate::exchange::DerivedExchange for Binance {
     fn nonce(&self, ) -> crate::Value {
         crate::exchange::DerivedExchange::nonce(&self.parent)
     }
@@ -172,7 +177,7 @@ impl crate::exchange::DerivedExchange for BinanceCore {
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for BinanceCore {
+impl crate::exchange_generated::ExchangeBase for Binance {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -257,7 +262,7 @@ impl crate::exchange_generated::ExchangeBase for BinanceCore {
         })
     }
 }
-impl BinanceCore {
+impl Binance {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
@@ -378,16 +383,16 @@ impl BinanceCore {
     }
 }
 
-impl std::ops::Deref for BinanceCore {
+impl std::ops::Deref for Binance {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { std::ops::Deref::deref(&self.parent) }
 }
 
-impl std::ops::DerefMut for BinanceCore {
+impl std::ops::DerefMut for Binance {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { std::ops::DerefMut::deref_mut(&mut self.parent) }
 }
 
-impl BinanceCore {
+impl Binance {
     pub fn describe(&self) -> Value {
         let mut superDescribe: Value = self.parent.describe();
         return self.deep_extend(superDescribe, &[self.describe_data()]);

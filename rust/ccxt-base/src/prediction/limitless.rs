@@ -19,19 +19,24 @@ use crate::prediction_exchange_generated::PredictionBase;
 use crate::prediction_exchange::PredictionRuntime;
 
 
-pub struct LimitlessCore {
+pub struct Limitless {
     pub exchange: crate::prediction_exchange::PredictionExchange,
 }
 
-impl LimitlessCore {
+impl Limitless {
     pub fn new(config: Option<crate::Value>) -> Self {
         let mut s = Self { exchange: crate::prediction_exchange::PredictionExchange::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = LimitlessCore::describe(self);
+        let described = Limitless::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -45,42 +50,42 @@ impl LimitlessCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for LimitlessCore {
+impl crate::exchange::DerivedExchange for Limitless {
     fn nonce(&self, ) -> crate::Value {
-        // Forward to the inherent method on LimitlessCore.
-        LimitlessCore::nonce(self, )
+        // Forward to the inherent method on Limitless.
+        Limitless::nonce(self, )
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on LimitlessCore.
-        LimitlessCore::parse_market(self, market)
+        // Forward to the inherent method on Limitless.
+        Limitless::parse_market(self, market)
     }
     fn parse_account(&self, account: crate::Value) -> crate::Value {
-        // Forward to the inherent method on LimitlessCore.
-        LimitlessCore::parse_account(self, account)
+        // Forward to the inherent method on Limitless.
+        Limitless::parse_account(self, account)
     }
     fn parse_prediction_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on LimitlessCore.
-        LimitlessCore::parse_prediction_trade(self, trade, &[market])
+        // Forward to the inherent method on Limitless.
+        Limitless::parse_prediction_trade(self, trade, &[market])
     }
     fn parse_prediction_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on LimitlessCore.
-        LimitlessCore::parse_prediction_order(self, order, &[market])
+        // Forward to the inherent method on Limitless.
+        Limitless::parse_prediction_order(self, order, &[market])
     }
     fn parse_prediction_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on LimitlessCore.
-        LimitlessCore::parse_prediction_position(self, position, &[market])
+        // Forward to the inherent method on Limitless.
+        Limitless::parse_prediction_position(self, position, &[market])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on LimitlessCore.
-        LimitlessCore::sign(self, path, &[api, method, params, headers, body])
+        // Forward to the inherent method on Limitless.
+        Limitless::sign(self, path, &[api, method, params, headers, body])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on LimitlessCore.
-        LimitlessCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        // Forward to the inherent method on Limitless.
+        Limitless::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for LimitlessCore {
+impl crate::exchange_generated::ExchangeBase for Limitless {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -134,21 +139,21 @@ impl crate::exchange_generated::ExchangeBase for LimitlessCore {
     }
 }
 
-impl crate::prediction_exchange_generated::PredictionBase for LimitlessCore {
+impl crate::prediction_exchange_generated::PredictionBase for Limitless {
     fn pred(&self) -> &crate::prediction_exchange::PredictionExchange { &self.exchange }
     fn pred_mut(&mut self) -> &mut crate::prediction_exchange::PredictionExchange { &mut self.exchange }
 }
 
-impl std::ops::Deref for LimitlessCore {
+impl std::ops::Deref for Limitless {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { std::ops::Deref::deref(&self.exchange) }
 }
 
-impl std::ops::DerefMut for LimitlessCore {
+impl std::ops::DerefMut for Limitless {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { std::ops::DerefMut::deref_mut(&mut self.exchange) }
 }
 
-impl LimitlessCore {
+impl Limitless {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

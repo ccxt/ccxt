@@ -16,19 +16,24 @@ use crate::exchange::ExchangeRuntime;
 use crate::exchange::CallDynamicChecked;
 
 
-pub struct BackpackCore {
+pub struct Backpack {
     pub exchange: crate::exchange::Exchange,
 }
 
-impl BackpackCore {
+impl Backpack {
     pub fn new(config: Option<crate::Value>) -> Self {
         let mut s = Self { exchange: crate::exchange::Exchange::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = BackpackCore::describe(self);
+        let described = Backpack::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -42,78 +47,78 @@ impl BackpackCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for BackpackCore {
+impl crate::exchange::DerivedExchange for Backpack {
     fn nonce(&self, ) -> crate::Value {
-        // Forward to the inherent method on BackpackCore.
-        BackpackCore::nonce(self, )
+        // Forward to the inherent method on Backpack.
+        Backpack::nonce(self, )
     }
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BackpackCore.
-        BackpackCore::parse_ticker(self, ticker, &[market])
+        // Forward to the inherent method on Backpack.
+        Backpack::parse_ticker(self, ticker, &[market])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BackpackCore.
-        BackpackCore::parse_trade(self, trade, &[market])
+        // Forward to the inherent method on Backpack.
+        Backpack::parse_trade(self, trade, &[market])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BackpackCore.
-        BackpackCore::parse_order(self, order, &[market])
+        // Forward to the inherent method on Backpack.
+        Backpack::parse_order(self, order, &[market])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BackpackCore.
-        BackpackCore::parse_market(self, market)
+        // Forward to the inherent method on Backpack.
+        Backpack::parse_market(self, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BackpackCore.
-        BackpackCore::parse_ohlcv(self, ohlcv, &[market])
+        // Forward to the inherent method on Backpack.
+        Backpack::parse_ohlcv(self, ohlcv, &[market])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BackpackCore.
-        BackpackCore::parse_balance(self, response)
+        // Forward to the inherent method on Backpack.
+        Backpack::parse_balance(self, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BackpackCore.
-        BackpackCore::parse_position(self, position, &[market])
+        // Forward to the inherent method on Backpack.
+        Backpack::parse_position(self, position, &[market])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BackpackCore.
-        BackpackCore::parse_funding_rate(self, rate, &[market])
+        // Forward to the inherent method on Backpack.
+        Backpack::parse_funding_rate(self, rate, &[market])
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BackpackCore.
-        BackpackCore::parse_deposit_address(self, depositAddress, &[currency])
+        // Forward to the inherent method on Backpack.
+        Backpack::parse_deposit_address(self, depositAddress, &[currency])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BackpackCore.
-        BackpackCore::parse_currency(self, currency)
+        // Forward to the inherent method on Backpack.
+        Backpack::parse_currency(self, currency)
     }
     fn parse_open_interest(&self, interest: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BackpackCore.
-        BackpackCore::parse_open_interest(self, interest, &[market])
+        // Forward to the inherent method on Backpack.
+        Backpack::parse_open_interest(self, interest, &[market])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BackpackCore.
-        BackpackCore::parse_transaction(self, transaction, &[currency])
+        // Forward to the inherent method on Backpack.
+        Backpack::parse_transaction(self, transaction, &[currency])
     }
     fn parse_income(&self, info: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BackpackCore.
-        BackpackCore::parse_income(self, info, &[market])
+        // Forward to the inherent method on Backpack.
+        Backpack::parse_income(self, info, &[market])
     }
     fn parse_conversion(&self, conversion: crate::Value, from_currency: crate::Value, to_currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BackpackCore.
-        BackpackCore::parse_conversion(self, conversion, &[from_currency, to_currency])
+        // Forward to the inherent method on Backpack.
+        Backpack::parse_conversion(self, conversion, &[from_currency, to_currency])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BackpackCore.
-        BackpackCore::sign(self, path, &[api, method, params, headers, body])
+        // Forward to the inherent method on Backpack.
+        Backpack::sign(self, path, &[api, method, params, headers, body])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BackpackCore.
-        BackpackCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        // Forward to the inherent method on Backpack.
+        Backpack::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for BackpackCore {
+impl crate::exchange_generated::ExchangeBase for Backpack {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -184,16 +189,16 @@ impl crate::exchange_generated::ExchangeBase for BackpackCore {
     }
 }
 
-impl std::ops::Deref for BackpackCore {
+impl std::ops::Deref for Backpack {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { &self.exchange }
 }
 
-impl std::ops::DerefMut for BackpackCore {
+impl std::ops::DerefMut for Backpack {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { &mut self.exchange }
 }
 
-impl BackpackCore {
+impl Backpack {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

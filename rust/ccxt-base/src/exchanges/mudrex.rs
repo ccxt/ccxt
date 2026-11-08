@@ -16,19 +16,24 @@ use crate::exchange::ExchangeRuntime;
 use crate::exchange::CallDynamicChecked;
 
 
-pub struct MudrexCore {
+pub struct Mudrex {
     pub exchange: crate::exchange::Exchange,
 }
 
-impl MudrexCore {
+impl Mudrex {
     pub fn new(config: Option<crate::Value>) -> Self {
         let mut s = Self { exchange: crate::exchange::Exchange::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = MudrexCore::describe(self);
+        let described = Mudrex::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -42,46 +47,46 @@ impl MudrexCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for MudrexCore {
+impl crate::exchange::DerivedExchange for Mudrex {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on MudrexCore.
-        MudrexCore::parse_ticker(self, ticker, &[market])
+        // Forward to the inherent method on Mudrex.
+        Mudrex::parse_ticker(self, ticker, &[market])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on MudrexCore.
-        MudrexCore::parse_trade(self, trade, &[market])
+        // Forward to the inherent method on Mudrex.
+        Mudrex::parse_trade(self, trade, &[market])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on MudrexCore.
-        MudrexCore::parse_order(self, order, &[market])
+        // Forward to the inherent method on Mudrex.
+        Mudrex::parse_order(self, order, &[market])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on MudrexCore.
-        MudrexCore::parse_market(self, market)
+        // Forward to the inherent method on Mudrex.
+        Mudrex::parse_market(self, market)
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on MudrexCore.
-        MudrexCore::parse_ohlcv(self, ohlcv, &[market])
+        // Forward to the inherent method on Mudrex.
+        Mudrex::parse_ohlcv(self, ohlcv, &[market])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
-        // Forward to the inherent method on MudrexCore.
-        MudrexCore::parse_balance(self, response)
+        // Forward to the inherent method on Mudrex.
+        Mudrex::parse_balance(self, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on MudrexCore.
-        MudrexCore::parse_position(self, position, &[market])
+        // Forward to the inherent method on Mudrex.
+        Mudrex::parse_position(self, position, &[market])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on MudrexCore.
-        MudrexCore::sign(self, path, &[api, method, params, headers, body])
+        // Forward to the inherent method on Mudrex.
+        Mudrex::sign(self, path, &[api, method, params, headers, body])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on MudrexCore.
-        MudrexCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        // Forward to the inherent method on Mudrex.
+        Mudrex::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for MudrexCore {
+impl crate::exchange_generated::ExchangeBase for Mudrex {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -129,16 +134,16 @@ impl crate::exchange_generated::ExchangeBase for MudrexCore {
     }
 }
 
-impl std::ops::Deref for MudrexCore {
+impl std::ops::Deref for Mudrex {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { &self.exchange }
 }
 
-impl std::ops::DerefMut for MudrexCore {
+impl std::ops::DerefMut for Mudrex {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { &mut self.exchange }
 }
 
-impl MudrexCore {
+impl Mudrex {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

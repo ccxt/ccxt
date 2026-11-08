@@ -16,19 +16,24 @@ use crate::exchange::ExchangeRuntime;
 use crate::exchange::CallDynamicChecked;
 
 
-pub struct IndependentreserveCore {
+pub struct Independentreserve {
     pub exchange: crate::exchange::Exchange,
 }
 
-impl IndependentreserveCore {
+impl Independentreserve {
     pub fn new(config: Option<crate::Value>) -> Self {
         let mut s = Self { exchange: crate::exchange::Exchange::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = IndependentreserveCore::describe(self);
+        let described = Independentreserve::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -42,40 +47,40 @@ impl IndependentreserveCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for IndependentreserveCore {
+impl crate::exchange::DerivedExchange for Independentreserve {
     fn nonce(&self, ) -> crate::Value {
-        // Forward to the inherent method on IndependentreserveCore.
-        IndependentreserveCore::nonce(self, )
+        // Forward to the inherent method on Independentreserve.
+        Independentreserve::nonce(self, )
     }
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on IndependentreserveCore.
-        IndependentreserveCore::parse_ticker(self, ticker, &[market])
+        // Forward to the inherent method on Independentreserve.
+        Independentreserve::parse_ticker(self, ticker, &[market])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on IndependentreserveCore.
-        IndependentreserveCore::parse_trade(self, trade, &[market])
+        // Forward to the inherent method on Independentreserve.
+        Independentreserve::parse_trade(self, trade, &[market])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on IndependentreserveCore.
-        IndependentreserveCore::parse_order(self, order, &[market])
+        // Forward to the inherent method on Independentreserve.
+        Independentreserve::parse_order(self, order, &[market])
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on IndependentreserveCore.
-        IndependentreserveCore::parse_deposit_address(self, depositAddress, &[currency])
+        // Forward to the inherent method on Independentreserve.
+        Independentreserve::parse_deposit_address(self, depositAddress, &[currency])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on IndependentreserveCore.
-        IndependentreserveCore::parse_transaction(self, transaction, &[currency])
+        // Forward to the inherent method on Independentreserve.
+        Independentreserve::parse_transaction(self, transaction, &[currency])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on IndependentreserveCore.
+        // Forward to the inherent method on Independentreserve.
         #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const IndependentreserveCore as *mut IndependentreserveCore) };
-        IndependentreserveCore::sign(me, path, &[api, method, params, headers, body])
+        let me = unsafe { &mut *(self as *const Independentreserve as *mut Independentreserve) };
+        Independentreserve::sign(me, path, &[api, method, params, headers, body])
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for IndependentreserveCore {
+impl crate::exchange_generated::ExchangeBase for Independentreserve {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -111,16 +116,16 @@ impl crate::exchange_generated::ExchangeBase for IndependentreserveCore {
     }
 }
 
-impl std::ops::Deref for IndependentreserveCore {
+impl std::ops::Deref for Independentreserve {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { &self.exchange }
 }
 
-impl std::ops::DerefMut for IndependentreserveCore {
+impl std::ops::DerefMut for Independentreserve {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { &mut self.exchange }
 }
 
-impl IndependentreserveCore {
+impl Independentreserve {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

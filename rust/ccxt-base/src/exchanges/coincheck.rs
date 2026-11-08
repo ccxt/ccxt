@@ -16,19 +16,24 @@ use crate::exchange::ExchangeRuntime;
 use crate::exchange::CallDynamicChecked;
 
 
-pub struct CoincheckCore {
+pub struct Coincheck {
     pub exchange: crate::exchange::Exchange,
 }
 
-impl CoincheckCore {
+impl Coincheck {
     pub fn new(config: Option<crate::Value>) -> Self {
         let mut s = Self { exchange: crate::exchange::Exchange::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = CoincheckCore::describe(self);
+        let described = Coincheck::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -42,42 +47,42 @@ impl CoincheckCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for CoincheckCore {
+impl crate::exchange::DerivedExchange for Coincheck {
     fn nonce(&self, ) -> crate::Value {
-        // Forward to the inherent method on CoincheckCore.
-        CoincheckCore::nonce(self, )
+        // Forward to the inherent method on Coincheck.
+        Coincheck::nonce(self, )
     }
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on CoincheckCore.
-        CoincheckCore::parse_ticker(self, ticker, &[market])
+        // Forward to the inherent method on Coincheck.
+        Coincheck::parse_ticker(self, ticker, &[market])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on CoincheckCore.
-        CoincheckCore::parse_trade(self, trade, &[market])
+        // Forward to the inherent method on Coincheck.
+        Coincheck::parse_trade(self, trade, &[market])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on CoincheckCore.
-        CoincheckCore::parse_order(self, order, &[market])
+        // Forward to the inherent method on Coincheck.
+        Coincheck::parse_order(self, order, &[market])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
-        // Forward to the inherent method on CoincheckCore.
-        CoincheckCore::parse_balance(self, response)
+        // Forward to the inherent method on Coincheck.
+        Coincheck::parse_balance(self, response)
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on CoincheckCore.
-        CoincheckCore::parse_transaction(self, transaction, &[currency])
+        // Forward to the inherent method on Coincheck.
+        Coincheck::parse_transaction(self, transaction, &[currency])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on CoincheckCore.
-        CoincheckCore::sign(self, path, &[api, method, params, headers, body])
+        // Forward to the inherent method on Coincheck.
+        Coincheck::sign(self, path, &[api, method, params, headers, body])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on CoincheckCore.
-        CoincheckCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        // Forward to the inherent method on Coincheck.
+        Coincheck::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for CoincheckCore {
+impl crate::exchange_generated::ExchangeBase for Coincheck {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -112,16 +117,16 @@ impl crate::exchange_generated::ExchangeBase for CoincheckCore {
     }
 }
 
-impl std::ops::Deref for CoincheckCore {
+impl std::ops::Deref for Coincheck {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { &self.exchange }
 }
 
-impl std::ops::DerefMut for CoincheckCore {
+impl std::ops::DerefMut for Coincheck {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { &mut self.exchange }
 }
 
-impl CoincheckCore {
+impl Coincheck {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

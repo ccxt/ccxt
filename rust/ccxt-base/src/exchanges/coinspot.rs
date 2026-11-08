@@ -16,19 +16,24 @@ use crate::exchange::ExchangeRuntime;
 use crate::exchange::CallDynamicChecked;
 
 
-pub struct CoinspotCore {
+pub struct Coinspot {
     pub exchange: crate::exchange::Exchange,
 }
 
-impl CoinspotCore {
+impl Coinspot {
     pub fn new(config: Option<crate::Value>) -> Self {
         let mut s = Self { exchange: crate::exchange::Exchange::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = CoinspotCore::describe(self);
+        let described = Coinspot::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -42,36 +47,36 @@ impl CoinspotCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for CoinspotCore {
+impl crate::exchange::DerivedExchange for Coinspot {
     fn nonce(&self, ) -> crate::Value {
-        // Forward to the inherent method on CoinspotCore.
-        CoinspotCore::nonce(self, )
+        // Forward to the inherent method on Coinspot.
+        Coinspot::nonce(self, )
     }
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on CoinspotCore.
-        CoinspotCore::parse_ticker(self, ticker, &[market])
+        // Forward to the inherent method on Coinspot.
+        Coinspot::parse_ticker(self, ticker, &[market])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on CoinspotCore.
-        CoinspotCore::parse_trade(self, trade, &[market])
+        // Forward to the inherent method on Coinspot.
+        Coinspot::parse_trade(self, trade, &[market])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
-        // Forward to the inherent method on CoinspotCore.
-        CoinspotCore::parse_balance(self, response)
+        // Forward to the inherent method on Coinspot.
+        Coinspot::parse_balance(self, response)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on CoinspotCore.
+        // Forward to the inherent method on Coinspot.
         #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const CoinspotCore as *mut CoinspotCore) };
-        CoinspotCore::sign(me, path, &[api, method, params, headers, body])
+        let me = unsafe { &mut *(self as *const Coinspot as *mut Coinspot) };
+        Coinspot::sign(me, path, &[api, method, params, headers, body])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on CoinspotCore.
-        CoinspotCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        // Forward to the inherent method on Coinspot.
+        Coinspot::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for CoinspotCore {
+impl crate::exchange_generated::ExchangeBase for Coinspot {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -100,16 +105,16 @@ impl crate::exchange_generated::ExchangeBase for CoinspotCore {
     }
 }
 
-impl std::ops::Deref for CoinspotCore {
+impl std::ops::Deref for Coinspot {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { &self.exchange }
 }
 
-impl std::ops::DerefMut for CoinspotCore {
+impl std::ops::DerefMut for Coinspot {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { &mut self.exchange }
 }
 
-impl CoinspotCore {
+impl Coinspot {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

@@ -17,19 +17,24 @@ use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
-pub struct BybitCore {
-    pub parent: crate::exchanges::bybit::BybitCore,
+pub struct Bybit {
+    pub parent: crate::exchanges::bybit::Bybit,
 }
 
-impl BybitCore {
+impl Bybit {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { parent: crate::exchanges::bybit::BybitCore::new(config) };
+        let mut s = Self { parent: crate::exchanges::bybit::Bybit::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = BybitCore::describe(self);
+        let described = Bybit::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -43,7 +48,7 @@ impl BybitCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for BybitCore {
+impl crate::exchange::DerivedExchange for Bybit {
     fn nonce(&self, ) -> crate::Value {
         crate::exchange::DerivedExchange::nonce(&self.parent)
     }
@@ -172,7 +177,7 @@ impl crate::exchange::DerivedExchange for BybitCore {
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for BybitCore {
+impl crate::exchange_generated::ExchangeBase for Bybit {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -235,7 +240,7 @@ impl crate::exchange_generated::ExchangeBase for BybitCore {
         })
     }
 }
-impl BybitCore {
+impl Bybit {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
@@ -309,16 +314,16 @@ impl BybitCore {
     }
 }
 
-impl std::ops::Deref for BybitCore {
+impl std::ops::Deref for Bybit {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { std::ops::Deref::deref(&self.parent) }
 }
 
-impl std::ops::DerefMut for BybitCore {
+impl std::ops::DerefMut for Bybit {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { std::ops::DerefMut::deref_mut(&mut self.parent) }
 }
 
-impl BybitCore {
+impl Bybit {
     pub fn describe(&self) -> Value {
         let mut superDescribe: Value = self.parent.describe();
         return self.deep_extend(superDescribe, &[self.describe_data()]);

@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::woo::WooCore;
+use super::woo::Woo;
 use crate::exchange::ExchangeRuntime;
 
-impl WooCore {
+impl Woo {
     /// Auto-generated wrapper for the `v1PubGetHistKline` implicit endpoint.
     pub async fn v1_pub_get_hist_kline(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_pub_get_hist_kline".into()), optional_args).await

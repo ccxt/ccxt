@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::alpaca::AlpacaCore;
+use super::alpaca::Alpaca;
 use crate::exchange::ExchangeRuntime;
 
-impl AlpacaCore {
+impl Alpaca {
     /// Auto-generated wrapper for the `brokerPrivateGetV1AccountsAccountIdTokenizationRequests` implicit endpoint.
     pub async fn broker_private_get_v1_accounts_account_id_tokenization_requests(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("broker_private_get_v1_accounts_account_id_tokenization_requests".into()), optional_args).await

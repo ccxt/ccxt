@@ -2783,3 +2783,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         })
     }
 }
+
+impl dyn crate::exchange::TypedExchange {
+    pub fn fetch_events<'a>(&'a mut self, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::PredictionEvent>>> + Send + 'a {
+        let __args: Vec<Value> = vec![params.into().into_value()];
+        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_events", __args).await?)) }
+    }
+    pub fn fetch_event<'a>(&'a mut self, id: &str, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::PredictionEvent>> + Send + 'a {
+        let __args: Vec<Value> = vec![Value::from(id), params.into().into_value()];
+        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_event", __args).await?)) }
+    }
+    pub fn fetch_settlements<'a>(&'a mut self, outcome: Option<&str>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Vec<crate::types::PredictionSettlement>>> + Send + 'a {
+        let __args: Vec<Value> = vec![outcome.map(Value::from).unwrap_or_default(), Value::from(since), Value::from(limit), params.into().into_value()];
+        async move { Ok(crate::types::FromRaw::from_raw(self.call_raw("fetch_settlements", __args).await?)) }
+    }
+}

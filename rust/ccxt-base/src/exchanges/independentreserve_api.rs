@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::independentreserve::IndependentreserveCore;
+use super::independentreserve::Independentreserve;
 use crate::exchange::ExchangeRuntime;
 
-impl IndependentreserveCore {
+impl Independentreserve {
     /// Auto-generated wrapper for the `publicGetGetValidPrimaryCurrencyCodes` implicit endpoint.
     pub async fn public_get_get_valid_primary_currency_codes(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_get_valid_primary_currency_codes".into()), optional_args).await

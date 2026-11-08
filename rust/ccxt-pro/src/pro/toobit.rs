@@ -17,19 +17,24 @@ use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
-pub struct ToobitCore {
-    pub parent: crate::exchanges::toobit::ToobitCore,
+pub struct Toobit {
+    pub parent: crate::exchanges::toobit::Toobit,
 }
 
-impl ToobitCore {
+impl Toobit {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { parent: crate::exchanges::toobit::ToobitCore::new(config) };
+        let mut s = Self { parent: crate::exchanges::toobit::Toobit::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = ToobitCore::describe(self);
+        let described = Toobit::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -43,7 +48,7 @@ impl ToobitCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for ToobitCore {
+impl crate::exchange::DerivedExchange for Toobit {
     fn nonce(&self, ) -> crate::Value {
         crate::exchange::DerivedExchange::nonce(&self.parent)
     }
@@ -114,8 +119,8 @@ impl crate::exchange::DerivedExchange for ToobitCore {
         crate::exchange::DerivedExchange::parse_account(&self.parent, account)
     }
     fn parse_my_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on ToobitCore.
-        ToobitCore::parse_my_trade(self, trade, &[market])
+        // Forward to the inherent method on Toobit.
+        Toobit::parse_my_trade(self, trade, &[market])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
         crate::exchange::DerivedExchange::parse_transaction(&self.parent, transaction, currency)
@@ -173,7 +178,7 @@ impl crate::exchange::DerivedExchange for ToobitCore {
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for ToobitCore {
+impl crate::exchange_generated::ExchangeBase for Toobit {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -211,7 +216,7 @@ impl crate::exchange_generated::ExchangeBase for ToobitCore {
         })
     }
 }
-impl ToobitCore {
+impl Toobit {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
@@ -264,16 +269,16 @@ impl ToobitCore {
     }
 }
 
-impl std::ops::Deref for ToobitCore {
+impl std::ops::Deref for Toobit {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { std::ops::Deref::deref(&self.parent) }
 }
 
-impl std::ops::DerefMut for ToobitCore {
+impl std::ops::DerefMut for Toobit {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { std::ops::DerefMut::deref_mut(&mut self.parent) }
 }
 
-impl ToobitCore {
+impl Toobit {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

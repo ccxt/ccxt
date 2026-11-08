@@ -17,19 +17,24 @@ use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
-pub struct XtCore {
-    pub parent: crate::exchanges::xt::XtCore,
+pub struct Xt {
+    pub parent: crate::exchanges::xt::Xt,
 }
 
-impl XtCore {
+impl Xt {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { parent: crate::exchanges::xt::XtCore::new(config) };
+        let mut s = Self { parent: crate::exchanges::xt::Xt::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = XtCore::describe(self);
+        let described = Xt::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -43,7 +48,7 @@ impl XtCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for XtCore {
+impl crate::exchange::DerivedExchange for Xt {
     fn nonce(&self, ) -> crate::Value {
         crate::exchange::DerivedExchange::nonce(&self.parent)
     }
@@ -172,7 +177,7 @@ impl crate::exchange::DerivedExchange for XtCore {
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for XtCore {
+impl crate::exchange_generated::ExchangeBase for Xt {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -217,7 +222,7 @@ impl crate::exchange_generated::ExchangeBase for XtCore {
         })
     }
 }
-impl XtCore {
+impl Xt {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
@@ -269,16 +274,16 @@ impl XtCore {
     }
 }
 
-impl std::ops::Deref for XtCore {
+impl std::ops::Deref for Xt {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { std::ops::Deref::deref(&self.parent) }
 }
 
-impl std::ops::DerefMut for XtCore {
+impl std::ops::DerefMut for Xt {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { std::ops::DerefMut::deref_mut(&mut self.parent) }
 }
 
-impl XtCore {
+impl Xt {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

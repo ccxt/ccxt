@@ -16,19 +16,24 @@ use crate::exchange::ExchangeRuntime;
 use crate::exchange::CallDynamicChecked;
 
 
-pub struct CryptomusCore {
+pub struct Cryptomus {
     pub exchange: crate::exchange::Exchange,
 }
 
-impl CryptomusCore {
+impl Cryptomus {
     pub fn new(config: Option<crate::Value>) -> Self {
         let mut s = Self { exchange: crate::exchange::Exchange::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = CryptomusCore::describe(self);
+        let described = Cryptomus::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -42,38 +47,38 @@ impl CryptomusCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for CryptomusCore {
+impl crate::exchange::DerivedExchange for Cryptomus {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on CryptomusCore.
-        CryptomusCore::parse_ticker(self, ticker, &[market])
+        // Forward to the inherent method on Cryptomus.
+        Cryptomus::parse_ticker(self, ticker, &[market])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on CryptomusCore.
-        CryptomusCore::parse_trade(self, trade, &[market])
+        // Forward to the inherent method on Cryptomus.
+        Cryptomus::parse_trade(self, trade, &[market])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on CryptomusCore.
-        CryptomusCore::parse_order(self, order, &[market])
+        // Forward to the inherent method on Cryptomus.
+        Cryptomus::parse_order(self, order, &[market])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on CryptomusCore.
-        CryptomusCore::parse_market(self, market)
+        // Forward to the inherent method on Cryptomus.
+        Cryptomus::parse_market(self, market)
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on CryptomusCore.
-        CryptomusCore::parse_currency(self, currency)
+        // Forward to the inherent method on Cryptomus.
+        Cryptomus::parse_currency(self, currency)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on CryptomusCore.
-        CryptomusCore::sign(self, path, &[api, method, params, headers, body])
+        // Forward to the inherent method on Cryptomus.
+        Cryptomus::sign(self, path, &[api, method, params, headers, body])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on CryptomusCore.
-        CryptomusCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        // Forward to the inherent method on Cryptomus.
+        Cryptomus::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for CryptomusCore {
+impl crate::exchange_generated::ExchangeBase for Cryptomus {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -108,16 +113,16 @@ impl crate::exchange_generated::ExchangeBase for CryptomusCore {
     }
 }
 
-impl std::ops::Deref for CryptomusCore {
+impl std::ops::Deref for Cryptomus {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { &self.exchange }
 }
 
-impl std::ops::DerefMut for CryptomusCore {
+impl std::ops::DerefMut for Cryptomus {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { &mut self.exchange }
 }
 
-impl CryptomusCore {
+impl Cryptomus {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

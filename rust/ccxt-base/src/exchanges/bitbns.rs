@@ -16,19 +16,24 @@ use crate::exchange::ExchangeRuntime;
 use crate::exchange::CallDynamicChecked;
 
 
-pub struct BitbnsCore {
+pub struct Bitbns {
     pub exchange: crate::exchange::Exchange,
 }
 
-impl BitbnsCore {
+impl Bitbns {
     pub fn new(config: Option<crate::Value>) -> Self {
         let mut s = Self { exchange: crate::exchange::Exchange::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = BitbnsCore::describe(self);
+        let described = Bitbns::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -42,42 +47,42 @@ impl BitbnsCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for BitbnsCore {
+impl crate::exchange::DerivedExchange for Bitbns {
     fn nonce(&self, ) -> crate::Value {
-        // Forward to the inherent method on BitbnsCore.
-        BitbnsCore::nonce(self, )
+        // Forward to the inherent method on Bitbns.
+        Bitbns::nonce(self, )
     }
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitbnsCore.
-        BitbnsCore::parse_ticker(self, ticker, &[market])
+        // Forward to the inherent method on Bitbns.
+        Bitbns::parse_ticker(self, ticker, &[market])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitbnsCore.
-        BitbnsCore::parse_trade(self, trade, &[market])
+        // Forward to the inherent method on Bitbns.
+        Bitbns::parse_trade(self, trade, &[market])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitbnsCore.
-        BitbnsCore::parse_order(self, order, &[market])
+        // Forward to the inherent method on Bitbns.
+        Bitbns::parse_order(self, order, &[market])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitbnsCore.
-        BitbnsCore::parse_balance(self, response)
+        // Forward to the inherent method on Bitbns.
+        Bitbns::parse_balance(self, response)
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitbnsCore.
-        BitbnsCore::parse_transaction(self, transaction, &[currency])
+        // Forward to the inherent method on Bitbns.
+        Bitbns::parse_transaction(self, transaction, &[currency])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitbnsCore.
-        BitbnsCore::sign(self, path, &[api, method, params, headers, body])
+        // Forward to the inherent method on Bitbns.
+        Bitbns::sign(self, path, &[api, method, params, headers, body])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on BitbnsCore.
-        BitbnsCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        // Forward to the inherent method on Bitbns.
+        Bitbns::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for BitbnsCore {
+impl crate::exchange_generated::ExchangeBase for Bitbns {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -114,16 +119,16 @@ impl crate::exchange_generated::ExchangeBase for BitbnsCore {
     }
 }
 
-impl std::ops::Deref for BitbnsCore {
+impl std::ops::Deref for Bitbns {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { &self.exchange }
 }
 
-impl std::ops::DerefMut for BitbnsCore {
+impl std::ops::DerefMut for Bitbns {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { &mut self.exchange }
 }
 
-impl BitbnsCore {
+impl Bitbns {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

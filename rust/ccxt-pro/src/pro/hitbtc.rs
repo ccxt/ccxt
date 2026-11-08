@@ -17,19 +17,24 @@ use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
-pub struct HitbtcCore {
-    pub parent: crate::exchanges::hitbtc::HitbtcCore,
+pub struct Hitbtc {
+    pub parent: crate::exchanges::hitbtc::Hitbtc,
 }
 
-impl HitbtcCore {
+impl Hitbtc {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { parent: crate::exchanges::hitbtc::HitbtcCore::new(config) };
+        let mut s = Self { parent: crate::exchanges::hitbtc::Hitbtc::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = HitbtcCore::describe(self);
+        let described = Hitbtc::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -43,7 +48,7 @@ impl HitbtcCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for HitbtcCore {
+impl crate::exchange::DerivedExchange for Hitbtc {
     fn nonce(&self, ) -> crate::Value {
         crate::exchange::DerivedExchange::nonce(&self.parent)
     }
@@ -172,7 +177,7 @@ impl crate::exchange::DerivedExchange for HitbtcCore {
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for HitbtcCore {
+impl crate::exchange_generated::ExchangeBase for Hitbtc {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -220,7 +225,7 @@ impl crate::exchange_generated::ExchangeBase for HitbtcCore {
         })
     }
 }
-impl HitbtcCore {
+impl Hitbtc {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
@@ -274,16 +279,16 @@ impl HitbtcCore {
     }
 }
 
-impl std::ops::Deref for HitbtcCore {
+impl std::ops::Deref for Hitbtc {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { std::ops::Deref::deref(&self.parent) }
 }
 
-impl std::ops::DerefMut for HitbtcCore {
+impl std::ops::DerefMut for Hitbtc {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { std::ops::DerefMut::deref_mut(&mut self.parent) }
 }
 
-impl HitbtcCore {
+impl Hitbtc {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[self.describe_data()]);
 

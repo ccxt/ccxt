@@ -17,19 +17,24 @@ use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
-pub struct KrakenfuturesCore {
-    pub parent: crate::exchanges::krakenfutures::KrakenfuturesCore,
+pub struct Krakenfutures {
+    pub parent: crate::exchanges::krakenfutures::Krakenfutures,
 }
 
-impl KrakenfuturesCore {
+impl Krakenfutures {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { parent: crate::exchanges::krakenfutures::KrakenfuturesCore::new(config) };
+        let mut s = Self { parent: crate::exchanges::krakenfutures::Krakenfutures::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = KrakenfuturesCore::describe(self);
+        let described = Krakenfutures::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -43,7 +48,7 @@ impl KrakenfuturesCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for KrakenfuturesCore {
+impl crate::exchange::DerivedExchange for Krakenfutures {
     fn nonce(&self, ) -> crate::Value {
         crate::exchange::DerivedExchange::nonce(&self.parent)
     }
@@ -172,7 +177,7 @@ impl crate::exchange::DerivedExchange for KrakenfuturesCore {
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for KrakenfuturesCore {
+impl crate::exchange_generated::ExchangeBase for Krakenfutures {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -211,7 +216,7 @@ impl crate::exchange_generated::ExchangeBase for KrakenfuturesCore {
         })
     }
 }
-impl KrakenfuturesCore {
+impl Krakenfutures {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
@@ -259,16 +264,16 @@ impl KrakenfuturesCore {
     }
 }
 
-impl std::ops::Deref for KrakenfuturesCore {
+impl std::ops::Deref for Krakenfutures {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { std::ops::Deref::deref(&self.parent) }
 }
 
-impl std::ops::DerefMut for KrakenfuturesCore {
+impl std::ops::DerefMut for Krakenfutures {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { std::ops::DerefMut::deref_mut(&mut self.parent) }
 }
 
-impl KrakenfuturesCore {
+impl Krakenfutures {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

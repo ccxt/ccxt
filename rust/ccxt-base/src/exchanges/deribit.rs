@@ -16,19 +16,24 @@ use crate::exchange::ExchangeRuntime;
 use crate::exchange::CallDynamicChecked;
 
 
-pub struct DeribitCore {
+pub struct Deribit {
     pub exchange: crate::exchange::Exchange,
 }
 
-impl DeribitCore {
+impl Deribit {
     pub fn new(config: Option<crate::Value>) -> Self {
         let mut s = Self { exchange: crate::exchange::Exchange::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = DeribitCore::describe(self);
+        let described = Deribit::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -42,82 +47,82 @@ impl DeribitCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for DeribitCore {
+impl crate::exchange::DerivedExchange for Deribit {
     fn nonce(&self, ) -> crate::Value {
-        // Forward to the inherent method on DeribitCore.
-        DeribitCore::nonce(self, )
+        // Forward to the inherent method on Deribit.
+        Deribit::nonce(self, )
     }
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on DeribitCore.
-        DeribitCore::parse_ticker(self, ticker, &[market])
+        // Forward to the inherent method on Deribit.
+        Deribit::parse_ticker(self, ticker, &[market])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on DeribitCore.
-        DeribitCore::parse_trade(self, trade, &[market])
+        // Forward to the inherent method on Deribit.
+        Deribit::parse_trade(self, trade, &[market])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on DeribitCore.
-        DeribitCore::parse_order(self, order, &[market])
+        // Forward to the inherent method on Deribit.
+        Deribit::parse_order(self, order, &[market])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
-        // Forward to the inherent method on DeribitCore.
-        DeribitCore::parse_balance(self, response)
+        // Forward to the inherent method on Deribit.
+        Deribit::parse_balance(self, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on DeribitCore.
-        DeribitCore::parse_position(self, position, &[market])
+        // Forward to the inherent method on Deribit.
+        Deribit::parse_position(self, position, &[market])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on DeribitCore.
-        DeribitCore::parse_funding_rate(self, rate, &[market])
+        // Forward to the inherent method on Deribit.
+        Deribit::parse_funding_rate(self, rate, &[market])
     }
     fn parse_transfer(&self, transfer: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on DeribitCore.
-        DeribitCore::parse_transfer(self, transfer, &[currency])
+        // Forward to the inherent method on Deribit.
+        Deribit::parse_transfer(self, transfer, &[currency])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on DeribitCore.
-        DeribitCore::parse_currency(self, currency)
+        // Forward to the inherent method on Deribit.
+        Deribit::parse_currency(self, currency)
     }
     fn parse_open_interest(&self, interest: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on DeribitCore.
-        DeribitCore::parse_open_interest(self, interest, &[market])
+        // Forward to the inherent method on Deribit.
+        Deribit::parse_open_interest(self, interest, &[market])
     }
     fn parse_liquidation(&self, liquidation: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on DeribitCore.
-        DeribitCore::parse_liquidation(self, liquidation, &[market])
+        // Forward to the inherent method on Deribit.
+        Deribit::parse_liquidation(self, liquidation, &[market])
     }
     fn parse_account(&self, account: crate::Value) -> crate::Value {
-        // Forward to the inherent method on DeribitCore.
-        DeribitCore::parse_account(self, account)
+        // Forward to the inherent method on Deribit.
+        Deribit::parse_account(self, account)
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on DeribitCore.
-        DeribitCore::parse_transaction(self, transaction, &[currency])
+        // Forward to the inherent method on Deribit.
+        Deribit::parse_transaction(self, transaction, &[currency])
     }
     fn parse_greeks(&self, greeks: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on DeribitCore.
-        DeribitCore::parse_greeks(self, greeks, &[market])
+        // Forward to the inherent method on Deribit.
+        Deribit::parse_greeks(self, greeks, &[market])
     }
     fn parse_deposit_withdraw_fee(&self, fee: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on DeribitCore.
-        DeribitCore::parse_deposit_withdraw_fee(self, fee, &[currency])
+        // Forward to the inherent method on Deribit.
+        Deribit::parse_deposit_withdraw_fee(self, fee, &[currency])
     }
     fn create_expired_option_market(&self, symbol: crate::Value) -> crate::Value {
-        // Forward to the inherent method on DeribitCore.
-        DeribitCore::create_expired_option_market(self, symbol)
+        // Forward to the inherent method on Deribit.
+        Deribit::create_expired_option_market(self, symbol)
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on DeribitCore.
-        DeribitCore::sign(self, path, &[api, method, params, headers, body])
+        // Forward to the inherent method on Deribit.
+        Deribit::sign(self, path, &[api, method, params, headers, body])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on DeribitCore.
-        DeribitCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        // Forward to the inherent method on Deribit.
+        Deribit::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for DeribitCore {
+impl crate::exchange_generated::ExchangeBase for Deribit {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -195,16 +200,16 @@ impl crate::exchange_generated::ExchangeBase for DeribitCore {
     }
 }
 
-impl std::ops::Deref for DeribitCore {
+impl std::ops::Deref for Deribit {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { &self.exchange }
 }
 
-impl std::ops::DerefMut for DeribitCore {
+impl std::ops::DerefMut for Deribit {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { &mut self.exchange }
 }
 
-impl DeribitCore {
+impl Deribit {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

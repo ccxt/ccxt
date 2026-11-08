@@ -17,19 +17,24 @@ use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
-pub struct P2bCore {
-    pub parent: crate::exchanges::p2b::P2bCore,
+pub struct P2b {
+    pub parent: crate::exchanges::p2b::P2b,
 }
 
-impl P2bCore {
+impl P2b {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { parent: crate::exchanges::p2b::P2bCore::new(config) };
+        let mut s = Self { parent: crate::exchanges::p2b::P2b::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = P2bCore::describe(self);
+        let described = P2b::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -43,7 +48,7 @@ impl P2bCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for P2bCore {
+impl crate::exchange::DerivedExchange for P2b {
     fn nonce(&self, ) -> crate::Value {
         crate::exchange::DerivedExchange::nonce(&self.parent)
     }
@@ -172,7 +177,7 @@ impl crate::exchange::DerivedExchange for P2bCore {
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for P2bCore {
+impl crate::exchange_generated::ExchangeBase for P2b {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -198,7 +203,7 @@ impl crate::exchange_generated::ExchangeBase for P2bCore {
         })
     }
 }
-impl P2bCore {
+impl P2b {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
@@ -227,16 +232,16 @@ impl P2bCore {
     }
 }
 
-impl std::ops::Deref for P2bCore {
+impl std::ops::Deref for P2b {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { std::ops::Deref::deref(&self.parent) }
 }
 
-impl std::ops::DerefMut for P2bCore {
+impl std::ops::DerefMut for P2b {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { std::ops::DerefMut::deref_mut(&mut self.parent) }
 }
 
-impl P2bCore {
+impl P2b {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

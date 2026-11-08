@@ -17,19 +17,24 @@ use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
-pub struct WooCore {
-    pub parent: crate::exchanges::woo::WooCore,
+pub struct Woo {
+    pub parent: crate::exchanges::woo::Woo,
 }
 
-impl WooCore {
+impl Woo {
     pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { parent: crate::exchanges::woo::WooCore::new(config) };
+        let mut s = Self { parent: crate::exchanges::woo::Woo::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = WooCore::describe(self);
+        let described = Woo::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -43,7 +48,7 @@ impl WooCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for WooCore {
+impl crate::exchange::DerivedExchange for Woo {
     fn nonce(&self, ) -> crate::Value {
         crate::exchange::DerivedExchange::nonce(&self.parent)
     }
@@ -172,7 +177,7 @@ impl crate::exchange::DerivedExchange for WooCore {
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for WooCore {
+impl crate::exchange_generated::ExchangeBase for Woo {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -222,7 +227,7 @@ impl crate::exchange_generated::ExchangeBase for WooCore {
         })
     }
 }
-impl WooCore {
+impl Woo {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
@@ -290,16 +295,16 @@ impl WooCore {
     }
 }
 
-impl std::ops::Deref for WooCore {
+impl std::ops::Deref for Woo {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { std::ops::Deref::deref(&self.parent) }
 }
 
-impl std::ops::DerefMut for WooCore {
+impl std::ops::DerefMut for Woo {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { std::ops::DerefMut::deref_mut(&mut self.parent) }
 }
 
-impl WooCore {
+impl Woo {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.parent.describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

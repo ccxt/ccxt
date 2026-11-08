@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::delta::DeltaCore;
+use super::delta::Delta;
 use crate::exchange::ExchangeRuntime;
 
-impl DeltaCore {
+impl Delta {
     /// Auto-generated wrapper for the `publicGetAssets` implicit endpoint.
     pub async fn public_get_assets(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_assets".into()), optional_args).await

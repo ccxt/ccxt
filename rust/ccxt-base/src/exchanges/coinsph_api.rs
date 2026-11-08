@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::coinsph::CoinsphCore;
+use super::coinsph::Coinsph;
 use crate::exchange::ExchangeRuntime;
 
-impl CoinsphCore {
+impl Coinsph {
     /// Auto-generated wrapper for the `publicGetOpenapiV1Ping` implicit endpoint.
     pub async fn public_get_openapi_v1_ping(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_openapi_v1_ping".into()), optional_args).await

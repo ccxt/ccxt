@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::ndax::NdaxCore;
+use super::ndax::Ndax;
 use crate::exchange::ExchangeRuntime;
 
-impl NdaxCore {
+impl Ndax {
     /// Auto-generated wrapper for the `publicGetActivate2FA` implicit endpoint.
     pub async fn public_get_activate2_fa(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_activate2_fa".into()), optional_args).await

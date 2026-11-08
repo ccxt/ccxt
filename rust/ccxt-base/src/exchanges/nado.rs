@@ -16,19 +16,24 @@ use crate::exchange::ExchangeRuntime;
 use crate::exchange::CallDynamicChecked;
 
 
-pub struct NadoCore {
+pub struct Nado {
     pub exchange: crate::exchange::Exchange,
 }
 
-impl NadoCore {
+impl Nado {
     pub fn new(config: Option<crate::Value>) -> Self {
         let mut s = Self { exchange: crate::exchange::Exchange::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = NadoCore::describe(self);
+        let described = Nado::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -42,58 +47,58 @@ impl NadoCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for NadoCore {
+impl crate::exchange::DerivedExchange for Nado {
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on NadoCore.
-        NadoCore::parse_ticker(self, ticker, &[market])
+        // Forward to the inherent method on Nado.
+        Nado::parse_ticker(self, ticker, &[market])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on NadoCore.
-        NadoCore::parse_trade(self, trade, &[market])
+        // Forward to the inherent method on Nado.
+        Nado::parse_trade(self, trade, &[market])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on NadoCore.
-        NadoCore::parse_order(self, order, &[market])
+        // Forward to the inherent method on Nado.
+        Nado::parse_order(self, order, &[market])
     }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on NadoCore.
-        NadoCore::parse_ohlcv(self, ohlcv, &[market])
+        // Forward to the inherent method on Nado.
+        Nado::parse_ohlcv(self, ohlcv, &[market])
     }
     fn parse_balance(&self, response: crate::Value) -> crate::Value {
-        // Forward to the inherent method on NadoCore.
-        NadoCore::parse_balance(self, response)
+        // Forward to the inherent method on Nado.
+        Nado::parse_balance(self, response)
     }
     fn parse_position(&self, position: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on NadoCore.
-        NadoCore::parse_position(self, position, &[market])
+        // Forward to the inherent method on Nado.
+        Nado::parse_position(self, position, &[market])
     }
     fn parse_funding_rate(&self, rate: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on NadoCore.
-        NadoCore::parse_funding_rate(self, rate, &[market])
+        // Forward to the inherent method on Nado.
+        Nado::parse_funding_rate(self, rate, &[market])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on NadoCore.
-        NadoCore::parse_currency(self, currency)
+        // Forward to the inherent method on Nado.
+        Nado::parse_currency(self, currency)
     }
     fn parse_open_interest(&self, interest: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on NadoCore.
-        NadoCore::parse_open_interest(self, interest, &[market])
+        // Forward to the inherent method on Nado.
+        Nado::parse_open_interest(self, interest, &[market])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on NadoCore.
-        NadoCore::parse_transaction(self, transaction, &[currency])
+        // Forward to the inherent method on Nado.
+        Nado::parse_transaction(self, transaction, &[currency])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on NadoCore.
-        NadoCore::sign(self, path, &[api, method, params, headers, body])
+        // Forward to the inherent method on Nado.
+        Nado::sign(self, path, &[api, method, params, headers, body])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on NadoCore.
-        NadoCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        // Forward to the inherent method on Nado.
+        Nado::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for NadoCore {
+impl crate::exchange_generated::ExchangeBase for Nado {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -160,16 +165,16 @@ impl crate::exchange_generated::ExchangeBase for NadoCore {
     }
 }
 
-impl std::ops::Deref for NadoCore {
+impl std::ops::Deref for Nado {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { &self.exchange }
 }
 
-impl std::ops::DerefMut for NadoCore {
+impl std::ops::DerefMut for Nado {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { &mut self.exchange }
 }
 
-impl NadoCore {
+impl Nado {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

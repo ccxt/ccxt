@@ -16,19 +16,24 @@ use crate::exchange::ExchangeRuntime;
 use crate::exchange::CallDynamicChecked;
 
 
-pub struct GeminiCore {
+pub struct Gemini {
     pub exchange: crate::exchange::Exchange,
 }
 
-impl GeminiCore {
+impl Gemini {
     pub fn new(config: Option<crate::Value>) -> Self {
         let mut s = Self { exchange: crate::exchange::Exchange::new(config) };
         s.init();
         s
     }
 
+    /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
+    pub fn with_config(config: crate::Config) -> Self {
+        Self::new(config.into_option())
+    }
+
     pub fn init(&mut self) {
-        let described = GeminiCore::describe(self);
+        let described = Gemini::describe(self);
         self.initialize_properties(described);
         // compatibility for sandbox/testnet options in userConfig
         let user_config = self.userConfig.clone();
@@ -42,56 +47,56 @@ impl GeminiCore {
     pub fn bind(&mut self) {}
 }
 
-impl crate::exchange::DerivedExchange for GeminiCore {
+impl crate::exchange::DerivedExchange for Gemini {
     fn nonce(&self, ) -> crate::Value {
-        // Forward to the inherent method on GeminiCore.
-        GeminiCore::nonce(self, )
+        // Forward to the inherent method on Gemini.
+        Gemini::nonce(self, )
     }
     fn parse_ticker(&self, ticker: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on GeminiCore.
-        GeminiCore::parse_ticker(self, ticker, &[market])
+        // Forward to the inherent method on Gemini.
+        Gemini::parse_ticker(self, ticker, &[market])
     }
     fn parse_trade(&self, trade: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on GeminiCore.
-        GeminiCore::parse_trade(self, trade, &[market])
+        // Forward to the inherent method on Gemini.
+        Gemini::parse_trade(self, trade, &[market])
     }
     fn parse_order(&self, order: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on GeminiCore.
-        GeminiCore::parse_order(self, order, &[market])
+        // Forward to the inherent method on Gemini.
+        Gemini::parse_order(self, order, &[market])
     }
     fn parse_market(&self, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on GeminiCore.
-        GeminiCore::parse_market(self, market)
+        // Forward to the inherent method on Gemini.
+        Gemini::parse_market(self, market)
     }
     fn parse_deposit_address(&self, depositAddress: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on GeminiCore.
-        GeminiCore::parse_deposit_address(self, depositAddress, &[currency])
+        // Forward to the inherent method on Gemini.
+        Gemini::parse_deposit_address(self, depositAddress, &[currency])
     }
     fn parse_currency(&self, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on GeminiCore.
-        GeminiCore::parse_currency(self, currency)
+        // Forward to the inherent method on Gemini.
+        Gemini::parse_currency(self, currency)
     }
     fn parse_open_interest(&self, interest: crate::Value, market: crate::Value) -> crate::Value {
-        // Forward to the inherent method on GeminiCore.
-        GeminiCore::parse_open_interest(self, interest, &[market])
+        // Forward to the inherent method on Gemini.
+        Gemini::parse_open_interest(self, interest, &[market])
     }
     fn parse_transaction(&self, transaction: crate::Value, currency: crate::Value) -> crate::Value {
-        // Forward to the inherent method on GeminiCore.
-        GeminiCore::parse_transaction(self, transaction, &[currency])
+        // Forward to the inherent method on Gemini.
+        Gemini::parse_transaction(self, transaction, &[currency])
     }
     fn sign(&self, path: crate::Value, api: crate::Value, method: crate::Value, params: crate::Value, headers: crate::Value, body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on GeminiCore.
+        // Forward to the inherent method on Gemini.
         #[allow(invalid_reference_casting)]
-        let me = unsafe { &mut *(self as *const GeminiCore as *mut GeminiCore) };
-        GeminiCore::sign(me, path, &[api, method, params, headers, body])
+        let me = unsafe { &mut *(self as *const Gemini as *mut Gemini) };
+        Gemini::sign(me, path, &[api, method, params, headers, body])
     }
     fn handle_errors(&self, code: crate::Value, reason: crate::Value, url: crate::Value, method: crate::Value, headers: crate::Value, body: crate::Value, response: crate::Value, request_headers: crate::Value, request_body: crate::Value) -> crate::Value {
-        // Forward to the inherent method on GeminiCore.
-        GeminiCore::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+        // Forward to the inherent method on Gemini.
+        Gemini::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
     }
 }
 
-impl crate::exchange_generated::ExchangeBase for GeminiCore {
+impl crate::exchange_generated::ExchangeBase for Gemini {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<crate::Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = crate::Value> + Send + 'a>>
     {
@@ -146,16 +151,16 @@ impl crate::exchange_generated::ExchangeBase for GeminiCore {
     }
 }
 
-impl std::ops::Deref for GeminiCore {
+impl std::ops::Deref for Gemini {
     type Target = crate::exchange::Exchange;
     fn deref(&self) -> &crate::exchange::Exchange { &self.exchange }
 }
 
-impl std::ops::DerefMut for GeminiCore {
+impl std::ops::DerefMut for Gemini {
     fn deref_mut(&mut self) -> &mut crate::exchange::Exchange { &mut self.exchange }
 }
 
-impl GeminiCore {
+impl Gemini {
     pub fn describe(&self) -> Value {
         return self.deep_extend(self.super_describe(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
