@@ -1658,7 +1658,7 @@ export default class backpack extends Exchange {
             }
             startTime = untilValue - (windowLimit * duration);
         }
-        request['startTime'] =  this.parseToInt (startTime / 1000);
+        request['startTime'] = this.parseToInt (startTime / 1000);
         // set until value
         if (untilValue === undefined) {
             const windowEnd = this.sum (startTime, windowLimit * duration);
