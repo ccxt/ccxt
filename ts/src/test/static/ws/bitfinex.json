@@ -455,7 +455,7 @@
         ],
         "watchOrderBook": [
             {
-                "description": "checksum frame between snapshot and update: the book keeps its rows and the next update applies (C# read the rows through safeList and threw, #31132)",
+                "description": "checksum frame between snapshot and update: negative amounts stay asks (C# wrote the negation back into the local, so asks landed in bids, #31132)",
                 "input": [
                     "BTC/USD"
                 ],
