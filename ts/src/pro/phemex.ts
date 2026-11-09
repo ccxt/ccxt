@@ -1743,10 +1743,11 @@ export default class phemex extends phemexRest {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
         const client = this.client (url);
-        const requestId = this.requestId ();
         const messageHash = 'authenticated';
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
+        const future = client.reusableFuture (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
+            const requestId = this.requestId ();
             const expiryDelta = this.safeInteger (this.options, 'expires', 120);
             const expiration = this.seconds () + expiryDelta;
             const payload = this.apiKey + expiration.toString ();
@@ -1759,12 +1760,9 @@ export default class phemex extends phemexRest {
             };
             const subscriptionHash = requestId.toString ();
             const message = this.extend (request, params);
-            if (!(messageHash in client.subscriptions)) {
-                client.subscriptions[subscriptionHash] = this.handleAuthenticate;
-            }
-            future = await this.watch (url, messageHash, message, messageHash);
-            client.subscriptions[messageHash] = future;
+            client.subscriptions[subscriptionHash] = this.handleAuthenticate;
+            this.watch (url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
 }
