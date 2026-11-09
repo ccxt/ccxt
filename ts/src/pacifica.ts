@@ -1269,7 +1269,7 @@ export default class pacifica extends Exchange {
                 sinceValue = requestUntil['end_time'] - limitValue * duration;
             }
         }
-        request['start_time'] = sinceValue;
+        requestUntil['start_time'] = sinceValue;
         const response = await this.publicGetKline (this.extend (requestUntil, paramsUntil));
         //
         // {
