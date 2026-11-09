@@ -295,6 +295,9 @@ export default class everstrike extends Exchange {
             const currencyId = ids[i];
             const asset = this.safeDict (assets, currencyId, {});
             const code = this.safeCurrencyCode (currencyId);
+            if (code === undefined) {
+                continue;
+            }
             const fees = this.safeDict (asset, 'fees', {});
             const filters = this.safeDict (asset, 'filters', {});
             const qtyFilter = this.safeDict (filters, 'qty', {});
@@ -499,7 +502,7 @@ export default class everstrike extends Exchange {
             const marketId = ids[i];
             const raw = this.safeDict (response, marketId, {});
             // the exchange returns empty objects for retired keys that are no longer in /pairs
-            if (!(marketId in this.markets_by_id) || (Object.keys (raw).length === 0)) {
+            if ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id) || (Object.keys (raw).length === 0)) {
                 continue;
             }
             const market = this.safeMarket (marketId);
@@ -731,7 +734,7 @@ export default class everstrike extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const marketId = ids[i];
             const raw = this.safeDict (response, marketId, {});
-            if (!(marketId in this.markets_by_id) || (Object.keys (raw).length === 0)) {
+            if ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id) || (Object.keys (raw).length === 0)) {
                 continue;
             }
             const market = this.safeMarket (marketId);
@@ -744,19 +747,20 @@ export default class everstrike extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    override parseFundingRate (ticker: Dict, market: Market = undefined): FundingRate {
+    override parseFundingRate (ticker: any, market: Market = undefined): FundingRate {
         //
         //     { "funding_rate": -0.0045, "funding_avg": -0.00397, "mark_price": 75366.5, "index_price": 75743.3, "close_time": 1793993580000, ... }
         //
         const timestamp = this.safeInteger (ticker, 'close_time');
-        const interval = this.safeInteger (market['info'], 'funding_interval', 3600000);
+        const marketInfo = this.safeDict (market, 'info', {});
+        const interval = this.safeInteger (marketInfo, 'funding_interval', 3600000);
         let nextFundingTimestamp = undefined;
         if (timestamp !== undefined) {
             nextFundingTimestamp = this.sum (timestamp - (timestamp % interval), interval);
         }
         return {
             'info': ticker,
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'markPrice': this.safeNumber (ticker, 'mark_price'),
             'indexPrice': this.safeNumber (ticker, 'index_price'),
             'interestRate': undefined,
@@ -804,6 +808,9 @@ export default class everstrike extends Exchange {
             const currencyId = ids[i];
             const balance = this.safeDict (balances, currencyId, {});
             const code = this.safeCurrencyCode (currencyId);
+            if (code === undefined) {
+                continue;
+            }
             const account = this.account ();
             account['free'] = this.safeString (balance, 'free');
             // "locked" is collateral held by open orders; "margin" is collateral held by open positions
@@ -1187,7 +1194,7 @@ export default class everstrike extends Exchange {
      */
     override async fetchTradingFees (params = {}): Promise<TradingFees> {
         await this.loadMarkets ();
-        const symbols = Object.keys (this.markets);
+        const symbols = this.symbols;
         const result: Dict = {};
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
