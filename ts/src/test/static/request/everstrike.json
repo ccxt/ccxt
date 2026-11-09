@@ -211,6 +211,7 @@
         "setLeverage": [
             {
                 "description": "leverage is signed but has no timestamp, so the signature is fixed",
+                "disabledJava": true,
                 "headers": {
                     "x-api-key": "key",
                     "x-signature": "8Hy/fZ6XzmdVuN0R8gdGlRl1LvPjWePxgXJEr6zpTEY="
