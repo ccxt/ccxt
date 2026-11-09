@@ -2453,7 +2453,7 @@ class extended extends Exchange {
         $lastUpdateTimestamp = $this->safe_integer_2($position, 'updatedAt', 'updatedTime');
         $lastUpdateTimestamp = $this->safe_integer($position, 'closedTime', $lastUpdateTimestamp);
         $side = $this->safe_string_lower($position, 'side');
-        $margin = $this->safe_string($position, 'margin');
+        $margin = $this->safe_number($position, 'margin');
         return $this->safe_position(array(
             'info' => $position,
             'id' => $this->safe_string($position, 'id'),
@@ -2465,24 +2465,24 @@ class extended extends Exchange {
             'initialMarginPercentage' => null,
             'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => null,
-            'entryPrice' => $this->safe_string($position, 'openPrice'),
-            'notional' => $this->safe_string($position, 'value'),
-            'leverage' => $this->safe_string($position, 'leverage'),
-            'unrealizedPnl' => $this->safe_string($position, 'unrealisedPnl'),
-            'realizedPnl' => $this->safe_string($position, 'realisedPnl'),
-            'contracts' => $this->safe_string($position, 'size'),
-            'contractSize' => $this->safe_string($marketResolved, 'contractSize'),
+            'entryPrice' => $this->safe_number($position, 'openPrice'),
+            'notional' => $this->safe_number($position, 'value'),
+            'leverage' => $this->safe_number($position, 'leverage'),
+            'unrealizedPnl' => $this->safe_number($position, 'unrealisedPnl'),
+            'realizedPnl' => $this->safe_number($position, 'realisedPnl'),
+            'contracts' => $this->safe_number($position, 'size'),
+            'contractSize' => $this->safe_number($marketResolved, 'contractSize'),
             'marginRatio' => null,
-            'liquidationPrice' => $this->safe_string($position, 'liquidationPrice'),
-            'markPrice' => $this->safe_string($position, 'markPrice'),
-            'lastPrice' => $this->safe_string($position, 'exitPrice'),
+            'liquidationPrice' => $this->safe_number($position, 'liquidationPrice'),
+            'markPrice' => $this->safe_number($position, 'markPrice'),
+            'lastPrice' => $this->safe_number($position, 'exitPrice'),
             'collateral' => $margin,
             'marginMode' => null,
             'side' => $side,
             'percentage' => null,
             'hedged' => null,
-            'stopLossPrice' => $this->safe_string($position, 'slTriggerPrice'),
-            'takeProfitPrice' => $this->safe_string($position, 'tpTriggerPrice'),
+            'stopLossPrice' => $this->safe_number($position, 'slTriggerPrice'),
+            'takeProfitPrice' => $this->safe_number($position, 'tpTriggerPrice'),
         ));
     }
 

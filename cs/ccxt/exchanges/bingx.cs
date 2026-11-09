@@ -1098,7 +1098,7 @@ public partial class bingx : Exchange
                         { "triggerPriceType", new Dictionary<string, object>() {
                             { "last", true },
                             { "mark", true },
-                            { "index", true },
+                            { "index", false },
                         } },
                         { "triggerDirection", false },
                         { "stopLossPrice", true },
@@ -1107,7 +1107,7 @@ public partial class bingx : Exchange
                             { "triggerPriceType", new Dictionary<string, object>() {
                                 { "last", true },
                                 { "mark", true },
-                                { "index", true },
+                                { "index", false },
                             } },
                             { "price", true },
                         } },
@@ -2003,7 +2003,9 @@ public partial class bingx : Exchange
         {
             time = null;
         }
-        string? cost = this.safeString(trade, "quoteQty");
+        // Spot execution reports distinguish the last fill from the original order's p/q.
+        bool isSpotExecution = ((this.safeString(trade, "e") == "executionReport")) && ((this.safeString(trade, "x") == "TRADE"));
+        string? cost = isSpotExecution ? this.safeString(trade, "Y") : this.safeString(trade, "quoteQty");
         // const type = (cost === undefined) ? 'spot' : 'swap'; this is not reliable
         string? currencyId = this.safeStringN(trade, new List<object>() {"currency", "N", "commissionAsset"});
         string? currencyCode = this.safeCurrencyCode(currencyId);
@@ -2035,14 +2037,14 @@ public partial class bingx : Exchange
         {
             takeOrMaker = isMaker == true ? "maker" : "taker";
         }
-        string? amount = this.safeStringN(trade, new List<object>() {"qty", "amount", "q"});
+        string? amount = isSpotExecution ? this.safeString(trade, "l") : this.safeStringN(trade, new List<object>() {"qty", "amount", "q"});
         if (((market != null)) && (this.safeBool(market, "swap", false) == true) && ((trade != null && ((IDictionary<string, object>)trade).ContainsKey("volume"))))
         {
             // Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
             // safeTrade applies contractSize when calculating inverse cost.
             amount = this.safeString(trade, "volume");
         }
-        string? price = this.safeStringN(trade, new List<object>() {"price", "p", "tradePrice"});
+        string? price = isSpotExecution ? this.safeString(trade, "L") : this.safeStringN(trade, new List<object>() {"price", "p", "tradePrice"});
         if (((market != null)) && (this.safeBool(market, "linear", false) == true) && ((this.safeString(trade, "x") == "TRADE")))
         {
             string? lastAmount = this.safeString(trade, "l");
@@ -3813,6 +3815,11 @@ public partial class bingx : Exchange
             bool? reduceOnlyParam = this.safeBool(paramsTakeProfit, "reduceOnly", false);
             // stop loss / take profit price orders are always reduce only
             bool reduceOnly = (reduceOnlyParam == true) || (!isTriggerOrder && (isStopLossPriceOrder || isTakeProfitPriceOrder));
+            string? triggerPriceType = this.safeString2(paramsTakeProfit, "triggerPriceType", "workingType");
+            if ((triggerPriceType != null))
+            {
+                request["workingType"] = this.encodeTriggerPriceType(triggerPriceType);
+            }
             if (isTriggerOrder)
             {
                 request["stopPrice"] = this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice));
@@ -3873,14 +3880,15 @@ public partial class bingx : Exchange
                 if (hasStopLoss)
                 {
                     string? slTriggerPrice = this.safeString2(stopLossDict, "triggerPrice", "stopPrice");
-                    string? slWorkingType = this.safeString(stopLossDict, "workingType", "MARK_PRICE");
-                    string? slType = this.safeString(stopLossDict, "type", "STOP_MARKET");
+                    string? slWorkingType = this.safeString2(stopLossDict, "triggerPriceType", "workingType", "MARK_PRICE");
+                    string? slPrice = this.safeString(stopLossDict, "price");
+                    string slDefaultType = ((slPrice != null)) ? "STOP" : "STOP_MARKET";
+                    string? slType = this.safeString(stopLossDict, "type", slDefaultType);
                     Dictionary<string, object> slRequest = new Dictionary<string, object>() {
                         { "stopPrice", this.parseToNumeric(this.priceToPrecision(symbol, slTriggerPrice)) },
-                        { "workingType", slWorkingType },
+                        { "workingType", this.encodeTriggerPriceType(slWorkingType) },
                         { "type", slType },
                     };
-                    string? slPrice = this.safeString(stopLossDict, "price");
                     if ((slPrice != null))
                     {
                         slRequest["price"] = this.parseToNumeric(this.priceToPrecision(symbol, slPrice));
@@ -3897,17 +3905,18 @@ public partial class bingx : Exchange
                 if (hasTakeProfit)
                 {
                     string? tkTriggerPrice = this.safeString2(takeProfitDict, "triggerPrice", "stopPrice");
-                    string? tkWorkingType = this.safeString(takeProfitDict, "workingType", "MARK_PRICE");
-                    string? tpType = this.safeString(takeProfitDict, "type", "TAKE_PROFIT_MARKET");
+                    string? tkWorkingType = this.safeString2(takeProfitDict, "triggerPriceType", "workingType", "MARK_PRICE");
+                    string? tpPrice = this.safeString(takeProfitDict, "price");
+                    string tpDefaultType = ((tpPrice != null)) ? "TAKE_PROFIT" : "TAKE_PROFIT_MARKET";
+                    string? tpType = this.safeString(takeProfitDict, "type", tpDefaultType);
                     Dictionary<string, object> tpRequest = new Dictionary<string, object>() {
                         { "stopPrice", this.parseToNumeric(this.priceToPrecision(symbol, tkTriggerPrice)) },
-                        { "workingType", tkWorkingType },
+                        { "workingType", this.encodeTriggerPriceType(tkWorkingType) },
                         { "type", tpType },
                     };
-                    string? slPrice = this.safeString(takeProfitDict, "price");
-                    if ((slPrice != null))
+                    if ((tpPrice != null))
                     {
-                        tpRequest["price"] = this.parseToNumeric(this.priceToPrecision(symbol, slPrice));
+                        tpRequest["price"] = this.parseToNumeric(this.priceToPrecision(symbol, tpPrice));
                     }
                     string? tkQuantity = this.safeString(takeProfitDict, "quantity", stringifiedAmount);
                     object tkQuantityRequest = this.parseToNumeric(tkQuantity);
@@ -3950,8 +3959,17 @@ public partial class bingx : Exchange
                 request["quantity"] = amountReq; // precision not available for inverse contracts
             }
         }
-        object paramsRequest = this.omit(paramsOrder, new List<object>() {"hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "trailingTriggerPrice", "activationPrice", "clientOrderId", "cost", "quoteOrderQty"});
+        object paramsRequest = this.omit(paramsOrder, new List<object>() {"hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "trailingTriggerPrice", "activationPrice", "clientOrderId", "cost", "quoteOrderQty", "triggerPriceType", "workingType"});
         return this.extend(request, paramsRequest);
+    }
+
+    public virtual string? encodeTriggerPriceType(string? triggerPriceType)
+    {
+        Dictionary<string, object> types = new Dictionary<string, object>() {
+            { "last", "CONTRACT_PRICE" },
+            { "mark", "MARK_PRICE" },
+        };
+        return this.safeString(types, triggerPriceType, triggerPriceType);
     }
 
     /**
@@ -3982,8 +4000,13 @@ public partial class bingx : Exchange
      * @param {float} [params.trailingTriggerPrice] *swap only* the price to activate a trailing order at
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+     * @param {float} [params.takeProfit.price] *swap only* limit price of the attached take profit order, omit for a market take profit
+     * @param {string} [params.takeProfit.triggerPriceType] *swap only* 'mark' or 'last'
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+     * @param {float} [params.stopLoss.price] *swap only* limit price of the attached stop loss order, omit for a market stop loss
+     * @param {string} [params.stopLoss.triggerPriceType] *swap only* 'mark' or 'last'
+     * @param {string} [params.triggerPriceType] *swap only* 'mark' or 'last', the price that trigger, stop loss and take profit prices are compared against
      * @param {boolean} [params.test] *linear swap only* whether to use the test endpoint or not, default is false
      * @param {string} [params.positionSide] *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
      * @param {boolean} [params.hedged] *swap only* whether the order is in hedged mode or one way mode
@@ -6224,9 +6247,11 @@ public partial class bingx : Exchange
      * @name bingx#setMargin
      * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+     * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Adjust%20Position%20Margin
      * @param {string} symbol unified market symbol of the market to set margin in
      * @param {float} amount the amount to set the margin to
      * @param {object} [params] parameters specific to the exchange API endpoint
+     * @param {string} [params.positionSide] "LONG" or "SHORT", required for Coin-M
      * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     public async override Task<ccxt.MarginModification> SetMargin(string symbol, double amount, object parameters = null)
@@ -6246,12 +6271,32 @@ public partial class bingx : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
+        string? positionSide = this.safeString(parameters, "positionSide");
+        if (((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true)) && ((positionSide == null)))
+        {
+            throw new ArgumentsRequired ((this.id + " setMargin() requires a positionSide parameter for Coin-M markets")) ;
+        }
+        string? amountString = null;
+        if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
+        {
+            amountString = this.currencyToPrecision(((string)(market.ContainsKey("settle") ? market["settle"] : null)), amount);
+        } else
+        {
+            amountString = this.amountToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), amount);
+        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
-            { "amount", this.amountToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), amount) },
+            { "amount", amountString },
             { "type", type },
         };
-        Dictionary<string, object> response = await this.swapV2PrivatePostTradePositionMargin(this.extend(request, parameters));
+        Dictionary<string, object> response = null;
+        if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
+        {
+            response = await this.cswapV1PrivatePostTradePositionMargin(this.extend(request, parameters));
+        } else
+        {
+            response = await this.swapV2PrivatePostTradePositionMargin(this.extend(request, parameters));
+        }
         //
         //    {
         //        "code": 0,
@@ -6260,7 +6305,17 @@ public partial class bingx : Exchange
         //        "type": 1
         //    }
         //
-        return ccxt.BaseExchange.ToMarginModification(this.parseMarginModification(response, market));
+        object responseData = response;
+        if ((((market.ContainsKey("inverse") ? market["inverse"] : null) as bool?) == true))
+        {
+            responseData = this.extend(new Dictionary<string, object>() {
+                { "amount", amountString },
+                { "type", type },
+            }, this.safeDict(response, "data", new Dictionary<string, object>() {}));
+        }
+        Dictionary<string, object> result = this.parseMarginModification(responseData, market);
+        result["info"] = response;
+        return ccxt.BaseExchange.ToMarginModification(result);
     }
 
     public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
@@ -6414,7 +6469,7 @@ public partial class bingx : Exchange
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is undefined
-     * @param {string} params.trandingUnit COIN (directly represent assets such as BTC and ETH) or CONT (represents the number of contract sheets)
+     * @param {string} [params.tradingUnit] COIN (default, base currency amount) or CONT (number of contract sheets)
      * @param {string} params.orderId the order id required for inverse swap
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
@@ -6493,7 +6548,7 @@ public partial class bingx : Exchange
                 fills = this.safeList(data, "fills", new List<object>() {});
             } else
             {
-                string? tradingUnit = this.safeStringUpper(paramsUntil, "tradingUnit", "CONT");
+                string? tradingUnit = this.safeStringUpper(paramsUntil, "tradingUnit", "COIN");
                 paramsTrades = this.omit(paramsUntil, "tradingUnit");
                 request["tradingUnit"] = tradingUnit;
                 response = await this.swapV2PrivateGetTradeAllFillOrders(this.extend(request, paramsTrades));
@@ -6543,7 +6598,7 @@ public partial class bingx : Exchange
                 if ((networksLength == 1))
                 {
                     result["withdraw"] = new Dictionary<string, object>() {
-                        { "fee", this.safeNumber(network, "withdrawFee") },
+                        { "fee", this.safeNumber(network, "fee") },
                         { "percentage", false },
                     };
                 }
