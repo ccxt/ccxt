@@ -410,7 +410,7 @@ instance = new ccxt.interactivebrokers ({
 #### Use IBKR with Web-Api with Client-Portal Gateway
 
 If your account is not permitted to generate credentials for WebApi, then you can use local IBKR bridge where you will not need api-keys. You need to download `Client-Portal Gateway`, either one of the ways:
-- A) Here is a handy dockerized repository https://github.com/ccxt/interactive-brokers-cpg-wrapper/ (append `archive/refs/heads/master.zip` to download it directly) and run it as noted in repo description. 
+- A) Here is a handy dockerized repository https://github.com/ccxt/interactive-brokers-cpg-wrapper/ (append `archive/refs/heads/master.zip` to download it directly) and run it as noted in repo description.
 - B) You can manually download the files from: https://www.interactivebrokers.com/docs/web-api/authentication/cpgw/installation-authentication and follow instructions shown there. Also note, in this case, you will need to manually re-run gateway after every device restart or alike cases, that's why Dockerized approach is preferred for flexibility.
 
 After you are running CP Gateway, you can use:
@@ -422,11 +422,29 @@ instance = new ccxt.interactivebrokers ({
     //  if custom port needed, add the below field
     // "gatewayUrl": "https://localhost:5000/",
   },
-  "validateServerSsl": false, // because the IBRK CP gateway runs at self-signed https://localhost:5000
 })
 ```
 
 Note, Client-Portal gateway needs slighly more maintenance, specifically it might need you to manaully login once in every 24 hours at https://localhost:5000
+
+To overcome the 1 session limitation using the gateway you can create a different user at IBKR for programmatic trading.
+
+#### Account ids
+If you have multiple sub-accounts you need to specify the sub-account you want to trade in. You can provide your UID in options
+
+```
+    const exchange = new ccxt.interactivebrokers ({
+        'options': {
+            'useGateway': true,
+            'gatewayUrl': 'https://localhost:5001',
+            'accountId': 'UXXXXX', // your accountID here
+        },
+    });
+````
+
+#### Paper trading
+
+Paper trading is also supported, upon logging in just toggle the option.
 
 ### How to use the GRVT Exchange in CCXT?
 
