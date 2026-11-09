@@ -911,8 +911,10 @@ impl Exchange {
 
     /// enables or disables server ssl certificate validation for REST and WS connections;
     /// the cached http client is rebuilt on the next request when the value changes
-    pub fn set_validate_server_ssl(&mut self, validate: bool) {
-        self.validateServerSsl = Value::Bool(validate);
+    pub fn set_validate_server_ssl(&mut self, validate: Value) {
+        // transpiled callers pass a Value (see set_sandbox_mode); anything but an
+        // explicit false keeps validation on, matching validates_server_ssl above
+        self.validateServerSsl = Value::Bool(!matches!(validate, Value::Bool(false)));
     }
 
 
