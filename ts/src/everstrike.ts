@@ -267,7 +267,7 @@ export default class everstrike extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicGetTime (params);
         //
         //     { "code": 200, "msg": null, "result": 1794080008363 }
@@ -282,7 +282,7 @@ export default class everstrike extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    async fetchCurrencies (params = {}): Promise<any> {
+    override async fetchCurrencies (params = {}): Promise<any> {
         const response = await this.publicGetAssets (params);
         //
         //     { "code": 200, "msg": null, "result": { "USDC": { "key": "USDC", "name": "USD Coin", "precision": 12, "withdrawable": true,
@@ -292,15 +292,15 @@ export default class everstrike extends Exchange {
         const ids = Object.keys (assets);
         const result: Dict = {};
         for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const asset = this.safeDict (assets, id, {});
-            const code = this.safeCurrencyCode (id);
+            const currencyId = ids[i];
+            const asset = this.safeDict (assets, currencyId, {});
+            const code = this.safeCurrencyCode (currencyId);
             const fees = this.safeDict (asset, 'fees', {});
             const filters = this.safeDict (asset, 'filters', {});
             const qtyFilter = this.safeDict (filters, 'qty', {});
             const withdrawable = this.safeBool (asset, 'withdrawable');
             result[code] = this.safeCurrencyStructure ({
-                'id': id,
+                'id': currencyId,
                 'code': code,
                 'name': this.safeString (asset, 'name'),
                 'type': 'crypto',
@@ -334,7 +334,7 @@ export default class everstrike extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params = {}): Promise<Market[]> {
         const response = await this.publicGetPairs (params);
         //
         //     { "code": 200, "msg": null, "result": { "USD_BTC_PERP": { "key": "USD_BTC_PERP", "base": "USD", "quote": "BTC",
@@ -352,8 +352,8 @@ export default class everstrike extends Exchange {
         return result;
     }
 
-    parseMarket (market: Dict): Market {
-        const id = this.safeString (market, 'key');
+    override parseMarket (market: Dict): Market {
+        const marketId = this.safeString (market, 'key');
         const category = this.safeString (market, 'category');
         const filters = this.safeDict (market, 'filters', {});
         const priceFilter = this.safeDict (filters, 'price', {});
@@ -370,7 +370,7 @@ export default class everstrike extends Exchange {
         let settle = undefined;
         let settleId = undefined;
         let symbol = undefined;
-        let type = 'spot';
+        let marketType = 'spot';
         let optionType = undefined;
         let strikeMultiplier = undefined;
         if (isSpot) {
@@ -389,9 +389,9 @@ export default class everstrike extends Exchange {
             settleId = quoteId;
             settle = quote;
             symbol = base + '/' + quote + ':' + settle;
-            type = 'swap';
+            marketType = 'swap';
             if (isOption) {
-                type = 'option';
+                marketType = 'option';
                 optionType = (category === 'call') ? 'call' : 'put';
                 // floating strike: EMA100(index) x price_multiplier; plain BTCCALL/BTCPUT have no multiplier field and are 1.00
                 strikeMultiplier = this.safeString (market, 'price_multiplier', '1');
@@ -401,7 +401,7 @@ export default class everstrike extends Exchange {
         }
         const isContract = !isSpot;
         return this.safeMarketStructure ({
-            'id': id,
+            'id': marketId,
             'symbol': symbol,
             'base': base,
             'quote': quote,
@@ -409,10 +409,10 @@ export default class everstrike extends Exchange {
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': settleId,
-            'type': type,
+            'type': marketType,
             'spot': isSpot,
             'margin': false,
-            'swap': (type === 'swap'),
+            'swap': (marketType === 'swap'),
             'future': false,
             'option': isOption,
             'active': isActive,
@@ -461,7 +461,7 @@ export default class everstrike extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -486,7 +486,7 @@ export default class everstrike extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.publicGetTicker (params);
@@ -496,20 +496,20 @@ export default class everstrike extends Exchange {
         const ids = Object.keys (response);
         const result: Dict = {};
         for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const raw = this.safeDict (response, id, {});
+            const marketId = ids[i];
+            const raw = this.safeDict (response, marketId, {});
             // the exchange returns empty objects for retired keys that are no longer in /pairs
-            if (!(id in this.markets_by_id) || (Object.keys (raw).length === 0)) {
+            if (!(marketId in this.markets_by_id) || (Object.keys (raw).length === 0)) {
                 continue;
             }
-            const market = this.safeMarket (id);
+            const market = this.safeMarket (marketId);
             const ticker = this.parseTicker (raw, market);
             result[market['symbol']] = ticker;
         }
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         const timestamp = this.safeInteger (ticker, 'close_time');
         const last = this.safeString (ticker, 'last_price');
         // price_change from the exchange is not reliable (observed nonsense values), so change/percentage are derived from open and last by safeTicker
@@ -548,7 +548,7 @@ export default class everstrike extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -577,7 +577,7 @@ export default class everstrike extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest trade to fetch
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let request: Dict = {
@@ -608,7 +608,7 @@ export default class everstrike extends Exchange {
         return request;
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public trade
         //
@@ -663,7 +663,7 @@ export default class everstrike extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '5m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe = '5m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let request: Dict = {
@@ -682,7 +682,7 @@ export default class everstrike extends Exchange {
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 'open_time'),
             this.safeNumber (ohlcv, 'open'),
@@ -701,7 +701,7 @@ export default class everstrike extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
      */
-    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['spot']) {
@@ -722,19 +722,19 @@ export default class everstrike extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}
      */
-    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.publicGetTicker (params);
         const ids = Object.keys (response);
         const result: Dict = {};
         for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const raw = this.safeDict (response, id, {});
-            if (!(id in this.markets_by_id) || (Object.keys (raw).length === 0)) {
+            const marketId = ids[i];
+            const raw = this.safeDict (response, marketId, {});
+            if (!(marketId in this.markets_by_id) || (Object.keys (raw).length === 0)) {
                 continue;
             }
-            const market = this.safeMarket (id);
+            const market = this.safeMarket (marketId);
             if (market['spot']) {
                 continue;
             }
@@ -744,7 +744,7 @@ export default class everstrike extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    parseFundingRate (ticker, market: Market = undefined): FundingRate {
+    override parseFundingRate (ticker: Dict, market: Market = undefined): FundingRate {
         //
         //     { "funding_rate": -0.0045, "funding_avg": -0.00397, "mark_price": 75366.5, "index_price": 75743.3, "close_time": 1793993580000, ... }
         //
@@ -783,7 +783,7 @@ export default class everstrike extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         const response = await this.privateGetPersonal (params);
         //
@@ -794,16 +794,16 @@ export default class everstrike extends Exchange {
         return this.parseBalance (result);
     }
 
-    parseBalance (response): Balances {
+    override parseBalance (response: Dict): Balances {
         const balances = this.safeDict (response, 'balances', {});
         const result: Dict = {
             'info': response,
         };
         const ids = Object.keys (balances);
         for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const balance = this.safeDict (balances, id, {});
-            const code = this.safeCurrencyCode (id);
+            const currencyId = ids[i];
+            const balance = this.safeDict (balances, currencyId, {});
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeString (balance, 'free');
             // "locked" is collateral held by open orders; "margin" is collateral held by open positions
@@ -830,7 +830,7 @@ export default class everstrike extends Exchange {
      * @param {bool} [params.is_test] true to validate the order without placing it
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
@@ -888,7 +888,7 @@ export default class everstrike extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {
             'id': id,
@@ -908,7 +908,7 @@ export default class everstrike extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+    override async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         // the server re-serialises arrays with indexed keys and verifies the signature against that form,
         // so the body must be ids%5B0%5D=a&ids%5B1%5D=b; repeated ids= or ids[]= fail the HMAC check
@@ -929,7 +929,7 @@ export default class everstrike extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostAuthCancelBulk (params);
         const result = this.safeList (response, 'result', []);
@@ -949,7 +949,7 @@ export default class everstrike extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const request: Dict = {
             'id': id,
@@ -985,7 +985,7 @@ export default class everstrike extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         return await this.fetchOrdersFrom ('privateGetOrders', symbol, since, limit, params);
     }
 
@@ -999,7 +999,7 @@ export default class everstrike extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         return await this.fetchOrdersFrom ('privateGetActiveOrders', symbol, since, limit, params);
     }
 
@@ -1013,7 +1013,7 @@ export default class everstrike extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         return await this.fetchOrdersFrom ('privateGetCompletedOrders', symbol, since, limit, params);
     }
 
@@ -1027,7 +1027,7 @@ export default class everstrike extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         return await this.fetchOrdersFrom ('privateGetCancelledOrders', symbol, since, limit, params);
     }
 
@@ -1042,7 +1042,7 @@ export default class everstrike extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch trades for
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         let request: Dict = {};
         let market = undefined;
@@ -1069,7 +1069,7 @@ export default class everstrike extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //     { "id": "781a8e80393f11e98e2643f8c5a993ce", "fills": [], "pair": "USD_BTCCALL_PERP", "price": 200, "price_orig": 200,
         //       "qty_orig": 0.02225, "qty_orig_usd": 3.09956993634425, "qty_remaining": 0.02225, "qty_filled": 0, "side": "SELL",
@@ -1114,7 +1114,7 @@ export default class everstrike extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.privateGetActivePositions (params);
@@ -1135,10 +1135,10 @@ export default class everstrike extends Exchange {
             }
             result.push (this.parsePosition (position));
         }
-        return this.filterByArrayPositions (result, 'symbol', symbols, false);
+        return this.filterByArrayPositions (result, 'symbol', symbols);
     }
 
-    parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined) {
         const marketId = this.safeString (position, 'pair');
         market = this.safeMarket (marketId, market);
         const size = this.safeString (position, 'size');
@@ -1185,13 +1185,14 @@ export default class everstrike extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
      */
-    async fetchTradingFees (params = {}): Promise<TradingFees> {
+    override async fetchTradingFees (params = {}): Promise<TradingFees> {
         await this.loadMarkets ();
         const symbols = Object.keys (this.markets);
         const result: Dict = {};
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            result[symbol] = this.parseTradingFee (this.markets[symbol]['info'], this.markets[symbol]);
+            const market = this.market (symbol);
+            result[symbol] = this.parseTradingFee (this.safeDict (market, 'info', {}), market);
         }
         return result;
     }
@@ -1204,7 +1205,7 @@ export default class everstrike extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
      */
-    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+    override async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         return this.parseTradingFee (market['info'], market);
@@ -1236,7 +1237,7 @@ export default class everstrike extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         return await this.fetchTransactionsFrom ('privateGetDeposits', 'deposit', code, since, limit, params);
     }
 
@@ -1251,7 +1252,7 @@ export default class everstrike extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         return await this.fetchTransactionsFrom ('privateGetWithdrawals', 'withdrawal', code, since, limit, params);
     }
 
@@ -1265,7 +1266,7 @@ export default class everstrike extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const deposits = await this.fetchDeposits (code, undefined, undefined, params);
         const withdrawals = await this.fetchWithdrawals (code, undefined, undefined, params);
         const all = this.arrayConcat (deposits, withdrawals);
@@ -1303,7 +1304,7 @@ export default class everstrike extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // see fetchTransactionsFrom; "type" is added by that method, the exchange does not return it
         //
@@ -1320,14 +1321,14 @@ export default class everstrike extends Exchange {
                 'currency': code,
             };
         }
-        const type = this.safeString (transaction, 'type');
+        const transactionType = this.safeString (transaction, 'type');
         const address = this.safeString (transaction, 'address');
-        const from = this.safeString (tx, 'from');
+        const fromAddress = this.safeString (tx, 'from');
         return {
             'info': transaction,
             'id': this.safeString (transaction, 'id'),
             'txid': this.safeString (tx, 'hash'),
-            'type': type,
+            'type': transactionType,
             'currency': code,
             'network': undefined,
             // amount is the gross quantity; the exchange's fee is qty - net
@@ -1336,7 +1337,7 @@ export default class everstrike extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': address,
-            'addressFrom': from,
+            'addressFrom': fromAddress,
             'addressTo': address,
             'tag': undefined,
             'tagFrom': undefined,
@@ -1357,7 +1358,7 @@ export default class everstrike extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -1370,16 +1371,18 @@ export default class everstrike extends Exchange {
         return await this.privatePostLeverage (this.extend (request, params));
     }
 
-    override sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + path;
-        if (api === 'public') {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        let url = this.urls['api'][apiName] + '/' + path;
+        let body: Str = undefined;
+        if (apiName === 'public') {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
-            return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+            return { 'url': url, 'method': method, 'body': body, 'headers': undefined };
         }
         this.checkRequiredCredentials ();
-        headers = {
+        const headers: Dict = {
             'x-api-key': this.apiKey,
         };
         if (method === 'GET') {
