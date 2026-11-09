@@ -61,14 +61,80 @@
         ],
         "fetchOHLCV": [
             {
-                "description": "BTC/USD 1h candles",
+                "description": "spot +since -limit +until",
                 "method": "fetchOHLCV",
-                "url": "https://revx.revolut.com/api/1.0/public/candles/BTC-USD?interval=60&until=0",
+                "url": "https://revx.revolut.com/api/1.0/public/candles/BTC-USDC?interval=1&since=1793543961000&until=1793544161000",
                 "input": [
-                    "BTC/USD",
-                    "1h",
+                    "BTC/USDC",
+                    "1m",
+                    1793543961000,
                     null,
-                    5
+                    {
+                        "until": 1793544161000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "spot -since +limit +until",
+                "method": "fetchOHLCV",
+                "url": "https://revx.revolut.com/api/1.0/public/candles/BTC-USDC?interval=1&until=1793544161000&since=1793544101000",
+                "input": [
+                    "BTC/USDC",
+                    "1m",
+                    null,
+                    1,
+                    {
+                        "until": 1793544161000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "spot +since +limit +until",
+                "method": "fetchOHLCV",
+                "url": "https://revx.revolut.com/api/1.0/public/candles/BTC-USDC?interval=1&since=1793543961000&until=1793544161000",
+                "input": [
+                    "BTC/USDC",
+                    "1m",
+                    1793543961000,
+                    1,
+                    {
+                        "until": 1793544161000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "spot +since +limit",
+                "method": "fetchOHLCV",
+                "url": "https://revx.revolut.com/api/1.0/public/candles/BTC-USDC?interval=1&since=1793544161000&until=1793544221000",
+                "input": [
+                    "BTC/USDC",
+                    "1m",
+                    1793544161000,
+                    1
+                ],
+                "output": null
+            },
+            {
+                "description": "spot with since",
+                "method": "fetchOHLCV",
+                "url": "https://revx.revolut.com/api/1.0/public/candles/BTC-USDC?interval=1&since=1793544161000&until=1793604161000",
+                "input": [
+                    "BTC/USDC",
+                    "1m",
+                    1793544161000
+                ],
+                "output": null
+            },
+            {
+                "description": "spot without args",
+                "method": "fetchOHLCV",
+                "url": "https://revx.revolut.com/api/1.0/public/candles/BTC-USDC?interval=1",
+                "input": [
+                    "BTC/USDC",
+                    "1m"
                 ],
                 "output": null
             }
