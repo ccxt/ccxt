@@ -510,9 +510,9 @@ public class NdaxApi extends Exchange
      * Calls the privateGetGetAccountPositions endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public CompletableFuture<Map<String, Object>>  privateGetGetAccountPositions (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetGetAccountPositions (Object... optionalArgs)
     {
         return this.callAsync ("privateGetGetAccountPositions", optionalArgs);
     }

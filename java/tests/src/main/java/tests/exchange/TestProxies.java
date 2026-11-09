@@ -47,7 +47,7 @@ public class TestProxies extends BaseTest {
         Object response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetch", new Object[]{ipCheckUrl})).join();
         Assert(java.util.Objects.equals(response, proxyServerIp), (((((((exchange.id + " ") + method) + " test failed. Returned response is ") + response) + " while it should be \"") + proxyServerIp) + "\""));
         // reset the instance property
-        TestSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
+        TestSharedMethods.setProxyOptions(exchange, skippedProperties, (String) (proxyUrl), (String) (httpProxy), (String) (httpsProxy), (String) (socksProxy));
         return true;
         });
 
@@ -69,7 +69,7 @@ public class TestProxies extends BaseTest {
         Object response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetch", new Object[]{ipCheckUrl})).join();
         Assert(java.util.Objects.equals(response, proxyServerIp), (((((((exchange.id + " ") + method) + " test failed. Returned response is ") + response) + " while it should be \"") + proxyServerIp) + "\""));
         // reset the instance property
-        TestSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
+        TestSharedMethods.setProxyOptions(exchange, skippedProperties, (String) (proxyUrl), (String) (httpProxy), (String) (httpsProxy), (String) (socksProxy));
         return true;
         });
 
@@ -113,7 +113,7 @@ public class TestProxies extends BaseTest {
             }
         }
         // reset the instance property
-        TestSharedMethods.setProxyOptions(exchange, skippedProperties, proxyUrl, httpProxy, httpsProxy, socksProxy);
+        TestSharedMethods.setProxyOptions(exchange, skippedProperties, (String) (proxyUrl), (String) (httpProxy), (String) (httpsProxy), (String) (socksProxy));
         return true;
         });
 

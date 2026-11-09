@@ -435,32 +435,34 @@ public final class SafeMethods {
         return convertedDefault;
     }
 
-    public static Object safeIntegerProduct2(Object obj, Object key1, Object key2, Object multiplier, Object... defaultValue2) {
+    public static Long safeIntegerProduct2(Object obj, Object key1, Object key2, Object multiplier, Object... defaultValue2) {
         Object defaultValue = opt(defaultValue2);
+        Long convertedDefault = (defaultValue == null) ? null : toLongQuiet(defaultValue);
         Object result = SafeValueN(obj, Arrays.asList(key1, key2));
-        if (result == null) return defaultValue;
-        Object parsedValue = null;
+        if (result == null) return convertedDefault;
+        Long parsedValue = null;
         try {
             double r = Double.parseDouble(String.valueOf(result));
             double m = Double.parseDouble(String.valueOf(multiplier));
             parsedValue = (long) (r * m);
         } catch (Exception ignored) {
         }
-        return (parsedValue == null) ? defaultValue : parsedValue;
+        return (parsedValue == null) ? convertedDefault : parsedValue;
     }
 
-    public static Object safeIntegerProductN(Object obj, List<Object> keys, Object multiplier, Object... defaultValue2) {
+    public static Long safeIntegerProductN(Object obj, List<Object> keys, Object multiplier, Object... defaultValue2) {
         Object defaultValue = opt(defaultValue2);
+        Long convertedDefault = (defaultValue == null) ? null : toLongQuiet(defaultValue);
         Object result = SafeValueN(obj, keys);
-        if (result == null) return defaultValue;
-        Object parsedValue = null;
+        if (result == null) return convertedDefault;
+        Long parsedValue = null;
         try {
             double r = Double.parseDouble(String.valueOf(result));
             double m = Double.parseDouble(String.valueOf(multiplier));
             parsedValue = (long) (r * m);
         } catch (Exception ignored) {
         }
-        return (parsedValue == null) ? defaultValue : parsedValue;
+        return (parsedValue == null) ? convertedDefault : parsedValue;
     }
 
     // ----------------------------

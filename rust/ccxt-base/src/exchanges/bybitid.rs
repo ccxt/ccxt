@@ -214,7 +214,7 @@ impl BybitidCore {
 }));
         m.insert("httpExceptions".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("403".to_string(), Value::Str("PermissionDenied".into()).clone());
+        m.insert("403".to_string(), Value::Str("PermissionDenied".into()));
     m
 }));
     m

@@ -34,7 +34,7 @@ public class Onetrading extends OnetradingApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "onetrading" );
@@ -835,7 +835,7 @@ public class Onetrading extends OnetradingApi
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = this.market(symbol);
-                Map<String, Object> tierObject = (((java.util.Objects.equals(market.get("spot"), true)))) ? firstSpotTier : firstFuturesTier;
+                Map<String, Object> tierObject = ((Boolean.TRUE.equals((this.safeBool(market, "spot", false))))) ? firstSpotTier : firstFuturesTier;
                 result.put(symbol, new HashMap<String, Object>() {{
         put( "info", spotFees );
         put( "symbol", symbol );
@@ -911,8 +911,8 @@ public class Onetrading extends OnetradingApi
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = this.market(symbol);
-                String makerFee = (((java.util.Objects.equals(market.get("spot"), true)))) ? spotMakerFee : futuresMakerFee;
-                String takerFee = (((java.util.Objects.equals(market.get("spot"), true)))) ? spotTakerFee : futuresTakerFee;
+                String makerFee = ((Boolean.TRUE.equals((this.safeBool(market, "spot", false))))) ? spotMakerFee : futuresMakerFee;
+                String takerFee = ((Boolean.TRUE.equals((this.safeBool(market, "spot", false))))) ? spotTakerFee : futuresTakerFee;
                 result.put(symbol, new HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
@@ -1267,9 +1267,9 @@ public class Onetrading extends OnetradingApi
             {
                 throw new ExchangeError((this.id + " fetchOHLCV() missing periodUnit")) ;
             }
-            var periodunitVariable = new ArrayList<Object>(Arrays.asList(((String)periodUnit).split(java.util.regex.Pattern.quote("/"))));
-            var period = ((List<Object>) periodunitVariable).get(0);
-            var unit = ((List<Object>) periodunitVariable).get(1);
+            List<Object> periodUnitParts = new ArrayList<Object>(Arrays.asList(((String)periodUnit).split(java.util.regex.Pattern.quote("/"))));
+            String period = (String) (periodUnitParts == null || 0 >= periodUnitParts.size() ? null : periodUnitParts.get(0));
+            String unit = (String) (periodUnitParts == null || 1 >= periodUnitParts.size() ? null : periodUnitParts.get(1));
             int durationInSeconds = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Long duration = (((long) durationInSeconds) * 1000L);
             Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 1500L : limit;
@@ -1389,7 +1389,7 @@ public class Onetrading extends OnetradingApi
         return this.safeTrade(mapLiteral2, market);
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         List<Object> balances = (List<Object>) this.safeList(response, "balances", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{
@@ -2165,7 +2165,7 @@ public class Onetrading extends OnetradingApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
@@ -2175,7 +2175,7 @@ public class Onetrading extends OnetradingApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (java.util.Objects.equals(apiName, "public"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((Map<String, Object>)query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
@@ -2192,7 +2192,7 @@ public class Onetrading extends OnetradingApi
                 headersSigned.put("Content-Type", "application/json");
             } else
             {
-                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+                if (((Map<String, Object>)query).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }
@@ -2216,7 +2216,7 @@ public class Onetrading extends OnetradingApi
         }
     }
 
-    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -2231,8 +2231,8 @@ public class Onetrading extends OnetradingApi
         if (!java.util.Objects.equals(message, null))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

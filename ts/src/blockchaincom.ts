@@ -3,7 +3,7 @@ import Exchange from './abstract/blockchaincom.js';
 import { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, List, Market, Num, Order, OrderBook, OrderBookL3, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Fee, FeeString, Bool, Endpoint } from './base/types.js';
+import type { Balances, Currency, Dict, Int, List, Market, Num, Order, OrderBook, OrderBookL3, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Fee, FeeString, Bool, Endpoint, NullableDict } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -12,7 +12,7 @@ import type { Balances, Currency, Dict, Int, List, Market, Num, Order, OrderBook
  * @augments Exchange
  */
 export default class blockchaincom extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'blockchaincom',
             'secret': undefined,
@@ -871,11 +871,11 @@ export default class blockchaincom extends Exchange {
         const timestamp = this.safeInteger (trade, 'timestamp');
         const datetime = this.iso8601 (timestamp);
         const marketResolved: Market = this.safeMarket (marketId, market, '-');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol', '');
         let fee: FeeString = undefined;
         const feeCostString = this.safeString (trade, 'fee');
         if (feeCostString !== undefined) {
-            const feeCurrency = marketResolved['quote'];
+            const feeCurrency = this.safeString (marketResolved, 'quote', '');
             fee = { 'cost': feeCostString, 'currency': feeCurrency };
         }
         return this.safeTrade ({
@@ -1003,12 +1003,14 @@ export default class blockchaincom extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const state = this.safeString (transaction, 'state');
-        if ('depositId' in transaction) {
+        const depositId = this.safeString (transaction, 'depositId');
+        const withdrawalId = this.safeString (transaction, 'withdrawalId');
+        if (depositId !== undefined) {
             type = 'deposit';
-            id = this.safeString (transaction, 'depositId');
-        } else if ('withdrawalId' in transaction) {
+            id = depositId;
+        } else if (withdrawalId !== undefined) {
             type = 'withdrawal';
-            id = this.safeString (transaction, 'withdrawalId');
+            id = withdrawalId;
         }
         const feeCost = (type === 'withdrawal') ? this.safeNumber (transaction, 'fee') : undefined;
         let fee: Fee = undefined;
@@ -1312,7 +1314,7 @@ export default class blockchaincom extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         // {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
         if (response === undefined) {
             return undefined;
@@ -1325,11 +1327,10 @@ export default class blockchaincom extends Exchange {
         }
         const errorCode = this.safeString (response, 'status');
         const errorMessage = this.safeString (response, 'error');
-        if (code !== undefined) {
-            const feedback = this.id + ' ' + this.json (response);
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
-        }
+        // code is an int: it is never undefined, the guard was dead
+        const feedback = this.id + ' ' + this.json (response);
+        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+        this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
         return undefined;
     }
 }

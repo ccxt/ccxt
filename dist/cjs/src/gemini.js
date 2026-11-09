@@ -887,8 +887,8 @@ class gemini extends gemini$1["default"] {
         }
         const settle = this.safeCurrencyCode(settleId);
         let symbol = base + '/' + quote;
-        if (settleId !== undefined) {
-            symbol = symbol + ':' + settle;
+        if (settle !== undefined) {
+            symbol = base + '/' + quote + ':' + settle;
             swap = true;
             contractSize = tickSize; // always same
             linear = true; // always linear
@@ -1026,13 +1026,13 @@ class gemini extends gemini$1["default"] {
         const tickerPromiseB = this.fetchTickerV2(symbol, params);
         const [tickerA, tickerB] = await Promise.all([tickerPromiseA, tickerPromiseB]);
         return this.deepExtend(tickerA, {
-            'open': tickerB['open'],
-            'high': tickerB['high'],
-            'low': tickerB['low'],
-            'change': tickerB['change'],
-            'percentage': tickerB['percentage'],
-            'average': tickerB['average'],
-            'info': tickerB['info'],
+            'open': this.safeString(tickerB, 'open'),
+            'high': this.safeString(tickerB, 'high'),
+            'low': this.safeString(tickerB, 'low'),
+            'change': this.safeString(tickerB, 'change'),
+            'percentage': this.safeString(tickerB, 'percentage'),
+            'average': this.safeString(tickerB, 'average'),
+            'info': this.safeValue(tickerB, 'info'),
         });
     }
     /**
@@ -1288,7 +1288,7 @@ class gemini extends gemini$1["default"] {
         //
         return this.parseTrades(response, market, since, limit);
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = this.safeDict(response, i);
@@ -1378,7 +1378,7 @@ class gemini extends gemini$1["default"] {
             await this.loadMarkets();
         }
         const response = await this.privatePostV1Balances(params);
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     parseOrder(order, market = undefined) {
         //
@@ -1678,7 +1678,10 @@ class gemini extends gemini$1["default"] {
         const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stop_price', 'stopPrice']);
         // timeInForce and postOnly are consumed only by non-trigger orders
         const omitKeys = ['clientOrderId', 'client_order_id', 'type', 'triggerPrice', 'stop_price', 'stopPrice'];
-        const optionKeys = (triggerPrice === undefined) ? ['timeInForce', 'postOnly'] : [];
+        let optionKeys = [];
+        if (triggerPrice === undefined) {
+            optionKeys = ['timeInForce', 'postOnly'];
+        }
         const paramsOmitted = this.omit(params, this.arrayConcat(omitKeys, optionKeys));
         if (typeValue === 'stopLimit') {
             throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a triggerPrice parameter or a stop_price parameter for ' + typeValue + ' orders');
@@ -2035,12 +2038,12 @@ class gemini extends gemini$1["default"] {
         let headersSigned = undefined;
         if (apiName === 'private') {
             this.checkRequiredCredentials();
-            const apiKey = this.apiKey;
-            if (apiKey.indexOf('account') < 0) {
+            if (this.apiKey.indexOf('account') < 0) {
                 throw new errors.AuthenticationError(this.id + ' sign() requires an account-key, master-keys are not-supported');
             }
             // gemini rejects a nonce that is not greater than the previously used one (InvalidNonce)
-            const nonce = this.incrementingNonce().toString();
+            const nonceValue = this.incrementingNonce();
+            const nonce = this.numberToString(nonceValue);
             const finalUrl = url;
             const request = this.extend({
                 'request': finalUrl,
@@ -2057,7 +2060,7 @@ class gemini extends gemini$1["default"] {
             };
         }
         else {
-            if (Object.keys(query).length > 0) {
+            if (!(this.isEmpty(query))) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -2066,14 +2069,13 @@ class gemini extends gemini$1["default"] {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const fullUrl = apiUrl + url;
-        const headersResolved = (apiName === 'private') ? headersSigned : undefined;
         let bodyResolved = undefined;
         if ((method === 'POST') || (method === 'DELETE')) {
             bodyResolved = this.json(query);
         }
-        return { 'url': fullUrl, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
+        return { 'url': fullUrl, 'method': method, 'body': bodyResolved, 'headers': headersSigned };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             if (typeof body === 'string') {
                 const feedback = this.id + ' ' + body;

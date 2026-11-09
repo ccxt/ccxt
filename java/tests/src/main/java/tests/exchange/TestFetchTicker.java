@@ -13,14 +13,14 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestFetchTicker extends BaseTest {
-    public CompletableFuture<Object> testFetchTicker(BaseExchange exchange, Object skippedProperties, Object symbol)
+    public CompletableFuture<Object> testFetchTicker(BaseExchange exchange, Object skippedProperties, String symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchTicker";
         Object ticker = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTicker", new Object[]{symbol, new HashMap<String, Object>() {{}}})).join();
-        TestTicker.testTicker(exchange, skippedProperties, method, ticker, symbol);
+        TestTicker.testTicker(exchange, skippedProperties, method, ticker, (String) (symbol));
         return true;
         });
 
