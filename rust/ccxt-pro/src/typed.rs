@@ -77,7 +77,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `watchLiquidationsForSymbols`.
     fn watch_liquidations_for_symbols<'a>(&'a mut self, symbols: Vec<String>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Vec<Liquidation>>> + Send + 'a {
-        let __args: Vec<Value> = vec![Value::Arr(std::sync::Arc::new(symbols.into_iter().map(|s| Value::Str(s.into())).collect())), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Arr(std::sync::Arc::new(symbols.into_iter().map(Value::from).collect())), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("watch_liquidations_for_symbols", __args).await?;
             Ok(vec_from_value(&v, Liquidation::from_value))
@@ -93,7 +93,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `watchMyLiquidationsForSymbols`.
     fn watch_my_liquidations_for_symbols<'a>(&'a mut self, symbols: Vec<String>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Vec<Liquidation>>> + Send + 'a {
-        let __args: Vec<Value> = vec![Value::Arr(std::sync::Arc::new(symbols.into_iter().map(|s| Value::Str(s.into())).collect())), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Arr(std::sync::Arc::new(symbols.into_iter().map(Value::from).collect())), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("watch_my_liquidations_for_symbols", __args).await?;
             Ok(vec_from_value(&v, Liquidation::from_value))
@@ -101,7 +101,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `fetchDepositAddresses`.
     fn fetch_deposit_addresses<'a>(&'a mut self, codes: Option<Vec<String>>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Vec<DepositAddress>>> + Send + 'a {
-        let __args: Vec<Value> = vec![match codes { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()];
+        let __args: Vec<Value> = vec![match codes { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_deposit_addresses", __args).await?;
             Ok(vec_from_value(&v, DepositAddress::from_value))
@@ -117,7 +117,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `fetchMarginModes`.
     fn fetch_margin_modes<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<MarginModes>> + Send + 'a {
-        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()];
+        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_margin_modes", __args).await?;
             Ok(dict_from_value(&v, MarginMode::from_value))
@@ -149,7 +149,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `fetchLeverageTiers`.
     fn fetch_leverage_tiers<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<LeverageTiers>> + Send + 'a {
-        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()];
+        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_leverage_tiers", __args).await?;
             Ok(dict_from_value(&v, |row| vec_from_value(&row, LeverageTier::from_value)))
@@ -157,7 +157,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `fetchFundingRates`.
     fn fetch_funding_rates<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<FundingRates>> + Send + 'a {
-        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()];
+        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_funding_rates", __args).await?;
             Ok(dict_from_value(&v, FundingRate::from_value))
@@ -165,7 +165,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `fetchFundingIntervals`.
     fn fetch_funding_intervals<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<FundingRates>> + Send + 'a {
-        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()];
+        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_funding_intervals", __args).await?;
             Ok(dict_from_value(&v, FundingRate::from_value))
@@ -181,7 +181,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `watchFundingRates`.
     fn watch_funding_rates<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<FundingRates>> + Send + 'a {
-        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()];
+        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()];
         async move {
             let v = self.call_raw("watch_funding_rates", __args).await?;
             Ok(dict_from_value(&v, FundingRate::from_value))
@@ -189,7 +189,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `watchFundingRatesForSymbols`.
     fn watch_funding_rates_for_symbols<'a>(&'a mut self, symbols: Vec<String>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<FundingRates>> + Send + 'a {
-        let __args: Vec<Value> = vec![Value::Arr(std::sync::Arc::new(symbols.into_iter().map(|s| Value::Str(s.into())).collect())), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Arr(std::sync::Arc::new(symbols.into_iter().map(Value::from).collect())), params.into().into_value()];
         async move {
             let v = self.call_raw("watch_funding_rates_for_symbols", __args).await?;
             Ok(dict_from_value(&v, FundingRate::from_value))
@@ -229,7 +229,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `fetchLeverages`.
     fn fetch_leverages<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Leverages>> + Send + 'a {
-        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()];
+        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_leverages", __args).await?;
             Ok(dict_from_value(&v, Leverage::from_value))
@@ -301,7 +301,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `fetchOpenInterests`.
     fn fetch_open_interests<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<OpenInterests>> + Send + 'a {
-        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()];
+        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_open_interests", __args).await?;
             Ok(dict_from_value(&v, OpenInterest::from_value))
@@ -360,7 +360,7 @@ pub trait TypedExchangeExt: TypedExchange {
         let __args: Vec<Value> = vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_ohlcv", __args).await?;
-            Ok(match v { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() })
+            Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
         }
     }
     /// Typed `fetchSpotOHLCV`.
@@ -368,7 +368,7 @@ pub trait TypedExchangeExt: TypedExchange {
         let __args: Vec<Value> = vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_spot_ohlcv", __args).await?;
-            Ok(match v { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() })
+            Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
         }
     }
     /// Typed `fetchContractOHLCV`.
@@ -376,7 +376,7 @@ pub trait TypedExchangeExt: TypedExchange {
         let __args: Vec<Value> = vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_contract_ohlcv", __args).await?;
-            Ok(match v { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() })
+            Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
         }
     }
     /// Typed `watchOHLCV`.
@@ -384,7 +384,7 @@ pub trait TypedExchangeExt: TypedExchange {
         let __args: Vec<Value> = vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("watch_ohlcv", __args).await?;
-            Ok(match v { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() })
+            Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
         }
     }
     /// Typed `fetchBorrowInterest`.
@@ -428,8 +428,8 @@ pub trait TypedExchangeExt: TypedExchange {
         }
     }
     /// Typed `fetchPartialBalance`.
-    fn fetch_partial_balance<'a>(&'a mut self, part: Value, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Balances>> + Send + 'a {
-        let __args: Vec<Value> = vec![part, params.into().into_value()];
+    fn fetch_partial_balance<'a>(&'a mut self, part: &str, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Balances>> + Send + 'a {
+        let __args: Vec<Value> = vec![Value::from(part), params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_partial_balance", __args).await?;
             Ok(Balances::from_value(v))
@@ -469,7 +469,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `fetchDepositWithdrawFees`.
     fn fetch_deposit_withdraw_fees<'a>(&'a mut self, codes: Option<Vec<String>>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<DepositWithdrawFees>> + Send + 'a {
-        let __args: Vec<Value> = vec![match codes { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()];
+        let __args: Vec<Value> = vec![match codes { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_deposit_withdraw_fees", __args).await?;
             Ok(dict_from_value(&v, DepositWithdrawFee::from_value))
@@ -501,7 +501,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `fetchSpotTickers`.
     fn fetch_spot_tickers<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Tickers>> + Send + 'a {
-        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()];
+        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_spot_tickers", __args).await?;
             Ok(dict_from_value(&v, Ticker::from_value))
@@ -509,7 +509,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `fetchContractTickers`.
     fn fetch_contract_tickers<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Tickers>> + Send + 'a {
-        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()];
+        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_contract_tickers", __args).await?;
             Ok(dict_from_value(&v, Ticker::from_value))
@@ -517,7 +517,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `fetchOrderBooks`.
     fn fetch_order_books<'a>(&'a mut self, symbols: Option<Vec<String>>, limit: Option<i64>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<OrderBooks>> + Send + 'a {
-        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
+        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_order_books", __args).await?;
             Ok(dict_from_value(&v, OrderBook::from_value))
@@ -573,7 +573,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `fetchPositionsADLRank`.
     fn fetch_positions_adl_rank<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Vec<ADL>>> + Send + 'a {
-        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()];
+        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_positions_adl_rank", __args).await?;
             Ok(vec_from_value(&v, ADL::from_value))
@@ -669,7 +669,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `fetchAllGreeks`.
     fn fetch_all_greeks<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<AllGreeks>> + Send + 'a {
-        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()];
+        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_all_greeks", __args).await?;
             Ok(dict_from_value(&v, Greeks::from_value))
@@ -765,7 +765,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `fetchLastPrices`.
     fn fetch_last_prices<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<LastPrices>> + Send + 'a {
-        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()];
+        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_last_prices", __args).await?;
             Ok(dict_from_value(&v, LastPrice::from_value))
@@ -808,7 +808,7 @@ pub trait TypedExchangeExt: TypedExchange {
         let __args: Vec<Value> = vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_mark_ohlcv", __args).await?;
-            Ok(match v { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() })
+            Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
         }
     }
     /// Typed `fetchIndexOHLCV`.
@@ -816,7 +816,7 @@ pub trait TypedExchangeExt: TypedExchange {
         let __args: Vec<Value> = vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_index_ohlcv", __args).await?;
-            Ok(match v { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() })
+            Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
         }
     }
     /// Typed `fetchPremiumIndexOHLCV`.
@@ -824,7 +824,7 @@ pub trait TypedExchangeExt: TypedExchange {
         let __args: Vec<Value> = vec![Value::from(symbol), timeframe.map(Value::from).unwrap_or(Value::Null), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_premium_index_ohlcv", __args).await?;
-            Ok(match v { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() })
+            Ok(match v { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() })
         }
     }
     /// Typed `fetchTransactions`.
@@ -893,7 +893,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `fetchPositionsHistory`.
     fn fetch_positions_history<'a>(&'a mut self, symbols: Option<Vec<String>>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Vec<Position>>> + Send + 'a {
-        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
+        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_positions_history", __args).await?;
             Ok(vec_from_value(&v, Position::from_value))
@@ -901,7 +901,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `fetchPositionsRisk`.
     fn fetch_positions_risk<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Vec<Position>>> + Send + 'a {
-        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()];
+        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_positions_risk", __args).await?;
             Ok(vec_from_value(&v, Position::from_value))
@@ -925,7 +925,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `watchMyTradesForSymbols`.
     fn watch_my_trades_for_symbols<'a>(&'a mut self, symbols: Vec<String>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Vec<Trade>>> + Send + 'a {
-        let __args: Vec<Value> = vec![Value::Arr(std::sync::Arc::new(symbols.into_iter().map(|s| Value::Str(s.into())).collect())), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Arr(std::sync::Arc::new(symbols.into_iter().map(Value::from).collect())), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("watch_my_trades_for_symbols", __args).await?;
             Ok(vec_from_value(&v, Trade::from_value))
@@ -933,7 +933,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `watchTradesForSymbols`.
     fn watch_trades_for_symbols<'a>(&'a mut self, symbols: Vec<String>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Vec<Trade>>> + Send + 'a {
-        let __args: Vec<Value> = vec![Value::Arr(std::sync::Arc::new(symbols.into_iter().map(|s| Value::Str(s.into())).collect())), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Arr(std::sync::Arc::new(symbols.into_iter().map(Value::from).collect())), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("watch_trades_for_symbols", __args).await?;
             Ok(vec_from_value(&v, Trade::from_value))
@@ -941,7 +941,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `fetchBidsAsks`.
     fn fetch_bids_asks<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Tickers>> + Send + 'a {
-        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()];
+        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_bids_asks", __args).await?;
             Ok(dict_from_value(&v, Ticker::from_value))
@@ -957,7 +957,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `fetchMarkPrices`.
     fn fetch_mark_prices<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Tickers>> + Send + 'a {
-        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()];
+        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_mark_prices", __args).await?;
             Ok(dict_from_value(&v, Ticker::from_value))
@@ -965,7 +965,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `watchBidsAsks`.
     fn watch_bids_asks<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Tickers>> + Send + 'a {
-        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()];
+        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()];
         async move {
             let v = self.call_raw("watch_bids_asks", __args).await?;
             Ok(dict_from_value(&v, Ticker::from_value))
@@ -981,7 +981,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `watchMarkPrices`.
     fn watch_mark_prices<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Tickers>> + Send + 'a {
-        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()];
+        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()];
         async move {
             let v = self.call_raw("watch_mark_prices", __args).await?;
             Ok(dict_from_value(&v, Ticker::from_value))
@@ -997,7 +997,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `watchOrderBookForSymbols`.
     fn watch_order_book_for_symbols<'a>(&'a mut self, symbols: Vec<String>, limit: Option<i64>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<OrderBook>> + Send + 'a {
-        let __args: Vec<Value> = vec![Value::Arr(std::sync::Arc::new(symbols.into_iter().map(|s| Value::Str(s.into())).collect())), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Arr(std::sync::Arc::new(symbols.into_iter().map(Value::from).collect())), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("watch_order_book_for_symbols", __args).await?;
             Ok(OrderBook::from_value(v))
@@ -1005,7 +1005,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `watchOrdersForSymbols`.
     fn watch_orders_for_symbols<'a>(&'a mut self, symbols: Vec<String>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Vec<Order>>> + Send + 'a {
-        let __args: Vec<Value> = vec![Value::Arr(std::sync::Arc::new(symbols.into_iter().map(|s| Value::Str(s.into())).collect())), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Arr(std::sync::Arc::new(symbols.into_iter().map(Value::from).collect())), since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("watch_orders_for_symbols", __args).await?;
             Ok(vec_from_value(&v, Order::from_value))
@@ -1101,7 +1101,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `watchPositions`.
     fn watch_positions<'a>(&'a mut self, symbols: Option<Vec<String>>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Vec<Position>>> + Send + 'a {
-        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
+        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("watch_positions", __args).await?;
             Ok(vec_from_value(&v, Position::from_value))
@@ -1109,7 +1109,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `watchPositionForSymbols`.
     fn watch_position_for_symbols<'a>(&'a mut self, symbols: Option<Vec<String>>, since: Option<i64>, limit: Option<i64>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Vec<Position>>> + Send + 'a {
-        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
+        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, since.map(Value::Int).unwrap_or(Value::Null), limit.map(Value::Int).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("watch_position_for_symbols", __args).await?;
             Ok(vec_from_value(&v, Position::from_value))
@@ -1117,7 +1117,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `fetchPositions`.
     fn fetch_positions<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Vec<Position>>> + Send + 'a {
-        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()];
+        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_positions", __args).await?;
             Ok(vec_from_value(&v, Position::from_value))
@@ -1141,7 +1141,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `fetchTickers`.
     fn fetch_tickers<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Tickers>> + Send + 'a {
-        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()];
+        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()];
         async move {
             let v = self.call_raw("fetch_tickers", __args).await?;
             Ok(dict_from_value(&v, Ticker::from_value))
@@ -1149,7 +1149,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `watchTickers`.
     fn watch_tickers<'a>(&'a mut self, symbols: Option<Vec<String>>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Tickers>> + Send + 'a {
-        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }, params.into().into_value()];
+        let __args: Vec<Value> = vec![match symbols { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }, params.into().into_value()];
         async move {
             let v = self.call_raw("watch_tickers", __args).await?;
             Ok(dict_from_value(&v, Ticker::from_value))
@@ -1293,7 +1293,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `cancelOrders`.
     fn cancel_orders<'a>(&'a mut self, ids: Vec<String>, symbol: Option<&str>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Vec<Order>>> + Send + 'a {
-        let __args: Vec<Value> = vec![Value::Arr(std::sync::Arc::new(ids.into_iter().map(|s| Value::Str(s.into())).collect())), symbol.map(Value::from).unwrap_or(Value::Null), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Arr(std::sync::Arc::new(ids.into_iter().map(Value::from).collect())), symbol.map(Value::from).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("cancel_orders", __args).await?;
             Ok(vec_from_value(&v, Order::from_value))
@@ -1301,7 +1301,7 @@ pub trait TypedExchangeExt: TypedExchange {
     }
     /// Typed `cancelOrdersWithClientOrderIds`.
     fn cancel_orders_with_client_order_ids<'a>(&'a mut self, client_order_ids: Vec<String>, symbol: Option<&str>, params: impl Into<Params>) -> impl ::std::future::Future<Output = crate::Result<Vec<Order>>> + Send + 'a {
-        let __args: Vec<Value> = vec![Value::Arr(std::sync::Arc::new(client_order_ids.into_iter().map(|s| Value::Str(s.into())).collect())), symbol.map(Value::from).unwrap_or(Value::Null), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::Arr(std::sync::Arc::new(client_order_ids.into_iter().map(Value::from).collect())), symbol.map(Value::from).unwrap_or(Value::Null), params.into().into_value()];
         async move {
             let v = self.call_raw("cancel_orders_with_client_order_ids", __args).await?;
             Ok(vec_from_value(&v, Order::from_value))
@@ -1534,8 +1534,6 @@ pub use crate::pro_typed::bybit_typed::Bybit;
 pub use crate::pro_typed::bybiteu_typed::Bybiteu;
 #[cfg(feature = "bybitid")]
 pub use crate::pro_typed::bybitid_typed::Bybitid;
-#[cfg(feature = "bydfi")]
-pub use crate::pro_typed::bydfi_typed::Bydfi;
 #[cfg(feature = "cex")]
 pub use crate::pro_typed::cex_typed::Cex;
 #[cfg(feature = "coinbase")]
@@ -1693,8 +1691,6 @@ pub fn from_id(id: &str, config: Option<crate::Value>) -> Option<Box<dyn TypedEx
         "bybiteu" => Some(Box::new(Bybiteu::new(config))),
         #[cfg(feature = "bybitid")]
         "bybitid" => Some(Box::new(Bybitid::new(config))),
-        #[cfg(feature = "bydfi")]
-        "bydfi" => Some(Box::new(Bydfi::new(config))),
         #[cfg(feature = "cex")]
         "cex" => Some(Box::new(Cex::new(config))),
         #[cfg(feature = "coinbase")]

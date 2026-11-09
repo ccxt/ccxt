@@ -13,7 +13,7 @@ func newBinanceus() *Binanceus {
 	return p
 }
 
-func (this *Binanceus) Describe() any {
+func (this *Binanceus) Describe() map[string]any {
 	return this.DeepExtend(this.Binance.Describe(), map[string]any{
 		"id":        "binanceus",
 		"name":      "Binance US",

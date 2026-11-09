@@ -356,9 +356,9 @@ public class FmfwioApi extends Hitbtc
      * Calls the privateGetSpotBalance endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public CompletableFuture<Map<String, Object>>  privateGetSpotBalance (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetSpotBalance (Object... optionalArgs)
     {
         return this.callAsync ("privateGetSpotBalance", optionalArgs);
     }
@@ -565,9 +565,9 @@ public class FmfwioApi extends Hitbtc
      * Calls the privateGetFuturesBalance endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public CompletableFuture<Map<String, Object>>  privateGetFuturesBalance (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetFuturesBalance (Object... optionalArgs)
     {
         return this.callAsync ("privateGetFuturesBalance", optionalArgs);
     }
@@ -719,9 +719,9 @@ public class FmfwioApi extends Hitbtc
      * Calls the privateGetWalletBalance endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public CompletableFuture<Map<String, Object>>  privateGetWalletBalance (Object... optionalArgs)
+    public CompletableFuture<List<Object>>  privateGetWalletBalance (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWalletBalance", optionalArgs);
     }

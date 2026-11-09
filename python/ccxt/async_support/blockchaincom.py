@@ -17,7 +17,7 @@ from ccxt.base.precise import Precise
 
 class blockchaincom(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(blockchaincom, self).describe(), {
             'id': 'blockchaincom',
             'secret': None,
@@ -833,11 +833,11 @@ class blockchaincom(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(trade, 'timestamp')
         datetime = self.iso8601(timestamp)
         marketResolved = self.safe_market(marketId, market, '-')
-        symbol = marketResolved['symbol']
+        symbol = self.safe_string(marketResolved, 'symbol', '')
         fee = None
         feeCostString = self.safe_string(trade, 'fee')
         if feeCostString is not None:
-            feeCurrency = marketResolved['quote']
+            feeCurrency = self.safe_string(marketResolved, 'quote', '')
             fee = {'cost': feeCostString, 'currency': feeCurrency}
         return self.safe_trade({
             'id': tradeId,
@@ -955,12 +955,14 @@ class blockchaincom(Exchange, ImplicitAPI):
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
         state = self.safe_string(transaction, 'state')
-        if 'depositId' in transaction:
+        depositId = self.safe_string(transaction, 'depositId')
+        withdrawalId = self.safe_string(transaction, 'withdrawalId')
+        if depositId is not None:
             type = 'deposit'
-            id = self.safe_string(transaction, 'depositId')
-        elif 'withdrawalId' in transaction:
+            id = depositId
+        elif withdrawalId is not None:
             type = 'withdrawal'
-            id = self.safe_string(transaction, 'withdrawalId')
+            id = withdrawalId
         feeCost = self.safe_number(transaction, 'fee') if (type == 'withdrawal') else None
         fee = None
         if feeCost is not None:
@@ -1233,7 +1235,7 @@ class blockchaincom(Exchange, ImplicitAPI):
                 privateHeaders['Content-Type'] = 'application/json'
         return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         # {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
         if response is None:
             return None
@@ -1243,8 +1245,8 @@ class blockchaincom(Exchange, ImplicitAPI):
                 raise InsufficientFunds(self.id + ' ' + body)
         errorCode = self.safe_string(response, 'status')
         errorMessage = self.safe_string(response, 'error')
-        if code is not None:
-            feedback = self.id + ' ' + self.json(response)
-            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
-            self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
+        # code is an int: it is never undefined, the guard was dead
+        feedback = self.id + ' ' + self.json(response)
+        self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+        self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
         return None

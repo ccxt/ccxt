@@ -81,7 +81,6 @@ import bullish from  './src/bullish.js'
 import bybit from  './src/bybit.js'
 import bybiteu from  './src/bybiteu.js'
 import bybitid from  './src/bybitid.js'
-import bydfi from  './src/bydfi.js'
 import cex from  './src/cex.js'
 import coinbase from  './src/coinbase.js'
 import coinbaseexchange from  './src/coinbaseexchange.js'
@@ -177,7 +176,6 @@ import bullishPro from  './src/pro/bullish.js'
 import bybitPro from  './src/pro/bybit.js'
 import bybiteuPro from  './src/pro/bybiteu.js'
 import bybitidPro from  './src/pro/bybitid.js'
-import bydfiPro from  './src/pro/bydfi.js'
 import cexPro from  './src/pro/cex.js'
 import coinbasePro from  './src/pro/coinbase.js'
 import coinbaseexchangePro from  './src/pro/coinbaseexchange.js'
@@ -276,7 +274,6 @@ const exchanges = {
     'bybit':                  bybit,
     'bybiteu':                bybiteu,
     'bybitid':                bybitid,
-    'bydfi':                  bydfi,
     'cex':                    cex,
     'coinbase':               coinbase,
     'coinbaseexchange':       coinbaseexchange,
@@ -372,7 +369,6 @@ const pro = {
     'bybit':                  bybitPro,
     'bybiteu':                bybiteuPro,
     'bybitid':                bybitidPro,
-    'bydfi':                  bydfiPro,
     'cex':                    cexPro,
     'coinbase':               coinbasePro,
     'coinbaseexchange':       coinbaseexchangePro,
@@ -651,7 +647,6 @@ export {
     bybit,
     bybiteu,
     bybitid,
-    bydfi,
     cex,
     coinbase,
     coinbaseexchange,
