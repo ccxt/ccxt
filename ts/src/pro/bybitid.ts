@@ -3,11 +3,12 @@
 
 import bybit from '../abstract/pro/bybitid.js';
 import bybitidRest from '../bybitid.js';
+import type { Dict } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
 export default class bybitid extends bybit {
-    override describe (): any {
+    override describe (): Dict {
         // eslint-disable-next-line new-cap
         const restInstance = new bybitidRest ();
         const restDescribe = restInstance.describe ();

@@ -14,7 +14,7 @@ import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress,
  * @augments Exchange
  */
 export default class foxbit extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'foxbit',
             'name': 'Foxbit',
@@ -1023,7 +1023,7 @@ export default class foxbit extends Exchange {
             const order = this.safeDict (orders, i);
             const symbol = this.safeString (order, 'symbol');
             const market = this.market (symbol);
-            const type = this.safeStringUpper (order, 'type');
+            const type = this.safeStringUpper (order, 'type', '');
             const orderParams = this.safeDict (order, 'params', {});
             if (type !== 'LIMIT' && type !== 'MARKET' && type !== 'STOP_MARKET' && type !== 'STOP_LIMIT' && type !== 'INSTANT') {
                 throw new InvalidOrder ('Invalid order type: ' + type + '. Must be one of: limit, market, stop_market, stop_limit, instant.');
@@ -1541,31 +1541,32 @@ export default class foxbit extends Exchange {
         }
         const market = this.market (symbol);
         this.checkRequiredArgument ('editOrder', side, 'side');
+        const createRequest: Dict = {
+            'type': typeValue,
+            'side': side.toUpperCase (),
+            'market_symbol': market['id'],
+        };
+        if (typeValue === 'LIMIT' || typeValue === 'MARKET') {
+            createRequest['quantity'] = this.amountToPrecision (symbol, amount);
+            if (typeValue === 'LIMIT') {
+                createRequest['price'] = this.priceToPrecision (symbol, price);
+            }
+        }
+        if (typeValue === 'STOP_MARKET') {
+            createRequest['stop_price'] = this.priceToPrecision (symbol, price);
+            createRequest['quantity'] = this.amountToPrecision (symbol, amount);
+        }
+        if (typeValue === 'INSTANT') {
+            createRequest['amount'] = this.priceToPrecision (symbol, amount);
+        }
         const request: Dict = {
             'mode': 'ALLOW_FAILURE',
             'cancel': {
                 'type': 'ID',
                 'id': this.parseNumber (id),
             },
-            'create': {
-                'type': typeValue,
-                'side': side.toUpperCase (),
-                'market_symbol': market['id'],
-            },
+            'create': createRequest,
         };
-        if (typeValue === 'LIMIT' || typeValue === 'MARKET') {
-            request['create']['quantity'] = this.amountToPrecision (symbol, amount);
-            if (typeValue === 'LIMIT') {
-                request['create']['price'] = this.priceToPrecision (symbol, price);
-            }
-        }
-        if (typeValue === 'STOP_MARKET') {
-            request['create']['stop_price'] = this.priceToPrecision (symbol, price);
-            request['create']['quantity'] = this.amountToPrecision (symbol, amount);
-        }
-        if (typeValue === 'INSTANT') {
-            request['create']['amount'] = this.priceToPrecision (symbol, amount);
-        }
         const response = await this.v3PrivatePostOrdersCancelReplace (this.extend (request, params));
         // {
         //     "cancel": {
@@ -1832,10 +1833,10 @@ export default class foxbit extends Exchange {
     override parseOrder (order: Dict, market: Market = undefined): Order {
         let symbol = this.safeString (order, 'market_symbol');
         let marketResolved: Market = market;
-        if ((market === undefined) && (symbol !== undefined)) {
+        if (market !== undefined) {
+            symbol = this.safeString (market, 'symbol');
+        } else if (symbol !== undefined) {
             marketResolved = this.market (symbol);
-        }
-        if (marketResolved !== undefined) {
             symbol = this.safeString (marketResolved, 'symbol');
         }
         const timestamp = this.parseDate (this.safeString (order, 'created_at'));
@@ -1929,7 +1930,7 @@ export default class foxbit extends Exchange {
         const address = this.safeString2 (cryptoDetails, 'receiving_address', 'destination_address');
         const sn = this.safeString (transaction, 'sn');
         let type = 'withdrawal';
-        if (sn !== undefined && sn[0] === 'D') {
+        if (sn !== undefined && sn.startsWith ('D')) {
             type = 'deposit';
         }
         const fee = this.safeString (transaction, 'fee', '0');
@@ -2097,34 +2098,34 @@ export default class foxbit extends Exchange {
         };
         if (urlPath === 'private') {
             this.checkRequiredCredentials ();
-            const preHash = this.numberToString (timestamp) + method + fullPath + signatureQuery + bodyToSignature;
+            const preHash = timestamp.toString () + method + fullPath + signatureQuery + bodyToSignature;
             const signature = this.hmac (this.encode (preHash), this.encode (this.secret), sha256, 'hex');
             headersValue['X-FB-ACCESS-KEY'] = this.apiKey;
-            headersValue['X-FB-ACCESS-TIMESTAMP'] = this.numberToString (timestamp);
+            headersValue['X-FB-ACCESS-TIMESTAMP'] = timestamp.toString ();
             headersValue['X-FB-ACCESS-SIGNATURE'] = signature;
         }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': headersValue };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined;
         }
         const error = this.safeDict (response, 'error');
-        const code = this.safeString (error, 'code');
+        const codeError = this.safeString (error, 'code');
         const details = this.safeList (error, 'details');
-        const message = this.safeString (error, 'message');
+        const message = this.safeString (error, 'message', '');
         let detailsString = '';
         if (details !== undefined) {
             for (let i = 0; i < details.length; i++) {
-                detailsString = detailsString + details[i] + ' ';
+                detailsString = detailsString + this.safeString (details, i, '') + ' ';
             }
         }
         if (error !== undefined) {
             const feedback = this.id + ' ' + message + ' details: ' + detailsString;
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], detailsString, feedback);
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], codeError, feedback);
             throw new ExchangeError (feedback);
         }
         return undefined;

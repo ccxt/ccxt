@@ -9,7 +9,7 @@ from ccxt.abstract.binanceus import ImplicitAPI
 
 class binanceus(binance, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(binanceus, self).describe(), {
             'id': 'binanceus',
             'name': 'Binance US',

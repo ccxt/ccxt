@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\async\abstract\gateeu as gate;
 
 class gateeu extends gate {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'gateeu',
             'name' => 'Gate EU',

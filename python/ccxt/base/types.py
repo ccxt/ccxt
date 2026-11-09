@@ -474,15 +474,15 @@ class MarketInterface(TypedDict):
     active: Bool
     type: Str
     subType: Str
-    spot: Bool
+    spot: bool
     margin: Bool
-    swap: Bool
-    future: Bool
-    option: Bool
+    swap: bool
+    future: bool
+    option: bool
     index: Bool
     stock: Bool
     prediction: Bool
-    contract: Bool
+    contract: bool
     settle: Str
     settleId: Str
     contractSize: Num

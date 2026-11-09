@@ -10,7 +10,7 @@ import ccxt.async_support.binancecoinm as binancecoinmRest
 
 class binancecoinm(binance):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         # eslint-disable-next-line new-cap
         restInstance = binancecoinmRest()
         restDescribe = restInstance.describe()

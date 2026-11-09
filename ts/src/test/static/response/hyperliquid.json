@@ -13,6 +13,38 @@
         }
     },
     "methods": {
+        "fetchSpotMarkets": [
+            {
+                "description": "pairs find their tokens by index, not by place in the list (index 2 is missing)",
+                "method": "fetchSpotMarkets",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "tokens": [
+                            { "name": "USDC", "szDecimals": 8, "weiDecimals": 8, "index": 0, "tokenId": "0x6d1e7cde53ba9467b783cb7c530ce054", "isCanonical": true },
+                            { "name": "PURR", "szDecimals": 0, "weiDecimals": 5, "index": 1, "tokenId": "0xc1fb593aeffbeb02f85e0308e9956a90", "isCanonical": true },
+                            { "name": "AAA", "szDecimals": 1, "weiDecimals": 8, "index": 3, "tokenId": "0x0000000000000000000000000000000a", "isCanonical": false },
+                            { "name": "BBB", "szDecimals": 2, "weiDecimals": 8, "index": 4, "tokenId": "0x0000000000000000000000000000000b", "isCanonical": false }
+                        ],
+                        "universe": [
+                            { "tokens": [ 1, 0 ], "name": "PURR/USDC", "index": 0, "isCanonical": true },
+                            { "tokens": [ 3, 0 ], "name": "@1", "index": 1, "isCanonical": false },
+                            { "tokens": [ 4, 0 ], "name": "@2", "index": 2, "isCanonical": false }
+                        ]
+                    },
+                    [
+                        { "prevDayPx": "0.2", "dayNtlVlm": "1000.0", "markPx": "0.2", "midPx": "0.2", "circulatingSupply": "1.0", "coin": "PURR/USDC" },
+                        { "prevDayPx": "1.5", "dayNtlVlm": "1000.0", "markPx": "1.5", "midPx": "1.5", "circulatingSupply": "1.0", "coin": "@1" },
+                        { "prevDayPx": "2.25", "dayNtlVlm": "1000.0", "markPx": "2.25", "midPx": "2.25", "circulatingSupply": "1.0", "coin": "@2" }
+                    ]
+                ],
+                "parsedResponse": [
+                    {"id": "PURR/USDC", "lowercaseId": null, "symbol": "PURR/USDC", "base": "PURR", "quote": "USDC", "settle": null, "baseId": "10000", "quoteId": "USDC", "settleId": null, "type": "spot", "spot": true, "margin": null, "swap": false, "future": false, "option": false, "index": false, "active": true, "contract": false, "linear": null, "inverse": null, "subType": null, "taker": 0.0007, "maker": 0.0004, "contractSize": null, "expiry": null, "expiryDatetime": null, "strike": null, "optionType": null, "precision": {"amount": 1, "price": 1e-05}, "limits": {"leverage": {"min": null, "max": null}, "amount": {"min": null, "max": null}, "price": {"min": null, "max": null}, "cost": {"min": 10, "max": null}}, "marginModes": {"cross": null, "isolated": null}, "created": null, "info": {"prevDayPx": "0.2", "dayNtlVlm": "1000.0", "markPx": "0.2", "midPx": "0.2", "circulatingSupply": "1.0", "coin": "PURR/USDC", "tokens": [1, 0], "name": "PURR/USDC", "index": 0, "isCanonical": true}, "baseName": "PURR"},
+                    {"id": "@1", "lowercaseId": null, "symbol": "AAA/USDC", "base": "AAA", "quote": "USDC", "settle": null, "baseId": "10001", "quoteId": "USDC", "settleId": null, "type": "spot", "spot": true, "margin": null, "swap": false, "future": false, "option": false, "index": false, "active": true, "contract": false, "linear": null, "inverse": null, "subType": null, "taker": 0.0007, "maker": 0.0004, "contractSize": null, "expiry": null, "expiryDatetime": null, "strike": null, "optionType": null, "precision": {"amount": 0.1, "price": 0.0001}, "limits": {"leverage": {"min": null, "max": null}, "amount": {"min": null, "max": null}, "price": {"min": null, "max": null}, "cost": {"min": 10, "max": null}}, "marginModes": {"cross": null, "isolated": null}, "created": null, "info": {"prevDayPx": "1.5", "dayNtlVlm": "1000.0", "markPx": "1.5", "midPx": "1.5", "circulatingSupply": "1.0", "coin": "@1", "tokens": [3, 0], "name": "@1", "index": 1, "isCanonical": false}, "baseName": "AAA"},
+                    {"id": "@2", "lowercaseId": null, "symbol": "BBB/USDC", "base": "BBB", "quote": "USDC", "settle": null, "baseId": "10002", "quoteId": "USDC", "settleId": null, "type": "spot", "spot": true, "margin": null, "swap": false, "future": false, "option": false, "index": false, "active": true, "contract": false, "linear": null, "inverse": null, "subType": null, "taker": 0.0007, "maker": 0.0004, "contractSize": null, "expiry": null, "expiryDatetime": null, "strike": null, "optionType": null, "precision": {"amount": 0.01, "price": 0.0001}, "limits": {"leverage": {"min": null, "max": null}, "amount": {"min": null, "max": null}, "price": {"min": null, "max": null}, "cost": {"min": 10, "max": null}}, "marginModes": {"cross": null, "isolated": null}, "created": null, "info": {"prevDayPx": "2.25", "dayNtlVlm": "1000.0", "markPx": "2.25", "midPx": "2.25", "circulatingSupply": "1.0", "coin": "@2", "tokens": [4, 0], "name": "@2", "index": 2, "isCanonical": false}, "baseName": "BBB"}
+                ]
+            }
+        ],
         "fetchMyLiquidations": [
             {
                 "description": "fetchMyLiquidations skips non-liquidation fills",

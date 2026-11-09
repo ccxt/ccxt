@@ -100,10 +100,9 @@ enables or disables demo trading mode, if enabled will send PAPTRADING=1 in head
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
 
-
 | Param |
 | --- |
-| enabled | 
+| enabled |
 
 
 ```javascript
@@ -118,10 +117,9 @@ enables or disables demo trading mode, if enabled will send PAPTRADING=1 in head
 
 **Kind**: instance method of [<code>bitget</code>](#bitget)  
 
-
 | Param |
 | --- |
-| enabled | 
+| enabled |
 
 
 ```javascript
@@ -2094,7 +2092,6 @@ bitget.fetchLongShortRatioHistory (symbol, timeframe?, since?, limit?, params?)
 
 ### bitget{docsify-ignore}
 watching delivery future markets is not yet implemented (perpertual future & swap is implemented)
-
 
 
 ```javascript
