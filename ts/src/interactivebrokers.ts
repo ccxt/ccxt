@@ -1356,15 +1356,18 @@ export default class interactivebrokers extends Exchange {
 
     async secdefEnpointCall (secdefRequest: Dict) {
         const retries = this.safeInteger (this.options['fetchMarkets'], 'endpointRetries', 3);
+        const lastRetryIndex = retries - 1;
         for (let i = 0; i < retries; i++) {
+            const isLastRetry = (i >= lastRetryIndex);
             try {
                 return await this.webapiGetV1ApiTrsrvSecdef (secdefRequest);
             } catch (e) {
-                if (i === retries - 1) {
+                if (isLastRetry) {
                     throw e;
                 }
             }
         }
+        return undefined;
     }
 
     async fetchWithDetails (plainEntries: Dict) {
