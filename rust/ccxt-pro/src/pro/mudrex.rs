@@ -368,8 +368,8 @@ impl Mudrex {
         if (symbolsNormalized != Value::Null) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_499: bool = true;
-                while { if !__for_first_499 { i += 1; } __for_first_499 = false; i < (symbolsNormalized.len() as i64) } {
+                let mut __for_first_501: bool = true;
+                while { if !__for_first_501 { i += 1; } __for_first_501 = false; i < (symbolsNormalized.len() as i64) } {
                 let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
                 if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
                 let mut baseIdString: Value = self.safe_string_k(market.clone(), "baseId", &[Value::Str("".into())]);
@@ -543,8 +543,8 @@ impl Mudrex {
         let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_500: bool = true;
-            while { if !__for_first_500 { i += 1; } __for_first_500 = false; i < (data.len() as i64) } {
+            let mut __for_first_502: bool = true;
+            while { if !__for_first_502 { i += 1; } __for_first_502 = false; i < (data.len() as i64) } {
             let mut t: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut s: Option<String> = self.safe_string_k_opt(t.clone(), "s", &[]);
             if (s.is_none()) {

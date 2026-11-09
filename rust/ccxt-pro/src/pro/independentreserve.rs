@@ -531,8 +531,8 @@ impl Independentreserve {
             let mut payload: Value = Value::Str("".into());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_412: bool = true;
-                while { if !__for_first_412 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_412 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
+                let mut __for_first_414: bool = true;
+                while { if !__for_first_414 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_414 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
                 if i.as_f64().unwrap_or(f64::NAN) < bidsLength.as_f64().unwrap_or(f64::NAN) {
                     payload = Value::Str(format!("{}{}", Value::Str(format!("{}{}", payload, self.value_to_checksum(self.safe_number(get_value(&storedBids, &i), Value::Int(0), &[]))).into()), self.value_to_checksum(self.safe_number(get_value(&storedBids, &i), Value::Int(1), &[]))).into());
                 }
@@ -540,8 +540,8 @@ impl Independentreserve {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_413: bool = true;
-                while { if !__for_first_413 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_413 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
+                let mut __for_first_415: bool = true;
+                while { if !__for_first_415 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_415 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
                 if i.as_f64().unwrap_or(f64::NAN) < asksLength.as_f64().unwrap_or(f64::NAN) {
                     payload = Value::Str(format!("{}{}", Value::Str(format!("{}{}", payload, self.value_to_checksum(self.safe_number(get_value(&storedAsks, &i), Value::Int(0), &[]))).into()), self.value_to_checksum(self.safe_number(get_value(&storedAsks, &i), Value::Int(1), &[]))).into());
                 }
@@ -586,8 +586,8 @@ impl Independentreserve {
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_414: bool = true;
-            while { if !__for_first_414 { i += 1; } __for_first_414 = false; i < (deltas.len() as i64) } {
+            let mut __for_first_416: bool = true;
+            while { if !__for_first_416 { i += 1; } __for_first_416 = false; i < (deltas.len() as i64) } {
             self.handle_delta(bookside.clone(), deltas.get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }

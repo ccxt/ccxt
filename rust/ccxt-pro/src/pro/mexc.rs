@@ -666,8 +666,8 @@ impl Mexc {
         let mut result: Vec<Value> = vec![];
         {
                         let mut i: i64 = 0;
-            let mut __for_first_483: bool = true;
-            while { if !__for_first_483 { i += 1; } __for_first_483 = false; i < (data.len() as i64) } {
+            let mut __for_first_485: bool = true;
+            while { if !__for_first_485 { i += 1; } __for_first_485 = false; i < (data.len() as i64) } {
             let mut entry: Value = data.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut ticker: Value = Value::Null;
             if (isSpot.as_bool() == Some(true)) {
@@ -791,8 +791,8 @@ impl Mexc {
         let mut topics: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_484: bool = true;
-            while { if !__for_first_484 { i += 1; } __for_first_484 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_486: bool = true;
+            while { if !__for_first_486 { i += 1; } __for_first_486 = false; i < (symbolsNormalized.len() as i64) } {
             if isSpot {
                 let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
                 topics.push(Value::Str(format!("{}{}", Value::Str("spot@public.aggre.bookTicker.v3.api.pb@100ms@".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()));
@@ -1310,8 +1310,8 @@ impl Mexc {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_485: bool = true;
-            while { if !__for_first_485 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_485 = false; i.as_f64().unwrap_or(f64::NAN) < ((cache.len() as i64) as f64) } {
+            let mut __for_first_487: bool = true;
+            while { if !__for_first_487 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_487 = false; i.as_f64().unwrap_or(f64::NAN) < ((cache.len() as i64) as f64) } {
             let mut delta: Value = self.safe_dict(cache.clone(), i.clone(), &[]);
             let mut deltaNonce: Value = self.safe_integer_n(delta, Value::from(vec![Value::Str("r".into()), Value::Str("version".into()), Value::Str("fromVersion".into())]), &[]);
             if (deltaNonce == Value::Null) {
@@ -1443,8 +1443,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let bidasks = bidasks.as_array().unwrap_or(&__bidasks_empty);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_486: bool = true;
-            while { if !__for_first_486 { i += 1; } __for_first_486 = false; i < (bidasks.len() as i64) } {
+            let mut __for_first_488: bool = true;
+            while { if !__for_first_488 { i += 1; } __for_first_488 = false; i < (bidasks.len() as i64) } {
             let mut bidask: Value = bidasks.get(i as usize).cloned().unwrap_or(Value::Null);
             if (matches!(&bidask, Value::Arr(_))) {
                 bookside.store_array(bidask.clone());
@@ -1596,8 +1596,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         {
                         let mut j: i64 = 0;
-            let mut __for_first_487: bool = true;
-            while { if !__for_first_487 { j += 1; } __for_first_487 = false; j < (trades.len() as i64) } {
+            let mut __for_first_489: bool = true;
+            while { if !__for_first_489 { j += 1; } __for_first_489 = false; j < (trades.len() as i64) } {
             let mut parsedTrade: Value = Value::Null;
             if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 parsedTrade = self.parse_ws_trade(trades.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
@@ -2505,8 +2505,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut topics: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_488: bool = true;
-            while { if !__for_first_488 { i += 1; } __for_first_488 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_490: bool = true;
+            while { if !__for_first_490 { i += 1; } __for_first_490 = false; i < (symbolsNormalized.len() as i64) } {
             if isSpot {
                 let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
                 topics.push(Value::Str(format!("{}{}", Value::Str("spot@public.aggre.bookTicker.v3.api.pb@100ms@".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()));
@@ -2688,8 +2688,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn handle_unsubscriptions(&mut self, mut client: Value, mut messageHashes: Value) {
         {
                         let mut i: i64 = 0;
-            let mut __for_first_490: bool = true;
-            while { if !__for_first_490 { i += 1; } __for_first_490 = false; i < (messageHashes.len() as i64) } {
+            let mut __for_first_492: bool = true;
+            while { if !__for_first_492 { i += 1; } __for_first_492 = false; i < (messageHashes.len() as i64) } {
             let mut messageHash: Value = self.safe_string(messageHashes.clone(), Value::Int(i), &[Value::Str("".into())]);
             let mut subMessageHash: Value = messageHash.as_str().map(|__s| Value::Str(__s.replace("unsubscribe:", "").into())).unwrap_or_else(|| messageHash.clone());
             self.clean_unsubscription(client.clone(), subMessageHash, messageHash.clone(), &[]);
@@ -2700,8 +2700,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut symbols: Vec<Value> = Value::Array(self.tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                     {
                                                 let mut j: i64 = 0;
-                        let mut __for_first_489: bool = true;
-                        while { if !__for_first_489 { j += 1; } __for_first_489 = false; j < (symbols.len() as i64) } {
+                        let mut __for_first_491: bool = true;
+                        while { if !__for_first_491 { j += 1; } __for_first_491 = false; j < (symbols.len() as i64) } {
                         if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &symbols.get(j as usize).cloned().unwrap_or(Value::Null)) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
                     }
                     }
@@ -2864,8 +2864,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             let mut rejected: bool = false;
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_491: bool = true;
-                while { if !__for_first_491 { i += 1; } __for_first_491 = false; i < (subscriptionHashes.len() as i64) } {
+                let mut __for_first_493: bool = true;
+                while { if !__for_first_493 { i += 1; } __for_first_493 = false; i < (subscriptionHashes.len() as i64) } {
                 let mut subscriptionHash: Value = subscriptionHashes.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut subscribedChannel: Option<String> = self.safe_string_opt(__ch.get_subscription(&subscriptionHash), Value::Str("channel".into()), &[]);
                 if (subscribedChannel.is_some()) && ((match (&(msg), &(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".into()), subscribedChannel.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("]".into())).into()))) { (Value::Arr(__a), __nd) => Value::Int(__a.iter().position(|__it| match (__it, __nd) { (Value::Null,

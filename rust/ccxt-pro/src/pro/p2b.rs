@@ -466,8 +466,8 @@ impl P2b {
         let mut args: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_567: bool = true;
-            while { if !__for_first_567 { i += 1; } __for_first_567 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_569: bool = true;
+            while { if !__for_first_569 { i += 1; } __for_first_569 = false; i < (symbolsNormalized.len() as i64) } {
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", nameOption, Value::Str("::".into())).into()), self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())])).into())); }
             args.push(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -549,8 +549,8 @@ impl P2b {
         if (symbolsNormalized != Value::Null) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_568: bool = true;
-                while { if !__for_first_568 { i += 1; } __for_first_568 = false; i < (symbolsNormalized.len() as i64) } {
+                let mut __for_first_570: bool = true;
+                while { if !__for_first_570 { i += 1; } __for_first_570 = false; i < (symbolsNormalized.len() as i64) } {
                 if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("deals::".into()), symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into())); }
             }
             }
@@ -707,8 +707,8 @@ impl P2b {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_569: bool = true;
-            while { if !__for_first_569 { i += 1; } __for_first_569 = false; i < (trades.len() as i64) } {
+            let mut __for_first_571: bool = true;
+            while { if !__for_first_571 { i += 1; } __for_first_571 = false; i < (trades.len() as i64) } {
             let mut item: Value = trades.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut trade: Value = self.parse_trade(item, &[market.clone()]);
             tradesArray.append(trade);
@@ -844,8 +844,8 @@ impl P2b {
         if (bids != Value::Null) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_570: bool = true;
-                while { if !__for_first_570 { i += 1; } __for_first_570 = false; i < (bids.len() as i64) } {
+                let mut __for_first_572: bool = true;
+                while { if !__for_first_572 { i += 1; } __for_first_572 = false; i < (bids.len() as i64) } {
                 let mut bid: Value = self.safe_list(bids.clone(), Value::Int(i), &[]);
                 let mut price: Value = self.safe_number(bid.clone(), Value::Int(0), &[]);
                 let mut amount: Value = self.safe_number(bid, Value::Int(1), &[]);
@@ -857,8 +857,8 @@ impl P2b {
         if (asks != Value::Null) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_571: bool = true;
-                while { if !__for_first_571 { i += 1; } __for_first_571 = false; i < (asks.len() as i64) } {
+                let mut __for_first_573: bool = true;
+                while { if !__for_first_573 { i += 1; } __for_first_573 = false; i < (asks.len() as i64) } {
                 let mut ask: Value = self.safe_list(asks.clone(), Value::Int(i), &[]);
                 let mut price: Value = self.safe_number(ask.clone(), Value::Int(0), &[]);
                 let mut amount: Value = self.safe_number(ask, Value::Int(1), &[]);

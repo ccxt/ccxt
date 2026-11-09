@@ -739,8 +739,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_446: bool = true;
-            while { if !__for_first_446 { i += 1; } __for_first_446 = false; i < (subscriptionHashes.len() as i64) } {
+            let mut __for_first_448: bool = true;
+            while { if !__for_first_448 { i += 1; } __for_first_448 = false; i < (subscriptionHashes.len() as i64) } {
             let mut subscriptionHash: Value = self.safe_string(subscriptionHashes.clone(), Value::Int(i), &[Value::Str("".into())]);
             if !(__ch.has_subscription(&subscriptionHash)) {
                 __ch.add_subscription(&requestId, subscriptionHash.clone());
@@ -775,8 +775,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_447: bool = true;
-            while { if !__for_first_447 { i += 1; } __for_first_447 = false; i < (subscriptionHashes.len() as i64) } {
+            let mut __for_first_449: bool = true;
+            while { if !__for_first_449 { i += 1; } __for_first_449 = false; i < (subscriptionHashes.len() as i64) } {
             let mut subscriptionHash: Value = self.safe_string(subscriptionHashes.clone(), Value::Int(i), &[Value::Str("".into())]);
             if !(__ch.has_subscription(&subscriptionHash)) {
                 __ch.add_subscription(&requestId, subscriptionHash.clone());
@@ -958,8 +958,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (symbolsNormalized != Value::Null) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_448: bool = true;
-                while { if !__for_first_448 { i += 1; } __for_first_448 = false; i < (symbolsNormalized.len() as i64) } {
+                let mut __for_first_450: bool = true;
+                while { if !__for_first_450 { i += 1; } __for_first_450 = false; i < (symbolsNormalized.len() as i64) } {
                 let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 messageHashes.push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into()));
                 let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
@@ -1051,8 +1051,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_449: bool = true;
-            while { if !__for_first_449 { i += 1; } __for_first_449 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_451: bool = true;
+            while { if !__for_first_451 { i += 1; } __for_first_451 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: Option<String> = self.safe_string_opt(symbolsNormalized.clone(), Value::Int(i), &[]);
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
             let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into());
@@ -1363,8 +1363,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHashes: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_450: bool = true;
-            while { if !__for_first_450 { i += 1; } __for_first_450 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_452: bool = true;
+            while { if !__for_first_452 { i += 1; } __for_first_452 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("bidask@".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into())); }
@@ -1845,8 +1845,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut topic: Value = Value::Str(format!("{}{}", channelName, Value::Str(marketIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())).into());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_451: bool = true;
-            while { if !__for_first_451 { i += 1; } __for_first_451 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_453: bool = true;
+            while { if !__for_first_453 { i += 1; } __for_first_453 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol).into()));
             let marketId: String = self.safe_string_opt(marketIds.clone(), Value::Int(i), &[Value::Str("".into())]).unwrap_or_default();
@@ -1903,8 +1903,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut topic: Value = Value::Str(format!("{}{}", channelName, Value::Str(marketIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())).into());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_452: bool = true;
-            while { if !__for_first_452 { i += 1; } __for_first_452 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_454: bool = true;
+            while { if !__for_first_454 { i += 1; } __for_first_454 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:trades:".into()), symbol).into())); };
             subscriptionHashes.push(Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol).into()));
@@ -2326,8 +2326,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subscriptionHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_453: bool = true;
-            while { if !__for_first_453 { i += 1; } __for_first_453 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_455: bool = true;
+            while { if !__for_first_455 { i += 1; } __for_first_455 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             messageHashes.push(Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into()));
             let marketId: String = self.safe_string_opt(marketIds.clone(), Value::Int(i), &[Value::Str("".into())]).unwrap_or_default();
@@ -2414,8 +2414,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subscriptionHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_454: bool = true;
-            while { if !__for_first_454 { i += 1; } __for_first_454 = false; i < (symbolsNormalized.len() as i64) } {
+            let mut __for_first_456: bool = true;
+            while { if !__for_first_456 { i += 1; } __for_first_456 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:orderbook:".into()), symbol).into())); };
             subscriptionHashes.push(Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into()));
@@ -2514,8 +2514,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut subscription: Value = Value::Null;
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_455: bool = true;
-                    while { if !__for_first_455 { i += 1; } __for_first_455 = false; i < (subscriptions.len() as i64) } {
+                    let mut __for_first_457: bool = true;
+                    while { if !__for_first_457 { i += 1; } __for_first_457 = false; i < (subscriptions.len() as i64) } {
                     let mut key: Value = subscriptions.get(i as usize).cloned().unwrap_or(Value::Null);
                     if ((match (&(key), &(topicSymbol.clone().map(Value::from).unwrap_or(Value::Null))) { (Value::Arr(__a), __nd) => Value::Int(__a.iter().position(|__it| match (__it, __nd) { (Value::Null, Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x),
                         Value::Int(__y)) => __x == __y, (Value::Float(__x), Value::Float(__y)) => __x == __y, (__p, __q) => match ((match __p { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
@@ -2631,8 +2631,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_456: bool = true;
-            while { if !__for_first_456 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_456 = false; i.as_f64().unwrap_or(f64::NAN) < ((cache.len() as i64) as f64) } {
+            let mut __for_first_458: bool = true;
+            while { if !__for_first_458 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_458 = false; i.as_f64().unwrap_or(f64::NAN) < ((cache.len() as i64) as f64) } {
             let mut delta: Value = self.safe_dict(cache.clone(), i.clone(), &[]);
             let mut deltaStart: Value = self.safe_integer_n(delta.clone(), Value::from(vec![Value::Str("sequenceStart".into()), Value::Str("sequence".into()), Value::Str("O".into())]), &[]);
             let mut deltaEnd: Value = self.safe_integer_n(delta, Value::from(vec![Value::Str("sequenceEnd".into()), Value::Str("sequence".into()), Value::Str("C".into())]), &[]); // todo check
@@ -2696,8 +2696,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let bidAsks = bidAsks.as_array().unwrap_or(&__bidAsks_empty);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_457: bool = true;
-            while { if !__for_first_457 { i += 1; } __for_first_457 = false; i < (bidAsks.len() as i64) } {
+            let mut __for_first_459: bool = true;
+            while { if !__for_first_459 { i += 1; } __for_first_459 = false; i < (bidAsks.len() as i64) } {
             let mut bidAsk: Value = self.parse_order_book_bid_ask(bidAsks.get(i as usize).cloned().unwrap_or(Value::Null), &[]);
             bookSide.store_array(bidAsk);
         }
@@ -2716,8 +2716,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         })]).as_map().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_458: bool = true;
-            while { if !__for_first_458 { i += 1; } __for_first_458 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_460: bool = true;
+            while { if !__for_first_460 { i += 1; } __for_first_460 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut storedLimit: Value = self.safe_integer(Value::Map(limits.clone()), symbol.clone(), &[]);
             // reuse the existing book so user-held references keep updating; rebuild only if depth changed
@@ -2771,8 +2771,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut subMessageHashes: Value = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_459: bool = true;
-                while { if !__for_first_459 { i += 1; } __for_first_459 = false; i < (messageHashes.len() as i64) } {
+                let mut __for_first_461: bool = true;
+                while { if !__for_first_461 { i += 1; } __for_first_461 = false; i < (messageHashes.len() as i64) } {
                 let mut messageHash: Option<String> = self.safe_string_opt(messageHashes.clone(), Value::Int(i), &[]);
                 let mut subHash: Option<String> = self.safe_string_opt(subMessageHashes.clone(), Value::Int(i), &[]);
                 self.clean_unsubscription(client.clone(), subHash.map(Value::from).unwrap_or(Value::Null), messageHash.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -2784,8 +2784,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut symbols: Vec<Value> = self.safe_list_k(subscription.clone(), "symbols", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_460: bool = true;
-                    while { if !__for_first_460 { i += 1; } __for_first_460 = false; i < (symbols.len() as i64) } {
+                    let mut __for_first_462: bool = true;
+                    while { if !__for_first_462 { i += 1; } __for_first_462 = false; i < (symbols.len() as i64) } {
                     let mut symbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
                     if (matches!((&self.fundingRates, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.fundingRates, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
@@ -3985,8 +3985,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_461: bool = true;
-                while { if !__for_first_461 { i += 1; } __for_first_461 = false; i < (symbolsNormalized.len() as i64) } {
+                let mut __for_first_463: bool = true;
+                while { if !__for_first_463 { i += 1; } __for_first_463 = false; i < (symbolsNormalized.len() as i64) } {
                 let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into()));
             }
@@ -4060,8 +4060,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut cache: Value = self.positions.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_462: bool = true;
-            while { if !__for_first_462 { i += 1; } __for_first_462 = false; i < (positions.len() as i64) } {
+            let mut __for_first_464: bool = true;
+            while { if !__for_first_464 { i += 1; } __for_first_464 = false; i < (positions.len() as i64) } {
             let mut position: Value = positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut contracts: Value = self.safe_number_k(position.clone(), "contracts", &[Value::Int(0)]);
             if (contracts != Value::Null) && (contracts.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
@@ -4217,8 +4217,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut keys: Vec<Value> = object_keys(&newPosition).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_463: bool = true;
-            while { if !__for_first_463 { i += 1; } __for_first_463 = false; i < (keys.len() as i64) } {
+            let mut __for_first_465: bool = true;
+            while { if !__for_first_465 { i += 1; } __for_first_465 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             if ((if let (Some(__m), Some(__k)) = (newPosition.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }) == Value::Null) {
                 remove(&mut newPosition, &key);
@@ -4273,8 +4273,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut keys: Vec<Value> = object_keys(&newPosition).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_464: bool = true;
-            while { if !__for_first_464 { i += 1; } __for_first_464 = false; i < (keys.len() as i64) } {
+            let mut __for_first_466: bool = true;
+            while { if !__for_first_466 { i += 1; } __for_first_466 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             if ((if let (Some(__m), Some(__k)) = (newPosition.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }) == Value::Null) {
                 remove(&mut newPosition, &key);
