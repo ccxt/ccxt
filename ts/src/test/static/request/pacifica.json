@@ -10,14 +10,17 @@
     "methods": {
         "fetchOHLCV": [
             {
-                "description": "swap +since +limit -until",
+                "description": "swap +since -limit +until",
                 "method": "fetchOHLCV",
-                "url": "https://api.pacifica.fi/api/v1/kline?symbol=BTC&interval=1m&end_time=1793544080999&start_time=1793543961000",
+                "url": "https://api.pacifica.fi/api/v1/kline?symbol=BTC&interval=1m&end_time=1793544161000&start_time=1793543961000",
                 "input": [
                     "BTC/USDC:USDC",
                     "1m",
                     1793543961000,
-                    2
+                    null,
+                    {
+                        "until": 1793544161000
+                    }
                 ],
                 "output": null
             },
@@ -39,54 +42,12 @@
             {
                 "description": "swap +since +limit -until",
                 "method": "fetchOHLCV",
-                "url": "https://api.pacifica.fi/api/v1/kline?symbol=BTC&interval=1m&start_time=1793543961000&end_time=1793544080999",
+                "url": "https://api.pacifica.fi/api/v1/kline?symbol=BTC&interval=1m&end_time=1793544080999&start_time=1793543961000",
                 "input": [
                     "BTC/USDC:USDC",
                     "1m",
                     1793543961000,
                     2
-                ],
-                "output": null
-            },
-            {
-                "description": "swap +since -limit -until",
-                "method": "fetchOHLCV",
-                "url": "https://api.pacifica.fi/api/v1/kline?symbol=BTC&interval=1m&start_time=1793543961000&end_time=1793780960999",
-                "input": [
-                    "BTC/USDC:USDC",
-                    "1m",
-                    1793543961000,
-                    null
-                ],
-                "output": null
-            },
-            {
-                "description": "swap +since -limit +until",
-                "method": "fetchOHLCV",
-                "url": "https://api.pacifica.fi/api/v1/kline?symbol=BTC&interval=1m&start_time=1793543961000&end_time=1793544161000",
-                "input": [
-                    "BTC/USDC:USDC",
-                    "1m",
-                    1793543961000,
-                    null,
-                    {
-                        "until": 1793544161000
-                    }
-                ],
-                "output": null
-            },
-            {
-                "description": "swap +since +limit +until",
-                "method": "fetchOHLCV",
-                "url": "https://api.pacifica.fi/api/v1/kline?symbol=BTC&interval=1m&start_time=1793543961000&end_time=1793544161000",
-                "input": [
-                    "BTC/USDC:USDC",
-                    "1m",
-                    1793543961000,
-                    1,
-                    {
-                        "until": 1793544161000
-                    }
                 ],
                 "output": null
             }
