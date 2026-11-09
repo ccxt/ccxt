@@ -2,14 +2,14 @@ import Exchange from './abstract/jupiter.js';
 import { ArgumentsRequired, BadRequest, BadSymbol, ExchangeError, InvalidOrder, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES, TRUNCATE } from './base/functions/number.js';
-import type { Currencies, CurrencyInterface, Conversion, Dict, Int, Market, Num, Str, Ticker } from './base/types.js';
+import type { Currencies, CurrencyInterface, Conversion, Dict, Int, int, Market, Num, Str, Ticker } from './base/types.js';
 
 /**
  * @class jupiter
  * @augments Exchange
  */
 export default class jupiter extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'jupiter',
             'name': 'Jupiter',
@@ -416,9 +416,9 @@ export default class jupiter extends Exchange {
                     'poolId': vaultId,
                     'type': 'borrow',
                     'owner': this.safeString (position, 'ownerAddress'),
-                    'collateral': (collateralAmount === undefined) ? undefined : this.parseNumber (Precise.stringDiv (collateralAmount, '1' + '0'.repeat (supplyDecimals), supplyDecimals)),
+                    'collateral': (collateralAmount === undefined) ? undefined : this.parseNumber (Precise.stringMul (collateralAmount, this.parsePrecision (this.numberToString (supplyDecimals)))),
                     'collateralCurrency': this.safeString (supplyToken, 'address'),
-                    'debt': (debtAmount === undefined) ? undefined : this.parseNumber (Precise.stringDiv (debtAmount, '1' + '0'.repeat (borrowDecimals), borrowDecimals)),
+                    'debt': (debtAmount === undefined) ? undefined : this.parseNumber (Precise.stringMul (debtAmount, this.parsePrecision (this.numberToString (borrowDecimals)))),
                     'borrowCurrency': this.safeString (borrowToken, 'address'),
                     'liquidated': this.safeBool (position, 'isLiquidated'),
                     'info': position,
@@ -434,7 +434,7 @@ export default class jupiter extends Exchange {
                 if (decimals === undefined) {
                     throw new ExchangeError (this.id + ' Earn position is missing token decimal precision');
                 }
-                const scale = '1' + '0'.repeat (decimals);
+                const scale = this.parsePrecision (this.numberToString (decimals));
                 const shares = this.safeString (position, 'shares');
                 const underlyingAssets = this.safeString (position, 'underlyingAssets');
                 result.push (this.parseLiquidity ({
@@ -442,8 +442,8 @@ export default class jupiter extends Exchange {
                     'poolId': assetAddress,
                     'type': 'earn',
                     'owner': this.safeString (position, 'ownerAddress'),
-                    'shares': (shares === undefined) ? undefined : this.parseNumber (Precise.stringDiv (shares, scale, decimals)),
-                    'amount': (underlyingAssets === undefined) ? undefined : this.parseNumber (Precise.stringDiv (underlyingAssets, scale, decimals)),
+                    'shares': (shares === undefined) ? undefined : this.parseNumber (Precise.stringMul (shares, scale)),
+                    'amount': (underlyingAssets === undefined) ? undefined : this.parseNumber (Precise.stringMul (underlyingAssets, scale)),
                     'currency': assetAddress,
                     'info': position,
                 }));
@@ -525,7 +525,7 @@ export default class jupiter extends Exchange {
         if ((amount === undefined) || (amount <= 0)) {
             throw new ArgumentsRequired (this.id + ' withdrawCollateral() requires a positive amount');
         }
-        const negativeAmount = -Math.abs (amount);
+        const negativeAmount = this.parseNumber (Precise.stringNeg (Precise.stringAbs (this.numberToString (amount))));
         return await this.createBorrowOperation (id, negativeAmount, 0, params);
     }
 
@@ -574,7 +574,7 @@ export default class jupiter extends Exchange {
         if (((amount === undefined) || (amount <= 0)) && !repayAll) {
             throw new ArgumentsRequired (this.id + ' repayCurrency() requires a positive amount or params.all');
         }
-        const repayAmount = (amount === undefined) ? undefined : -Math.abs (amount);
+        const repayAmount = (amount === undefined) ? undefined : this.parseNumber (Precise.stringNeg (Precise.stringAbs (this.numberToString (amount))));
         return await this.createBorrowOperation (id, 0, repayAmount, params);
     }
 
@@ -625,7 +625,7 @@ export default class jupiter extends Exchange {
             throw new BadSymbol (this.id + ' ' + operation + ' unknown Earn asset ' + asset);
         }
         const amountString = this.decimalToPrecision (this.numberToString (amount), TRUNCATE, decimals, DECIMAL_PLACES);
-        const baseAmount = Precise.stringMul (amountString, '1' + '0'.repeat (decimals));
+        const baseAmount = Precise.stringDiv (amountString, this.parsePrecision (this.numberToString (decimals)));
         if (baseAmount === undefined) {
             throw new ExchangeError (this.id + ' could not convert Earn amount to base units');
         }
@@ -717,7 +717,7 @@ export default class jupiter extends Exchange {
      */
     toBaseUnits (amount: Num, decimals: number): string {
         const amountString = this.decimalToPrecision (this.numberToString (amount), TRUNCATE, decimals, DECIMAL_PLACES);
-        const baseUnits = Precise.stringMul (amountString, '1' + '0'.repeat (decimals));
+        const baseUnits = Precise.stringDiv (amountString, this.parsePrecision (this.numberToString (decimals)));
         if (baseUnits === undefined) {
             throw new ExchangeError (this.id + ' could not convert token amount to base units');
         }
@@ -1267,9 +1267,9 @@ export default class jupiter extends Exchange {
         }
         const inputMint = this.safeString (params, 'inputMint', fromCurrency['id']);
         const outputMint = this.safeString (params, 'outputMint', toCurrency['id']);
-        const inputMultiplier = '1' + '0'.repeat (fromDecimals);
-        const outputMultiplier = '1' + '0'.repeat (toDecimals);
-        const rawAmount = Precise.stringMul (this.numberToString (amount), inputMultiplier);
+        const inputPrecision = this.parsePrecision (this.numberToString (fromDecimals));
+        const outputPrecision = this.parsePrecision (this.numberToString (toDecimals));
+        const rawAmount = Precise.stringDiv (this.numberToString (amount), inputPrecision);
         if (rawAmount === undefined) {
             throw new InvalidOrder (this.id + ' fetchConvertQuote() could not convert the input amount to token base units');
         }
@@ -1286,8 +1286,8 @@ export default class jupiter extends Exchange {
         if (inAmount === undefined || outAmount === undefined) {
             throw new ExchangeError (this.id + ' fetchConvertQuote() response is missing inAmount or outAmount');
         }
-        const fromAmount = Precise.stringDiv (inAmount, inputMultiplier);
-        const toAmount = Precise.stringDiv (outAmount, outputMultiplier);
+        const fromAmount = Precise.stringMul (inAmount, inputPrecision);
+        const toAmount = Precise.stringMul (outAmount, outputPrecision);
         return {
             'info': response,
             'id': this.safeString (response, 'requestId'),
@@ -1353,8 +1353,8 @@ export default class jupiter extends Exchange {
         if (fromDecimals === undefined || toDecimals === undefined || inputAmount === undefined || outputAmount === undefined) {
             throw new ExchangeError (this.id + ' createConvertTrade() response is missing token amounts or decimal metadata');
         }
-        const fromAmount = Precise.stringDiv (inputAmount, '1' + '0'.repeat (fromDecimals));
-        const toAmount = Precise.stringDiv (outputAmount, '1' + '0'.repeat (toDecimals));
+        const fromAmount = Precise.stringMul (inputAmount, this.parsePrecision (this.numberToString (fromDecimals)));
+        const toAmount = Precise.stringMul (outputAmount, this.parsePrecision (this.numberToString (toDecimals)));
         return {
             'info': response,
             'id': this.safeString (response, 'signature'),
@@ -1441,7 +1441,7 @@ export default class jupiter extends Exchange {
         };
     }
 
-    override handleErrors (httpCode: number, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined || response === null) {
             return undefined;
         }

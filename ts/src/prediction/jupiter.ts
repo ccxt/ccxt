@@ -1,14 +1,14 @@
 import Exchange from '../abstract/prediction/jupiter.js';
 import { ArgumentsRequired, BadSymbol, ExchangeError, InvalidOrder } from '../base/errors.js';
 import { DECIMAL_PLACES } from '../base/functions/number.js';
-import type { Dict, Int, Market, Num, PredictionEvent, PredictionMarket, PredictionOrder, PredictionOrderBook, PredictionOutcome, PredictionPosition, PredictionTicker, PredictionTrade, Status, Str, Strings } from '../base/types.js';
+import type { Dict, Int, int, Market, Num, PredictionEvent, PredictionMarket, PredictionOrder, PredictionOrderBook, PredictionOutcome, PredictionPosition, PredictionTicker, PredictionTrade, Status, Str, Strings } from '../base/types.js';
 
 /**
  * @class jupiter
  * @augments PredictionExchange
  */
 export default class jupiter extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'jupiter',
             'name': 'Jupiter Prediction',
@@ -35,8 +35,8 @@ export default class jupiter extends Exchange {
                 'fetchOrderTrades': true,
                 'createOrder': true,
                 'fetchStatus': true,
-                'closePosition': true,
-                'closeAllPositions': true,
+                'closePredictionPosition': true,
+                'closeAllPredictionPositions': true,
                 'redeemPosition': true,
             },
             'urls': {
@@ -165,7 +165,8 @@ export default class jupiter extends Exchange {
         const raw = this.safeDict (response, 'data', response);
         const event = this.parseJupiterEvent (raw);
         this.indexEventOutcomes (event);
-        return event;
+        const result = this.extend (event, {});
+        return result as PredictionEvent;
     }
 
     /**
@@ -652,10 +653,10 @@ export default class jupiter extends Exchange {
             throw new ArgumentsRequired (this.id + ' createOrder() requires ownerPubkey, depositAmount, and depositMint');
         }
         if (type !== 'market') {
-            throw new InvalidOrder (this.id + ' createOrder() supports market buy orders only; use closePosition() to sell held contracts');
+            throw new InvalidOrder (this.id + ' createOrder() supports market buy orders only; use closePredictionPosition() to sell held contracts');
         }
         if (side !== 'buy') {
-            throw new InvalidOrder (this.id + ' createOrder() supports buy orders only; use closePosition() to sell held contracts');
+            throw new InvalidOrder (this.id + ' createOrder() supports buy orders only; use closePredictionPosition() to sell held contracts');
         }
         if (amount <= 0) {
             throw new InvalidOrder (this.id + ' createOrder() amount must be positive');
@@ -898,22 +899,22 @@ export default class jupiter extends Exchange {
         if (positionsLength === 0) {
             throw new BadSymbol (this.id + ' fetchPosition() found no position for ' + outcome);
         }
-        return positions[0];
+        return this.safeDict (positions, 0) as PredictionPosition;
     }
 
     /**
      * @method
-     * @name jupiter#closePosition
+     * @name jupiter#closePredictionPosition
      * @description builds an unsigned transaction to close one prediction position
      * @see https://developers.jup.ag/docs/prediction/manage-positions
      * @param {string} positionId position public key
      * @param {object} [params] requires ownerPubkey or a configured walletAddress
      * @returns {object} unsigned close transaction for caller signing and submission
      */
-    override async closePosition (positionId: string, params: Dict = {}): Promise<Dict> {
+    override async closePredictionPosition (positionId: string, params: Dict = {}): Promise<Dict> {
         const ownerPubkey = this.safeString (params, 'ownerPubkey', this.walletAddress);
         if (ownerPubkey === undefined) {
-            throw new ArgumentsRequired (this.id + ' closePosition() requires ownerPubkey or walletAddress');
+            throw new ArgumentsRequired (this.id + ' closePredictionPosition() requires ownerPubkey or walletAddress');
         }
         const request = this.omit (params, [ 'ownerPubkey' ]);
         request['ownerPubkey'] = ownerPubkey;
@@ -922,7 +923,7 @@ export default class jupiter extends Exchange {
 
     /**
      * @method
-     * @name jupiter#closeAllPositions
+     * @name jupiter#closeAllPredictionPositions
      * @description builds unsigned transactions to close all prediction positions
      * @see https://developers.jup.ag/docs/prediction/manage-positions
      * @param {object} params requires ownerPubkey or a configured walletAddress and minSellPriceSlippageBps
@@ -930,10 +931,10 @@ export default class jupiter extends Exchange {
      * @param {int} params.minSellPriceSlippageBps maximum sell price slippage in basis points
      * @returns {object} unsigned close transactions for caller signing and submission
      */
-    override async closeAllPositions (params: Dict = {}): Promise<Dict> {
+    override async closeAllPredictionPositions (params: Dict = {}): Promise<Dict> {
         const ownerPubkey = this.safeString (params, 'ownerPubkey', this.walletAddress);
         if (ownerPubkey === undefined) {
-            throw new ArgumentsRequired (this.id + ' closeAllPositions() requires ownerPubkey or walletAddress');
+            throw new ArgumentsRequired (this.id + ' closeAllPredictionPositions() requires ownerPubkey or walletAddress');
         }
         const request = this.omit (params, [ 'ownerPubkey' ]);
         request['ownerPubkey'] = ownerPubkey;
@@ -1264,7 +1265,7 @@ export default class jupiter extends Exchange {
         return result;
     }
 
-    override handleErrors (httpCode: Int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined || response === null) {
             return undefined;
         }

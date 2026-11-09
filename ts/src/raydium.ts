@@ -2,14 +2,14 @@ import Exchange from './abstract/raydium.js';
 import { ArgumentsRequired, BadRequest, BadSymbol, ExchangeError, InvalidOrder, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-import type { Currencies, CurrencyInterface, Conversion, Dict, Int, Market, Num, OHLCV, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Currencies, CurrencyInterface, Conversion, Dict, Int, int, Market, Num, OHLCV, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 /**
  * @class raydium
  * @augments Exchange
  */
 export default class raydium extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'raydium',
             'name': 'Raydium',
@@ -400,9 +400,14 @@ export default class raydium extends Exchange {
         const mintA = this.safeDict (market, 'mintA');
         const mintB = this.safeDict (market, 'mintB');
         const baseId = this.safeString (mintA, 'address', this.safeString (market, 'mint'));
-        const quoteId = this.safeString (mintB, 'address');
+        let quoteId = this.safeString (mintB, 'address');
         const base = this.safeString (mintA, 'symbol', this.safeString (market, 'symbol', baseId));
-        const quote = this.safeString (mintB, 'symbol');
+        let quote = this.safeString (mintB, 'symbol', quoteId);
+        if ((quoteId === undefined) && (mintB === undefined) && (this.safeString (market, 'mint') !== undefined)) {
+            // LaunchLab mints carry no quote metadata; the bonding curve quotes in SOL by default
+            quoteId = 'So11111111111111111111111111111111111111112';
+            quote = 'SOL';
+        }
         const id = this.safeString2 (market, 'id', 'poolId');
         if ((id === undefined) || (baseId === undefined) || (quoteId === undefined) || (base === undefined) || (quote === undefined)) {
             throw new ExchangeError (this.id + ' parseMarket() received a pool without an id and two mint addresses');
@@ -804,8 +809,7 @@ export default class raydium extends Exchange {
                 ]);
             }
         }
-        result.reverse ();
-        return result;
+        return this.sortBy (result, 0);
     }
 
     /**
@@ -1050,8 +1054,8 @@ export default class raydium extends Exchange {
         if ((inputAmount === undefined) || (outputAmount === undefined) || (quoteId === undefined)) {
             throw new ExchangeError (this.id + ' fetchConvertQuote() response is missing quote amounts or id');
         }
-        const fromAmount = Precise.stringDiv (inputAmount, '1' + '0'.repeat (fromDecimals));
-        const toAmount = Precise.stringDiv (outputAmount, '1' + '0'.repeat (toDecimals));
+        const fromAmount = Precise.stringMul (inputAmount, this.parsePrecision (this.numberToString (fromDecimals)));
+        const toAmount = Precise.stringMul (outputAmount, this.parsePrecision (this.numberToString (toDecimals)));
         return {
             'info': response,
             'id': quoteId,
@@ -1123,8 +1127,8 @@ export default class raydium extends Exchange {
         if (signature === undefined) {
             throw new ExchangeError (this.id + ' createConvertTrade() response is missing transaction signature');
         }
-        const fromAmount = Precise.stringDiv (inputAmount, '1' + '0'.repeat (fromDecimals));
-        const toAmount = Precise.stringDiv (outputAmount, '1' + '0'.repeat (toDecimals));
+        const fromAmount = Precise.stringMul (inputAmount, this.parsePrecision (this.numberToString (fromDecimals)));
+        const toAmount = Precise.stringMul (outputAmount, this.parsePrecision (this.numberToString (toDecimals)));
         return {
             'info': response,
             'id': signature,
@@ -1322,9 +1326,9 @@ export default class raydium extends Exchange {
 
     /**
      * @ignore
-     * @returns {void} nothing
+     * @description throws if Raydium Perps is unavailable in the current mode
      */
-    ensurePerpsApiAvailable (): void {
+    ensurePerpsApiAvailable () {
         if (this.isSandboxModeEnabled) {
             throw new NotSupported (this.id + ' Raydium Perps does not provide a sandbox API');
         }
@@ -1719,7 +1723,7 @@ export default class raydium extends Exchange {
      * @returns {string} amount in base units
      */
     toBaseUnits (amount: Num, decimals: number): string {
-        const rawAmount = Precise.stringMul (this.numberToString (amount), '1' + '0'.repeat (decimals));
+        const rawAmount = Precise.stringDiv (this.numberToString (amount), this.parsePrecision (this.numberToString (decimals)));
         if (rawAmount === undefined || rawAmount.indexOf ('.') !== -1) {
             throw new InvalidOrder (this.id + ' amount has more decimal places than the token supports');
         }
@@ -1847,7 +1851,7 @@ export default class raydium extends Exchange {
         };
     }
 
-    override handleErrors (httpCode: number, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined || response === null) {
             return undefined;
         }

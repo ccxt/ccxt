@@ -41,8 +41,8 @@ export default class PredictionExchange extends BaseExchange {
                 'cancelOrder': false,
                 'cancelOrders': false,
                 'cancelAllOrders': false,
-                'closeAllPositions': false,
-                'closePosition': false,
+                'closeAllPredictionPositions': false,
+                'closePredictionPosition': false,
                 'editOrder': false,
                 'fetchBalance': false,
                 'fetchOrder': false,
@@ -1092,25 +1092,25 @@ export default class PredictionExchange extends BaseExchange {
 
     /**
      * @method
-     * @name PredictionExchange#closePosition
+     * @name PredictionExchange#closePredictionPosition
      * @description builds a request to close a prediction position
      * @param {string} positionId prediction position identifier
      * @param {object} [params] extra parameters specific to the endpoint
      * @returns {object} close result, which may contain a transaction to sign
      */
-    async closePosition (positionId: string, params: Dict = {}): Promise<Dict> {
-        throw new NotSupported (this.id + ' closePosition() is not supported yet');
+    async closePredictionPosition (positionId: string, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' closePredictionPosition() is not supported yet');
     }
 
     /**
      * @method
-     * @name PredictionExchange#closeAllPositions
+     * @name PredictionExchange#closeAllPredictionPositions
      * @description builds requests to close all prediction positions
      * @param {object} [params] extra parameters specific to the endpoint
      * @returns {object} close results, which may contain transactions to sign
      */
-    async closeAllPositions (params: Dict = {}): Promise<Dict> {
-        throw new NotSupported (this.id + ' closeAllPositions() is not supported yet');
+    async closeAllPredictionPositions (params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' closeAllPredictionPositions() is not supported yet');
     }
 
     /**
