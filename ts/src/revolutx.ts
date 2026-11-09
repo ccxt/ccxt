@@ -713,7 +713,7 @@ export default class revolutx extends Exchange {
             request['until'] = until;
         }
         if (since !== undefined && until === undefined) {
-            request['until'] = since + limitValue * duration;
+            request['until'] = this.sum (since, limitValue * duration);
         } else if (since === undefined && until !== undefined) {
             request['since'] = until - limitValue * duration;
         }
