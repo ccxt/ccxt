@@ -624,8 +624,8 @@ export default class interactivebrokers extends Exchange {
      * @method
      * @name interactivebrokers#signIn
      * @description obtains a live session token via the oauth 1.0a diffie-hellman exchange and opens the brokerage session, must be called prior to using other authenticated methods (called automatically by authenticate)
-     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#oauth-lst
-     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#ssodh-init
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/authentication/oauth-1-0-a/req-live-session-token
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-session/initialize-session
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
@@ -739,8 +739,8 @@ export default class interactivebrokers extends Exchange {
      * @name interactivebrokers#ibkrGatewaySignIn
      * @description checks that the client portal gateway session is authenticated (taking the brokerage session back via ssodh/init options.autoRegainSession seconds after it was lost), loads the trading accounts and starts the keep-alive loop
      * @ignore
-     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#auth-status
-     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#ssodh-init
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-session/get-brokerage-status
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-session/initialize-session
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the iserver/auth/status response
      */
@@ -806,7 +806,7 @@ export default class interactivebrokers extends Exchange {
      * @name interactivebrokers#ibkrGatewayRegainSession
      * @description opens the brokerage session of the client portal gateway with POST iserver/auth/ssodh/init (taking it over from any other login with the same username) and polls iserver/auth/status until it is authenticated
      * @ignore
-     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#ssodh-init
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-session/initialize-session
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the last iserver/auth/status response
      */
@@ -947,7 +947,7 @@ export default class interactivebrokers extends Exchange {
      * @name interactivebrokers#ibkrGatewayKeepAlive
      * @description keeps the client portal gateway session alive with POST /tickle every options.gatewayKeepAliveInterval ms and tracks its authentication status, stops when options.gatewayKeepAlive is set to false or the instance is closed
      * @ignore
-     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#tickle
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-session/get-session-token
      * @returns {undefined}
      */
     async ibkrGatewayKeepAlive (): Promise<any> {
@@ -1042,9 +1042,9 @@ export default class interactivebrokers extends Exchange {
      * @method
      * @name interactivebrokers#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders, the cash comes from the ledger, the crypto holdings from the positions and the locked ('used') amounts from the open orders of the current brokerage session
-     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#portfolio-ledger
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-portfolio/get-positions-in-real-time
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-live-orders
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-portfolio/get-portfolio-ledger
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-portfolio/get-uncached-positions
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-open-orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountId] the account id, defaults to options["accountId"] or the selected account
      * @param {boolean} [params.positions] add the holdings of options.fetchBalance.positionAssetClasses (crypto by default) as balances, default true
@@ -1276,11 +1276,11 @@ export default class interactivebrokers extends Exchange {
      * @method
      * @name interactivebrokers#fetchMarkets
      * @description retrieves data on the market types of options.fetchMarkets.types: stocks of options.fetchMarkets.exchanges.STK, crypto of options.fetchMarkets.cryptoSpotSymbols, fx pairs of options.fetchMarkets.forexCurrencies, coinbase derivatives perp-style futures of options.fetchMarkets.cryptoCoinbasePerpSymbols (as swap, e.g. BTC/USD:USD), dated CME and coinbase derivatives crypto futures of options.fetchMarkets.cryptoFutureSymbols (as future, e.g. BTC/USD:USD-261127) and cfds of options.fetchMarkets.cfdExchanges (as swap, e.g. AAPL/USD:USD), the market id is the IBKR conid
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-all-conids-by-exchange
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-conids-by-exchange
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-future-by-symbol
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/search-contract-by-symbol
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-contract-symbols-from-body
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-currency-pairs
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-security-definition-by-conid
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-instrument-definition
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -1623,7 +1623,7 @@ export default class interactivebrokers extends Exchange {
      * @name interactivebrokers#fetchCfdMarkets
      * @description retrieves the cfd contracts listed on options.fetchMarkets.cfdExchanges
      * @ignore
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-all-conids-by-exchange
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-contracts/get-conids-by-exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -1885,7 +1885,7 @@ export default class interactivebrokers extends Exchange {
      * @method
      * @name interactivebrokers#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-market-data-snapshot
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-md-snapshot
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1903,7 +1903,7 @@ export default class interactivebrokers extends Exchange {
      * @method
      * @name interactivebrokers#fetchTickers
      * @description fetches price tickers for multiple markets, the first snapshot request only subscribes to the market data, so the request is retried until data arrives
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-market-data-snapshot
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-md-snapshot
      * @param {string[]} symbols unified symbols of the markets to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.fields] comma-separated snapshot field ids, max 50
@@ -1946,7 +1946,7 @@ export default class interactivebrokers extends Exchange {
      * @name interactivebrokers#ibkrFetchSnapshot
      * @description fetches a market data snapshot, the first snapshot request only subscribes to the market data, so the request is retried until data arrives
      * @ignore
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-market-data-snapshot
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-md-snapshot
      * @param {string[]} symbols unified market symbols
      * @param {string} fields comma-separated snapshot field ids
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2005,7 +2005,7 @@ export default class interactivebrokers extends Exchange {
      * @method
      * @name interactivebrokers#fetchBidsAsks
      * @description fetches the bid and ask price and volume for multiple markets
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-market-data-snapshot
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-md-snapshot
      * @param {string[]} symbols unified symbols of the markets to fetch the bids and asks for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.fields] comma-separated snapshot field ids, default '84,85,86,88'
@@ -2032,7 +2032,7 @@ export default class interactivebrokers extends Exchange {
      * @method
      * @name interactivebrokers#fetchLastPrices
      * @description fetches the last price for multiple markets
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-market-data-snapshot
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-md-snapshot
      * @param {string[]} symbols unified symbols of the markets to fetch the last prices for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [last price structures]{@link https://docs.ccxt.com/?id=last-price-structure}
@@ -2070,7 +2070,7 @@ export default class interactivebrokers extends Exchange {
      * @method
      * @name interactivebrokers#fetchMarkPrices
      * @description fetches the mark price for multiple markets
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-market-data-snapshot
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-md-snapshot
      * @param {string[]} symbols unified symbols of the markets to fetch the mark prices for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -2094,7 +2094,7 @@ export default class interactivebrokers extends Exchange {
      * @method
      * @name interactivebrokers#fetchOpenInterests
      * @description retrieves the open interest of multiple futures or swap markets
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-market-data-snapshot
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-md-snapshot
      * @param {string[]} symbols unified symbols of the markets to fetch the open interest for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
@@ -2146,7 +2146,7 @@ export default class interactivebrokers extends Exchange {
      * @method
      * @name interactivebrokers#fetchGreeks
      * @description fetches an option contracts greeks, the implied volatility is returned as a ratio, e.g. 0.25 for 25%
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-market-data-snapshot
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-md-snapshot
      * @param {string} symbol unified symbol of the market to fetch greeks for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
@@ -2202,7 +2202,7 @@ export default class interactivebrokers extends Exchange {
      * @method
      * @name interactivebrokers#fetchStatus
      * @description the status of the brokerage session, 'ok' when authenticated and connected
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-session/get-brokerage-session-status
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-session/get-brokerage-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
@@ -2305,7 +2305,7 @@ export default class interactivebrokers extends Exchange {
      * @method
      * @name interactivebrokers#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-historical-market-data
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-md-history
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -2449,7 +2449,7 @@ export default class interactivebrokers extends Exchange {
      * @method
      * @name interactivebrokers#fetchServiceAccounts
      * @description fetch the accounts the user has trading access to, must be called before modifying an order or querying open orders
-     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#accounts
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-accounts/get-brokerage-accounts
      * @ignore
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the raw response from the exchange
@@ -2536,8 +2536,8 @@ export default class interactivebrokers extends Exchange {
      * @method
      * @name interactivebrokers#fetchPortfolioAccounts
      * @description fetch the accounts for which the user can view position and account information
-     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#portfolio-accounts
-     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#portfolio-subaccounts
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-portfolio/get-all-accounts
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-portfolio/get-all-subaccounts
      * @ignore
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'privateGetPortfolioAccounts' (default) or 'privateGetPortfolioSubaccounts'
@@ -2595,7 +2595,7 @@ export default class interactivebrokers extends Exchange {
      * @method
      * @name interactivebrokers#switchToAccount
      * @description switch the active account (for users with multiple accounts)
-     * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#switch-account
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-accounts/set-active-account
      * @ignore
      * @param {string} accountId the account id to switch to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2627,7 +2627,7 @@ export default class interactivebrokers extends Exchange {
      * @name interactivebrokers#createOrder
      * @description create a trade order, order reply prompts are confirmed automatically when options.createOrder.autoConfirmOrderReplies is true
      * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/submit-new-order
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/respond-to-server-prompt
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/confirm-order-reply
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -2952,7 +2952,7 @@ export default class interactivebrokers extends Exchange {
      * @method
      * @name interactivebrokers#fetchOrders
      * @description fetches information on multiple orders of the current brokerage session
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-live-orders
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-open-orders
      * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2976,7 +2976,7 @@ export default class interactivebrokers extends Exchange {
      * @method
      * @name interactivebrokers#fetchOpenOrders
      * @description fetch all unfilled currently open orders of the current brokerage session
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-live-orders
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-open-orders
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -2992,7 +2992,7 @@ export default class interactivebrokers extends Exchange {
      * @method
      * @name interactivebrokers#fetchClosedOrders
      * @description fetches information on multiple filled orders of the current brokerage session
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-live-orders
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-open-orders
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3008,7 +3008,7 @@ export default class interactivebrokers extends Exchange {
      * @method
      * @name interactivebrokers#fetchCanceledOrders
      * @description fetches information on multiple canceled orders of the current brokerage session
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-live-orders
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-open-orders
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3024,7 +3024,7 @@ export default class interactivebrokers extends Exchange {
      * @method
      * @name interactivebrokers#fetchCanceledAndClosedOrders
      * @description fetches information on multiple filled and canceled orders of the current brokerage session
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-live-orders
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-orders/get-open-orders
      * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3530,7 +3530,7 @@ export default class interactivebrokers extends Exchange {
      * @method
      * @name interactivebrokers#fetchPositions
      * @description fetch all open positions
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-portfolio/get-positions-in-real-time
+     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-portfolio/get-uncached-positions
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountId] the account id, defaults to options["accountId"]
