@@ -245,7 +245,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('v1/clearing/confirm', [ 'private' ], 'POST', params, { 'cost': 1 });
     }
 
-    privatePostV1Balances (params = {}): Promise<Dict> {
+    privatePostV1Balances (params = {}): Promise<List> {
         return this.request ('v1/balances', [ 'private' ], 'POST', params, { 'cost': 1 });
     }
 

@@ -1,11 +1,11 @@
 import Exchange from './abstract/alpaca.js';
-import type { Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, int, Strings, Ticker, Tickers, Currency, DepositAddress, Transaction, Balances } from './base/types.js';
+import type { Dict, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, int, Strings, Ticker, Tickers, Currency, DepositAddress, Transaction, Balances } from './base/types.js';
 /**
  * @class alpaca
  * @augments Exchange
  */
 export default class alpaca extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name alpaca#fetchTime
@@ -332,7 +332,7 @@ export default class alpaca extends Exchange {
      * before crypto positions were included — read `info['account']['cash']` where `info['cash']` used to be read
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

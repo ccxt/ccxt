@@ -14,7 +14,7 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestWatchOrders extends BaseTest {
-    public CompletableFuture<Object> testWatchOrders(Exchange exchange, Object skippedProperties, Object symbol)
+    public CompletableFuture<Object> testWatchOrders(Exchange exchange, Object skippedProperties, String symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -28,7 +28,7 @@ public class TestWatchOrders extends BaseTest {
             Boolean success = true;
             try
             {
-                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchOrders", new Object[]{Helpers.toStringArg(symbol), (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
+                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchOrders", new Object[]{symbol, (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
                 if (java.util.Objects.equals(response, null))
                 {
                     throw new RuntimeException((String)(exchange.id + " watch returned undefined response")) ;
@@ -53,9 +53,9 @@ public class TestWatchOrders extends BaseTest {
                 now = exchange.milliseconds();
                 for (var i = 0; i < Helpers.getArrayLength(response); i++)
                 {
-                    TestOrder.testOrder(exchange, skippedProperties, method, Helpers.GetValue(response, i), symbol, now);
+                    TestOrder.testOrder(exchange, skippedProperties, method, Helpers.GetValue(response, i), (String) (symbol), now);
                 }
-                TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, response);
+                TestSharedMethods.AssertTimestampOrder(exchange, method, (String) (symbol), response);
             }
         }
         return true;

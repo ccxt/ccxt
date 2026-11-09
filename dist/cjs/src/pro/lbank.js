@@ -65,8 +65,9 @@ class lbank extends lbank$1["default"] {
     checkContractMarket(market, methodName) {
         // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
         // see https://github.com/ccxt/ccxt/issues/26864
-        if ((market !== undefined) && (market['contract'] === true)) {
-            throw new errors.NotSupported(this.id + ' ' + methodName + '() does not support ' + market['type'] + ' markets yet');
+        if ((market !== undefined) && (this.safeBool(market, 'contract', false))) {
+            const marketType = this.safeString(market, 'type', '');
+            throw new errors.NotSupported(this.id + ' ' + methodName + '() does not support ' + marketType + ' markets yet');
         }
     }
     /**
@@ -276,14 +277,15 @@ class lbank extends lbank$1["default"] {
                 this.safeNumber(rawOHLCV, 4),
                 this.safeNumber(rawOHLCV, 5),
             ];
-            const timeframeId = this.safeString(message, 'kbar');
+            const timeframeId = this.safeString(message, 'kbar', '');
             const timeframe = this.findTimeframe(timeframeId, timeframes);
-            this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
-            let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+            const ohlcvsForSymbol = this.safeDict(this.ohlcvs, symbol, {});
+            this.ohlcvs[symbol] = ohlcvsForSymbol;
+            let stored = this.safeValue(ohlcvsForSymbol, timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
                 stored = new Cache.ArrayCacheByTimestamp(limit);
-                this.ohlcvs[symbol][timeframe] = stored;
+                ohlcvsForSymbol[timeframe] = stored;
             }
             stored.append(parsed);
             const messageHash = 'fetchOHLCV:' + symbol + ':' + timeframeId;
@@ -291,7 +293,7 @@ class lbank extends lbank$1["default"] {
         }
         else { // from subscription
             const rawOHLCV = this.safeDict(message, 'kbar', {});
-            const timeframeId = this.safeString(rawOHLCV, 'slot');
+            const timeframeId = this.safeString(rawOHLCV, 'slot', '');
             const datetime = this.safeString(rawOHLCV, 't');
             const parsed = [
                 this.parse8601(datetime),
@@ -307,12 +309,13 @@ class lbank extends lbank$1["default"] {
                 return;
             }
             const timeframe = this.findTimeframe(timeframeId, timeframes);
-            this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
-            let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+            const ohlcvsForSymbol = this.safeDict(this.ohlcvs, symbol, {});
+            this.ohlcvs[symbol] = ohlcvsForSymbol;
+            let stored = this.safeValue(ohlcvsForSymbol, timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
                 stored = new Cache.ArrayCacheByTimestamp(limit);
-                this.ohlcvs[symbol][timeframe] = stored;
+                ohlcvsForSymbol[timeframe] = stored;
             }
             stored.append(parsed);
             client.resolve(stored, messageHash);
@@ -697,17 +700,13 @@ class lbank extends lbank$1["default"] {
         //
         const marketId = this.safeString(message, 'pair');
         const symbol = this.safeSymbol(marketId, undefined, '_');
-        let myOrders = this.orders;
+        const order = this.parseWsOrder(message);
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
-            myOrders = new Cache.ArrayCacheBySymbolById(limit);
+            this.orders = new Cache.ArrayCacheBySymbolById(limit);
         }
-        const order = this.parseWsOrder(message);
-        if (myOrders === undefined) {
-            return;
-        }
+        const myOrders = this.orders;
         myOrders.append(order);
-        this.orders = myOrders;
         client.resolve(myOrders, 'orders');
         const messageHash = 'orders:' + symbol;
         client.resolve(myOrders, messageHash);
@@ -1075,8 +1074,8 @@ class lbank extends lbank$1["default"] {
                 //
                 // {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
                 //
-                const result = this.safeBool(response, 'result');
-                if (result !== true) {
+                const result = this.safeBool(response, 'result', false);
+                if (!result) {
                     throw new errors.ExchangeError(this.id + ' failed to get subscribe key');
                 }
                 client.subscriptions['authenticated'] = {
@@ -1098,12 +1097,12 @@ class lbank extends lbank$1["default"] {
                     if (result !== 'true') {
                         throw new errors.ExchangeError(this.id + ' failed to refresh the SubscribeKey');
                     }
-                    client['subscriptions']['authenticated']['expires'] = this.sum(now, 3300000); // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
+                    client.subscriptions['authenticated']['expires'] = this.sum(now, 3300000); // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
                 }
             }
             // settle the flight through the client so that every write to the
             // futures map happens inside the base class
-            client.resolve(client.subscriptions['authenticated']['key'], messageHash);
+            client.resolve(this.safeString(this.safeDict(client.subscriptions, 'authenticated'), 'key'), messageHash);
         }
         catch (e) {
             // reject the flight - all waiters throw and the next caller

@@ -2,7 +2,7 @@ import lbankRest from '../lbank.js';
 import type { Balances, Dict, Int, List, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class lbank extends lbankRest {
-    describe(): any;
+    describe(): Dict;
     requestId(): number;
     checkContractMarket(market: Market, methodName: string): void;
     /**

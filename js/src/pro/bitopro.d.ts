@@ -2,7 +2,7 @@ import bitoproRest from '../bitopro.js';
 import type { Int, OrderBook, Trade, Ticker, Balances, Market, Str, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitopro extends bitoproRest {
-    describe(): any;
+    describe(): Dict;
     watchPublic(path: string, messageHash: string, marketId: Str): Promise<any>;
     /**
      * @method
