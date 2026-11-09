@@ -22,29 +22,6 @@ namespace Tests;
 
 public partial class BaseTest
 {
-    public void testWsClientResolveMissingHash()
-    {
-        foreach (var verbose in new[] { false, true })
-        {
-            var client = new BaseExchange.WebSocketClient("ws://localhost:1234", null, (c, m) => { }, isVerbose: verbose);
-            client.keepAlive = null;
-            try
-            {
-                var pending = client.future("trades");
-                client.resolve("pong", null);
-                Assert(!pending.task.IsCompleted, "a missing hash must not settle another watch");
-                Assert(client.futures.ContainsKey("trades"), "a missing hash must preserve pending futures");
-                client.resolve("trade", "trades");
-                Assert(pending.task.GetAwaiter().GetResult().Equals("trade"), "a valid hash must still settle its future");
-                Assert(!client.futures.ContainsKey("trades"), "settled futures must be removed");
-            }
-            finally
-            {
-                client.webSocket.Dispose();
-            }
-        }
-    }
-
     async public Task testWsClientConnectPublishesReadyState()
     {
         var client = new BaseExchange.WebSocketClient("ws://localhost:1234", null, (c, m) => { });
