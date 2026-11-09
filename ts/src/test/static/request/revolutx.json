@@ -141,7 +141,7 @@
             {
                 "description": "BTC/USD 1h candles",
                 "method": "fetchOHLCV",
-                "url": "https://revx.revolut.com/api/1.0/public/candles/BTC-USD?interval=60&until=0",
+                "url": "https://revx.revolut.com/api/1.0/public/candles/BTC-USD?interval=60",
                 "input": [
                     "BTC/USD",
                     "1h",
