@@ -273875,7 +273875,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
             'id': 'blofin',
             'name': 'BloFin',
             'countries': [
-                'US'
+                'MH'
             ],
             'version': 'v1',
             'rateLimit': 200,
@@ -277305,7 +277305,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {boolean} [params.autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false
      * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
-     * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */ async closePosition(symbol, side = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
