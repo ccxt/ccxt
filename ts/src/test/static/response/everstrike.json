@@ -1,0 +1,932 @@
+{
+    "exchange": "everstrike",
+    "methods": {
+        "fetchBalance": [
+            {
+                "description": "used = locked (open orders) + margin (open positions)",
+                "httpResponse": {
+                    "code": 200,
+                    "msg": null,
+                    "result": {
+                        "balances": {
+                            "USD": {
+                                "free": 100.5,
+                                "locked": 10,
+                                "margin": 5,
+                                "pnl": 0,
+                                "withdrawn": 0
+                            }
+                        }
+                    }
+                },
+                "input": [],
+                "method": "fetchBalance",
+                "parsedResponse": {
+                    "USD": {
+                        "free": 100.5,
+                        "total": 115.5,
+                        "used": 15
+                    },
+                    "free": {
+                        "USD": 100.5
+                    },
+                    "info": {
+                        "balances": {
+                            "USD": {
+                                "free": 100.5,
+                                "locked": 10,
+                                "margin": 5,
+                                "pnl": 0,
+                                "withdrawn": 0
+                            }
+                        }
+                    },
+                    "total": {
+                        "USD": 115.5
+                    },
+                    "used": {
+                        "USD": 15
+                    }
+                }
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "hourly funding; next funding is the next interval boundary after close_time",
+                "httpResponse": {
+                    "ask_price": 75160,
+                    "ask_qty": 0.4,
+                    "base_volume": 2,
+                    "bid_price": 75140,
+                    "bid_qty": 0.5,
+                    "close_time": 1794152100000,
+                    "funding_rate": 0.0001,
+                    "high_price": 75400,
+                    "index_price": 75155.5,
+                    "last_price": 75150,
+                    "low_price": 74800,
+                    "mark_price": 75152.3,
+                    "open_interest": 0.0176,
+                    "open_price": 75000,
+                    "prev_last_price": 75100,
+                    "quote_volume": 150000
+                },
+                "input": [
+                    "BTC/USD:USD"
+                ],
+                "method": "fetchFundingRate",
+                "parsedResponse": {
+                    "datetime": "2026-11-08T15:35:00.000Z",
+                    "estimatedSettlePrice": null,
+                    "fundingDatetime": null,
+                    "fundingRate": 0.0001,
+                    "fundingTimestamp": null,
+                    "indexPrice": 75155.5,
+                    "info": {
+                        "ask_price": 75160,
+                        "ask_qty": 0.4,
+                        "base_volume": 2,
+                        "bid_price": 75140,
+                        "bid_qty": 0.5,
+                        "close_time": 1794152100000,
+                        "funding_rate": 0.0001,
+                        "high_price": 75400,
+                        "index_price": 75155.5,
+                        "last_price": 75150,
+                        "low_price": 74800,
+                        "mark_price": 75152.3,
+                        "open_interest": 0.0176,
+                        "open_price": 75000,
+                        "prev_last_price": 75100,
+                        "quote_volume": 150000
+                    },
+                    "interestRate": null,
+                    "interval": "1h",
+                    "markPrice": 75152.3,
+                    "nextFundingDatetime": "2026-11-08T16:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": 1794153600000,
+                    "previousFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "symbol": "BTC/USD:USD",
+                    "timestamp": 1794152100000
+                }
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "spot, perpetual future, perpetual call (0.95 strike multiplier) and perpetual put (no multiplier field = 1)",
+                "httpResponse": {
+                    "code": 200,
+                    "msg": null,
+                    "result": {
+                        "ETH_USD": {
+                            "active": true,
+                            "base": "ETH",
+                            "category": "spot",
+                            "commission_maker": 0,
+                            "commission_taker": 0,
+                            "contract": "NONE",
+                            "description": "Ether (Spot)",
+                            "filters": {
+                                "leverage": {
+                                    "filter_type": "LEVERAGE",
+                                    "max_qty": 100,
+                                    "min_qty": 0.0001,
+                                    "tick_size": 0.0001
+                                },
+                                "price": {
+                                    "filter_type": "PRICE_FILTER",
+                                    "max_price": 100000000,
+                                    "min_price": 0.01,
+                                    "tick_size": 0.01
+                                },
+                                "qty": {
+                                    "filter_type": "LOT_SIZE",
+                                    "max_qty": 100000000000,
+                                    "min_qty": 0.001,
+                                    "tick_size": 0.001
+                                }
+                            },
+                            "funding_interval": 3600000,
+                            "key": "ETH_USD",
+                            "quote": "USD",
+                            "status": "TRADING"
+                        },
+                        "USD_BTCCALL5_PERP": {
+                            "active": true,
+                            "base": "USD",
+                            "category": "call",
+                            "commission_maker": 0,
+                            "commission_taker": 0,
+                            "contract": "PERP",
+                            "description": "BTC Perpetual Call Option (-5%)",
+                            "filters": {
+                                "leverage": {
+                                    "filter_type": "LEVERAGE",
+                                    "max_qty": 5,
+                                    "min_qty": 1e-12,
+                                    "tick_size": 1e-12
+                                },
+                                "price": {
+                                    "display": 0.01,
+                                    "filter_type": "PRICE_FILTER",
+                                    "max_price": 10000000,
+                                    "min_price": 1e-10,
+                                    "tick_size": 1e-09
+                                },
+                                "qty": {
+                                    "filter_type": "LOT_SIZE",
+                                    "max_qty": 10000000000,
+                                    "min_qty": 0.0001,
+                                    "tick_size": 0.0001
+                                }
+                            },
+                            "funding_interval": 3600000,
+                            "key": "USD_BTCCALL5_PERP",
+                            "price_multiplier": 0.95,
+                            "quote": "BTC",
+                            "status": "TRADING",
+                            "underlier": "BTC"
+                        },
+                        "USD_BTCPUT_PERP": {
+                            "active": true,
+                            "base": "USD",
+                            "category": "put",
+                            "commission_maker": 0,
+                            "commission_taker": 0,
+                            "contract": "PERP",
+                            "description": "BTC Perpetual Put Option",
+                            "filters": {
+                                "leverage": {
+                                    "filter_type": "LEVERAGE",
+                                    "max_qty": 5,
+                                    "min_qty": 1e-12,
+                                    "tick_size": 1e-12
+                                },
+                                "price": {
+                                    "display": 0.01,
+                                    "filter_type": "PRICE_FILTER",
+                                    "max_price": 10000000,
+                                    "min_price": 1e-10,
+                                    "tick_size": 1e-09
+                                },
+                                "qty": {
+                                    "filter_type": "LOT_SIZE",
+                                    "max_qty": 10000000000,
+                                    "min_qty": 0.0001,
+                                    "tick_size": 0.0001
+                                }
+                            },
+                            "funding_interval": 3600000,
+                            "key": "USD_BTCPUT_PERP",
+                            "quote": "BTC",
+                            "status": "TRADING",
+                            "underlier": "BTC"
+                        },
+                        "USD_BTC_PERP": {
+                            "active": true,
+                            "base": "USD",
+                            "category": "future",
+                            "commission_maker": 0,
+                            "commission_taker": 0,
+                            "contract": "PERP",
+                            "description": "BTC Perpetual Future",
+                            "filters": {
+                                "leverage": {
+                                    "filter_type": "LEVERAGE",
+                                    "max_qty": 100,
+                                    "min_qty": 0.0001,
+                                    "tick_size": 0.0001
+                                },
+                                "price": {
+                                    "display": 0.5,
+                                    "filter_type": "PRICE_FILTER",
+                                    "max_price": 10000000,
+                                    "min_price": 1e-10,
+                                    "tick_size": 1e-10
+                                },
+                                "qty": {
+                                    "filter_type": "LOT_SIZE",
+                                    "max_qty": 10000000000,
+                                    "min_qty": 0.0001,
+                                    "tick_size": 0.0001
+                                }
+                            },
+                            "funding_interval": 3600000,
+                            "key": "USD_BTC_PERP",
+                            "quote": "BTC",
+                            "status": "TRADING"
+                        }
+                    }
+                },
+                "input": [],
+                "method": "fetchMarkets",
+                "parsedResponse": [
+                    {
+                        "active": true,
+                        "base": "ETH",
+                        "baseId": "ETH",
+                        "contract": false,
+                        "contractSize": null,
+                        "created": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "future": false,
+                        "id": "ETH_USD",
+                        "index": false,
+                        "info": {
+                            "active": true,
+                            "base": "ETH",
+                            "category": "spot",
+                            "commission_maker": 0,
+                            "commission_taker": 0,
+                            "contract": "NONE",
+                            "description": "Ether (Spot)",
+                            "filters": {
+                                "leverage": {
+                                    "filter_type": "LEVERAGE",
+                                    "max_qty": 100,
+                                    "min_qty": 0.0001,
+                                    "tick_size": 0.0001
+                                },
+                                "price": {
+                                    "filter_type": "PRICE_FILTER",
+                                    "max_price": 100000000,
+                                    "min_price": 0.01,
+                                    "tick_size": 0.01
+                                },
+                                "qty": {
+                                    "filter_type": "LOT_SIZE",
+                                    "max_qty": 100000000000,
+                                    "min_qty": 0.001,
+                                    "tick_size": 0.001
+                                }
+                            },
+                            "funding_interval": 3600000,
+                            "key": "ETH_USD",
+                            "quote": "USD",
+                            "status": "TRADING"
+                        },
+                        "inverse": null,
+                        "limits": {
+                            "amount": {
+                                "max": 100000000000,
+                                "min": 0.001
+                            },
+                            "cost": {
+                                "max": null,
+                                "min": null
+                            },
+                            "leverage": {
+                                "max": 100,
+                                "min": null
+                            },
+                            "price": {
+                                "max": 100000000,
+                                "min": 0.01
+                            }
+                        },
+                        "linear": null,
+                        "lowercaseId": null,
+                        "maker": 0,
+                        "margin": false,
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "option": false,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.001,
+                            "price": 0.01
+                        },
+                        "quote": "USD",
+                        "quoteId": "USD",
+                        "settle": null,
+                        "settleId": null,
+                        "spot": true,
+                        "strike": null,
+                        "subType": null,
+                        "swap": false,
+                        "symbol": "ETH/USD",
+                        "taker": 0,
+                        "type": "spot"
+                    },
+                    {
+                        "active": true,
+                        "base": "BTC",
+                        "baseId": "BTC",
+                        "contract": true,
+                        "contractSize": 1,
+                        "created": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "future": false,
+                        "id": "USD_BTCCALL5_PERP",
+                        "index": null,
+                        "info": {
+                            "active": true,
+                            "base": "USD",
+                            "category": "call",
+                            "commission_maker": 0,
+                            "commission_taker": 0,
+                            "contract": "PERP",
+                            "description": "BTC Perpetual Call Option (-5%)",
+                            "filters": {
+                                "leverage": {
+                                    "filter_type": "LEVERAGE",
+                                    "max_qty": 5,
+                                    "min_qty": 1e-12,
+                                    "tick_size": 1e-12
+                                },
+                                "price": {
+                                    "display": 0.01,
+                                    "filter_type": "PRICE_FILTER",
+                                    "max_price": 10000000,
+                                    "min_price": 1e-10,
+                                    "tick_size": 1e-09
+                                },
+                                "qty": {
+                                    "filter_type": "LOT_SIZE",
+                                    "max_qty": 10000000000,
+                                    "min_qty": 0.0001,
+                                    "tick_size": 0.0001
+                                }
+                            },
+                            "funding_interval": 3600000,
+                            "key": "USD_BTCCALL5_PERP",
+                            "price_multiplier": 0.95,
+                            "quote": "BTC",
+                            "status": "TRADING",
+                            "underlier": "BTC"
+                        },
+                        "inverse": false,
+                        "limits": {
+                            "amount": {
+                                "max": 10000000000,
+                                "min": 0.0001
+                            },
+                            "cost": {
+                                "max": null,
+                                "min": null
+                            },
+                            "leverage": {
+                                "max": 5,
+                                "min": null
+                            },
+                            "price": {
+                                "max": 10000000,
+                                "min": 1e-10
+                            }
+                        },
+                        "linear": true,
+                        "lowercaseId": null,
+                        "maker": 0,
+                        "margin": false,
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "option": true,
+                        "optionType": "call",
+                        "precision": {
+                            "amount": 0.0001,
+                            "price": 1e-09
+                        },
+                        "quote": "USD",
+                        "quoteId": "USD",
+                        "settle": "USD",
+                        "settleId": "USD",
+                        "spot": false,
+                        "strike": null,
+                        "subType": null,
+                        "swap": false,
+                        "symbol": "BTC/USD:USD-PERP-0.95-C",
+                        "taker": 0,
+                        "type": "option"
+                    },
+                    {
+                        "active": true,
+                        "base": "BTC",
+                        "baseId": "BTC",
+                        "contract": true,
+                        "contractSize": 1,
+                        "created": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "future": false,
+                        "id": "USD_BTCPUT_PERP",
+                        "index": null,
+                        "info": {
+                            "active": true,
+                            "base": "USD",
+                            "category": "put",
+                            "commission_maker": 0,
+                            "commission_taker": 0,
+                            "contract": "PERP",
+                            "description": "BTC Perpetual Put Option",
+                            "filters": {
+                                "leverage": {
+                                    "filter_type": "LEVERAGE",
+                                    "max_qty": 5,
+                                    "min_qty": 1e-12,
+                                    "tick_size": 1e-12
+                                },
+                                "price": {
+                                    "display": 0.01,
+                                    "filter_type": "PRICE_FILTER",
+                                    "max_price": 10000000,
+                                    "min_price": 1e-10,
+                                    "tick_size": 1e-09
+                                },
+                                "qty": {
+                                    "filter_type": "LOT_SIZE",
+                                    "max_qty": 10000000000,
+                                    "min_qty": 0.0001,
+                                    "tick_size": 0.0001
+                                }
+                            },
+                            "funding_interval": 3600000,
+                            "key": "USD_BTCPUT_PERP",
+                            "quote": "BTC",
+                            "status": "TRADING",
+                            "underlier": "BTC"
+                        },
+                        "inverse": false,
+                        "limits": {
+                            "amount": {
+                                "max": 10000000000,
+                                "min": 0.0001
+                            },
+                            "cost": {
+                                "max": null,
+                                "min": null
+                            },
+                            "leverage": {
+                                "max": 5,
+                                "min": null
+                            },
+                            "price": {
+                                "max": 10000000,
+                                "min": 1e-10
+                            }
+                        },
+                        "linear": true,
+                        "lowercaseId": null,
+                        "maker": 0,
+                        "margin": false,
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "option": true,
+                        "optionType": "put",
+                        "precision": {
+                            "amount": 0.0001,
+                            "price": 1e-09
+                        },
+                        "quote": "USD",
+                        "quoteId": "USD",
+                        "settle": "USD",
+                        "settleId": "USD",
+                        "spot": false,
+                        "strike": null,
+                        "subType": null,
+                        "swap": false,
+                        "symbol": "BTC/USD:USD-PERP-1-P",
+                        "taker": 0,
+                        "type": "option"
+                    },
+                    {
+                        "active": true,
+                        "base": "BTC",
+                        "baseId": "BTC",
+                        "contract": true,
+                        "contractSize": 1,
+                        "created": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "future": false,
+                        "id": "USD_BTC_PERP",
+                        "index": null,
+                        "info": {
+                            "active": true,
+                            "base": "USD",
+                            "category": "future",
+                            "commission_maker": 0,
+                            "commission_taker": 0,
+                            "contract": "PERP",
+                            "description": "BTC Perpetual Future",
+                            "filters": {
+                                "leverage": {
+                                    "filter_type": "LEVERAGE",
+                                    "max_qty": 100,
+                                    "min_qty": 0.0001,
+                                    "tick_size": 0.0001
+                                },
+                                "price": {
+                                    "display": 0.5,
+                                    "filter_type": "PRICE_FILTER",
+                                    "max_price": 10000000,
+                                    "min_price": 1e-10,
+                                    "tick_size": 1e-10
+                                },
+                                "qty": {
+                                    "filter_type": "LOT_SIZE",
+                                    "max_qty": 10000000000,
+                                    "min_qty": 0.0001,
+                                    "tick_size": 0.0001
+                                }
+                            },
+                            "funding_interval": 3600000,
+                            "key": "USD_BTC_PERP",
+                            "quote": "BTC",
+                            "status": "TRADING"
+                        },
+                        "inverse": false,
+                        "limits": {
+                            "amount": {
+                                "max": 10000000000,
+                                "min": 0.0001
+                            },
+                            "cost": {
+                                "max": null,
+                                "min": null
+                            },
+                            "leverage": {
+                                "max": 100,
+                                "min": null
+                            },
+                            "price": {
+                                "max": 10000000,
+                                "min": 1e-10
+                            }
+                        },
+                        "linear": true,
+                        "lowercaseId": null,
+                        "maker": 0,
+                        "margin": false,
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "option": false,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.0001,
+                            "price": 1e-10
+                        },
+                        "quote": "USD",
+                        "quoteId": "USD",
+                        "settle": "USD",
+                        "settleId": "USD",
+                        "spot": false,
+                        "strike": null,
+                        "subType": null,
+                        "swap": true,
+                        "symbol": "BTC/USD:USD",
+                        "taker": 0,
+                        "type": "swap"
+                    }
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "the endpoint returns newest first; candles are keyed by open_time",
+                "httpResponse": {
+                    "code": 200,
+                    "msg": null,
+                    "result": [
+                        {
+                            "base_volume": 0.25,
+                            "close": 75160,
+                            "close_time": 1794080100000,
+                            "high": 75180,
+                            "interval": "5m",
+                            "low": 75120,
+                            "open": 75150,
+                            "open_time": 1794079800000,
+                            "quote_volume": 18790
+                        },
+                        {
+                            "base_volume": 0.5,
+                            "close": 75150,
+                            "close_time": 1794079800000,
+                            "high": 75200,
+                            "interval": "5m",
+                            "low": 75050,
+                            "open": 75100,
+                            "open_time": 1794079500000,
+                            "quote_volume": 37575
+                        }
+                    ]
+                },
+                "input": [
+                    "BTC/USD:USD",
+                    "5m"
+                ],
+                "method": "fetchOHLCV",
+                "parsedResponse": [
+                    [
+                        1794079500000,
+                        75100,
+                        75200,
+                        75050,
+                        75150,
+                        0.5
+                    ],
+                    [
+                        1794079800000,
+                        75150,
+                        75180,
+                        75120,
+                        75160,
+                        0.25
+                    ]
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "string prices, unsorted levels",
+                "httpResponse": {
+                    "code": 200,
+                    "msg": null,
+                    "result": {
+                        "asks": [
+                            {
+                                "price": "75200",
+                                "qty": 0.9
+                            },
+                            {
+                                "price": "75160",
+                                "qty": 0.4
+                            }
+                        ],
+                        "bids": [
+                            {
+                                "price": "75100",
+                                "qty": 1.2
+                            },
+                            {
+                                "price": "75140",
+                                "qty": 0.5
+                            }
+                        ],
+                        "last_price": 1.33094e-05
+                    }
+                },
+                "input": [
+                    "BTC/USD:USD"
+                ],
+                "method": "fetchOrderBook",
+                "parsedResponse": {
+                    "asks": [
+                        [
+                            75160,
+                            0.4
+                        ],
+                        [
+                            75200,
+                            0.9
+                        ]
+                    ],
+                    "bids": [
+                        [
+                            75140,
+                            0.5
+                        ],
+                        [
+                            75100,
+                            1.2
+                        ]
+                    ],
+                    "datetime": null,
+                    "nonce": null,
+                    "symbol": "BTC/USD:USD",
+                    "timestamp": null
+                }
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "perpetual ticker; change, percentage, average and vwap are derived (the raw price_change is ignored)",
+                "httpResponse": {
+                    "ask_price": 75160,
+                    "ask_qty": 0.4,
+                    "base_volume": 2,
+                    "bid_price": 75140,
+                    "bid_qty": 0.5,
+                    "close_time": 1794152100000,
+                    "funding_rate": 0.0001,
+                    "high_price": 75400,
+                    "index_price": 75155.5,
+                    "last_price": 75150,
+                    "low_price": 74800,
+                    "mark_price": 75152.3,
+                    "open_interest": 0.0176,
+                    "open_price": 75000,
+                    "prev_last_price": 75100,
+                    "price_change": -43293791.7,
+                    "quote_volume": 150000
+                },
+                "input": [
+                    "BTC/USD:USD"
+                ],
+                "method": "fetchTicker",
+                "parsedResponse": {
+                    "ask": 75160,
+                    "askVolume": 0.4,
+                    "average": 75075,
+                    "baseVolume": 2,
+                    "bid": 75140,
+                    "bidVolume": 0.5,
+                    "change": 150,
+                    "close": 75150,
+                    "datetime": "2026-11-08T15:35:00.000Z",
+                    "high": 75400,
+                    "indexPrice": 75155.5,
+                    "info": {
+                        "ask_price": 75160,
+                        "ask_qty": 0.4,
+                        "base_volume": 2,
+                        "bid_price": 75140,
+                        "bid_qty": 0.5,
+                        "close_time": 1794152100000,
+                        "funding_rate": 0.0001,
+                        "high_price": 75400,
+                        "index_price": 75155.5,
+                        "last_price": 75150,
+                        "low_price": 74800,
+                        "mark_price": 75152.3,
+                        "open_interest": 0.0176,
+                        "open_price": 75000,
+                        "prev_last_price": 75100,
+                        "price_change": -43293791.7,
+                        "quote_volume": 150000
+                    },
+                    "last": 75150,
+                    "low": 74800,
+                    "markPrice": 75152.3,
+                    "open": 75000,
+                    "percentage": 0.2,
+                    "previousClose": 75100,
+                    "quoteVolume": 150000,
+                    "symbol": "BTC/USD:USD",
+                    "timestamp": 1794152100000,
+                    "vwap": 75000
+                }
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "httpResponse": {
+                    "code": 200,
+                    "msg": null,
+                    "result": 1794080008363
+                },
+                "input": [],
+                "method": "fetchTime",
+                "parsedResponse": 1794080008363
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "public trades are returned oldest first; is_buyer_maker true means the taker sold",
+                "httpResponse": {
+                    "code": 200,
+                    "msg": null,
+                    "result": [
+                        {
+                            "date": "2026-11-05T23:01:38.108Z",
+                            "id": "db12e520d96c11f1b6f429295d96c8d7",
+                            "is_best_match": true,
+                            "is_buyer_maker": true,
+                            "pair": "USD_BTC_PERP",
+                            "price": 75134.9,
+                            "qty": 0.0001,
+                            "time": 1793919698034
+                        },
+                        {
+                            "date": "2026-10-25T14:00:32.944Z",
+                            "id": "71d3e3f0d07c11f18adc19d240260983",
+                            "is_best_match": true,
+                            "is_buyer_maker": false,
+                            "pair": "USD_BTC_PERP",
+                            "price": 80347.7,
+                            "qty": 0.0001,
+                            "time": 1792936832943
+                        }
+                    ]
+                },
+                "input": [
+                    "BTC/USD:USD"
+                ],
+                "method": "fetchTrades",
+                "parsedResponse": [
+                    {
+                        "amount": 0.0001,
+                        "cost": 8.03477,
+                        "datetime": "2026-10-25T14:00:32.943Z",
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": [],
+                        "id": "71d3e3f0d07c11f18adc19d240260983",
+                        "info": {
+                            "date": "2026-10-25T14:00:32.944Z",
+                            "id": "71d3e3f0d07c11f18adc19d240260983",
+                            "is_best_match": true,
+                            "is_buyer_maker": false,
+                            "pair": "USD_BTC_PERP",
+                            "price": 80347.7,
+                            "qty": 0.0001,
+                            "time": 1792936832943
+                        },
+                        "order": null,
+                        "price": 80347.7,
+                        "side": "buy",
+                        "symbol": "BTC/USD:USD",
+                        "takerOrMaker": null,
+                        "timestamp": 1792936832943,
+                        "type": null
+                    },
+                    {
+                        "amount": 0.0001,
+                        "cost": 7.51349,
+                        "datetime": "2026-11-05T23:01:38.034Z",
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": [],
+                        "id": "db12e520d96c11f1b6f429295d96c8d7",
+                        "info": {
+                            "date": "2026-11-05T23:01:38.108Z",
+                            "id": "db12e520d96c11f1b6f429295d96c8d7",
+                            "is_best_match": true,
+                            "is_buyer_maker": true,
+                            "pair": "USD_BTC_PERP",
+                            "price": 75134.9,
+                            "qty": 0.0001,
+                            "time": 1793919698034
+                        },
+                        "order": null,
+                        "price": 75134.9,
+                        "side": "sell",
+                        "symbol": "BTC/USD:USD",
+                        "takerOrMaker": null,
+                        "timestamp": 1793919698034,
+                        "type": null
+                    }
+                ]
+            }
+        ]
+    },
+    "skipKeys": []
+}
