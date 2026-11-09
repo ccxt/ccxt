@@ -618885,11 +618885,17 @@ class revolutx extends _abstract_revolutx_js__rspack_import_0/* ["default"] */.A
         if (since !== undefined) {
             request['since'] = since;
         }
+        const defaultLimit = 1000; // default max limit if not specified
+        const limitValue = limit !== undefined ? limit : defaultLimit;
+        const duration = this.parseTimeframe(timeframe) * 1000;
         const until = this.safeInteger2(params, 'until', 'until');
         if (until !== undefined) {
             request['until'] = until;
-        } else {
-            request['until'] = this.milliseconds();
+        }
+        if (since !== undefined && until === undefined) {
+            request['until'] = this.sum(since, limitValue * duration);
+        } else if (since === undefined && until !== undefined) {
+            request['since'] = until - limitValue * duration;
         }
         const region = this.safeString2(params, 'region', 'region', this.options['region']);
         if (region !== undefined) {
