@@ -1931,6 +1931,18 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 // whole connection, see https://github.com/ccxt/ccxt/issues/28369
                 return true;
             }
+            if (((String)ret_msg).indexOf("Already unsubscribed") >= 0)
+            {
+                // the requested state is already reached, so the unWatch call resolves through the
+                // regular unsubscription handler, the subscription is echoed only inside the text
+                Object subscriptionStart = ((String)ret_msg).indexOf("{");
+                Object subscription = this.parseJson(Helpers.slice(ret_msg, subscriptionStart, null));
+                if (!java.util.Objects.equals(subscription, null))
+                {
+                    this.handleUnsubscription(client, (Map<String, Object>) (subscription));
+                    return true;
+                }
+            }
             var error = new ExchangeError(((this.id + " ") + ret_msg));
             client.reject(error);
             return true;
@@ -2213,35 +2225,40 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         if (java.util.Objects.equals(method, "unsubscribe"))
         {
             Map<String, Object> subscription = (Map<String, Object>) this.safeDict(data, "subscription", new HashMap<String, Object>() {{}});
-            String type = this.safeString(subscription, "type");
-            if (java.util.Objects.equals(type, "l2Book"))
-            {
-                this.handleOrderBookUnsubscription(client, subscription);
-            } else if (java.util.Objects.equals(type, "trades"))
-            {
-                this.handleTradesUnsubscription(client, subscription);
-            } else if (java.util.Objects.equals(type, "candle"))
-            {
-                this.handleOHLCVUnsubscription(client, subscription);
-            } else if (java.util.Objects.equals(type, "orderUpdates"))
-            {
-                this.handleOrderUnsubscription(client, subscription);
-            } else if (java.util.Objects.equals(type, "userFills"))
-            {
-                this.handleMyTradesUnsubscription(client, subscription);
-            } else if (java.util.Objects.equals(type, "clearinghouseState"))
-            {
-                this.handlePositionsUnsubscription(client, subscription);
-            } else if (java.util.Objects.equals(type, "spotState"))
-            {
-                this.handleSpotBalanceUnsubscription(client, subscription);
-            } else if ((java.util.Objects.equals(type, "activeAssetCtx")) || (java.util.Objects.equals(type, "activeSpotAssetCtx")))
-            {
-                this.handleTickerUnsubscription(client, subscription);
-            } else if (java.util.Objects.equals(type, "allMids"))
-            {
-                this.handleTickersUnsubscription(client, subscription);
-            }
+            this.handleUnsubscription(client, subscription);
+        }
+    }
+
+    public void handleUnsubscription(Client client, Map<String, Object> subscription)
+    {
+        String type = this.safeString(subscription, "type");
+        if (java.util.Objects.equals(type, "l2Book"))
+        {
+            this.handleOrderBookUnsubscription(client, subscription);
+        } else if (java.util.Objects.equals(type, "trades"))
+        {
+            this.handleTradesUnsubscription(client, subscription);
+        } else if (java.util.Objects.equals(type, "candle"))
+        {
+            this.handleOHLCVUnsubscription(client, subscription);
+        } else if (java.util.Objects.equals(type, "orderUpdates"))
+        {
+            this.handleOrderUnsubscription(client, subscription);
+        } else if (java.util.Objects.equals(type, "userFills"))
+        {
+            this.handleMyTradesUnsubscription(client, subscription);
+        } else if (java.util.Objects.equals(type, "clearinghouseState"))
+        {
+            this.handlePositionsUnsubscription(client, subscription);
+        } else if (java.util.Objects.equals(type, "spotState"))
+        {
+            this.handleSpotBalanceUnsubscription(client, subscription);
+        } else if ((java.util.Objects.equals(type, "activeAssetCtx")) || (java.util.Objects.equals(type, "activeSpotAssetCtx")))
+        {
+            this.handleTickerUnsubscription(client, subscription);
+        } else if (java.util.Objects.equals(type, "allMids"))
+        {
+            this.handleTickersUnsubscription(client, subscription);
         }
     }
 

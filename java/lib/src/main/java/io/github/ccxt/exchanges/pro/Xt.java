@@ -111,7 +111,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 tradeType = "contract";
             }
-            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
             String url = this.safeString(apiUrls, tradeType);
             if (!Boolean.TRUE.equals(isContract))
             {
@@ -296,7 +296,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "id", id );
             }};
-            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
             String url = ((this.safeString(apiUrls, tradeType, "") + "/") + tail);
             return (this.watch(url, messageHash, request, messageHash, subscription)).join();
         });
@@ -363,7 +363,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 tail = ((Boolean.TRUE.equals(privateAccess))) ? "user" : "market";
             }
-            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
             String url = ((this.safeString(apiUrls, tradeType, "") + "/") + tail);
             Map<String, Object> subscription = new HashMap<String, Object>() {{
                 put( "unsubscribe", true );
@@ -850,7 +850,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+            Map<String, Object> apiUrls = (Map<String, Object>) this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
             String url = ((this.safeString(apiUrls, "contract", "") + "/") + "user");
             Client client = this.client(url);
             this.setPositionsCache(client);
@@ -1855,6 +1855,14 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             tradeType = "contract";
         }
         client.resolve(stored, ("trade::" + tradeType));
+    }
+
+    public void handleTextMessage(Client client, Object message)
+    {
+        if (java.util.Objects.equals(message, "pong"))
+        {
+            client.lastPong = ((Number)this.milliseconds()).longValue();
+        }
     }
 
     public void handleMessage(Client client, Map<String, Object> message)

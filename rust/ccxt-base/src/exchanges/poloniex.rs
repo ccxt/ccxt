@@ -4957,7 +4957,7 @@ impl PoloniexCore {
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
-        m.insert("notional".to_string(), notional);
+        m.insert("notional".to_string(), self.parse_number(notional, &[]));
         m.insert("marginMode".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position.clone(), "liqPx", &[]));
         m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "openAvgPx", &[]));
@@ -4976,7 +4976,7 @@ impl PoloniexCore {
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("collateral".to_string(), self.parse_number(collateral, &[]));
         m.insert("positionMargin".to_string(), self.parse_number(positionMargin, &[]));
-        m.insert("initialMargin".to_string(), initialMargin.map(Value::from).unwrap_or(Value::Null));
+        m.insert("initialMargin".to_string(), self.parse_number(initialMargin.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("leverage".to_string(), self.safe_integer_k(position.clone(), "lever", &[]));
         m.insert("marginRatio".to_string(), self.safe_number_k(position.clone(), "mgnRatio", &[]));
