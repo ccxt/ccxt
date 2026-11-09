@@ -24,7 +24,7 @@ class blofin extends Exchange {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'blofin',
             'name' => 'BloFin',
-            'countries' => array( 'US' ),
+            'countries' => array( 'MH' ), // Marshall Islands
             'version' => 'v1',
             'rateLimit' => 200, // 1500 requests per 5 minutes per IP is the binding budget => 200ms per request (500/min allows 120ms, but 1500/5min does not)
             'pro' => true,
@@ -3416,7 +3416,7 @@ class blofin extends Exchange {
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {boolean} [$params->autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a $market order. false or true, the default is false
          * @param {string} [$params->tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
-         * @return {array[]} ~@link https://docs.ccxt.com/?id=position-structure A list of position structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());

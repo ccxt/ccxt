@@ -3251,8 +3251,8 @@ class backpack extends backpack$1["default"] {
         const marketId = this.safeString(position, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
         const symbol = marketResolved['symbol'];
-        const entryPrice = this.safeString(position, 'entryPrice');
-        const markPrice = this.safeString(position, 'markPrice');
+        const entryPrice = this.safeNumber(position, 'entryPrice');
+        const markPrice = this.safeNumber(position, 'markPrice');
         const netCost = this.safeString(position, 'netCost');
         let hedged = false;
         let side = 'long';
@@ -3263,9 +3263,9 @@ class backpack extends backpack$1["default"] {
             hedged = undefined;
             side = undefined;
         }
-        const unrealizedPnl = this.safeString(position, 'pnlUnrealized');
-        const realizedPnl = this.safeString(position, 'pnlRealized');
-        const liquidationPrice = this.safeString(position, 'estLiquidationPrice');
+        const unrealizedPnl = this.safeNumber(position, 'pnlUnrealized');
+        const realizedPnl = this.safeNumber(position, 'pnlRealized');
+        const liquidationPrice = this.safeNumber(position, 'estLiquidationPrice');
         return this.safePosition({
             'info': position,
             'id': id,
@@ -3275,18 +3275,18 @@ class backpack extends backpack$1["default"] {
             'lastUpdateTimestamp': undefined,
             'hedged': hedged,
             'side': side,
-            'contracts': this.safeString(position, 'netExposureQuantity'),
+            'contracts': this.safeNumber(position, 'netExposureQuantity'),
             'contractSize': undefined,
             'entryPrice': entryPrice,
             'markPrice': markPrice,
             'lastPrice': undefined,
-            'notional': Precise["default"].stringAbs(netCost),
+            'notional': this.parseNumber(Precise["default"].stringAbs(netCost)),
             'leverage': undefined,
             'collateral': undefined,
             'initialMargin': undefined,
-            'initialMarginPercentage': this.safeString(position, 'imf'),
+            'initialMarginPercentage': this.safeNumber(position, 'imf'),
             'maintenanceMargin': undefined,
-            'maintenanceMarginPercentage': this.safeString(position, 'mmf'),
+            'maintenanceMarginPercentage': this.safeNumber(position, 'mmf'),
             'realizedPnl': realizedPnl,
             'unrealizedPnl': unrealizedPnl,
             'liquidationPrice': liquidationPrice,

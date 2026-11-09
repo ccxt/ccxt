@@ -455,8 +455,8 @@ impl Hashkey {
         let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().and_then(|__m| timeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_356: bool = true;
-            while { if !__for_first_356 { i += 1; } __for_first_356 = false; i < (data.len() as i64) } {
+            let mut __for_first_358: bool = true;
+            while { if !__for_first_358 { i += 1; } __for_first_358 = false; i < (data.len() as i64) } {
             let mut candle: Value = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -633,8 +633,8 @@ impl Hashkey {
             data = self.sort_by(data.clone(), Value::Str("t".into()), &[]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_357: bool = true;
-                while { if !__for_first_357 { i += 1; } __for_first_357 = false; i < (data.len() as i64) } {
+                let mut __for_first_359: bool = true;
+                while { if !__for_first_359 { i += 1; } __for_first_359 = false; i < (data.len() as i64) } {
                 let mut trade: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
                 let mut parsed: Value = self.parse_ws_trade(trade, &[market.clone()]);
                 stored.append(parsed);
@@ -1058,8 +1058,8 @@ impl Hashkey {
         }  else {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_358: bool = true;
-                while { if !__for_first_358 { i += 1; } __for_first_358 = false; i < (symbolsNormalized.len() as i64) } {
+                let mut __for_first_360: bool = true;
+                while { if !__for_first_360 { i += 1; } __for_first_360 = false; i < (symbolsNormalized.len() as i64) } {
                 let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into())); }
             }

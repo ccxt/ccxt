@@ -82,11 +82,6 @@ impl Krakenfutures {
         self.call_method(Value::Str("private_get_openorders".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `privateGetRecentorders` implicit endpoint.
-    pub async fn private_get_recentorders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_get_recentorders".into()), optional_args).await
-    }
-
     /// Auto-generated wrapper for the `privateGetFills` implicit endpoint.
     pub async fn private_get_fills(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_fills".into()), optional_args).await

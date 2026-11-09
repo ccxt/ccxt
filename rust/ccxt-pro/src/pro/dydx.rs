@@ -405,8 +405,8 @@ impl Dydx {
         let mut parsedTrades: Value = self.parse_trades(rawTrades, &[market]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_304: bool = true;
-            while { if !__for_first_304 { i += 1; } __for_first_304 = false; i < (parsedTrades.len() as i64) } {
+            let mut __for_first_306: bool = true;
+            while { if !__for_first_306 { i += 1; } __for_first_306 = false; i < (parsedTrades.len() as i64) } {
             stored.append(parsedTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }

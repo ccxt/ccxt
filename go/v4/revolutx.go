@@ -901,11 +901,22 @@ func (this *Revolutx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	if since != nil {
 		request["since"] = since
 	}
+	var defaultLimit int = 1000 // default max limit if not specified
+	var limitValue int64 = func() int64 {
+		if limit != nil {
+			return *limit
+		}
+		return int64(defaultLimit)
+	}()
+	var duration int64 = this.ParseTimeframe(timeframe) * 1000
 	var until *int64 = this.SafeInteger2(params, "until", "until")
 	if until != nil {
 		request["until"] = until
-	} else {
-		request["until"] = this.Milliseconds()
+	}
+	if (since != nil) && (until == nil) {
+		request["until"] = this.Sum(since, (limitValue * duration))
+	} else if (since == nil) && (until != nil) {
+		request["since"] = (*until - (limitValue * duration))
 	}
 	var region *string = this.SafeString2(params, "region", "region", this.Options["region"])
 	if region != nil {
@@ -1837,11 +1848,11 @@ func (this *Revolutx) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes141015 []any = OrdersToList(r.Value)
-	if retRes141015 == nil {
+	var retRes141615 []any = OrdersToList(r.Value)
+	if retRes141615 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes141015)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes141615)}
 	}
 	return nil
 }

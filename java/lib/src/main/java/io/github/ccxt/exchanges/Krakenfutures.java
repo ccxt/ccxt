@@ -189,9 +189,6 @@ public class Krakenfutures extends KrakenfuturesApi
                         put( "openorders", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
-                        put( "recentorders", new HashMap<String, Object>() {{
-                            put( "cost", 1 );
-                        }} );
                         put( "fills", new HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );

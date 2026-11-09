@@ -1107,7 +1107,7 @@ func (this *Bingx) Describe() map[string]any {
 					"triggerPriceType": map[string]any{
 						"last":  true,
 						"mark":  true,
-						"index": true,
+						"index": false,
 					},
 					"triggerDirection": false,
 					"stopLossPrice":    true,
@@ -1116,7 +1116,7 @@ func (this *Bingx) Describe() map[string]any {
 						"triggerPriceType": map[string]any{
 							"last":  true,
 							"mark":  true,
-							"index": true,
+							"index": false,
 						},
 						"price": true,
 					},
@@ -2155,7 +2155,14 @@ func (this *Bingx) ParseTrade(trade any, optionalArgs ...any) Trade {
 	if time != nil && *time == 0 {
 		time = nil
 	}
-	var cost *string = this.SafeString(trade, "quoteQty")
+	// Spot execution reports distinguish the last fill from the original order's p/q.
+	var isSpotExecution bool = (this.SafeString(trade, "e") != nil && *this.SafeString(trade, "e") == "executionReport") && (this.SafeString(trade, "x") != nil && *this.SafeString(trade, "x") == "TRADE")
+	var cost *string = func() *string {
+		if isSpotExecution {
+			return this.SafeString(trade, "Y")
+		}
+		return this.SafeString(trade, "quoteQty")
+	}()
 	// const type = (cost === undefined) ? 'spot' : 'swap'; this is not reliable
 	var currencyId *string = this.SafeStringN(trade, []any{"currency", "N", "commissionAsset"})
 	var currencyCode *string = this.SafeCurrencyCode(currencyId)
@@ -2202,13 +2209,27 @@ func (this *Bingx) ParseTrade(trade any, optionalArgs ...any) Trade {
 			return "taker"
 		}())
 	}
-	var amount *string = this.SafeStringN(trade, []any{"qty", "amount", "q"})
+	var amount any = func() any {
+		if isSpotExecution {
+			return this.SafeString(trade, "l")
+		}
+		return this.SafeStringN(trade, []any{"qty", "amount", "q"})
+	}()
 	if (market != nil) && (*this.SafeBool(market, "swap", false)) && (InOp(trade, "volume")) {
 		// Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
 		// safeTrade applies contractSize when calculating inverse cost.
-		amount = this.SafeString(trade, "volume")
+		if derefPtr := this.SafeString(trade, "volume"); derefPtr != nil {
+			amount = *derefPtr
+		} else {
+			amount = nil
+		}
 	}
-	var price *string = this.SafeStringN(trade, []any{"price", "p", "tradePrice"})
+	var price any = func() any {
+		if isSpotExecution {
+			return this.SafeString(trade, "L")
+		}
+		return this.SafeStringN(trade, []any{"price", "p", "tradePrice"})
+	}()
 	if (market != nil) && (*this.SafeBool(market, "linear", false)) && (this.SafeString(trade, "x") != nil && *this.SafeString(trade, "x") == "TRADE") {
 		var lastAmount *string = this.SafeString(trade, "l")
 		var lastPrice *string = this.SafeString(trade, "L")
@@ -2614,11 +2635,11 @@ func (this *Bingx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRate
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes189419 []any = r1.Value
-		if retRes189419 == nil {
+		var retRes189619 []any = r1.Value
+		if retRes189619 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes189419)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes189619)}
 		}
 		return nil
 	}
@@ -2734,11 +2755,11 @@ func (this *Bingx) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory]
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes197119 []any = r1.Value
-		if retRes197119 == nil {
+		var retRes197319 []any = r1.Value
+		if retRes197319 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes197119)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes197319)}
 		}
 		return nil
 	}
@@ -4311,6 +4332,10 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		var reduceOnlyParam *bool = this.SafeBool(paramsTakeProfit, "reduceOnly", false)
 		// stop loss / take profit price orders are always reduce only
 		var reduceOnly bool = (reduceOnlyParam != nil && *reduceOnlyParam) || (!isTriggerOrder && (isStopLossPriceOrder || isTakeProfitPriceOrder))
+		var triggerPriceType *string = this.SafeString2(paramsTakeProfit, "triggerPriceType", "workingType")
+		if triggerPriceType != nil {
+			request["workingType"] = this.EncodeTriggerPriceType(*triggerPriceType)
+		}
 		if isTriggerOrder {
 			request["stopPrice"] = this.ParseToNumeric(this.PriceToPrecision(symbol, triggerPrice))
 			if isMarketOrder || (typeValue == "TRIGGER_MARKET") {
@@ -4354,14 +4379,20 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 			var stringifiedAmount *string = this.NumberToString(amount)
 			if hasStopLoss {
 				var slTriggerPrice *string = this.SafeString2(stopLossDict, "triggerPrice", "stopPrice")
-				var slWorkingType *string = this.SafeString(stopLossDict, "workingType", "MARK_PRICE")
-				var slType *string = this.SafeString(stopLossDict, "type", "STOP_MARKET")
+				var slWorkingType *string = this.SafeString2(stopLossDict, "triggerPriceType", "workingType", "MARK_PRICE")
+				var slPrice *string = this.SafeString(stopLossDict, "price")
+				var slDefaultType string = func() string {
+					if slPrice != nil {
+						return "STOP"
+					}
+					return "STOP_MARKET"
+				}()
+				var slType *string = this.SafeString(stopLossDict, "type", slDefaultType)
 				var slRequest map[string]any = map[string]any{
 					"stopPrice":   this.ParseToNumeric(this.PriceToPrecision(symbol, slTriggerPrice)),
-					"workingType": slWorkingType,
+					"workingType": this.EncodeTriggerPriceType(*slWorkingType),
 					"type":        slType,
 				}
-				var slPrice *string = this.SafeString(stopLossDict, "price")
 				if slPrice != nil {
 					slRequest["price"] = this.ParseToNumeric(this.PriceToPrecision(symbol, slPrice))
 				}
@@ -4375,16 +4406,22 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 			}
 			if hasTakeProfit {
 				var tkTriggerPrice *string = this.SafeString2(takeProfitDict, "triggerPrice", "stopPrice")
-				var tkWorkingType *string = this.SafeString(takeProfitDict, "workingType", "MARK_PRICE")
-				var tpType *string = this.SafeString(takeProfitDict, "type", "TAKE_PROFIT_MARKET")
+				var tkWorkingType *string = this.SafeString2(takeProfitDict, "triggerPriceType", "workingType", "MARK_PRICE")
+				var tpPrice *string = this.SafeString(takeProfitDict, "price")
+				var tpDefaultType string = func() string {
+					if tpPrice != nil {
+						return "TAKE_PROFIT"
+					}
+					return "TAKE_PROFIT_MARKET"
+				}()
+				var tpType *string = this.SafeString(takeProfitDict, "type", tpDefaultType)
 				var tpRequest map[string]any = map[string]any{
 					"stopPrice":   this.ParseToNumeric(this.PriceToPrecision(symbol, tkTriggerPrice)),
-					"workingType": tkWorkingType,
+					"workingType": this.EncodeTriggerPriceType(*tkWorkingType),
 					"type":        tpType,
 				}
-				var slPrice *string = this.SafeString(takeProfitDict, "price")
-				if slPrice != nil {
-					tpRequest["price"] = this.ParseToNumeric(this.PriceToPrecision(symbol, slPrice))
+				if tpPrice != nil {
+					tpRequest["price"] = this.ParseToNumeric(this.PriceToPrecision(symbol, tpPrice))
 				}
 				var tkQuantity *string = this.SafeString(takeProfitDict, "quantity", stringifiedAmount)
 				var tkQuantityRequest any = this.ParseToNumeric(tkQuantity)
@@ -4434,8 +4471,15 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 			request["quantity"] = amountReq // precision not available for inverse contracts
 		}
 	}
-	var paramsRequest any = this.Omit(paramsOrder, []any{"hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "trailingTriggerPrice", "activationPrice", "clientOrderId", "cost", "quoteOrderQty"})
+	var paramsRequest any = this.Omit(paramsOrder, []any{"hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "trailingTriggerPrice", "activationPrice", "clientOrderId", "cost", "quoteOrderQty", "triggerPriceType", "workingType"})
 	return this.Extend(request, paramsRequest)
+}
+func (this *Bingx) EncodeTriggerPriceType(triggerPriceType string) *string {
+	var types map[string]any = map[string]any{
+		"last": "CONTRACT_PRICE",
+		"mark": "MARK_PRICE",
+	}
+	return this.SafeString(types, triggerPriceType, triggerPriceType)
 }
 
 /**
@@ -4466,8 +4510,13 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
  * @param {float} [params.trailingTriggerPrice] *swap only* the price to activate a trailing order at
  * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
  * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+ * @param {float} [params.takeProfit.price] *swap only* limit price of the attached take profit order, omit for a market take profit
+ * @param {string} [params.takeProfit.triggerPriceType] *swap only* 'mark' or 'last'
  * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
  * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+ * @param {float} [params.stopLoss.price] *swap only* limit price of the attached stop loss order, omit for a market stop loss
+ * @param {string} [params.stopLoss.triggerPriceType] *swap only* 'mark' or 'last'
+ * @param {string} [params.triggerPriceType] *swap only* 'mark' or 'last', the price that trigger, stop loss and take profit prices are compared against
  * @param {boolean} [params.test] *linear swap only* whether to use the test endpoint or not, default is false
  * @param {string} [params.positionSide] *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
  * @param {boolean} [params.hedged] *swap only* whether the order is in hedged mode or one way mode
@@ -6488,11 +6537,11 @@ func (this *Bingx) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes550119 []any = r1.Value
-		if retRes550119 == nil {
+		var retRes552219 []any = r1.Value
+		if retRes552219 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes550119)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes552219)}
 		}
 		return nil
 	}
@@ -7137,9 +7186,11 @@ func (this *Bingx) reduceMarginBody(ch chan AsyncResult[MarginModification], sym
  * @name bingx#setMargin
  * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Adjust%20Position%20Margin
  * @param {string} symbol unified market symbol of the market to set margin in
  * @param {float} amount the amount to set the margin to
  * @param {object} [params] parameters specific to the exchange API endpoint
+ * @param {string} [params.positionSide] "LONG" or "SHORT", required for Coin-M
  * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *Bingx) SetMarginAsync(symbol any, amount any, optionalArgs ...any) <-chan AsyncResult[MarginModification] {
@@ -7167,18 +7218,41 @@ func (this *Bingx) setMarginBody(ch chan AsyncResult[MarginModification], symbol
 		}
 	}
 	var market map[string]any = this.Market(symbol)
+	var positionSide *string = this.SafeString(params, "positionSide")
+	if (market["inverse"] == true) && (positionSide == nil) {
+		panic(ArgumentsRequired(this.Id + " setMargin() requires a positionSide parameter for Coin-M markets"))
+	}
+	var amountString any = nil
+	if market["inverse"] == true {
+		amountString = this.CurrencyToPrecision(market["settle"], amount)
+	} else {
+		if derefPtr := this.AmountToPrecision(market["symbol"], amount); derefPtr != nil {
+			amountString = *derefPtr
+		} else {
+			amountString = nil
+		}
+	}
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
-		"amount": this.AmountToPrecision(market["symbol"], amount),
+		"amount": amountString,
 		"type":   typeVar,
 	}
+	var response map[string]any = nil
+	if market["inverse"] == true {
 
-	r1 := <-this.SwapV2PrivatePostTradePositionMargin(this.Extend(request, params))
-	if r1.Err != nil {
-		panic(r1.Err)
+		r1 := <-this.CswapV1PrivatePostTradePositionMargin(this.Extend(request, params))
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		response = r1.Value
+	} else {
+
+		r2 := <-this.SwapV2PrivatePostTradePositionMargin(this.Extend(request, params))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Value
 	}
-	var response map[string]any = r1.Value
-
 	//
 	//    {
 	//        "code": 0,
@@ -7187,7 +7261,17 @@ func (this *Bingx) setMarginBody(ch chan AsyncResult[MarginModification], symbol
 	//        "type": 1
 	//    }
 	//
-	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.ParseMarginModification(response, market))}
+	var responseData any = response
+	if market["inverse"] == true {
+		responseData = this.Extend(map[string]any{
+			"amount": amountString,
+			"type":   typeVar,
+		}, this.SafeDict(response, "data", map[string]any{}))
+	}
+	var result map[string]any = this.ParseMarginModification(responseData, market)
+	result["info"] = response
+
+	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(result)}
 	return nil
 }
 func (this *Bingx) ParseMarginModification(data any, optionalArgs ...any) map[string]any {
@@ -7388,7 +7472,7 @@ func (this *Bingx) setLeverageBody(ch chan AsyncResult[map[string]any], leverage
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms for the ending date filter, default is undefined
- * @param {string} params.trandingUnit COIN (directly represent assets such as BTC and ETH) or CONT (represents the number of contract sheets)
+ * @param {string} [params.tradingUnit] COIN (default, base currency amount) or CONT (number of contract sheets)
  * @param {string} params.orderId the order id required for inverse swap
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
@@ -7477,7 +7561,7 @@ func (this *Bingx) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 			var data map[string]any = SafeMapTyped(response, "data")
 			fills = this.SafeList(data, "fills", []any{})
 		} else {
-			var tradingUnit *string = this.SafeStringUpper(paramsUntil, "tradingUnit", "CONT")
+			var tradingUnit *string = this.SafeStringUpper(paramsUntil, "tradingUnit", "COIN")
 			paramsTrades = this.OmitDict(paramsUntil, "tradingUnit")
 			request["tradingUnit"] = tradingUnit
 
@@ -7537,7 +7621,7 @@ func (this *Bingx) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[str
 			})
 			if networksLength == 1 {
 				result["withdraw"] = map[string]any{
-					"fee":        this.SafeNumber(network, "withdrawFee"),
+					"fee":        this.SafeNumber(network, "fee"),
 					"percentage": false,
 				}
 			}
@@ -9331,8 +9415,13 @@ func (this *Bingx) CreateMarketSellOrderWithCost(symbol string, cost float64, op
  * @param {float} [params.trailingTriggerPrice] *swap only* the price to activate a trailing order at
  * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
  * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+ * @param {float} [params.takeProfit.price] *swap only* limit price of the attached take profit order, omit for a market take profit
+ * @param {string} [params.takeProfit.triggerPriceType] *swap only* 'mark' or 'last'
  * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
  * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+ * @param {float} [params.stopLoss.price] *swap only* limit price of the attached stop loss order, omit for a market stop loss
+ * @param {string} [params.stopLoss.triggerPriceType] *swap only* 'mark' or 'last'
+ * @param {string} [params.triggerPriceType] *swap only* 'mark' or 'last', the price that trigger, stop loss and take profit prices are compared against
  * @param {boolean} [params.test] *linear swap only* whether to use the test endpoint or not, default is false
  * @param {string} [params.positionSide] *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
  * @param {boolean} [params.hedged] *swap only* whether the order is in hedged mode or one way mode
@@ -9866,9 +9955,11 @@ func (this *Bingx) SetMarginMode(marginMode string, options ...SetMarginModeOpti
  * @name bingx#setMargin
  * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+ * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Adjust%20Position%20Margin
  * @param {string} symbol unified market symbol of the market to set margin in
  * @param {float} amount the amount to set the margin to
  * @param {object} [params] parameters specific to the exchange API endpoint
+ * @param {string} [params.positionSide] "LONG" or "SHORT", required for Coin-M
  * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *Bingx) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
@@ -9950,7 +10041,7 @@ func (this *Bingx) SetLeverage(leverage int64, options ...SetLeverageOptions) (m
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms for the ending date filter, default is undefined
- * @param {string} params.trandingUnit COIN (directly represent assets such as BTC and ETH) or CONT (represents the number of contract sheets)
+ * @param {string} [params.tradingUnit] COIN (default, base currency amount) or CONT (number of contract sheets)
  * @param {string} params.orderId the order id required for inverse swap
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */

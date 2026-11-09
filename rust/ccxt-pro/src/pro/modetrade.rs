@@ -693,8 +693,8 @@ impl Modetrade {
         let mut result: Vec<Value> = vec![];
         {
                         let mut i: i64 = 0;
-            let mut __for_first_492: bool = true;
-            while { if !__for_first_492 { i += 1; } __for_first_492 = false; i < (data.len() as i64) } {
+            let mut __for_first_494: bool = true;
+            while { if !__for_first_494 { i += 1; } __for_first_494 = false; i < (data.len() as i64) } {
             let mut marketId: Option<String> = self.safe_string_k_opt(data.get(i as usize).cloned().unwrap_or(Value::Null), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
             let __ws_arg_1 = self.extend(data.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
@@ -773,8 +773,8 @@ impl Modetrade {
         let mut result: Vec<Value> = vec![];
         {
                         let mut i: i64 = 0;
-            let mut __for_first_493: bool = true;
-            while { if !__for_first_493 { i += 1; } __for_first_493 = false; i < (data.len() as i64) } {
+            let mut __for_first_495: bool = true;
+            while { if !__for_first_495 { i += 1; } __for_first_495 = false; i < (data.len() as i64) } {
             let __ws_arg_2 = self.extend(data.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ts".to_string(), timestamp.clone());
@@ -1519,8 +1519,8 @@ impl Modetrade {
             let mut dataListLength: f64 = ((dataList.len() as i64) as f64);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_494: bool = true;
-                while { if !__for_first_494 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_494 = false; i.as_f64().unwrap_or(f64::NAN) < dataListLength } {
+                let mut __for_first_496: bool = true;
+                while { if !__for_first_496 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_496 = false; i.as_f64().unwrap_or(f64::NAN) < dataListLength } {
                 let mut order: Value = dataList.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                 let mut tradeIdStr: Option<String> = self.safe_string_k_opt(data.clone(), "tradeId", &[]);
                 let mut tradeId: Value = (if (tradeIdStr.is_none()) { Value::Null } else { self.omit_zero(tradeIdStr.map(Value::from).unwrap_or(Value::Null)) });
@@ -1653,8 +1653,8 @@ impl Modetrade {
         if (symbolsNormalized != Value::Null) && !(self.is_empty(symbolsNormalized.clone()).as_bool() == Some(true)) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_495: bool = true;
-                while { if !__for_first_495 { i += 1; } __for_first_495 = false; i < (symbolsNormalized.len() as i64) } {
+                let mut __for_first_497: bool = true;
+                while { if !__for_first_497 { i += 1; } __for_first_497 = false; i < (symbolsNormalized.len() as i64) } {
                 let mut symbol: Value = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 messageHashes.push(Value::Str(format!("{}{}", Value::Str("positions::".into()), symbol).into()));
             }
@@ -1720,8 +1720,8 @@ impl Modetrade {
         let mut cache: Value = self.positions.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_496: bool = true;
-            while { if !__for_first_496 { i += 1; } __for_first_496 = false; i < (positions.len() as i64) } {
+            let mut __for_first_498: bool = true;
+            while { if !__for_first_498 { i += 1; } __for_first_498 = false; i < (positions.len() as i64) } {
             let mut position: Value = positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut contracts: Value = self.safe_string_k(position.clone(), "contracts", &[Value::Str("0".into())]);
             if crate::precise::Precise::stringGt(&contracts, &Value::Str("0".into())).as_bool() == Some(true) {
@@ -1786,8 +1786,8 @@ impl Modetrade {
         let mut newPositions: Vec<Value> = vec![];
         {
                         let mut i: i64 = 0;
-            let mut __for_first_497: bool = true;
-            while { if !__for_first_497 { i += 1; } __for_first_497 = false; i < (rawPositions.len() as i64) } {
+            let mut __for_first_499: bool = true;
+            while { if !__for_first_499 { i += 1; } __for_first_499 = false; i < (rawPositions.len() as i64) } {
             let mut rawPosition: Value = self.safe_dict(rawPositions.clone(), Value::Int(i), &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(rawPosition.clone(), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
@@ -1960,8 +1960,8 @@ impl Modetrade {
         { let __be_tmp = self.iso8601(ts); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), __be_tmp); } }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_498: bool = true;
-            while { if !__for_first_498 { i += 1; } __for_first_498 = false; i < (keys.len() as i64) } {
+            let mut __for_first_500: bool = true;
+            while { if !__for_first_500 { i += 1; } __for_first_500 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut value: Value = self.safe_dict(balances.clone(), key.clone(), &[]);
             let mut code: Value = self.safe_currency_code(key, &[]);

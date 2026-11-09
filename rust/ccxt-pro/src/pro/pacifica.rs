@@ -707,8 +707,8 @@ impl Pacifica {
         let mut ordersToReturn: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_572: bool = true;
-            while { if !__for_first_572 { i += 1; } __for_first_572 = false; i < (results.len() as i64) } {
+            let mut __for_first_574: bool = true;
+            while { if !__for_first_574 { i += 1; } __for_first_574 = false; i < (results.len() as i64) } {
             let mut order: Value = self.safe_dict(results.clone(), Value::Int(i), &[]);
             let mut error: Option<String> = self.safe_string_k(order.clone(), "error", &[]).as_str().map(str::to_owned);
             let mut success: bool = self.safe_bool_k_opt(order.clone(), "success", &[Value::Bool(false)]).unwrap_or(false);
@@ -1409,8 +1409,8 @@ impl Pacifica {
         let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_573: bool = true;
-            while { if !__for_first_573 { i += 1; } __for_first_573 = false; i < (data.len() as i64) } {
+            let mut __for_first_575: bool = true;
+            while { if !__for_first_575 { i += 1; } __for_first_575 = false; i < (data.len() as i64) } {
             let mut info: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(info.clone(), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
@@ -1477,8 +1477,8 @@ impl Pacifica {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_574: bool = true;
-            while { if !__for_first_574 { i += 1; } __for_first_574 = false; i < (data.len() as i64) } {
+            let mut __for_first_576: bool = true;
+            while { if !__for_first_576 { i += 1; } __for_first_576 = false; i < (data.len() as i64) } {
             let mut rawTrade: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_ws_trade(rawTrade, &[]);
             let mut symbol: Value = parsed.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1491,8 +1491,8 @@ impl Pacifica {
         let mut keys: Value = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_575: bool = true;
-            while { if !__for_first_575 { i += 1; } __for_first_575 = false; i < (keys.len() as i64) } {
+            let mut __for_first_577: bool = true;
+            while { if !__for_first_577 { i += 1; } __for_first_577 = false; i < (keys.len() as i64) } {
             let mut currentMessageHash: Value = Value::Str(format!("{}{}", Value::Str("myTrades:".into()), self.safe_string(keys.clone(), Value::Int(i), &[Value::Str("".into())])).into());
             client.resolve(&[trades.clone(), currentMessageHash]);
         }
@@ -1669,8 +1669,8 @@ impl Pacifica {
         let mut trades: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_576: bool = true;
-            while { if !__for_first_576 { i += 1; } __for_first_576 = false; i < (entry.len() as i64) } {
+            let mut __for_first_578: bool = true;
+            while { if !__for_first_578 { i += 1; } __for_first_578 = false; i < (entry.len() as i64) } {
             let mut data: Value = self.safe_dict(entry.clone(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -2152,8 +2152,8 @@ impl Pacifica {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_577: bool = true;
-            while { if !__for_first_577 { i += 1; } __for_first_577 = false; i < (data.len() as i64) } {
+            let mut __for_first_579: bool = true;
+            while { if !__for_first_579 { i += 1; } __for_first_579 = false; i < (data.len() as i64) } {
             let mut rawOrder: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut order: Value = self.parse_order(rawOrder, &[]);
             stored.append(order.clone());
@@ -2166,8 +2166,8 @@ impl Pacifica {
         let mut keys: Vec<Value> = Value::Array(marketSymbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_578: bool = true;
-            while { if !__for_first_578 { i += 1; } __for_first_578 = false; i < (keys.len() as i64) } {
+            let mut __for_first_580: bool = true;
+            while { if !__for_first_580 { i += 1; } __for_first_580 = false; i < (keys.len() as i64) } {
             let mut symbol: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut innerMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbol).into());
             client.resolve(&[stored.clone(), innerMessageHash]);
@@ -2251,8 +2251,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbols: Vec<Value> = Value::Array(self.tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_579: bool = true;
-            while { if !__for_first_579 { i += 1; } __for_first_579 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_581: bool = true;
+            while { if !__for_first_581 { i += 1; } __for_first_581 = false; i < (symbols.len() as i64) } {
             if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &symbols.get(i as usize).cloned().unwrap_or(Value::Null)) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
         }
         }
@@ -2398,8 +2398,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut keys: Vec<Value> = Value::Array(methods.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_580: bool = true;
-            while { if !__for_first_580 { i += 1; } __for_first_580 = false; i < (keys.len() as i64) } {
+            let mut __for_first_582: bool = true;
+            while { if !__for_first_582 { i += 1; } __for_first_582 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             if (match (&(topic), &(keys.get(i as usize).cloned().unwrap_or(Value::Null))) { (Value::Arr(__a), __nd) => Value::Int(__a.iter().position(|__it| match (__it, __nd) { (Value::Null, Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x),
                 Value::Int(__y)) => __x == __y, (Value::Float(__x), Value::Float(__y)) => __x == __y, (__p, __q) => match ((match __p { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),

@@ -4816,8 +4816,8 @@ impl Backpack {
         let mut marketId: Option<String> = self.safe_string_k_opt(position.clone(), "symbol", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut entryPrice: Option<String> = self.safe_string_k_opt(position.clone(), "entryPrice", &[]);
-        let mut markPrice: Option<String> = self.safe_string_k_opt(position.clone(), "markPrice", &[]);
+        let mut entryPrice: Value = self.safe_number_k(position.clone(), "entryPrice", &[]);
+        let mut markPrice: Value = self.safe_number_k(position.clone(), "markPrice", &[]);
         let mut netCost: Option<String> = self.safe_string_k_opt(position.clone(), "netCost", &[]);
         let mut hedged: Value = Value::Bool(false);
         let mut side: Value = Value::Str("long".into());
@@ -4828,9 +4828,9 @@ impl Backpack {
             hedged = Value::Null;
             side = Value::Null;
         }
-        let mut unrealizedPnl: Option<String> = self.safe_string_k_opt(position.clone(), "pnlUnrealized", &[]);
-        let mut realizedPnl: Option<String> = self.safe_string_k_opt(position.clone(), "pnlRealized", &[]);
-        let mut liquidationPrice: Option<String> = self.safe_string_k_opt(position.clone(), "estLiquidationPrice", &[]);
+        let mut unrealizedPnl: Value = self.safe_number_k(position.clone(), "pnlUnrealized", &[]);
+        let mut realizedPnl: Value = self.safe_number_k(position.clone(), "pnlRealized", &[]);
+        let mut liquidationPrice: Value = self.safe_number_k(position.clone(), "estLiquidationPrice", &[]);
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
@@ -4841,21 +4841,21 @@ impl Backpack {
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
         m.insert("hedged".to_string(), hedged);
         m.insert("side".to_string(), side);
-        m.insert("contracts".to_string(), self.safe_string_k(position.clone(), "netExposureQuantity", &[]));
+        m.insert("contracts".to_string(), self.safe_number_k(position.clone(), "netExposureQuantity", &[]));
         m.insert("contractSize".to_string(), Value::Null);
-        m.insert("entryPrice".to_string(), entryPrice.map(Value::from).unwrap_or(Value::Null));
-        m.insert("markPrice".to_string(), markPrice.map(Value::from).unwrap_or(Value::Null));
+        m.insert("entryPrice".to_string(), entryPrice);
+        m.insert("markPrice".to_string(), markPrice);
         m.insert("lastPrice".to_string(), Value::Null);
-        m.insert("notional".to_string(), crate::precise::Precise::stringAbs(&netCost.clone().map(Value::from).unwrap_or(Value::Null)));
+        m.insert("notional".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&netCost.clone().map(Value::from).unwrap_or(Value::Null)), &[]));
         m.insert("leverage".to_string(), Value::Null);
         m.insert("collateral".to_string(), Value::Null);
         m.insert("initialMargin".to_string(), Value::Null);
-        m.insert("initialMarginPercentage".to_string(), self.safe_string_k(position.clone(), "imf", &[]));
+        m.insert("initialMarginPercentage".to_string(), self.safe_number_k(position.clone(), "imf", &[]));
         m.insert("maintenanceMargin".to_string(), Value::Null);
-        m.insert("maintenanceMarginPercentage".to_string(), self.safe_string_k(position, "mmf", &[]));
-        m.insert("realizedPnl".to_string(), realizedPnl.map(Value::from).unwrap_or(Value::Null));
-        m.insert("unrealizedPnl".to_string(), unrealizedPnl.map(Value::from).unwrap_or(Value::Null));
-        m.insert("liquidationPrice".to_string(), liquidationPrice.map(Value::from).unwrap_or(Value::Null));
+        m.insert("maintenanceMarginPercentage".to_string(), self.safe_number_k(position, "mmf", &[]));
+        m.insert("realizedPnl".to_string(), realizedPnl);
+        m.insert("unrealizedPnl".to_string(), unrealizedPnl);
+        m.insert("liquidationPrice".to_string(), liquidationPrice);
         m.insert("marginMode".to_string(), Value::Null);
         m.insert("marginRatio".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
