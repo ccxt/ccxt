@@ -634,9 +634,14 @@ export default class interactivebrokers extends Exchange {
             return await this.ibkrGatewaySignIn (params);
         }
         this.checkRequiredCredentials ();
+        const encryptionPemPath = this.safeString (this.options, 'encryptionPemPath');
+        const dhParamPemPath = this.safeString (this.options, 'dhParamPemPath');
+        if (!encryptionPemPath || !dhParamPemPath) {
+            throw new ArgumentsRequired (this.id + ' supports two different authentication methods. You can either use the gateway or oauth 1.0 (if your account allows it) by providing encryptionPemPath and dhParamPemPath in options. Please check the FAQ for more details');
+        }
         await this.initFileSystem ();
-        const encryptionKey = this.readFile (this.options['encryptionPemPath']) as string;
-        const dhPrime = this.convertToBigInt ('0x' + this.readDhParam (this.options['dhParamPemPath']));
+        const encryptionKey = this.readFile (encryptionPemPath) as string;
+        const dhPrime = this.convertToBigInt ('0x' + this.readDhParam (dhParamPemPath));
         // the access token secret is encrypted with the consumer's public encryption key
         const decrypted = this.decryptPrivateKey (encryptionKey, this.secret);
         const accessTokenSecretHex = this.binaryToBase16 (decrypted);
