@@ -2270,7 +2270,7 @@ export default class interactivebrokers extends Exchange {
         const marketId = this.safeString (ticker, 'conid');
         const resolved = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (ticker, '_updated');
-        let last = this.ibkrParseValue (this.safeString2 (ticker, '7296', '7058')); // 31 might contain symbol
+        let last = this.ibkrParseValue (this.safeString (ticker, '7296')); // 31 might contain symbol
         if (last === undefined) {
             // if precise fields are not provided, use generic "last price" field
             last = this.ibkrParseValue (this.safeString (ticker, '31'));
