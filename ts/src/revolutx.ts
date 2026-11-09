@@ -706,7 +706,7 @@ export default class revolutx extends Exchange {
             request['since'] = since;
         }
         const defaultLimit = 1000; // default max limit if not specified
-        let limitValue = (limit !== undefined) ? limit : defaultLimit;
+        const limitValue = (limit !== undefined) ? limit : defaultLimit;
         const duration = this.parseTimeframe (timeframe) * 1000;
         const until = this.safeInteger2 (params, 'until', 'until');
         if (until !== undefined) {
