@@ -1636,7 +1636,7 @@ export default class backpack extends Exchange {
         const maxLimit = 2000;
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
-        const duration = this.parseTimeframe (timeframe);
+        const duration = this.parseTimeframe (timeframe) * 1000;
         const dataRequest = this.stockDataRequest ('fetchOHLCV', params, market);
         const request: Dict = { 'symbol': this.safeString (dataRequest, 'symbol'), 'interval': interval };
         const [ until, paramsUntil ] = this.handleOptionIntegerAndParams (this.omit (dataRequest, 'symbol'), 'fetchOHLCV', 'until');
@@ -1657,19 +1657,14 @@ export default class backpack extends Exchange {
                 untilValue = now;
             }
             startTime = untilValue - (windowLimit * duration);
-        } else {
-            startTime = this.parseToInt (startTime / 1000); // convert to seconds
         }
-        request['startTime'] = startTime;
-        // until is also a "must-have"
+        request['startTime'] =  this.parseToInt (startTime / 1000);
+        // set until value
         if (untilValue === undefined) {
             const windowEnd = this.sum (startTime, windowLimit * duration);
-            const minTimestamp = Math.min (now, windowEnd);
-            untilValue = this.parseToInt (minTimestamp);
-        } else {
-            untilValue = this.parseToInt (untilValue / 1000); // convert to seconds
+            untilValue = Math.min (now, windowEnd);
         }
-        request['endTime'] = untilValue;
+        request['endTime'] = this.parseToInt (untilValue / 1000);
         const price = this.safeString (paramsUntil, 'price');
         const paramsOmitted: Dict = (price !== undefined) ? this.omit (paramsUntil, 'price') : paramsUntil;
         if (price !== undefined) {
