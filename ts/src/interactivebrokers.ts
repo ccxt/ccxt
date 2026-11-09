@@ -3734,6 +3734,10 @@ export default class interactivebrokers extends Exchange {
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        if (this.validateServerSsl !== false) {
+            // for IBKR we disable server SSL certificate validation by default
+            this.setValidateServerSsl (false);
+        }
         const [ implodedPath, pathParams ] = this.ibkrImplodePath (path, params);
         const apiBase = api[0];
         const baseUrl = this.urls['api'][apiBase] + implodedPath;

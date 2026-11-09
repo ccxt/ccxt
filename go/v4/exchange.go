@@ -3,7 +3,8 @@ package ccxt
 import (
 	"crypto/rand"
 	"crypto/tls"
-	"encoding/base64"	"encoding/hex"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	j "encoding/json"
 	"errors"
@@ -317,6 +318,12 @@ func (this *BaseExchange) tlsClientConfig() *tls.Config {
 	return &tls.Config{InsecureSkipVerify: true} //nolint:gosec // opt-in via ValidateServerSsl = false
 }
 
+// SetValidateServerSsl enables or disables tls certificate and hostname verification
+// for REST and WS; a flip after construction rebuilds the transport on the next request
+func (this *BaseExchange) SetValidateServerSsl(validate bool) {
+	this.ValidateServerSsl = validate
+}
+
 func (this *BaseExchange) Init(userConfig map[string]any) {
 	if this.FetchHistoryCache == nil {
 		this.FetchHistoryCache = &ConcurrentListForRequests{}
@@ -570,8 +577,11 @@ func (this *BaseExchange) Sleep(milliseconds any) <-chan bool {
 	// Type assertion to handle various types for milliseconds
 	ch := make(chan bool)
 	go func() any {
-		switch v := milliseconds.(type) {
+		// derefScalar: generated callers may pass typed pointers (SafeInteger's *int64)
+		switch v := derefScalar(milliseconds).(type) {
 		case int:
+			duration = time.Duration(v) * time.Millisecond
+		case int64:
 			duration = time.Duration(v) * time.Millisecond
 		case float64:
 			duration = time.Duration(v * float64(time.Millisecond))
@@ -579,6 +589,8 @@ func (this *BaseExchange) Sleep(milliseconds any) <-chan bool {
 			// If already a time.Duration, use it directly
 			duration = v
 		default:
+			// never leave the channel unserved: a silent return deadlocks the caller
+			close(ch)
 			return false
 		}
 

@@ -256,6 +256,12 @@ public partial class BaseExchange
         }
     }
 
+    // enables or disables server ssl certificate validation for REST and WS connections
+    public void setValidateServerSsl(bool validate)
+    {
+        this.validateServerSsl = validate;
+    }
+
     void initializeProperties(Dictionary<string, object> userConfig = null)
     {
         var properties = this.describe();

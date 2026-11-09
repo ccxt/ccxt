@@ -538,6 +538,10 @@ class BaseExchange(object):
     # overrides still take precedence through normal MRO lookup
     on_json_response = staticmethod(json_parser.loads)
 
+    def set_validate_server_ssl(self, validate):
+        """enables or disables server ssl certificate validation for REST and WS connections"""
+        self.validateServerSsl = validate
+
     def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
 

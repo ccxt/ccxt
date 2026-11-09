@@ -681,6 +681,16 @@ export class BaseExchange {
         this.loadExchangeSpecificFiles ();
     }
 
+    /**
+     * @method
+     * @name Exchange#setValidateServerSsl
+     * @description enables or disables server ssl certificate validation for REST and WS connections, disable only for servers with self-signed certificates such as a local IBKR client portal gateway
+     * @param {boolean} validate false skips certificate and hostname verification
+     */
+    setValidateServerSsl (validate: boolean) {
+        this.validateServerSsl = validate;
+    }
+
     async loadExchangeSpecificFiles () {
         if (this.id === 'mexc') {
             try {

@@ -909,6 +909,12 @@ impl Exchange {
         !matches!(self.validateServerSsl, Value::Bool(false))
     }
 
+    /// enables or disables server ssl certificate validation for REST and WS connections;
+    /// the cached http client is rebuilt on the next request when the value changes
+    pub fn set_validate_server_ssl(&mut self, validate: bool) {
+        self.validateServerSsl = Value::Bool(validate);
+    }
+
 
     // ── encoding / URL helpers ──────────────────────────────────────────────
 

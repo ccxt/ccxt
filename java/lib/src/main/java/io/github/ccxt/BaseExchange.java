@@ -2279,6 +2279,12 @@ public class BaseExchange {
         return h + "|" + hs + "|" + s + "|" + this.validateServerSsl;
     }
 
+    // enables or disables server ssl certificate validation for REST and WS connections;
+    // part of the proxy fingerprint above, so a flip rebuilds the http client on the next request
+    public void setValidateServerSsl(boolean validate) {
+        this.validateServerSsl = validate;
+    }
+
     // accepts any certificate, the X509ExtendedTrustManager form also skips the hostname check
     private static javax.net.ssl.SSLContext insecureSslContext() {
         try {

@@ -394,7 +394,6 @@ class BaseExchange {
         'bybit',
         'bybiteu',
         'bybitid',
-        'bydfi',
         'cex',
         'coinbase',
         'coinbaseexchange',
@@ -427,6 +426,7 @@ class BaseExchange {
         'hyperliquid',
         'independentreserve',
         'indodax',
+        'interactivebrokers',
         'kraken',
         'krakenfutures',
         'kucoin',
@@ -2365,6 +2365,11 @@ class BaseExchange {
 
     public function precision_from_string($str) {
         return static::precisionFromString($str);
+    }
+
+    // enables or disables server ssl certificate validation for REST and WS connections
+    public function set_validate_server_ssl(bool $validate) {
+        $this->validateServerSsl = $validate;
     }
 
     public function __call($function, $params) {
