@@ -1,0 +1,46 @@
+{
+    "BTC": {
+        "code": "BTC",
+        "fees": {},
+        "id": "BTC",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "networks": {},
+        "precision": 1e-05
+    },
+    "ETH": {
+        "code": "ETH",
+        "fees": {},
+        "id": "ETH",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "networks": {},
+        "precision": 0.0001
+    },
+    "USD": {
+        "code": "USD",
+        "fees": {},
+        "id": "USD",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "networks": {},
+        "precision": 0.01
+    },
+    "USDC": {
+        "code": "USDC",
+        "fees": {},
+        "id": "USDC",
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        },
+        "networks": {},
+        "precision": 0.01
+    }
+}
