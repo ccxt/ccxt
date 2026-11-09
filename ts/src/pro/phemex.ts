@@ -1704,7 +1704,8 @@ export default class phemex extends phemexRest {
         const status = this.safeString (result, 'status');
         const messageHash = 'authenticated';
         if (status === 'success') {
-            client.resolve (message, messageHash);
+            const future = this.safeValue (client.futures, messageHash);
+            future.resolve (true);
         } else {
             const error = new AuthenticationError (this.id + ' ' + this.json (message));
             client.reject (error, messageHash);
