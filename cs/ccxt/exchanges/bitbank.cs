@@ -371,7 +371,7 @@ public partial class bitbank : Exchange
         string? quote = this.safeCurrencyCode(quoteId);
         if (((bs == null)) || ((quote == null)))
         {
-            return ccxt.BaseExchange.ToDict(null);
+            return null;
         }
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -635,7 +635,7 @@ public partial class bitbank : Exchange
             object pair = pairs[i];
             string? marketId = this.safeString(pair, "name");
             Dictionary<string, object> market = this.safeMarket(marketId);
-            string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+            string? symbol = this.safeString(market, "symbol", "");
             result[(string)symbol] = new Dictionary<string, object>() {
                 { "info", pair },
                 { "symbol", symbol },
@@ -684,7 +684,12 @@ public partial class bitbank : Exchange
         Int64? windowLimit = ((limit == null)) ? 1000 : limit;
         Int64? limitResolved = ((since == null)) ? windowLimit : limit;
         int duration = this.parseTimeframe(timeframeVar);
-        object sinceResolved = ((since == null)) ? subtract(this.milliseconds(), ((duration * 1000L) * windowLimit)) : since;
+        Int64? windowMs = ((duration * 1000L) * 1000);
+        if ((limit != null))
+        {
+            windowMs = ((duration * 1000L) * limit);
+        }
+        object sinceResolved = ((since == null)) ? (this.milliseconds() - windowMs) : since;
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -1097,16 +1102,18 @@ public partial class bitbank : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        List<object> tagAndParams = this.handleWithdrawTagAndParams(tag, parameters);
+        List<object> tagAndParams = this.handleParamString(parameters, "tag");
+        string? tagWithdrawTag = ((string)(tagAndParams != null && 0 < tagAndParams.Count ? tagAndParams[0] : null));
         object paramsWithdrawTag = (tagAndParams != null && 1 < tagAndParams.Count ? tagAndParams[1] : null);
-        if (!(inOp(paramsWithdrawTag, "uuid")))
+        this.checkAddress(address, code, tagWithdrawTag);
+        if (!(((IDictionary<string, object>)parameters).ContainsKey("uuid")))
         {
             throw new ExchangeError ((this.id + " uuid is required for withdrawal")) ;
         }
@@ -1190,13 +1197,14 @@ public partial class bitbank : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object query = this.omit(parameters, this.extractParams(path));
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
+        Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {}, this.omit(parameters, this.extractParams(path)));
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1204,10 +1212,10 @@ public partial class bitbank : Exchange
         string url = (this.implodeHostname(apiUrl) + "/");
         string? requestBody = null;
         Dictionary<string, object> requestHeaders = null;
-        if (((api is "public")) || ((api is "markets")))
+        if ((apiName == "public") || (apiName == "markets"))
         {
             url = url + this.implodeParams(path, parameters);
-            if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
+            if ((new List<object>(query.Keys)).Count > 0)
             {
                 url = url + ("?" + this.urlencode(query));
             }
@@ -1231,16 +1239,17 @@ public partial class bitbank : Exchange
             url = url + ((this.version + "/") + this.implodeParams(path, parameters));
             if ((method == "POST"))
             {
-                requestBody = this.json(query);
-                auth = auth + requestBody;
+                string jsonBody = this.json(query);
+                requestBody = jsonBody;
+                auth = auth + jsonBody;
             } else
             {
                 auth = auth + ((("/" + this.version) + "/") + path);
-                if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
+                if ((new List<object>(query.Keys)).Count > 0)
                 {
-                    query = this.urlencode(query);
-                    url = url + ("?" + (query));
-                    auth = auth + ("?" + (query));
+                    string queryString = this.urlencode(query);
+                    url = url + ("?" + queryString);
+                    auth = auth + ("?" + queryString);
                 }
             }
             requestHeaders = new Dictionary<string, object>() {
@@ -1250,15 +1259,19 @@ public partial class bitbank : Exchange
             };
             if (isTimeWindow)
             {
-                requestHeaders["ACCESS-REQUEST-TIME"] = requestTime;
-                requestHeaders["ACCESS-TIME-WINDOW"] = timeWindow;
+                requestHeaders = this.extend(requestHeaders, new Dictionary<string, object>() {
+                    { "ACCESS-REQUEST-TIME", requestTime },
+                    { "ACCESS-TIME-WINDOW", timeWindow },
+                });
             } else
             {
-                requestHeaders["ACCESS-NONCE"] = nonce;
+                requestHeaders = this.extend(requestHeaders, new Dictionary<string, object>() {
+                    { "ACCESS-NONCE", nonce },
+                });
             }
         }
-        object bodyResolved = ((requestBody == null)) ? body : requestBody;
-        object headersResolved = ((requestHeaders == null)) ? headers : requestHeaders;
+        string? bodyResolved = requestBody;
+        Dictionary<string, object> headersResolved = requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
@@ -1267,7 +1280,7 @@ public partial class bitbank : Exchange
         };
     }
 
-    public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
@@ -1339,9 +1352,9 @@ public partial class bitbank : Exchange
                 { "70009", "We are currently temporarily restricting orders to be carried out. Please use the limit order." },
                 { "70010", "We are temporarily raising the minimum order quantity as the system load is now rising." },
             };
-            string? code = this.safeString(data, "code");
-            string? message = this.safeString(errorMessages, code, "Error");
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, message);
+            string? codeError = this.safeString(data, "code");
+            string? message = this.safeString(errorMessages, codeError, "Error");
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, message);
             throw new ExchangeError (((this.id + " ") + this.json(response))) ;
         }
         return null;

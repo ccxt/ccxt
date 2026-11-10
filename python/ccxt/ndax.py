@@ -19,7 +19,7 @@ from ccxt.base.precise import Precise
 
 class ndax(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(ndax, self).describe(), {
             'id': 'ndax',
             'name': 'NDAX',
@@ -624,7 +624,7 @@ class ndax(Exchange, ImplicitAPI):
         if (base is None) or (quote is None):
             return None
         sessionStatus = self.safe_string(market, 'SessionStatus')
-        isDisable = self.safe_bool(market, 'IsDisable')
+        isDisable = self.safe_bool(market, 'IsDisable', False)
         sessionRunning = (sessionStatus == 'Running')
         return self.safe_market_structure({
             'id': id,
@@ -677,8 +677,8 @@ class ndax(Exchange, ImplicitAPI):
         })
 
     def parse_order_book(self, orderbook: object, symbol: object, timestamp: Int = None, bidsKey='bids', asksKey='asks', priceKey: IndexType = 6, amountKey: IndexType = 8, countOrIdKey: IndexType = 2):
-        nonce = None
-        latestTimestamp = timestamp
+        nonce = self.safe_integer(self.safe_list(orderbook, 0), 0)
+        latestTimestamp = self.safe_integer([timestamp], 0)
         result = {
             'symbol': symbol,
             'bids': [],
@@ -687,26 +687,24 @@ class ndax(Exchange, ImplicitAPI):
             'datetime': None,
             'nonce': None,
         }
+        bids = []
+        asks = []
         for i in range(0, len(orderbook)):
-            level = orderbook[i]
-            if latestTimestamp is None:
-                latestTimestamp = self.safe_integer(level, 2)
-            else:
-                newTimestamp = self.safe_integer(level, 2)
-                if newTimestamp is not None:
-                    latestTimestamp = max(latestTimestamp, newTimestamp)
-            if nonce is None:
-                nonce = self.safe_integer(level, 0)
-            else:
-                newNonce = self.safe_integer(level, 0)
-                if newNonce is not None:
-                    nonce = max(nonce, newNonce)
+            level = self.safe_value(orderbook, i)
+            newTimestamp = self.safe_integer(level, 2)
+            if (newTimestamp is not None) and ((latestTimestamp is None) or (newTimestamp > latestTimestamp)):
+                latestTimestamp = newTimestamp
+            newNonce = self.safe_integer(level, 0)
+            if (newNonce is not None) and ((nonce is None) or (newNonce > nonce)):
+                nonce = newNonce
             bidask = self.parse_order_book_bid_ask(level, priceKey, amountKey)
             levelSide = self.safe_integer(level, 9)
-            side = asksKey if (levelSide is not None and levelSide != 0) else bidsKey
-            result[side].append(bidask)
-        result['bids'] = self.sort_by(result['bids'], 0, True)
-        result['asks'] = self.sort_by(result['asks'], 0)
+            if levelSide is not None and levelSide != 0:
+                asks.append(bidask)
+            else:
+                bids.append(bidask)
+        result['bids'] = self.sort_by(bids, 0, True)
+        result['asks'] = self.sort_by(asks, 0)
         result['timestamp'] = latestTimestamp
         result['datetime'] = self.iso8601(latestTimestamp)
         result['nonce'] = nonce
@@ -1223,7 +1221,7 @@ class ndax(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: list[dict]) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -1254,10 +1252,8 @@ class ndax(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         self.load_accounts()
-        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId')
+        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.safe_string(self.safe_dict(self.accounts, 0), 'id')))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
-        if accountId is None:
-            accountId = self.parse_to_int(self.accounts[0]['id'])
         paramsOmitted = self.omit(params, ['accountId', 'AccountId'])
         request = {
             'omsId': omsId,
@@ -1295,7 +1291,7 @@ class ndax(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        return self.parse_balance(response)
+        return self.parse_balance_list(response)
 
     def parse_ledger_entry_type(self, type: Str) -> Str:
         types = {
@@ -1385,7 +1381,7 @@ class ndax(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         self.load_accounts()
-        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.accounts[0]['id']))
+        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.safe_string(self.safe_dict(self.accounts, 0), 'id')))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         paramsOmitted = self.omit(params, ['accountId', 'AccountId'])
         request = {
@@ -1418,7 +1414,7 @@ class ndax(Exchange, ImplicitAPI):
             currency = self.currency(code)
         return self.parse_ledger(response, currency, since, limit)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'Accepted': 'open',
             'Rejected': 'rejected',
@@ -1545,10 +1541,10 @@ class ndax(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         self.load_accounts()
-        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.accounts[0]['id']))
+        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.safe_string(self.safe_dict(self.accounts, 0), 'id')))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         clientOrderId = self.safe_integer_2(params, 'ClientOrderId', 'clientOrderId')
-        orderType = self.safe_integer(self.options['orderTypes'], self.capitalize(type))
+        orderType = self.safe_integer(self.safe_dict(self.options, 'orderTypes', {}), self.capitalize(type))
         triggerPrice = self.safe_string(params, 'triggerPrice')
         if triggerPrice is not None:
             if type == 'market':
@@ -1572,17 +1568,14 @@ class ndax(Exchange, ImplicitAPI):
             # 'OrderIdOCO': 0, // The order ID if One Cancels the Other.
             # 'UseDisplayQuantity': false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
             'Side': orderSide,  # 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
-            'Quantity': None if (amountString is None) else float(amountString),
+            'Quantity': None if (amountString is None) else self.parse_number(amountString),
             'OrderType': orderType,  # 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             # 'PegPriceType': 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
             # 'LimitPrice': parseFloat (this.priceToPrecision (symbol, price)),
         }
         # If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if price is not None:
-            limitPriceString = self.price_to_precision(symbol, price)
-            if limitPriceString is None:
-                limitPriceString = '0'
-            request['LimitPrice'] = float(limitPriceString)
+            request['LimitPrice'] = self.parse_number(self.price_to_precision(symbol, price))
         if clientOrderId is not None:
             request['ClientOrderId'] = clientOrderId
         if triggerPrice is not None:
@@ -1616,7 +1609,7 @@ class ndax(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         self.load_accounts()
-        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.accounts[0]['id']))
+        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.safe_string(self.safe_dict(self.accounts, 0), 'id')))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         clientOrderId = self.safe_integer_2(params, 'ClientOrderId', 'clientOrderId')
         paramsOmitted = self.omit(params, ['accountId', 'AccountId', 'clientOrderId', 'ClientOrderId'])
@@ -1624,7 +1617,7 @@ class ndax(Exchange, ImplicitAPI):
         orderSide = 0 if (side == 'buy') else 1
         amountString = self.amount_to_precision(symbol, amount)
         request = {
-            'OrderIdToReplace': int(id),
+            'OrderIdToReplace': self.parse_to_int(id),
             'InstrumentId': self.parse_to_int(market['id']),
             'omsId': omsId,
             'AccountId': accountId,
@@ -1637,17 +1630,14 @@ class ndax(Exchange, ImplicitAPI):
             # 'OrderIdOCO': 0, // The order ID if One Cancels the Other.
             # 'UseDisplayQuantity': false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
             'Side': orderSide,  # 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
-            'Quantity': None if (amountString is None) else float(amountString),
-            'OrderType': self.safe_integer(self.options['orderTypes'], self.capitalize(type)),  # 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
+            'Quantity': None if (amountString is None) else self.parse_number(amountString),
+            'OrderType': self.safe_integer(self.safe_dict(self.options, 'orderTypes', {}), self.capitalize(type)),  # 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             # 'PegPriceType': 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
             # 'LimitPrice': parseFloat (this.priceToPrecision (symbol, price)),
         }
         # If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if price is not None:
-            limitPriceString = self.price_to_precision(symbol, price)
-            if limitPriceString is None:
-                limitPriceString = '0'
-            request['LimitPrice'] = float(limitPriceString)
+            request['LimitPrice'] = self.parse_number(self.price_to_precision(symbol, price))
         if clientOrderId is not None:
             request['ClientOrderId'] = clientOrderId
         response = self.privatePostCancelReplaceOrder(self.extend(request, paramsOmitted))
@@ -1677,7 +1667,7 @@ class ndax(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         self.load_accounts()
-        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.accounts[0]['id']))
+        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.safe_string(self.safe_dict(self.accounts, 0), 'id')))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         paramsOmitted = self.omit(params, ['accountId', 'AccountId'])
         request = {
@@ -1761,7 +1751,7 @@ class ndax(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         self.load_accounts()
-        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.accounts[0]['id']))
+        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.safe_string(self.safe_dict(self.accounts, 0), 'id')))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         paramsOmitted = self.omit(params, ['accountId', 'AccountId'])
         request = {
@@ -1802,7 +1792,7 @@ class ndax(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         self.load_accounts()
-        # const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
+        # const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.safeString (this.safeDict (this.accounts, 0), 'id')));
         # const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         # params = this.omit (params, [ 'accountId', 'AccountId' ]);
         market = None
@@ -1816,7 +1806,7 @@ class ndax(Exchange, ImplicitAPI):
         if clientOrderId is not None:
             request['ClOrderId'] = clientOrderId
         else:
-            request['OrderId'] = int(id)
+            request['OrderId'] = self.parse_to_int(id)
         paramsOmitted = self.omit(params, ['clientOrderId', 'ClOrderId'])
         response = self.privatePostCancelOrder(self.extend(request, paramsOmitted))
         order = self.parse_order(response, market)
@@ -1841,7 +1831,7 @@ class ndax(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         self.load_accounts()
-        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.accounts[0]['id']))
+        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.safe_string(self.safe_dict(self.accounts, 0), 'id')))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         paramsOmitted = self.omit(params, ['accountId', 'AccountId'])
         market = None
@@ -1920,7 +1910,7 @@ class ndax(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         self.load_accounts()
-        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.accounts[0]['id']))
+        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.safe_string(self.safe_dict(self.accounts, 0), 'id')))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         paramsOmitted = self.omit(params, ['accountId', 'AccountId'])
         request = {
@@ -2012,7 +2002,7 @@ class ndax(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         self.load_accounts()
-        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.accounts[0]['id']))
+        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.safe_string(self.safe_dict(self.accounts, 0), 'id')))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         paramsOmitted = self.omit(params, ['accountId', 'AccountId'])
         market = None
@@ -2021,7 +2011,7 @@ class ndax(Exchange, ImplicitAPI):
         request = {
             'omsId': omsId,
             'AccountId': accountId,
-            'OrderId': int(id),
+            'OrderId': self.parse_to_int(id),
         }
         response = self.privateGetGetOrderStatus(self.extend(request, paramsOmitted))
         #
@@ -2091,7 +2081,7 @@ class ndax(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         self.load_accounts()
-        # const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
+        # const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.safeString (this.safeDict (this.accounts, 0), 'id')));
         # const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         # params = this.omit (params, [ 'accountId', 'AccountId' ]);
         market = None
@@ -2100,7 +2090,7 @@ class ndax(Exchange, ImplicitAPI):
         request = {
             'OMSId': self.parse_to_int(omsId),
             # 'AccountId': accountId,
-            'OrderId': int(id),
+            'OrderId': self.parse_to_int(id),
         }
         response = self.privatePostGetOrderHistoryByOrderId(self.extend(request, params))
         #
@@ -2168,7 +2158,7 @@ class ndax(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         self.load_accounts()
-        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.accounts[0]['id']))
+        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.safe_string(self.safe_dict(self.accounts, 0), 'id')))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         paramsOmitted = self.omit(params, ['accountId', 'AccountId'])
         currency = self.currency(code)
@@ -2255,7 +2245,7 @@ class ndax(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         self.load_accounts()
-        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.accounts[0]['id']))
+        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.safe_string(self.safe_dict(self.accounts, 0), 'id')))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         paramsOmitted = self.omit(params, ['accountId', 'AccountId'])
         currency = None
@@ -2314,7 +2304,7 @@ class ndax(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         self.load_accounts()
-        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.accounts[0]['id']))
+        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.safe_string(self.safe_dict(self.accounts, 0), 'id')))
         accountId = self.safe_integer_2(params, 'accountId', 'AccountId', defaultAccountId)
         paramsOmitted = self.omit(params, ['accountId', 'AccountId'])
         currency = None
@@ -2351,7 +2341,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def parse_transaction_status_by_type(self, status: Str = None, type: Str = None):
+    def parse_transaction_status_by_type(self, status: Str = None, type: Str = None) -> Str:
         statusesByType = {
             'deposit': {
                 'New': 'pending',  # new ticket awaiting operator review
@@ -2452,16 +2442,16 @@ class ndax(Exchange, ImplicitAPI):
         #         "NotionalProductId": 0
         #     }
         #
-        id = None
+        id = self.safe_string(transaction, 'DepositId')
         currencyId = self.safe_string(transaction, 'ProductId')
         code = self.safe_currency_code(currencyId, currency)
         type = None
-        if 'DepositId' in transaction:
-            id = self.safe_string(transaction, 'DepositId')
+        if id is not None:
             type = 'deposit'
-        elif 'WithdrawId' in transaction:
+        else:
             id = self.safe_string(transaction, 'WithdrawId')
-            type = 'withdrawal'
+            if id is not None:
+                type = 'withdrawal'
         templateForm = self.parse_json(self.safe_value_2(transaction, 'TemplateForm', 'DepositInfo'))
         updated = self.safe_integer(transaction, 'LastUpdateTimeStamp')
         if templateForm is not None:
@@ -2496,29 +2486,30 @@ class ndax(Exchange, ImplicitAPI):
             'network': None,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag = self.safe_string(params, 'tag')
+        paramsWithdrawTag = self.omit(params, 'tag')
         # this method required login, password and twofa key
         sessionToken = self.safe_string(self.options, 'sessionToken')
         if sessionToken is None:
             raise AuthenticationError(self.id + ' call signIn() method to obtain a session token')
         if self.twofa is None:
             raise AuthenticationError(self.id + ' withdraw() requires exchange.twofa credentials')
-        self.check_address(address)
+        self.check_address(address, code, tagWithdrawTag)
         omsId = self.safe_integer(self.options, 'omsId', 1)
         if self.markets is None:
             self.load_markets()
         self.load_accounts()
-        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.accounts[0]['id']))
+        defaultAccountId = self.safe_integer_2(self.options, 'accountId', 'AccountId', self.parse_to_int(self.safe_string(self.safe_dict(self.accounts, 0), 'id')))
         accountId = self.safe_integer_2(paramsWithdrawTag, 'accountId', 'AccountId', defaultAccountId)
         paramsOmitted = self.omit(paramsWithdrawTag, ['accountId', 'AccountId'])
         currency = self.currency(code)
@@ -2584,18 +2575,19 @@ class ndax(Exchange, ImplicitAPI):
         response = self.privatePostCreateWithdrawTicket(self.deep_extend(withdrawRequest, paramsOmitted))
         return self.parse_transaction(response, currency)
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
         bodySigned = None
         headersSigned = None
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        if api == 'public':
+        if apiName == 'public':
             if path == 'Authenticate':
                 auth = self.login + ':' + self.password
                 auth64 = self.string_to_base64(auth)
@@ -2613,34 +2605,48 @@ class ndax(Exchange, ImplicitAPI):
                     query = self.omit(query, 'pending2faToken')
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
-        elif api == 'private':
+        elif apiName == 'private':
             self.check_required_credentials()
             sessionToken = self.safe_string(self.options, 'sessionToken')
+            isPost = (method == 'POST')
             if sessionToken is None:
                 nonce = str(self.nonce())
                 auth = nonce + self.uid + self.apiKey
                 signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
+                if isPost:
+                    headersSigned = {
+                        'Nonce': nonce,
+                        'APIKey': self.apiKey,
+                        'Signature': signature,
+                        'UserId': self.uid,
+                        'Content-Type': 'application/json',
+                    }
+                else:
+                    headersSigned = {
+                        'Nonce': nonce,
+                        'APIKey': self.apiKey,
+                        'Signature': signature,
+                        'UserId': self.uid,
+                    }
+            elif isPost:
                 headersSigned = {
-                    'Nonce': nonce,
-                    'APIKey': self.apiKey,
-                    'Signature': signature,
-                    'UserId': self.uid,
+                    'APToken': sessionToken,
+                    'Content-Type': 'application/json',
                 }
             else:
                 headersSigned = {
                     'APToken': sessionToken,
                 }
-            if method == 'POST':
-                headersSigned['Content-Type'] = 'application/json'
+            if isPost:
                 bodySigned = self.json(query)
             else:
                 if len(query) > 0:
                     url += '?' + self.urlencode(query)
-        headersResolved = headers if (headersSigned is None) else headersSigned
-        bodyResolved = body if (bodySigned is None) else bodySigned
+        headersResolved = headersSigned
+        bodyResolved = bodySigned
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if code == 404:
             raise AuthenticationError(self.id + ' ' + body)
         if response is None:

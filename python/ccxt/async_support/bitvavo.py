@@ -28,7 +28,7 @@ from ccxt.base.precise import Precise
 
 class bitvavo(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bitvavo, self).describe(), {
             'id': 'bitvavo',
             'name': 'Bitvavo',
@@ -484,7 +484,6 @@ class bitvavo(Exchange, ImplicitAPI):
 
     def parse_markets(self, markets: object):
         result = []
-        fees = self.fees
         for i in range(0, len(markets)):
             market = self.safe_dict(markets, i)
             id = self.safe_string(market, 'market')
@@ -519,8 +518,8 @@ class bitvavo(Exchange, ImplicitAPI):
                 'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
-                'taker': fees['trading']['taker'],
-                'maker': fees['trading']['maker'],
+                'taker': self.safe_number(self.fees['trading'], 'taker'),
+                'maker': self.safe_number(self.fees['trading'], 'maker'),
                 'precision': {
                     'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantityDecimals'))),
                     'price': self.safe_number(market, 'tickSize'),
@@ -920,7 +919,7 @@ class bitvavo(Exchange, ImplicitAPI):
         taker = self.safe_bool(trade, 'taker')
         takerOrMaker = None
         if taker is not None:
-            takerOrMaker = 'taker' if (taker is True) else 'maker'
+            takerOrMaker = 'taker' if (taker) else 'maker'
         feeCostString = self.safe_string(trade, 'fee')
         fee = None
         if feeCostString is not None:
@@ -985,7 +984,7 @@ class bitvavo(Exchange, ImplicitAPI):
         taker = self.safe_number(feesValue, 'taker')
         result = {}
         for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+            symbol = self.safe_string(self.symbols, i, '')
             result[symbol] = {
                 'info': fees,
                 'symbol': symbol,
@@ -1108,15 +1107,14 @@ class bitvavo(Exchange, ImplicitAPI):
             request['start'] = since
             sinceLimit = 1440 if (limit is None) else min(limit, 1440)
             request['end'] = self.sum(since, sinceLimit * duration * 1000)
+        if limit is not None:
+            request['limit'] = min(limit, 1440)  # default 1440, max 1440
+        elif since is not None:
+            request['limit'] = 1440
         requestUntil, paramsUntil = self.handle_until_option('end', request, params)
-        limitResolved = limit
-        if (since is not None) and (limit is None):
-            limitResolved = 1440
-        if limitResolved is not None:
-            requestUntil['limit'] = min(limitResolved, 1440)  # default 1440, max 1440
         return self.extend(requestUntil, paramsUntil)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
 
         https://docs.bitvavo.com/docs/rest-api/get-candlestick-data/
@@ -1148,7 +1146,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limit)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: list[dict]) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -1186,7 +1184,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_balance(response)
+        return self.parse_balance_list(response)
 
     async def fetch_accounts(self, params: dict = {}) -> list[Account]:
         """
@@ -1244,19 +1242,16 @@ class bitvavo(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
-        subaccountId = self.safe_string(params, 'subaccountId')
-        paramsOmitted = self.omit(params, 'subaccountId')
         direction = None
+        subaccountId = None
         if (fromAccount == 'master') and (toAccount == 'master'):
             raise ArgumentsRequired(self.id + ' transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)')
         elif fromAccount == 'master':
             direction = 'masterToSub'
-            if subaccountId is None:
-                subaccountId = toAccount
+            subaccountId = self.safe_string(params, 'subaccountId', toAccount)
         elif toAccount == 'master':
             direction = 'subToMaster'
-            if subaccountId is None:
-                subaccountId = fromAccount
+            subaccountId = self.safe_string(params, 'subaccountId', fromAccount)
         else:
             raise ArgumentsRequired(self.id + ' transfer() requires either fromAccount or toAccount to be master')
         if subaccountId is None:
@@ -1267,7 +1262,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'symbol': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
-        response = await self.privatePostSubaccountsTransfers(self.extend(request, paramsOmitted))
+        response = await self.privatePostSubaccountsTransfers(self.extend(request, self.omit(params, 'subaccountId')))
         #
         #     {
         #         "transferId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
@@ -1470,7 +1465,7 @@ class bitvavo(Exchange, ImplicitAPI):
             else:
                 cost = self.safe_number(paramsOmitted, 'cost')
             if cost is not None:
-                precision = self.currency(market['quote'])['precision']
+                precision = self.safe_number(self.currency(market['quote']), 'precision')
                 request['amountQuote'] = self.decimal_to_precision(cost, TRUNCATE, precision, self.precisionMode)
             else:
                 request['amount'] = self.amount_to_precision(symbol, amount)
@@ -1691,7 +1686,7 @@ class bitvavo(Exchange, ImplicitAPI):
         if operatorId is not None:
             request['operatorId'] = self.parse_to_int(operatorId)
         else:
-            raise ArgumentsRequired(self.id + ' canceAllOrders() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890')
+            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890')
         response = await self.privateDeleteOrders(self.extend(request, paramsOperatorId))
         #
         #     [
@@ -1931,7 +1926,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response, market, since, limit)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'new': 'open',
             'canceled': 'canceled',
@@ -2161,7 +2156,7 @@ class bitvavo(Exchange, ImplicitAPI):
         items = self.safe_list(response, 'items', [])
         return self.parse_ledger(items, currency, since, limit)
 
-    def parse_ledger_entry_type(self, type: Str):
+    def parse_ledger_entry_type(self, type: Str) -> Str:
         types = {
             'buy': 'trade',
             'sell': 'trade',
@@ -2226,7 +2221,7 @@ class bitvavo(Exchange, ImplicitAPI):
             request['paymentId'] = tag
         return self.extend(request, params)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
 
         https://docs.bitvavo.com/docs/rest-api/withdraw-assets/
@@ -2235,12 +2230,12 @@ class bitvavo(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
@@ -2357,7 +2352,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit, {'type': 'deposit'})
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'awaiting_processing': 'pending',
             'awaiting_email_confirmation': 'pending',
@@ -2449,7 +2444,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'internal': None,
         }
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
+    def parse_deposit_withdraw_fee(self, fee: dict, currency: Currency = None) -> object:
         #
         #   {
         #       "symbol": "1INCH",
@@ -2526,22 +2521,23 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_withdraw_fees(response, codes, 'symbol')
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        requestHeaders = headers
-        requestBody = body
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        requestHeaders = None
+        requestBody = None
         query = self.omit(params, self.extract_params(path))
         url = '/' + self.version + '/' + self.implode_params(path, params)
         getOrDelete = (method == 'GET') or (method == 'DELETE')
         if getOrDelete:
-            if len(query) > 0:
+            if not self.is_empty(query):
                 url += '?' + self.urlencode(query)
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             payload = ''
             if not getOrDelete:
-                if len(query) > 0:
-                    requestBody = self.json(query)
-                    payload = requestBody
+                if not self.is_empty(query):
+                    payload = self.json(query)
+                    requestBody = payload
             timestamp = str(self.milliseconds())
             auth = timestamp + method + url + payload
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
@@ -2554,13 +2550,13 @@ class bitvavo(Exchange, ImplicitAPI):
             }
             if not getOrDelete:
                 requestHeaders['Content-Type'] = 'application/json'
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         fullUrl = apiUrl + url
         return {'url': fullUrl, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
         #
@@ -2577,7 +2573,7 @@ class bitvavo(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)  # unknown message
         return None
 
-    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: dict = {}):
+    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: object, config: dict = {}):
         if ('noMarket' in config) and not ('market' in params):
             return config['noMarket']
         return self.safe_value(config, 'cost', 1)

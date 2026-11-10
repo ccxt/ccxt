@@ -5,7 +5,7 @@ import type { Balances, Currency, CurrencyInterface, Currencies, Int, Market, Or
  * @augments Exchange
  */
 export default class luno extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name luno#fetchCurrencies
@@ -34,7 +34,7 @@ export default class luno extends Exchange {
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     fetchAccounts(params?: Dict): Promise<Account[]>;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name luno#fetchBalance
@@ -215,10 +215,7 @@ export default class luno extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
-    parseLedgerComment(comment: any): {
-        type: Str;
-        referenceId: Str;
-    };
+    parseLedgerComment(comment: string): Dict;
     parseLedgerEntry(entry: Dict, currency?: Currency): LedgerEntry;
     /**
      * @method
@@ -257,6 +254,6 @@ export default class luno extends Exchange {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchDepositWithdrawFee(code: string, params?: Dict): Promise<DepositWithdrawFee>;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

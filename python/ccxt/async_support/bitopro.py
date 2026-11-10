@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class bitopro(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bitopro, self).describe(), {
             'id': 'bitopro',
             'name': 'BitoPro',
@@ -238,11 +238,8 @@ class bitopro(Exchange, ImplicitAPI):
             'options': {
                 'networks': {
                     'ERC20': 'ERC20',
-                    'ETH': 'ERC20',
-                    'TRX': 'TRX',
                     'TRC20': 'TRX',
                     'BEP20': 'BSC',
-                    'BSC': 'BSC',
                 },
                 'fetchCurrencies': {
                     'fiatCurrencies': ['TWD'],  # the only fiat currency for exchange
@@ -688,8 +685,8 @@ class bitopro(Exchange, ImplicitAPI):
         type = self.safe_string_lower(trade, 'type')
         side = self.safe_string_lower(trade, 'action')
         if side is None:
-            isBuyer = self.safe_bool(trade, 'isBuyer')
-            if isBuyer is True:
+            isBuyer = self.safe_bool(trade, 'isBuyer', False)
+            if isBuyer:
                 side = 'buy'
             else:
                 side = 'sell'
@@ -886,17 +883,19 @@ class bitopro(Exchange, ImplicitAPI):
         }
         # we need to have a limit argument because "to" and "from" are required
         # supports slightly more than 75k candles atm, but limit here to avoid errors
-        limitResolved = 500 if (limit is None) else min(limit, 75000)
+        limitResolved = self.parse_to_int(500 if (limit is None) else min(limit, 75000))
         timeframeInSeconds = self.parse_timeframe(timeframe)
         alignedSince = None
         if since is None:
-            request['to'] = self.seconds()
-            request['from'] = request['to'] - (limitResolved * timeframeInSeconds)
+            toSeconds = self.seconds()
+            request['to'] = toSeconds
+            request['from'] = toSeconds - (limitResolved * timeframeInSeconds)
         else:
             timeframeInMilliseconds = timeframeInSeconds * 1000
-            alignedSince = int(math.floor(since / timeframeInMilliseconds)) * timeframeInMilliseconds
-            request['from'] = int(math.floor(since / 1000))
-            request['to'] = self.sum(request['from'], limitResolved * timeframeInSeconds)
+            alignedSince = self.parse_to_int(int(math.floor(since / timeframeInMilliseconds))) * timeframeInMilliseconds
+            fromSeconds = int(math.floor(since / 1000))
+            request['from'] = fromSeconds
+            request['to'] = self.sum(fromSeconds, limitResolved * timeframeInSeconds)
         response = await self.publicGetTradingHistoryPair(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
         #
@@ -914,44 +913,40 @@ class bitopro(Exchange, ImplicitAPI):
         #     }
         #
         sparse = self.parse_ohlcvs(data, market, timeframe, since, limitResolved)
-        return self.insert_missing_candles(sparse, timeframeInSeconds, alignedSince, limitResolved)
+        return self.insert_missing_candles(sparse, timeframeInSeconds * 1000, alignedSince, limitResolved)
 
-    def insert_missing_candles(self, candles: object, distance: float, since: Int, limit: float):
+    def insert_missing_candles(self, candles: list[object], distanceInMs: float, since: Int, limit: float) -> list[object]:
         # the exchange doesn't send zero volume candles so we emulate them instead
         # otherwise sending a limit arg leads to unexpected results
         length = len(candles)
         if length == 0:
             return candles
         result = []
-        copyFrom = candles[0]
+        firstCandle = self.safe_list(candles, 0, [])
+        copyFrom = firstCandle
         timestamp = None
         if since is None:
-            timestamp = copyFrom[0]
+            timestamp = self.safe_value(firstCandle, 0)
         else:
             timestamp = since
         i = 0
         candleLength = len(candles)
         resultLength = 0
         while((resultLength < limit) and (i < candleLength)):
-            candle = candles[i]
+            candle = self.safe_list(candles, i, [])
             if candle[0] == timestamp:
                 result.append(candle)
                 i = self.sum(i, 1)
             else:
-                copy = self.array_concat([], copyFrom)
-                copy[0] = timestamp
                 # set open, high, low to close
-                copy[1] = copy[4]
-                copy[2] = copy[4]
-                copy[3] = copy[4]
-                copy[5] = self.parse_number('0')
-                result.append(copy)
-            timestamp = self.sum(timestamp, distance * 1000)
+                closeValue = self.safe_value(copyFrom, 4)
+                result.append([timestamp, closeValue, closeValue, closeValue, closeValue, self.parse_number('0')])
+            timestamp = self.sum(timestamp, distanceInMs)
             resultLength = len(result)
-            copyFrom = result[resultLength - 1]
+            copyFrom = self.safe_value(result, resultLength - 1)
         return result
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: list[dict]) -> Balances:
         #
         #     [{
         #         "currency":"twd",
@@ -964,8 +959,9 @@ class bitopro(Exchange, ImplicitAPI):
         result = {
             'info': response,
         }
-        for i in range(0, len(response)):
-            balance = self.safe_dict(response, i)
+        rows = self.to_array(response)
+        for i in range(0, len(rows)):
+            balance = self.safe_dict(rows, i)
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             amount = self.safe_string(balance, 'amount')
@@ -1004,9 +1000,9 @@ class bitopro(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        return self.parse_balance(balances)
+        return self.parse_balance_list(balances)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             '-1': 'open',
             '0': 'open',
@@ -1195,12 +1191,12 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def parse_cancel_orders(self, data: object):
+    def parse_cancel_orders(self, data: dict) -> list[Order]:
         dataKeys = list(data.keys())
         orders = []
         for i in range(0, len(dataKeys)):
             marketId = dataKeys[i]
-            orderIds = data[marketId]
+            orderIds = self.safe_list(data, marketId, [])
             for j in range(0, len(orderIds)):
                 orders.append(self.safe_order({
                     'info': orderIds[j],
@@ -1225,7 +1221,7 @@ class bitopro(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        id = market['uppercaseId']
+        id = self.safe_string(market, 'uppercaseId')
         request = {}
         if id is not None:
             request[id] = ids
@@ -1240,7 +1236,7 @@ class bitopro(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_dict(response, 'data')
+        data = self.safe_dict(response, 'data', {})
         return self.parse_cancel_orders(data)
 
     async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
@@ -1422,7 +1418,7 @@ class bitopro(Exchange, ImplicitAPI):
         request = {
             'statusKind': 'DONE',
         }
-        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
+        return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -1467,7 +1463,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         states = {
             'COMPLETE': 'ok',
             'INVALID': 'failed',
@@ -1701,7 +1697,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(result, currency)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -1710,14 +1706,14 @@ class bitopro(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         if self.markets is None:
             await self.load_markets()
-        self.check_address(address)
+        self.check_address(address, code, tagWithdrawTag)
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
@@ -1731,7 +1727,7 @@ class bitopro(Exchange, ImplicitAPI):
         if hasNetwork:
             networks = self.safe_dict(self.options, 'networks', {})
             requestedNetwork = self.safe_string_upper(paramsWithdrawTag, 'network')
-            networkId = None if (requestedNetwork is None) else self.safe_string(networks, requestedNetwork)
+            networkId = None if (requestedNetwork is None) else self.safe_string(networks, self.safe_string(self.networkAliases, requestedNetwork, requestedNetwork))
             if networkId is None:
                 raise ExchangeError(self.id + ' invalid network ' + requestedNetwork)
             request['protocol'] = networkId
@@ -1754,7 +1750,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(result, currency)
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
+    def parse_deposit_withdraw_fee(self, fee: dict, currency: Currency = None) -> object:
         #    {
         #        "currency":"eth",
         #        "withdrawFee":"0.007",
@@ -1810,17 +1806,21 @@ class bitopro(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
         url = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        requestHeaders = {} if (headers is None) else headers
-        isSignedBody = (api == 'private') and ((method == 'POST') or (method == 'PUT'))
+        # keep `Object.keys (x).length` in one expression: the PHP transpiler rewrites that exact shape into
+        # count(x), while a hoisted key list is printed as an array and `.length` then becomes strlen(array)
+        queryLength = len(query)
+        requestHeaders = {}
+        isSignedBody = (apiName == 'private') and ((method == 'POST') or (method == 'PUT'))
         signedBody = self.json(params)
-        requestBody = body
+        requestBody = None
         if isSignedBody:
             requestBody = signedBody
         requestHeaders['X-BITOPRO-API'] = 'ccxt'
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             if method == 'POST' or method == 'PUT':
                 payload = self.string_to_base64(signedBody)
@@ -1829,7 +1829,7 @@ class bitopro(Exchange, ImplicitAPI):
                 requestHeaders['X-BITOPRO-PAYLOAD'] = payload
                 requestHeaders['X-BITOPRO-SIGNATURE'] = signature
             elif method == 'GET' or method == 'DELETE':
-                if len(query) > 0:
+                if queryLength > 0:
                     url += '?' + self.urlencode(query)
                 nonce = self.milliseconds()
                 rawData = {
@@ -1841,8 +1841,8 @@ class bitopro(Exchange, ImplicitAPI):
                 requestHeaders['X-BITOPRO-APIKEY'] = self.apiKey
                 requestHeaders['X-BITOPRO-PAYLOAD'] = payload
                 requestHeaders['X-BITOPRO-SIGNATURE'] = signature
-        elif api == 'public' and method == 'GET':
-            if len(query) > 0:
+        elif apiName == 'public' and method == 'GET':
+            if queryLength > 0:
                 url += '?' + self.urlencode(query)
         apiUrl = self.safe_string(self.urls['api'], 'rest')
         if apiUrl is None:
@@ -1850,10 +1850,11 @@ class bitopro(Exchange, ImplicitAPI):
         fullUrl = apiUrl + url
         return {'url': fullUrl, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to the default error handler
-        if code >= 200 and code < 300:
+        statusCode = self.parse_to_int(code)
+        if statusCode >= 200 and statusCode < 300:
             return None
         feedback = self.id + ' ' + body
         error = self.safe_string(response, 'error')

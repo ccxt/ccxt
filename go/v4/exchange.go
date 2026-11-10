@@ -17,7 +17,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	starkfelt "github.com/NethermindEth/juno/core/felt"
@@ -29,80 +28,79 @@ import (
 
 type BaseExchange struct {
 	wsBackoffState map[string][]int64 // per-url reconnect attempts + lastAttempt, see CalculateWsBackoffDelay
-	MarketsMutex   *sync.Mutex
-	// cachedCurrenciesMutex  sync.Mutex
-	loadMu                 sync.Mutex
-	marketsLoading         bool
-	marketsLoaded          bool
-	loadMarketsSubscribers []chan AsyncResult[any]
-	Itf                    any
-	DerivedExchange        IDerivedExchange
-	methodCache            sync.Map
-	cacheLoaded            bool
-	Version                string
-	Id                     string
-	Name                   string
-	Options                *sync.Map
-	Has                    map[string]any
-	Api                    map[string]any
-	TransformedApi         map[string]any
-	Markets                *sync.Map
-	Markets_by_id          *sync.Map
-	Currencies_by_id       *sync.Map
-	Currencies             *sync.Map
-	RequiredCredentials    map[string]any
-	HttpExceptions         map[string]any
-	MarketsById            *sync.Map
-	Timeframes             map[string]any
-	Features               map[string]any
-	Exceptions             map[string]any
-	Precision              map[string]any
-	Urls                   map[string]any // config-time writes only (SetSandboxMode, EnableDemoTrading)
-	UserAgents             map[string]any
-	Timeout                int64
-	MAX_VALUE              float64
-	RateLimit              float64
-	RollingWindowSize      float64 // set to 0.0 to use leaky bucket rate limiter
-	RateLimiterAlgorithm   string
-	TokenBucket            map[string]any
-	Throttler              *Throttler
-	NewUpdates             bool
-	Alias                  bool
-	Verbose                bool
-	UserAgent              string
-	EnableRateLimit        bool
-	Url                    string
-	Hostname               string
-	BaseCurrencies         *sync.Map
-	QuoteCurrencies        *sync.Map
-	ReloadingMarkets       bool
-	MarketsLoading         bool
-	Outcomes               any
-	Outcomes_by_id         any
-	Events                 any
-	Events_by_slug         any
-	ReloadingEvents        bool
-	EventsLoading          any
-	Symbols                []string
-	Codes                  []string
-	Ids                    []string
-	CommonCurrencies       map[string]any
-	PrecisionMode          int
-	Limits                 map[string]interface{}
-	Fees                   map[string]interface{}
-	Status                 map[string]interface{}
-	CurrenciesById         *sync.Map
-	ReduceFees             bool
+	// markets loading is one owner goroutine: callers hand a request over the channel
+	// and receive the loaded book back on their own reply channel
+	marketsLoadRequests chan marketsLoadRequest
+	// the aux tables (base/quote currencies, transactions, the method cache) are
+	// owned by one goroutine: callers hand a request over the channel and get a copy back
+	auxTablesRequests chan auxTablesRequest
+	Itf               any
+	DerivedExchange   IDerivedExchange
+	cacheLoaded       bool
+	Version           string
+	Id                string
+	Name              string
+	Options           map[string]any
+	// the market and currency tables are plain maps. A published map is never written in place:
+	// SetMarkets / SetCurrencies / the Add*Entry copies build a whole new map and assign the field
+	// (see exchange_markets_book.go). Values stay map[string]any rows / []any lists, as the TS
+	// types declare them (markets: Dictionary<any>, markets_by_id: Dictionary<any>).
+	Markets              map[string]any
+	Markets_by_id        map[string]any
+	Currencies           map[string]any
+	Currencies_by_id     map[string]any
+	Has                  map[string]any
+	Api                  map[string]any
+	TransformedApi       map[string]any
+	requestIds           map[string]int64
+	lastNonce            int64
+	lastNonceSet         bool
+	RequiredCredentials  map[string]any
+	HttpExceptions       map[string]any
+	Timeframes           map[string]any
+	Features             map[string]any
+	Exceptions           map[string]any
+	Precision            map[string]any
+	Urls                 map[string]any // config-time writes only (SetSandboxMode, EnableDemoTrading)
+	UserAgents           map[string]any
+	Timeout              int64
+	MAX_VALUE            float64
+	RateLimit            float64
+	RollingWindowSize    float64 // set to 0.0 to use leaky bucket rate limiter
+	RateLimiterAlgorithm string
+	TokenBucket          map[string]any
+	Throttler            *Throttler
+	NewUpdates           bool
+	Alias                bool
+	Verbose              bool
+	UserAgent            string
+	EnableRateLimit      bool
+	Url                  string
+	Hostname             string
+	ReloadingMarkets     bool
+	MarketsLoading       bool
+	Outcomes             any
+	Outcomes_by_id       any
+	Events               any
+	Events_by_slug       any
+	ReloadingEvents      bool
+	EventsLoading        any
+	Symbols              []string
+	Codes                []string
+	Ids                  []string
+	CommonCurrencies     map[string]any
+	PrecisionMode        int
+	Limits               map[string]interface{}
+	Fees                 map[string]interface{}
+	Status               map[string]interface{}
+	ReduceFees           bool
 
 	AccountsById any
 	Accounts     any
 
 	// timestamps
 	LastRestRequestTimestamp int64
-	// lastMu guards the per-instance "last request/response" bookkeeping fields
-	// (timestamp, request headers/body/url, response headers) which are otherwise
-	// written by concurrent request goroutines that share the same *Exchange.
-	lastMu                sync.Mutex
+	// the last request/response fields below are plain fields (exchange_request_book.go)
 	LastRequestHeaders    any
 	Last_request_headers  any
 	Last_response_headers any
@@ -117,16 +115,17 @@ type BaseExchange struct {
 
 	// type check this
 	Number any
-	// keys
-	Secret        interface{}
-	ApiKey        interface{}
-	Password      interface{}
-	Uid           interface{}
-	AccountId     interface{}
+	// keys: plain strings, so `this.ApiKey + ":" + this.Secret` is a native Go concat and an
+	// absent key is "" rather than a nil box. Token/Login/Twofa stay boxed (SetToken writes raw).
+	Secret        string
+	ApiKey        string
+	Password      string
+	Uid           string
+	AccountId     string
 	Token         interface{}
 	Login         interface{}
-	PrivateKey    interface{}
-	WalletAddress interface{}
+	PrivateKey    string
+	WalletAddress string
 	Twofa         interface{}
 
 	httpClient   *http.Client
@@ -166,19 +165,19 @@ type BaseExchange struct {
 
 	SubstituteCommonCurrencyCodes bool
 
-	// WS - updated to use thread-safe sync.Map (except cache objects)
-	Ohlcvs         *sync.Map
-	Trades         any // map[string]*ArrayCache
-	Tickers        *sync.Map
-	Orders         any // *ArrayCache  // cache object, not a map
-	MyTrades       any // *ArrayCache  // cache object, not a map
-	Orderbooks     *sync.Map
-	Liquidations   any // *ArrayCacheBySymbolBySide
-	FundingRates   *sync.Map
-	Bidsasks       *sync.Map
-	TriggerOrders  any // *ArrayCache
-	Transactions   *sync.Map
-	MyLiquidations any // *ArrayCacheBySymbolBySide
+	// WS - plain string-keyed caches, one per exchange instance (cache objects stay boxed).
+	// Ohlcvs holds one book per symbol, and a book is the plain map of its timeframes.
+	Ohlcvs         map[string]map[string]any
+	Trades         map[string]WsArrayCache
+	Tickers        map[string]Ticker
+	Orders         WsArrayCache // cache object, not a map
+	MyTrades       WsArrayCache // cache object, not a map
+	Orderbooks     map[string]OrderBookInterface
+	Liquidations   WsArrayCache // *ArrayCache, nil until first use
+	FundingRates   map[string]any
+	Bidsasks       map[string]Ticker
+	TriggerOrders  WsArrayCache // *ArrayCache
+	MyLiquidations WsArrayCache // *ArrayCache, nil until first use
 
 	PaddingMode int
 
@@ -187,6 +186,7 @@ type BaseExchange struct {
 	Pro       bool
 
 	MinFundingAddressLength int
+	NetworkAliases          map[string]any
 	MaxEntriesPerRequest    int
 
 	// tests only
@@ -198,19 +198,25 @@ type BaseExchange struct {
 	FetchHistoryCache     *ConcurrentListForRequests
 
 	// ws
-	WsClients   map[string]any // one websocket client per URL
-	WsClientsMu sync.Mutex
-	Balance     any
-	Positions   any
-	Clients     map[string]any
-	newUpdates  bool
-	streaming   map[string]any
+	WsClients map[string]any // one websocket client per URL
+	// the venue frame handler, resolved on the first frame
+	wsHandler func(client any, message any)
+	// ownersStarted guards startOwners (markets load and aux tables only); it is set in the
+	// constructing goroutine, before the exchange is handed to any other
+	ownersStarted bool
+	// a plain map; entries stay boxed because TS `balance` is a Dict of Dicts
+	Balance   map[string]any
+	Positions any
+	// the ws client registry, a plain map keyed by url
+	Clients    map[string]any
+	newUpdates bool
+	streaming  map[string]any
 
-	// id lock
-	idMutex sync.Mutex
-
-	// last nonce lock
-	lastNonceMutex sync.Mutex
+	// urls views: `urls` holds a Dict per section in the TS base (`urls: { api: Dict }`) and is
+	// written only at config time, so these name the dictionaries it holds (RefreshUrlsViews
+	// re-derives them after every write) and a read is the dictionary's own map index.
+	UrlsApi         map[string]any            // urls["api"], exactly as stored
+	UrlsApiSections map[string]map[string]any // urls["api"] entries that are dictionaries
 }
 
 // Exchange is the thin, public REST exchange type. All shared infrastructure lives in the
@@ -238,12 +244,10 @@ const (
 
 func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig map[string]any, itf any) {
 	// this = &Exchange{}
-	this.FetchHistoryCache = &ConcurrentListForRequests{}
+	this.startOwners()
+	this.FetchHistoryCache = NewConcurrentListForRequests()
 	if this.Options == nil {
-		this.Options = &sync.Map{} // by default sync.map is nil
-	}
-	if this.MarketsMutex == nil {
-		this.MarketsMutex = &sync.Mutex{}
+		this.Options = map[string]any{}
 	}
 	describeValues := this.Describe()
 	if userConfig == nil {
@@ -260,38 +264,36 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	// warmup itf cache
 
 	limit := 10000
-	// Initialize WebSocket data structures with thread-safe sync.Map
-	// this.Trades = make(map[string]*ArrayCache)
-	this.Trades = &sync.Map{}
-	this.Tickers = &sync.Map{}
-	this.Orderbooks = &sync.Map{}
-	// this.Ohlcvs = make(map[string]map[string]*ArrayCacheByTimestamp)
-	this.Ohlcvs = &sync.Map{}
+	// Initialize WebSocket data structures: plain maps, mutated by the exchange's own ws loop
+	this.Trades = map[string]WsArrayCache{}
+	this.Tickers = map[string]Ticker{}
+	this.Orderbooks = map[string]OrderBookInterface{}
+	this.Ohlcvs = map[string]map[string]any{}
 	this.Orders = NewArrayCache(limit)
 	this.TriggerOrders = NewArrayCache(limit)
 	this.MyTrades = NewArrayCache(limit)
-	this.Transactions = &sync.Map{}
-	this.Liquidations = &sync.Map{}
-	this.MyLiquidations = &sync.Map{}
+	this.PublishTransactions(map[string]any{})
+	// the liquidation caches start empty: every reader creates the ArrayCache on nil
+	this.Liquidations = nil
+	this.MyLiquidations = nil
 	this.Clients = make(map[string]any)
-	// this.Balance = make(map[string]any)
-	this.Balance = &sync.Map{}
+	this.Balance = map[string]any{}
 
 	// beforeNs := time.Now().UnixNano()
 	// this.WarmUpCache(this.Itf)
 	// afterNs := time.Now().UnixNano()
 	// fmt.Println("Warmup cache took: ", afterNs-beforeNs)
 
-	this.Currencies = &sync.Map{}
-	// this.FundingRates = make(map[string]any)
-	this.FundingRates = &sync.Map{}
-	this.Bidsasks = &sync.Map{}
+	this.Currencies = map[string]any{}
+	this.FundingRates = map[string]any{}
+	this.Bidsasks = map[string]Ticker{}
 	this.ProxyDictionaries = make(map[string]any)
 	this.AccountsById = make(map[string]any)
 	this.Accounts = make([]any, 0)
 
 	this.initializeProperties(extendedProperties)
-	this.AfterConstruct()
+	this.RefreshUrlsViews()
+	this.AfterConstruct(userConfig)
 
 	this.streaming = this.SafeDict(extendedProperties, "streaming", map[string]any{}).(map[string]any)
 	this.transformApiNew(this.Api)
@@ -303,17 +305,32 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 	}
 }
 
+// startOwners creates the owner goroutine behind each request channel. It runs from Init or
+// InitParent, before the exchange is handed to any other goroutine. A venue's Describe() can
+// read the tables first, so an accessor that finds its channel nil starts the owners too: both
+// run in the constructing goroutine, so no second owner can race the first.
+func (this *BaseExchange) startOwners() {
+	if this.ownersStarted {
+		return
+	}
+	this.ownersStarted = true
+
+	this.marketsLoadRequests = make(chan marketsLoadRequest)
+	go this.ownMarketsLoad(this.marketsLoadRequests)
+
+	this.auxTablesRequests = make(chan auxTablesRequest)
+	go this.ownAuxTables(this.auxTablesRequests)
+}
+
 func (this *BaseExchange) Init(userConfig map[string]any) {
 	if this.FetchHistoryCache == nil {
-		this.FetchHistoryCache = &ConcurrentListForRequests{}
+		this.FetchHistoryCache = NewConcurrentListForRequests()
 	}
 	if this.Options == nil {
-		this.Options = &sync.Map{} // by default sync.map is nil
+		this.Options = map[string]any{}
 	}
+	this.startOwners()
 
-	if this.MarketsMutex == nil {
-		this.MarketsMutex = &sync.Mutex{}
-	}
 	// to do
 }
 
@@ -365,40 +382,22 @@ func NewExchange() ICoreExchange {
 	return exchange
 }
 
+// WarmUpCache publishes the reflection method table for this exchange object; the aux
+// owner builds it once and every later caller gets the same table.
 func (this *BaseExchange) WarmUpCache() {
-	// itf fields
-	if this.cacheLoaded {
-		return
-	}
-	this.cacheLoaded = true
-	itf := this.Itf
-	baseValue := reflect.ValueOf(itf)
-	baseType := baseValue.Type()
-
-	for i := 0; i < baseType.NumMethod(); i++ {
-		method := baseType.Method(i)
-		name := method.Name
-		cacheKey := fmt.Sprintf("%s", name)
-
-		methodValue := baseValue.MethodByName(name)
-		methodType := method.Type
-		numIn := methodType.NumIn()
-		isVariadic := methodType.IsVariadic()
-
-		cacheValue := map[string]any{
-			"method":      method,
-			"methodValue": methodValue,
-			"methodType":  methodType,
-			"numIn":       numIn,
-			"isVariadic":  isVariadic,
-		}
-
-		this.methodCache.Store(cacheKey, cacheValue)
-	}
+	this.methodsFor(this.Itf)
 }
 
 func (this *BaseExchange) InitThrottler() {
 	this.Throttler = NewThrottler(this.TokenBucket)
+}
+
+// marketsLoadRequest is one loadMarkets call handed to the load owner; the reply
+// channel is buffered, so the owner never blocks on a caller that stopped listening.
+type marketsLoadRequest struct {
+	params []any
+	reload bool
+	reply  chan AsyncResult[map[string]any]
 }
 
 /*
@@ -410,45 +409,64 @@ func (this *BaseExchange) InitThrottler() {
   - @param {object} params - Additional exchange-specific parameters for the request.
   - @throws An error if the markets cannot be loaded or prepared.
 */
-func (this *BaseExchange) LoadMarketsAsync(params ...any) <-chan AsyncResult[any] {
+func (this *BaseExchange) LoadMarketsAsync(params ...any) <-chan AsyncResult[map[string]any] {
 	reload := GetArg(params, 0, false).(bool)
-	this.loadMu.Lock()
-
-	if this.marketsLoaded && !reload {
-		out := make(chan AsyncResult[any], 1)
-		out <- AsyncResult[any]{Value: this.Markets}
-		close(out)
-		this.loadMu.Unlock()
-		return out
-	}
-
-	ch := make(chan AsyncResult[any], 1)
-	this.loadMarketsSubscribers = append(this.loadMarketsSubscribers, ch)
-
-	if !this.marketsLoading || reload {
-		this.marketsLoading = true
-		markets := <-this.LoadMarketsHelperAsync(params...)
-		this.marketsLoaded = true
-		this.marketsLoading = false
-		for _, ch := range this.loadMarketsSubscribers {
-			ch <- markets
-			close(ch)
-		}
-		this.loadMarketsSubscribers = nil
-	}
-
-	this.loadMu.Unlock()
-	return ch
+	reply := make(chan AsyncResult[map[string]any], 1)
+	this.marketsLoadChannel() <- marketsLoadRequest{params: params, reload: reload, reply: reply}
+	result := <-reply
+	out := make(chan AsyncResult[map[string]any], 1)
+	out <- result
+	close(out)
+	return out
 }
 
-func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any])
+// marketsLoadChannel returns the load owner's request channel, created by startOwners at
+// construction, so a request send can never race the start.
+func (this *BaseExchange) marketsLoadChannel() chan marketsLoadRequest {
+	if this.marketsLoadRequests == nil {
+		this.startOwners()
+	}
+	return this.marketsLoadRequests
+}
+
+// ownMarketsLoad is the only goroutine that runs a load: requests queue on the
+// channel, so concurrent callers serialize here instead of inside a mutex.
+func (this *BaseExchange) ownMarketsLoad(requests <-chan marketsLoadRequest) {
+	loaded := false
+	for request := range requests {
+		if loaded && !request.reload {
+			request.reply <- AsyncResult[map[string]any]{Value: this.Markets}
+			continue
+		}
+		result := this.loadMarketsOwned(request.params)
+		// a failed load still counts as loaded, matching the pre-owner behaviour
+		loaded = true
+		request.reply <- result
+	}
+}
+
+func (this *BaseExchange) loadMarketsOwned(params []any) (result AsyncResult[map[string]any]) {
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			result = AsyncResult[map[string]any]{Err: RecoveredError(recovered)}
+		}
+	}()
+	loaded := <-this.LoadMarketsHelperAsync(params...)
+	result = AsyncResult[map[string]any]{Err: loaded.Err}
+	if loaded.Err == nil && loaded.Value != nil {
+		result.Value = loaded.Value
+	}
+	return
+}
+
+func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any])
 
 	go func() {
 		defer close(ch)
 		defer func() {
 			if r := recover(); r != nil {
-				ch <- AsyncResult[any]{Err: RecoveredError(r)}
+				ch <- AsyncResult[map[string]any]{Err: RecoveredError(r)}
 			}
 		}()
 		reload := GetArg(params, 0, false).(bool)
@@ -456,14 +474,11 @@ func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResu
 		if !reload {
 			if this.Markets != nil {
 				if this.Markets_by_id == nil {
-					// Only lock when writing
-					this.MarketsMutex.Lock()
-					result := this.SetMarkets(this.Markets, nil)
-					this.MarketsMutex.Unlock()
-					ch <- AsyncResult[any]{Value: result}
+					this.SetMarkets(this.Markets, nil) // returns this.Markets
+					ch <- AsyncResult[map[string]any]{Value: this.Markets}
 					return
 				}
-				ch <- AsyncResult[any]{Value: this.Markets}
+				ch <- AsyncResult[map[string]any]{Value: this.Markets}
 				return
 			}
 		}
@@ -471,10 +486,12 @@ func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResu
 		var currencies any = nil
 		hasFetchCurrencies := this.Has["fetchCurrencies"]
 		if IsBool(hasFetchCurrencies) && IsTrue(hasFetchCurrencies) {
-			currencies = (<-this.DerivedExchange.FetchCurrenciesAsync(params)).Value
+			// a nil currencies map stays untyped nil: SetMarkets reads it as "not fetched"
+			if fetchedCurrencies := (<-this.DerivedExchange.FetchCurrenciesAsync(params)).Value; fetchedCurrencies != nil {
+				currencies = fetchedCurrencies
+			}
 			// this.cachedCurrenciesMutex.Lock()
-			// this.Options["cachedCurrencies"] = currencies
-			this.Options.Store("cachedCurrencies", currencies)
+			this.Options["cachedCurrencies"] = currencies
 			// this.cachedCurrenciesMutex.Unlock()
 		}
 
@@ -482,17 +499,13 @@ func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResu
 		if fetched.Err != nil {
 			panic(fetched.Err)
 		}
-		markets := fetched.Value
+		markets := MarketInterfacesToList(fetched.Value)
 
 		// this.cachedCurrenciesMutex.Lock()
-		// delete(this.Options, "cachedCurrencies")
-		// this.Options.Del
-		this.Options.Delete("cachedCurrencies")
+		delete(this.Options, "cachedCurrencies")
 		// this.cachedCurrenciesMutex.Unlock()
 
-		// Lock only for writing
-		this.MarketsMutex.Lock()
-		result := this.SetMarkets(markets, currencies)
+		this.SetMarkets(markets, currencies) // returns this.Markets (panics when unset)
 		// prediction exchanges build an outcome lookup from the loaded markets via the
 		// PredictionExchange.SetMarkets override. Go has no virtual dispatch, so the base
 		// SetMarkets above bypasses it — invoke setOutcomesFromMarkets on the concrete
@@ -501,9 +514,8 @@ func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan AsyncResu
 		if pred, ok := this.Itf.(interface{ SetOutcomesFromMarkets() }); ok {
 			pred.SetOutcomesFromMarkets()
 		}
-		this.MarketsMutex.Unlock()
 
-		ch <- AsyncResult[any]{Value: result}
+		ch <- AsyncResult[map[string]any]{Value: this.Markets}
 	}()
 	return ch
 }
@@ -519,24 +531,26 @@ func (this *BaseExchange) Throttle(cost any) <-chan bool {
 	return ch
 }
 
-func (this *BaseExchange) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any])
-	go func() any {
-		// defer close(ch)
-		// markets := <-this.callInternal("fetchMarkets", optionalArgs)
-		// return markets
-		return this.Markets
+// base fetchMarkets (ts/src/base/Exchange.ts): the loaded markets as a list, [] before loadMarkets
+func (this *BaseExchange) FetchMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
+	ch := make(chan AsyncResult[[]MarketInterface], 1)
+	go func() {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		if this.Markets == nil {
+			ch <- AsyncResult[[]MarketInterface]{Value: []MarketInterface{}}
+			return
+		}
+		ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ToArray(this.Markets))}
 	}()
 	return ch
 }
 
-func (this *BaseExchange) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any])
-	go func() any {
+func (this *BaseExchange) FetchCurrenciesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+	ch := make(chan AsyncResult[map[string]any], 1)
+	go func() {
 		defer close(ch)
-		// markets := <-this.callInternal("fetchCurrencies", optionalArgs)
-		// return markets
-		return this.Currencies
+		// as before the retype: no value is sent, the receiver reads the zero (nil) result
 	}()
 	return ch
 }
@@ -592,7 +606,7 @@ func (this *BaseExchange) callEndpoint(endpoint2 any, parameters any) <-chan Asy
 					cost = parsed
 				}
 			}
-			ch <- <-this.Fetch2Async(path, api, method, parameters, map[string]any{}, nil, map[string]any{"cost": cost})
+			ch <- <-this.Fetch2Async(path, api, method, parameters, map[string]any{"cost": cost})
 		} else {
 			ch <- AsyncResult[any]{}
 		}
@@ -608,9 +622,10 @@ func (this *BaseExchange) ConvertToBigInt(data any) any {
 	return bigValue.String()
 }
 
-func (this *BaseExchange) CreateSafeDictionary(isWs ...bool) *sync.Map {
-	// Create a new sync.Map to hold the safe dictionary
-	return &sync.Map{}
+// CreateSafeDictionary returns a plain dictionary: helpers read map[string]any
+// natively, so the safe dictionary is not a concurrent-map producer any more.
+func (this *BaseExchange) CreateSafeDictionary(isWs ...bool) map[string]any {
+	return map[string]any{}
 }
 
 // error related functions
@@ -707,18 +722,20 @@ func (this *BaseExchange) Json(object any) string {
 	return string(jsonBytes)
 }
 
-func (this *BaseExchange) ParseNumber(v any, a ...any) any {
+// ParseNumber answers the number a string/number box carries: nil when v is absent or empty
+// or not numeric, else a pointer to it. The optional default is converted the same way.
+func (this *BaseExchange) ParseNumber(v any, a ...any) *float64 {
 	v = derefScalar(v)
 	if (v == nil) || (v == "") {
 		// return default value if exists
 		if len(a) > 0 {
-			return a[0]
+			return toFloat64Ptr(a[0])
 		}
 		return nil
 	}
 	f, err := ToSafeFloat(v)
 	if err == nil {
-		return f
+		return &f
 	}
 	return nil
 }
@@ -739,10 +756,6 @@ func (this *BaseExchange) ValueIsDefined(v any) bool {
 	return true
 }
 
-// func (this *BaseExchange) CreateSafeDictionary() any {
-// 	return map[string]any{}
-// }
-
 func (this *BaseExchange) ConvertToSafeDictionary(data any) any {
 	return data
 }
@@ -762,8 +775,22 @@ func (this *BaseExchange) CheckOptionBool(methodName any, optionName any, value 
 	if value = derefScalar(value); value == nil {
 		return nil
 	}
-	if b, ok := value.(bool); ok {
-		return &b
+	t, f := true, false
+	switch v := value.(type) {
+	case bool:
+		return &v
+	case string:
+		if v == "true" {
+			return &t
+		} else if v == "false" {
+			return &f
+		}
+	case int, int64, float64:
+		if n := ToFloat64(v); n == 1 {
+			return &t
+		} else if n == 0 {
+			return &f
+		}
 	}
 	panic(BadRequest(this.Id + " " + optionMethodLabel(methodName) + " option " + ToString(optionName) + " must be a boolean"))
 }
@@ -792,6 +819,24 @@ func optionMethodLabel(methodName any) string {
 		return "exchange-wide"
 	}
 	return ToString(methodName) + "()"
+}
+
+// RefreshUrlsViews re-derives the typed urls views after a write of urls or of one of its
+// entries (options init, SetSandboxMode, EnableDemoTrading). urls is written at config time
+// only, so the generated reads are plain map indexes on these views.
+func (this *BaseExchange) RefreshUrlsViews() {
+	this.UrlsApi = MapTyped(this.Urls["api"])
+	this.UrlsApiSections = nil
+	if this.UrlsApi == nil {
+		return
+	}
+	sections := make(map[string]map[string]any, len(this.UrlsApi))
+	for key, value := range this.UrlsApi {
+		if section := MapTyped(value); section != nil {
+			sections[key] = section
+		}
+	}
+	this.UrlsApiSections = sections
 }
 
 func (this *BaseExchange) CallDynamically(name2 any, args ...any) <-chan AsyncResult[any] {
@@ -1028,10 +1073,7 @@ func (this *BaseExchange) transformApiNew(api Dict, paths ...string) {
 					path = strings.ToLower(string(path[0])) + path[1:]
 				}
 
-				apiObj := any(paths)
-				if len(paths) == 1 {
-					apiObj = paths[0]
-				}
+				apiObj := append([]string{}, paths...)
 
 				this.TransformedApi[path] = map[string]any{
 					"method": strings.ToUpper(key),
@@ -1136,9 +1178,7 @@ func (this *BaseExchange) callInternal(name2 string, args ...any) <-chan AsyncRe
 		defer close(ch)
 		defer ReturnPanicError(ch)
 
-		this.WarmUpCache()
-
-		ch <- <-CallInternalMethod(&this.methodCache, this.Itf, name2, args...)
+		ch <- <-CallInternalMethod(this.methodsFor(this.Itf), this.Itf, name2, args...)
 	}()
 	// res := <-CallInternalMethod(this.Itf, name2, args...)
 	// return res
@@ -1232,11 +1272,11 @@ func (this *BaseExchange) StringToCharsArray(value any) []string {
 }
 
 func (this *BaseExchange) GetMarket(symbol string) MarketInterface {
-	if this.Markets == nil {
+	markets := this.Markets
+	if markets == nil {
 		panic("Markets not loaded, please call LoadMarkets() first")
 	}
-	// market := this.Markets[symbol]
-	market, ok := this.Markets.Load(symbol)
+	market, ok := markets[symbol]
 	if !ok {
 		return NewMarketInterface(nil)
 	}
@@ -1245,20 +1285,14 @@ func (this *BaseExchange) GetMarket(symbol string) MarketInterface {
 
 func (this *BaseExchange) GetMarketsList() []MarketInterface {
 	var markets []MarketInterface
-	// for _, market := range this.Markets {
-	// 	markets = append(markets, NewMarketInterface(market))
-	// }
-	this.Markets.Range(func(key, value any) bool {
-		markets = append(markets, NewMarketInterface(value))
-		return true
-
-	})
+	for _, market := range this.Markets {
+		markets = append(markets, NewMarketInterface(market))
+	}
 	return markets
 }
 
 func (this *BaseExchange) GetCurrency(currencyId string) Currency {
-	// market := this.Currencies[currency]
-	currency, ok := this.Currencies.Load(currencyId)
+	currency, ok := this.Currencies[currencyId]
 	if !ok {
 		return NewCurrency(nil)
 	}
@@ -1267,14 +1301,9 @@ func (this *BaseExchange) GetCurrency(currencyId string) Currency {
 
 func (this *BaseExchange) GetCurrenciesList() []Currency {
 	var currencies []Currency
-	// for _, currency := range this.Currencies {
-	// 	currencies = append(currencies, NewCurrency(currency))
-	// }
-	// }
-	this.Currencies.Range(func(key, value any) bool {
-		currencies = append(currencies, NewCurrency(value))
-		return true
-	})
+	for _, currency := range this.Currencies {
+		currencies = append(currencies, NewCurrency(currency))
+	}
 	return currencies
 }
 
@@ -1295,7 +1324,7 @@ func (this *BaseExchange) SetProperty(obj any, property any, defaultValue any) {
 	// Check if the field exists and is settable
 	if field.IsValid() && field.CanSet() {
 		// only set when the value is assignable to the field type — the test harness can pass a
-		// plain map for a typed field (e.g. Options *sync.Map) and reflect.Set panics on a mismatch
+		// plain value for a typed field and reflect.Set panics on a mismatch
 		valueReflect := reflect.ValueOf(defaultValue)
 		if valueReflect.IsValid() && valueReflect.Type().AssignableTo(field.Type()) {
 			field.Set(valueReflect)
@@ -1478,38 +1507,38 @@ func parseStarknetBigInt(value any) *big.Int {
 	return nil
 }
 
-func (this *BaseExchange) GetZKContractSignatureObjAsync(seed any, params any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any])
+func (this *BaseExchange) GetZKContractSignatureObjAsync(seed any, params any) <-chan AsyncResult[string] {
+	ch := make(chan AsyncResult[string])
 
 	go func() {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 
-		ch <- AsyncResult[any]{Err: Exception("Apex currently does not support create order in Go language")}
+		ch <- AsyncResult[string]{Err: Exception("Apex currently does not support create order in Go language")}
 	}()
 	return ch
 }
 
-func (this *BaseExchange) GetZKTransferSignatureObjAsync(seed any, params any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any])
+func (this *BaseExchange) GetZKTransferSignatureObjAsync(seed any, params any) <-chan AsyncResult[string] {
+	ch := make(chan AsyncResult[string])
 
 	go func() {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 
-		ch <- AsyncResult[any]{Err: Exception("Apex currently does not support transfer asset in Go language")}
+		ch <- AsyncResult[string]{Err: Exception("Apex currently does not support transfer asset in Go language")}
 	}()
 	return ch
 }
 
-func (this *BaseExchange) LoadDydxProtosAsync() <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any])
+func (this *BaseExchange) LoadDydxProtosAsync() <-chan AsyncResult[bool] {
+	ch := make(chan AsyncResult[bool])
 
 	go func() {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 
-		ch <- AsyncResult[any]{Err: Exception("Dydx currently does not support transfer asset in Go language")}
+		ch <- AsyncResult[bool]{Err: Exception("Dydx currently does not support transfer asset in Go language")}
 	}()
 	return ch
 }
@@ -1546,8 +1575,7 @@ func (this *BaseExchange) EncodeDydxTxRaw(signDoc any, signature any) any {
 
 func (this *BaseExchange) ExtendExchangeOptions(options2 any) {
 	options := options2.(map[string]any)
-	extended := this.Extend(this.SafeMapToMap(this.Options), options)
-	this.Options = this.MapToSafeMap(extended)
+	this.Options = this.Extend(this.Options, options)
 }
 
 // func (this *BaseExchange) Init(userConfig map[string]any) {
@@ -1660,8 +1688,6 @@ func (this *BaseExchange) Watch(args ...any) <-chan AsyncResult[any] {
 	}
 
 	client := this.Client(url)
-	// todo: calculate the backoff using the clients cache
-	backoffDelay := 0
 	//
 	//  watchOrderBook ---- future ----+---------------+----→ user
 	//                                 |               |
@@ -1674,13 +1700,10 @@ func (this *BaseExchange) Watch(args ...any) <-chan AsyncResult[any] {
 	//                             subscribe -----→ receive
 	//
 	if subscribeHash == nil {
-		client.FuturesMu.RLock()
-		// Use read lock when checking for existing futures
-		if fut, ok := client.Futures[messageHash]; ok {
-			client.FuturesMu.RUnlock()
-			return fut.(*Future).Await()
+		// the client store hands back the pending consumer channel, nil when none
+		if pending := client.AwaitExistingFuture(messageHash); pending != nil {
+			return pending
 		}
-		client.FuturesMu.RUnlock()
 	}
 	future := client.NewFuture(messageHash)
 	// read and write subscription, this is done before connecting the client
@@ -1690,7 +1713,7 @@ func (this *BaseExchange) Watch(args ...any) <-chan AsyncResult[any] {
 		subValue = subscription
 	}
 	// atomically register the subscription; alreadySubscribed is true if it existed before
-	existing, alreadySubscribed := client.Subscriptions.LoadOrStore(subscribeHash.(string), subValue)
+	existing, alreadySubscribed := client.SubscriptionLoadOrStore(subscribeHash.(string), subValue)
 	var clientSubscription any
 	if alreadySubscribed {
 		clientSubscription = existing
@@ -1699,15 +1722,13 @@ func (this *BaseExchange) Watch(args ...any) <-chan AsyncResult[any] {
 	// the policy is to make sure that 100% of promises are resolved or rejected
 	// either with a call to client.resolve or client.reject with
 	//  a proper exception class instance
-	client.ConnectMu.Lock()
-	if !client.StartedConnecting {
-		// count real dials only, see https://github.com/ccxt/ccxt/pull/29627
-		backoffDelay = this.CalculateWsBackoffDelay(url)
-	}
-	connected, err := client.Connect(backoffDelay)
-	client.ConnectMu.Unlock()
+	// the client dial owner runs the first-dial decision, so counting real dials
+	// only (see https://github.com/ccxt/ccxt/pull/29627) needs no lock
+	connected, err := client.ConnectWithBackoff(func() int {
+		return this.CalculateWsBackoffDelay(url)
+	})
 	if err != nil {
-		client.Subscriptions.Delete(subscribeHash.(string))
+		client.SubscriptionDel(subscribeHash.(string))
 		future.Reject(err)
 		return future.Await()
 	}
@@ -1717,7 +1738,7 @@ func (this *BaseExchange) Watch(args ...any) <-chan AsyncResult[any] {
 	if clientSubscription == nil {
 		go func() {
 			if err := (<-connected.Await()).Err; err != nil {
-				client.Subscriptions.Delete(subscribeHash.(string))
+				client.SubscriptionDel(subscribeHash.(string))
 				future.Reject(err)
 				return
 			}
@@ -1737,7 +1758,7 @@ func (this *BaseExchange) Watch(args ...any) <-chan AsyncResult[any] {
 				}
 				if err := (<-client.SendAsync(message)).Err; err != nil {
 					client.OnError(err)
-					client.Subscriptions.Delete(subscribeHash.(string))
+					client.SubscriptionDel(subscribeHash.(string))
 				}
 			}
 		}()
@@ -1848,11 +1869,7 @@ func (this *BaseExchange) OnConnected(client any, message any) {
 }
 
 func (this *BaseExchange) OnError(client any, err any) {
-	this.WsClientsMu.Lock()
-	if c, ok := this.Clients[client.(ClientInterface).GetUrl()]; ok && c.(ClientInterface).GetError() != nil {
-		delete(this.Clients, client.(ClientInterface).GetUrl())
-	}
-	this.WsClientsMu.Unlock()
+	this.wsClientDeleteIfErrored(client.(ClientInterface).GetUrl())
 	client.(ClientInterface).SetError(fmt.Errorf("%v", err))
 }
 
@@ -1860,23 +1877,26 @@ func (this *BaseExchange) OnClose(client any, err any) {
 	if client.(ClientInterface).GetError() != nil {
 		// connection closed due to an error, do nothing
 	} else {
-		this.WsClientsMu.Lock()
-		delete(this.Clients, client.(ClientInterface).GetUrl())
-		this.WsClientsMu.Unlock()
+		this.wsClientDelete(client.(ClientInterface).GetUrl())
 	}
 }
 
 // Client returns (and caches) a *WSClient for the given WS URL.
 func (this *BaseExchange) Client(url any) *WSClient {
-	// TODO: what to do with errors
 	// callers reach this through generated WS code where the url is a
 	// pointer-carried string; normalize once so the assertions below hold
 	url = derefScalar(url)
-	this.WsClientsMu.Lock()
-	defer this.WsClientsMu.Unlock()
-	if client, ok := this.Clients[url.(string)]; ok {
-		return client.(*WSClient)
+	// get-or-create: one client per URL
+	created := this.wsClientGetOrCreate(url.(string), func() any { return this.newWsClient(url) })
+	if client, ok := created.(*WSClient); ok {
+		return client
 	}
+	return nil
+}
+
+// newWsClient builds one ws client for url.
+func (this *BaseExchange) newWsClient(url any) *WSClient {
+	// TODO: what to do with errors
 	// TODO: add options to NewWSClient
 	wsOptions := SafeValue(this.Options, "ws", map[string]any{})
 	// proxy agents
@@ -1918,9 +1938,8 @@ func (this *BaseExchange) Client(url any) *WSClient {
 		wsOptions,
 	)
 	var proxyUrl string = this.getWsProxy()
-	client := NewWSClient(url.(string), this.DerivedExchange.HandleMessage, this.DerivedExchange.OnError, this.DerivedExchange.OnClose, this.DerivedExchange.OnConnected, proxyUrl, options)
+	client := NewWSClient(url.(string), this.WsDispatch, this.DerivedExchange.OnError, this.DerivedExchange.OnClose, this.DerivedExchange.OnConnected, proxyUrl, options)
 
-	this.Clients[url.(string)] = client
 	return client
 }
 
@@ -1976,8 +1995,6 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan AsyncResult[any] {
 	}
 
 	client := this.Client(url)
-	// todo: calculate the backoff using the clients cache
-	backoffDelay := 0
 	//
 	//  watchOrderBook ---- future ----+---------------+----→ user
 	//                                 |               |
@@ -2016,7 +2033,7 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan AsyncResult[any] {
 					subValue = make(chan AsyncResult[any])
 				}
 				// atomically register the subscription; only track it as missing if it was newly added
-				if _, loaded := client.Subscriptions.LoadOrStore(hashStr, subValue); !loaded {
+				if _, loaded := client.SubscriptionLoadOrStore(hashStr, subValue); !loaded {
 					missingSubscriptions = append(missingSubscriptions, hashStr)
 				}
 			}
@@ -2026,17 +2043,15 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan AsyncResult[any] {
 	// the policy is to make sure that 100% of promises are resolved or rejected
 	// either with a call to client.resolve or client.reject with
 	//  a proper exception class instance
-	client.ConnectMu.Lock()
-	if !client.StartedConnecting {
-		// count real dials only, see https://github.com/ccxt/ccxt/pull/29627
-		backoffDelay = this.CalculateWsBackoffDelay(url)
-	}
-	connected, err := client.Connect(backoffDelay)
-	client.ConnectMu.Unlock()
+	// the client dial owner runs the first-dial decision, so counting real dials
+	// only (see https://github.com/ccxt/ccxt/pull/29627) needs no lock
+	connected, err := client.ConnectWithBackoff(func() int {
+		return this.CalculateWsBackoffDelay(url)
+	})
 	if err != nil {
 		future.Reject(err)
 		for _, h := range missingSubscriptions {
-			client.Subscriptions.Delete(h)
+			client.SubscriptionDel(h)
 		}
 		return future.Await()
 	}
@@ -2047,7 +2062,7 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan AsyncResult[any] {
 		go func() {
 			if err := (<-connected.Await()).Err; err != nil {
 				for _, subscribeHash := range missingSubscriptions {
-					client.Subscriptions.Delete(subscribeHash)
+					client.SubscriptionDel(subscribeHash)
 				}
 				future.Reject(err)
 				return
@@ -2067,7 +2082,7 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan AsyncResult[any] {
 				}
 				if err := (<-client.SendAsync(message)).Err; err != nil {
 					for _, subscribeHash := range missingSubscriptions {
-						client.Subscriptions.Delete(subscribeHash)
+						client.SubscriptionDel(subscribeHash)
 					}
 					future.Reject(err)
 				}
@@ -2075,6 +2090,77 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan AsyncResult[any] {
 		}()
 	}
 	return future.Await()
+}
+
+// WatchMap is Watch for a subscription whose resolved value the caller reads as a dictionary: the
+// coercion the generated send used to inline at every call site is applied here once.
+func (this *BaseExchange) WatchMap(args ...any) <-chan AsyncResult[map[string]any] {
+	return watchResolvedMap(this.Watch(args...))
+}
+
+func (this *BaseExchange) WatchMultipleMap(args ...any) <-chan AsyncResult[map[string]any] {
+	return watchResolvedMap(this.WatchMultiple(args...))
+}
+
+// WatchList and WatchMultipleList are the list-valued twins of the two above.
+func (this *BaseExchange) WatchList(args ...any) <-chan AsyncResult[[]any] {
+	return watchResolvedList(this.Watch(args...))
+}
+
+func (this *BaseExchange) WatchMultipleList(args ...any) <-chan AsyncResult[[]any] {
+	return watchResolvedList(this.WatchMultiple(args...))
+}
+
+// resolvedMapValue is the coercion a dictionary-valued ws core applied at its send: a map passes,
+// an absent value stays absent, any other shape is the same error.
+func resolvedMapValue(value any) map[string]any {
+	switch v := value.(type) {
+	case map[string]any:
+		return v
+	case nil:
+		return nil
+	default:
+		panic(ExchangeError("resolved value is not map[string]any"))
+	}
+}
+
+func resolvedListValue(value any) []any {
+	switch v := value.(type) {
+	case []any:
+		return v
+	case IArrayCache:
+		return v.ToArray()
+	case nil:
+		return nil
+	default:
+		panic(ExchangeError("resolved value is not []any"))
+	}
+}
+
+// watchResolvedMap narrows a watch result to the shape its core declares; a wrong shape reaches the
+// receiver as the Err the core would have panicked with (ReturnPanicError keeps the semantics).
+func watchResolvedMap(in <-chan AsyncResult[any]) <-chan AsyncResult[map[string]any] {
+	out := make(chan AsyncResult[map[string]any], 1)
+	go func() {
+		defer close(out)
+		defer ReturnPanicError(out)
+		if r, ok := <-in; ok {
+			out <- AsyncResult[map[string]any]{Value: resolvedMapValue(r.Value), Err: r.Err}
+		}
+	}()
+	return out
+}
+
+func watchResolvedList(in <-chan AsyncResult[any]) <-chan AsyncResult[[]any] {
+	out := make(chan AsyncResult[[]any], 1)
+	go func() {
+		defer close(out)
+		defer ReturnPanicError(out)
+		if r, ok := <-in; ok {
+			out <- AsyncResult[[]any]{Value: resolvedListValue(r.Value), Err: r.Err}
+		}
+	}()
+	return out
 }
 
 // Spawn starts an async call on its own goroutine and hands back a *Future.
@@ -2115,17 +2201,18 @@ func (this *BaseExchange) Spawn(method any, args ...any) *Future {
 				response, failure = r.Value, r.Err
 			}
 		default:
-			// typed cores (<-chan EndpointResult[T]) yield their boxed payload and failure
+			// typed cores (<-chan EndpointResult[T]) yield their untyped payload and failure
 			if v := reflect.ValueOf(awaited); v.Kind() == reflect.Chan && !v.IsNil() {
 				if val, ok := v.Recv(); ok {
 					response = val.Interface()
-					if outcome, isOutcome := response.(AsyncOutcome); isOutcome {
-						response, failure = outcome.Boxed(), outcome.Failure()
+					if outcome, isOutcome := response.(UntypedOutcome); isOutcome {
+						response, failure = outcome.Untyped(), outcome.Failure()
 					}
 				}
-			} else {
+			} else if v.Kind() != reflect.Chan {
 				response = awaited
 			}
+			// a typed-nil channel (e.g. LoadOrderBookAsync) is nothing to await: resolve nil
 		}
 		if failure != nil {
 			future.Reject(failure)
@@ -2159,7 +2246,8 @@ func (this *BaseExchange) Delay(timeout any, method any, args ...any) {
 // LoadOrderBook lives on *Exchange (not *BaseExchange): it calls FetchRestOrderBookSafe, one of the
 // 62 symbol-based methods that hang off *Exchange. Only regular WS venues (whose core embeds Exchange)
 // use it; prediction venues embed BaseExchange and never call it.
-func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any, optionalArgs ...any) <-chan AsyncResult[any] {
+// synchronous: it returns a nil channel (nothing to await, Spawn resolves nil); failures panic into Spawn
+func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any, optionalArgs ...any) <-chan AsyncResult[bool] {
 	// generated callers pass typed pointer locals (*string symbol, *int64 limit); the
 	// `.(string)` assertions below need the plain values, and a panic here would be
 	// swallowed by Spawn and leave the watch future unresolved
@@ -2169,32 +2257,33 @@ func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	maxRetries := this.HandleOption("watchOrderBook", "snapshotMaxRetries", 3)
 	tries := 0
-	if stored, exists := this.Orderbooks.Load(symbol.(string)); exists {
-		orderBookInterface := stored.(OrderBookInterface)
+	symbolKey, _ := symbol.(string)
+	if stored, exists := this.Orderbooks[symbolKey]; exists {
 		for tries < maxRetries.(int) {
 			fetched := <-this.FetchRestOrderBookSafeAsync(symbol, limit, params)
 			if fetched.Err != nil {
 				panic(fetched.Err)
 			}
-			orderBook := fetched.Value
-			cache := (*orderBookInterface.GetCache()).([]any)
-			index := ToFloat64(this.DerivedExchange.GetCacheIndex(orderBook, cache))
-			if index >= 0 {
-				// Call Reset method on stored orderbook
-				orderBookInterface.Reset(orderBook)
-				this.DerivedExchange.HandleBookDeltas(stored, cache[int(index):])
-				orderBookInterface.SetCache(map[string]any{})
-				// this.SetProperty(cache, "length", 0)
+			orderBook := StructBox(fetched.Value, OrderBookToMap)
+			if this.ApplyOrderBookSnapshot(stored, orderBook) {
 				client.(ClientInterface).Resolve(stored, messageHash)
 				return nil
 			}
 			tries++
 		}
 		errorMsg := fmt.Sprintf("%s nonce is behind the cache after %v tries.", this.Id, maxRetries)
-		client.(ClientInterface).Reject(ExchangeError(errorMsg), messageHash)
-		delete(this.Clients, client.(ClientInterface).GetUrl())
+		err := ExchangeError(errorMsg)
+		client.(ClientInterface).Reject(err, messageHash)
+		// close the dropped connection, otherwise its read and ping loops keep running
+		if client.(ClientInterface).GetError() == nil {
+			client.(ClientInterface).SetError(fmt.Errorf("%v", err))
+		}
+		if wsClient, ok := client.(*WSClient); ok {
+			wsClient.Close()
+		}
+		this.wsClientDeleteIfSame(client.(ClientInterface).GetUrl(), client)
 		// clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753 (parity with the other ports, see #29399)
-		this.Orderbooks.Store(symbol.(string), this.OrderBook())
+		this.Orderbooks[symbolKey] = this.OrderBook()
 	} else {
 		client.(ClientInterface).Reject(ExchangeError(this.Id+" loadOrderBook() orderbook is not initiated"), messageHash)
 		return nil
@@ -2210,13 +2299,8 @@ func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any
 func (this *BaseExchange) Close(cleanInstanceData ...any) []error {
 	// ##### language-specific cleanup of WS & REST resources #####
 	// [WS]
-	this.WsClientsMu.Lock()
-	clients := make([]*WSClient, 0, len(this.Clients))
-	for _, c := range this.Clients {
-		clients = append(clients, c.(*WSClient))
-	}
-	this.Clients = make(map[string]any)
-	this.WsClientsMu.Unlock()
+	// every registered client is closed and the registry is cleared
+	clients := this.wsClientDrain()
 	errs := make([]error, 0)
 	for _, c := range clients {
 		if future := c.Close(); future != nil {
@@ -2291,30 +2375,10 @@ func (this *BaseExchange) Uuid5(namespace any, name any) string {
 	return ""
 }
 
-func (this *BaseExchange) LockId() bool {
-	this.idMutex.Lock()
-	return true
-}
-
-func (this *BaseExchange) UnlockId() bool {
-	this.idMutex.Unlock()
-	return true
-}
-
-func (this *BaseExchange) LockLastNonce() bool {
-	this.lastNonceMutex.Lock()
-	return true
-}
-
-func (this *BaseExchange) UnlockLastNonce() bool {
-	this.lastNonceMutex.Unlock()
-	return true
-}
-
 // FetchOutcome is a default stub so every exchange satisfies IDerivedExchange.
 // Prediction exchanges override it (kalshi resolves a single outcome on demand).
-func (this *BaseExchange) FetchOutcomeAsync(outcomeSymbol any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any])
+func (this *BaseExchange) FetchOutcomeAsync(outcomeSymbol any) <-chan AsyncResult[PredictionOutcome] {
+	ch := make(chan AsyncResult[PredictionOutcome])
 	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
@@ -2327,8 +2391,8 @@ func (this *BaseExchange) FetchOutcomeAsync(outcomeSymbol any) <-chan AsyncResul
 // FetchOutcomes is a default stub so every exchange satisfies IDerivedExchange.
 // The prediction base provides the real fallback (a per-outcome fetchOutcome loop) and
 // kalshi/polymarket override it with batched by-id requests.
-func (this *BaseExchange) FetchOutcomesAsync(outcomeSymbols any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any])
+func (this *BaseExchange) FetchOutcomesAsync(outcomeSymbols any) <-chan AsyncResult[map[string]PredictionOutcome] {
+	ch := make(chan AsyncResult[map[string]PredictionOutcome])
 	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
@@ -2348,8 +2412,8 @@ func (this *BaseExchange) SignEvmTransaction(tx any, privateKey any) any {
 
 // FetchEvents is a default stub so every exchange satisfies IDerivedExchange.
 // Prediction exchanges (PredictionExchange and its derivatives) override it.
-func (this *BaseExchange) FetchEventsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any])
+func (this *BaseExchange) FetchEventsAsync(optionalArgs ...any) <-chan AsyncResult[[]PredictionEvent] {
+	ch := make(chan AsyncResult[[]PredictionEvent])
 	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
@@ -2364,38 +2428,59 @@ func (this *BaseExchange) FetchEventsAsync(optionalArgs ...any) <-chan AsyncResu
 
 // ############ Requests data ############
 
+// ConcurrentListForRequests keeps the fetch history on one owner goroutine: a write
+// is handed over as a request and a read is answered by that goroutine, so items is
+// only touched in own() and no caller takes a lock.
 type ConcurrentListForRequests struct {
-	mu    sync.Mutex
-	items []any
+	requests chan fetchCacheRequest
 }
 
-func (cl *ConcurrentListForRequests) Lock()   { cl.mu.Lock() }
-func (cl *ConcurrentListForRequests) Unlock() { cl.mu.Unlock() }
-
-func (cl *ConcurrentListForRequests) Add(item any) {
-	cl.mu.Lock()
-	defer cl.mu.Unlock()
-	cl.items = append(cl.items, item)
+// fetchCacheRequest is one access handed to the owner: a write carries the item and
+// the cap, a read carries a reply channel.
+type fetchCacheRequest struct {
+	item  any
+	limit int
+	read  bool
+	reply chan []any
 }
 
-func (cl *ConcurrentListForRequests) GetAll() []any {
-	cl.mu.Lock()
-	defer cl.mu.Unlock()
-	cp := make([]any, len(cl.items))
-	copy(cp, cl.items)
-	return cp
+func NewConcurrentListForRequests() *ConcurrentListForRequests {
+	list := &ConcurrentListForRequests{requests: make(chan fetchCacheRequest)}
+	go list.own()
+	return list
+}
+
+// own is the only place items is read or written.
+func (list *ConcurrentListForRequests) own() {
+	items := []any{}
+	for request := range list.requests {
+		if !request.read {
+			items = append(items, request.item)
+			if request.limit > 0 && len(items) > request.limit {
+				items = items[1:] // drop the oldest, the cache is capped
+			}
+			continue
+		}
+		snapshot := make([]any, len(items))
+		copy(snapshot, items)
+		request.reply <- snapshot
+	}
+}
+
+// Add hands one item to the owner; the send returns once the owner has received it,
+// so a read issued afterwards from this goroutine sees it.
+func (list *ConcurrentListForRequests) Add(item any, limit int) {
+	list.requests <- fetchCacheRequest{item: item, limit: limit}
+}
+
+func (list *ConcurrentListForRequests) GetAll() []any {
+	reply := make(chan []any, 1)
+	list.requests <- fetchCacheRequest{read: true, reply: reply}
+	return <-reply
 }
 
 func (e *BaseExchange) AddFetchCache(item any) {
-
-	e.FetchHistoryCache.Lock()
-	defer e.FetchHistoryCache.Unlock()
-
-	e.FetchHistoryCache.items = append(e.FetchHistoryCache.items, item)
-
-	if e.FetchHistoryCacheSize > 0 && len(e.FetchHistoryCache.items) > e.FetchHistoryCacheSize {
-		e.FetchHistoryCache.items = e.FetchHistoryCache.items[1:]
-	}
+	e.FetchHistoryCache.Add(item, e.FetchHistoryCacheSize)
 }
 func (e *BaseExchange) GetFetchCache() []any {
 	return e.FetchHistoryCache.GetAll()
@@ -2443,4 +2528,160 @@ func (this *BaseExchange) CalculateWsBackoffDelay(url string) int {
 		jittered = maxDelay // the ceiling holds regardless of jitter
 	}
 	return int(jittered)
+}
+
+// auxTables holds the base/quote currency tables, the transactions cache and the
+// reflection method table that used to be concurrent maps. One owner goroutine applies
+// every edit to a copy and publishes it, so a reader only ever sees a complete table.
+type auxTables struct {
+	baseCurrencies  map[string]any
+	quoteCurrencies map[string]any
+	transactions    map[string]any
+	methods         map[string]any
+	methodsItf      any
+}
+
+// auxTablesRequest is one access handed to the owner: edit runs on a fresh copy, read on
+// the published one, so no edit is ever half-visible.
+type auxTablesRequest struct {
+	edit  func(*auxTables) any
+	read  func(*auxTables) any
+	reply chan any
+}
+
+func auxTablesNext(current *auxTables) *auxTables {
+	next := &auxTables{}
+	*next = *current
+	return next
+}
+
+func (this *BaseExchange) auxTablesChannel() chan auxTablesRequest {
+	if this.auxTablesRequests == nil {
+		this.startOwners()
+	}
+	return this.auxTablesRequests
+}
+
+func (this *BaseExchange) ownAuxTables(requests <-chan auxTablesRequest) {
+	current := &auxTables{}
+	for request := range requests {
+		if request.edit == nil {
+			request.reply <- request.read(current)
+			continue
+		}
+		next := auxTablesNext(current)
+		value := request.edit(next)
+		current = next
+		request.reply <- value
+	}
+}
+
+// auxTablesSend is the only way in: the request is queued on the owner and answered
+// before it returns, so a completed write is visible to the next read.
+func (this *BaseExchange) auxTablesSend(request auxTablesRequest) any {
+	request.reply = make(chan any, 1)
+	this.auxTablesChannel() <- request
+	return <-request.reply
+}
+
+func (this *BaseExchange) auxTablesRead(read func(*auxTables) any) any {
+	return this.auxTablesSend(auxTablesRequest{read: read})
+}
+
+func (this *BaseExchange) auxTablesEdit(edit func(*auxTables) any) any {
+	return this.auxTablesSend(auxTablesRequest{edit: edit})
+}
+
+// the table is handed to the owner, which then holds the only copy of record
+func (this *BaseExchange) publishAuxTable(slot func(*auxTables, map[string]any), table any) {
+	this.auxTablesEdit(func(next *auxTables) any {
+		slot(next, MapTyped(table))
+		return nil
+	})
+}
+
+func (this *BaseExchange) PublishBaseCurrencies(table any) {
+	this.publishAuxTable(func(next *auxTables, published map[string]any) { next.baseCurrencies = published }, table)
+}
+
+func (this *BaseExchange) PublishQuoteCurrencies(table any) {
+	this.publishAuxTable(func(next *auxTables, published map[string]any) { next.quoteCurrencies = published }, table)
+}
+
+func (this *BaseExchange) PublishTransactions(table any) {
+	this.publishAuxTable(func(next *auxTables, published map[string]any) { next.transactions = published }, table)
+}
+
+// auxTablesMap reads one published table; the owner never edits a published table in
+// place, it publishes a replacement, so the pointer stays valid for its holder.
+func (this *BaseExchange) auxTablesMap(read func(*auxTables) map[string]any) map[string]any {
+	table, _ := this.auxTablesRead(func(current *auxTables) any { return read(current) }).(map[string]any)
+	return table
+}
+
+func (this *BaseExchange) BaseCurrenciesTable() map[string]any {
+	return this.auxTablesMap(func(current *auxTables) map[string]any { return current.baseCurrencies })
+}
+
+func (this *BaseExchange) QuoteCurrenciesTable() map[string]any {
+	return this.auxTablesMap(func(current *auxTables) map[string]any { return current.quoteCurrencies })
+}
+
+func (this *BaseExchange) TransactionsTable() map[string]any {
+	return this.auxTablesMap(func(current *auxTables) map[string]any { return current.transactions })
+}
+
+// auxSameItf compares exchange objects; an uncomparable value never matches, so the
+// method table is rebuilt instead of trusted.
+func auxSameItf(published any, itf any) bool {
+	if (published == nil) || (itf == nil) {
+		return false
+	}
+	publishedType := reflect.TypeOf(published)
+	return (publishedType == reflect.TypeOf(itf)) && publishedType.Comparable() && (published == itf)
+}
+
+// reflectedMethods reads the method set of one exchange object into a lookup table.
+func reflectedMethods(itf any) map[string]any {
+	baseValue := reflect.ValueOf(itf)
+	if !baseValue.IsValid() {
+		return map[string]any{}
+	}
+	baseType := baseValue.Type()
+	methods := map[string]any{}
+
+	for i := 0; i < baseType.NumMethod(); i++ {
+		method := baseType.Method(i)
+		name := method.Name
+		cacheKey := fmt.Sprintf("%s", name)
+
+		methodValue := baseValue.MethodByName(name)
+		methodType := method.Type
+
+		methods[cacheKey] = map[string]any{
+			"method":      method,
+			"methodValue": methodValue,
+			"methodType":  methodType,
+			"numIn":       methodType.NumIn(),
+			"isVariadic":  methodType.IsVariadic(),
+		}
+	}
+	return methods
+}
+
+// methodsFor returns the method table published for itf, building it on the owner the
+// first time that object is seen, so no caller can observe a partial table.
+func (this *BaseExchange) methodsFor(itf any) map[string]any {
+	if itf == nil {
+		return nil
+	}
+	table, _ := this.auxTablesEdit(func(next *auxTables) any {
+		if auxSameItf(next.methodsItf, itf) {
+			return next.methods
+		}
+		next.methods = reflectedMethods(itf)
+		next.methodsItf = itf
+		return next.methods
+	}).(map[string]any)
+	return table
 }

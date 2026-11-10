@@ -19,7 +19,7 @@ use ccxt\pro\ArrayCacheBySymbolBySide;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class bingx extends \ccxt\async\bingx {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -179,12 +179,11 @@ class bingx extends \ccxt\async\bingx {
         } else {
             $url = $this->safe_string($this->urls['api']['ws'], $marketType);
         }
-        $dataType = $market['id'] . '@ticker';
         $messageHash = $this->get_message_hash('ticker', $this->safe_string($market, 'symbol'));
         $uuid = $this->uuid();
         $request = array(
             'id' => $uuid,
-            'dataType' => $dataType,
+            'dataType' => $this->safe_string($market, 'id', '') . '@ticker',
         );
         if ($marketType === 'swap') {
             $request['reqType'] = 'sub';
@@ -216,7 +215,7 @@ class bingx extends \ccxt\async\bingx {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $dataType = $market['id'] . '@ticker';
+        $dataType = $this->safe_string($market, 'id', '') . '@ticker';
         $subMessageHash = $this->get_message_hash('ticker', $this->safe_string($market, 'symbol'));
         $messageHash = 'unsubscribe::' . $subMessageHash;
         $topic = 'ticker';
@@ -331,12 +330,7 @@ class bingx extends \ccxt\async\bingx {
         // Coin-M m is coin volume; v is contracts and q is already USD turnover.
         // prefer the caller's stream-derived flag so an unresolved market id on
         // the Coin-M endpoint does not silently fall back to the contract count
-        $inverse = false;
-        if ($isInverse === null) {
-            $inverse = $marketResolved['inverse'] === true;
-        } else {
-            $inverse = $isInverse;
-        }
+        $inverse = ($isInverse === true) || (($isInverse === null) && ($marketResolved['inverse'] === true));
         $baseVolumeKey = $inverse ? 'm' : 'v';
         return $this->safe_ticker(array(
             'symbol' => $marketResolved['symbol'],
@@ -418,12 +412,11 @@ class bingx extends \ccxt\async\bingx {
         } else {
             $url = $this->safe_string($this->urls['api']['ws'], $marketType);
         }
-        $rawHash = $market['id'] . '@trade';
         $messageHash = 'trade::' . $symbolValue;
         $uuid = $this->uuid();
         $request = array(
             'id' => $uuid,
-            'dataType' => $rawHash,
+            'dataType' => $this->safe_string($market, 'id', '') . '@trade',
         );
         if ($marketType === 'swap') {
             $request['reqType'] = 'sub';
@@ -467,12 +460,11 @@ class bingx extends \ccxt\async\bingx {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $dataType = $market['id'] . '@trade';
         $subMessageHash = $this->get_message_hash('trade', $this->safe_string($market, 'symbol'));
         $messageHash = 'unsubscribe::' . $subMessageHash;
         $topic = 'trades';
         $methodName = 'unWatchTrades';
-        return Async\await($this->un_watch($messageHash, $subMessageHash, $messageHash, $dataType, $topic, $market, $methodName, $params));
+        return Async\await($this->un_watch($messageHash, $subMessageHash, $messageHash, $this->safe_string($market, 'id', '') . '@trade', $topic, $market, $methodName, $params));
     }
 
     public function handle_trades(Client $client, array $message) {
@@ -559,7 +551,8 @@ class bingx extends \ccxt\async\bingx {
         //
         $data = $this->safe_value($message, 'data', array());
         $rawHash = $this->safe_string($message, 'dataType', '');
-        $marketId = explode('@', $rawHash)[0];
+        $hashParts = explode('@', $rawHash);
+        $marketId = $this->safe_string($hashParts, 0);
         $isSwap = mb_strpos($client->url, 'swap') !== false;
         $marketType = 'spot';
         if ($isSwap) {
@@ -615,8 +608,8 @@ class bingx extends \ccxt\async\bingx {
             $url = $this->safe_string($this->urls['api']['ws'], $marketType);
         }
         $options = $this->safe_dict($this->options, 'watchOrderBook', array());
-        $depth = $this->safe_integer($options, 'depth', 100);
-        $subscriptionHash = $market['id'] . '@' . 'depth' . $this->number_to_string($depth);
+        $depth = $this->safe_string($options, 'depth', '100');
+        $subscriptionHash = $this->safe_string($market, 'id', '') . '@depth' . $depth;
         $messageHash = $this->get_message_hash('orderbook', $this->safe_string($market, 'symbol'));
         $uuid = $this->uuid();
         $request = array(
@@ -627,7 +620,7 @@ class bingx extends \ccxt\async\bingx {
             $request['reqType'] = 'sub';
         }
         $subscriptionArgs = array();
-        if ($market['inverse'] === true) {
+        if ($this->safe_bool($market, 'inverse', false)) {
             $subscriptionArgs = array(
                 'id' => $uuid,
                 'unsubscribe' => false,
@@ -667,8 +660,8 @@ class bingx extends \ccxt\async\bingx {
         }
         $market = $this->market($symbol);
         $options = $this->safe_dict($this->options, 'watchOrderBook', array());
-        $depth = $this->safe_integer($options, 'depth', 100);
-        $subMessageHash = $market['id'] . '@' . 'depth' . $this->number_to_string($depth);
+        $depth = $this->safe_string($options, 'depth', '100');
+        $subMessageHash = $this->safe_string($market, 'id', '') . '@depth' . $depth;
         $messageHash = 'unsubscribe::' . $subMessageHash;
         $topic = 'orderbook';
         $methodName = 'unWatchOrderBook';
@@ -752,7 +745,7 @@ class bingx extends \ccxt\async\bingx {
         $data = $this->safe_dict($message, 'data', array());
         $dataType = $this->safe_string($message, 'dataType', '');
         $parts = explode('@', $dataType);
-        $firstPart = $parts[0];
+        $firstPart = $this->safe_string($parts, 0);
         $isAllEndpoint = ($firstPart === 'all');
         $marketId = $this->safe_string($data, 'symbol', $firstPart);
         $isSwap = mb_strpos($client->url, 'swap') !== false;
@@ -775,7 +768,7 @@ class bingx extends \ccxt\async\bingx {
         $orderbook = $this->orderbooks[$symbol];
         $timestamp = $this->safe_integer_2($message, 'timestamp', 'ts');
         $timestamp = $this->safe_integer_2($data, 'timestamp', 'ts', $timestamp);
-        if ($market['inverse'] === true) {
+        if ($this->safe_bool($market, 'inverse', false)) {
             $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'p', 'a');
         } else {
             $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 0, 1);
@@ -893,7 +886,7 @@ class bingx extends \ccxt\async\bingx {
         $isSwap = mb_strpos($client->url, 'swap') !== false;
         $dataType = $this->safe_string($message, 'dataType', '');
         $parts = explode('@', $dataType);
-        $firstPart = $parts[0];
+        $firstPart = $this->safe_string($parts, 0);
         $isAllEndpoint = ($firstPart === 'all');
         $marketId = $this->safe_string($message, 's', $firstPart);
         $marketType = 'spot';
@@ -903,7 +896,7 @@ class bingx extends \ccxt\async\bingx {
         $market = $this->safe_market($marketId, null, null, $marketType);
         $candles = null;
         if ($isSwap) {
-            if ($market['inverse'] === true) {
+            if ($this->safe_bool($market, 'inverse', false)) {
                 $candles = array( $this->safe_dict($message, 'data', array()) );
             } else {
                 $candles = $this->safe_list($message, 'data', array());
@@ -914,11 +907,12 @@ class bingx extends \ccxt\async\bingx {
         }
         $symbol = $market['symbol'];
         $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
-        $rawTimeframe = explode('_', $dataType)[1];
+        $timeframeParts = explode('_', $dataType);
+        $rawTimeframe = $this->safe_string($timeframeParts, 1);
         $marketOptions = $this->safe_dict($this->options, $marketType);
         $timeframes = $this->safe_dict($marketOptions, 'timeframes', array());
         $unifiedTimeframe = $this->find_timeframe($rawTimeframe, $timeframes);
-        if ($this->safe_value($this->ohlcvs[$symbol], $rawTimeframe) === null) {
+        if ($this->safe_value($this->ohlcvs[$symbol], $unifiedTimeframe) === null) {
             $subscriptionHash = $dataType;
             $subscription = $this->safe_dict($client->subscriptions, $subscriptionHash);
             // subscription.limit is only set when watchOHLCV registers the subscription;
@@ -981,7 +975,7 @@ class bingx extends \ccxt\async\bingx {
         $timeframes = $this->safe_dict($options, 'timeframes', array());
         $rawTimeframe = $this->safe_string($timeframes, $timeframe, $timeframe);
         $messageHash = $this->get_message_hash('ohlcv', $this->safe_string($market, 'symbol'), $timeframe);
-        $subscriptionHash = $market['id'] . '@kline_' . $rawTimeframe;
+        $subscriptionHash = $this->safe_string($market, 'id', '') . '@kline_' . $rawTimeframe;
         $uuid = $this->uuid();
         $request = array(
             'id' => $uuid,
@@ -1029,7 +1023,7 @@ class bingx extends \ccxt\async\bingx {
         $options = $this->safe_dict($this->options, $market['type'], array());
         $timeframes = $this->safe_dict($options, 'timeframes', array());
         $rawTimeframe = $this->safe_string($timeframes, $timeframe, $timeframe);
-        $subMessageHash = $market['id'] . '@kline_' . $rawTimeframe;
+        $subMessageHash = $this->safe_string($market, 'id', '') . '@kline_' . $rawTimeframe;
         $messageHash = 'unsubscribe::' . $subMessageHash;
         $topic = 'ohlcv';
         $methodName = 'unWatchOHLCV';
@@ -1066,7 +1060,7 @@ class bingx extends \ccxt\async\bingx {
         }
         $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchOrders', $market, $params);
-        $subType = $this->handle_sub_type_and_params('watchOrders', $market, $paramsMarketType, 'linear')[0];
+        list($subType) = $this->handle_sub_type_and_params('watchOrders', $market, $paramsMarketType, 'linear');
         $isSpot = ($type === 'spot');
         $spotHash = 'spot:private';
         $swapHash = 'swap:private';
@@ -1081,7 +1075,11 @@ class bingx extends \ccxt\async\bingx {
             $messageHash = $spotMessageHash;
         }
         if ($market !== null) {
-            $messageHash .= ':' . $symbolResolved;
+            if ($isSpot) {
+                $messageHash = $spotMessageHash . ':' . $this->safe_string($market, 'symbol', '');
+            } else {
+                $messageHash = $swapMessageHash . ':' . $this->safe_string($market, 'symbol', '');
+            }
         }
         $uuid = $this->uuid();
         $baseUrl = null;
@@ -1144,7 +1142,7 @@ class bingx extends \ccxt\async\bingx {
         }
         $symbolResolved = ($market !== null) ? $this->safe_string($market, 'symbol') : $symbol;
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('watchMyTrades', $market, $params);
-        $subType = $this->handle_sub_type_and_params('watchMyTrades', $market, $paramsMarketType, 'linear')[0];
+        list($subType) = $this->handle_sub_type_and_params('watchMyTrades', $market, $paramsMarketType, 'linear');
         $isSpot = ($type === 'spot');
         $spotHash = 'spot:private';
         $swapHash = 'swap:private';
@@ -1159,11 +1157,15 @@ class bingx extends \ccxt\async\bingx {
             $messageHash = $spotMessageHash;
         }
         if ($market !== null) {
-            $messageHash .= ':' . $symbolResolved;
+            if ($isSpot) {
+                $messageHash = $spotMessageHash . ':' . $this->safe_string($market, 'symbol', '');
+            } else {
+                $messageHash = $swapMessageHash . ':' . $this->safe_string($market, 'symbol', '');
+            }
         }
         $uuid = $this->uuid();
         $baseUrl = null;
-        $request = array();
+        $request = null;
         if ($type === 'swap') {
             if ($subType === 'inverse') {
                 throw new NotSupported($this->id . ' watchMyTrades is not supported for inverse swap markets yet');
@@ -1246,14 +1248,14 @@ class bingx extends \ccxt\async\bingx {
             );
         }
         $userStreamKey = $this->safe_string($this->options, 'listenKey');
-        if ($baseUrl === null || $userStreamKey === null) {
+        if ($type === null || $baseUrl === null || $userStreamKey === null) {
             throw new AuthenticationError($this->id . ' watchBalance() requires a websocket URL and a listen key');
         }
         $url = $baseUrl . '?listenKey=' . $userStreamKey;
         $client = $this->client($url);
         $this->set_balance_cache($client, $type, $subType, $subscriptionHash, $paramsSubType);
         list($fetchBalanceSnapshot, $paramsFetchBalanceSnapshot) = $this->handle_option_bool_and_params($paramsSubType, 'watchBalance', 'fetchBalanceSnapshot', true);
-        $awaitBalanceSnapshot = $this->handle_option_bool_and_params($paramsFetchBalanceSnapshot, 'watchBalance', 'awaitBalanceSnapshot', false)[0];
+        list($awaitBalanceSnapshot) = $this->handle_option_bool_and_params($paramsFetchBalanceSnapshot, 'watchBalance', 'awaitBalanceSnapshot', false);
         if ($fetchBalanceSnapshot && $awaitBalanceSnapshot) {
             Async\await($client->future($type . ':fetchBalanceSnapshot'));
         }
@@ -1268,7 +1270,7 @@ class bingx extends \ccxt\async\bingx {
         if (is_array($client->subscriptions) && array_key_exists($subscriptionHash ?? '', $client->subscriptions)) {
             return;
         }
-        $fetchBalanceSnapshot = $this->handle_option_bool_and_params($params, 'watchBalance', 'fetchBalanceSnapshot', true)[0];
+        list($fetchBalanceSnapshot) = $this->handle_option_bool_and_params($params, 'watchBalance', 'fetchBalanceSnapshot', true);
         if ($fetchBalanceSnapshot) {
             $messageHash = $type . ':fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
@@ -1341,7 +1343,7 @@ class bingx extends \ccxt\async\bingx {
         $client = $this->client($url);
         $this->set_positions_cache($client, $type, $symbolsNormalized);
         list($fetchPositionsSnapshot, $paramsFetchPositionsSnapshot) = $this->handle_option_bool_and_params($paramsSubType, 'watchPositions', 'fetchPositionsSnapshot', true);
-        $awaitPositionsSnapshot = $this->handle_option_bool_and_params($paramsFetchPositionsSnapshot, 'watchPositions', 'awaitPositionsSnapshot', false)[0];
+        list($awaitPositionsSnapshot) = $this->handle_option_bool_and_params($paramsFetchPositionsSnapshot, 'watchPositions', 'awaitPositionsSnapshot', false);
         $uuid = $this->uuid();
         $subscription = array(
             'unsubscribe' => false,
@@ -1385,7 +1387,7 @@ class bingx extends \ccxt\async\bingx {
         for ($i = 0; $i < count($positions); $i++) {
             $position = $positions[$i];
             $contracts = $this->safe_number($position, 'contracts', 0);
-            if ($contracts > 0) {
+            if (($contracts !== null) && ($contracts > 0)) {
                 $cache->append($position);
             }
         }
@@ -1500,7 +1502,7 @@ class bingx extends \ccxt\async\bingx {
         }
         $messageHashes = $this->find_message_hashes($client, 'swap:positions::');
         for ($i = 0; $i < count($messageHashes); $i++) {
-            $messageHash = $messageHashes[$i];
+            $messageHash = $this->safe_string($messageHashes, $i, '');
             $parts = explode('::', $messageHash);
             $symbolsString = $parts[1];
             $filteredSymbols = explode(',', $symbolsString);
@@ -1579,7 +1581,7 @@ class bingx extends \ccxt\async\bingx {
         $time = $this->milliseconds();
         $lastAuthenticatedTime = $this->safe_integer($this->options, 'lastAuthenticatedTime', 0);
         $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 3600000); // 1 hour
-        if ($time - $lastAuthenticatedTime > $listenKeyRefreshRate) {
+        if (($listenKeyRefreshRate !== null) && ($time - $lastAuthenticatedTime > $listenKeyRefreshRate)) {
             // single-flight leader election on a never-dialed client, see
             // https://github.com/ccxt/ccxt/issues/29393: racing fetches mint
             // different keys and the key rides the private url, so losers
@@ -1769,7 +1771,7 @@ class bingx extends \ccxt\async\bingx {
             }
         }
         $stored->append($parsedOrder);
-        $symbol = $parsedOrder['symbol'];
+        $symbol = $this->safe_string($parsedOrder, 'symbol', '');
         $spotHash = 'spot:order';
         $swapHash = 'swap:order';
         $messageHash = $swapHash;
@@ -1852,7 +1854,7 @@ class bingx extends \ccxt\async\bingx {
         $marketId = $this->safe_string($result, 's');
         $market = $this->safe_market($marketId, null, '-', $type);
         $parsed = $this->parse_trade($result, $market);
-        $symbol = $parsed['symbol'];
+        $symbol = $this->safe_string($parsed, 'symbol', '');
         $spotHash = 'spot:mytrades';
         $swapHash = 'swap:mytrades';
         $messageHash = $swapHash;
@@ -1932,14 +1934,13 @@ class bingx extends \ccxt\async\bingx {
         $client->resolve($this->balance[$type], $type . ':balance');
     }
 
-    public function handle_message(Client $client, mixed $message) {
-        // plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them
-        if (gettype($message) === 'string') {
-            if ($message === 'Ping') {
-                $this->spawn(array($this, 'pong'), $client, $message);
-            }
-            return;
+    public function handle_text_message(Client $client, string $message) {
+        if ($message === 'Ping') {
+            $this->spawn(array($this, 'pong'), $client, $message);
         }
+    }
+
+    public function handle_message(Client $client, array $message) {
         if (!$this->handle_error_message($client, $message)) {
             return;
         }
@@ -2020,7 +2021,7 @@ class bingx extends \ccxt\async\bingx {
         $subscriptionsById = $this->index_by($client->subscriptions, 'id');
         $subscription = $this->safe_dict($subscriptionsById, $id, array());
         $isUnSubMessage = $this->safe_bool($subscription, 'unsubscribe', false);
-        if ($isUnSubMessage === true) {
+        if ($isUnSubMessage) {
             $this->handle_un_subscription($client, $subscription);
         }
         return $message;
@@ -2030,8 +2031,8 @@ class bingx extends \ccxt\async\bingx {
         $messageHashes = $this->safe_list($subscription, 'messageHashes', array());
         $subMessageHashes = $this->safe_list($subscription, 'subMessageHashes', array());
         for ($i = 0; $i < count($messageHashes); $i++) {
-            $unsubHash = $messageHashes[$i];
-            $subHash = $subMessageHashes[$i];
+            $unsubHash = $this->safe_string($messageHashes, $i, '');
+            $subHash = $this->safe_string($subMessageHashes, $i, '');
             $this->clean_unsubscription($client, $subHash, $unsubHash);
         }
         $this->clean_cache($subscription);

@@ -12,7 +12,7 @@ import type{ Dict, Fee, Int, List, Market, NullableDict, NullableList, FeeString
  * @augments Exchange
  */
 export default class alpaca extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'alpaca',
             'name': 'Alpaca',
@@ -643,7 +643,7 @@ export default class alpaca extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const marketId = market['id'];
+        const marketId = this.safeString (market, 'id');
         const loc = this.safeString (params, 'loc', 'us');
         const method = this.safeString (params, 'method', 'marketPublicGetV1beta3CryptoLocTrades');
         const request: Dict = {
@@ -722,7 +722,7 @@ export default class alpaca extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const id = market['id'];
+        const id = this.safeString (market, 'id');
         const loc = this.safeString (params, 'loc', 'us');
         const request: Dict = {
             'symbols': id,
@@ -795,14 +795,14 @@ export default class alpaca extends Exchange {
             await this.loadMarkets ();
         }
         const market: Market = this.market (symbol);
-        const marketId: Str = market['id'];
+        const marketId: Str = this.safeString (market, 'id');
         const loc: Str = this.safeString (params, 'loc', 'us');
         const method: Str = this.safeString (params, 'method', 'marketPublicGetV1beta3CryptoLocBars');
         let paginate = false;
         let query = undefined;
         [ paginate, query ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
-        let paginationCalls = 10;
-        [ paginationCalls, query ] = this.handleOptionIntegerAndParams (query, 'fetchOHLCV', 'paginationCalls', 10);
+        const [ paginationCalls, queryPagination ] = this.handleOptionIntegerAndParams (query, 'fetchOHLCV', 'paginationCalls', 10);
+        query = queryPagination;
         const request: Dict = {
             'symbols': marketId,
             'loc': loc,
@@ -1061,7 +1061,7 @@ export default class alpaca extends Exchange {
             }, market);
             results.push (ticker);
         }
-        return this.filterByArray (results, 'symbol', symbolsNormalized);
+        return this.filterByArrayTickers (results, 'symbol', symbolsNormalized);
     }
 
     generateClientOrderId (params: Dict): Str {
@@ -1156,7 +1156,7 @@ export default class alpaca extends Exchange {
             await this.loadMarkets ();
         }
         const market: Market = this.market (symbol);
-        const id: Str = market['id'];
+        const id: Str = this.safeString (market, 'id');
         const request: Dict = {
             'symbol': id,
             'side': side,
@@ -1515,7 +1515,7 @@ export default class alpaca extends Exchange {
         //
         const marketId = this.safeString (order, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol');
         const alpacaStatus = this.safeString (order, 'status');
         const status = this.parseOrderStatus (alpacaStatus);
         const feeValue = this.safeString (order, 'commission');
@@ -1560,7 +1560,7 @@ export default class alpaca extends Exchange {
         }, marketResolved);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'pending_new': 'open',
             'accepted': 'open',
@@ -1584,7 +1584,7 @@ export default class alpaca extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTimeInForce (timeInForce: Str) {
+    parseTimeInForce (timeInForce: Str): Str {
         const timeInForces: Dict = {
             'day': 'Day', // equities-only value kept as-is deliberately: crypto orders reject it with 42210000, verified live 2026-09-13, and the unified set has no day spelling either way
             'gtc': 'GTC',
@@ -1771,20 +1771,21 @@ export default class alpaca extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag a memo for the transaction
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
-        this.checkAddress (address);
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
+        this.checkAddress (address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
         let addressValue: string = address;
-        if ((tagWithdrawTag !== undefined) && (tagWithdrawTag !== '')) {
-            addressValue = address + ':' + tagWithdrawTag;
+        const tagSuffix = this.safeString (params, 'tag', '');
+        if (tagSuffix !== '') {
+            addressValue = address + ':' + tagSuffix;
         }
         const request: Dict = {
             'asset': currency['id'],
@@ -1817,7 +1818,7 @@ export default class alpaca extends Exchange {
         this.options['sandboxMode'] = enable;
     }
 
-    async fetchTransactionsHelper (type: string, code: Str, since: any, limit: any, params: any): Promise<Transaction[]> {
+    async fetchTransactionsHelper (type: string, code: Str, since: Int, limit: Int, params: any): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1826,7 +1827,7 @@ export default class alpaca extends Exchange {
             currency = this.currency (code);
         }
         const sandboxMode = this.isSandboxModeEnabled || this.safeBool (this.options, 'sandboxMode', false);
-        if (sandboxMode === true) {
+        if (sandboxMode) {
             // paper-trading hosts do not serve the crypto wallets api at all, so route
             // through the account activities ledger instead, filtered to transfer-like
             // entries, see https://github.com/ccxt/ccxt/issues/24847
@@ -1912,7 +1913,8 @@ export default class alpaca extends Exchange {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        return await this.fetchTransactionsHelper ('BOTH', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper ('BOTH', code, since, limit, params);
+        return this.toArray (transactions);
     }
 
     /**
@@ -1927,7 +1929,8 @@ export default class alpaca extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        return await this.fetchTransactionsHelper ('INCOMING', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper ('INCOMING', code, since, limit, params);
+        return this.toArray (transactions);
     }
 
     /**
@@ -1942,7 +1945,8 @@ export default class alpaca extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        return await this.fetchTransactionsHelper ('OUTGOING', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper ('OUTGOING', code, since, limit, params);
+        return this.toArray (transactions);
     }
 
     override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
@@ -1993,7 +1997,8 @@ export default class alpaca extends Exchange {
         if (activityType !== undefined) {
             const netAmount = this.safeString (transaction, 'net_amount');
             const isIncoming = (activityType === 'CSD') || ((activityType === 'TRANS') && !Precise.stringLt (netAmount, '0'));
-            timestamp = this.parse8601 (this.safeString (transaction, 'date') + 'T00:00:00Z');
+            const date = this.safeString (transaction, 'date', '');
+            timestamp = this.parse8601 (date + 'T00:00:00Z');
             datetime = this.iso8601 (timestamp);
             type = isIncoming ? 'deposit' : 'withdrawal';
             amount = this.parseNumber (Precise.stringAbs (netAmount));
@@ -2015,14 +2020,14 @@ export default class alpaca extends Exchange {
             txid = this.safeString (transaction, 'tx_hash');
             datetime = this.safeString (transaction, 'created_at');
             timestamp = this.parse8601 (datetime);
-            network = this.safeString (transaction, 'chain');
             address = this.safeString (transaction, 'to_address');
             addressTo = this.safeString (transaction, 'to_address');
             addressFrom = this.safeString (transaction, 'from_address');
             type = this.parseTransactionType (this.safeString (transaction, 'direction'));
-            amount = this.safeNumber (transaction, 'amount');
+            amount = this.parseNumber (this.safeString (transaction, 'amount'));
             const currencyId = this.safeString (transaction, 'asset');
             code = this.safeCurrencyCode (currencyId, currency);
+            network = this.networkIdToCode (this.safeString (transaction, 'chain'), code);
             status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
             const fees = this.safeString (transaction, 'fees');
             const networkFee = this.safeString (transaction, 'network_fee');
@@ -2056,7 +2061,7 @@ export default class alpaca extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             // crypto wallets api
             'PROCESSING': 'pending',
@@ -2152,7 +2157,7 @@ export default class alpaca extends Exchange {
         return this.parseBalance (response);
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         //
         // crypto holdings live on the positions endpoint, the account endpoint carries only the cash currency
         //
@@ -2190,8 +2195,8 @@ export default class alpaca extends Exchange {
         }
         for (let i = 0; i < positions.length; i++) {
             const position = this.safeDict (positions, i);
-            const positionSymbol = this.safeString (position, 'symbol');
-            if (positionSymbol === undefined) {
+            const positionSymbol = this.safeString (position, 'symbol', '');
+            if (positionSymbol === '') {
                 continue;
             }
             let baseId: Str = undefined;
@@ -2201,7 +2206,7 @@ export default class alpaca extends Exchange {
             } else {
                 // crypto position symbols come compressed with a USD tail, e.g. BTCUSD or USDTUSD
                 const baseLength = positionSymbol.length - 3;
-                if ((baseLength > 0) && (positionSymbol.slice (baseLength) === 'USD')) {
+                if ((baseLength > 0) && positionSymbol.endsWith ('USD')) {
                     baseId = positionSymbol.slice (0, baseLength);
                 }
             }
@@ -2219,22 +2224,19 @@ export default class alpaca extends Exchange {
         return this.safeBalance (result);
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         let endpoint = '/' + this.implodeParams (path, params);
         const baseApiUrl = this.safeString (this.urls['api'], api[0]);
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        let headersValue: NullableDict = {};
-        if (headers !== undefined) {
-            headersValue = headers;
-        }
+        const headersValue: NullableDict = {};
         if (api[1] === 'private') {
             this.checkRequiredCredentials ();
             headersValue['APCA-API-KEY-ID'] = this.apiKey;
             headersValue['APCA-API-SECRET-KEY'] = this.secret;
         }
-        const query = this.omit (params, this.extractParams (path));
+        const query: Dict = this.omit (params, this.extractParams (path));
         let bodyJson: Str = undefined;
         if (Object.keys (query).length > 0) {
             if ((method === 'GET') || (method === 'DELETE')) {
@@ -2245,11 +2247,11 @@ export default class alpaca extends Exchange {
             }
         }
         const url = this.implodeHostname (baseApiUrl) + endpoint;
-        const bodyResolved: Str = (bodyJson === undefined) ? body : bodyJson;
+        const bodyResolved: Str = bodyJson;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined; // default error handler
         }
@@ -2259,15 +2261,15 @@ export default class alpaca extends Exchange {
         // }
         const feedback = this.id + ' ' + body;
         const errorCode = this.safeString (response, 'code');
-        if (code !== undefined) {
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-        }
+        // code is an int: it is never undefined, the guard was dead
+        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         const message = this.safeString (response, 'message');
         if (message !== undefined) {
             this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             const codeAsString = code.toString ();
-            if ((code < 400) || !(codeAsString in this.httpExceptions)) {
+            const statusCode = this.parseToInt (code);
+            if ((statusCode < 400) || !(codeAsString in this.httpExceptions)) {
                 // an error envelope must always throw — also for statuses the http-status handler has no entry for
                 throw new ExchangeError (feedback);
             }

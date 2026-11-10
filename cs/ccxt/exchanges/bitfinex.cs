@@ -798,17 +798,18 @@ public partial class bitfinex : Exchange
 
     public virtual bool isFiat(string? code)
     {
-        return (inOp((this.options.ContainsKey("fiat") ? this.options["fiat"] : null), code));
+        IDictionary<string, object> fiat = this.safeDict(this.options, "fiat", new Dictionary<string, object>() {});
+        return ((fiat != null && code != null && fiat.ContainsKey(code)));
     }
 
-    public virtual object getCurrencyName(object code)
+    public virtual string? getCurrencyName(string? code)
     {
         // temporary fix for transpiler recognition, even though this is in parent class
-        if (inOp((this.options.ContainsKey("currencyNames") ? this.options["currencyNames"] : null), code))
+        if (inOp((this.options != null && this.options.ContainsKey("currencyNames") ? this.options["currencyNames"] : null), code))
         {
-            return getValue((this.options.ContainsKey("currencyNames") ? this.options["currencyNames"] : null), code);
+            return ((string?)((object)(getValue((this.options != null && this.options.ContainsKey("currencyNames") ? this.options["currencyNames"] : null), code))));
         }
-        throw new NotSupported ((((this.id + " ") + (code)) + " not supported for withdrawal")) ;
+        throw new NotSupported ((((this.id + " ") + code) + " not supported for withdrawal")) ;
     }
 
     public override string? amountToPrecision(object symbol, object amount)
@@ -818,14 +819,14 @@ public partial class bitfinex : Exchange
         // Anything exceeding this will be rounded to the 8th decimal.
         string? symbolValue = this.safeSymbol(symbol);
         Dictionary<string, object> market = this.market(symbolValue);
-        return this.decimalToPrecision(amount, TRUNCATE, getValue((market.ContainsKey("precision") ? market["precision"] : null), "amount"), DECIMAL_PLACES);
+        return this.decimalToPrecision(amount, TRUNCATE, this.safeValue((market.ContainsKey("precision") ? market["precision"] : null), "amount"), DECIMAL_PLACES);
     }
 
     public override string? priceToPrecision(object symbol, object price)
     {
         string? symbolValue = this.safeSymbol(symbol);
         Dictionary<string, object> market = this.market(symbolValue);
-        string priceValue = this.decimalToPrecision(price, ROUND, getValue((market.ContainsKey("precision") ? market["precision"] : null), "price"), this.precisionMode);
+        string priceValue = this.decimalToPrecision(price, ROUND, this.safeValue((market.ContainsKey("precision") ? market["precision"] : null), "price"), this.precisionMode);
         // https://docs.bitfinex.com/docs/introduction#price-precision
         // The precision level of all trading prices is based on significant figures.
         // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
@@ -872,15 +873,14 @@ public partial class bitfinex : Exchange
         List<object> response = await this.publicGetConfConfig(this.extend(request, parameters));
         List<object> spotMarketsInfo = this.safeList(response, 0, new List<object>() {});
         List<object> futuresMarketsInfo = this.safeList(response, 1, new List<object>() {});
-        List<object> securitiesMarketsIds = this.safeList(response, 2, new List<object>() {});
         List<object> marginIds = this.safeList(response, 3, new List<object>() {});
         List<object> markets = this.arrayConcat(spotMarketsInfo, futuresMarketsInfo);
         List<object> result = new List<object>() {};
         for (int i = 0; i < (markets?.Count ?? 0); i++)
         {
             List<object> pairObj = this.safeList(markets, i);
-            string? id = this.safeStringUpper(pairObj, 0);
-            object market = this.safeValue(pairObj, 1, new Dictionary<string, object>() {});
+            string? id = this.safeStringUpper(pairObj, 0, "");
+            List<object> market = this.safeList(pairObj, 1, new List<object>() {});
             bool spot = true;
             string? type = null;
             if (id.IndexOf("F0", StringComparison.Ordinal) >= 0)
@@ -938,7 +938,6 @@ public partial class bitfinex : Exchange
                 { "settleId", settleId },
                 { "type", type },
                 { "spot", spot },
-                { "tradfi", this.inArray(id, securitiesMarketsIds) },
                 { "margin", (spot && this.inArray(id, marginIds)) },
                 { "swap", swap },
                 { "future", false },
@@ -1081,6 +1080,7 @@ public partial class bitfinex : Exchange
         //         ]
         //     ]
         //
+        List<object> networks = this.safeList(response, 8, new List<object>() {});
         Dictionary<string, object> indexed = new Dictionary<string, object>() {
             { "sym", this.indexBy(this.safeList(response, 1, new List<object>() {}), 0) },
             { "label", this.indexBy(this.safeList(response, 2, new List<object>() {}), 0) },
@@ -1089,14 +1089,14 @@ public partial class bitfinex : Exchange
             { "pool", this.indexBy(this.safeList(response, 5, new List<object>() {}), 0) },
             { "explorer", this.indexBy(this.safeList(response, 6, new List<object>() {}), 0) },
             { "fees", this.indexBy(this.safeList(response, 7, new List<object>() {}), 0) },
-            { "networks", this.safeList(response, 8, new List<object>() {}) },
+            { "networks", networks },
             { "statuses", this.indexBy(this.safeList(response, 9, new List<object>() {}), 0) },
             { "marginables", this.safeList(response, 10, new List<object>() {}) },
         };
         Dictionary<string, object> indexedNetworks = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(indexed["networks"]); i++)
+        for (int i = 0; i < networks.Count; i++)
         {
-            List<object> networkObj = this.safeList(indexed["networks"], i);
+            List<object> networkObj = this.safeList(networks, i);
             string? networkId = this.safeString(networkObj, 0);
             List<object> valuesList = this.safeList(networkObj, 1);
             string? networkName = this.safeString(valuesList, 0);
@@ -1109,13 +1109,13 @@ public partial class bitfinex : Exchange
         return ((IDictionary<string, object>)((object)(this.parseCurrenciesCustom(ids, indexed, indexedNetworks))));
     }
 
-    public virtual Dictionary<string, object> parseCurrenciesCustom(object ids, IDictionary<string, object> indexed, IDictionary<string, object> indexedNetworks)
+    public virtual Dictionary<string, object> parseCurrenciesCustom(IList<object> ids, IDictionary<string, object> indexed, IDictionary<string, object> indexedNetworks)
     {
         List<object> allowedIds = new List<object>() {};
-        for (int i = 0; i < getArrayLength(ids); i++)
+        for (int i = 0; i < (ids?.Count ?? 0); i++)
         {
-            object id = getValue(ids, i);
-            if (((string)id).EndsWith("F0"))
+            string? id = this.safeString(ids, i, "");
+            if (id.EndsWith("F0"))
             {
                 continue;
             }
@@ -1126,7 +1126,7 @@ public partial class bitfinex : Exchange
         for (int i = 0; i < (arr?.Count ?? 0); i++)
         {
             Dictionary<string, object> parsed = this.parseCurrencyCustom(arr[i], indexed, indexedNetworks);
-            object code = (parsed != null && parsed.ContainsKey("code") ? parsed["code"] : null);
+            string? code = this.safeString(parsed, "code", "");
             result[(string)code] = parsed;
         }
         return result;
@@ -1139,7 +1139,8 @@ public partial class bitfinex : Exchange
         string? name = this.safeString(label, 1);
         List<object> pool = this.safeList((indexed != null && indexed.ContainsKey("pool") ? indexed["pool"] : null), id, new List<object>() {});
         string? rawType = this.safeString(pool, 1);
-        bool isCryptoCoin = ((rawType != null)) || (inOp((indexed != null && indexed.ContainsKey("explorer") ? indexed["explorer"] : null), id)); // "hacky" solution
+        IDictionary<string, object> explorer = this.safeDict(indexed, "explorer", new Dictionary<string, object>() {});
+        bool isCryptoCoin = ((rawType != null)) || ((explorer != null && id is string inOpKey0 && explorer.ContainsKey(inOpKey0))); // "hacky" solution
         string? type = isCryptoCoin ? "crypto" : null;
         List<object> feeValues = this.safeList((indexed != null && indexed.ContainsKey("fees") ? indexed["fees"] : null), id, new List<object>() {});
         List<object> fees = this.safeList(feeValues, 1, new List<object>() {});
@@ -1169,7 +1170,7 @@ public partial class bitfinex : Exchange
                 networks[(string)network] = new Dictionary<string, object>() {
                     { "info", networkId },
                     { "id", networkId.ToLower() },
-                    { "network", networkId },
+                    { "network", network },
                     { "active", null },
                     { "deposit", (this.safeInteger(dwStatuses, 1) == 1) },
                     { "withdraw", (this.safeInteger(dwStatuses, 2) == 1) },
@@ -1236,7 +1237,7 @@ public partial class bitfinex : Exchange
             throw new ExchangeError (((this.id + " fetchBalance() type parameter must be one of ") + String.Join(", ", keys.ToArray()))) ;
         }
         bool isDerivative = requestedType == "derivatives";
-        object query = this.omit(parameters, "type");
+        IDictionary<string, object> query = ((IDictionary<string, object>)this.omit(parameters, "type"));
         List<object> response = await this.privatePostAuthRWallets(query);
         IList<object> balances = this.toArray(response);
         Dictionary<string, object> result = new Dictionary<string, object>() {
@@ -1253,8 +1254,7 @@ public partial class bitfinex : Exchange
             }
             string? type = this.safeString(balance, 0);
             string? currencyId = this.safeStringLower(balance, 1, "");
-            int start = (currencyId.Length - 2);
-            bool isDerivativeCode = isEqual(slice(currencyId, start, null), "f0");
+            bool isDerivativeCode = ((currencyId != null)) && ((currencyId.EndsWith("f0") == true));
             // this will only filter the derivative codes if the requestedType is 'derivatives'
             bool derivativeCondition = (!isDerivative || isDerivativeCode);
             if (((accountType == type)) && derivativeCondition)
@@ -1344,7 +1344,7 @@ public partial class bitfinex : Exchange
         {
             string? message = this.safeString(response, 2, "");
             // same message as in v1
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, ((this.id + " ") + message));
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, ((this.id + " ") + message));
             throw new ExchangeError (((this.id + " ") + message)) ;
         }
         return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(new Dictionary<string, object>() {             { "result", response },         }, currency));
@@ -1415,24 +1415,19 @@ public partial class bitfinex : Exchange
         List<object> info = this.safeList(currency, "info");
         string? transferId = this.safeString(info, 0);
         List<object> underlying = this.safeList(info, 4, new List<object>() {});
-        object currencyId = null;
         if ((type == "derivatives"))
         {
-            currencyId = this.safeString(underlying, 0, transferId);
-            int start = (((string)currencyId).Length - 2);
-            bool isDerivativeCode = isEqual(slice(((string)currencyId), start, null), "F0");
-            if (!isDerivativeCode)
+            object derivativesId = this.safeString(underlying, 0, this.safeString(info, 0, ""));
+            if (!((string)derivativesId).EndsWith("F0"))
             {
-                currencyId = add(currencyId, "F0");
+                return ((string?)((object)(((object)(derivativesId == null ? null : derivativesId + "F0")))));
             }
+            return ((string?)((object)(derivativesId)));
         } else if (!(type == "margin"))
         {
-            currencyId = this.safeString(underlying, 1, transferId);
-        } else
-        {
-            currencyId = transferId;
+            return this.safeString(underlying, 1, transferId);
         }
-        return ((string?)((object)(currencyId)));
+        return transferId;
     }
 
     /**
@@ -1473,7 +1468,7 @@ public partial class bitfinex : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "nonce", null },
         };
-        int priceIndex = (isEqual((fullRequest != null && fullRequest.ContainsKey("precision") ? fullRequest["precision"] : null), "R0")) ? 1 : 0;
+        int priceIndex = ((this.safeString(fullRequest, "precision") == "R0")) ? 1 : 0;
         IList<object> orders = this.toArray(orderbook);
         for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
@@ -1575,9 +1570,7 @@ public partial class bitfinex : Exchange
             bid = this.safeString(ticker, (2 - minusIndex));
             ask = this.safeString(ticker, (5 - minusIndex));
             change = this.safeString(ticker, (8 - minusIndex));
-            // DAILY_CHANGE_RELATIVE, per the array above: the same field the trading
-            // branch reads at index 6 and scales
-            percentage = Precise.stringMul(this.safeString(ticker, (9 - minusIndex)), "100");
+            // funding DAILY_CHANGE_RELATIVE is not change / (last - change), let safeTicker derive percentage
             volume = this.safeString(ticker, (11 - minusIndex));
             high = this.safeString(ticker, (12 - minusIndex));
             low = this.safeString(ticker, (13 - minusIndex));
@@ -1634,7 +1627,7 @@ public partial class bitfinex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((symbolsNormalized != null))
         {
@@ -1749,7 +1742,7 @@ public partial class bitfinex : Exchange
         string? amountString = this.safeString(tradeList, amountIndex);
         int priceIndex = isPrivate ? 5 : 3;
         string? priceString = this.safeString(tradeList, priceIndex);
-        if (isEqual(getValue(amountString, 0), "-"))
+        if (amountString.StartsWith("-"))
         {
             side = "sell";
             amountString = Precise.stringAbs(amountString);
@@ -1780,7 +1773,7 @@ public partial class bitfinex : Exchange
                 { "currency", feeCurrency },
             };
             object orderType = (tradeList != null && 6 < tradeList.Count ? tradeList[6] : null);
-            type = this.safeString((this.options.ContainsKey("exchangeTypes") ? this.options["exchangeTypes"] : null), orderType);
+            type = this.safeString((this.options != null && this.options.ContainsKey("exchangeTypes") ? this.options["exchangeTypes"] : null), orderType);
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
@@ -1861,7 +1854,7 @@ public partial class bitfinex : Exchange
         for (int i = 0; i < (trades?.Count ?? 0); i++)
         {
             tradesList.Add(new Dictionary<string, object>() {
-                { "result", trades[i] },
+                { "result", this.safeList(trades, i) },
             }); // convert to array of dicts to match parseOrder signature
         }
         return this.parseTrades(tradesList, market, null, limit);
@@ -1900,7 +1893,7 @@ public partial class bitfinex : Exchange
             return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limitVar,timeframeVar, paramsPaginate, 10000));
         }
         Dictionary<string, object> market = this.market(symbol);
-        object limitResolved = ((limitVar == null)) ? 10000 : mathMin(limitVar, 10000);
+        object limitResolved = ((limitVar == null)) ? 10000 : Math.Min(limitVar.Value, 10000);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "timeframe", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
@@ -1963,7 +1956,7 @@ public partial class bitfinex : Exchange
         return this.safeString(statuses, state, status);
     }
 
-    public virtual object parseOrderFlags(string? flags)
+    public virtual List<object> parseOrderFlags(string? flags)
     {
         // flags can be added to each other...
         Dictionary<string, object> flagValues = new Dictionary<string, object>() {
@@ -1971,7 +1964,7 @@ public partial class bitfinex : Exchange
             { "4096", new List<object>() {"postOnly"} },
             { "5120", new List<object>() {"reduceOnly", "postOnly"} },
         };
-        return this.safeList(flagValues, flags, null);
+        return this.safeList(flagValues, flags, new List<object>() {});
     }
 
     public virtual string? parseTimeInForce(string? orderType)
@@ -2006,16 +1999,13 @@ public partial class bitfinex : Exchange
         string? type = this.safeString(this.safeDict(this.options, "exchangeTypes"), orderType);
         string? timeInForce = this.parseTimeInForce(orderType);
         string? rawFlags = this.safeString(orderList, 12);
-        List<object> flags = ((List<object>)this.parseOrderFlags(rawFlags));
+        List<object> flags = this.parseOrderFlags(rawFlags);
         bool postOnly = false;
-        if ((flags != null))
+        for (int i = 0; i < (flags?.Count ?? 0); i++)
         {
-            for (int i = 0; i < (flags?.Count ?? 0); i++)
+            if ((this.safeString(flags, i) == "postOnly"))
             {
-                if (isEqual(flags[i], "postOnly"))
-                {
-                    postOnly = true;
-                }
+                postOnly = true;
             }
         }
         string? price = this.safeString(orderList, 16);
@@ -2108,7 +2098,7 @@ public partial class bitfinex : Exchange
         string? timeInForce = this.safeString(parameters, "timeInForce");
         bool? postOnlyParam = this.safeBool(parameters, "postOnly", false);
         bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
-        object clientOrderId = this.safeValue2(parameters, "cid", "clientOrderId");
+        Int64? clientOrderId = this.safeInteger2(parameters, "cid", "clientOrderId");
         string orderType = type.ToUpper();
         if ((trailingAmount != null))
         {
@@ -2129,7 +2119,7 @@ public partial class bitfinex : Exchange
         }
         bool ioc = (timeInForce == "IOC");
         bool fok = (timeInForce == "FOK");
-        bool postOnly = (((postOnlyParam == true)) || (timeInForce == "PO"));
+        bool postOnly = ((postOnlyParam == true) || (timeInForce == "PO"));
         if ((ioc || fok) && ((price == null)))
         {
             throw new InvalidOrder ((this.id + " createOrder() requires a price argument with IOC and FOK orders")) ;
@@ -2152,23 +2142,25 @@ public partial class bitfinex : Exchange
         (string?, object) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters);
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
         IDictionary<string, object> paramsMarginMode = ((IDictionary<string, object>)marginModeparamsMarginModeVariable.Item2);
-        if (((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true)) && ((marginMode == null)))
+        if ((this.safeBool(market, "spot", false) == true) && ((marginMode == null)))
         {
             // The EXCHANGE prefix is only required for non margin spot markets
             orderType = ("EXCHANGE " + orderType);
         }
         request["type"] = orderType;
         // flag values may be summed to combine flags
-        object flags = 0;
-        if (postOnly)
+        int flags = 0;
+        if (postOnly && (reduceOnly == true))
         {
-            flags = this.sum(flags, 4096);
-        }
-        if ((reduceOnly == true))
+            flags = 5120;
+        } else if (postOnly)
         {
-            flags = this.sum(flags, 1024);
+            flags = 4096;
+        } else if ((reduceOnly == true))
+        {
+            flags = 1024;
         }
-        if (!isEqual(flags, 0))
+        if ((flags != 0))
         {
             request["flags"] = flags;
         }
@@ -2259,11 +2251,11 @@ public partial class bitfinex : Exchange
         //          "Submitting 1 orders."      // Message
         //       ]
         //
-        string? status = this.safeString(response, 6);
+        string? status = this.safeString(response, 6, "");
         if (status != "SUCCESS")
         {
-            string? errorCode = this.safeString(response, 5);
-            string? errorText = this.safeString(response, 7);
+            string? errorCode = this.safeString(response, 5, "");
+            string? errorText = this.safeString(response, 7, "");
             throw new ExchangeError ((string)(((((((this.id + " ") + status) + ": ") + errorText) + " (#") + errorCode) + ")")) ;
         }
         List<object> orders = this.safeList(response, 4, new List<object>() {});
@@ -2336,10 +2328,8 @@ public partial class bitfinex : Exchange
         List<object> data = this.safeList(response, 4, new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
-            object individualOrder = getValue(entry, 4);
             results.Add(new Dictionary<string, object>() {
-                { "result", getValue(individualOrder, 0) },
+                { "result", this.safeList(this.safeList(this.safeList(data, i), 4), 0) },
             });
         }
         return this.parseOrders(results);
@@ -2370,7 +2360,7 @@ public partial class bitfinex : Exchange
         for (int i = 0; i < orders.Count; i++)
         {
             ordersList.Add(new Dictionary<string, object>() {
-                { "result", orders[i] },
+                { "result", this.safeList(orders, i) },
             });
         }
         return this.parseOrders(ordersList);
@@ -2393,7 +2383,7 @@ public partial class bitfinex : Exchange
         {
             await this.loadMarkets();
         }
-        object cid = this.safeValue2(parameters, "cid", "clientOrderId"); // client order id
+        Int64? cid = this.safeInteger2(parameters, "cid", "clientOrderId"); // client order id
         Dictionary<string, object> request = null;
         IDictionary<string, object> market = null;
         if ((symbol != null))
@@ -2402,7 +2392,7 @@ public partial class bitfinex : Exchange
         }
         if ((cid != null))
         {
-            object cidDate = this.safeValue(parameters, "cidDate"); // client order id date
+            string? cidDate = this.safeString(parameters, "cidDate"); // client order id date
             if ((cidDate == null))
             {
                 throw new InvalidOrder ((this.id + " canceling an order by clientOrderId ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')")) ;
@@ -2414,7 +2404,7 @@ public partial class bitfinex : Exchange
         } else
         {
             request = new Dictionary<string, object>() {
-                { "id", parseInt(id) },
+                { "id", this.parseToInt(id) },
             };
         }
         object paramsOmitted = ((cid != null)) ? this.omit(parameters, new List<object>() {"cid", "clientOrderId"}) : parameters;
@@ -2447,7 +2437,7 @@ public partial class bitfinex : Exchange
         for (int i = 0; i < (ids?.Count ?? 0); i++)
         {
             // numericIds[i] = this.parseToNumeric (ids[i]);
-            numericIds.Add(this.parseToNumeric((ids != null && i < ids.Count ? ids[i] : null)));
+            numericIds.Add(this.parseToNumeric(this.safeString(ids, i)));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", numericIds },
@@ -2513,7 +2503,7 @@ public partial class bitfinex : Exchange
         for (int i = 0; i < orders.Count; i++)
         {
             ordersList.Add(new Dictionary<string, object>() {
-                { "result", orders[i] },
+                { "result", this.safeList(orders, i) },
             });
         }
         return this.parseOrders(ordersList, market);
@@ -2534,10 +2524,10 @@ public partial class bitfinex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "id", new List<object> {parseInt(id)} },
+            { "id", new List<object> {this.parseToInt(id)} },
         };
-        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOpenOrders(symbol,ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), this.extend(request, parameters)));
-        object order = this.safeValue(orders, 0);
+        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchOpenOrders(symbol, null, null, this.extend(request, parameters)));
+        IDictionary<string, object> order = this.safeDict(orders, 0);
         if ((order == null))
         {
             throw new OrderNotFound ((((this.id + " order ") + id) + " not found")) ;
@@ -2560,10 +2550,10 @@ public partial class bitfinex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "id", new List<object> {parseInt(id)} },
+            { "id", new List<object> {this.parseToInt(id)} },
         };
-        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchClosedOrders(symbol,ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), this.extend(request, parameters)));
-        object order = this.safeValue(orders, 0);
+        List<object> orders = ccxt.BaseExchange.FromOrderList(await this.FetchClosedOrders(symbol, null, null, this.extend(request, parameters)));
+        IDictionary<string, object> order = this.safeDict(orders, 0);
         if ((order == null))
         {
             throw new OrderNotFound ((((this.id + " order ") + id) + " not found")) ;
@@ -2644,7 +2634,7 @@ public partial class bitfinex : Exchange
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             ordersList.Add(new Dictionary<string, object>() {
-                { "result", response[i] },
+                { "result", this.safeList(response, i) },
             });
         }
         return this.parseOrders(ordersList, market, since, limit);
@@ -2744,7 +2734,7 @@ public partial class bitfinex : Exchange
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             ordersList.Add(new Dictionary<string, object>() {
-                { "result", response[i] },
+                { "result", this.safeList(response, i) },
             });
         }
         return this.parseOrders(ordersList, market, since, limit);
@@ -2774,7 +2764,7 @@ public partial class bitfinex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        Int64? orderId = parseInt(id);
+        Int64? orderId = this.parseToInt(id);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", orderId },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -2786,7 +2776,7 @@ public partial class bitfinex : Exchange
         for (int i = 0; i < (rawTrades?.Count ?? 0); i++)
         {
             tradesList.Add(new Dictionary<string, object>() {
-                { "result", rawTrades[i] },
+                { "result", this.safeList(rawTrades, i) },
             }); // convert to array of dicts to match parseOrder signature
         }
         return this.parseTrades(tradesList, market, since, limit);
@@ -2837,7 +2827,7 @@ public partial class bitfinex : Exchange
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
             tradesList.Add(new Dictionary<string, object>() {
-                { "result", response[i] },
+                { "result", this.safeList(response, i) },
             }); // convert to array of dicts to match parseOrder signature
         }
         return this.parseTrades(tradesList, market, since, limit);
@@ -2883,7 +2873,8 @@ public partial class bitfinex : Exchange
         }
         Dictionary<string, object> currency = this.currency(code);
         // if not provided explicitly we will try to match using the currency name
-        string? network = this.safeString(parameters, "network", code);
+        string? networkParam = this.safeString(parameters, "network", code);
+        string? network = this.safeString(this.networkAliases, networkParam, networkParam);
         IDictionary<string, object> currencyNetworks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
         IDictionary<string, object> currencyNetwork = this.safeDict(currencyNetworks, network);
         string? networkId = this.safeString(currencyNetwork, "id");
@@ -2892,7 +2883,7 @@ public partial class bitfinex : Exchange
             throw new ArgumentsRequired ((((this.id + " fetchDepositAddress() could not find a network for '") + code) + "'. You can specify it by providing the 'network' value inside params")) ;
         }
         string? wallet = this.safeString(parameters, "wallet", "exchange"); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
-        object paramsOmitted = this.omit(parameters, "network", "wallet");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "network", "wallet"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", networkId },
             { "wallet", wallet },
@@ -3025,9 +3016,10 @@ public partial class bitfinex : Exchange
                 feeCost = Precise.stringAbs(feeCost);
             }
             amount = this.safeNumber(data, 5);
-            id = this.safeInteger(data, 0);
+            Int64? withdrawId = this.safeInteger(data, 0);
+            id = withdrawId;
             status = "ok";
-            if (isEqual(id, 0))
+            if ((withdrawId == 0))
             {
                 id = null;
                 status = "failed";
@@ -3189,9 +3181,9 @@ public partial class bitfinex : Exchange
         double? takerFee = this.safeNumber(takerData, 0);
         double? takerFeeFiat = this.safeNumber(takerData, 2);
         double? takerFeeDeriv = this.safeNumber(takerData, 5);
-        for (int i = 0; i < this.symbols.Count; i++)
+        for (int i = 0; i < (this.symbols?.Count ?? 0); i++)
         {
-            object symbol = getValue(this.symbols, i);
+            string? symbol = this.safeString(this.symbols, i, "");
             Dictionary<string, object> market = this.market(symbol);
             Dictionary<string, object> fee = new Dictionary<string, object>() {
                 { "info", response },
@@ -3199,11 +3191,11 @@ public partial class bitfinex : Exchange
                 { "percentage", true },
                 { "tierBased", true },
             };
-            if (inOp(fiat, (market.ContainsKey("quote") ? market["quote"] : null)))
+            if ((fiat != null && (market.ContainsKey("quote") ? market["quote"] : null) is string inOpKey1 && fiat.ContainsKey(inOpKey1)))
             {
                 fee["maker"] = makerFeeFiat;
                 fee["taker"] = takerFeeFiat;
-            } else if ((((market.ContainsKey("contract") ? market["contract"] : null) as bool?) == true))
+            } else if ((this.safeBool(market, "contract", false) == true))
             {
                 fee["maker"] = makerFeeDeriv;
                 fee["taker"] = takerFeeDeriv;
@@ -3297,13 +3289,16 @@ public partial class bitfinex : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        IList<object> tagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tag = (string)tagparamsWithdrawTagVariable[0];
+        IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagparamsWithdrawTagVariable[1]);
         this.checkAddress(address);
         if ((this.markets == null))
         {
@@ -3311,8 +3306,9 @@ public partial class bitfinex : Exchange
         }
         Dictionary<string, object> currency = this.currency(code);
         // if not provided explicitly we will try to match using the currency name
-        string? network = this.safeString(parameters, "network", code);
-        object paramsOmitted = this.omit(parameters, "network");
+        string? networkParam = this.safeString(paramsWithdrawTag, "network", code);
+        string? network = this.safeString(this.networkAliases, networkParam, networkParam);
+        Dictionary<string, object> paramsOmitted = this.omit(paramsWithdrawTag, "network");
         IDictionary<string, object> currencyNetworks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
         IDictionary<string, object> currencyNetwork = this.safeDict(currencyNetworks, network);
         string? networkId = this.safeString(currencyNetwork, "id");
@@ -3375,14 +3371,14 @@ public partial class bitfinex : Exchange
             string feedback = ((this.id + " ") + (response));
             string? message = this.safeString(response, 2, "");
             // same message as in v1
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }
         string? text = this.safeString(response, 7);
         if (text != "success")
         {
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), text, text);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), text, text);
         }
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
@@ -3403,7 +3399,7 @@ public partial class bitfinex : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         List<object> response = await this.privatePostAuthRPositions(parameters);
         //
         //     [
@@ -3444,7 +3440,7 @@ public partial class bitfinex : Exchange
         for (int i = 0; i < (rawPositions?.Count ?? 0); i++)
         {
             positionsList.Add(new Dictionary<string, object>() {
-                { "result", rawPositions[i] },
+                { "result", this.safeList(rawPositions, i) },
             });
         }
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(positionsList, symbolsNormalized));
@@ -3527,42 +3523,43 @@ public partial class bitfinex : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object request = ("/" + this.implodeParams(path, parameters));
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
+        string request = ("/" + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        if (isEqual(api, "v1"))
+        if (apiName == "v1")
         {
-            request = add(api, request);
+            request = ("v1" + request);
         } else
         {
-            request = (this.version + (request));
+            request = (this.version + request);
         }
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        string url = ((apiUrl + "/") + (request));
+        string url = ((apiUrl + "/") + request);
         string? requestBody = null;
         Dictionary<string, object> requestHeaders = null;
-        if ((api is "public"))
+        if (apiName == "public")
         {
             if ((new List<object>(((IDictionary<string,object>)query).Keys)).Count > 0)
             {
                 url = url + ("?" + this.urlencode(query));
             }
         }
-        if ((api is "private"))
+        if (apiName == "private")
         {
             this.checkRequiredCredentials();
             // bitfinex rejects a nonce that is not greater than the previous one for the key (error 10114)
             string nonce = ((object)this.incrementingNonce()).ToString();
             requestBody = this.json(query);
-            string auth = ((("/api/" + (request)) + nonce) + requestBody);
+            string auth = ((("/api/" + request) + nonce) + requestBody);
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha384);
             requestHeaders = new Dictionary<string, object>() {
                 { "bfx-nonce", nonce },
@@ -3571,8 +3568,8 @@ public partial class bitfinex : Exchange
                 { "Content-Type", "application/json" },
             };
         }
-        object bodyResolved = ((requestBody == null)) ? body : requestBody;
-        object headersResolved = ((requestHeaders == null)) ? headers : requestHeaders;
+        string? bodyResolved = requestBody;
+        Dictionary<string, object> headersResolved = requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
@@ -3581,7 +3578,7 @@ public partial class bitfinex : Exchange
         };
     }
 
-    public override object handleErrors(object statusCode, string statusText, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         // ["error", 11010, "ratelimit: error"]
         if ((response != null))
@@ -3590,27 +3587,27 @@ public partial class bitfinex : Exchange
             {
                 string? message = this.safeString2(response, "message", "error");
                 string feedback = ((this.id + " ") + (body));
-                this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
-                this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
+                this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+                this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
                 throw new ExchangeError ((string)((this.id + " ") + (body))) ;
             }
         } else if ((response is ""))
         {
             throw new ExchangeError ((this.id + " returned empty response")) ;
         }
-        if (isEqual(statusCode, 429))
+        if ((code == 429))
         {
             throw new RateLimitExceeded ((string)((this.id + " ") + (body))) ;
         }
-        if (isEqual(statusCode, 500))
+        if ((code == 500))
         {
             // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
             string? errorCode = this.safeString(response, 1, "");
             string? errorText = this.safeString(response, 2, "");
             string feedback = ((this.id + " ") + errorText);
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), errorText, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorText, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorText, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorText, feedback);
             throw new ExchangeError ((((((this.id + " ") + errorText) + " (#") + errorCode) + ")")) ;
         }
         return response;
@@ -3765,9 +3762,8 @@ public partial class bitfinex : Exchange
         List<object> ledgerObjects = new List<object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            object item = response[i];
             ledgerObjects.Add(new Dictionary<string, object>() {
-                { "result", item },
+                { "result", this.safeList(response, i) },
             });
         }
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(ledgerObjects, currency, since, limit));
@@ -3918,7 +3914,7 @@ public partial class bitfinex : Exchange
         for (Int64 i = 0; i < ratesLength; i++)
         {
             Int64 index = ((ratesLength - i) - 1);
-            object valueAtIndex = getValue(rawRates, index);
+            object valueAtIndex = (rawRates != null && index < rawRates.Count ? rawRates[(int)index] : null);
             reversedArray.Add(valueAtIndex);
         }
         return ccxt.BaseExchange.ToFundingRateHistoryList(reversedArray);
@@ -4009,25 +4005,12 @@ public partial class bitfinex : Exchange
         // ]
         //
         Int64? timestamp = this.safeInteger(contract, 0);
-        Int64? nextFundingTimestamp = this.safeInteger(contract, 7);
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", this.safeSymbol(null, market) },
-            { "markPrice", this.safeNumber(contract, 14) },
-            { "indexPrice", this.safeNumber(contract, 2) },
-            { "interestRate", null },
-            { "estimatedSettlePrice", null },
+            { "fundingRate", this.safeNumber(contract, 11) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "fundingRate", this.safeNumber(contract, 11) },
-            { "fundingTimestamp", null },
-            { "fundingDatetime", null },
-            { "nextFundingRate", this.safeNumber(contract, 8) },
-            { "nextFundingTimestamp", nextFundingTimestamp },
-            { "nextFundingDatetime", this.iso8601(nextFundingTimestamp) },
-            { "previousFundingRate", null },
-            { "previousFundingTimestamp", null },
-            { "previousFundingDatetime", null },
         };
     }
 
@@ -4358,7 +4341,7 @@ public partial class bitfinex : Exchange
         //         ],
         //     ]
         //
-        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(this.toArray(response), market, since, limit));
+        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(this.toArray(this.toArray(response)), market, since, limit));
     }
 
     public override object parseLiquidation(object liquidation, IDictionary<string, object> market = null)
@@ -4426,7 +4409,7 @@ public partial class bitfinex : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "swap", false) == true))
         {
             throw new NotSupported ((this.id + " setMargin() only support swap markets")) ;
         }
@@ -4457,9 +4440,9 @@ public partial class bitfinex : Exchange
         //         ]
         //     ]
         //
-        object marginStatusRaw = getValue(data, 0);
+        Int64? marginStatusRaw = this.safeInteger(data, 0);
         string marginStatus = "failed";
-        if (isEqual(marginStatusRaw, 1))
+        if ((marginStatusRaw == 1))
         {
             marginStatus = "ok";
         }
@@ -4610,22 +4593,24 @@ public partial class bitfinex : Exchange
                 request["price_aux_limit"] = this.priceToPrecision(symbol, price);
             }
         }
-        bool postOnly = (((postOnlyParam == true)) || (timeInForce == "PO"));
+        bool postOnly = ((postOnlyParam == true) || (timeInForce == "PO"));
         if (((type != "market")) && ((triggerPrice == null)))
         {
             request["price"] = this.priceToPrecision(symbol, price);
         }
         // flag values may be summed to combine flags
-        object flags = 0;
-        if (postOnly)
+        int flags = 0;
+        if (postOnly && (reduceOnly == true))
         {
-            flags = this.sum(flags, 4096);
-        }
-        if ((reduceOnly == true))
+            flags = 5120;
+        } else if (postOnly)
         {
-            flags = this.sum(flags, 1024);
+            flags = 4096;
+        } else if ((reduceOnly == true))
+        {
+            flags = 1024;
         }
-        if (!isEqual(flags, 0))
+        if ((flags != 0))
         {
             request["flags"] = flags;
         }
@@ -4638,7 +4623,7 @@ public partial class bitfinex : Exchange
         {
             request["lev"] = leverage;
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId", "leverage"});
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId", "leverage"}));
         List<object> response = await this.privatePostAuthWOrderUpdate(this.extend(request, paramsOmitted));
         //
         //     [
@@ -4685,11 +4670,11 @@ public partial class bitfinex : Exchange
         //         "Submitting update to exchange limit buy order for 0.0002 BTC."
         //     ]
         //
-        string? status = this.safeString(response, 6);
+        string? status = this.safeString(response, 6, "");
         if (status != "SUCCESS")
         {
-            string? errorCode = this.safeString(response, 5);
-            string? errorText = this.safeString(response, 7);
+            string? errorCode = this.safeString(response, 5, "");
+            string? errorText = this.safeString(response, 7, "");
             throw new ExchangeError ((string)(((((((this.id + " ") + status) + ": ") + errorText) + " (#") + errorCode) + ")")) ;
         }
         List<object> order = this.safeList(response, 4, new List<object>() {});

@@ -9,6 +9,7 @@ import io.github.ccxt.BaseExchange;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
 import java.util.HashMap;
+import java.util.Map;
 
 public class Myokx extends io.github.ccxt.exchanges.Myokx
 {
@@ -20,7 +21,7 @@ public class Myokx extends io.github.ccxt.exchanges.Myokx
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "myokx" );
@@ -29,7 +30,7 @@ public class Myokx extends io.github.ccxt.exchanges.Myokx
             put( "urls", new HashMap<String, Object>() {{
                 put( "api", new HashMap<String, Object>() {{
                     put( "rest", "https://{hostname}" );
-                    put( "ws", "wss://wseea.okx.com:8443/ws/v5" );
+                    put( "ws", "wss://wseea.okx.com:443/ws/v5" );
                 }} );
                 put( "www", "https://my.okx.com" );
                 put( "doc", "https://my.okx.com/docs-v5/en/#overview" );
@@ -39,7 +40,7 @@ public class Myokx extends io.github.ccxt.exchanges.Myokx
                     put( "discount", 0.2 );
                 }} );
                 put( "test", new HashMap<String, Object>() {{
-                    put( "ws", "wss://wseeapap.okx.com:8443/ws/v5" );
+                    put( "ws", "wss://wseeapap.okx.com:443/ws/v5" );
                 }} );
             }} );
             put( "has", new HashMap<String, Object>() {{

@@ -527,7 +527,7 @@ public partial class coinspot : Exchange
                 { "DRK", "DASH" },
             } },
             { "options", new Dictionary<string, object>() {
-                { "fetchBalance", "private_post_my_balances" },
+                { "fetchBalance", "privatePostMyBalances" },
             } },
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
@@ -589,13 +589,15 @@ public partial class coinspot : Exchange
         object balances = this.safeValue2(response, "balance", "balances");
         if (((balances is IList<object>) || (balances.GetType().IsGenericType && balances.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            for (int i = 0; i < getArrayLength(balances); i++)
+            IList<object> rows = this.toArray(balances);
+            int numRows = (rows?.Count ?? 0);
+            for (int i = 0; i < numRows; i++)
             {
-                object currencies = getValue(balances, i);
-                List<object> currencyIds = new List<object>(((IDictionary<string,object>)currencies).Keys);
-                for (int j = 0; j < currencyIds.Count; j++)
+                IDictionary<string, object> currencies = this.safeDict(rows, i, new Dictionary<string, object>() {});
+                List<object> currencyIdsList = new List<object>(currencies.Keys);
+                for (int j = 0; j < currencyIdsList.Count; j++)
                 {
-                    object currencyId = currencyIds[j];
+                    string? currencyId = ((string)currencyIdsList[j]);
                     IDictionary<string, object> balance = this.safeDict(currencies, currencyId);
                     string? code = this.safeCurrencyCode(currencyId);
                     Dictionary<string, object> account = this.account();
@@ -608,10 +610,10 @@ public partial class coinspot : Exchange
             }
         } else
         {
-            List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
-            for (int i = 0; i < currencyIds.Count; i++)
+            List<object> currencyIdsMap = new List<object>(((IDictionary<string,object>)balances).Keys);
+            for (int i = 0; i < currencyIdsMap.Count; i++)
             {
-                object currencyId = currencyIds[i];
+                string? currencyId = ((string)currencyIdsMap[i]);
                 string? code = this.safeCurrencyCode(currencyId);
                 Dictionary<string, object> account = this.account();
                 account["total"] = this.safeString(balances, currencyId);
@@ -639,7 +641,7 @@ public partial class coinspot : Exchange
         {
             await this.loadMarkets();
         }
-        string? method = this.safeString(this.options, "fetchBalance", "private_post_my_balances");
+        string? method = this.safeString(this.options, "fetchBalance", "privatePostMyBalances");
         Dictionary<string, object> response = null;
         if ((method == "private_post_ro_my_balances") || (method == "privatePostRoMyBalances"))
         {
@@ -807,7 +809,7 @@ public partial class coinspot : Exchange
         {
             string? id = ((string)ids[i]);
             Dictionary<string, object> market = this.safeMarket(id);
-            if ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true))
+            if ((this.safeBool(market, "spot", false) == true))
             {
                 string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
                 object ticker = (id != null && prices.ContainsKey(id) ? prices[id] : null);
@@ -1062,7 +1064,7 @@ public partial class coinspot : Exchange
         {
             throw new ArgumentsRequired ((this.id + " cancelOrder() requires a side parameter, \"buy\" or \"sell\"")) ;
         }
-        object paramsOmitted = this.omit(parameters, "side");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "side"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", id },
         };
@@ -1080,7 +1082,7 @@ public partial class coinspot : Exchange
         return this.safeOrder(new Dictionary<string, object>() {             { "info", response },         });
     }
 
-    public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
@@ -1101,23 +1103,27 @@ public partial class coinspot : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object requestHeaders = headers;
-        object requestBody = body;
-        bool isVersionedApi = ((api is IList<object>) || (api.GetType().IsGenericType && api.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-        object version = isVersionedApi ? getValue(api, 0) : null;
-        object accessType = isVersionedApi ? getValue(api, 1) : api;
+        Dictionary<string, object> requestHeaders = null;
+        string? requestBody = null;
+        int apiLength = (api?.Count ?? 0);
+        bool isVersionedApi = apiLength > 1;
+        object accessType = (api != null && 0 < api.Count ? api[0] : null);
+        if (isVersionedApi)
+        {
+            accessType = (api != null && 1 < api.Count ? api[1] : null);
+        }
         string endpoint = ("/" + this.implodeParams(path, parameters));
         string fullPath = endpoint;
-        if ((version != null))
+        if (isVersionedApi)
         {
-            fullPath = (("/" + (version)) + endpoint);
+            fullPath = (("/" + ((api != null && 0 < api.Count ? api[0] : null))) + endpoint);
         }
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), accessType);
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), accessType);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;

@@ -47,7 +47,7 @@ class WsClientRetirementRaceTest {
 
     @SuppressWarnings("unchecked")
     private static Map<String, Future> futuresOf(Client client) {
-        return (Map<String, Future>) client.futures;
+        return client.futures;
     }
 
     private static void assertRetired(Client client, String who) {

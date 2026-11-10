@@ -269,7 +269,9 @@ class zaif extends zaif$1["default"] {
         if (name === undefined) {
             throw new errors.ExchangeError(this.id + ' parseMarket() missing name');
         }
-        const [baseId, quoteId] = name.split('/');
+        const nameParts = name.split('/');
+        const baseId = this.safeString(nameParts, 0);
+        const quoteId = this.safeString(nameParts, 1);
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         if ((base === undefined) || (quote === undefined)) {
@@ -571,7 +573,7 @@ class zaif extends zaif$1["default"] {
         const data = this.safeDict(response, 'return', {});
         return this.safeOrder({
             'info': response,
-            'id': data['order_id'].toString(),
+            'id': this.numberToString(data['order_id']),
         }, market);
     }
     /**
@@ -737,13 +739,13 @@ class zaif extends zaif$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
-        this.checkAddress(address);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -828,29 +830,29 @@ class zaif extends zaif$1["default"] {
         };
     }
     customNonce() {
-        const num = this.numberToString(this.milliseconds() / 1000);
-        const nonce = parseFloat(num);
+        const nonce = this.milliseconds() / 1000;
         return nonce.toFixed(8);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         const baseApiUrl = this.safeString(this.urls['api'], 'rest');
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const baseUrl = baseApiUrl;
         let url = baseUrl + '/';
-        if (api === 'public') {
+        if (apiName === 'public') {
             url += 'api/' + this.version + '/' + this.implodeParams(path, params);
         }
-        else if (api === 'fapi') {
+        else if (apiName === 'fapi') {
             url += 'fapi/' + this.version + '/' + this.implodeParams(path, params);
         }
         else {
             this.checkRequiredCredentials();
-            if (api === 'ecapi') {
+            if (apiName === 'ecapi') {
                 url += 'ecapi';
             }
-            else if (api === 'tlapi') {
+            else if (apiName === 'tlapi') {
                 url += 'tlapi';
             }
             else {
@@ -868,9 +870,9 @@ class zaif extends zaif$1["default"] {
             };
             return { 'url': url, 'method': method, 'body': bodyEncoded, 'headers': headersSigned };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }
@@ -885,7 +887,7 @@ class zaif extends zaif$1["default"] {
             throw new errors.ExchangeError(feedback); // unknown message
         }
         const success = this.safeBool(response, 'success', true);
-        if (success !== true) {
+        if (!success) {
             throw new errors.ExchangeError(feedback);
         }
         return undefined;

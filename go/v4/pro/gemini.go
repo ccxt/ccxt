@@ -17,11 +17,10 @@ func newGemini() *Gemini {
 	base := &ccxt.Gemini{}
 	p.base = base
 	p.Gemini = base
-	ccxt.SetDefaults(p)
 	return p
 }
 
-func (this *Gemini) Describe() any {
+func (this *Gemini) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
 			"ws":                       true,
@@ -59,28 +58,30 @@ func (this *Gemini) Describe() any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Gemini) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Gemini) WatchTradesAsync(symbol any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Gemini) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Gemini) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes5212 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes5212)
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-	var messageHash any = ccxt.Add("trades:", market["symbol"])
-	var marketId any = market["id"]
+	var market map[string]any = this.Market(symbol)
+	var messageHash string = "trades:" + *this.SafeString(market, "symbol", "")
+	var marketId *string = ccxt.SafeStringPtr(market["id"])
 	if marketId == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchTrades() marketId is required"))
 	}
@@ -88,19 +89,27 @@ func (this *Gemini) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
 		"type": "subscribe",
 		"subscriptions": []any{map[string]any{
 			"name":    "l2",
-			"symbols": []any{ccxt.ToUpper(marketId)},
+			"symbols": []any{strings.ToUpper(*marketId)},
 		}},
 	}
-	var subscribeHash any = ccxt.Add("l2:", market["symbol"])
-	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/v2/marketdata")
+	var subscribeHash string = "l2:" + *this.SafeString(market, "symbol", "")
+	var wsUrl *string = this.SafeString(this.Urls["api"], "ws")
+	if wsUrl == nil {
+		panic(ccxt.ExchangeError(this.Id + " watchTrades() has no websocket url"))
+	}
+	var url string = *wsUrl + "/v2/marketdata"
 
-	trades := (<-this.Watch(url, messageHash, request, subscribeHash))
-	ccxt.PanicOnError(trades)
+	r1 := <-this.Watch(url, messageHash, request, subscribeHash)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
+	var limitResolved *int64 = limit
 	if this.NewUpdates {
-		limit = ccxt.ToGetsLimit(trades).GetLimit(market["symbol"], limit)
+		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(market["symbol"], limit)
 	}
 
-	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
+	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
 
@@ -115,33 +124,37 @@ func (this *Gemini) watchTradesBody(ch chan any, symbol any, optionalArgs ...any
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
-func (this *Gemini) WatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Gemini) WatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchTradesForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Gemini) watchTradesForSymbolsBody(ch chan any, symbols any, optionalArgs ...any) any {
+func (this *Gemini) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	since := ccxt.GetArg(optionalArgs, 0, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	trades := (<-this.HelperForWatchMultipleConstructAsync("trades", symbols, params))
-	ccxt.PanicOnError(trades)
+	r := <-this.HelperForWatchMultipleConstructAsync("trades", symbols, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r.Value)
+	var first map[string]any = ccxt.SafeMapTyped(trades, 0)
+	var tradeSymbol *string = this.SafeString(first, "symbol")
+	var limitResolved *int64 = limit
 	if this.NewUpdates {
-		var first any = this.SafeList(trades, 0)
-		var tradeSymbol *string = this.SafeString(first, "symbol")
-		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
+		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
 	}
 
-	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
+	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Gemini) ParseWsTrade(trade any, optionalArgs ...any) any {
+func (this *Gemini) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	// regular v2 trade
 	//
@@ -166,24 +179,24 @@ func (this *Gemini) ParseWsTrade(trade any, optionalArgs ...any) any {
 	//        "makerSide": "bid"
 	//    }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
 	var id *string = this.SafeString2(trade, "event_id", "tid")
 	var priceString *string = this.SafeString(trade, "price")
 	var amountString *string = this.SafeString2(trade, "quantity", "amount")
-	var side any = this.SafeStringLower(trade, "side")
-	if ccxt.IsEqual(side, nil) {
+	var side *string = this.SafeStringLower(trade, "side")
+	if side == nil {
 		var marketSide *string = this.SafeStringLower(trade, "makerSide")
 		if marketSide != nil && *marketSide == "bid" {
-			side = "sell"
+			side = ccxt.SafeStringPtr("sell")
 		} else if marketSide != nil && *marketSide == "ask" {
-			side = "buy"
+			side = ccxt.SafeStringPtr("buy")
 		}
 	}
 	var marketId *string = this.SafeStringLower(trade, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	return this.SafeTrade(map[string]any{
+	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"id":           id,
 		"order":        nil,
 		"info":         trade,
@@ -197,7 +210,7 @@ func (this *Gemini) ParseWsTrade(trade any, optionalArgs ...any) any {
 		"cost":         nil,
 		"amount":       amountString,
 		"fee":          nil,
-	}, market)
+	}, market))
 }
 func (this *Gemini) HandleTrade(client any, message map[string]any) {
 	//
@@ -211,18 +224,18 @@ func (this *Gemini) HandleTrade(client any, message map[string]any) {
 	//         "side": "buy"
 	//     }
 	//
-	var trade any = this.ParseWsTrade(message)
-	var symbol any = ccxt.GetValue(trade, "symbol")
+	var trade map[string]any = this.ParseWsTrade(message)
+	var symbol *string = ccxt.SafeStringPtr(trade["symbol"])
 	var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-	var stored any = this.SafeValue(this.Trades, symbol)
-	if ccxt.IsEqual(stored, nil) {
+	var stored ccxt.WsArrayCache = this.Trades[*symbol]
+	if stored == nil {
 		stored = ccxt.NewArrayCache(tradesLimit)
 		if symbol != nil {
-			ccxt.AddElementToObject(this.Trades, symbol, stored)
+			this.Trades[*symbol] = stored
 		}
 	}
-	stored.(ccxt.Appender).Append(trade)
-	var messageHash any = ccxt.Add("trades:", symbol)
+	stored.Append(trade)
+	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("trades:", symbol))
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *Gemini) HandleTrades(client any, message map[string]any) {
@@ -264,50 +277,57 @@ func (this *Gemini) HandleTrades(client any, message map[string]any) {
 	//     }
 	//
 	var marketId *string = this.SafeStringLower(message, "symbol")
-	var market any = this.SafeMarket(marketId)
-	var trades any = this.SafeList(message, "trades")
-	if !ccxt.IsEqual(trades, nil) {
-		var symbol any = ccxt.GetValue(market, "symbol")
+	var market map[string]any = this.SafeMarket(marketId)
+	var trades []any = ccxt.SafeListTyped(message, "trades")
+	if trades != nil {
+		var symbol string = *this.SafeString(market, "symbol", "")
 		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		var stored any = this.SafeValue(this.Trades, symbol)
-		if ccxt.IsEqual(stored, nil) {
+		var stored ccxt.WsArrayCache = this.Trades[symbol]
+		if stored == nil {
 			stored = ccxt.NewArrayCache(tradesLimit)
-			ccxt.AddElementToObject(this.Trades, symbol, stored)
+			this.Trades[symbol] = stored
 		}
-		for i := 0; i < ccxt.GetArrayLength(trades); i++ {
-			var trade any = this.ParseWsTrade(ccxt.GetValue(trades, i), market)
-			stored.(ccxt.Appender).Append(trade)
+		for i := 0; i < len(trades); i++ {
+			var trade map[string]any = this.ParseWsTrade(this.SafeValue(trades, i), market)
+			stored.Append(trade)
 		}
-		var messageHash any = ccxt.Add("trades:", symbol)
+		var messageHash string = "trades:" + symbol
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
 }
-func (this *Gemini) HandleTradesForMultidata(client any, trades any, timestamp any) {
-	if !ccxt.IsEqual(trades, nil) {
-		var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
-		var storesForSymbols map[string]any = map[string]any{}
-		for i := 0; i < ccxt.GetArrayLength(trades); i++ {
-			var marketId any = ccxt.GetValue(ccxt.GetValue(trades, i), "symbol")
-			var market any = this.SafeMarket(ccxt.ToLower(marketId))
-			var symbol any = ccxt.GetValue(market, "symbol")
-			var trade any = this.ParseWsTrade(ccxt.GetValue(trades, i), market)
-			ccxt.AddElementToObject(trade, "timestamp", timestamp)
-			ccxt.AddElementToObject(trade, "datetime", this.Iso8601(timestamp))
-			var stored any = this.SafeValue(this.Trades, symbol)
-			if ccxt.IsEqual(stored, nil) {
-				stored = ccxt.NewArrayCache(tradesLimit)
-				ccxt.AddElementToObject(this.Trades, symbol, stored)
-			}
-			stored.(ccxt.Appender).Append(trade)
-			ccxt.AddElementToObject(storesForSymbols, symbol, stored)
+func (this *Gemini) HandleTradesForMultidata(client any, trades []any, timestamp *int64) {
+	var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
+	var storesForSymbols map[string]any = map[string]any{}
+	for i := 0; i < len(trades); i++ {
+		var rawTrade any = this.SafeValue(trades, i)
+		var marketId string = strings.ToLower(*this.SafeString(rawTrade, "symbol", ""))
+		var market map[string]any = this.SafeMarket(marketId)
+		var symbol *string = this.SafeString(market, "symbol", "")
+		var trade map[string]any = this.ParseWsTrade(rawTrade, market)
+		trade["timestamp"] = timestamp
+		trade["datetime"] = this.Iso8601(timestamp)
+		var stored ccxt.WsArrayCache = this.Trades[*symbol]
+		if stored == nil {
+			stored = ccxt.NewArrayCache(tradesLimit)
+			this.Trades[*symbol] = stored
 		}
-		var symbols []string = ccxt.ObjectKeys(storesForSymbols)
-		for i := 0; i < len(symbols); i++ {
-			var symbol string = ccxt.GetValue(symbols, i).(string)
-			var stored any = storesForSymbols[symbol]
-			var messageHash any = "trades:" + symbol
-			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+		stored.Append(trade)
+		if symbol != nil {
+			storesForSymbols[*symbol] = stored
 		}
+	}
+	var symbols []string = nil
+	if storesForSymbols != nil {
+		symbols = make([]string, 0, len(storesForSymbols))
+		for objectKey := range storesForSymbols {
+			symbols = append(symbols, objectKey)
+		}
+	}
+	for i := 0; i < len(symbols); i++ {
+		var symbol string = symbols[i]
+		var stored any = storesForSymbols[symbol]
+		var messageHash string = "trades:" + symbol
+		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
 }
 
@@ -323,28 +343,30 @@ func (this *Gemini) HandleTradesForMultidata(client any, trades any, timestamp a
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
-func (this *Gemini) WatchOHLCVAsync(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Gemini) WatchOHLCVAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.OHLCV] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.OHLCV], 1)
 	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Gemini) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Gemini) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
+	var timeframe string = ccxt.GetArgString(optionalArgs, 0, "1m")
 	_ = timeframe
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes28612 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes28612)
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+	var market map[string]any = this.Market(symbol)
 	var timeframeId *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var request map[string]any = map[string]any{
 		"type": "subscribe",
@@ -353,16 +375,24 @@ func (this *Gemini) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any)
 			"symbols": []any{this.SafeStringUpper(market, "id")},
 		}},
 	}
-	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv:", market["symbol"]), ":"), timeframeId)
-	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/v2/marketdata")
+	var messageHash string = "ohlcv:" + *this.SafeString(market, "symbol", "") + ":" + *timeframeId
+	var wsUrl *string = this.SafeString(this.Urls["api"], "ws")
+	if wsUrl == nil {
+		panic(ccxt.ExchangeError(this.Id + " watchOHLCV() has no websocket url"))
+	}
+	var url string = *wsUrl + "/v2/marketdata"
 
-	ohlcv := (<-this.Watch(url, messageHash, request, messageHash))
-	ccxt.PanicOnError(ohlcv)
+	r1 := <-this.Watch(url, messageHash, request, messageHash)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var ohlcv ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
+	var limitResolved *int64 = limit
 	if this.NewUpdates {
-		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
+		limitResolved = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
 
-	ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
+	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true))}
 	return nil
 }
 func (this *Gemini) HandleOHLCV(client any, message any) any {
@@ -392,40 +422,47 @@ func (this *Gemini) HandleOHLCV(client any, message any) any {
 	//     }
 	//
 	var typeVar *string = this.SafeString(message, "type", "")
-	var timeframeId string = func() string {
+	var timeframeIdFull string = func() string {
 		if typeVar == nil {
 			return ""
 		}
 		str := *typeVar
 		return str[8:]
 	}()
-	var timeframeEndIndex int = strings.Index(timeframeId, "_")
-	timeframeId = ccxt.Slice(timeframeId, 0, timeframeEndIndex)
-	var marketId string = ccxt.ToLower(this.SafeString(message, "symbol", ""))
-	var market any = this.SafeMarket(marketId)
+	var timeframeEndIndex int = strings.Index(timeframeIdFull, "_")
+	var timeframeId string = ccxt.Slice(timeframeIdFull, 0, timeframeEndIndex)
+	var marketId string = strings.ToLower(*this.SafeString(message, "symbol", ""))
+	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeSymbol(marketId, market)
 	var changes []any = ccxt.SafeListTyped(message, "changes")
-	var timeframe any = this.FindTimeframe(timeframeId)
-	var ohlcvsBySymbol any = this.SafeDict(this.Ohlcvs, symbol)
-	if ccxt.IsEqual(ohlcvsBySymbol, nil) {
-		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
+	var timeframe *string = this.FindTimeframe(timeframeId)
+	var ohlcvsBySymbol map[string]any = ccxt.SafeMapTyped(this.Ohlcvs, symbol)
+	if ohlcvsBySymbol == nil {
+		if symbol != nil {
+			this.Ohlcvs[*symbol] = map[string]any{}
+		}
 	}
-	var stored any = this.SafeValue(this.SafeDict(this.Ohlcvs, symbol), timeframe)
-	if ccxt.IsEqual(stored, nil) {
+	var stored any
+	if symbol != nil && timeframe != nil {
+		stored = this.Ohlcvs[*symbol][*timeframe]
+	}
+	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		if (symbol != nil) && (timeframe != nil) {
-			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+			if this.Ohlcvs[*symbol] != nil {
+				this.Ohlcvs[*symbol][*timeframe] = stored
+			}
 		}
 	}
 	var changesLength int = len(changes)
 	// reverse order of array to store candles in ascending order
 	for i := 0; i < changesLength; i++ {
-		var index any = ccxt.Subtract(ccxt.Subtract(changesLength, i), 1)
-		var parsed any = this.ParseOHLCV(ccxt.GetValue(changes, index), market)
+		var index int64 = (int64(changesLength) - int64(i)) - 1
+		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(this.SafeValue(changes, index), market))
 		stored.(ccxt.Appender).Append(parsed)
 	}
-	var messageHash any = "ohlcv:" + *symbol + ":" + timeframeId
+	var messageHash string = "ohlcv:" + *symbol + ":" + timeframeId
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	return message
 }
@@ -440,26 +477,28 @@ func (this *Gemini) HandleOHLCV(client any, message any) any {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Gemini) WatchOrderBookAsync(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Gemini) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
+	ch := make(chan ccxt.AsyncResult[ccxt.OrderBookInterface], 1)
 	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Gemini) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+func (this *Gemini) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes38112 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes38112)
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
-	var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-	var messageHash any = ccxt.Add("orderbook:", market["symbol"])
-	var marketId any = market["id"]
+	var market map[string]any = this.Market(symbol)
+	var messageHash string = "orderbook:" + *this.SafeString(market, "symbol", "")
+	var marketId *string = ccxt.SafeStringPtr(market["id"])
 	if marketId == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrderBook() marketId is required"))
 	}
@@ -467,57 +506,71 @@ func (this *Gemini) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 		"type": "subscribe",
 		"subscriptions": []any{map[string]any{
 			"name":    "l2",
-			"symbols": []any{ccxt.ToUpper(marketId)},
+			"symbols": []any{strings.ToUpper(*marketId)},
 		}},
 	}
-	var subscribeHash any = ccxt.Add("l2:", market["symbol"])
-	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/v2/marketdata")
+	var subscribeHash string = "l2:" + *this.SafeString(market, "symbol", "")
+	var wsUrl *string = this.SafeString(this.Urls["api"], "ws")
+	if wsUrl == nil {
+		panic(ccxt.ExchangeError(this.Id + " watchOrderBook() has no websocket url"))
+	}
+	var url string = *wsUrl + "/v2/marketdata"
 
-	orderbook := (<-this.Watch(url, messageHash, request, subscribeHash))
-	ccxt.PanicOnError(orderbook)
+	r1 := <-this.Watch(url, messageHash, request, subscribeHash)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
 
-	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Gemini) HandleOrderBook(client any, message map[string]any) {
 	var isInitial bool = (func() bool { _, ok := message["auction_events"]; return ok }()) && (func() bool { _, ok := message["trades"]; return ok }()) && (func() bool { _, ok := message["changes"]; return ok }())
 	var changes []any = ccxt.SafeListTyped(message, "changes")
 	var marketId *string = this.SafeStringLower(message, "symbol")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(marketId))
-	var symbol any = market["symbol"]
-	var messageHash any = ccxt.Add("orderbook:", symbol)
-	// let orderbook = this.safeValue (this.orderbooks, symbol)
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
-	} else if isInitial {
-		// handle https://github.com/ccxt/ccxt/issues/29210
-		if ccxt.InOp(this.Orderbooks, symbol) {
-			ccxt.Remove(this.Orderbooks, symbol)
-		}
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
+	var market map[string]any = this.SafeMarket(marketId)
+	var symbol *string = this.SafeString(market, "symbol", "")
+	var messageHash string = "orderbook:" + *symbol
+	if !(this.Orderbooks[*symbol] != nil) {
+		this.Orderbooks[*symbol] = this.OrderBook()
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
-	for i := 0; i < len(changes); i++ {
-		var delta any = func() any {
-			if i >= 0 && i < len(changes) {
-				return ccxt.DerefScalar(changes[i])
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	if isInitial {
+		// the initial message carries the full book (https://github.com/ccxt/ccxt/issues/29210)
+		var bidsSnapshot []any = []any{}
+		var asksSnapshot []any = []any{}
+		for i := 0; i < len(changes); i++ {
+			var delta any = changes[i]
+			var bidAsk []any = []any{this.SafeNumber(delta, 1), this.SafeNumber(delta, 2)}
+			if this.SafeString(delta, 0) != nil && *this.SafeString(delta, 0) == "buy" {
+				bidsSnapshot = append(bidsSnapshot, bidAsk)
+			} else {
+				asksSnapshot = append(asksSnapshot, bidAsk)
 			}
-			return nil
-		}()
+		}
+		var snapshot map[string]any = this.ParseOrderBook(map[string]any{
+			"bids": bidsSnapshot,
+			"asks": asksSnapshot,
+		}, symbol)
+		orderbook.Reset(snapshot)
+		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+		return
+	}
+	for i := 0; i < len(changes); i++ {
+		var delta any = changes[i]
 		var price *float64 = this.SafeNumber(delta, 1)
 		var size *float64 = this.SafeNumber(delta, 2)
-		var side string = func() string {
-			if ccxt.IsEqual(ccxt.GetValue(delta, 0), "buy") {
-				return "bids"
-			}
-			return "asks"
-		}()
-		var bookside any = ccxt.GetValue(orderbook, side)
-		bookside.(ccxt.IOrderBookSide).Store(price, size)
-		ccxt.AddElementToObject(orderbook, side, bookside)
+		if this.SafeString(delta, 0) != nil && *this.SafeString(delta, 0) == "buy" {
+			var bids ccxt.IOrderBookSide = orderbook.GetBids()
+			bids.(ccxt.IOrderBookSide).Store(price, size)
+		} else {
+			var asks ccxt.IOrderBookSide = orderbook.GetAsks()
+			asks.(ccxt.IOrderBookSide).Store(price, size)
+		}
 	}
-	ccxt.AddElementToObject(orderbook, "symbol", symbol)
-	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+	orderbook.SetSymbol(symbol)
+	this.Orderbooks[*symbol] = orderbook
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 
@@ -531,23 +584,26 @@ func (this *Gemini) HandleOrderBook(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
-func (this *Gemini) WatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Gemini) WatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
+	ch := make(chan ccxt.AsyncResult[ccxt.OrderBookInterface], 1)
 	go this.watchOrderBookForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Gemini) watchOrderBookForSymbolsBody(ch chan any, symbols any, optionalArgs ...any) any {
+func (this *Gemini) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbols any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	orderbook := (<-this.HelperForWatchMultipleConstructAsync("orderbook", symbols, params))
-	ccxt.PanicOnError(orderbook)
+	r := <-this.HelperForWatchMultipleConstructAsync("orderbook", symbols, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var orderbook ccxt.OrderBookInterface = r.Value.(ccxt.OrderBookInterface)
 
-	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 
@@ -560,25 +616,27 @@ func (this *Gemini) watchOrderBookForSymbolsBody(ch chan any, symbols any, optio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Gemini) WatchBidsAsksAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Gemini) WatchBidsAsksAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]ccxt.Ticker] {
+	ch := make(chan ccxt.AsyncResult[map[string]ccxt.Ticker], 1)
 	go this.watchBidsAsksBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Gemini) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
+func (this *Gemini) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes46315 := (<-this.HelperForWatchMultipleConstructAsync("bidsasks", symbols, params))
-	ccxt.PanicOnError(retRes46315)
-	ch <- retRes46315
+	r := <-this.HelperForWatchMultipleConstructAsync("bidsasks", symbols, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(r.Value)}
 	return nil
 }
-func (this *Gemini) HandleBidsAsksForMultidata(client any, rawBidAskChanges []any, timestamp any, nonce any) {
+func (this *Gemini) HandleBidsAsksForMultidata(client any, rawBidAskChanges []any, timestamp *int64, nonce *int64) {
 	//
 	// {
 	//     eventId: '1683002916916153',
@@ -606,101 +664,111 @@ func (this *Gemini) HandleBidsAsksForMultidata(client any, rawBidAskChanges []an
 	//     type: 'update'
 	// }
 	//
-	var marketId any = ccxt.GetValue(func() any {
+	var firstBidAsk map[string]any = ccxt.MapTyped(func() any {
 		if 0 >= 0 && 0 < len(rawBidAskChanges) {
 			return ccxt.DerefScalar(rawBidAskChanges[0])
 		}
 		return nil
-	}(), "symbol")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(ccxt.ToLower(marketId)))
-	var symbol any = market["symbol"]
-	if !(ccxt.InOp(this.Bidsasks, symbol)) {
-		ccxt.AddElementToObject(this.Bidsasks, symbol, this.ParseTicker(map[string]any{}))
-		ccxt.AddElementToObject(ccxt.GetValue(this.Bidsasks, symbol), "symbol", symbol)
+	}())
+	var marketId string = strings.ToLower(*this.SafeString(firstBidAsk, "symbol", ""))
+	var market map[string]any = this.SafeMarket(marketId)
+	var symbol *string = this.SafeString(market, "symbol", "")
+	// read-modify-write: the cached entry is copied out, updated, and stored back whole
+	var currentBidAsk map[string]any = map[string]any{}
+	if _, ok := this.Bidsasks[*symbol]; ok {
+		var cachedBidAsk any = ccxt.TickerToMap(this.Bidsasks[*symbol])
+		currentBidAsk = this.Extend(map[string]any{}, cachedBidAsk)
+	} else {
+		currentBidAsk = this.Extend(ccxt.TickerToMap(this.ParseTicker(map[string]any{})))
+		currentBidAsk["symbol"] = symbol
 	}
-	var currentBidAsk any = ccxt.GetValue(this.Bidsasks, symbol)
-	var messageHash any = ccxt.Add("bidsasks:", symbol)
+	var messageHash string = "bidsasks:" + *symbol
 	// last update always overwrites the previous state and is the latest state
 	for i := 0; i < len(rawBidAskChanges); i++ {
-		var entry any = func() any {
-			if i >= 0 && i < len(rawBidAskChanges) {
-				return ccxt.DerefScalar(rawBidAskChanges[i])
-			}
-			return nil
-		}()
+		var entry map[string]any = ccxt.SafeMapTyped(rawBidAskChanges, i)
 		var rawSide *string = this.SafeString(entry, "side")
 		var price *float64 = this.SafeNumber(entry, "price")
 		var sizeString *string = this.SafeString(entry, "remaining")
 		if ccxt.Precise.StringEq(sizeString, "0") {
 			continue
 		}
-		var size any = this.ParseNumber(sizeString)
+		var size *float64 = this.ParseNumber(sizeString)
 		if rawSide != nil && *rawSide == "bid" {
-			ccxt.AddElementToObject(currentBidAsk, "bid", price)
-			ccxt.AddElementToObject(currentBidAsk, "bidVolume", size)
+			currentBidAsk["bid"] = price
+			currentBidAsk["bidVolume"] = size
 		} else {
-			ccxt.AddElementToObject(currentBidAsk, "ask", price)
-			ccxt.AddElementToObject(currentBidAsk, "askVolume", size)
+			currentBidAsk["ask"] = price
+			currentBidAsk["askVolume"] = size
 		}
 	}
-	ccxt.AddElementToObject(currentBidAsk, "timestamp", timestamp)
-	ccxt.AddElementToObject(currentBidAsk, "datetime", this.Iso8601(timestamp))
-	ccxt.AddElementToObject(currentBidAsk, "info", rawBidAskChanges)
+	currentBidAsk["timestamp"] = timestamp
+	currentBidAsk["datetime"] = this.Iso8601(timestamp)
+	currentBidAsk["info"] = rawBidAskChanges
 	var bidsAsksDict map[string]any = map[string]any{}
-	ccxt.AddElementToObject(bidsAsksDict, symbol, currentBidAsk)
-	ccxt.AddElementToObject(this.Bidsasks, symbol, currentBidAsk)
+	if symbol != nil {
+		bidsAsksDict[*symbol] = currentBidAsk
+	}
+	this.Bidsasks[*symbol] = ccxt.TickerFromMap(currentBidAsk)
 	client.(ccxt.ClientInterface).Resolve(bidsAsksDict, messageHash)
 }
-func (this *Gemini) HelperForWatchMultipleConstructAsync(itemHashName any, optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Gemini) HelperForWatchMultipleConstructAsync(itemHashName string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.helperForWatchMultipleConstructBody(ch, itemHashName, optionalArgs...)
 	return ch
 }
-func (this *Gemini) helperForWatchMultipleConstructBody(ch chan any, itemHashName any, optionalArgs ...any) any {
+func (this *Gemini) helperForWatchMultipleConstructBody(ch chan ccxt.AsyncResult[any], itemHashName string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
-	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	if this.Markets == nil {
 
-		retRes53212 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes53212)
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	if symbols == nil {
 		panic(ccxt.NotSupported(this.Id + " watchMultiple requires at least one symbol"))
 	}
-	symbols = this.MarketSymbols(symbols, nil, false, true, true)
-	var firstMarket map[string]any = ccxt.MapTyped(this.Market(ccxt.GetValue(symbols, 0)))
-	if (ccxt.GetValue(firstMarket, "spot") != true) && (ccxt.GetValue(firstMarket, "linear") != true) {
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, true)
+	var firstMarket map[string]any = this.Market(symbolsNormalized[0])
+	if (!(*this.SafeBool(firstMarket, "spot", false))) && (!(*this.SafeBool(firstMarket, "linear", false))) {
 		panic(ccxt.NotSupported(this.Id + " watchMultiple supports only spot or linear-swap symbols"))
 	}
 	var messageHashes []any = []any{}
 	var marketIds []any = []any{}
-	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
-		var symbol any = ccxt.GetValue(symbols, i)
-		var messageHash any = ccxt.Add(ccxt.Add(itemHashName, ":"), symbol)
+	for i := 0; i < len(symbolsNormalized); i++ {
+		var symbol string = *this.SafeString(symbolsNormalized, i, "")
+		var messageHash string = itemHashName + ":" + symbol
 		messageHashes = append(messageHashes, messageHash)
-		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
+		var market map[string]any = this.Market(symbol)
 		marketIds = append(marketIds, market["id"])
 	}
 	var queryStr string = ccxt.Join(marketIds, ",")
-	var url any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/v1/multimarketdata?symbols="), queryStr), "&heartbeat=true&")
-	if ccxt.IsEqual(itemHashName, "orderbook") {
-		url = ccxt.Add(url, "trades=false&bids=true&offers=true")
-	} else if ccxt.IsEqual(itemHashName, "bidsasks") {
-		url = ccxt.Add(url, "trades=false&bids=true&offers=true&top_of_book=true")
-	} else if ccxt.IsEqual(itemHashName, "trades") {
-		url = ccxt.Add(url, "trades=true&bids=false&offers=false")
+	var wsUrl *string = this.SafeString(this.Urls["api"], "ws")
+	if wsUrl == nil {
+		panic(ccxt.ExchangeError(this.Id + " helperForWatchMultipleConstruct() has no websocket url"))
+	}
+	var url string = *wsUrl + "/v1/multimarketdata?symbols=" + queryStr + "&heartbeat=true&"
+	if itemHashName == "orderbook" {
+		url += "trades=false&bids=true&offers=true"
+	} else if itemHashName == "bidsasks" {
+		url += "trades=false&bids=true&offers=true&top_of_book=true"
+	} else if itemHashName == "trades" {
+		url += "trades=true&bids=false&offers=false"
 	}
 
-	retRes56015 := (<-this.WatchMultiple(url, messageHashes, nil))
-	ccxt.PanicOnError(retRes56015)
-	ch <- retRes56015
+	r1 := <-this.WatchMultiple(url, messageHashes, nil)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
-func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges []any, timestamp any, nonce any) {
+func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges []any, timestamp *int64, nonce *int64) {
 	//
 	// rawOrderBookChanges
 	//
@@ -716,29 +784,25 @@ func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges 
 	//   },
 	//   ...
 	//
-	var marketId any = ccxt.GetValue(func() any {
+	var firstChange map[string]any = ccxt.MapTyped(func() any {
 		if 0 >= 0 && 0 < len(rawOrderBookChanges) {
 			return ccxt.DerefScalar(rawOrderBookChanges[0])
 		}
 		return nil
-	}(), "symbol")
-	var market map[string]any = ccxt.MapTyped(this.SafeMarket(ccxt.ToLower(marketId)))
-	var symbol any = market["symbol"]
-	var messageHash any = ccxt.Add("orderbook:", symbol)
-	if !(ccxt.InOp(this.Orderbooks, symbol)) {
+	}())
+	var marketId string = strings.ToLower(*this.SafeString(firstChange, "symbol", ""))
+	var market map[string]any = this.SafeMarket(marketId)
+	var symbol *string = this.SafeString(market, "symbol", "")
+	var messageHash string = "orderbook:" + *symbol
+	if !(this.Orderbooks[*symbol] != nil) {
 		var ob ccxt.OrderBookInterface = this.OrderBook()
-		ccxt.AddElementToObject(this.Orderbooks, symbol, ob)
+		this.Orderbooks[*symbol] = ob
 	}
-	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
-	var bids any = ccxt.GetValue(orderbook, "bids")
-	var asks any = ccxt.GetValue(orderbook, "asks")
+	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+	var bids ccxt.IOrderBookSide = orderbook.GetBids()
+	var asks ccxt.IOrderBookSide = orderbook.GetAsks()
 	for i := 0; i < len(rawOrderBookChanges); i++ {
-		var entry any = func() any {
-			if i >= 0 && i < len(rawOrderBookChanges) {
-				return ccxt.DerefScalar(rawOrderBookChanges[i])
-			}
-			return nil
-		}()
+		var entry map[string]any = ccxt.SafeMapTyped(rawOrderBookChanges, i)
 		var price *float64 = this.SafeNumber(entry, "price")
 		var size *float64 = this.SafeNumber(entry, "remaining")
 		var rawSide *string = this.SafeString(entry, "side")
@@ -748,13 +812,11 @@ func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges 
 			asks.(ccxt.IOrderBookSide).Store(price, size)
 		}
 	}
-	ccxt.AddElementToObject(orderbook, "bids", bids)
-	ccxt.AddElementToObject(orderbook, "asks", asks)
-	ccxt.AddElementToObject(orderbook, "symbol", symbol)
-	ccxt.AddElementToObject(orderbook, "nonce", nonce)
-	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
-	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
-	ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+	orderbook.SetSymbol(symbol)
+	orderbook.SetNonce(nonce)
+	orderbook.SetTimestamp(timestamp)
+	orderbook.SetDatetime(this.Iso8601(timestamp))
+	this.Orderbooks[*symbol] = orderbook
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *Gemini) HandleL2Updates(client any, message map[string]any) {
@@ -810,47 +872,65 @@ func (this *Gemini) HandleL2Updates(client any, message map[string]any) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Gemini) WatchOrdersAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Gemini) WatchOrdersAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Order] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Order], 1)
 	go this.watchOrdersBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Gemini) watchOrdersBody(ch chan any, optionalArgs ...any) any {
+func (this *Gemini) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	var symbol *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
 	_ = symbol
-	since := ccxt.GetArg(optionalArgs, 1, nil)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
 	_ = since
-	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 2, nil)
 	_ = limit
-	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked")
+	var wsUrl *string = this.SafeString(this.Urls["api"], "ws")
+	if wsUrl == nil {
+		panic(ccxt.ExchangeError(this.Id + " watchOrders() has no websocket url"))
+	}
+	var url string = *wsUrl + "/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked"
 	if this.Markets == nil {
 
-		retRes66712 := (<-this.LoadMarketsAsync())
-		ccxt.PanicOnError(retRes66712)
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
 	}
 	var authParams map[string]any = map[string]any{
 		"url": url,
 	}
 
-	retRes6728 := (<-this.AuthenticateAsync(authParams))
-	ccxt.PanicOnError(retRes6728)
-	if symbol != nil {
-		var market map[string]any = ccxt.MapTyped(this.Market(symbol))
-		symbol = market["symbol"]
+	r1 := <-this.AuthenticateAsync(authParams)
+	if r1.Err != nil {
+		panic(r1.Err)
 	}
+	var market map[string]any = nil
+	if symbol != nil {
+		market = this.Market(symbol)
+	}
+	var symbolResolved *string = func() *string {
+		if market != nil {
+			return this.SafeString(market, "symbol")
+		}
+		return nil
+	}()
 	var messageHash string = "orders"
 
-	orders := (<-this.Watch(url, messageHash, nil, messageHash))
-	ccxt.PanicOnError(orders)
+	r2 := <-this.Watch(url, messageHash, nil, messageHash)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r2.Value)
+	var limitResolved *int64 = limit
 	if this.NewUpdates {
-		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
+		limitResolved = ccxt.ToGetsLimit(orders).GetLimit(symbolResolved, limit)
 	}
 
-	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
+	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
 func (this *Gemini) HandleHeartbeat(client any, message map[string]any) any {
@@ -904,18 +984,18 @@ func (this *Gemini) HandleOrder(client any, message any) {
 	//     ]
 	//
 	var messageHash string = "orders"
-	if ccxt.IsEqual(this.Orders, nil) {
+	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var orders any = this.Orders
+	var orders ccxt.WsArrayCache = this.Orders
 	for i := 0; i < ccxt.GetArrayLength(message); i++ {
-		var order any = this.ParseWsOrder(ccxt.GetValue(message, i))
-		orders.(ccxt.Appender).Append(order)
+		var order map[string]any = this.ParseWsOrder(this.SafeValue(message, i))
+		orders.Append(order)
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 }
-func (this *Gemini) ParseWsOrder(order any, optionalArgs ...any) any {
+func (this *Gemini) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "type": "accepted",
@@ -937,7 +1017,7 @@ func (this *Gemini) ParseWsOrder(order any, optionalArgs ...any) any {
 	//         "socket_sequence": 139
 	//     }
 	//
-	market := ccxt.GetArg(optionalArgs, 0, nil)
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(order, "timestampms")
 	var status *string = this.SafeString(order, "type")
@@ -954,7 +1034,7 @@ func (this *Gemini) ParseWsOrder(order any, optionalArgs ...any) any {
 		timeInForce = "PO"
 		postOnly = true
 	}
-	return this.SafeOrder(map[string]any{
+	return ccxt.OrderToMap(this.SafeOrder(map[string]any{
 		"id":                 this.SafeString(order, "order_id"),
 		"clientOrderId":      this.SafeString(order, "client_order_id"),
 		"info":               order,
@@ -976,7 +1056,7 @@ func (this *Gemini) ParseWsOrder(order any, optionalArgs ...any) any {
 		"remaining":          this.SafeNumber(order, "remaining_amount"),
 		"fee":                nil,
 		"trades":             nil,
-	}, market)
+	}, market))
 }
 func (this *Gemini) ParseWsOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -999,6 +1079,9 @@ func (this *Gemini) ParseWsOrderType(typeVar *string) *string {
 }
 func (this *Gemini) HandleError(client any, message any) {
 	panic(ccxt.ExchangeError(this.Json(message)))
+}
+func (this *Gemini) HandleListMessage(client any, message any) {
+	this.HandleOrder(client, message)
 }
 func (this *Gemini) HandleMessage(client any, message any) {
 	//
@@ -1036,11 +1119,6 @@ func (this *Gemini) HandleMessage(client any, message any) {
 	//         }
 	//     ]
 	//
-	var isArray bool = ccxt.IsArray(message)
-	if isArray {
-		this.HandleOrder(client, message)
-		return
-	}
 	var reason *string = this.SafeString(message, "reason")
 	if reason != nil && *reason == "error" {
 		this.HandleError(client, message)
@@ -1051,36 +1129,32 @@ func (this *Gemini) HandleMessage(client any, message any) {
 		"subscription_ack": this.HandleSubscription,
 		"heartbeat":        this.HandleHeartbeat,
 	}
-	var typeVar *string = this.SafeString(message, "type", "")
-	if func() int {
-		if typeVar == nil {
-			return -1
-		}
-		return strings.Index(*typeVar, "candles")
-	}() >= 0 {
+	var typeVar string = *this.SafeString(message, "type", "")
+	if strings.Index(typeVar, "candles") >= 0 {
 		this.HandleOHLCV(client, message)
 		return
 	}
 	var method any = this.SafeValue(methods, typeVar)
-	if !ccxt.IsEqual(method, nil) {
+	if method != nil {
 		ccxt.CallDynamically(method, client, message)
 	}
 	// handle multimarketdata
-	if typeVar != nil && *typeVar == "update" {
+	if typeVar == "update" {
 		var ts *int64 = this.SafeInteger(message, "timestampms", this.Milliseconds())
 		var eventId *int64 = this.SafeInteger(message, "eventId")
-		var events any = this.SafeList(message, "events")
-		if ccxt.IsEqual(events, nil) {
+		var events []any = ccxt.SafeListTyped(message, "events")
+		if events == nil {
 			return
 		}
 		var orderBookItems []any = []any{}
 		var bidaskItems []any = []any{}
 		var collectedEventsOfTrades []any = []any{}
-		var eventsLength int = ccxt.GetArrayLength(events)
-		for i := 0; i < ccxt.GetArrayLength(events); i++ {
-			var event any = ccxt.GetValue(events, i)
+		var eventsLength int = len(events)
+		for i := 0; i < len(events); i++ {
+			var event any = this.SafeValue(events, i)
 			var eventType *string = this.SafeString(event, "type")
-			var isOrderBook bool = (eventType != nil && *eventType == "change") && (ccxt.InOp(event, "side")) && this.InArray(ccxt.GetValue(event, "side"), []any{"ask", "bid"})
+			var side *string = this.SafeString(event, "side")
+			var isOrderBook bool = (eventType != nil && *eventType == "change") && (side != nil) && this.InArray(side, []any{"ask", "bid"})
 			var eventReason *string = this.SafeString(event, "reason")
 			var isBidAsk bool = (eventReason != nil && *eventReason == "top-of-book") || (isOrderBook && (eventReason != nil && *eventReason == "initial") && (eventsLength == 2))
 			if isBidAsk {
@@ -1088,7 +1162,7 @@ func (this *Gemini) HandleMessage(client any, message any) {
 			} else if isOrderBook {
 				orderBookItems = append(orderBookItems, event)
 			} else if eventType != nil && *eventType == "trade" {
-				collectedEventsOfTrades = append(collectedEventsOfTrades, ccxt.GetValue(events, i))
+				collectedEventsOfTrades = append(collectedEventsOfTrades, event)
 			}
 		}
 		var lengthBa int = len(bidaskItems)
@@ -1105,34 +1179,30 @@ func (this *Gemini) HandleMessage(client any, message any) {
 		}
 	}
 }
-func (this *Gemini) AuthenticateAsync(optionalArgs ...any) <-chan any {
-	ch := make(chan any, 1)
+func (this *Gemini) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
+	ch := make(chan ccxt.AsyncResult[*string], 1)
 	go this.authenticateBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Gemini) authenticateBody(ch chan any, optionalArgs ...any) any {
+func (this *Gemini) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var url *string = this.SafeString(params, "url")
 	if url == nil {
 
 		return nil
 	}
-	if (!ccxt.IsEqual(this.Clients, nil)) && (ccxt.InOp(this.Clients, url)) {
+	if _, ok := this.Clients[*url]; ok {
 
 		return nil
 	}
 	this.CheckRequiredCredentials()
-	var startIndex int = ccxt.GetArrayLength(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
-	var urlParamsIndex int = func() int {
-		if url == nil {
-			return -1
-		}
-		return strings.Index(*url, "?")
-	}()
-	var urlLength int = ccxt.GetLength(url)
+	var wsBaseUrl string = *this.SafeString(this.Urls["api"], "ws", "")
+	var startIndex int = len(wsBaseUrl)
+	var urlParamsIndex int = strings.Index(*url, "?")
+	var urlLength int = len(*url)
 	var endIndex int = func() int {
 		if urlParamsIndex >= 0 {
 			return urlParamsIndex
@@ -1155,15 +1225,17 @@ func (this *Gemini) authenticateBody(ch chan any, optionalArgs ...any) any {
 	}
 	// this.options = this.extend (defaultOptions, this.options)
 	this.ExtendExchangeOptions(defaultOptions)
-	var originalHeaders any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Options, "ws"), "options"), "headers")
+	var wsOptions map[string]any = ccxt.SafeMapTyped(this.Options, "ws")
+	var wsSubOptions map[string]any = ccxt.SafeMapTyped(wsOptions, "options")
+	var originalHeaders map[string]any = this.SafeDictMap(wsSubOptions, "headers", map[string]any{})
 	var headers map[string]any = map[string]any{
 		"X-GEMINI-APIKEY":    this.ApiKey,
 		"X-GEMINI-PAYLOAD":   b64,
 		"X-GEMINI-SIGNATURE": signature,
 	}
-	ccxt.AddElementToObject(ccxt.GetValue(ccxt.GetValue(this.Options, "ws"), "options"), "headers", headers)
+	ccxt.AddElementToObject(ccxt.GetValue(this.Options["ws"], "options"), "headers", headers)
 	this.Client(url)
-	ccxt.AddElementToObject(ccxt.GetValue(ccxt.GetValue(this.Options, "ws"), "options"), "headers", originalHeaders)
+	ccxt.AddElementToObject(ccxt.GetValue(this.Options["ws"], "options"), "headers", originalHeaders)
 	return nil
 }
 
@@ -1199,11 +1271,12 @@ func (this *Gemini) WatchTrades(symbol string, options ...ccxt.WatchTradesOption
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	r := <-this.WatchTradesAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return ccxt.NewTradeArray(res), nil
+	var res []ccxt.Trade = r.Value
+	return res, nil
 }
 
 /**
@@ -1224,11 +1297,12 @@ func (this *Gemini) WatchTradesForSymbols(symbols []string, options ...ccxt.Watc
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	r := <-this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return ccxt.NewTradeArray(res), nil
+	var res []ccxt.Trade = r.Value
+	return res, nil
 }
 
 /**
@@ -1250,11 +1324,12 @@ func (this *Gemini) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions)
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	r := <-this.WatchOHLCVAsync(symbol, opts.Timeframe, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return ccxt.NewOHLCVArray(res), nil
+	var res []ccxt.OHLCV = r.Value
+	return res, nil
 }
 
 /**
@@ -1274,11 +1349,12 @@ func (this *Gemini) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBook
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return ccxt.OrderBook{}, ccxt.CreateReturnError(res)
+	r := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return ccxt.OrderBook{}, r.Err
 	}
-	return ccxt.NewOrderBookFromWs(res), nil
+	var res ccxt.OrderBook = ccxt.NewOrderBookFromWs(r.Value)
+	return res, nil
 }
 
 /**
@@ -1298,11 +1374,12 @@ func (this *Gemini) WatchOrderBookForSymbols(symbols []string, options ...ccxt.W
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchOrderBookForSymbolsAsync(symbols, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return ccxt.OrderBook{}, ccxt.CreateReturnError(res)
+	r := <-this.WatchOrderBookForSymbolsAsync(symbols, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return ccxt.OrderBook{}, r.Err
 	}
-	return ccxt.NewOrderBookFromWs(res), nil
+	var res ccxt.OrderBook = ccxt.NewOrderBookFromWs(r.Value)
+	return res, nil
 }
 
 /**
@@ -1321,11 +1398,12 @@ func (this *Gemini) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.Ti
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchBidsAsksAsync(opts.Symbols, opts.Params)
-	if ccxt.IsError(res) {
-		return ccxt.Tickers{}, ccxt.CreateReturnError(res)
+	r := <-this.WatchBidsAsksAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return ccxt.Tickers{}, r.Err
 	}
-	return ccxt.NewTickers(res), nil
+	var res ccxt.Tickers = ccxt.Tickers{Tickers: r.Value}
+	return res, nil
 }
 func (this *Gemini) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order, error) {
 
@@ -1334,9 +1412,10 @@ func (this *Gemini) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Orde
 	for _, opt := range options {
 		opt(&opts)
 	}
-	res := <-this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
-	if ccxt.IsError(res) {
-		return nil, ccxt.CreateReturnError(res)
+	r := <-this.WatchOrdersAsync(opts.Symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
 	}
-	return ccxt.NewOrderArray(res), nil
+	var res []ccxt.Order = r.Value
+	return res, nil
 }

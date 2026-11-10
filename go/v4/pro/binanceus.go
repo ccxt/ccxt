@@ -15,11 +15,10 @@ func newBinanceus() *Binanceus {
 	base := newBinance()
 	p.base = base
 	p.Binance = base
-	ccxt.SetDefaults(p)
 	return p
 }
 
-func (this *Binanceus) Describe() any {
+func (this *Binanceus) Describe() map[string]any {
 	// eslint-disable-next-line new-cap
 	restInstance := ccxt.NewBinanceus(nil)
 	var restDescribe any = restInstance.Describe()

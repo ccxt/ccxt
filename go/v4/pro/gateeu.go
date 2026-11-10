@@ -15,11 +15,10 @@ func newGateeu() *Gateeu {
 	base := newGate()
 	p.base = base
 	p.Gate = base
-	ccxt.SetDefaults(p)
 	return p
 }
 
-func (this *Gateeu) Describe() any {
+func (this *Gateeu) Describe() map[string]any {
 	// eslint-disable-next-line new-cap
 	restInstance := ccxt.NewGateeu(nil)
 	var restDescribe any = restInstance.Describe()

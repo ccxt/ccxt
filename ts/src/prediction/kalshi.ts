@@ -3,7 +3,7 @@ import Exchange from '../abstract/prediction/kalshi.js';
 import { Precise } from '../base/Precise.js';
 import { rsa } from '../base/functions/rsa.js';
 import { BadSymbol, ArgumentsRequired, BadRequest, OrderNotFillable, InvalidOrder, ExchangeError } from '../base/errors.js';
-import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Strings, Market, PredictionOrderBook, OHLCV, Balances, PredictionOpenInterest, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionSettlement, fetchEventsParams,Bool, Fee, Endpoint } from '../base/types.js';
+import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Strings, Market, PredictionOrderBook, OHLCV, Balances, PredictionOpenInterest, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionSettlement, fetchEventsParams,Bool, Fee, Endpoint, NullableDict } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -12,7 +12,7 @@ import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Strings, Market, P
  * @augments Exchange
  */
 export default class kalshi extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'kalshi',
             'name': 'Kalshi',
@@ -250,7 +250,10 @@ export default class kalshi extends Exchange {
         let cursor: Str = undefined;
         // don't request a full 1000-market page (3+ MB) when the caller wants fewer
         const pageLimit = this.safeInteger (this.options, 'marketsPageLimit', 1000);
-        const limit = Math.min (maxMarkets, pageLimit);
+        let limit = pageLimit;
+        if (maxMarkets < pageLimit) {
+            limit = maxMarkets;
+        }
         // default to tradeable (open) markets; kalshi has thousands of closed/settled markets and
         // an unfiltered cursor pages through those, so loadMarkets would otherwise return mostly
         // closed markets. Pass params.status (e.g. 'closed', 'settled', 'unopened') to override
@@ -268,14 +271,11 @@ export default class kalshi extends Exchange {
                 const parsed = this.parseBinaryMarketToOutcomes (raw);
                 const eventTicker = this.safeString (raw, 'event_ticker');
                 const eventTitle = this.safeString (raw, 'title', eventTicker);
-                let eventKey: Str = undefined;
-                if (eventTitle !== undefined && eventTitle !== '') {
-                    eventKey = this.shortenSlug (eventTitle);
-                }
                 for (let j = 0; j < parsed.length; j++) {
                     const m = parsed[j];
                     flatMarkets.push (m);
-                    if ((eventKey !== undefined) && (eventKey !== '')) {
+                    if (eventTitle !== undefined && eventTitle !== '') {
+                        const eventKey = this.shortenSlug (eventTitle);
                         if (!(eventKey in eventsDict)) {
                             eventsDict[eventKey] = {
                                 'id': eventTicker,
@@ -331,15 +331,11 @@ export default class kalshi extends Exchange {
         // inline form to mb_strpos's `=== false`; assigned to a variable first, absence (false)
         // never satisfies `< 0` and id-form inputs take the wrong branch
         if (outcomeSymbol.indexOf (':') < 0) {
-            // parseToInt-wrapped .length: the bare `const n = str.length;` statement is the php
-            // transpiler's ARRAY hint (count()), and `.length` inline inside slice() args breaks
-            // the python transpiler — this form emits strlen()/len() correctly in both
-            const symbolLength = this.parseToInt (outcomeSymbol.length);
-            const suffix = outcomeSymbol.slice (symbolLength - 3);
-            const isNo = (suffix === '-NO');
+            // endsWith + negative slice: no .length arithmetic (php count() / python slice traps)
+            const isNo = outcomeSymbol.endsWith ('-NO');
             let baseTicker: Str = outcomeSymbol;
             if (isNo) {
-                baseTicker = outcomeSymbol.slice (0, symbolLength - 3);
+                baseTicker = outcomeSymbol.slice (0, -3);
             }
             let response = undefined;
             try {
@@ -409,17 +405,15 @@ export default class kalshi extends Exchange {
     override async fetchOutcomes (outcomeSymbols: string[]): Promise<any> {
         const tickers: string[] = [];
         const seen: Dict = {};
-        for (let i = 0; i < outcomeSymbols.length; i++) {
+        const outcomeSymbolsLength = outcomeSymbols.length;
+        for (let i = 0; i < outcomeSymbolsLength; i++) {
             const outcomeSymbol = outcomeSymbols[i];
             if (outcomeSymbol.indexOf (':') >= 0) {
                 continue;
             }
-            // parseToInt-wrapped .length — see the fetchOutcome comment (php count()/python slice traps)
-            const symbolLength = this.parseToInt (outcomeSymbol.length);
-            const suffix = outcomeSymbol.slice (symbolLength - 3);
             let baseTicker: Str = outcomeSymbol;
-            if (suffix === '-NO') {
-                baseTicker = outcomeSymbol.slice (0, symbolLength - 3);
+            if (outcomeSymbol.endsWith ('-NO')) {
+                baseTicker = outcomeSymbol.slice (0, -3);
             }
             if (!(baseTicker in seen)) {
                 seen[baseTicker] = true;
@@ -431,20 +425,20 @@ export default class kalshi extends Exchange {
         }
         const chunkSize = this.safeInteger (this.options, 'fetchOutcomesBatchSize', 100);
         const tickersLength = tickers.length;
-        let startIndex = 0;
-        while (startIndex < tickersLength) {
-            let endIndex = this.sum (startIndex, chunkSize);
-            if (endIndex > tickersLength) {
-                endIndex = tickersLength;
-            }
-            const chunk: any[] = [];
-            for (let i = startIndex; i < endIndex; i++) {
-                chunk.push (tickers[i]);
+        const lastTickerIndex = tickersLength - 1;
+        let chunk: string[] = [];
+        // flush a request every chunkSize tickers and once more for the trailing partial chunk
+        for (let ti = 0; ti < tickersLength; ti++) {
+            chunk.push (tickers[ti]);
+            const chunkLength = chunk.length;
+            if ((chunkLength < chunkSize) && (ti < lastTickerIndex)) {
+                continue;
             }
             const request: Dict = {
                 'tickers': chunk.join (','),
                 'limit': chunkSize,
             };
+            chunk = [];
             const response = await this.kalshiPublicGetMarkets (request);
             const rawMarkets = this.safeList (response, 'markets', []);
             for (let i = 0; i < rawMarkets.length; i++) {
@@ -455,9 +449,8 @@ export default class kalshi extends Exchange {
                 this.markets[(parsed as Dict)['market']] = parsed;
                 this.indexMarketOutcomes (parsed);
             }
-            startIndex = this.sum (startIndex, chunkSize);
         }
-        for (let i = 0; i < outcomeSymbols.length; i++) {
+        for (let i = 0; i < outcomeSymbolsLength; i++) {
             if (!this.hasOutcome (outcomeSymbols[i])) {
                 await this.fetchOutcome (outcomeSymbols[i]);
             }
@@ -465,7 +458,7 @@ export default class kalshi extends Exchange {
         return this.outcomes;
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         // kalshi returns { "error": { "code": "...", ... } } with a 4xx; map known codes to ccxt
         // errors (e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
         // outage (the base otherwise maps a bare 404 to the exchange-not-available error). unmapped codes fall
@@ -572,15 +565,14 @@ export default class kalshi extends Exchange {
         const liquidity = this.safeNumber2 (raw, 'liquidity_dollars', 'liquidity');
         const openInt = this.safeNumber2 (raw, 'open_interest_fp', 'open_interest');
         // Derive series ticker: drop last hyphen-segment from event_ticker
-        let eventParts: string[] = [];
-        if ((eventTicker !== undefined) && (eventTicker !== '')) {
-            eventParts = eventTicker.split ('-');
-        }
         let seriesTicker = eventTicker;
-        const eventPartsLength = eventParts.length;
-        if (eventPartsLength > 1) {
-            const seriesParts = this.arraySlice (eventParts, 0, eventPartsLength - 1);
-            seriesTicker = seriesParts.join ('-');
+        if ((eventTicker !== undefined) && (eventTicker !== '')) {
+            const eventParts = eventTicker.split ('-');
+            const eventPartsLength = eventParts.length;
+            if (eventPartsLength > 1) {
+                const seriesParts = this.arraySlice (eventParts, 0, eventPartsLength - 1);
+                seriesTicker = seriesParts.join ('-');
+            }
         }
         // market symbol (no outcome suffix)
         let subtitleOrTicker: Str = ticker;
@@ -774,7 +766,7 @@ export default class kalshi extends Exchange {
         //         }
         //     }
         //
-        const raw = this.safeValue (response, 'market', response);
+        const raw = this.safeDict (response, 'market', response);
         return this.parsePredictionTicker (raw, outcomeObj as any);
     }
 
@@ -793,7 +785,7 @@ export default class kalshi extends Exchange {
         //
         const tradingActive = this.safeBool (response, 'trading_active', false);
         return {
-            'status': (tradingActive === true) ? 'ok' : 'maintenance',
+            'status': (tradingActive) ? 'ok' : 'maintenance',
             'updated': undefined,
             'eta': undefined,
             'url': undefined,
@@ -908,8 +900,8 @@ export default class kalshi extends Exchange {
         //
         const marketAny = market;
         const outcomeObj = this.safeOutcome (this.safeString (marketAny, 'outcome'), marketAny);
-        const outcomeLabel = (market !== undefined && market !== null) ? this.safeString (market, 'label', this.safeString (market['info'], 'outcomeLabel', 'YES')) : 'YES';
-        const isNo = outcomeLabel.toUpperCase () === 'NO';
+        const outcomeLabel = (market !== undefined && market !== null) ? this.safeStringUpper (market, 'label', this.safeStringUpper (market['info'], 'outcomeLabel', 'YES')) : 'YES';
+        const isNo = outcomeLabel === 'NO';
         const timestamp = this.parse8601 (this.safeString (raw, 'updated_time'));
         const outcome = this.safeString (outcomeObj, 'outcome');
         const yesAsk = this.safeNumber (raw, 'yes_ask_dollars');
@@ -998,15 +990,11 @@ export default class kalshi extends Exchange {
         }
         // batch-resolve the uncached outcomes (one markets request per 100 tickers)
         await this.loadOutcomes (outcomes);
-        const targets: any[] = [];
-        for (let i = 0; i < outcomes.length; i++) {
-            targets.push (outcomes[i]);
-        }
         // group requested outcomes by their market ticker, yes and no outcomes share one market
         const outcomesByTicker: Dict = {};
         const tickers: any[] = [];
-        for (let i = 0; i < targets.length; i++) {
-            const outcomeObj = this.outcome (targets[i]);
+        for (let i = 0; i < outcomes.length; i++) {
+            const outcomeObj = this.outcome (outcomes[i]);
             const ticker = this.safeString (outcomeObj['info'], 'ticker');
             if (ticker === undefined) {
                 continue;
@@ -1016,27 +1004,27 @@ export default class kalshi extends Exchange {
                 tickers.push (ticker);
             }
             // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
-            const grouped = outcomesByTicker[ticker];
+            const grouped = this.safeList (outcomesByTicker, ticker, []);
             grouped.push (outcomeObj);
             outcomesByTicker[ticker] = grouped;
         }
         const chunkSize = this.safeInteger (this.options, 'fetchTickersBatchSize', 100);
         const result: PredictionTickers = {};
         const tickersLength = tickers.length;
-        let startIndex = 0;
-        while (startIndex < tickersLength) {
-            let endIndex = this.sum (startIndex, chunkSize);
-            if (endIndex > tickersLength) {
-                endIndex = tickersLength;
-            }
-            const chunk: any[] = [];
-            for (let i = startIndex; i < endIndex; i++) {
-                chunk.push (tickers[i]);
+        const lastTickerIndex = tickersLength - 1;
+        let chunk: string[] = [];
+        // flush a request every chunkSize tickers and once more for the trailing partial chunk
+        for (let ti = 0; ti < tickersLength; ti++) {
+            chunk.push (tickers[ti]);
+            const chunkLength = chunk.length;
+            if ((chunkLength < chunkSize) && (ti < lastTickerIndex)) {
+                continue;
             }
             const request: Dict = {
                 'tickers': chunk.join (','),
                 'limit': chunkSize,
             };
+            chunk = [];
             const response = await this.kalshiPublicGetMarkets (this.extend (request, params));
             const rawMarkets: Dict[] = this.safeList (response, 'markets', []);
             for (let i = 0; i < rawMarkets.length; i++) {
@@ -1054,7 +1042,6 @@ export default class kalshi extends Exchange {
                     }
                 }
             }
-            startIndex = this.sum (startIndex, chunkSize);
         }
         return result;
     }
@@ -1073,7 +1060,7 @@ export default class kalshi extends Exchange {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
-        const isNo = outcomeObj['label'] === 'NO';
+        const isNo = this.safeString (outcomeObj, 'label') === 'NO';
         const request: Dict = {
             'ticker': ticker,
         };
@@ -1090,7 +1077,7 @@ export default class kalshi extends Exchange {
         //         }
         //     }
         //
-        const book = this.safeValue (response, 'orderbook_fp', response);
+        const book = this.safeDict (response, 'orderbook_fp', response);
         // Kalshi uses YES-side perspective: `yes` = bids, `no` = asks (inverted)
         const rawYes = this.safeList (book, 'yes_dollars', []);
         const rawNo = this.safeList (book, 'no_dollars', []);
@@ -1192,7 +1179,10 @@ export default class kalshi extends Exchange {
             }
         } else {
             const defaultLimit = this.safeInteger (this.options, 'defaultFetchOHLCVLimit', 200);
-            const candlesCount = (limit !== undefined) ? limit : defaultLimit;
+            let candlesCount: Int = defaultLimit;
+            if (limit !== undefined) {
+                candlesCount = limit;
+            }
             request['end_ts'] = now;
             request['start_ts'] = now - (candlesCount * tf);
         }
@@ -1354,14 +1344,12 @@ export default class kalshi extends Exchange {
     override parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
         const id = this.safeString (trade, 'trade_id');
         const ts = this.parse8601 (this.safeString (trade, 'created_time'));
-        const priceDollars = this.safeNumber2 (trade, 'yes_price_dollars', 'price_dollars');
         const priceCents = this.safeNumber2 (trade, 'yes_price', 'price');
-        let price: Num = undefined;
-        if (priceDollars !== undefined) {
-            price = priceDollars;
-        } else if (priceCents !== undefined) {
-            price = priceCents / 100;
+        let centsPrice: Num = undefined;
+        if (priceCents !== undefined) {
+            centsPrice = priceCents / 100;
         }
+        const price = this.safeNumber2 (trade, 'yes_price_dollars', 'price_dollars', centsPrice);
         const amountFp = this.safeNumber2 (trade, 'count_fp', 'size_fp');
         const amount = this.safeNumber (trade, 'count', amountFp);
         const rawSide = this.safeStringLower (trade, 'taker_side');
@@ -1439,10 +1427,8 @@ export default class kalshi extends Exchange {
         for (let i = 0; i < fillsLength; i++) {
             trades.push (this.parseMyTrade (fills[i], outcomeObj));
         }
-        let wantedOutcome: Str = undefined;
-        if (outcome !== undefined) {
-            wantedOutcome = this.safeString (this.outcome (outcome), 'outcome');
-        }
+        const wantedOutcomeObj: Dict = (outcome !== undefined) ? this.outcome (outcome) : {};
+        const wantedOutcome = this.safeString (wantedOutcomeObj, 'outcome');
         const result: any[] = [];
         for (let i = 0; i < trades.length; i++) {
             const trade = trades[i];
@@ -1481,24 +1467,18 @@ export default class kalshi extends Exchange {
             side = 'sell';
         }
         // price is the price of the leg held; kalshi reports dollars in V2, cents otherwise
-        let price: Num = undefined;
+        let centsKey: Str = 'yes_price';
+        let dollarsKey: Str = 'yes_price_dollars';
         if (sideLeg === 'no') {
-            price = this.safeNumber (fill, 'no_price_dollars');
-            if (price === undefined) {
-                const noCents = this.safeNumber (fill, 'no_price');
-                if (noCents !== undefined) {
-                    price = noCents / 100;
-                }
-            }
-        } else {
-            price = this.safeNumber (fill, 'yes_price_dollars');
-            if (price === undefined) {
-                const yesCents = this.safeNumber (fill, 'yes_price');
-                if (yesCents !== undefined) {
-                    price = yesCents / 100;
-                }
-            }
+            centsKey = 'no_price';
+            dollarsKey = 'no_price_dollars';
         }
+        const legCents = this.safeNumber (fill, centsKey);
+        let centsPrice: Num = undefined;
+        if (legCents !== undefined) {
+            centsPrice = legCents / 100;
+        }
+        const price = this.safeNumber (fill, dollarsKey, centsPrice);
         const amount = this.safeNumber2 (fill, 'count_fp', 'count');
         let cost: Num = undefined;
         if ((price !== undefined) && (amount !== undefined)) {
@@ -1506,7 +1486,7 @@ export default class kalshi extends Exchange {
         }
         const isTaker = this.safeBool (fill, 'is_taker', true);
         let takerOrMaker: Str = 'maker';
-        if (isTaker === true) {
+        if (isTaker) {
             takerOrMaker = 'taker';
         }
         const feeCost = this.safeNumber (fill, 'fee_cost');
@@ -1558,7 +1538,7 @@ export default class kalshi extends Exchange {
      * @param {object} response the raw balance response
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         // Kalshi balance in cents → divide by 100
         const result: Dict = { 'info': response };
         const balanceCents = this.safeNumber (response, 'balance');
@@ -1593,10 +1573,10 @@ export default class kalshi extends Exchange {
         const positions = this.safeList (response, 'market_positions', []);
         // filter by the requested outcomes' market tickers — a kalshi position is per market
         // ticker and covers both the YES and the NO leg
-        const parsed = this.parsePredictionPositions (positions);
         if (outcomesLength === 0) {
-            return parsed as PredictionPosition[];
+            return this.parsePredictionPositions (positions);
         }
+        const parsed = this.parsePredictionPositions (positions);
         const wantedTickers: Dict = {};
         if (outcomes === undefined) {
             throw new ExchangeError (this.id + ' fetchPositions() missing outcomes');
@@ -1647,10 +1627,8 @@ export default class kalshi extends Exchange {
         for (let i = 0; i < rawSettlementsLength; i++) {
             parsed.push (this.parseSettlement (rawSettlements[i]));
         }
-        let wantedOutcome: Str = undefined;
-        if (outcome !== undefined) {
-            wantedOutcome = this.safeString (this.outcome (outcome), 'outcome');
-        }
+        const wantedOutcomeObj: Dict = (outcome !== undefined) ? this.outcome (outcome) : {};
+        const wantedOutcome = this.safeString (wantedOutcomeObj, 'outcome');
         const result: any[] = [];
         for (let i = 0; i < parsed.length; i++) {
             const settlement = parsed[i];
@@ -1670,12 +1648,12 @@ export default class kalshi extends Exchange {
      * @param {object} [market] a resolved outcome/market hint
      * @returns {object} a prediction settlement structure
      */
-    parseSettlement (settlement: Dict, market: Market = undefined): any {
+    parseSettlement (settlement: Dict, market: Market = undefined): Dict {
         const ticker = this.safeString (settlement, 'ticker');
         // the leg the user actually held (kalshi reports separate yes/no counts + costs)
         const yesCount = this.safeNumber2 (settlement, 'yes_count_fp', 'yes_count', 0);
         const noCount = this.safeNumber2 (settlement, 'no_count_fp', 'no_count', 0);
-        const heldYes = (yesCount >= noCount);
+        const heldYes = !(noCount > yesCount);
         let heldLabel: Str = 'NO';
         if (heldYes) {
             heldLabel = 'YES';
@@ -1693,13 +1671,12 @@ export default class kalshi extends Exchange {
         const marketResult = this.safeStringUpper (settlement, 'market_result');
         const won = (marketResult === heldLabel);
         // kalshi reports money as dollar keys on V2, else cents
-        let payout = this.safeNumber (settlement, 'revenue_dollars');
-        if (payout === undefined) {
-            const revenueCents = this.safeNumber (settlement, 'revenue');
-            if (revenueCents !== undefined) {
-                payout = revenueCents / 100;
-            }
+        const revenueCents = this.safeNumber (settlement, 'revenue');
+        let centsPayout: Num = undefined;
+        if (revenueCents !== undefined) {
+            centsPayout = revenueCents / 100;
         }
+        const payout = this.safeNumber (settlement, 'revenue_dollars', centsPayout);
         let costKey: Str = 'no_total_cost';
         if (heldYes) {
             costKey = 'yes_total_cost';
@@ -1708,13 +1685,12 @@ export default class kalshi extends Exchange {
         if (heldYes) {
             costDollarsKey = 'yes_total_cost_dollars';
         }
-        let cost = this.safeNumber (settlement, costDollarsKey);
-        if (cost === undefined) {
-            const costCents = this.safeNumber (settlement, costKey);
-            if (costCents !== undefined) {
-                cost = costCents / 100;
-            }
+        const costCents = this.safeNumber (settlement, costKey);
+        let centsCost: Num = undefined;
+        if (costCents !== undefined) {
+            centsCost = costCents / 100;
         }
+        const cost = this.safeNumber (settlement, costDollarsKey, centsCost);
         let pnl: Num = undefined;
         if ((payout !== undefined) && (cost !== undefined)) {
             pnl = payout - cost;
@@ -1892,7 +1868,7 @@ export default class kalshi extends Exchange {
             await this.loadOutcome (outcome);
         }
         const response = await this.kalshiPrivateGetPortfolioOrdersOrderId (this.extend ({ 'order_id': id }, params));
-        return this.parsePredictionOrder (this.safeValue (response, 'order', response));
+        return this.parsePredictionOrder (this.safeDict (response, 'order', response));
     }
 
     /**
@@ -2019,7 +1995,7 @@ export default class kalshi extends Exchange {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const ticker = this.safeString (outcomeObj['info'], 'ticker');
-        const isNo = (outcomeObj['label'] === 'NO');
+        const isNo = (this.safeString (outcomeObj, 'label') === 'NO');
         const isBuy = (side === 'buy');
         // kalshi V2 (/portfolio/events/orders) quotes the YES leg only: side 'bid' = buy YES,
         // 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
@@ -2028,13 +2004,10 @@ export default class kalshi extends Exchange {
         if (isBuy) {
             bookSide = 'bid';
         }
-        let yesPrice = price;
         if (isNo) {
             bookSide = (isBuy) ? 'ask' : 'bid';
-            if (price !== undefined) {
-                yesPrice = this.parseNumber (Precise.stringSub ('1', this.numberToString (price)));
-            }
         }
+        const yesPrice = (isNo && (price !== undefined)) ? this.parseNumber (Precise.stringSub ('1', this.numberToString (price))) : price;
         const isMarket = (type === 'market');
         // accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
         // `time_in_force` param (handled below) still overrides
@@ -2079,13 +2052,13 @@ export default class kalshi extends Exchange {
         const filledCount = this.safeNumber (response, 'fill_count');
         if (filledCount !== undefined) {
             order['filled'] = filledCount;
-        } else if ((remainingCount !== undefined) && (amount !== undefined)) {
+        } else if (remainingCount !== undefined) {
             order['filled'] = amount - remainingCount;
         }
         if (remainingCount !== undefined) {
             order['remaining'] = remainingCount;
         }
-        if (order['status'] === undefined) {
+        if (this.safeString (order, 'status') === undefined) {
             let resolvedStatus = 'open';
             if ((remainingCount !== undefined) && (remainingCount === 0)) {
                 resolvedStatus = 'closed';
@@ -2146,10 +2119,10 @@ export default class kalshi extends Exchange {
         // the delete response is minimal (no ticker/action/id/status): pass the resolved outcome so
         // the parser can fill outcome/outcomeId/market/label, then backfill the id and canceled status
         const order = this.parsePredictionOrder (this.safeDict (response, 'order', response), outcomeObj);
-        if (order['id'] === undefined) {
+        if (this.safeString (order, 'id') === undefined) {
             order['id'] = id;
         }
-        if (order['status'] === undefined) {
+        if (this.safeString (order, 'status') === undefined) {
             order['status'] = 'canceled';
         }
         return order;
@@ -2265,8 +2238,7 @@ export default class kalshi extends Exchange {
             const parsedEvent = this.parseEvent (rawEvents[di]);
             result.push (parsedEvent);
             // register the parsed markets so populateOutcomes can index their outcomes
-            const parsedMarketsRaw = parsedEvent['markets'];
-            const parsedMarkets = (parsedMarketsRaw !== undefined) ? parsedMarketsRaw : [];
+            const parsedMarkets = parsedEvent['markets'];
             const parsedMarketsLength = parsedMarkets.length;
             for (let mi = 0; mi < parsedMarketsLength; mi++) {
                 const m = parsedMarkets[mi];
@@ -2318,9 +2290,12 @@ export default class kalshi extends Exchange {
         }
         const rawEvents: any[] = [];
         const eventTickersLength = eventTickers.length;
+        const hasLimit = (limit !== undefined);
+        const limitOrZero = hasLimit ? limit : 0;
+        const limitValue = this.parseToInt (limitOrZero);
         for (let ei = 0; ei < eventTickersLength; ei++) {
             const collectedLength = rawEvents.length;
-            if ((limit !== undefined) && (collectedLength >= limit)) {
+            if (hasLimit && (collectedLength >= limitValue)) {
                 break;
             }
             // the series search can rank a ticker whose /events/{ticker} endpoint 404s (a series-only
@@ -2346,10 +2321,11 @@ export default class kalshi extends Exchange {
      * @param {object} [params] extra params forwarded verbatim to the events endpoint
      * @returns {object} the raw kalshi event object with nested markets
      */
-    async fetchRawEventByTicker (ticker: string, params: Dict = {}): Promise<any> {
+    async fetchRawEventByTicker (ticker: string, params: Dict = {}): Promise<Dict> {
         const request: Dict = { 'event_ticker': ticker, 'with_nested_markets': true };
         const response = await this.kalshiPublicGetEventsEventTicker (this.extend (request, params));
-        const fullEvent = this.safeDict (response, 'event', response);
+        // a typed copy of the event row: the caller-facing dict is never the raw response
+        const fullEvent = this.extend ({}, this.safeDict (response, 'event', response));
         const nestedMarkets = this.safeList (fullEvent, 'markets');
         if (nestedMarkets === undefined) {
             fullEvent['markets'] = this.safeList (response, 'markets', []);
@@ -2407,7 +2383,7 @@ export default class kalshi extends Exchange {
         const ordered: string[] = [];
         const collectedLength = collected.length;
         for (let ci = 0; ci < collectedLength; ci++) {
-            const st = collected[ci];
+            const st = this.safeString (collected, ci);
             const already = this.safeString (seen, st);
             if ((st !== undefined) && (st !== '') && (already === undefined)) {
                 seen[st] = st;
@@ -2431,18 +2407,22 @@ export default class kalshi extends Exchange {
     async fetchSeriesEvents (seriesTickers: string[], status: Str, limit: Int, rest: Dict = {}): Promise<any[]> {
         const rawEvents: any[] = [];
         const seriesTickersLength = seriesTickers.length;
-        const pageLimit = this.safeInteger (this.options, 'defaultFetchEventsLimit', 200);
+        const pageLimit = this.parseToInt (this.safeInteger (this.options, 'defaultFetchEventsLimit', 200));
         const maxPages = this.safeInteger (this.options, 'maxEventPagesPerSeries', 20);
+        const hasLimit = (limit !== undefined);
+        const limitOrZero = hasLimit ? limit : 0;
+        const limitValue = this.parseToInt (limitOrZero);
         for (let si = 0; si < seriesTickersLength; si++) {
             const collectedLength = rawEvents.length;
-            if ((limit !== undefined) && (collectedLength >= limit)) {
+            if (hasLimit && (collectedLength >= limitValue)) {
                 break;
             }
             let cursor: Str = undefined;
             for (let page = 0; page < maxPages; page++) {
                 let reqLimit = pageLimit;
-                if (limit !== undefined) {
-                    const remaining = limit - rawEvents.length;
+                if (hasLimit && (limitValue !== undefined)) {
+                    const collectedSoFar = rawEvents.length;
+                    const remaining = this.parseToInt (limitValue - collectedSoFar);
                     if (remaining < reqLimit) {
                         reqLimit = remaining;
                     }
@@ -2467,7 +2447,7 @@ export default class kalshi extends Exchange {
                 }
                 cursor = this.safeString (response, 'cursor');
                 const collectedAfterPage = rawEvents.length;
-                if ((limit !== undefined) && (collectedAfterPage >= limit)) {
+                if (hasLimit && (collectedAfterPage >= limitValue)) {
                     break;
                 }
                 if ((cursor === undefined) || (cursor === '') || (pageEventsLength < reqLimit)) {
@@ -2502,7 +2482,7 @@ export default class kalshi extends Exchange {
      * @param {object} rawEvent the raw event object
      * @returns {object} an event structure
      */
-    parseEvent (rawEvent: Dict): any {
+    parseEvent (rawEvent: Dict): PredictionEvent {
         // {
         //         "available_on_brokers": true,
         //         "category": "Politics",
@@ -2574,10 +2554,12 @@ export default class kalshi extends Exchange {
         // resolved and the resolution deadline are aggregated from the child markets too
         let totalVolume = 0;
         let totalLiquidity = 0;
-        let earliestCreated: Int = undefined;
+        // seeded from the first market, which the loop re-reads, so the min/max stays the same
+        const firstMarket = this.safeDict (rawMarkets, 0, {});
+        let earliestCreated = this.parse8601 (this.safeString (firstMarket, 'open_time'));
         let anyActive = false;
         let allResolved = true;
-        let latestClose: Int = undefined;
+        let latestClose = this.parse8601 (this.safeString (firstMarket, 'close_time'));
         for (let i = 0; i < rawMarkets.length; i++) {
             const rawMarket = rawMarkets[i];
             const parsed = this.parseMarket (rawMarket);
@@ -2660,15 +2642,13 @@ export default class kalshi extends Exchange {
      * @param {string|string[]} [api] the api group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
-     * @param {object} [headers] request headers
-     * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    override sign (path: string, api: any = 'kalshi', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined) {
-        const apiGroup: string = typeof api === 'string' ? api : api[0];
-        const access: string = typeof api === 'string' ? 'public' : api[1];
+    override sign (path: string, api: string[] = [ 'kalshi' ], method: string = 'GET', params: Dict = {}) {
+        const apiGroup: string = api[0];
+        const access: string = api[1];
         const baseUrls = this.urls['api'];
-        const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['kalshi']);
+        const baseUrl = this.safeString (baseUrls, apiGroup, this.safeString (baseUrls, 'kalshi', ''));
         const implodedPath = this.implodeParams (path, params);
         let url = baseUrl + '/' + implodedPath;
         const query = this.omit (params, this.extractParams (path));
@@ -2676,12 +2656,12 @@ export default class kalshi extends Exchange {
         if (method === 'GET' && (querystring !== '')) {
             url += '?' + querystring;
         }
-        const existingHeaders = (headers !== undefined) ? headers : {};
+        const existingHeaders = {};
         let headersValue: any = this.extend ({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }, existingHeaders);
-        let bodyValue: any = body;
+        let bodyValue: any = undefined;
         if (access === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();

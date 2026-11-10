@@ -10,7 +10,7 @@ import type { TransferEntry, Int, OrderSide, OrderType, FundingRateHistory, OHLC
  * @augments Exchange
  */
 export default class hitbtc extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'hitbtc',
             'name': 'HitBTC',
@@ -166,7 +166,7 @@ export default class hitbtc extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'spot/balance': { 'cost': 15 } as Endpoint<Dict>,
+                        'spot/balance': { 'cost': 15 } as Endpoint<List>,
                         'spot/balance/{currency}': { 'cost': 15 } as Endpoint<Dict>,
                         'spot/order': { 'cost': 1 } as Endpoint<List>,
                         'spot/order/{client_order_id}': { 'cost': 1 } as Endpoint<Dict>,
@@ -185,7 +185,7 @@ export default class hitbtc extends Exchange {
                         'margin/history/positions': { 'cost': 15 } as Endpoint<List>,
                         'margin/history/clearing': { 'cost': 15 } as Endpoint<List>,
                         'margin-settings': { 'cost': 15 } as Endpoint<Dict>,
-                        'futures/balance': { 'cost': 15 } as Endpoint<Dict>,
+                        'futures/balance': { 'cost': 15 } as Endpoint<List>,
                         'futures/balance/{currency}': { 'cost': 15 } as Endpoint<Dict>,
                         'futures/account': { 'cost': 1 } as Endpoint<List>,
                         'futures/account/isolated/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
@@ -199,7 +199,7 @@ export default class hitbtc extends Exchange {
                         'futures/history/positions': { 'cost': 15 } as Endpoint<List>,
                         'futures/history/clearing': { 'cost': 15 } as Endpoint<List>,
                         'user/api-keys': { 'cost': 15 } as Endpoint<List>,
-                        'wallet/balance': { 'cost': 30 } as Endpoint<Dict>,
+                        'wallet/balance': { 'cost': 30 } as Endpoint<List>,
                         'wallet/balance/{currency}': { 'cost': 30 } as Endpoint<Dict>,
                         'wallet/crypto/address/white-list': { 'cost': 30 } as Endpoint<Dict>,
                         'wallet/crypto/address': { 'cost': 30 } as Endpoint<List>,
@@ -481,14 +481,14 @@ export default class hitbtc extends Exchange {
             'options': {
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
-                    'ETH': 'ETH',
+                    'ETH': 'ERC20',
                     'USDT': 'TRC20',
                 },
                 'networks': {
                     // mainnet network ids are in lowercase for BTC & ETH
                     'BTC': 'btc',
                     'OMNI': 'BTC',
-                    'ETH': 'eth',
+                    // native ETH mainnet id is 'eth', ERC20 tokens use 'ETH'
                     'ERC20': 'ETH',
                     'ETC': 'ETC',
                     'BEP20': 'BSC',
@@ -770,7 +770,7 @@ export default class hitbtc extends Exchange {
         });
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds ();
     }
 
@@ -850,12 +850,13 @@ export default class hitbtc extends Exchange {
             if (contract) {
                 contractSize = this.parseNumber ('1');
                 settleId = feeCurrencyId;
-                settle = this.safeCurrencyCode (settleId);
-                linear = ((quote !== undefined) && (quote === settle));
+                const settleCode = this.safeCurrencyCode (settleId);
+                settle = settleCode;
+                linear = (quote === settleCode);
                 inverse = !linear;
-                symbol = symbol + ':' + settle;
+                symbol = base + '/' + quote + ':' + settle;
                 if (future) {
-                    symbol = symbol + '-' + expiry;
+                    symbol = base + '/' + quote + ':' + settle + '-' + this.safeString (market, 'expiry', '');
                     type = 'future';
                 } else {
                     type = 'swap';
@@ -978,7 +979,7 @@ export default class hitbtc extends Exchange {
     }
 
     override parseCurrency (currency: Dict): CurrencyInterface {
-        const currencyId = currency['_coin_id'];
+        const currencyId = this.safeString (currency, '_coin_id');
         const code = this.safeCurrencyCode (currencyId);
         const entry = currency;
         const rawNetworks: Dict[] = this.safeList (entry, 'networks', []);
@@ -986,8 +987,14 @@ export default class hitbtc extends Exchange {
         for (let j = 0; j < rawNetworks.length; j++) {
             const rawNetwork = rawNetworks[j];
             const networkId = this.safeString2 (rawNetwork, 'protocol', 'network');
-            let networkCode = this.networkIdToCode (networkId, code);
-            networkCode = (networkCode !== undefined) ? networkCode.toUpperCase () : code; // as hitbtc is white label, ensure we safeguard from possible bugs
+            const rawNetworkCode = this.networkIdToCode (networkId, code);
+            const networkCodeUpper = (rawNetworkCode !== undefined) ? rawNetworkCode.toUpperCase () : undefined;
+            let networkCode: Str = undefined;
+            if (networkCodeUpper !== undefined) {
+                networkCode = this.safeString (this.networkAliases, networkCodeUpper, networkCodeUpper);
+            } else {
+                networkCode = code; // as hitbtc is white label, ensure we safeguard from possible bugs
+            }
             if (networkCode !== undefined) {
                 networks[networkCode] = {
                     'info': rawNetwork,
@@ -1045,7 +1052,8 @@ export default class hitbtc extends Exchange {
         const request: Dict = {
             'currency': currency['id'],
         };
-        const network = this.safeStringUpper (params, 'network');
+        const networkInput = this.safeStringUpper (params, 'network');
+        const network = (networkInput !== undefined) ? this.safeString (this.networkAliases, networkInput, networkInput) : undefined;
         if ((network !== undefined) && (code === 'USDT')) {
             const networks = this.safeDict (this.options, 'networks');
             const parsedNetwork = this.safeString (networks, network);
@@ -1088,7 +1096,8 @@ export default class hitbtc extends Exchange {
         const request: Dict = {
             'currency': currency['id'],
         };
-        const network = this.safeStringUpper (params, 'network');
+        const networkInput = this.safeStringUpper (params, 'network');
+        const network = (networkInput !== undefined) ? this.safeString (this.networkAliases, networkInput, networkInput) : undefined;
         if ((network !== undefined) && (code === 'USDT')) {
             const networks = this.safeDict (this.options, 'networks');
             const parsedNetwork = this.safeString (networks, network);
@@ -1118,7 +1127,7 @@ export default class hitbtc extends Exchange {
         } as DepositAddress;
     }
 
-    override parseBalance (response: any): Balances {
+    parseBalanceList (response: Dict[]): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const entry = this.safeDict (response, i);
@@ -1149,7 +1158,7 @@ export default class hitbtc extends Exchange {
         const paramsOmitted: Dict = this.omit (params, [ 'type' ]);
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const account = (type === undefined) ? undefined : this.safeString (accountsByType, type, type);
-        let response: Dict;
+        let response: List;
         if (account === 'wallet') {
             response = await this.privateGetWalletBalance (paramsOmitted);
         } else if (account === 'spot') {
@@ -1171,7 +1180,7 @@ export default class hitbtc extends Exchange {
         //       ...
         //     ]
         //
-        return this.parseBalance (response);
+        return this.parseBalanceList (response);
     }
 
     /**
@@ -1249,7 +1258,7 @@ export default class hitbtc extends Exchange {
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
             const market = this.safeMarket (marketId);
-            const symbol = market['symbol'];
+            const symbol = this.safeSymbol (marketId, market);
             const entry = this.safeDict (response, marketId, {});
             result[symbol] = this.parseTicker (entry, market);
         }
@@ -1270,7 +1279,7 @@ export default class hitbtc extends Exchange {
         //       "timestamp": "2021-10-22T07:29:14.585Z"
         //     }
         //
-        const timestamp = this.parse8601 (ticker['timestamp']);
+        const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
         const symbol = this.safeSymbol (undefined, market);
         const baseVolume = this.safeString (ticker, 'volume');
         const quoteVolume = this.safeString (ticker, 'volume_quote');
@@ -1450,16 +1459,16 @@ export default class hitbtc extends Exchange {
         //      "liquidation": false
         //  }
         //
-        const timestamp = this.parse8601 (trade['timestamp']);
+        const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         const marketId = this.safeString (trade, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeSymbol (marketId, marketResolved);
         let fee: FeeString = undefined;
         const feeCostString = this.safeString (trade, 'fee');
         const taker = this.safeBool (trade, 'taker');
         let takerOrMaker: Str = undefined;
         if (taker !== undefined) {
-            takerOrMaker = (taker === true) ? 'taker' : 'maker';
+            takerOrMaker = (taker) ? 'taker' : 'maker';
         } else {
             takerOrMaker = 'taker'; // the only case when `taker` field is missing, is public fetchTrades and it must be taker
         }
@@ -1507,7 +1516,7 @@ export default class hitbtc extends Exchange {
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['currencies'] = currency['id'];
+            request['currencies'] = this.safeString (currency, 'id');
         }
         if (since !== undefined) {
             request['from'] = this.iso8601 (since);
@@ -1543,7 +1552,7 @@ export default class hitbtc extends Exchange {
         return this.parseTransactions (response, currency, since, limit, params);
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'CREATED': 'pending',
             'PENDING': 'pending',
@@ -1663,7 +1672,8 @@ export default class hitbtc extends Exchange {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        return await this.fetchTransactionsHelper ('DEPOSIT,WITHDRAW', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper ('DEPOSIT,WITHDRAW', code, since, limit, params);
+        return this.toArray (transactions);
     }
 
     /**
@@ -1678,7 +1688,8 @@ export default class hitbtc extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        return await this.fetchTransactionsHelper ('DEPOSIT', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper ('DEPOSIT', code, since, limit, params);
+        return this.toArray (transactions);
     }
 
     /**
@@ -1693,7 +1704,8 @@ export default class hitbtc extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
-        return await this.fetchTransactionsHelper ('WITHDRAW', code, since, limit, params);
+        const transactions = await this.fetchTransactionsHelper ('WITHDRAW', code, since, limit, params);
+        return this.toArray (transactions);
     }
 
     /**
@@ -1847,7 +1859,7 @@ export default class hitbtc extends Exchange {
         //
         const result: Dict = {};
         for (let i = 0; i < (response as List).length; i++) {
-            const fee = this.parseTradingFee (response[i]);
+            const fee = this.parseTradingFee (this.safeDict (response, i, {}));
             const symbol = fee['symbol'];
             if (symbol !== undefined) {
                 result[symbol] = fee;
@@ -1889,10 +1901,10 @@ export default class hitbtc extends Exchange {
         if (since !== undefined) {
             request['from'] = this.iso8601 (since);
         }
-        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('until', request, paramsPaginate);
         if (limit !== undefined) {
-            requestUntil['limit'] = Math.min (limit, 1000);
+            request['limit'] = Math.min (limit, 1000);
         }
+        const [ requestUntil, paramsUntil ] = this.handleUntilOption ('until', request, paramsPaginate);
         const price = this.safeString (paramsUntil, 'price');
         const paramsOmitted: Dict = this.omit (paramsUntil, 'price');
         let response: Dict | List = [];
@@ -2019,7 +2031,14 @@ export default class hitbtc extends Exchange {
             }
         }
         const parsed = this.parseOrders (response, market, since, limit);
-        return this.filterByArray (parsed, 'status', [ 'closed', 'canceled' ], false) as Order[];
+        const result: Order[] = [];
+        for (let i = 0; i < parsed.length; i++) {
+            const status = this.safeString (parsed[i], 'status');
+            if ((status === 'closed') || (status === 'canceled')) {
+                result.push (parsed[i]);
+            }
+        }
+        return result;
     }
 
     /**
@@ -2452,11 +2471,12 @@ export default class hitbtc extends Exchange {
         const timeInForce = this.safeString (params, 'timeInForce');
         const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop_price' ]);
         const isPostOnly = this.isPostOnly (type === 'market', undefined, params);
+        const resolvedMarketType = this.safeString (market, 'type');
         const request: Dict = {
             'type': type,
             'side': side,
             'quantity': this.amountToPrecision (market['symbol'], amount),
-            'symbol': market['id'],
+            'symbol': this.safeString (market, 'id'),
             // 'client_order_id': 'r42gdPjNMZN-H_xs8RKl2wljg_dfgdg4', // Optional
             // 'time_in_force': 'GTC', // Optional GTC, IOC, FOK, Day, GTD
             // 'price': this.priceToPrecision (symbol, price), // Required if type is limit, stopLimit, or takeProfitLimit
@@ -2470,7 +2490,7 @@ export default class hitbtc extends Exchange {
             // 'make_rate': 0.001, // Optional
         };
         if (reduceOnly !== undefined) {
-            if ((market['type'] !== 'swap') && (market['type'] !== 'margin')) {
+            if ((resolvedMarketType !== 'swap') && (resolvedMarketType !== 'margin')) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduce_only for ' + market['type'] + ' orders, reduce_only orders are supported for swap and margin markets only');
             }
         }
@@ -2513,7 +2533,7 @@ export default class hitbtc extends Exchange {
         return [ request, paramsOmitted ];
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'new': 'open',
             'suspended': 'open',
@@ -2614,7 +2634,7 @@ export default class hitbtc extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeSymbol (marketId, marketResolved);
         const postOnly = this.safeBool (order, 'post_only');
         const timeInForce = this.safeString (order, 'time_in_force');
         const rawTrades = this.safeList (order, 'trades');
@@ -2758,7 +2778,7 @@ export default class hitbtc extends Exchange {
         const response = await this.privatePostWalletTransfer (this.extend (request, params));
         //
         //     [
-        //         "2db6ebab-fb26-4537-9ef8-1a689472d236"
+        //         "2db6ebab-fb26-4537-9ef8-1a689472d235"
         //     ]
         //
         return this.parseTransfer (response, currency);
@@ -2785,7 +2805,7 @@ export default class hitbtc extends Exchange {
         };
     }
 
-    async convertCurrencyNetwork (code: string, amount: Num, fromNetwork: any, toNetwork: any, params: Dict = {}): Promise<Dict> {
+    async convertCurrencyNetwork (code: string, amount: Num, fromNetwork: string, toNetwork: string, params: Dict = {}): Promise<Dict> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2793,10 +2813,12 @@ export default class hitbtc extends Exchange {
             throw new ExchangeError (this.id + ' convertCurrencyNetwork() only supports USDT currently');
         }
         const networks = this.safeDict (this.options, 'networks', {});
-        const fromNetworkValue: any = fromNetwork.toUpperCase ();
-        const toNetworkValue: any = toNetwork.toUpperCase ();
-        const fromNetworkValue2: any = this.safeString (networks, fromNetworkValue); // handle ETH>ERC20 alias
-        const toNetworkValue2: any = this.safeString (networks, toNetworkValue); // handle ETH>ERC20 alias
+        const fromNetworkUpper = fromNetwork.toUpperCase ();
+        const toNetworkUpper = toNetwork.toUpperCase ();
+        const fromNetworkValue: any = this.safeString (this.networkAliases, fromNetworkUpper, fromNetworkUpper);
+        const toNetworkValue: any = this.safeString (this.networkAliases, toNetworkUpper, toNetworkUpper);
+        const fromNetworkValue2: any = this.safeString (networks, fromNetworkValue); // unified code to exchange id
+        const toNetworkValue2: any = this.safeString (networks, toNetworkValue); // unified code to exchange id
         if (fromNetworkValue2 === toNetworkValue2) {
             throw new BadRequest (this.id + ' convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork');
         }
@@ -2824,16 +2846,16 @@ export default class hitbtc extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        this.checkAddress (address);
+        this.checkAddress (address, code, tagWithdrawTag);
         const currency = this.currency (code);
         const request: Dict = {
             'currency': currency['id'],
@@ -2844,7 +2866,8 @@ export default class hitbtc extends Exchange {
             request['payment_id'] = tagWithdrawTag;
         }
         const networks = this.safeDict (this.options, 'networks', {});
-        const network = this.safeStringUpper (paramsWithdrawTag, 'network');
+        const networkInput = this.safeStringUpper (paramsWithdrawTag, 'network');
+        const network = (networkInput !== undefined) ? this.safeString (this.networkAliases, networkInput, networkInput) : undefined;
         if ((network !== undefined) && (code === 'USDT')) {
             const parsedNetwork = this.safeString (networks, network);
             if (parsedNetwork !== undefined) {
@@ -2857,7 +2880,7 @@ export default class hitbtc extends Exchange {
         }
         const withdrawOptions = this.safeDict (this.options, 'withdraw', {});
         const includeFee = this.safeBool (withdrawOptions, 'includeFee', false);
-        if (includeFee === true) {
+        if (includeFee) {
             request['include_fee'] = true;
         }
         const response = await this.privatePostWalletCryptoWithdraw (this.extend (request, paramsOmitted));
@@ -2921,11 +2944,11 @@ export default class hitbtc extends Exchange {
             }
             const rawFundingRate = this.safeDict (response, marketId);
             const marketInner = this.market (marketId);
-            const symbol = marketInner['symbol'];
+            const symbol = this.safeSymbol (marketId, marketInner);
             const fundingRate = this.parseFundingRate (rawFundingRate, marketInner);
             fundingRates[symbol] = fundingRate;
         }
-        return this.filterByArray (fundingRates, 'symbol', symbolsNormalized);
+        return this.indexBy (this.filterByArray (fundingRates, 'symbol', symbolsNormalized, false), 'symbol');
     }
 
     /**
@@ -3081,7 +3104,7 @@ export default class hitbtc extends Exchange {
         //
         const result: Position[] = [];
         for (let i = 0; i < (response as List).length; i++) {
-            result.push (this.parsePosition (response[i]));
+            result.push (this.parsePosition (this.safeDict (response, i, {})));
         }
         return result as Position[];
     }
@@ -3210,14 +3233,13 @@ export default class hitbtc extends Exchange {
         }
         const marketId = this.safeString (position, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeSymbol (marketId, marketResolved);
         return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': symbol,
             'notional': undefined,
             'marginMode': marginMode,
-            'marginType': marginMode,
             'liquidationPrice': liquidationPrice,
             'entryPrice': entryPrice,
             'unrealizedPnl': undefined,
@@ -3243,7 +3265,7 @@ export default class hitbtc extends Exchange {
         });
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         //
         //     {
         //         "contract_type": "perpetual",
@@ -3317,7 +3339,7 @@ export default class hitbtc extends Exchange {
             const openInterest = this.safeDict (response, marketId, {});
             results.push (this.parseOpenInterest (openInterest, marketInner));
         }
-        return this.filterByArray (results, 'symbol', symbolsNormalized) as OpenInterests;
+        return this.indexBy (this.filterByArray (results, 'symbol', symbolsNormalized, false), 'symbol');
     }
 
     /**
@@ -3334,7 +3356,7 @@ export default class hitbtc extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool (market, 'swap', false)) {
             throw new BadSymbol (this.id + ' fetchOpenInterest() supports swap contracts only');
         }
         const request: Dict = {
@@ -3373,7 +3395,7 @@ export default class hitbtc extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool (market, 'swap', false)) {
             throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request: Dict = {
@@ -3438,13 +3460,13 @@ export default class hitbtc extends Exchange {
         } as FundingRate;
     }
 
-    async modifyMarginHelper (symbol: string, amount: any, type: Str, params: Dict = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: number, type: Str, params: Dict = {}): Promise<MarginModification> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
         const leverage = this.safeString (params, 'leverage');
-        if (market['swap'] === true) {
+        if (this.safeBool (market, 'swap', false)) {
             if (leverage === undefined) {
                 throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a leverage parameter for swap markets');
             }
@@ -3668,12 +3690,13 @@ export default class hitbtc extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if (params['margin_balance'] === undefined) {
+        const amount = this.safeNumber (params, 'margin_balance');
+        if (amount === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair');
         }
         const market = this.market (symbol);
-        const amount = this.safeNumber (params, 'margin_balance');
-        const maxLeverage = this.safeInteger (market['limits']['leverage'], 'max', 50);
+        const limits = this.safeDict (market, 'limits', {});
+        const maxLeverage = this.safeInteger (limits['leverage'], 'max', 50);
         if (market['type'] !== 'swap') {
             throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
         }
@@ -3731,7 +3754,7 @@ export default class hitbtc extends Exchange {
         return this.parseDepositWithdrawFees (response, codes);
     }
 
-    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
+    override parseDepositWithdrawFee (fee: NullableDict, currency: Currency = undefined): any {
         //
         //    {
         //         "full_name": "ConnectWealth",
@@ -3761,15 +3784,19 @@ export default class hitbtc extends Exchange {
             const networkEntry = this.safeDict (networks, j);
             const networkId = this.safeString (networkEntry, 'network');
             const code = this.safeString (currency, 'code');
-            let networkCode = this.networkIdToCode (networkId, code);
-            networkCode = (networkCode !== undefined) ? networkCode.toUpperCase () : undefined;
+            const rawNetworkCode = this.networkIdToCode (networkId, code);
+            const networkCodeUpper = (rawNetworkCode !== undefined) ? rawNetworkCode.toUpperCase () : undefined;
+            let networkCode: Str = undefined;
+            if (networkCodeUpper !== undefined) {
+                networkCode = this.safeString (this.networkAliases, networkCodeUpper, networkCodeUpper);
+            }
             const withdrawFee = this.safeNumber (networkEntry, 'payout_fee');
-            const isDefault = this.safeBool (networkEntry, 'default');
+            const isDefault = this.safeBool (networkEntry, 'default', false);
             const withdrawResult: Dict = {
                 'fee': withdrawFee,
                 'percentage': (withdrawFee !== undefined) ? false : undefined,
             };
-            if (isDefault === true) {
+            if (isDefault) {
                 result['withdraw'] = withdrawResult;
             }
             if (networkCode !== undefined) {
@@ -3837,13 +3864,13 @@ export default class hitbtc extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeBool (params, 'margin', false);
         const [ marginMode, paramsMarginMode ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
-        if ((marginMode === undefined) && ((defaultType === 'margin') || (isMargin === true))) {
+        if ((marginMode === undefined) && ((defaultType === 'margin') || (isMargin))) {
             return [ 'isolated', paramsMarginMode ];
         }
         return [ marginMode, paramsMarginMode ];
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         //
         //     {
         //       "error": {
@@ -3872,47 +3899,38 @@ export default class hitbtc extends Exchange {
         return undefined;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         const query = this.omit (params, this.extractParams (path));
         const implodedPath = this.implodeParams (path, params);
-        const apiUrl = this.safeString (this.urls['api'], api);
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = apiUrl + '/' + implodedPath;
-        let getRequest: Str = undefined;
-        const keys = Object.keys (query);
-        const queryLength = keys.length;
+        const baseUrl = apiUrl + '/' + implodedPath;
+        let getRequest: string = '';
+        const queryString = this.urlencode (query);
         const headersValue: NullableDict = {
             'Content-Type': 'application/json',
         };
         if (method === 'GET') {
-            if (queryLength !== 0) {
-                getRequest = '?' + this.urlencode (query);
-                url = url + getRequest;
+            if (queryString.length !== 0) {
+                getRequest = '?' + queryString;
             }
         }
-        const bodyResolved = (method === 'GET') ? body : this.json (params);
-        if (api === 'private') {
+        const url = baseUrl + getRequest;
+        let bodyString: string = '';
+        if (method !== 'GET') {
+            bodyString = this.json (params);
+        }
+        if (apiName === 'private') {
             this.checkRequiredCredentials ();
-            const timestamp = this.nonce ().toString ();
-            const payload = [ method, '/api/3/' + implodedPath ];
-            if (method === 'GET') {
-                if (getRequest !== undefined) {
-                    payload.push (getRequest);
-                }
-            } else {
-                if (bodyResolved !== undefined) {
-                    payload.push (bodyResolved);
-                }
-            }
-            payload.push (timestamp);
-            const payloadString = payload.join ('');
+            const timestamp = this.numberToString (this.nonce ());
+            const payloadString = method + '/api/3/' + implodedPath + getRequest + bodyString + timestamp;
             const signature = this.hmac (this.encode (payloadString), this.encode (this.secret), sha256, 'hex');
             const secondPayload = this.apiKey + ':' + signature + ':' + timestamp;
-            const encoded = this.stringToBase64 (secondPayload);
-            headersValue['Authorization'] = 'HS256 ' + encoded;
+            headersValue['Authorization'] = 'HS256 ' + this.stringToBase64 (secondPayload);
         }
-        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersValue };
+        return { 'url': url, 'method': method, 'body': (method === 'GET') ? undefined : bodyString, 'headers': headersValue };
     }
 }

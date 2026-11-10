@@ -141,10 +141,6 @@ pub mod bybiteu_api;
 pub mod bybitid;
 #[cfg(feature = "bybitid")]
 pub mod bybitid_api;
-#[cfg(feature = "bydfi")]
-pub mod bydfi;
-#[cfg(feature = "bydfi")]
-pub mod bydfi_api;
 #[cfg(feature = "cex")]
 pub mod cex;
 #[cfg(feature = "cex")]
@@ -165,10 +161,6 @@ pub mod coinbaseinternational_api;
 pub mod coincheck;
 #[cfg(feature = "coincheck")]
 pub mod coincheck_api;
-#[cfg(feature = "coinex")]
-pub mod coinex;
-#[cfg(feature = "coinex")]
-pub mod coinex_api;
 #[cfg(feature = "coinmate")]
 pub mod coinmate;
 #[cfg(feature = "coinmate")]
@@ -373,6 +365,10 @@ pub mod phemex_api;
 pub mod poloniex;
 #[cfg(feature = "poloniex")]
 pub mod poloniex_api;
+#[cfg(feature = "polymarket")]
+pub mod polymarket;
+#[cfg(feature = "polymarket")]
+pub mod polymarket_api;
 #[cfg(feature = "revolutx")]
 pub mod revolutx;
 #[cfg(feature = "revolutx")]

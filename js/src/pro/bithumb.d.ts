@@ -1,9 +1,9 @@
 import bithumbRest from '../bithumb.js';
 import type { Int, OrderBook, Ticker, Trade, Strings, Tickers, Dict, Bool, Order, Str, Market, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class bithumb extends bithumbRest {
-    describe(): any;
+    describe(): Dict;
     pong(client: Client, message: any): Promise<void>;
     handlePing(client: Client, message: any): void;
     handlePong(client: Client, message: any): void;
@@ -49,8 +49,7 @@ export default class bithumb extends bithumbRest {
      */
     watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     handleOrderBook(client: Client, message: Dict): void;
-    handleBookDelta(orderbook: Ob, delta: any): void;
-    handleBookDeltas(orderbook: Ob, deltas: any): void;
+    handleBookDelta(orderbook: WsOrderBook, delta: any): void;
     /**
      * @method
      * @name bithumb#watchTrades
@@ -109,5 +108,6 @@ export default class bithumb extends bithumbRest {
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     handleOrders(client: Client, message: Dict): void;
     parseWsOrder(order: Dict, market?: Market): Order;
-    handleMessage(client: Client, message: any): void;
+    handleTextMessage(client: Client, message: string): void;
+    handleMessage(client: Client, message: Dict): void;
 }

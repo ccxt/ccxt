@@ -15,7 +15,7 @@ from ccxt.base.precise import Precise
 
 class zaif(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(zaif, self).describe(), {
             'id': 'zaif',
             'name': 'Zaif',
@@ -270,7 +270,9 @@ class zaif(Exchange, ImplicitAPI):
         name = self.safe_string(market, 'name')
         if name is None:
             raise ExchangeError(self.id + ' parseMarket() missing name')
-        baseId, quoteId = name.split('/')
+        nameParts = name.split('/')
+        baseId = self.safe_string(nameParts, 0)
+        quoteId = self.safe_string(nameParts, 1)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         if (base is None) or (quote is None):
@@ -326,7 +328,7 @@ class zaif(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         balances = self.safe_dict(response, 'return', {})
         deposit = self.safe_dict(balances, 'deposit')
         result = {
@@ -559,7 +561,7 @@ class zaif(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'return', {})
         return self.safe_order({
             'info': response,
-            'id': str(data['order_id']),
+            'id': self.number_to_string(data['order_id']),
         }, market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
@@ -711,7 +713,7 @@ class zaif(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'return', {})
         return self.parse_orders(data, market, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
 
         https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id41
@@ -720,12 +722,12 @@ class zaif(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
@@ -805,26 +807,26 @@ class zaif(Exchange, ImplicitAPI):
             'info': transaction,
         }
 
-    def custom_nonce(self):
-        num = self.number_to_string(self.milliseconds() / 1000)
-        nonce = float(num)
+    def custom_nonce(self) -> str:
+        nonce = self.milliseconds() / 1000
         return format(nonce, '.8f')
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
         baseApiUrl = self.safe_string(self.urls['api'], 'rest')
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         baseUrl = baseApiUrl
         url = baseUrl + '/'
-        if api == 'public':
+        if apiName == 'public':
             url += 'api/' + self.version + '/' + self.implode_params(path, params)
-        elif api == 'fapi':
+        elif apiName == 'fapi':
             url += 'fapi/' + self.version + '/' + self.implode_params(path, params)
         else:
             self.check_required_credentials()
-            if api == 'ecapi':
+            if apiName == 'ecapi':
                 url += 'ecapi'
-            elif api == 'tlapi':
+            elif apiName == 'tlapi':
                 url += 'tlapi'
             else:
                 url += 'tapi'
@@ -839,9 +841,9 @@ class zaif(Exchange, ImplicitAPI):
                 'Sign': self.hmac(self.encode(bodyEncoded), self.encode(self.secret), hashlib.sha512),
             }
             return {'url': url, 'method': method, 'body': bodyEncoded, 'headers': headersSigned}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
         #
@@ -854,6 +856,6 @@ class zaif(Exchange, ImplicitAPI):
             self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
             raise ExchangeError(feedback)  # unknown message
         success = self.safe_bool(response, 'success', True)
-        if success is not True:
+        if not success:
             raise ExchangeError(feedback)
         return None

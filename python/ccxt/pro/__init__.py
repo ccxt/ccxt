@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.84'
+__version__ = '4.5.92'
 
 # ----------------------------------------------------------------------------
 
@@ -81,13 +81,11 @@ from ccxt.pro.bullish import bullish                                      # noqa
 from ccxt.pro.bybit import bybit                                          # noqa: F401
 from ccxt.pro.bybiteu import bybiteu                                      # noqa: F401
 from ccxt.pro.bybitid import bybitid                                      # noqa: F401
-from ccxt.pro.bydfi import bydfi                                          # noqa: F401
 from ccxt.pro.cex import cex                                              # noqa: F401
 from ccxt.pro.coinbase import coinbase                                    # noqa: F401
 from ccxt.pro.coinbaseexchange import coinbaseexchange                    # noqa: F401
 from ccxt.pro.coinbaseinternational import coinbaseinternational          # noqa: F401
 from ccxt.pro.coincheck import coincheck                                  # noqa: F401
-from ccxt.pro.coinex import coinex                                        # noqa: F401
 from ccxt.pro.coinone import coinone                                      # noqa: F401
 from ccxt.pro.cryptocom import cryptocom                                  # noqa: F401
 from ccxt.pro.deepcoin import deepcoin                                    # noqa: F401
@@ -126,6 +124,7 @@ from ccxt.pro.pacifica import pacifica                                    # noqa
 from ccxt.pro.paradex import paradex                                      # noqa: F401
 from ccxt.pro.phemex import phemex                                        # noqa: F401
 from ccxt.pro.poloniex import poloniex                                    # noqa: F401
+from ccxt.pro.polymarket import polymarket                                # noqa: F401
 from ccxt.pro.toobit import toobit                                        # noqa: F401
 from ccxt.pro.upbit import upbit                                          # noqa: F401
 from ccxt.pro.weex import weex                                            # noqa: F401
@@ -159,13 +158,11 @@ exchanges = [
     'bybit',
     'bybiteu',
     'bybitid',
-    'bydfi',
     'cex',
     'coinbase',
     'coinbaseexchange',
     'coinbaseinternational',
     'coincheck',
-    'coinex',
     'coinone',
     'cryptocom',
     'deepcoin',
@@ -204,6 +201,7 @@ exchanges = [
     'paradex',
     'phemex',
     'poloniex',
+    'polymarket',
     'toobit',
     'upbit',
     'weex',

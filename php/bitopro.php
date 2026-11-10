@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\bitopro as Exchange;
 
 class bitopro extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitopro',
             'name' => 'BitoPro',
@@ -227,11 +227,8 @@ class bitopro extends Exchange {
             'options' => array(
                 'networks' => array(
                     'ERC20' => 'ERC20',
-                    'ETH' => 'ERC20',
-                    'TRX' => 'TRX',
                     'TRC20' => 'TRX',
                     'BEP20' => 'BSC',
-                    'BSC' => 'BSC',
                 ),
                 'fetchCurrencies' => array(
                     'fiatCurrencies' => array( 'TWD' ), // the only fiat currency for exchange
@@ -693,8 +690,8 @@ class bitopro extends Exchange {
         $type = $this->safe_string_lower($trade, 'type');
         $side = $this->safe_string_lower($trade, 'action');
         if ($side === null) {
-            $isBuyer = $this->safe_bool($trade, 'isBuyer');
-            if ($isBuyer === true) {
+            $isBuyer = $this->safe_bool($trade, 'isBuyer', false);
+            if ($isBuyer) {
                 $side = 'buy';
             } else {
                 $side = 'sell';
@@ -905,17 +902,19 @@ class bitopro extends Exchange {
         );
         // we need to have a limit argument because "to" and "from" are required
         // supports slightly more than 75k candles atm, but limit here to avoid errors
-        $limitResolved = ($limit === null) ? 500 : min($limit, 75000);
+        $limitResolved = $this->parse_to_int(($limit === null) ? 500 : min($limit, 75000));
         $timeframeInSeconds = $this->parse_timeframe($timeframe);
         $alignedSince = null;
         if ($since === null) {
-            $request['to'] = $this->seconds();
-            $request['from'] = $request['to'] - ($limitResolved * $timeframeInSeconds);
+            $toSeconds = $this->seconds();
+            $request['to'] = $toSeconds;
+            $request['from'] = $toSeconds - ($limitResolved * $timeframeInSeconds);
         } else {
             $timeframeInMilliseconds = $timeframeInSeconds * 1000;
-            $alignedSince = (int) floor($since / $timeframeInMilliseconds) * $timeframeInMilliseconds;
-            $request['from'] = (int) floor($since / 1000);
-            $request['to'] = $this->sum($request['from'], $limitResolved * $timeframeInSeconds);
+            $alignedSince = $this->parse_to_int((int) floor($since / $timeframeInMilliseconds)) * $timeframeInMilliseconds;
+            $fromSeconds = (int) floor($since / 1000);
+            $request['from'] = $fromSeconds;
+            $request['to'] = $this->sum($fromSeconds, $limitResolved * $timeframeInSeconds);
         }
         $response = $this->publicGetTradingHistoryPair($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
@@ -934,10 +933,10 @@ class bitopro extends Exchange {
         //     }
         //
         $sparse = $this->parse_ohlcvs($data, $market, $timeframe, $since, $limitResolved);
-        return $this->insert_missing_candles($sparse, $timeframeInSeconds, $alignedSince, $limitResolved);
+        return $this->insert_missing_candles($sparse, $timeframeInSeconds * 1000, $alignedSince, $limitResolved);
     }
 
-    public function insert_missing_candles(mixed $candles, float $distance, ?int $since, float $limit) {
+    public function insert_missing_candles(array $candles, float $distanceInMs, ?int $since, float $limit): array {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
         $length = count($candles);
@@ -945,10 +944,11 @@ class bitopro extends Exchange {
             return $candles;
         }
         $result = array();
-        $copyFrom = $candles[0];
+        $firstCandle = $this->safe_list($candles, 0, array());
+        $copyFrom = $firstCandle;
         $timestamp = null;
         if ($since === null) {
-            $timestamp = $copyFrom[0];
+            $timestamp = $this->safe_value($firstCandle, 0);
         } else {
             $timestamp = $since;
         }
@@ -956,28 +956,23 @@ class bitopro extends Exchange {
         $candleLength = count($candles);
         $resultLength = 0;
         while (($resultLength < $limit) && ($i < $candleLength)) {
-            $candle = $candles[$i];
+            $candle = $this->safe_list($candles, $i, array());
             if ($candle[0] === $timestamp) {
                 $result[] = $candle;
                 $i = $this->sum($i, 1);
             } else {
-                $copy = $this->array_concat(array(), $copyFrom);
-                $copy[0] = $timestamp;
                 // set open, high, low to close
-                $copy[1] = $copy[4];
-                $copy[2] = $copy[4];
-                $copy[3] = $copy[4];
-                $copy[5] = $this->parse_number('0');
-                $result[] = $copy;
+                $closeValue = $this->safe_value($copyFrom, 4);
+                $result[] = array( $timestamp, $closeValue, $closeValue, $closeValue, $closeValue, $this->parse_number('0') );
             }
-            $timestamp = $this->sum($timestamp, $distance * 1000);
+            $timestamp = $this->sum($timestamp, $distanceInMs);
             $resultLength = count($result);
-            $copyFrom = $result[$resultLength - 1];
+            $copyFrom = $this->safe_value($result, $resultLength - 1);
         }
         return $result;
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance_list(array $response): array {
         //
         //     [{
         //         "currency":"twd",
@@ -990,8 +985,9 @@ class bitopro extends Exchange {
         $result = array(
             'info' => $response,
         );
-        for ($i = 0; $i < count($response); $i++) {
-            $balance = $this->safe_dict($response, $i);
+        $rows = $this->to_array($response);
+        for ($i = 0; $i < count($rows); $i++) {
+            $balance = $this->safe_dict($rows, $i);
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $amount = $this->safe_string($balance, 'amount');
@@ -1034,10 +1030,10 @@ class bitopro extends Exchange {
         //         ]
         //     }
         //
-        return $this->parse_balance($balances);
+        return $this->parse_balance_list($balances);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             '-1' => 'open',
             '0' => 'open',
@@ -1241,12 +1237,12 @@ class bitopro extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function parse_cancel_orders(mixed $data) {
+    public function parse_cancel_orders(array $data): array {
         $dataKeys = is_array($data) ? array_keys($data) : array();
         $orders = array();
         for ($i = 0; $i < count($dataKeys); $i++) {
             $marketId = $dataKeys[$i];
-            $orderIds = $data[$marketId];
+            $orderIds = $this->safe_list($data, $marketId, array());
             for ($j = 0; $j < count($orderIds); $j++) {
                 $orders[] = $this->safe_order(array(
                     'info' => $orderIds[$j],
@@ -1276,7 +1272,7 @@ class bitopro extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $id = $market['uppercaseId'];
+        $id = $this->safe_string($market, 'uppercaseId');
         $request = array();
         if ($id !== null) {
             $request[$id] = $ids;
@@ -1292,7 +1288,7 @@ class bitopro extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_dict($response, 'data');
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_cancel_orders($data);
     }
 
@@ -1539,7 +1535,7 @@ class bitopro extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $states = array(
             'COMPLETE' => 'ok',
             'INVALID' => 'failed',
@@ -1789,7 +1785,7 @@ class bitopro extends Exchange {
         return $this->parse_transaction($result, $currency);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -1798,15 +1794,15 @@ class bitopro extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $this->check_address($address);
+        $this->check_address($address, $code, $tagWithdrawTag);
         $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
@@ -1821,7 +1817,7 @@ class bitopro extends Exchange {
         if ($hasNetwork) {
             $networks = $this->safe_dict($this->options, 'networks', array());
             $requestedNetwork = $this->safe_string_upper($paramsWithdrawTag, 'network');
-            $networkId = ($requestedNetwork === null) ? null : $this->safe_string($networks, $requestedNetwork);
+            $networkId = ($requestedNetwork === null) ? null : $this->safe_string($networks, $this->safe_string($this->networkAliases, $requestedNetwork, $requestedNetwork));
             if ($networkId === null) {
                 throw new ExchangeError($this->id . ' invalid network ' . $requestedNetwork);
             }
@@ -1848,7 +1844,7 @@ class bitopro extends Exchange {
         return $this->parse_transaction($result, $currency);
     }
 
-    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null): mixed {
+    public function parse_deposit_withdraw_fee(?array $fee, ?array $currency = null): mixed {
         //    {
         //        "currency":"eth",
         //        "withdrawFee":"0.007",
@@ -1907,18 +1903,22 @@ class bitopro extends Exchange {
         return $this->parse_deposit_withdraw_fees($data, $codes, 'currency');
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $url = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        $requestHeaders = ($headers === null) ? array() : $headers;
-        $isSignedBody = ($api === 'private') && (($method === 'POST') || ($method === 'PUT'));
+        // keep `Object.keys (x).length` in one expression: the PHP transpiler rewrites that exact shape into
+        // count(x), while a hoisted key list is printed as an array and `.length` then becomes strlen(array)
+        $queryLength = count($query);
+        $requestHeaders = array();
+        $isSignedBody = ($apiName === 'private') && (($method === 'POST') || ($method === 'PUT'));
         $signedBody = $this->json($params);
-        $requestBody = $body;
+        $requestBody = null;
         if ($isSignedBody) {
             $requestBody = $signedBody;
         }
         $requestHeaders['X-BITOPRO-API'] = 'ccxt';
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             if ($method === 'POST' || $method === 'PUT') {
                 $payload = base64_encode($signedBody);
@@ -1927,7 +1927,7 @@ class bitopro extends Exchange {
                 $requestHeaders['X-BITOPRO-PAYLOAD'] = $payload;
                 $requestHeaders['X-BITOPRO-SIGNATURE'] = $signature;
             } elseif ($method === 'GET' || $method === 'DELETE') {
-                if (count($query) > 0) {
+                if ($queryLength > 0) {
                     $url .= '?' . $this->urlencode($query);
                 }
                 $nonce = $this->milliseconds();
@@ -1941,8 +1941,8 @@ class bitopro extends Exchange {
                 $requestHeaders['X-BITOPRO-PAYLOAD'] = $payload;
                 $requestHeaders['X-BITOPRO-SIGNATURE'] = $signature;
             }
-        } elseif ($api === 'public' && $method === 'GET') {
-            if (count($query) > 0) {
+        } elseif ($apiName === 'public' && $method === 'GET') {
+            if ($queryLength > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         }
@@ -1954,11 +1954,12 @@ class bitopro extends Exchange {
         return array( 'url' => $fullUrl, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to the default error handler
         }
-        if ($code >= 200 && $code < 300) {
+        $statusCode = $this->parse_to_int($code);
+        if ($statusCode >= 200 && $statusCode < 300) {
             return null;
         }
         $feedback = $this->id . ' ' . $body;

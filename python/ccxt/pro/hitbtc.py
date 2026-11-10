@@ -15,7 +15,7 @@ from ccxt.base.errors import NotSupported
 
 class hitbtc(ccxt.async_support.hitbtc):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(hitbtc, self).describe(), self.describe_data())
 
     def describe_data(self) -> object:
@@ -32,6 +32,8 @@ class hitbtc(ccxt.async_support.hitbtc):
                 'watchOrders': True,
                 'watchOHLCV': True,
                 'watchMyTrades': False,
+                'unWatchTrades': True,
+                'unWatchOHLCV': True,
                 'createOrderWs': True,
                 'cancelOrderWs': True,
                 'fetchOpenOrdersWs': True,
@@ -93,7 +95,8 @@ class hitbtc(ccxt.async_support.hitbtc):
         :returns dict: response from exchange
         """
         self.check_required_credentials()
-        url = self.urls['api']['ws']['private']
+        wsUrls = self.safe_dict(self.urls['api'], 'ws')
+        url = self.safe_string(wsUrls, 'private')
         messageHash = 'authenticated'
         client = self.client(url)
         future = client.reusableFuture(messageHash)
@@ -147,11 +150,13 @@ class hitbtc(ccxt.async_support.hitbtc):
         symbolsNormalized = self.market_symbols(symbols)
         isBatch = name.find('batch') >= 0
         resolvedPerSymbol = not isBatch or (messageHashPrefix == 'orderbooks')  # handleOrderBook resolves only per-symbol hashes, also on the batch channels
-        url = self.urls['api']['ws']['public']
+        wsUrls = self.safe_dict(self.urls['api'], 'ws')
+        url = self.safe_string(wsUrls, 'public')
         messageHashes = []
         if symbolsNormalized is not None and resolvedPerSymbol:
             for i in range(0, len(symbolsNormalized)):
-                messageHashes.append(messageHashPrefix + '::' + symbolsNormalized[i])
+                symbolId = symbolsNormalized[i]
+                messageHashes.append(messageHashPrefix + '::' + symbolId)
         else:
             messageHashes.append(messageHashPrefix)
         requestId = self.incrementing_nonce()
@@ -166,6 +171,41 @@ class hitbtc(ccxt.async_support.hitbtc):
         }
         return await self.watch_multiple(url, messageHashes, request, messageHashes, subscription)
 
+    async def un_subscribe_public(self, name: str, messageHashPrefix: str, symbols: list[str], subscription: dict, params: dict = {}):
+        """
+ @ignore
+        unsubscribes from a public websocket channel
+        :param str name: websocket endpoint name
+        :param str messageHashPrefix: prefix of the message hashes the matching watch method subscribed with
+        :param str[] symbols: unified CCXT symbols
+        :param dict subscription: the topic and symbols of the caches to clean once the unsubscribe is acknowledged
+        :param dict [params]: extra parameters specific to the hitbtc api
+        :returns boolean: True once the exchange acknowledges the unsubscribe
+        """
+        url = self.urls['api']['ws']['public']
+        subMessageHashes = []
+        messageHashes = []
+        for i in range(0, len(symbols)):
+            subMessageHash = messageHashPrefix + '::' + symbols[i]
+            subMessageHashes.append(subMessageHash)
+            messageHashes.append('unsubscribe:' + subMessageHash)
+        requestId = self.incrementing_nonce()
+        request = {
+            'method': 'unsubscribe',
+            'id': requestId,
+            'ch': name,
+            'params': {
+                'symbols': self.market_ids(symbols),
+            },
+        }
+        unsubscription = self.extend(subscription, {
+            'id': requestId,
+            'unsubscribe': True,
+            'subMessageHashes': subMessageHashes,
+            'messageHashes': messageHashes,
+        })
+        return await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes, unsubscription)
+
     async def subscribe_private(self, name: str, symbol: Str = None, params: dict = {}):
         """
  @ignore
@@ -176,11 +216,13 @@ class hitbtc(ccxt.async_support.hitbtc):
         if self.markets is None:
             await self.load_markets()
         await self.authenticate()
-        url = self.urls['api']['ws']['private']
+        wsUrls = self.safe_dict(self.urls['api'], 'ws')
+        url = self.safe_string(wsUrls, 'private')
         splitName = name.split('_subscribe')
-        messageHash = self.safe_string(splitName, 0, '')
+        messageHashBase = self.safe_string(splitName, 0, '')
+        messageHash = messageHashBase
         if symbol is not None:
-            messageHash = messageHash + '::' + symbol
+            messageHash = messageHashBase + '::' + symbol
         requestId = self.incrementing_nonce()
         subscribe = {
             'method': name,
@@ -201,8 +243,10 @@ class hitbtc(ccxt.async_support.hitbtc):
         if self.markets is None:
             await self.load_markets()
         await self.authenticate()
-        url = self.urls['api']['ws']['private']
-        messageHash = str(self.incrementing_nonce())
+        wsUrls = self.safe_dict(self.urls['api'], 'ws')
+        url = self.safe_string(wsUrls, 'private')
+        requestId = self.incrementing_nonce()
+        messageHash = self.number_to_string(requestId)
         subscribe = {
             'method': name,
             'params': params,
@@ -296,7 +340,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
-            symbol = market['symbol']
+            symbol = self.safe_symbol(marketId, market)
             item = data[marketId]
             messageHash = 'orderbooks::' + symbol
             if not (symbol in self.orderbooks):
@@ -325,10 +369,6 @@ class hitbtc(ccxt.async_support.hitbtc):
         price = self.safe_number(delta, 0)
         amount = self.safe_number(delta, 1)
         bookside.store(price, amount)
-
-    def handle_deltas(self, bookside: object, deltas: object):
-        for i in range(0, len(deltas)):
-            self.handle_delta(bookside, deltas[i])
 
     async def watch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -442,7 +482,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
-            symbol = market['symbol']
+            symbol = self.safe_symbol(marketId, market)
             ticker = self.parse_ws_ticker(data[marketId], market)
             self.tickers[symbol] = ticker
             result.append(ticker)
@@ -564,7 +604,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
-            symbol = market['symbol']
+            symbol = self.safe_symbol(marketId, market)
             ticker = self.parse_ws_bid_ask(data[marketId], market)
             self.bidsasks[symbol] = ticker
             result.append(ticker)
@@ -617,6 +657,24 @@ class hitbtc(ccxt.async_support.hitbtc):
             limitResolved = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp')
 
+    async def un_watch_trades(self, symbol: str, params: dict = {}) -> object:
+        """
+        unWatches the list of most recent trades for a particular symbol
+
+        https://api.hitbtc.com/#subscribe-to-trades
+
+        :param str symbol: unified symbol of the market to unwatch the trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: True once hitbtc acknowledges the unsubscribe
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        subscription = {
+            'topic': 'trades',
+            'symbols': [market['symbol']],
+        }
+        return await self.un_subscribe_public('trades', 'trades', [market['symbol']], subscription, params)
+
     def handle_trades(self, client: Client, message: dict) -> dict:
         #
         #    {
@@ -663,7 +721,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
             tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
-            symbol = market['symbol']
+            symbol = self.safe_symbol(marketId, market)
             stored = self.safe_value(self.trades, symbol)
             if stored is None:
                 stored = ArrayCache(tradesLimit)
@@ -728,18 +786,40 @@ class hitbtc(ccxt.async_support.hitbtc):
         period = self.safe_string(self.timeframes, timeframe, timeframe)
         name = 'candles/' + period
         market = self.market(symbol)
-        request = {
-            'params': {
-                'symbols': [market['id']],
-            },
+        subscribeParams = {
+            'symbols': [market['id']],
         }
         if limit is not None:
-            request['params']['limit'] = limit
-        ohlcv = await self.subscribe_public(name, 'candles', [symbol], self.deep_extend(request, params))
+            subscribeParams['limit'] = limit
+        request = {
+            'params': subscribeParams,
+        }
+        ohlcv = await self.subscribe_public(name, name, [symbol], self.deep_extend(request, params))
         limitResolved = limit
         if self.newUpdates:
             limitResolved = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limitResolved, 0)
+
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params: dict = {}) -> object:
+        """
+        unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+        https://api.hitbtc.com/#subscribe-to-candles
+
+        :param str symbol: unified symbol of the market to unwatch the OHLCV data for
+        :param str [timeframe]: the length of time each candle represents
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: True once hitbtc acknowledges the unsubscribe
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        period = self.safe_string(self.timeframes, timeframe, timeframe)
+        name = 'candles/' + period
+        subscription = {
+            'topic': 'ohlcv',
+            'symbolsAndTimeframes': [[market['symbol'], timeframe]],
+        }
+        return await self.un_subscribe_public(name, name, [market['symbol']], subscription, params)
 
     def handle_ohlcv(self, client: Client, message: dict) -> dict:
         #
@@ -786,17 +866,19 @@ class hitbtc(ccxt.async_support.hitbtc):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
-            symbol = market['symbol']
+            symbol = self.safe_symbol(marketId, market)
             self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
             stored = self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe)
             if stored is None:
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                 stored = ArrayCacheByTimestamp(limit)
                 self.ohlcvs[symbol][timeframe] = stored
-            ohlcvs = self.parse_ws_ohlcvs(data[marketId], market)
-            for j in range(0, len(ohlcvs)):
-                stored.append(ohlcvs[j])
-            messageHash = 'candles::' + symbol
+            # parsed one by one so the go and rust ports call hitbtc's parseWsOHLCV, not the base one
+            rawOhlcvs = self.safe_list(data, marketId, [])
+            for j in range(0, len(rawOhlcvs)):
+                parsed = self.parse_ws_ohlcv(rawOhlcvs[j], market)
+                stored.append(parsed)
+            messageHash = channel + '::' + symbol
             client.resolve(stored, messageHash)
         return message
 
@@ -928,9 +1010,9 @@ class hitbtc(ccxt.async_support.hitbtc):
         return message
 
     def handle_order_helper(self, client: Client, message: dict, order: dict):
-        orders = self.orders
-        if orders is None:
+        if self.orders is None:
             return
+        orders = self.orders
         marketId = self.safe_string_lower_2(order, 'instrument', 'symbol')
         method = self.safe_string(message, 'method', '')
         splitMethod = method.split('_order')
@@ -1231,8 +1313,24 @@ class hitbtc(ccxt.async_support.hitbtc):
         #
         messageHash = self.safe_string(message, 'method')
         params = self.safe_list(message, 'params', [])
-        balance = self.parse_balance(params)
-        self.balance = self.deep_extend(self.balance, balance)
+        # merge the parsed update into the existing balance object instead of
+        # replacing it: a consumer awakened by an earlier message holds a
+        # reference to this.balance, and Client.resolve is a no-op while
+        # nobody is awaiting, so a replaced object would make updates landing
+        # in that window invisible to the consumer forever (same class as
+        # issue #26773); the free/used/total aggregates are rebuilt from the
+        # merged currencies by safeBalance
+        balance = self.parseBalanceList(params)
+        if self.balance is None:
+            self.balance = {}
+        reserved = ['free', 'used', 'total']
+        keys = list(balance.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if self.in_array(key, reserved):
+                continue
+            self.balance[key] = balance[key]
+        self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, messageHash)
 
     def handle_notification(self, client: Client, message: dict) -> dict:
@@ -1308,11 +1406,15 @@ class hitbtc(ccxt.async_support.hitbtc):
                 'spot_balance': self.handle_balance,
                 'futures_balance': self.handle_balance,
             }
-            method = None if (channel is None) else self.safe_value(methods, channel)
+            method = self.safe_value(methods, channel)
             if method is not None:
                 method(client, message)
         else:
             result = self.safe_value(message, 'result')
+            resultChannel = self.safe_string(result, 'ch')
+            if resultChannel is not None:
+                self.handle_un_subscription(client, message)
+                return
             clientOrderId = self.safe_string(result, 'client_order_id')
             if clientOrderId is not None:
                 self.handle_order_request(client, message)
@@ -1325,6 +1427,34 @@ class hitbtc(ccxt.async_support.hitbtc):
                 if (arrayLength == 0) or ('client_order_id' in first):
                     self.handle_order_request(client, message)
 
+    def handle_un_subscription(self, client: Client, message: dict):
+        #
+        # hitbtc answers subscribe and unsubscribe requests alike, listing the symbols still subscribed on the channel
+        #
+        #    {
+        #        "result": {
+        #            "ch": "trades",
+        #            "subscriptions": [ "ETHUSDT" ]
+        #        },
+        #        "id": 1793679985268
+        #    }
+        #
+        # the answers can arrive in a different order than the requests, so they are matched by id
+        #
+        id = self.safe_string(message, 'id')
+        subscriptionHashes = list(client.subscriptions.keys())
+        for i in range(0, len(subscriptionHashes)):
+            subscription = client.subscriptions[subscriptionHashes[i]]
+            isUnSubscription = self.safe_bool(subscription, 'unsubscribe', False)
+            subscriptionId = self.safe_string(subscription, 'id')
+            if isUnSubscription and (subscriptionId is not None) and (subscriptionId == id):
+                subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
+                messageHashes = self.safe_list(subscription, 'messageHashes', [])
+                for j in range(0, len(subMessageHashes)):
+                    self.clean_unsubscription(client, subMessageHashes[j], messageHashes[j])
+                self.clean_cache(subscription)
+                return
+
     def handle_authenticate(self, client: Client, message: dict) -> dict:
         #
         #    {
@@ -1332,9 +1462,9 @@ class hitbtc(ccxt.async_support.hitbtc):
         #        "result": true
         #    }
         #
-        success = self.safe_bool(message, 'result')
+        success = self.safe_bool(message, 'result', False)
         messageHash = 'authenticated'
-        if success is True:
+        if success:
             future = self.safe_value(client.futures, messageHash)
             future.resolve(True)
         else:

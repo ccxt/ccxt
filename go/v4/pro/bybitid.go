@@ -15,11 +15,10 @@ func newBybitid() *Bybitid {
 	base := newBybit()
 	p.base = base
 	p.Bybit = base
-	ccxt.SetDefaults(p)
 	return p
 }
 
-func (this *Bybitid) Describe() any {
+func (this *Bybitid) Describe() map[string]any {
 	// eslint-disable-next-line new-cap
 	restInstance := ccxt.NewBybitid(nil)
 	var restDescribe any = restInstance.Describe()

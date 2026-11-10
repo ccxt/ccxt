@@ -67,7 +67,7 @@ class pacifica extends pacifica$1["default"] {
                 'fetchCurrencies': false,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
@@ -107,11 +107,11 @@ class pacifica extends pacifica$1["default"] {
                 'fetchTime': undefined,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
-                'fetchTradingFees': false,
+                'fetchTradingFees': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
@@ -576,11 +576,11 @@ class pacifica extends pacifica$1["default"] {
             return false;
         }
         const buildFee = this.safeBool(this.options, 'builderFee', true);
-        if (buildFee !== true) {
+        if (!buildFee) {
             return false; // skip if builder fee is not enabled
         }
         const approvedBuilderFee = this.safeBool(this.options, 'approvedBuilderFee', false);
-        if (approvedBuilderFee === true) {
+        if (approvedBuilderFee) {
             return true; // skip if builder fee is already approved
         }
         try {
@@ -722,7 +722,7 @@ class pacifica extends pacifica$1["default"] {
             contractSize = this.parseNumber('1');
             minLeverage = 1;
             maxLeverage = this.safeInteger(market, 'max_leverage');
-            crossMargin = isolatedOnly !== true;
+            crossMargin = !isolatedOnly;
             isolatedMargin = true;
         }
         const base = this.safeCurrencyCode(baseId);
@@ -733,7 +733,7 @@ class pacifica extends pacifica$1["default"] {
         const settle = this.safeCurrencyCode(settleId);
         let symbol = base + '/' + quote;
         if (isSwap) {
-            symbol = symbol + ':' + settle;
+            symbol = base + '/' + quote + ':' + quote;
         }
         const fees = this.safeDict(this.fees, type, {});
         const taker = this.safeNumber(fees, 'taker');
@@ -891,9 +891,8 @@ class pacifica extends pacifica$1["default"] {
         }
         const market = this.market(symbol);
         const [userAccount, paramsOriginAndSingleAddress] = this.handleOriginAndSingleAddress('fetchLeverage', params);
-        const cacheAddress = this.walletAddress;
         let settings = undefined;
-        if (userAccount === cacheAddress) {
+        if (userAccount === this.walletAddress) {
             settings = this.handleOption('fetchLeverage', 'settings');
         }
         else {
@@ -925,7 +924,7 @@ class pacifica extends pacifica$1["default"] {
         const isIsolated = this.safeBool(setting, 'isolated', false);
         const leverage = this.safeInteger(setting, 'leverage');
         let marginMode = 'cross';
-        if (isIsolated === true) {
+        if (isIsolated) {
             marginMode = 'isolated';
         }
         return {
@@ -980,7 +979,7 @@ class pacifica extends pacifica$1["default"] {
     }
     async loadAccountSettings(refresh = false, params = {}) {
         let settings = this.handleOption('loadAccountSettings', 'settings');
-        if ((settings === undefined) || (refresh === true)) {
+        if ((settings === undefined) || (refresh)) {
             this.options['settings'] = this.createSafeDictionary();
             settings = await this.fetchAccountSettings(params);
             this.options['settings'] = settings;
@@ -992,11 +991,12 @@ class pacifica extends pacifica$1["default"] {
             return {};
         }
         const settingsBySymbol = {};
-        for (let i = 0; i < settings.length; i++) {
-            const marketId = settings[i]['symbol'];
+        for (let i = 0; i < settingsLen; i++) {
+            const setting = settings[i];
+            const marketId = this.safeString(setting, 'symbol');
             const market = this.safeMarket(marketId);
             const symbol = market['symbol'];
-            settingsBySymbol[symbol] = settings[i];
+            settingsBySymbol[symbol] = setting;
         }
         return settingsBySymbol;
     }
@@ -1013,9 +1013,8 @@ class pacifica extends pacifica$1["default"] {
     async fetchMarginMode(symbol, params = {}) {
         await this.loadAccountSettings();
         const [userAccount, paramsOriginAndSingleAddress] = this.handleOriginAndSingleAddress('fetchMarginMode', params);
-        const cacheAddress = this.walletAddress;
         let settings = undefined;
-        if (userAccount === cacheAddress) {
+        if (userAccount === this.walletAddress) {
             settings = this.handleOption('fetchMarginMode', 'settings');
         }
         else {
@@ -1057,7 +1056,7 @@ class pacifica extends pacifica$1["default"] {
         // }
         const isIsolated = this.safeBool(setting, 'isolated', false);
         let marginMode = 'cross';
-        if (isIsolated === true) {
+        if (isIsolated) {
             marginMode = 'isolated';
         }
         return {
@@ -1190,7 +1189,8 @@ class pacifica extends pacifica$1["default"] {
         const oraclePx = this.safeNumber(info, 'oracle');
         const nextFundingRate = this.safeNumber(info, 'next_funding');
         const timestamp = this.safeInteger(info, 'timestamp');
-        const fundingTimestamp = (Math.floor(this.milliseconds() / 60 / 60 / 1000) + 1) * 60 * 60 * 1000;
+        const currentHour = this.parseToInt(this.milliseconds() / 60 / 60 / 1000);
+        const fundingTimestamp = (currentHour + 1) * 60 * 60 * 1000;
         return {
             'info': info,
             'symbol': symbol,
@@ -1227,12 +1227,6 @@ class pacifica extends pacifica$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        if (since === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOHLCV() requires a "since" argument');
-        }
-        if (symbol === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' fetchOHLCV() requires a "symbol" argument');
-        }
         const defaultMaxLimit = 3950; // 4000 by docs, but in fact >~3960 returns error
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -1242,27 +1236,30 @@ class pacifica extends pacifica$1["default"] {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, defaultMaxLimit);
         }
+        const limitValue = (limit === undefined) ? defaultMaxLimit : limit;
         const tf = this.safeString(this.timeframes, timeframe, timeframe);
+        const nowMs = this.milliseconds();
+        const duration = this.parseTimeframe(tf) * 1000;
         const request = {
             'symbol': market['id'],
             'interval': tf,
-            'start_time': since,
         };
+        let sinceValue = since;
         const [requestUntil, paramsUntil] = this.handleUntilOption('end_time', request, paramsPaginate);
-        const nowMillis = this.milliseconds();
-        let until = this.safeInteger(requestUntil, 'end_time');
-        if (until === undefined) {
-            if (limit !== undefined) {
-                until = since + (limit * (this.parseTimeframe(tf) * 1000)) - 1;
+        if (this.safeInteger(requestUntil, 'end_time') === undefined) {
+            if (sinceValue === undefined) {
+                sinceValue = nowMs - limitValue * duration;
             }
-            if (until === undefined) {
-                until = since + (defaultMaxLimit * (this.parseTimeframe(tf) * 1000)) - 1;
-            }
-            if (until > nowMillis) {
-                until = nowMillis;
-            }
+            const windowEnd = this.parseToInt(this.sum(sinceValue - 1, limitValue * duration));
+            const until = (windowEnd > nowMs) ? nowMs : windowEnd;
             requestUntil['end_time'] = until;
         }
+        else {
+            if (sinceValue === undefined) {
+                sinceValue = requestUntil['end_time'] - limitValue * duration;
+            }
+        }
+        requestUntil['start_time'] = sinceValue;
         const response = await this.publicGetKline(this.extend(requestUntil, paramsUntil));
         //
         // {
@@ -1560,7 +1557,7 @@ class pacifica extends pacifica$1["default"] {
         //
         const success = this.safeBool(response, 'success', false);
         let status = undefined;
-        if (success !== true) {
+        if (!success) {
             status = 'rejected';
         }
         else {
@@ -1607,7 +1604,7 @@ class pacifica extends pacifica$1["default"] {
             'symbol': market['id'],
             'side': this.mapSide(side),
         };
-        let operationType = undefined;
+        let operationType = 'create_order';
         const reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only', false);
         const orderType = type.toUpperCase();
         const triggerPrice = this.safeString(params, 'triggerPrice');
@@ -1718,8 +1715,9 @@ class pacifica extends pacifica$1["default"] {
         //  Cancel (Only common (limit) orders)
         //
         const lenActions = actions.length;
-        const maxLen = this.handleOption('batchOrdersRequest', 'batchOrdersMax');
-        if (maxLen !== undefined) {
+        const maxLenOption = this.handleOption('batchOrdersRequest', 'batchOrdersMax');
+        if (maxLenOption !== undefined) {
+            const maxLen = this.parseToInt(maxLenOption);
             if (lenActions > maxLen) {
                 throw new errors.ExchangeError(this.id + ' batchOrdersRequest() too many orders to create/cancel. Limit is ' + this.numberToString(maxLen));
             }
@@ -1796,7 +1794,7 @@ class pacifica extends pacifica$1["default"] {
             const error = this.safeString(order, 'error');
             const success = this.safeBool(order, 'success', false);
             let status = undefined;
-            if ((error !== undefined) || (success !== true)) {
+            if ((error !== undefined) || (!success)) {
                 status = 'rejected';
             }
             else {
@@ -1857,7 +1855,7 @@ class pacifica extends pacifica$1["default"] {
             const error = this.safeString(order, 'error');
             const success = this.safeBool(order, 'success', false);
             let status = undefined;
-            if ((error !== undefined) || (success !== true)) {
+            if ((error !== undefined) || (!success)) {
                 status = 'closed';
             }
             else {
@@ -1870,7 +1868,7 @@ class pacifica extends pacifica$1["default"] {
     cancelOrdersRequest(ids, symbol = undefined, params = {}) {
         const actions = [];
         for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
+            const id = this.safeString(ids, i);
             const request = this.cancelOrderRequest(id, symbol, params);
             const action = {
                 'type': 'Cancel',
@@ -1971,7 +1969,7 @@ class pacifica extends pacifica$1["default"] {
         const isStopOrder = this.safeBool2(params, 'trigger', 'stop', false);
         const paramsOmitted = this.omit(params, ['expiryWindow', 'trigger', 'stop', 'clientOrderId']);
         let response = undefined;
-        if (isStopOrder === true) {
+        if (isStopOrder) {
             response = await this.privatePostOrdersStopCancel(this.extend(request, paramsOmitted));
         }
         else {
@@ -1986,7 +1984,7 @@ class pacifica extends pacifica$1["default"] {
         //
         const success = this.safeBool(response, 'success', false);
         let status = 'closed';
-        if (success === true) {
+        if (success) {
             status = 'canceled';
         }
         return this.safeOrder({ 'id': id, 'status': status, 'info': response, 'symbol': symbol });
@@ -1994,12 +1992,9 @@ class pacifica extends pacifica$1["default"] {
     cancelOrderRequest(id, symbol = undefined, params = {}) {
         const market = this.market(symbol);
         const isStopOrder = this.safeBool2(params, 'trigger', 'stop', false);
-        let operationType = undefined;
-        if (isStopOrder === true) {
+        let operationType = 'cancel_order';
+        if (isStopOrder) {
             operationType = 'cancel_stop_order';
-        }
-        else {
-            operationType = 'cancel_order';
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
         const sigPayload = {
@@ -2405,15 +2400,14 @@ class pacifica extends pacifica$1["default"] {
         // }
         //
         const data = this.addPaginationCursorToResult(response);
-        const orders = this.parseOrders(data, market, since, limit);
-        return orders;
+        return this.parseOrders(data, market, since, limit);
     }
     addPaginationCursorToResult(response) {
         const data = this.safeList(response, 'data', []);
         const paginationCursor = this.safeString(response, 'next_cursor');
         const hasMore = this.safeBool(response, 'has_more', false);
         const dataLength = data.length;
-        if (hasMore === true) {
+        if (hasMore) {
             if ((paginationCursor !== undefined) && (dataLength > 0)) {
                 const first = data[0];
                 first['next_cursor'] = paginationCursor;
@@ -2520,10 +2514,10 @@ class pacifica extends pacifica$1["default"] {
             'TOB': 'TOB',
             'ALO': 'ALO',
         };
-        let tif = undefined;
-        if (tifRaw !== undefined) {
-            tif = tifRaw.toUpperCase();
+        if (tifRaw === undefined) {
+            return 'GTC';
         }
+        const tif = tifRaw.toUpperCase();
         return this.safeString(tifMap, tif, 'GTC');
     }
     mapSide(sideRaw) {
@@ -2753,8 +2747,12 @@ class pacifica extends pacifica$1["default"] {
         const marketResolved = this.safeMarket(marketId, market);
         const symbol = marketResolved['symbol'];
         const margin = this.safeString(position, 'margin');
-        const marginMode = (margin !== undefined && margin !== '0') ? 'isolated' : 'cross';
-        const isIsolated = (marginMode === 'isolated');
+        const rawIsolated = this.safeBool(position, 'isolated');
+        let isIsolated = (margin !== undefined) && (margin !== '0');
+        if (rawIsolated !== undefined) {
+            isIsolated = (rawIsolated === true);
+        }
+        const marginMode = isIsolated ? 'isolated' : 'cross';
         let side = this.safeString(position, 'side');
         if (side !== undefined) {
             side = (side === 'bid') ? 'long' : 'short';
@@ -2775,13 +2773,13 @@ class pacifica extends pacifica$1["default"] {
             'markPrice': undefined,
             'notional': undefined,
             'leverage': undefined,
-            'collateral': margin,
+            'collateral': this.safeNumber(position, 'margin'),
             'initialMargin': undefined,
             'maintenanceMargin': undefined,
             'initialMarginPercentage': undefined,
             'maintenanceMarginPercentage': undefined,
             'unrealizedPnl': undefined,
-            'liquidationPrice': undefined,
+            'liquidationPrice': this.safeNumber(position, 'liquidation_price'),
             'marginMode': marginMode,
             'percentage': undefined,
         });
@@ -2857,12 +2855,12 @@ class pacifica extends pacifica$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address validated but not sent, funds go to the account wallet
-     * @param {string} tag not used by withdraw ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
         const operationType = 'withdraw';
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -2920,6 +2918,33 @@ class pacifica extends pacifica$1["default"] {
         // }
         const data = this.safeDict(response, 'data', {});
         return this.parseTradingFee(data, market);
+    }
+    /**
+     * @method
+     * @name pacifica#fetchTradingFees
+     * @description fetch the trading fees for multiple markets, the account fee level applies to every market
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+     */
+    async fetchTradingFees(params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const [userAddress, paramsOriginAndSingleAddress] = this.handleOriginAndSingleAddress('fetchTradingFees', params);
+        const request = {
+            'account': userAddress,
+        };
+        const response = await this.publicGetAccount(this.extend(request, paramsOriginAndSingleAddress));
+        const data = this.safeDict(response, 'data', {});
+        const result = {};
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            result[symbol] = this.parseTradingFee(data, this.market(symbol));
+        }
+        return result;
     }
     parseTradingFee(fee, market = undefined) {
         //
@@ -3089,25 +3114,35 @@ class pacifica extends pacifica$1["default"] {
         //
         const timestamp = this.safeInteger(item, 'created_at');
         const type = this.safeString(item, 'event_type');
-        const amount = this.safeString(item, 'amount');
+        const change = this.safeString(item, 'amount');
         const balance = this.safeString(item, 'balance');
+        const currencyResolved = this.safeCurrency('USDC', currency);
+        let direction = undefined;
+        let amount = change;
+        if (Precise["default"].stringLt(amount, '0')) {
+            direction = 'out';
+            amount = Precise["default"].stringAbs(amount);
+        }
+        else {
+            direction = 'in';
+        }
         return this.safeLedgerEntry({
             'info': item,
             'id': undefined,
-            'direction': undefined,
+            'direction': direction,
             'account': undefined,
             'referenceAccount': undefined,
             'referenceId': undefined,
             'type': this.parseLedgerEntryType(type),
-            'currency': undefined,
+            'currency': currencyResolved['code'],
             'amount': this.parseNumber(amount),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'before': undefined,
+            'before': this.parseNumber(Precise["default"].stringSub(balance, change)),
             'after': this.parseNumber(balance),
             'status': undefined,
             'fee': undefined,
-        }, currency);
+        }, currencyResolved);
     }
     parseLedgerEntryType(type) {
         const ledgerType = {
@@ -3128,6 +3163,98 @@ class pacifica extends pacifica$1["default"] {
             'payout': 'payout',
         };
         return this.safeString(ledgerType, type, type);
+    }
+    /**
+     * @method
+     * @name pacifica#fetchDeposits
+     * @description fetch all USDC deposits made to an account, spot asset deposits are not included
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const [userAddress, paramsAddress] = this.handleOriginAndSingleAddress('fetchDeposits', params);
+        const request = {
+            'account': userAddress,
+        };
+        const response = await this.publicGetAccountBalanceHistory(this.extend(request, paramsAddress));
+        const data = this.safeList(response, 'data', []);
+        const transactions = this.parseTransactions(data, this.safeCurrency(code));
+        const deposits = this.filterBy(transactions, 'type', 'deposit');
+        return this.filterBySinceLimit(deposits, since, limit, 'timestamp');
+    }
+    /**
+     * @method
+     * @name pacifica#fetchWithdrawals
+     * @description fetch all USDC withdrawals made from an account, spot asset withdrawals are not included
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const [userAddress, paramsAddress] = this.handleOriginAndSingleAddress('fetchWithdrawals', params);
+        const request = {
+            'account': userAddress,
+        };
+        const response = await this.publicGetAccountBalanceHistory(this.extend(request, paramsAddress));
+        const data = this.safeList(response, 'data', []);
+        const transactions = this.parseTransactions(data, this.safeCurrency(code));
+        const withdrawals = this.filterBy(transactions, 'type', 'withdrawal');
+        return this.filterBySinceLimit(withdrawals, since, limit, 'timestamp');
+    }
+    parseTransaction(transaction, currency = undefined) {
+        //
+        //     {
+        //         "amount": "5000",
+        //         "balance": "5000",
+        //         "pending_balance": "0",
+        //         "event_type": "deposit",
+        //         "created_at": 1789199771373
+        //     }
+        //
+        const timestamp = this.safeInteger(transaction, 'created_at');
+        const types = {
+            'deposit': 'deposit',
+            'withdraw': 'withdrawal',
+        };
+        const eventType = this.safeString(transaction, 'event_type');
+        const amount = this.safeString(transaction, 'amount');
+        return {
+            'info': transaction,
+            'id': undefined,
+            'txid': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'network': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': this.safeString(types, eventType),
+            'amount': this.parseNumber(Precise["default"].stringAbs(amount)),
+            'currency': this.safeCurrencyCode('USDC', currency),
+            'status': undefined,
+            'updated': undefined,
+            'comment': undefined,
+            'internal': undefined,
+            'fee': undefined,
+        };
     }
     /**
      * @method
@@ -3201,7 +3328,7 @@ class pacifica extends pacifica$1["default"] {
         const marketId = this.safeString(income, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
         const symbol = marketResolved['symbol'];
-        const amount = this.safeString(income, 'amount');
+        const amount = this.safeString(income, 'payout');
         const code = this.safeCurrencyCode('USDC');
         const rate = this.safeNumber(income, 'rate');
         return {
@@ -3222,8 +3349,8 @@ class pacifica extends pacifica$1["default"] {
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/subaccount-fund-transfer
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
-     * @param {string} fromAccount account to transfer from *spot, swap*
-     * @param {string} toAccount account to transfer to *swap, spot or address*
+     * @param {string} fromAccount not used, funds are always sent from the account wallet, the origin address
+     * @param {string} toAccount the address of the subaccount or main account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
@@ -3274,7 +3401,7 @@ class pacifica extends pacifica$1["default"] {
         const success = this.safeBool(transfer, 'success');
         let status = undefined;
         if (success !== undefined) {
-            status = (success === true) ? 'ok' : 'failed';
+            status = (success) ? 'ok' : 'failed';
         }
         return {
             'info': transfer,
@@ -3291,7 +3418,7 @@ class pacifica extends pacifica$1["default"] {
     /**
      * @method
      * @name pacifica#createSubAccount
-     * @description creates a sub-account under the main account
+     * @description creates a sub-account under the main account, privateKey must be the main account key, the exchange rejects agent-signed requests (an agent_wallet header with a main-key signature is accepted)
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/create-subaccount
      * @param {string} name unused argument
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3356,6 +3483,15 @@ class pacifica extends pacifica$1["default"] {
         //
         return response;
     }
+    /**
+     * @method
+     * @name pacifica#bindAgentWallet
+     * @description binds an agent wallet that can sign trading actions for the account
+     * @see https://docs.pacifica.fi/api-documentation/api/signing/api-agent-keys
+     * @param {string} agentAddress the public key of the agent wallet
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the api result
+     */
     async bindAgentWallet(agentAddress, params = {}) {
         const operationType = 'bind_agent_wallet';
         const sigPayload = {
@@ -3364,12 +3500,27 @@ class pacifica extends pacifica$1["default"] {
         const request = this.postActionRequest(operationType, sigPayload, params);
         return await this.privatePostAgentBind(this.extend(request, params));
     }
+    /**
+     * @method
+     * @name pacifica#createApiKey
+     * @description creates an api key for the account
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the api result
+     */
     async createApiKey(params = {}) {
         const operationType = 'create_api_key';
         const sigPayload = {};
         const request = this.postActionRequest(operationType, sigPayload, params);
         return await this.privatePostAccountApiKeysCreate(this.extend(request, params));
     }
+    /**
+     * @method
+     * @name pacifica#revokeApiKey
+     * @description revokes an api key of the account
+     * @param {string} apiKey the api key to revoke
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the api result
+     */
     async revokeApiKey(apiKey, params = {}) {
         const operationType = 'revoke_api_key';
         const sigPayload = {
@@ -3378,12 +3529,29 @@ class pacifica extends pacifica$1["default"] {
         const request = this.postActionRequest(operationType, sigPayload, params);
         return await this.privatePostAccountApiKeysRevoke(this.extend(request, params));
     }
+    /**
+     * @method
+     * @name pacifica#fetchApiKeys
+     * @description fetches the api keys of the account
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the api result
+     */
     async fetchApiKeys(params = {}) {
         const operationType = 'list_api_keys';
         const sigPayload = {};
         const request = this.postActionRequest(operationType, sigPayload, params);
         return await this.privatePostAccountApiKeys(this.extend(request, params));
     }
+    /**
+     * @method
+     * @name pacifica#approveBuilderCode
+     * @description approves a builder code to charge fees on the account orders
+     * @see https://docs.pacifica.fi/programs/builder-program
+     * @param {string} builderCode the builder code to approve
+     * @param {string} maxFeeRate the maximum fee rate the builder may charge
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the api result
+     */
     async approveBuilderCode(builderCode, maxFeeRate, params = {}) {
         const operationType = 'approve_builder_code';
         const sigPayload = {
@@ -3393,12 +3561,29 @@ class pacifica extends pacifica$1["default"] {
         const request = this.postActionRequest(operationType, sigPayload, params);
         return await this.privatePostAccountBuilderCodesApprove(this.extend(request, params));
     }
+    /**
+     * @method
+     * @name pacifica#fetchBuilderApprovals
+     * @description fetches the builder codes approved by an account
+     * @see https://docs.pacifica.fi/programs/builder-program
+     * @param {string} address the account address
+     * @returns {object[]} the api result
+     */
     async fetchBuilderApprovals(address) {
         const request = {
             'account': address,
         };
         return await this.publicGetAccountBuilderCodesApprovals(this.extend(request));
     }
+    /**
+     * @method
+     * @name pacifica#revokeBuilderCode
+     * @description revokes a previously approved builder code
+     * @see https://docs.pacifica.fi/programs/builder-program
+     * @param {string} builderCode the builder code to revoke
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the api result
+     */
     async revokeBuilderCode(builderCode, params = {}) {
         const operationType = 'revoke_builder_code';
         const sigPayload = {
@@ -3448,32 +3633,33 @@ class pacifica extends pacifica$1["default"] {
             this.throwExactlyMatchedException(this.exceptions['exact'], errorId, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback); // documented message prefixes are more specific than the http-status echo
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+            const statusCode = this.parseToInt(code);
             const codeAsString = code.toString();
-            if ((code < 400) || !(codeAsString in this.httpExceptions)) {
+            if ((statusCode < 400) || !(codeAsString in this.httpExceptions)) {
                 throw new errors.ExchangeError(feedback); // unknown message
             }
         }
         return undefined;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let requestBody = body;
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        let requestBody = undefined;
         const isTestnet = this.isSandboxModeEnabled;
         let urlKey = 'api';
         if (isTestnet) {
             urlKey = 'test';
         }
-        const baseApiUrl = this.safeString(this.urls[urlKey], api);
+        const apiName = api[0];
+        const baseApiUrl = this.safeString(this.urls[urlKey], apiName);
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const host = this.implodeHostname(baseApiUrl);
         let url = host + '/api/' + this.version + '/' + this.implodeParams(path, params);
         const paramsOmitted = this.omit(params, this.extractParams(path));
-        const paramsLen = Object.keys(paramsOmitted).length;
         const headersValue = {
             'Content-Type': 'application/json',
         };
-        if ((method === 'GET') && (paramsLen > 0)) {
+        if ((method === 'GET') && (Object.keys(paramsOmitted).length > 0)) {
             url += '?' + this.urlencode(paramsOmitted);
             headersValue['Accept'] = '*/*';
         }
@@ -3503,24 +3689,27 @@ class pacifica extends pacifica$1["default"] {
             const keys = Object.keys(value);
             const sortedKeys = this.sort(keys);
             for (let i = 0; i < sortedKeys.length; i++) {
-                const key = sortedKeys[i];
+                const key = this.safeString(sortedKeys, i, '');
                 result[key] = this.sortJsonKeys(value[key]);
             }
             return result;
         }
         else if (Array.isArray(value)) {
-            const result = [];
+            const sortedList = [];
             for (let i = 0; i < value.length; i++) {
-                result.push(this.sortJsonKeys(value[i]));
+                sortedList.push(this.sortJsonKeys(value[i]));
             }
-            return result;
+            return sortedList;
         }
         else {
             return value;
         }
     }
     prepareMessage(header, payload) {
-        if (header['type'] === undefined || header['timestamp'] === undefined || header['expiry_window'] === undefined) {
+        const headerType = this.safeString(header, 'type');
+        const headerTimestamp = this.safeInteger(header, 'timestamp');
+        const headerExpiryWindow = this.safeInteger(header, 'expiry_window');
+        if (headerType === undefined || headerTimestamp === undefined || headerExpiryWindow === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' prepareMessage() requires type, timestamp, expiry_window in header');
         }
         const data = this.extend(header, { 'data': payload });
@@ -3550,7 +3739,7 @@ class pacifica extends pacifica$1["default"] {
             }
             if (builderCode !== undefined) {
                 const isOperationSupportBuilder = this.safeBool(this.options['builderSupportOperations'], operationType, false);
-                if (isOperationSupportBuilder === true) {
+                if (isOperationSupportBuilder) {
                     sigPayload['builder_code'] = builderCode;
                 }
             }

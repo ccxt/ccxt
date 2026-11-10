@@ -37,7 +37,7 @@ type PredictionTicker struct {
 }
 
 func NewPredictionTicker(data any) PredictionTicker {
-	m := data.(map[string]any)
+	m := MapOrEmpty(data)
 	return PredictionTicker{
 		Info:         GetInfo(m),
 		Timestamp:    SafeInt64Typed(m, "timestamp"),
@@ -106,7 +106,7 @@ type PredictionOrder struct {
 }
 
 func NewPredictionOrder(data any) PredictionOrder {
-	m := data.(map[string]any)
+	m := MapOrEmpty(data)
 	var trades []PredictionTrade
 	if v, ok := m["trades"]; ok {
 		if tradesData, ok := v.([]any); ok {
@@ -133,7 +133,7 @@ func NewPredictionOrder(data any) PredictionOrder {
 		Filled:              SafeFloatTyped(m, "filled"),
 		Remaining:           SafeFloatTyped(m, "remaining"),
 		Cost:                SafeFloatTyped(m, "cost"),
-		Fee:                 NewFee(SafeValue(m, "fee", map[string]any{}).(map[string]any)),
+		Fee:                 NewFee(MapOrEmpty(SafeValue(m, "fee", map[string]any{}))),
 		ReduceOnly:          SafeBoolTyped(m, "reduceOnly"),
 		PostOnly:            SafeBoolTyped(m, "postOnly"),
 		Outcome:             SafeStringTyped(m, "outcome"),
@@ -177,7 +177,7 @@ type PredictionTrade struct {
 }
 
 func NewPredictionTrade(data any) PredictionTrade {
-	m := data.(map[string]any)
+	m := MapOrEmpty(data)
 	return PredictionTrade{
 		Info:         GetInfo(m),
 		Id:           SafeStringTyped(m, "id"),
@@ -190,7 +190,7 @@ func NewPredictionTrade(data any) PredictionTrade {
 		Type:         SafeStringTyped(m, "type"),
 		Side:         SafeStringTyped(m, "side"),
 		TakerOrMaker: SafeStringTyped(m, "takerOrMaker"),
-		Fee:          NewFee(SafeValue(m, "fee", map[string]any{}).(map[string]any)),
+		Fee:          NewFee(MapOrEmpty(SafeValue(m, "fee", map[string]any{}))),
 		Outcome:      SafeStringTyped(m, "outcome"),
 		OutcomeId:    SafeStringTyped(m, "outcomeId"),
 		Label:        SafeStringTyped(m, "label"),
@@ -238,7 +238,7 @@ type PredictionPosition struct {
 }
 
 func NewPredictionPosition(data any) PredictionPosition {
-	m := data.(map[string]any)
+	m := MapOrEmpty(data)
 	return PredictionPosition{
 		Info:           GetInfo(m),
 		Id:             SafeStringTyped(m, "id"),
@@ -289,7 +289,7 @@ type PredictionFees struct {
 }
 
 func NewPredictionFees(data any) PredictionFees {
-	m := data.(map[string]any)
+	m := MapOrEmpty(data)
 	return PredictionFees{
 		Trading:    SafeFloatTyped(m, "trading"),
 		Resolution: SafeFloatTyped(m, "resolution"),
@@ -311,10 +311,12 @@ type PredictionOutcome struct {
 	Winner         *bool
 	SettleFraction *float64
 	Precision      *Precision
+	Id             *string
+	NegRisk        *bool
 }
 
 func NewPredictionOutcome(data any) PredictionOutcome {
-	m := data.(map[string]any)
+	m := MapOrEmpty(data)
 	var precision *Precision
 	if p, ok := m["precision"].(map[string]any); ok {
 		prec := NewPrecision(p)
@@ -335,6 +337,8 @@ func NewPredictionOutcome(data any) PredictionOutcome {
 		Winner:         SafeBoolTyped(m, "winner"),
 		SettleFraction: SafeFloatTyped(m, "settleFraction"),
 		Precision:      precision,
+		Id:             SafeStringTyped(m, "id"),
+		NegRisk:        SafeBoolTyped(m, "negRisk"),
 	}
 }
 
@@ -384,10 +388,37 @@ type PredictionMarket struct {
 	Fees             *PredictionFees
 	ResolutionSource *string
 	Image            *string
+	Base             *string
+	Quote            *string
+	Settle           *string
+	BaseId           *string
+	QuoteId          *string
+	SettleId         *string
+	Type             *string
+	Spot             *bool
+	Margin           *bool
+	Swap             *bool
+	Future           *bool
+	Option           *bool
+	Prediction       *bool
+	Contract         *bool
+	Linear           *bool
+	Inverse          *bool
+	ContractSize     *float64
+	Expiry           *int64
+	ExpiryDatetime   *string
+	Strike           *float64
+	OptionType       *string
+	Taker            *float64
+	Maker            *float64
+	Percentage       *bool
+	TierBased        *bool
+	FeeSide          *string
+	Precision        Precision
 }
 
 func NewPredictionMarket(data any) PredictionMarket {
-	m := data.(map[string]any)
+	m := MapOrEmpty(data)
 	var limits Limits
 	if v, ok := m["limits"]; ok {
 		limits = NewLimits(v)
@@ -429,6 +460,33 @@ func NewPredictionMarket(data any) PredictionMarket {
 		Fees:             fees,
 		ResolutionSource: SafeStringTyped(m, "resolutionSource"),
 		Image:            SafeStringTyped(m, "image"),
+		Base:             SafeStringTyped(m, "base"),
+		Quote:            SafeStringTyped(m, "quote"),
+		Settle:           SafeStringTyped(m, "settle"),
+		BaseId:           SafeStringTyped(m, "baseId"),
+		QuoteId:          SafeStringTyped(m, "quoteId"),
+		SettleId:         SafeStringTyped(m, "settleId"),
+		Type:             SafeStringTyped(m, "type"),
+		Spot:             SafeBoolTyped(m, "spot"),
+		Margin:           SafeBoolTyped(m, "margin"),
+		Swap:             SafeBoolTyped(m, "swap"),
+		Future:           SafeBoolTyped(m, "future"),
+		Option:           SafeBoolTyped(m, "option"),
+		Prediction:       SafeBoolTyped(m, "prediction"),
+		Contract:         SafeBoolTyped(m, "contract"),
+		Linear:           SafeBoolTyped(m, "linear"),
+		Inverse:          SafeBoolTyped(m, "inverse"),
+		ContractSize:     SafeFloatTyped(m, "contractSize"),
+		Expiry:           SafeInt64Typed(m, "expiry"),
+		ExpiryDatetime:   SafeStringTyped(m, "expiryDatetime"),
+		Strike:           SafeFloatTyped(m, "strike"),
+		OptionType:       SafeStringTyped(m, "optionType"),
+		Taker:            SafeFloatTyped(m, "taker"),
+		Maker:            SafeFloatTyped(m, "maker"),
+		Percentage:       SafeBoolTyped(m, "percentage"),
+		TierBased:        SafeBoolTyped(m, "tierBased"),
+		FeeSide:          SafeStringTyped(m, "feeSide"),
+		Precision:        NewPrecision(MapOrEmpty(SafeValue(m, "precision", map[string]any{}))),
 	}
 }
 
@@ -447,30 +505,33 @@ func NewPredictionMarketArray(data any) []PredictionMarket {
 }
 
 type PredictionEvent struct {
-	Info              map[string]any
-	Id                *string
-	Event             *string
-	Title             *string
-	Description       *string
-	Slug              *string
-	Category          *string
-	Tags              []string
-	Markets           []PredictionMarket
-	MutuallyExclusive *bool
-	Active            *bool
-	Resolved          *bool
-	Volume            *float64
-	Liquidity         *float64
-	Created           *int64
-	CreatedDatetime   *string
-	End               *int64
-	EndDatetime       *string
-	Image             *string
-	Url               *string
+	Info                  map[string]any
+	Id                    *string
+	Event                 *string
+	Title                 *string
+	Description           *string
+	Slug                  *string
+	Category              *string
+	Tags                  []string
+	Markets               []PredictionMarket
+	MutuallyExclusive     *bool
+	Active                *bool
+	Resolved              *bool
+	Volume                *float64
+	Liquidity             *float64
+	Created               *int64
+	CreatedDatetime       *string
+	End                   *int64
+	EndDatetime           *string
+	Image                 *string
+	Url                   *string
+	ResolutionSource      *string
+	LastUpdatedAt         *int64
+	LastUpdatedAtDatetime *string
 }
 
 func NewPredictionEvent(data any) PredictionEvent {
-	m := data.(map[string]any)
+	m := MapOrEmpty(data)
 	var tags []string
 	if rawTags, ok := m["tags"].([]any); ok {
 		tags = make([]string, 0, len(rawTags))
@@ -482,26 +543,29 @@ func NewPredictionEvent(data any) PredictionEvent {
 	}
 	markets := NewPredictionMarketArray(m["markets"])
 	return PredictionEvent{
-		Info:              GetInfo(m),
-		Id:                SafeStringTyped(m, "id"),
-		Event:             SafeStringTyped(m, "event"),
-		Title:             SafeStringTyped(m, "title"),
-		Description:       SafeStringTyped(m, "description"),
-		Slug:              SafeStringTyped(m, "slug"),
-		Category:          SafeStringTyped(m, "category"),
-		Tags:              tags,
-		Markets:           markets,
-		MutuallyExclusive: SafeBoolTyped(m, "mutuallyExclusive"),
-		Active:            SafeBoolTyped(m, "active"),
-		Resolved:          SafeBoolTyped(m, "resolved"),
-		Volume:            SafeFloatTyped(m, "volume"),
-		Liquidity:         SafeFloatTyped(m, "liquidity"),
-		Created:           SafeInt64Typed(m, "created"),
-		CreatedDatetime:   SafeStringTyped(m, "createdDatetime"),
-		End:               SafeInt64Typed(m, "end"),
-		EndDatetime:       SafeStringTyped(m, "endDatetime"),
-		Image:             SafeStringTyped(m, "image"),
-		Url:               SafeStringTyped(m, "url"),
+		Info:                  GetInfo(m),
+		Id:                    SafeStringTyped(m, "id"),
+		Event:                 SafeStringTyped(m, "event"),
+		Title:                 SafeStringTyped(m, "title"),
+		Description:           SafeStringTyped(m, "description"),
+		Slug:                  SafeStringTyped(m, "slug"),
+		Category:              SafeStringTyped(m, "category"),
+		Tags:                  tags,
+		Markets:               markets,
+		MutuallyExclusive:     SafeBoolTyped(m, "mutuallyExclusive"),
+		Active:                SafeBoolTyped(m, "active"),
+		Resolved:              SafeBoolTyped(m, "resolved"),
+		Volume:                SafeFloatTyped(m, "volume"),
+		Liquidity:             SafeFloatTyped(m, "liquidity"),
+		Created:               SafeInt64Typed(m, "created"),
+		CreatedDatetime:       SafeStringTyped(m, "createdDatetime"),
+		End:                   SafeInt64Typed(m, "end"),
+		EndDatetime:           SafeStringTyped(m, "endDatetime"),
+		Image:                 SafeStringTyped(m, "image"),
+		Url:                   SafeStringTyped(m, "url"),
+		ResolutionSource:      SafeStringTyped(m, "resolutionSource"),
+		LastUpdatedAt:         SafeInt64Typed(m, "lastUpdatedAt"),
+		LastUpdatedAtDatetime: SafeStringTyped(m, "lastUpdatedAtDatetime"),
 	}
 }
 
@@ -541,7 +605,7 @@ type PredictionSettlement struct {
 }
 
 func NewPredictionSettlement(data any) PredictionSettlement {
-	m := data.(map[string]any)
+	m := MapOrEmpty(data)
 	return PredictionSettlement{
 		Info:      GetInfo(m),
 		Id:        SafeStringTyped(m, "id"),
@@ -587,7 +651,7 @@ func NewPredictionOrderBook(data any) PredictionOrderBook {
 	if data == nil {
 		return PredictionOrderBook{}
 	}
-	m := data.(map[string]any)
+	m := MapOrEmpty(data)
 	return PredictionOrderBook{
 		Bids:      parseOrderBookEntries(m, "bids"),
 		Asks:      parseOrderBookEntries(m, "asks"),
@@ -627,7 +691,7 @@ type PredictionTradingFee struct {
 }
 
 func NewPredictionTradingFee(data any) PredictionTradingFee {
-	m := data.(map[string]any)
+	m := MapOrEmpty(data)
 	return PredictionTradingFee{
 		Info:       GetInfo(m),
 		Maker:      SafeFloatTyped(m, "maker"),
@@ -652,7 +716,7 @@ type PredictionOpenInterest struct {
 }
 
 func NewPredictionOpenInterest(data any) PredictionOpenInterest {
-	m := data.(map[string]any)
+	m := MapOrEmpty(data)
 	return PredictionOpenInterest{
 		Info:               GetInfo(m),
 		OpenInterestAmount: SafeFloatTyped(m, "openInterestAmount"),

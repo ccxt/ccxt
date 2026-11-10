@@ -1,9 +1,9 @@
 import bittradeRest from '../bittrade.js';
 import type { Int, OrderBook, Trade, Ticker, OHLCV, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class bittrade extends bittradeRest {
-    describe(): any;
+    describe(): Dict;
     requestId(): string;
     /**
      * @method
@@ -51,9 +51,8 @@ export default class bittrade extends bittradeRest {
      */
     watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     handleOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): void;
-    watchOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): Promise<Ob | undefined>;
+    watchOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): Promise<WsOrderBook | undefined>;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
     handleOrderBookMessage(client: Client, message: Dict, orderbook: any): any;
     handleOrderBook(client: Client, message: Dict): void;
     handleOrderBookSubscription(client: Client, message: Dict, subscription: Dict): void;
@@ -63,5 +62,5 @@ export default class bittrade extends bittradeRest {
     pong(client: Client, message: Dict): Promise<void>;
     handlePing(client: Client, message: Dict): void;
     handleErrorMessage(client: Client, message: Dict): Bool;
-    handleMessage(client: Client, message: any): void;
+    handleMessage(client: Client, message: Dict): void;
 }

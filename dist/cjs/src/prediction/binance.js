@@ -200,20 +200,22 @@ class binance extends binance$1["default"] {
      * @returns {object[]} raw market topic objects
      */
     async fetchRawTopics(maxTopics, rest = {}) {
-        const maxTopicsResolved = (maxTopics === undefined) ? this.safeInteger(this.options, 'maxFetchMarketsLimit', 200) : maxTopics;
-        let pageLimit = this.safeInteger(this.options, 'marketsPageLimit', 100);
-        if (pageLimit > 100) {
-            pageLimit = 100;
+        const maxTopicsOption = this.safeInteger(this.options, 'maxFetchMarketsLimit', 200);
+        let maxTopicsResolved = this.parseToInt(maxTopicsOption);
+        if (maxTopics !== undefined) {
+            maxTopicsResolved = this.parseToInt(maxTopics);
+        }
+        const pageLimitOption = this.safeInteger(this.options, 'marketsPageLimit', 100);
+        let pageLimit = this.parseToInt(100);
+        if (pageLimitOption < 100) {
+            pageLimit = this.parseToInt(pageLimitOption);
         }
         const collected = [];
         let offset = 0;
         while (true) {
-            let reqLimit = pageLimit;
             const collectedLength = collected.length;
             const remaining = maxTopicsResolved - collectedLength;
-            if (remaining < reqLimit) {
-                reqLimit = remaining;
-            }
+            const reqLimit = (remaining < pageLimit) ? remaining : pageLimit;
             if (reqLimit <= 0) {
                 break;
             }
@@ -260,7 +262,7 @@ class binance extends binance$1["default"] {
                 collected.push(pageTopics[i]);
             }
             const hasMore = this.safeBool(response, 'hasMore', false);
-            if ((hasMore !== true) || (pageTopicsLength < reqLimit)) {
+            if ((!hasMore) || (pageTopicsLength < reqLimit)) {
                 break;
             }
             offset = this.sum(offset, pageTopicsLength);
@@ -338,7 +340,7 @@ class binance extends binance$1["default"] {
      */
     async fetchEvents(params = {}) {
         const allowUnscopedFetchEvents = this.safeBool(this.options, 'allowUnscopedFetchEvents', false);
-        if (allowUnscopedFetchEvents !== true) {
+        if (!allowUnscopedFetchEvents) {
             this.requireEventQuery(params);
         }
         const queries = this.parseSearchQueries(params);
@@ -443,12 +445,13 @@ class binance extends binance$1["default"] {
         const seen = {};
         const collected = [];
         const queriesLength = queries.length;
-        let limitResolved = limit;
-        if (limit === undefined) {
-            limitResolved = 20;
+        let limitValue = this.parseToInt(20);
+        if (limit !== undefined) {
+            limitValue = this.parseToInt(limit);
         }
-        else if (limit > 50) {
-            limitResolved = 50;
+        let limitResolved = limitValue;
+        if (limitValue > 50) {
+            limitResolved = this.parseToInt(50);
         }
         for (let qi = 0; qi < queriesLength; qi++) {
             const request = {
@@ -483,7 +486,7 @@ class binance extends binance$1["default"] {
         }
         let capped = collected;
         const collectedLength = collected.length;
-        if ((limitResolved !== undefined) && (collectedLength > limitResolved)) {
+        if (collectedLength > limitResolved) {
             capped = this.arraySlice(collected, 0, limitResolved);
         }
         return await this.completeRawTopics(capped);
@@ -1077,7 +1080,7 @@ class binance extends binance$1["default"] {
             request['limit'] = limit;
         }
         const wallet = await this.fetchWallet('fetchOpenOrders', paramsMaxEntriesPerRequest);
-        request['walletAddress'] = wallet['walletAddress'];
+        request['walletAddress'] = this.safeString(wallet, 'walletAddress');
         const response = await this.sapiPrivateGetOrderList(this.extend(request, paramsMaxEntriesPerRequest));
         //
         // {
@@ -1165,7 +1168,7 @@ class binance extends binance$1["default"] {
             request['endDate'] = this.yyyymmdd(until);
         }
         const wallet = await this.fetchWallet('fetchOrders', paramsOmitted);
-        request['walletAddress'] = wallet['walletAddress'];
+        request['walletAddress'] = this.safeString(wallet, 'walletAddress');
         const response = await this.sapiPrivateGetOrderHistory(this.extend(request, paramsOmitted));
         //
         // {
@@ -1229,7 +1232,7 @@ class binance extends binance$1["default"] {
         }
         const wallet = await this.fetchWallet('fetchPositions', params);
         const request = {
-            'walletAddress': wallet['walletAddress'],
+            'walletAddress': this.safeString(wallet, 'walletAddress'),
         };
         const response = await this.sapiPrivateGetPositionList(this.extend(request, params));
         //
@@ -1282,10 +1285,10 @@ class binance extends binance$1["default"] {
         // }
         //
         const data = this.safeList(response, 'positions', []);
-        const positions = this.parsePredictionPositions(data);
         if (outcomes === undefined) {
-            return positions;
+            return this.parsePredictionPositions(data);
         }
+        const positions = this.parsePredictionPositions(data);
         const filtered = [];
         const positionsLength = positions.length;
         for (let i = 0; i < positionsLength; i++) {
@@ -1316,7 +1319,7 @@ class binance extends binance$1["default"] {
             request['marketTopicId'] = market['info']['marketTopicId'];
         }
         const wallet = await this.fetchWallet('fetchOrders', params);
-        request['walletAddress'] = wallet['walletAddress'];
+        request['walletAddress'] = this.safeString(wallet, 'walletAddress');
         const response = await this.sapiPrivateGetPositionFilter(this.extend(request, params));
         //
         //
@@ -1429,7 +1432,7 @@ class binance extends binance$1["default"] {
             request['endDate'] = this.yyyymmdd(until);
         }
         const wallet = await this.fetchWallet('fetchMyTrades', paramsOmitted);
-        request['walletAddress'] = wallet['walletAddress'];
+        request['walletAddress'] = this.safeString(wallet, 'walletAddress');
         const response = await this.sapiPrivateGetOrderHistory(this.extend(request, paramsOmitted));
         //
         // {
@@ -1563,9 +1566,8 @@ class binance extends binance$1["default"] {
      * @returns {object} a wallet
      */
     async fetchWallet(methodName, params = {}) {
-        let cachedWallet = this.safeDict(this.options, 'wallet');
-        if (cachedWallet !== undefined) {
-            return cachedWallet;
+        if (this.safeDict(this.options, 'wallet') !== undefined) {
+            return this.safeDict(this.options, 'wallet');
         }
         const walletAddress = this.handleOptionStringAndParams(params, methodName, 'walletAddress', this.walletAddress)[0];
         const response = await this.sapiPrivateGetWalletList();
@@ -1582,23 +1584,18 @@ class binance extends binance$1["default"] {
         //
         const wallets = this.safeList(response, 'wallets', []);
         if (walletAddress === undefined) {
-            cachedWallet = this.safeDict(wallets, 0);
-            this.options['wallet'] = cachedWallet;
-            return cachedWallet;
+            this.options['wallet'] = this.safeDict(wallets, 0);
+            return this.safeDict(this.options, 'wallet');
         }
         const walletLength = wallets.length;
         for (let i = 0; i < walletLength; i++) {
             const w = this.safeString(wallets[i], 'walletAddress', '');
             if (w === walletAddress) {
-                cachedWallet = wallets[i];
-                break;
+                this.options['wallet'] = wallets[i];
+                return this.safeDict(this.options, 'wallet');
             }
         }
-        if (cachedWallet === undefined) {
-            throw new errors.NotSupported(this.id + 'fetchWallet could\'n find wallet ' + walletAddress);
-        }
-        this.options['wallet'] = cachedWallet;
-        return cachedWallet;
+        throw new errors.NotSupported(this.id + 'fetchWallet could\'n find wallet ' + walletAddress);
     }
     /**
      * @method
@@ -1700,7 +1697,7 @@ class binance extends binance$1["default"] {
         const cost = this.safeString(params, 'cost');
         const slippageBps = this.parseToInt(Precise["default"].stringMul(slippage, '10000'));
         const commonRequest = {
-            'walletAddress': wallet['walletAddress'],
+            'walletAddress': this.safeString(wallet, 'walletAddress'),
             'orderType': typeUpper,
             'slippageBps': slippageBps,
         };
@@ -1749,7 +1746,7 @@ class binance extends binance$1["default"] {
         const quote = await this.fetchQuote(quoteRequest, paramsOmitted);
         const quoteId = this.safeString(quote, 'quoteId');
         const orderRequest = this.extend(commonRequest, {
-            'walletId': wallet['walletId'],
+            'walletId': this.safeString(wallet, 'walletId'),
             'quoteId': quoteId,
             'timeInForce': timeInForce,
             'accountType': accountType,
@@ -1827,8 +1824,8 @@ class binance extends binance$1["default"] {
         }
         const wallet = await this.fetchWallet('cancelOrders', params);
         const request = {
-            'walletAddress': wallet['walletAddress'],
-            'walletId': wallet['walletId'],
+            'walletAddress': this.safeString(wallet, 'walletAddress'),
+            'walletId': this.safeString(wallet, 'walletId'),
         };
         // flatten cancelInfoList to dot list, eg. cancelInfoList[o].orderId=1234
         for (let i = 0; i < ids.length; i++) {
@@ -1854,17 +1851,14 @@ class binance extends binance$1["default"] {
         const failedOrders = this.safeList(response, 'failed', []);
         const failedOrdersLength = failedOrders.length;
         if (failedOrdersLength > 0) {
-            let failedDetails = '';
+            const failedDetails = [];
             for (let i = 0; i < failedOrdersLength; i++) {
                 const failedOrder = this.safeDict(failedOrders, i);
-                const failedOrderId = this.safeString(failedOrder, 'orderId');
-                const failedReason = this.safeString(failedOrder, 'reason');
-                if (i > 0) {
-                    failedDetails = failedDetails + ', ';
-                }
-                failedDetails = failedDetails + failedOrderId + ': ' + failedReason;
+                const failedOrderId = this.safeString(failedOrder, 'orderId', '');
+                const failedReason = this.safeString(failedOrder, 'reason', '');
+                failedDetails.push(failedOrderId + ': ' + failedReason);
             }
-            throw new errors.OrderNotFound(this.id + ' cancelOrders() failed for ' + failedDetails);
+            throw new errors.OrderNotFound(this.id + ' cancelOrders() failed for ' + failedDetails.join(', '));
         }
         const orders = [];
         const canceledOrdersLength = canceledOrders.length;
@@ -1909,12 +1903,10 @@ class binance extends binance$1["default"] {
      * @param {string|string[]} [api] the api group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
-     * @param {object} [headers] request headers
-     * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    sign(path, api = 'sapi', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiGroup = typeof api === 'string' ? api : api[0];
+    sign(path, api = ['sapi'], method = 'GET', params = {}) {
+        const apiGroup = api[0];
         const baseUrls = this.urls['api'];
         const baseUrl = this.safeString(baseUrls, apiGroup, baseUrls['sapi']);
         let url = baseUrl + '/' + this.implodeParams(path, params);
@@ -1935,7 +1927,7 @@ class binance extends binance$1["default"] {
         const headersValue = {
             'X-MBX-APIKEY': this.apiKey,
         };
-        let bodyValue = body;
+        let bodyValue = undefined;
         if ((method === 'GET') || (method === 'DELETE')) {
             url = url + '?' + querystring;
         }

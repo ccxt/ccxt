@@ -2,7 +2,7 @@ import bitrueRest from '../bitrue.js';
 import type { Balances, Dict, Int, Market, Num, OHLCV, Order, OrderBook, Str, Ticker, Trade, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitrue extends bitrueRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name bitrue#watchBalance
@@ -32,7 +32,7 @@ export default class bitrue extends bitrueRest {
     handleOrderBook(client: Client, message: Dict): void;
     findSwapMarketByWsBaseQuote(wsBaseQuote: string): any;
     parseContractBidsAsks(bidsAsks: any[], symbol: string): List;
-    convertFromRawQuantity(symbol: string, rawQuantity: Num): number | undefined;
+    convertFromRawQuantity(symbol: string, rawQuantity: Num): Num;
     /**
      * @method
      * @name bitrue#watchTrades

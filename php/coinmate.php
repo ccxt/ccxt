@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\coinmate as Exchange;
 
 class coinmate extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinmate',
             'name' => 'CoinMate',
@@ -445,7 +445,7 @@ class coinmate extends Exchange {
         return $result;
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $balances = $this->safe_dict($response, 'data', array());
         $result = array( 'info' => $response );
         $currencyIds = is_array($balances) ? array_keys($balances) : array();
@@ -614,12 +614,12 @@ class coinmate extends Exchange {
             'ask' => $this->safe_number($ticker, 'ask'),
             'vwap' => null,
             'askVolume' => null,
-            'open' => null,
+            'open' => $this->safe_number($ticker, 'open'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => null,
-            'percentage' => null,
+            'percentage' => $this->safe_number($ticker, 'change'),
             'average' => null,
             'baseVolume' => $this->safe_number($ticker, 'amount'),
             'quoteVolume' => null,
@@ -660,7 +660,7 @@ class coinmate extends Exchange {
         return $this->parse_transactions($items, null, $since, $limit);
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'COMPLETED' => 'ok',
             'WAITING' => 'pending',
@@ -723,7 +723,7 @@ class coinmate extends Exchange {
             'txid' => $this->safe_string($transaction, 'txid'),
             'type' => $this->safe_string_lower($transaction, 'transferType'),
             'currency' => $code,
-            'network' => $this->safe_string($transaction, 'walletType'),
+            'network' => $this->network_id_to_code($this->safe_string($transaction, 'walletType'), $code),
             'amount' => $this->safe_number($transaction, 'amount'),
             'status' => $this->parse_transaction_status($this->safe_string($transaction, 'transferStatus')),
             'timestamp' => $timestamp,
@@ -745,7 +745,7 @@ class coinmate extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -759,12 +759,12 @@ class coinmate extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=$transaction-structure $transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -818,7 +818,7 @@ class coinmate extends Exchange {
         $data = $this->safe_dict($response, 'data', array());
         $transaction = $this->parse_transaction($data, $currency);
         $fillResponseFromRequest = $this->safe_bool($withdrawOptions, 'fillResponseFromRequest', true);
-        if ($fillResponseFromRequest === true) {
+        if ($fillResponseFromRequest) {
             $transaction['amount'] = $amount;
             $transaction['currency'] = $code;
             $transaction['address'] = $address;
@@ -1054,7 +1054,7 @@ class coinmate extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'FILLED' => 'closed',
             'CANCELLED' => 'canceled',
@@ -1064,7 +1064,7 @@ class coinmate extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type(?string $type) {
+    public function parse_order_type(?string $type): ?string {
         $types = array(
             'LIMIT' => 'limit',
             'MARKET' => 'market',
@@ -1271,11 +1271,12 @@ class coinmate extends Exchange {
         return $this->parse_order($data);
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $bodySigned = null;
         $headersSigned = null;
         $apiUrl = $this->safe_string($this->urls['api'], 'rest');
@@ -1283,9 +1284,10 @@ class coinmate extends Exchange {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . '/' . $path;
-        if ($api === 'public') {
-            if (count($params) > 0) {
-                $url .= '?' . $this->urlencode($params);
+        if ($apiName === 'public') {
+            $publicQuery = $this->extend(array(), $params);
+            if (count($publicQuery) > 0) {
+                $url .= '?' . $this->urlencode($publicQuery);
             }
         } else {
             $this->check_required_credentials();
@@ -1303,12 +1305,12 @@ class coinmate extends Exchange {
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-        $headersResolved = ($headersSigned === null) ? $headers : $headersSigned;
-        $bodyResolved = ($bodySigned === null) ? $body : $bodySigned;
+        $headersResolved = $headersSigned;
+        $bodyResolved = $bodySigned;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

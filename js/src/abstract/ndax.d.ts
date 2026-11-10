@@ -1,6 +1,6 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     publicGetActivate2FA(params?: {}): Promise<Dict>;
     publicGetAuthenticate2FA(params?: {}): Promise<Dict>;
     publicGetAuthenticateUser(params?: {}): Promise<Dict>;
@@ -45,7 +45,7 @@ interface Exchange {
     privateGetGetUserReportTickets(params?: {}): Promise<List>;
     privateGetGetUserReportWriterResultRecords(params?: {}): Promise<List>;
     privateGetGetAccountInfo(params?: {}): Promise<Dict>;
-    privateGetGetAccountPositions(params?: {}): Promise<Dict>;
+    privateGetGetAccountPositions(params?: {}): Promise<List>;
     privateGetGetAllAccountConfigs(params?: {}): Promise<List>;
     privateGetGetTreasuryProductsForAccount(params?: {}): Promise<List>;
     privateGetGetAccountTrades(params?: {}): Promise<List>;
@@ -105,7 +105,5 @@ interface Exchange {
     privatePostSubmitDepositTicketComment(params?: {}): Promise<Dict>;
     privatePostSubmitWithdrawTicketComment(params?: {}): Promise<Dict>;
     privatePostGetOrderHistoryByOrderId(params?: {}): Promise<List>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

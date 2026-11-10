@@ -628,7 +628,7 @@ class ndax extends ndax$1["default"] {
             return undefined;
         }
         const sessionStatus = this.safeString(market, 'SessionStatus');
-        const isDisable = this.safeBool(market, 'IsDisable');
+        const isDisable = this.safeBool(market, 'IsDisable', false);
         const sessionRunning = (sessionStatus === 'Running');
         return this.safeMarketStructure({
             'id': id,
@@ -681,8 +681,8 @@ class ndax extends ndax$1["default"] {
         });
     }
     parseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 6, amountKey = 8, countOrIdKey = 2) {
-        let nonce = undefined;
-        let latestTimestamp = timestamp;
+        let nonce = this.safeInteger(this.safeList(orderbook, 0), 0);
+        let latestTimestamp = this.safeInteger([timestamp], 0);
         const result = {
             'symbol': symbol,
             'bids': [],
@@ -691,33 +691,29 @@ class ndax extends ndax$1["default"] {
             'datetime': undefined,
             'nonce': undefined,
         };
+        const bids = [];
+        const asks = [];
         for (let i = 0; i < orderbook.length; i++) {
-            const level = orderbook[i];
-            if (latestTimestamp === undefined) {
-                latestTimestamp = this.safeInteger(level, 2);
+            const level = this.safeValue(orderbook, i);
+            const newTimestamp = this.safeInteger(level, 2);
+            if ((newTimestamp !== undefined) && ((latestTimestamp === undefined) || (newTimestamp > latestTimestamp))) {
+                latestTimestamp = newTimestamp;
             }
-            else {
-                const newTimestamp = this.safeInteger(level, 2);
-                if (newTimestamp !== undefined) {
-                    latestTimestamp = Math.max(latestTimestamp, newTimestamp);
-                }
-            }
-            if (nonce === undefined) {
-                nonce = this.safeInteger(level, 0);
-            }
-            else {
-                const newNonce = this.safeInteger(level, 0);
-                if (newNonce !== undefined) {
-                    nonce = Math.max(nonce, newNonce);
-                }
+            const newNonce = this.safeInteger(level, 0);
+            if ((newNonce !== undefined) && ((nonce === undefined) || (newNonce > nonce))) {
+                nonce = newNonce;
             }
             const bidask = this.parseOrderBookBidAsk(level, priceKey, amountKey);
             const levelSide = this.safeInteger(level, 9);
-            const side = (levelSide !== undefined && levelSide !== 0) ? asksKey : bidsKey;
-            result[side].push(bidask);
+            if (levelSide !== undefined && levelSide !== 0) {
+                asks.push(bidask);
+            }
+            else {
+                bids.push(bidask);
+            }
         }
-        result['bids'] = this.sortBy(result['bids'], 0, true);
-        result['asks'] = this.sortBy(result['asks'], 0);
+        result['bids'] = this.sortBy(bids, 0, true);
+        result['asks'] = this.sortBy(asks, 0);
         result['timestamp'] = latestTimestamp;
         result['datetime'] = this.iso8601(latestTimestamp);
         result['nonce'] = nonce;
@@ -1256,7 +1252,7 @@ class ndax extends ndax$1["default"] {
         }
         return result;
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -1291,11 +1287,8 @@ class ndax extends ndax$1["default"] {
             await this.loadMarkets();
         }
         await this.loadAccounts();
-        const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId');
-        let accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
-        if (accountId === undefined) {
-            accountId = this.parseToInt(this.accounts[0]['id']);
-        }
+        const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.safeString(this.safeDict(this.accounts, 0), 'id')));
+        const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
         const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
         const request = {
             'omsId': omsId,
@@ -1333,7 +1326,7 @@ class ndax extends ndax$1["default"] {
         //         },
         //     ]
         //
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     parseLedgerEntryType(type) {
         const types = {
@@ -1428,7 +1421,7 @@ class ndax extends ndax$1["default"] {
             await this.loadMarkets();
         }
         await this.loadAccounts();
-        const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
+        const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.safeString(this.safeDict(this.accounts, 0), 'id')));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
         const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
         const request = {
@@ -1592,10 +1585,10 @@ class ndax extends ndax$1["default"] {
             await this.loadMarkets();
         }
         await this.loadAccounts();
-        const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
+        const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.safeString(this.safeDict(this.accounts, 0), 'id')));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
         const clientOrderId = this.safeInteger2(params, 'ClientOrderId', 'clientOrderId');
-        let orderType = this.safeInteger(this.options['orderTypes'], this.capitalize(type));
+        let orderType = this.safeInteger(this.safeDict(this.options, 'orderTypes', {}), this.capitalize(type));
         const triggerPrice = this.safeString(params, 'triggerPrice');
         if (triggerPrice !== undefined) {
             if (type === 'market') {
@@ -1622,18 +1615,14 @@ class ndax extends ndax$1["default"] {
             // 'OrderIdOCO': 0, // The order ID if One Cancels the Other.
             // 'UseDisplayQuantity': false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
             'Side': orderSide, // 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
-            'Quantity': (amountString === undefined) ? undefined : parseFloat(amountString),
+            'Quantity': (amountString === undefined) ? undefined : this.parseNumber(amountString),
             'OrderType': orderType, // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             // 'PegPriceType': 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
             // 'LimitPrice': parseFloat (this.priceToPrecision (symbol, price)),
         };
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if (price !== undefined) {
-            let limitPriceString = this.priceToPrecision(symbol, price);
-            if (limitPriceString === undefined) {
-                limitPriceString = '0';
-            }
-            request['LimitPrice'] = parseFloat(limitPriceString);
+            request['LimitPrice'] = this.parseNumber(this.priceToPrecision(symbol, price));
         }
         if (clientOrderId !== undefined) {
             request['ClientOrderId'] = clientOrderId;
@@ -1671,7 +1660,7 @@ class ndax extends ndax$1["default"] {
             await this.loadMarkets();
         }
         await this.loadAccounts();
-        const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
+        const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.safeString(this.safeDict(this.accounts, 0), 'id')));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
         const clientOrderId = this.safeInteger2(params, 'ClientOrderId', 'clientOrderId');
         const paramsOmitted = this.omit(params, ['accountId', 'AccountId', 'clientOrderId', 'ClientOrderId']);
@@ -1679,7 +1668,7 @@ class ndax extends ndax$1["default"] {
         const orderSide = (side === 'buy') ? 0 : 1;
         const amountString = this.amountToPrecision(symbol, amount);
         const request = {
-            'OrderIdToReplace': parseInt(id),
+            'OrderIdToReplace': this.parseToInt(id),
             'InstrumentId': this.parseToInt(market['id']),
             'omsId': omsId,
             'AccountId': accountId,
@@ -1692,18 +1681,14 @@ class ndax extends ndax$1["default"] {
             // 'OrderIdOCO': 0, // The order ID if One Cancels the Other.
             // 'UseDisplayQuantity': false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
             'Side': orderSide, // 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
-            'Quantity': (amountString === undefined) ? undefined : parseFloat(amountString),
-            'OrderType': this.safeInteger(this.options['orderTypes'], this.capitalize(type)), // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
+            'Quantity': (amountString === undefined) ? undefined : this.parseNumber(amountString),
+            'OrderType': this.safeInteger(this.safeDict(this.options, 'orderTypes', {}), this.capitalize(type)), // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             // 'PegPriceType': 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
             // 'LimitPrice': parseFloat (this.priceToPrecision (symbol, price)),
         };
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if (price !== undefined) {
-            let limitPriceString = this.priceToPrecision(symbol, price);
-            if (limitPriceString === undefined) {
-                limitPriceString = '0';
-            }
-            request['LimitPrice'] = parseFloat(limitPriceString);
+            request['LimitPrice'] = this.parseNumber(this.priceToPrecision(symbol, price));
         }
         if (clientOrderId !== undefined) {
             request['ClientOrderId'] = clientOrderId;
@@ -1736,7 +1721,7 @@ class ndax extends ndax$1["default"] {
             await this.loadMarkets();
         }
         await this.loadAccounts();
-        const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
+        const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.safeString(this.safeDict(this.accounts, 0), 'id')));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
         const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
         const request = {
@@ -1824,7 +1809,7 @@ class ndax extends ndax$1["default"] {
             await this.loadMarkets();
         }
         await this.loadAccounts();
-        const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
+        const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.safeString(this.safeDict(this.accounts, 0), 'id')));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
         const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
         const request = {
@@ -1867,7 +1852,7 @@ class ndax extends ndax$1["default"] {
             await this.loadMarkets();
         }
         await this.loadAccounts();
-        // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
+        // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.safeString (this.safeDict (this.accounts, 0), 'id')));
         // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         // params = this.omit (params, [ 'accountId', 'AccountId' ]);
         let market = undefined;
@@ -1883,7 +1868,7 @@ class ndax extends ndax$1["default"] {
             request['ClOrderId'] = clientOrderId;
         }
         else {
-            request['OrderId'] = parseInt(id);
+            request['OrderId'] = this.parseToInt(id);
         }
         const paramsOmitted = this.omit(params, ['clientOrderId', 'ClOrderId']);
         const response = await this.privatePostCancelOrder(this.extend(request, paramsOmitted));
@@ -1910,7 +1895,7 @@ class ndax extends ndax$1["default"] {
             await this.loadMarkets();
         }
         await this.loadAccounts();
-        const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
+        const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.safeString(this.safeDict(this.accounts, 0), 'id')));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
         const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
         let market = undefined;
@@ -1991,7 +1976,7 @@ class ndax extends ndax$1["default"] {
             await this.loadMarkets();
         }
         await this.loadAccounts();
-        const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
+        const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.safeString(this.safeDict(this.accounts, 0), 'id')));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
         const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
         const request = {
@@ -2087,7 +2072,7 @@ class ndax extends ndax$1["default"] {
             await this.loadMarkets();
         }
         await this.loadAccounts();
-        const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
+        const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.safeString(this.safeDict(this.accounts, 0), 'id')));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
         const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
         let market = undefined;
@@ -2097,7 +2082,7 @@ class ndax extends ndax$1["default"] {
         const request = {
             'omsId': omsId,
             'AccountId': accountId,
-            'OrderId': parseInt(id),
+            'OrderId': this.parseToInt(id),
         };
         const response = await this.privateGetGetOrderStatus(this.extend(request, paramsOmitted));
         //
@@ -2168,7 +2153,7 @@ class ndax extends ndax$1["default"] {
             await this.loadMarkets();
         }
         await this.loadAccounts();
-        // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
+        // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.safeString (this.safeDict (this.accounts, 0), 'id')));
         // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         // params = this.omit (params, [ 'accountId', 'AccountId' ]);
         let market = undefined;
@@ -2178,7 +2163,7 @@ class ndax extends ndax$1["default"] {
         const request = {
             'OMSId': this.parseToInt(omsId),
             // 'AccountId': accountId,
-            'OrderId': parseInt(id),
+            'OrderId': this.parseToInt(id),
         };
         const response = await this.privatePostGetOrderHistoryByOrderId(this.extend(request, params));
         //
@@ -2249,7 +2234,7 @@ class ndax extends ndax$1["default"] {
             await this.loadMarkets();
         }
         await this.loadAccounts();
-        const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
+        const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.safeString(this.safeDict(this.accounts, 0), 'id')));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
         const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
         const currency = this.currency(code);
@@ -2340,7 +2325,7 @@ class ndax extends ndax$1["default"] {
             await this.loadMarkets();
         }
         await this.loadAccounts();
-        const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
+        const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.safeString(this.safeDict(this.accounts, 0), 'id')));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
         const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
         let currency = undefined;
@@ -2402,7 +2387,7 @@ class ndax extends ndax$1["default"] {
             await this.loadMarkets();
         }
         await this.loadAccounts();
-        const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
+        const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.safeString(this.safeDict(this.accounts, 0), 'id')));
         const accountId = this.safeInteger2(params, 'accountId', 'AccountId', defaultAccountId);
         const paramsOmitted = this.omit(params, ['accountId', 'AccountId']);
         let currency = undefined;
@@ -2542,17 +2527,18 @@ class ndax extends ndax$1["default"] {
         //         "NotionalProductId": 0
         //     }
         //
-        let id = undefined;
+        let id = this.safeString(transaction, 'DepositId');
         const currencyId = this.safeString(transaction, 'ProductId');
         const code = this.safeCurrencyCode(currencyId, currency);
         let type = undefined;
-        if ('DepositId' in transaction) {
-            id = this.safeString(transaction, 'DepositId');
+        if (id !== undefined) {
             type = 'deposit';
         }
-        else if ('WithdrawId' in transaction) {
+        else {
             id = this.safeString(transaction, 'WithdrawId');
-            type = 'withdrawal';
+            if (id !== undefined) {
+                type = 'withdrawal';
+            }
         }
         const templateForm = this.parseJson(this.safeValue2(transaction, 'TemplateForm', 'DepositInfo'));
         let updated = this.safeInteger(transaction, 'LastUpdateTimeStamp');
@@ -2597,12 +2583,13 @@ class ndax extends ndax$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
+    async withdraw(code, amount, address, params = {}) {
+        const tagWithdrawTag = this.safeString(params, 'tag');
+        const paramsWithdrawTag = this.omit(params, 'tag');
         // this method required login, password and twofa key
         const sessionToken = this.safeString(this.options, 'sessionToken');
         if (sessionToken === undefined) {
@@ -2611,13 +2598,13 @@ class ndax extends ndax$1["default"] {
         if (this.twofa === undefined) {
             throw new errors.AuthenticationError(this.id + ' withdraw() requires exchange.twofa credentials');
         }
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagWithdrawTag);
         const omsId = this.safeInteger(this.options, 'omsId', 1);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         await this.loadAccounts();
-        const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.accounts[0]['id']));
+        const defaultAccountId = this.safeInteger2(this.options, 'accountId', 'AccountId', this.parseToInt(this.safeString(this.safeDict(this.accounts, 0), 'id')));
         const accountId = this.safeInteger2(paramsWithdrawTag, 'accountId', 'AccountId', defaultAccountId);
         const paramsOmitted = this.omit(paramsWithdrawTag, ['accountId', 'AccountId']);
         const currency = this.currency(code);
@@ -2690,16 +2677,17 @@ class ndax extends ndax$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let bodySigned = undefined;
         let headersSigned = undefined;
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/' + this.implodeParams(path, params);
         let query = this.omit(params, this.extractParams(path));
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (path === 'Authenticate') {
                 const auth = this.login + ':' + this.password;
                 const auth64 = this.stringToBase64(auth);
@@ -2722,18 +2710,36 @@ class ndax extends ndax$1["default"] {
                 url += '?' + this.urlencode(query);
             }
         }
-        else if (api === 'private') {
+        else if (apiName === 'private') {
             this.checkRequiredCredentials();
             const sessionToken = this.safeString(this.options, 'sessionToken');
+            const isPost = (method === 'POST');
             if (sessionToken === undefined) {
                 const nonce = this.nonce().toString();
                 const auth = nonce + this.uid + this.apiKey;
                 const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
+                if (isPost) {
+                    headersSigned = {
+                        'Nonce': nonce,
+                        'APIKey': this.apiKey,
+                        'Signature': signature,
+                        'UserId': this.uid,
+                        'Content-Type': 'application/json',
+                    };
+                }
+                else {
+                    headersSigned = {
+                        'Nonce': nonce,
+                        'APIKey': this.apiKey,
+                        'Signature': signature,
+                        'UserId': this.uid,
+                    };
+                }
+            }
+            else if (isPost) {
                 headersSigned = {
-                    'Nonce': nonce,
-                    'APIKey': this.apiKey,
-                    'Signature': signature,
-                    'UserId': this.uid,
+                    'APToken': sessionToken,
+                    'Content-Type': 'application/json',
                 };
             }
             else {
@@ -2741,8 +2747,7 @@ class ndax extends ndax$1["default"] {
                     'APToken': sessionToken,
                 };
             }
-            if (method === 'POST') {
-                headersSigned['Content-Type'] = 'application/json';
+            if (isPost) {
                 bodySigned = this.json(query);
             }
             else {
@@ -2751,8 +2756,8 @@ class ndax extends ndax$1["default"] {
                 }
             }
         }
-        const headersResolved = (headersSigned === undefined) ? headers : headersSigned;
-        const bodyResolved = (bodySigned === undefined) ? body : bodySigned;
+        const headersResolved = headersSigned;
+        const bodyResolved = bodySigned;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

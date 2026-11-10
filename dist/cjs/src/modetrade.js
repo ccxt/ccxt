@@ -87,7 +87,9 @@ class modetrade extends modetrade$1["default"] {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': true,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -99,8 +101,8 @@ class modetrade extends modetrade$1["default"] {
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
-                'fetchTicker': false,
-                'fetchTickers': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
@@ -526,6 +528,7 @@ class modetrade extends modetrade$1["default"] {
         //
         //   {
         //     "symbol": "PERP_BTC_USDC",
+        //     "status": "ACTIVE",
         //     "quote_min": 123,
         //     "quote_max": 100000,
         //     "quote_tick": 0.1,
@@ -551,17 +554,22 @@ class modetrade extends modetrade$1["default"] {
         //   }
         //
         const marketId = this.safeString(market, 'symbol', '');
+        const status = this.safeString(market, 'status');
+        let active = undefined;
+        if (status !== undefined) {
+            active = (status === 'ACTIVE');
+        }
         const parts = marketId.split('_');
         const marketType = 'swap';
         const baseId = this.safeString(parts, 1);
         const quoteId = this.safeString(parts, 2);
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        if ((base === undefined) || (quote === undefined)) {
-            return undefined;
-        }
         const settleId = this.safeString(parts, 2);
         const settle = this.safeCurrencyCode(settleId);
+        if ((base === undefined) || (quote === undefined) || (settle === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote + ':' + settle;
         return this.safeMarketStructure({
             'id': marketId,
@@ -578,7 +586,7 @@ class modetrade extends modetrade$1["default"] {
             'swap': true,
             'future': false,
             'option': false,
-            'active': undefined,
+            'active': active,
             'contract': true,
             'linear': true,
             'inverse': false,
@@ -631,6 +639,7 @@ class modetrade extends modetrade$1["default"] {
         //       "rows": [
         //         {
         //           "symbol": "PERP_BTC_USDC",
+        //           "status": "ACTIVE",
         //           "quote_min": 123,
         //           "quote_max": 100000,
         //           "quote_tick": 0.1,
@@ -797,7 +806,8 @@ class modetrade extends modetrade$1["default"] {
         //         "is_maker": "1"
         //     }
         //
-        const isFromFetchOrder = ('id' in trade);
+        const id = this.safeString(trade, 'id');
+        const isFromFetchOrder = id !== undefined;
         const timestamp = this.safeInteger(trade, 'executed_timestamp');
         const marketId = this.safeString(trade, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
@@ -806,13 +816,8 @@ class modetrade extends modetrade$1["default"] {
         const amount = this.safeString(trade, 'executed_quantity');
         const order_id = this.safeString(trade, 'order_id');
         const fee = this.parseTokenAndFeeTemp(trade, 'fee_asset', 'fee');
-        const feeCost = this.safeString(fee, 'cost');
-        if ((feeCost !== undefined) && (fee !== undefined)) {
-            fee['cost'] = feeCost;
-        }
         const cost = Precise["default"].stringMul(price, amount);
         const side = this.safeStringLower(trade, 'side');
-        const id = this.safeString(trade, 'id');
         let takerOrMaker = undefined;
         if (isFromFetchOrder) {
             const isMaker = this.safeString(trade, 'is_maker') === '1';
@@ -896,7 +901,7 @@ class modetrade extends modetrade$1["default"] {
         const fundingTimeString = this.safeString(fundingRate, 'last_funding_rate_timestamp');
         const nextFundingTimeString = this.safeString(fundingRate, 'next_funding_time');
         const millisecondsInterval = Precise["default"].stringSub(nextFundingTimeString, fundingTimeString);
-        const fundingSymbol = (marketValue !== undefined) ? marketValue['symbol'] : undefined;
+        const fundingSymbol = this.safeString(marketValue, 'symbol');
         return {
             'info': fundingRate,
             'symbol': fundingSymbol,
@@ -1079,8 +1084,215 @@ class modetrade extends modetrade$1["default"] {
                 'datetime': this.iso8601(timestamp),
             });
         }
-        const sorted = this.sortBy(rates, 'timestamp');
-        return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit);
+        return this.filterBySymbolSinceLimit(this.sortBy(rates, 'timestamp'), symbolResolved, since, limit);
+    }
+    parseTicker(ticker, market = undefined) {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "display_symbol_name": "BTC",
+        //         "broker_id": null,
+        //         "status": "ACTIVE",
+        //         "index_price": 81559.8,
+        //         "mark_price": 81542.2,
+        //         "sum_unitary_funding": 27744.3,
+        //         "est_funding_rate": 0.00008318,
+        //         "last_funding_rate": 0.0000394,
+        //         "next_funding_time": 1792281600000,
+        //         "open_interest": 42.65602,
+        //         "is_pretge": false,
+        //         "24h_open": 81606.8,
+        //         "24h_close": 81518.1,
+        //         "24h_high": 81706.7,
+        //         "24h_low": 81069.9,
+        //         "24h_volume": 65.48965,
+        //         "24h_amount": 5333323.390584
+        //     }
+        //
+        const marketId = this.safeString(ticker, 'symbol');
+        const marketResolved = this.safeMarket(marketId, market);
+        const timestamp = this.safeInteger(ticker, 'timestamp');
+        return this.safeTicker({
+            'symbol': marketResolved['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'high': this.safeString(ticker, '24h_high'),
+            'low': this.safeString(ticker, '24h_low'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeString(ticker, '24h_open'),
+            'close': this.safeString(ticker, '24h_close'),
+            'last': this.safeString(ticker, '24h_close'),
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString(ticker, '24h_volume'),
+            'quoteVolume': this.safeString(ticker, '24h_amount'),
+            'indexPrice': this.safeString(ticker, 'index_price'),
+            'markPrice': this.safeString(ticker, 'mark_price'),
+            'info': ticker,
+        }, marketResolved);
+    }
+    /**
+     * @method
+     * @name modetrade#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async fetchTicker(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.v1PublicGetPublicFuturesSymbol(this.extend(request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "symbol": "PERP_BTC_USDC",
+        //             "24h_close": 81518.1
+        //         },
+        //         "timestamp": 1792270455082
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const timestamp = this.safeInteger(response, 'timestamp');
+        const ticker = this.extend({ 'timestamp': timestamp }, data);
+        return this.parseTicker(ticker, market);
+    }
+    /**
+     * @method
+     * @name modetrade#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async fetchTickers(symbols = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols);
+        const response = await this.v1PublicGetPublicFutures(params);
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "symbol": "PERP_BTC_USDC",
+        //                     "24h_close": 81518.1
+        //                 }
+        //             ]
+        //         },
+        //         "timestamp": 1792270455518
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        const rows = this.safeList(data, 'rows', []);
+        const timestamp = this.safeInteger(response, 'timestamp');
+        const result = [];
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const marketId = this.safeString(row, 'symbol', '');
+            if ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id)) {
+                continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
+            }
+            const ticker = this.extend({ 'timestamp': timestamp }, row);
+            result.push(this.parseTicker(ticker));
+        }
+        return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
+    }
+    parseOpenInterest(interest, market = undefined) {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 81559.8,
+        //         "mark_price": 81542.2,
+        //         "open_interest": 42.65602,
+        //         "24h_open": 81606.8,
+        //         "24h_close": 81518.1,
+        //         "24h_high": 81706.7,
+        //         "24h_low": 81069.9,
+        //         "24h_volume": 65.48965,
+        //         "24h_amount": 5333323.390584
+        //     }
+        //
+        const marketId = this.safeString(interest, 'symbol');
+        const marketResolved = this.safeMarket(marketId, market);
+        const timestamp = this.safeInteger(interest, 'timestamp');
+        return this.safeOpenInterest({
+            'symbol': marketResolved['symbol'],
+            'openInterestAmount': this.safeNumber(interest, 'open_interest'),
+            'openInterestValue': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'info': interest,
+        }, marketResolved);
+    }
+    /**
+     * @method
+     * @name modetrade#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    async fetchOpenInterest(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.v1PublicGetPublicFuturesSymbol(this.extend(request, params));
+        const data = this.safeDict(response, 'data', {});
+        const timestamp = this.safeInteger(response, 'timestamp');
+        const interest = this.extend({ 'timestamp': timestamp }, data);
+        return this.parseOpenInterest(interest, market);
+    }
+    /**
+     * @method
+     * @name modetrade#fetchOpenInterests
+     * @description retrieves the open interest for a list of contract trading pairs
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    async fetchOpenInterests(symbols = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols);
+        const response = await this.v1PublicGetPublicFutures(params);
+        const data = this.safeDict(response, 'data', {});
+        const rows = this.safeList(data, 'rows', []);
+        const timestamp = this.safeInteger(response, 'timestamp');
+        const result = [];
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const marketId = this.safeString(row, 'symbol', '');
+            if ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id)) {
+                continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
+            }
+            const interest = this.extend({ 'timestamp': timestamp }, row);
+            result.push(this.parseOpenInterest(interest));
+        }
+        return this.indexBy(this.filterByArray(result, 'symbol', symbolsNormalized, false), 'symbol');
     }
     parseIncome(income, market = undefined) {
         //
@@ -1535,7 +1747,8 @@ class modetrade extends modetrade$1["default"] {
         const hasStopLoss = stopLoss !== undefined;
         const hasTakeProfit = takeProfit !== undefined;
         const algoType = this.safeString(params, 'algoType');
-        const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (this.safeValue(params, 'childOrders') !== undefined);
+        const paramsChildOrders = this.safeValue(params, 'childOrders');
+        const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (paramsChildOrders !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower(params, 'timeInForce');
         const postOnly = this.isPostOnly(isMarket, undefined, params);
@@ -1591,7 +1804,7 @@ class modetrade extends modetrade$1["default"] {
                 'algo_type': 'POSITIONAL_TP_SL',
                 'child_orders': [],
             };
-            const childOrders = outterOrder['child_orders'];
+            const childOrders = [];
             let closeSide = 'BUY';
             if (orderSide === 'BUY') {
                 closeSide = 'SELL';
@@ -1618,6 +1831,7 @@ class modetrade extends modetrade$1["default"] {
                 };
                 childOrders.push(takeProfitOrder);
             }
+            outterOrder['child_orders'] = childOrders;
             request['child_orders'] = [outterOrder];
         }
         const paramsOmitted = this.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit']);
@@ -1657,7 +1871,8 @@ class modetrade extends modetrade$1["default"] {
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeValue(params, 'stopLoss');
         const takeProfit = this.safeValue(params, 'takeProfit');
-        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue(params, 'childOrders') !== undefined);
+        const childOrders = this.safeValue(params, 'childOrders');
+        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (childOrders !== undefined);
         let response;
         if (isConditional) {
             response = await this.v1PrivatePostAlgoOrder(request);
@@ -1726,7 +1941,8 @@ class modetrade extends modetrade$1["default"] {
             const triggerPrice = this.safeString2(orderParams, 'triggerPrice', 'stopPrice');
             const stopLoss = this.safeDict(orderParams, 'stopLoss');
             const takeProfit = this.safeDict(orderParams, 'takeProfit');
-            const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue(orderParams, 'childOrders') !== undefined);
+            const childOrders = this.safeValue(orderParams, 'childOrders');
+            const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (childOrders !== undefined);
             if (isConditional) {
                 throw new errors.NotSupported(this.id + ' createOrders() only support non-stop order');
             }
@@ -1788,7 +2004,8 @@ class modetrade extends modetrade$1["default"] {
         if (triggerPrice !== undefined) {
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
-        const isConditional = (triggerPrice !== undefined) || (this.safeValue(params, 'childOrders') !== undefined);
+        const childOrders = this.safeValue(params, 'childOrders');
+        const isConditional = (triggerPrice !== undefined) || (childOrders !== undefined);
         let orderQtyKey = 'order_quantity';
         if (isConditional) {
             orderQtyKey = 'quantity';
@@ -1869,7 +2086,7 @@ class modetrade extends modetrade$1["default"] {
     async cancelOrder(id, symbol = undefined, params = {}) {
         const trigger = this.safeBool2(params, 'stop', 'trigger', false);
         const paramsOmitted = this.omit(params, ['stop', 'trigger']);
-        if ((trigger !== true) && (symbol === undefined)) {
+        if ((!trigger) && (symbol === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
@@ -1887,7 +2104,7 @@ class modetrade extends modetrade$1["default"] {
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
         const paramsClientOrder = this.omit(paramsOmitted, ['clOrdID', 'clientOrderId', 'client_order_id']);
         let response;
-        if (trigger === true) {
+        if (trigger) {
             if (isByClientOrder) {
                 request['client_order_id'] = clientOrderIdExchangeSpecific;
                 response = await this.v1PrivateDeleteAlgoClientOrder(this.extend(request, paramsClientOrder));
@@ -1929,7 +2146,7 @@ class modetrade extends modetrade$1["default"] {
         else {
             extendParams['id'] = id;
         }
-        if (trigger === true) {
+        if (trigger) {
             return this.extend(this.parseOrder(response), extendParams);
         }
         const data = this.safeDict(response, 'data', {});
@@ -2054,7 +2271,7 @@ class modetrade extends modetrade$1["default"] {
         const clientOrderId = this.safeStringN(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
         const paramsOmitted = this.omit(params, ['stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id']);
         let response;
-        if (trigger === true) {
+        if (trigger) {
             if (clientOrderId !== undefined && clientOrderId !== '') {
                 request['client_order_id'] = clientOrderId;
                 response = await this.v1PrivateGetAlgoClientOrderClientOrderId(this.extend(request, paramsOmitted));
@@ -2126,7 +2343,7 @@ class modetrade extends modetrade$1["default"] {
             await this.loadMarkets();
         }
         const isTrigger = this.safeBool2(params, 'stop', 'trigger', false);
-        const maxLimit = (isTrigger === true) ? 100 : 500;
+        const maxLimit = (isTrigger) ? 100 : 500;
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOrders', 'paginate', false);
         if (paginate) {
             return await this.fetchPaginatedCallIncremental('fetchOrders', symbol, since, limit, paramsPaginate, 'page', maxLimit);
@@ -2147,12 +2364,12 @@ class modetrade extends modetrade$1["default"] {
         else {
             request['size'] = maxLimit;
         }
-        if (isTrigger === true) {
+        if (isTrigger) {
             request['algo_type'] = 'STOP';
         }
         const [requestUntil, paramsUntil] = this.handleUntilOption('end_t', request, paramsOmitted);
         let response;
-        if (isTrigger === true) {
+        if (isTrigger) {
             response = await this.v1PrivateGetAlgoOrders(this.extend(requestUntil, paramsUntil));
         }
         else {
@@ -2406,7 +2623,7 @@ class modetrade extends modetrade$1["default"] {
         //     }
         // }
         //
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         return this.parseBalance(data);
     }
     async getAssetHistoryRows(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2417,7 +2634,7 @@ class modetrade extends modetrade$1["default"] {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
-            request['token'] = currency['id'];
+            request['token'] = this.safeString(currency, 'id');
         }
         if (since !== undefined) {
             request['start_t'] = since;
@@ -2680,16 +2897,15 @@ class modetrade extends modetrade$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeDict(response, 'data', {});
-        return this.safeNumber(data, 'withdraw_nonce');
+        return this.safeNumber(this.safeDict(response, 'data', {}), 'withdraw_nonce');
     }
     hashMessage(message) {
         return '0x' + this.hash(message, sha3_js.keccak_256, 'hex');
     }
     signHash(hash, privateKey) {
         const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString(signature, 'r', '');
+        const s = this.safeString(signature, 's', '');
         const v = this.intToBase16(this.sum(27, signature['v']));
         return '0x' + r.padStart(64, '0') + s.padStart(64, '0') + v;
     }
@@ -2704,11 +2920,11 @@ class modetrade extends modetrade$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -2750,7 +2966,7 @@ class modetrade extends modetrade$1["default"] {
             'chainId': this.parseToInt(chainId),
             'receiver': address,
             'token': codeUpper,
-            'amount': amount.toString(),
+            'amount': this.numberToString(amount),
             'withdrawNonce': withdrawNonce,
             'timestamp': nonce,
         };
@@ -2918,7 +3134,6 @@ class modetrade extends modetrade$1["default"] {
             'lastPrice': undefined,
             'collateral': undefined,
             'marginMode': 'cross',
-            'marginType': undefined,
             'side': side,
             'percentage': undefined,
             'hedged': undefined,
@@ -3035,7 +3250,7 @@ class modetrade extends modetrade$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, section = ['public'], method = 'GET', params = {}) {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams(path, params);
@@ -3057,13 +3272,15 @@ class modetrade extends modetrade$1["default"] {
             const isOrder = path === 'algo/order' || path === 'order' || path === 'batch-order';
             if (isPostOrPut && isOrder) {
                 const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
-                if (isSandboxMode !== true) {
+                if (!isSandboxMode) {
                     const brokerId = this.safeString(this.options, 'brokerId', 'CCXTMODE');
                     if (path === 'batch-order') {
                         const ordersList = this.safeList(paramsSorted, 'orders', []);
+                        const taggedOrders = [];
                         for (let i = 0; i < ordersList.length; i++) {
-                            paramsSorted['orders'][i]['order_tag'] = brokerId;
+                            taggedOrders.push(this.extend(this.safeDict(ordersList, i, {}), { 'order_tag': brokerId }));
                         }
+                        paramsSorted['orders'] = taggedOrders;
                     }
                     else {
                         paramsSorted['order_tag'] = brokerId;
@@ -3074,19 +3291,18 @@ class modetrade extends modetrade$1["default"] {
             if (isPostOrPut && isOrder) {
                 paramsSigned = this.keysort(paramsSorted);
             }
-            let auth = '';
             const ts = this.nonce().toString();
             url += pathWithParams;
             let apiKey = this.apiKey;
-            if (apiKey.indexOf('ed25519:') < 0) {
-                apiKey = 'ed25519:' + apiKey;
+            if (this.apiKey.indexOf('ed25519:') < 0) {
+                apiKey = 'ed25519:' + this.apiKey;
             }
             const signedHeaders = {
                 'orderly-account-id': this.accountId,
                 'orderly-key': apiKey,
                 'orderly-timestamp': ts,
             };
-            auth = ts + method + '/' + version + '/' + pathWithParams;
+            let auth = ts + method + '/' + version + '/' + pathWithParams;
             let signedBody = undefined;
             if (method === 'POST' || method === 'PUT') {
                 signedBody = this.json(paramsSigned);
@@ -3099,20 +3315,20 @@ class modetrade extends modetrade$1["default"] {
                     auth += '?' + this.rawencode(paramsSigned);
                 }
                 signedHeaders['content-type'] = 'application/x-www-form-urlencoded';
-                signedBody = (method === 'DELETE') ? '' : body;
+                signedBody = (method === 'DELETE') ? '' : undefined;
             }
             let secret = this.secret;
-            if (secret.indexOf('ed25519:') >= 0) {
-                const parts = secret.split('ed25519:');
+            if (this.secret.indexOf('ed25519:') >= 0) {
+                const parts = this.secret.split('ed25519:');
                 secret = parts[1];
             }
             const signature = crypto.eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519_js.ed25519);
             signedHeaders['orderly-signature'] = this.urlencodeBase64(this.base64ToBinary(signature));
             return { 'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }
@@ -3120,9 +3336,9 @@ class modetrade extends modetrade$1["default"] {
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        const success = this.safeBool(response, 'success');
+        const success = this.safeBool(response, 'success', false);
         const errorCode = this.safeString(response, 'code');
-        if (success !== true) {
+        if (!success) {
             const feedback = this.id + ' ' + this.json(response);
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);

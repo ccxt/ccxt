@@ -17,49 +17,14 @@ impl DeriveCore {
         self.call_method(Value::Str("public_get_get_all_currencies".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `publicPostBuildRegisterSessionKeyTx` implicit endpoint.
-    pub async fn public_post_build_register_session_key_tx(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_build_register_session_key_tx".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `publicPostRegisterSessionKey` implicit endpoint.
-    pub async fn public_post_register_session_key(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_register_session_key".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `publicPostDeregisterSessionKey` implicit endpoint.
-    pub async fn public_post_deregister_session_key(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_deregister_session_key".into()), optional_args).await
+    /// Auto-generated wrapper for the `publicPostDecodeAction` implicit endpoint.
+    pub async fn public_post_decode_action(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_post_decode_action".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicPostGetWalletsFromSessionKey` implicit endpoint.
     pub async fn public_post_get_wallets_from_session_key(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_post_get_wallets_from_session_key".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `publicPostLogin` implicit endpoint.
-    pub async fn public_post_login(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_login".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `publicPostStatistics` implicit endpoint.
-    pub async fn public_post_statistics(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_statistics".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `publicPostAllStatistics` implicit endpoint.
-    pub async fn public_post_all_statistics(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_all_statistics".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `publicPostUserStatistics` implicit endpoint.
-    pub async fn public_post_user_statistics(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_user_statistics".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `publicPostAllUserStatistics` implicit endpoint.
-    pub async fn public_post_all_user_statistics(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_all_user_statistics".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicPostGetAllCurrencies` implicit endpoint.
@@ -72,14 +37,9 @@ impl DeriveCore {
         self.call_method(Value::Str("public_post_get_currency".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `publicPostGetAsset` implicit endpoint.
-    pub async fn public_post_get_asset(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_get_asset".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `publicPostGetAssets` implicit endpoint.
-    pub async fn public_post_get_assets(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_get_assets".into()), optional_args).await
+    /// Auto-generated wrapper for the `publicPostGetRiskUniverses` implicit endpoint.
+    pub async fn public_post_get_risk_universes(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_post_get_risk_universes".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicPostGetInstrument` implicit endpoint.
@@ -92,9 +52,9 @@ impl DeriveCore {
         self.call_method(Value::Str("public_post_get_all_instruments".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `publicPostGetInstruments` implicit endpoint.
-    pub async fn public_post_get_instruments(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_get_instruments".into()), optional_args).await
+    /// Auto-generated wrapper for the `publicPostGetAllLiveInstruments` implicit endpoint.
+    pub async fn public_post_get_all_live_instruments(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_post_get_all_live_instruments".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicPostGetTicker` implicit endpoint.
@@ -117,16 +77,6 @@ impl DeriveCore {
         self.call_method(Value::Str("public_post_get_option_settlement_prices".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `publicPostGetSpotFeedHistory` implicit endpoint.
-    pub async fn public_post_get_spot_feed_history(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_get_spot_feed_history".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `publicPostGetSpotFeedHistoryCandles` implicit endpoint.
-    pub async fn public_post_get_spot_feed_history_candles(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_get_spot_feed_history_candles".into()), optional_args).await
-    }
-
     /// Auto-generated wrapper for the `publicPostGetIndexChartData` implicit endpoint.
     pub async fn public_post_get_index_chart_data(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_post_get_index_chart_data".into()), optional_args).await
@@ -147,11 +97,6 @@ impl DeriveCore {
         self.call_method(Value::Str("public_post_get_trade_history".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `publicPostGetOptionSettlementHistory` implicit endpoint.
-    pub async fn public_post_get_option_settlement_history(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_get_option_settlement_history".into()), optional_args).await
-    }
-
     /// Auto-generated wrapper for the `publicPostGetLiquidationHistory` implicit endpoint.
     pub async fn public_post_get_liquidation_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_post_get_liquidation_history".into()), optional_args).await
@@ -162,14 +107,24 @@ impl DeriveCore {
         self.call_method(Value::Str("public_post_get_interest_rate_history".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `publicPostGetPerpImpactTwap` implicit endpoint.
-    pub async fn public_post_get_perp_impact_twap(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_get_perp_impact_twap".into()), optional_args).await
-    }
-
     /// Auto-generated wrapper for the `publicPostGetTransaction` implicit endpoint.
     pub async fn public_post_get_transaction(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_post_get_transaction".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicPostGetOnchainActionHistory` implicit endpoint.
+    pub async fn public_post_get_onchain_action_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_post_get_onchain_action_history".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicPostGetPendingDeposits` implicit endpoint.
+    pub async fn public_post_get_pending_deposits(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_post_get_pending_deposits".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicPostRegisterDepositAddress` implicit endpoint.
+    pub async fn public_post_register_deposit_address(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_post_register_deposit_address".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicPostGetMargin` implicit endpoint.
@@ -187,114 +142,39 @@ impl DeriveCore {
         self.call_method(Value::Str("public_post_order_quote".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `publicPostValidateInviteCode` implicit endpoint.
-    pub async fn public_post_validate_invite_code(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_validate_invite_code".into()), optional_args).await
+    /// Auto-generated wrapper for the `publicPostGetLiveAuctions` implicit endpoint.
+    pub async fn public_post_get_live_auctions(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_post_get_live_auctions".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `publicPostGetPoints` implicit endpoint.
-    pub async fn public_post_get_points(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_get_points".into()), optional_args).await
+    /// Auto-generated wrapper for the `publicPostStartAuction` implicit endpoint.
+    pub async fn public_post_start_auction(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_post_start_auction".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `publicPostGetAllPoints` implicit endpoint.
-    pub async fn public_post_get_all_points(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_get_all_points".into()), optional_args).await
+    /// Auto-generated wrapper for the `publicPostGetVault` implicit endpoint.
+    pub async fn public_post_get_vault(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_post_get_vault".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `publicPostGetPointsLeaderboard` implicit endpoint.
-    pub async fn public_post_get_points_leaderboard(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_get_points_leaderboard".into()), optional_args).await
+    /// Auto-generated wrapper for the `publicPostGetVaults` implicit endpoint.
+    pub async fn public_post_get_vaults(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_post_get_vaults".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `publicPostGetDescendantTree` implicit endpoint.
-    pub async fn public_post_get_descendant_tree(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_get_descendant_tree".into()), optional_args).await
+    /// Auto-generated wrapper for the `publicPostGetVaultActionHistory` implicit endpoint.
+    pub async fn public_post_get_vault_action_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_post_get_vault_action_history".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `publicPostGetTreeRoots` implicit endpoint.
-    pub async fn public_post_get_tree_roots(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_get_tree_roots".into()), optional_args).await
+    /// Auto-generated wrapper for the `publicPostGetVaultPerformanceHistory` implicit endpoint.
+    pub async fn public_post_get_vault_performance_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_post_get_vault_performance_history".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `publicPostGetSwellPercentPoints` implicit endpoint.
-    pub async fn public_post_get_swell_percent_points(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_get_swell_percent_points".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `publicPostGetStdrvSnapshots` implicit endpoint.
-    pub async fn public_post_get_stdrv_snapshots(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_get_stdrv_snapshots".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `publicPostGetVaultAssets` implicit endpoint.
-    pub async fn public_post_get_vault_assets(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_get_vault_assets".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `publicPostGetEtherfiEffectiveBalances` implicit endpoint.
-    pub async fn public_post_get_etherfi_effective_balances(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_get_etherfi_effective_balances".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `publicPostGetKelpEffectiveBalances` implicit endpoint.
-    pub async fn public_post_get_kelp_effective_balances(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_get_kelp_effective_balances".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `publicPostGetBridgeBalances` implicit endpoint.
-    pub async fn public_post_get_bridge_balances(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_get_bridge_balances".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `publicPostGetEthenaParticipants` implicit endpoint.
-    pub async fn public_post_get_ethena_participants(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_get_ethena_participants".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `publicPostGetVaultShare` implicit endpoint.
-    pub async fn public_post_get_vault_share(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_get_vault_share".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `publicPostGetVaultStatistics` implicit endpoint.
-    pub async fn public_post_get_vault_statistics(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_get_vault_statistics".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `publicPostGetVaultBalances` implicit endpoint.
-    pub async fn public_post_get_vault_balances(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_get_vault_balances".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `publicPostGetVaultPools` implicit endpoint.
-    pub async fn public_post_get_vault_pools(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_get_vault_pools".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `publicPostGetVaultRates` implicit endpoint.
-    pub async fn public_post_get_vault_rates(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_get_vault_rates".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `publicPostEstimateIntegratorPoints` implicit endpoint.
-    pub async fn public_post_estimate_integrator_points(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_estimate_integrator_points".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `publicPostCreateSubaccountDebug` implicit endpoint.
-    pub async fn public_post_create_subaccount_debug(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_create_subaccount_debug".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `publicPostCreateAccountWithSecret` implicit endpoint.
-    pub async fn public_post_create_account_with_secret(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_create_account_with_secret".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `publicPostDepositDebug` implicit endpoint.
-    pub async fn public_post_deposit_debug(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_deposit_debug".into()), optional_args).await
+    /// Auto-generated wrapper for the `publicPostSetSocializationFeedData` implicit endpoint.
+    pub async fn public_post_set_socialization_feed_data(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_post_set_socialization_feed_data".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicPostWithdrawDebug` implicit endpoint.
@@ -310,16 +190,6 @@ impl DeriveCore {
     /// Auto-generated wrapper for the `publicPostExecuteQuoteDebug` implicit endpoint.
     pub async fn public_post_execute_quote_debug(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_post_execute_quote_debug".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `publicPostGetInviteCode` implicit endpoint.
-    pub async fn public_post_get_invite_code(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_get_invite_code".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `publicPostRegisterInvite` implicit endpoint.
-    pub async fn public_post_register_invite(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_register_invite".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicPostGetAllReferralCodes` implicit endpoint.
@@ -352,24 +222,9 @@ impl DeriveCore {
         self.call_method(Value::Str("public_post_get_maker_program_scores".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `publicPostGetDetailedMakerSnapshotHistory` implicit endpoint.
-    pub async fn public_post_get_detailed_maker_snapshot_history(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_get_detailed_maker_snapshot_history".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `publicPostGetRateLimits` implicit endpoint.
-    pub async fn public_post_get_rate_limits(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("public_post_get_rate_limits".into()), optional_args).await
-    }
-
     /// Auto-generated wrapper for the `privatePostGetAccount` implicit endpoint.
     pub async fn private_post_get_account(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_get_account".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `privatePostCreateSubaccount` implicit endpoint.
-    pub async fn private_post_create_subaccount(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_create_subaccount".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostGetSubaccount` implicit endpoint.
@@ -382,6 +237,11 @@ impl DeriveCore {
         self.call_method(Value::Str("private_post_get_subaccounts".into()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostDeleteSubaccount` implicit endpoint.
+    pub async fn private_post_delete_subaccount(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_delete_subaccount".into()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostGetAllPortfolios` implicit endpoint.
     pub async fn private_post_get_all_portfolios(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_get_all_portfolios".into()), optional_args).await
@@ -392,44 +252,34 @@ impl DeriveCore {
         self.call_method(Value::Str("private_post_change_subaccount_label".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `privatePostGetNotificationsv` implicit endpoint.
-    pub async fn private_post_get_notificationsv(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_get_notificationsv".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `privatePostGetNotifications` implicit endpoint.
-    pub async fn private_post_get_notifications(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_get_notifications".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `privatePostUpdateNotifications` implicit endpoint.
-    pub async fn private_post_update_notifications(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_update_notifications".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `privatePostDeposit` implicit endpoint.
-    pub async fn private_post_deposit(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_deposit".into()), optional_args).await
-    }
-
     /// Auto-generated wrapper for the `privatePostWithdraw` implicit endpoint.
     pub async fn private_post_withdraw(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_withdraw".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `privatePostTransferErc20` implicit endpoint.
-    pub async fn private_post_transfer_erc20(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_transfer_erc20".into()), optional_args).await
+    /// Auto-generated wrapper for the `privatePostTransferSpot` implicit endpoint.
+    pub async fn private_post_transfer_spot(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_transfer_spot".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `privatePostTransferPosition` implicit endpoint.
-    pub async fn private_post_transfer_position(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_transfer_position".into()), optional_args).await
+    /// Auto-generated wrapper for the `privatePostTransferSpotExternal` implicit endpoint.
+    pub async fn private_post_transfer_spot_external(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_transfer_spot_external".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostTransferPositions` implicit endpoint.
     pub async fn private_post_transfer_positions(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_transfer_positions".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostRejectDepositRequest` implicit endpoint.
+    pub async fn private_post_reject_deposit_request(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_reject_deposit_request".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostUpdateWhitelistedRecipients` implicit endpoint.
+    pub async fn private_post_update_whitelisted_recipients(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_update_whitelisted_recipients".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostOrder` implicit endpoint.
@@ -450,11 +300,6 @@ impl DeriveCore {
     /// Auto-generated wrapper for the `privatePostGetOrder` implicit endpoint.
     pub async fn private_post_get_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_get_order".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `privatePostGetOrders` implicit endpoint.
-    pub async fn private_post_get_orders(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_get_orders".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostGetOpenOrders` implicit endpoint.
@@ -632,11 +477,6 @@ impl DeriveCore {
         self.call_method(Value::Str("private_post_get_subaccount_value_history".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `privatePostExpiredAndCancelledHistory` implicit endpoint.
-    pub async fn private_post_expired_and_cancelled_history(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_expired_and_cancelled_history".into()), optional_args).await
-    }
-
     /// Auto-generated wrapper for the `privatePostGetFundingHistory` implicit endpoint.
     pub async fn private_post_get_funding_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_get_funding_history".into()), optional_args).await
@@ -662,29 +502,19 @@ impl DeriveCore {
         self.call_method(Value::Str("private_post_liquidate".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `privatePostGetLiquidatorHistory` implicit endpoint.
-    pub async fn private_post_get_liquidator_history(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_get_liquidator_history".into()), optional_args).await
-    }
-
     /// Auto-generated wrapper for the `privatePostSessionKeys` implicit endpoint.
     pub async fn private_post_session_keys(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_session_keys".into()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostSetSessionKey` implicit endpoint.
+    pub async fn private_post_set_session_key(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_set_session_key".into()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostEditSessionKey` implicit endpoint.
     pub async fn private_post_edit_session_key(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_edit_session_key".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `privatePostChangeSessionKeyLabel` implicit endpoint.
-    pub async fn private_post_change_session_key_label(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_change_session_key_label".into()), optional_args).await
-    }
-
-    /// Auto-generated wrapper for the `privatePostRegisterScopedSessionKey` implicit endpoint.
-    pub async fn private_post_register_scoped_session_key(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_register_scoped_session_key".into()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostGetMmpConfig` implicit endpoint.
@@ -702,39 +532,79 @@ impl DeriveCore {
         self.call_method(Value::Str("private_post_reset_mmp".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `privatePostSetCancelOnDisconnect` implicit endpoint.
-    pub async fn private_post_set_cancel_on_disconnect(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_set_cancel_on_disconnect".into()), optional_args).await
+    /// Auto-generated wrapper for the `privatePostCreateVault` implicit endpoint.
+    pub async fn private_post_create_vault(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_create_vault".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `privatePostGetInviteCode` implicit endpoint.
-    pub async fn private_post_get_invite_code(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_get_invite_code".into()), optional_args).await
+    /// Auto-generated wrapper for the `privatePostUpdateVaultInfo` implicit endpoint.
+    pub async fn private_post_update_vault_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_update_vault_info".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `privatePostRegisterInvite` implicit endpoint.
-    pub async fn private_post_register_invite(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_register_invite".into()), optional_args).await
+    /// Auto-generated wrapper for the `privatePostMintVaultShares` implicit endpoint.
+    pub async fn private_post_mint_vault_shares(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_mint_vault_shares".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `privatePostGetContactInfo` implicit endpoint.
-    pub async fn private_post_get_contact_info(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_get_contact_info".into()), optional_args).await
+    /// Auto-generated wrapper for the `privatePostBurnVaultShares` implicit endpoint.
+    pub async fn private_post_burn_vault_shares(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_burn_vault_shares".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `privatePostCreateContactInfo` implicit endpoint.
-    pub async fn private_post_create_contact_info(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_create_contact_info".into()), optional_args).await
+    /// Auto-generated wrapper for the `privatePostForceBurn` implicit endpoint.
+    pub async fn private_post_force_burn(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_force_burn".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `privatePostUpdateContactInfo` implicit endpoint.
-    pub async fn private_post_update_contact_info(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_update_contact_info".into()), optional_args).await
+    /// Auto-generated wrapper for the `privatePostRequestVaultDeposit` implicit endpoint.
+    pub async fn private_post_request_vault_deposit(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_request_vault_deposit".into()), optional_args).await
     }
 
-    /// Auto-generated wrapper for the `privatePostDeleteContactInfo` implicit endpoint.
-    pub async fn private_post_delete_contact_info(&mut self, optional_args: &[Value]) -> Value {
-        self.call_method(Value::Str("private_post_delete_contact_info".into()), optional_args).await
+    /// Auto-generated wrapper for the `privatePostRequestVaultWithdraw` implicit endpoint.
+    pub async fn private_post_request_vault_withdraw(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_request_vault_withdraw".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostCancelAllVaultRequests` implicit endpoint.
+    pub async fn private_post_cancel_all_vault_requests(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_cancel_all_vault_requests".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostGetVaultShares` implicit endpoint.
+    pub async fn private_post_get_vault_shares(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_get_vault_shares".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostGetCuratedVaults` implicit endpoint.
+    pub async fn private_post_get_curated_vaults(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_get_curated_vaults".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostGetShareholderVaults` implicit endpoint.
+    pub async fn private_post_get_shareholder_vaults(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_get_shareholder_vaults".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostGetLiveMintRequests` implicit endpoint.
+    pub async fn private_post_get_live_mint_requests(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_get_live_mint_requests".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostGetLiveBurnRequests` implicit endpoint.
+    pub async fn private_post_get_live_burn_requests(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_get_live_burn_requests".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostGetLiveVaultRequests` implicit endpoint.
+    pub async fn private_post_get_live_vault_requests(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_get_live_vault_requests".into()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostGetVaultRequestHistory` implicit endpoint.
+    pub async fn private_post_get_vault_request_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_get_vault_request_history".into()), optional_args).await
     }
 
 }

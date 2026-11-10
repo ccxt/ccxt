@@ -5,9 +5,9 @@ import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, 
  * @augments Exchange
  */
 export default class extended extends Exchange {
-    describe(): any;
+    describe(): Dict;
     loadMarkets(reload?: boolean, params?: Dict): Promise<import("./base/types.js").Dictionary<Market>>;
-    indexByStringifiedNumericId(input: Dict): Dict | undefined;
+    indexByStringifiedNumericId(input: Dict): NullableDict;
     /**
      * @method
      * @name extended#fetchMarkets
@@ -149,7 +149,7 @@ export default class extended extends Exchange {
      * @returns {object[]} an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OpenInterest[]>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name extended#fetchBalance
@@ -159,7 +159,7 @@ export default class extended extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    parseBalance(response: any): Balances;
+    parseBalanceList(response: Dict[]): Balances;
     /**
      * @method
      * @name extended#fetchAccount
@@ -240,13 +240,13 @@ export default class extended extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the Starknet address to withdraw to
-     * @param {string} tag unused
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.chainId] only STRK is supported
      * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 14 days + 60 seconds
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name extended#fetchTransfers
@@ -361,7 +361,7 @@ export default class extended extends Exchange {
     fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
     getExtendedStarkAmount(amount: string, resolution: Int, roundUp?: boolean): string;
-    fetchExtendedAccount(params?: {}): Promise<any>;
+    fetchExtendedAccount(params?: Dict): Promise<Dict>;
     createOrderSettlementData(isBuy: boolean, amountString: string, priceString: string, params?: Dict): Dict;
     createWithdrawalSettlementData(address: string, amountString: string, currency: Currency, account: Dict, params?: Dict): Dict;
     createTransferSettlementData(amountString: string, currency: Currency, account: Dict, toVault: string, toL2Key: string, params?: Dict): Dict;
@@ -527,12 +527,12 @@ export default class extended extends Exchange {
     parseOrder(order: Dict, market?: Market): Order;
     getExtendedStringToFelt(value: string): bigint;
     getExtendedEncodeI64(value: any): any;
-    getExtendedDecimalToBase16(value: any): string;
-    getExtendedSignatureHex(signature: any): string;
+    getExtendedDecimalToBase16(value: string): string;
+    getExtendedSignatureHex(signature: string): string;
     getExtendedDomainHash(): bigint;
     getExtendedOrderMsgHash(settlement: Dict): string;
     getExtendedWithdrawalMsgHash(settlement: Dict, starkKey: string): string;
     getExtendedTransferMsgHash(settlement: Dict): string;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
 }

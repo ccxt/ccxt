@@ -322,7 +322,7 @@ class zebpay extends zebpay$1["default"] {
         const defaultMarkets = ['spot', 'swap'];
         const types = this.safeList(fetchMarketsOptions, 'types', defaultMarkets);
         for (let i = 0; i < types.length; i++) {
-            const type = this.safeString(types, i);
+            const type = this.safeString(types, i, '');
             if (type === 'spot') {
                 promisesUnresolved.push(this.fetchSpotMarkets(params));
             }
@@ -399,20 +399,39 @@ class zebpay extends zebpay$1["default"] {
             const networkId = this.safeString(chain, 'chainId');
             const networkCode = this.networkIdToCode(networkId, code);
             const depositAllowed = this.safeBool(chain, 'isDepositEnabled', false);
-            deposit = (depositAllowed) ? depositAllowed : deposit;
+            if (depositAllowed) {
+                deposit = true;
+            }
             const withdrawAllowed = this.safeBool(chain, 'isWithdrawEnabled', false);
-            withdraw = (withdrawAllowed) ? withdrawAllowed : withdraw;
+            if (withdrawAllowed) {
+                withdraw = true;
+            }
             const withdrawFeeString = this.safeString(chain, 'withdrawalFee');
             if (withdrawFeeString !== undefined) {
-                minWithdrawFeeString = (minWithdrawFeeString === undefined) ? withdrawFeeString : Precise["default"].stringMin(withdrawFeeString, minWithdrawFeeString);
+                if (minWithdrawFeeString === undefined) {
+                    minWithdrawFeeString = withdrawFeeString;
+                }
+                else {
+                    minWithdrawFeeString = Precise["default"].stringMin(withdrawFeeString, minWithdrawFeeString);
+                }
             }
             const minNetworkWithdrawString = this.safeString(chain, 'withdrawalMinSize');
             if (minNetworkWithdrawString !== undefined) {
-                minWithdrawString = (minWithdrawString === undefined) ? minNetworkWithdrawString : Precise["default"].stringMin(minNetworkWithdrawString, minWithdrawString);
+                if (minWithdrawString === undefined) {
+                    minWithdrawString = minNetworkWithdrawString;
+                }
+                else {
+                    minWithdrawString = Precise["default"].stringMin(minNetworkWithdrawString, minWithdrawString);
+                }
             }
             const minNetworkDepositString = this.safeString(chain, 'depositMinSize');
             if (minNetworkDepositString !== undefined) {
-                minDepositString = (minDepositString === undefined) ? minNetworkDepositString : Precise["default"].stringMin(minNetworkDepositString, minDepositString);
+                if (minDepositString === undefined) {
+                    minDepositString = minNetworkDepositString;
+                }
+                else {
+                    minDepositString = Precise["default"].stringMin(minNetworkDepositString, minDepositString);
+                }
             }
             if (networkCode !== undefined) {
                 networks[networkCode] = {
@@ -485,7 +504,7 @@ class zebpay extends zebpay$1["default"] {
         const request = {
             'symbol': market['id'],
         };
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.privateSpotGetV2ExTradefee(this.extend(request, params));
             //
             // {
@@ -588,7 +607,7 @@ class zebpay extends zebpay$1["default"] {
             request['limit'] = limit;
         }
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             //
             //       {
             //         "asks": [
@@ -630,7 +649,7 @@ class zebpay extends zebpay$1["default"] {
             'symbol': market['id'],
         };
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.publicSpotGetV2MarketTicker(this.extend(request, params));
             //
             //     [
@@ -725,7 +744,7 @@ class zebpay extends zebpay$1["default"] {
         const paramsOmitted = this.omit(params, ['until', 'endtime', 'endTime', 'interval', 'startTime']);
         let response = undefined;
         let limitResolved = limit;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             if (limit === undefined) {
                 limitResolved = 100;
             }
@@ -812,11 +831,11 @@ class zebpay extends zebpay$1["default"] {
         const request = {
             'symbol': market['id'],
         };
-        if ((market['spot'] === true) && limit !== undefined) {
+        if ((this.safeBool(market, 'spot', false)) && limit !== undefined) {
             request['limit'] = limit;
         }
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.publicSpotGetV2MarketTrades(this.extend(request, params));
         }
         else {
@@ -870,7 +889,7 @@ class zebpay extends zebpay$1["default"] {
     }
     /**
      * @method
-     * @name zebpatspot#fetchOrderTrades
+     * @name zebpay#fetchOrderTrades
      * @description fetch all the trades made from a single order
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-order-fills
      * @param {string} id order id
@@ -1040,16 +1059,15 @@ class zebpay extends zebpay$1["default"] {
         const upperCaseType = type.toUpperCase();
         const takeProfitPrice = this.safeString(params, 'takeProfitPrice');
         const stopLossPrice = this.safeString(params, 'stopLossPrice');
-        let query = this.omit(params, ['marginAsset', 'takeProfitPrice', 'takeProfitPrice']);
+        const query = this.omit(params, ['marginAsset', 'takeProfitPrice', 'takeProfitPrice']);
         this.checkRequiredArgument('createOrder', side, 'side');
-        let request = {
+        const request = {
             'symbol': market['id'],
             'side': side.toUpperCase(),
         };
         let response = undefined;
-        if (market['spot'] === true) {
-            [request, query] = this.orderRequest(symbol, type, amount, request, price, query);
-            response = await this.privateSpotPostV2ExOrders(this.extend(request, query));
+        if (this.safeBool(market, 'spot', false)) {
+            response = await this.privateSpotPostV2ExOrders(this.spotOrderBody(symbol, type, amount, request, price, query));
         }
         else {
             const marginAsset = this.safeString(query, 'marginAsset', 'INR');
@@ -1089,7 +1107,7 @@ class zebpay extends zebpay$1["default"] {
         const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
-    orderRequest(symbol, type, amount, request, price = undefined, params = {}) {
+    spotOrderBody(symbol, type, amount, request, price = undefined, params = {}) {
         const upperCaseType = type.toUpperCase();
         const triggerPrice = this.safeString(params, 'stopLossPrice');
         const quoteOrderQty = this.safeString2(params, 'quoteOrderQty', 'cost', undefined);
@@ -1112,7 +1130,7 @@ class zebpay extends zebpay$1["default"] {
             request['amount'] = this.amountToPrecision(symbol, amount);
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        return [request, paramsOmitted];
+        return this.extend(request, paramsOmitted);
     }
     /**
      * @method
@@ -1133,7 +1151,7 @@ class zebpay extends zebpay$1["default"] {
         const market = this.market(symbol);
         let response = undefined;
         const request = {};
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             request['orderId'] = id;
             response = await this.privateSpotDeleteV2ExOrder(this.extend(request, params));
         }
@@ -1209,7 +1227,7 @@ class zebpay extends zebpay$1["default"] {
         };
         let response = undefined;
         let orders = [];
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             request['currentPage'] = 1;
             if (limit !== undefined) {
                 request['pageSize'] = limit;
@@ -1276,7 +1294,7 @@ class zebpay extends zebpay$1["default"] {
         const market = this.market(symbol);
         const request = {};
         let response = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             request['orderId'] = id;
             response = await this.privateSpotGetV2ExOrder(this.extend(request, params));
         }
@@ -1711,12 +1729,11 @@ class zebpay extends zebpay$1["default"] {
             if ((base === undefined) || (quote === undefined)) {
                 continue;
             }
-            const settle = this.safeCurrencyCode(quoteId);
             const status = this.safeString(market, 'status');
             const symbol = base + '/' + quote;
             result.push(this.safeMarketStructure({
                 'id': id,
-                'symbol': symbol + ':' + settle,
+                'symbol': symbol + ':' + quote,
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
@@ -1785,12 +1802,20 @@ class zebpay extends zebpay$1["default"] {
         const datetime = this.safeString(position, 'datetime');
         const marketId = this.safeString(position, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
-        return {
+        const marginMode = this.safeStringLower(position, 'marginMode', 'isolated');
+        const initialMargin = this.safeNumber(position, 'initialMargin');
+        // isolated positions hold exactly the initial margin posted for them
+        let positionMargin = undefined;
+        if (marginMode === 'isolated') {
+            positionMargin = initialMargin;
+        }
+        return this.safePosition({
             'info': position,
-            'symbol': marketId,
+            'id': this.safeString(position, 'id'),
+            'symbol': marketResolved['symbol'],
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
-            'initialMargin': this.safeNumber(position, 'initialMargin'),
+            'initialMargin': initialMargin,
             'initialMarginPercentage': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
@@ -1803,11 +1828,12 @@ class zebpay extends zebpay$1["default"] {
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber(position, 'liquidationPrice'),
             'markPrice': undefined,
+            'positionMargin': positionMargin,
             'collateral': undefined,
-            'marginType': 'isolated',
-            'side': this.safeString(position, 'side'),
+            'marginMode': marginMode,
+            'side': this.safeStringLower(position, 'side'),
             'percentage': undefined,
-        };
+        });
     }
     parseLeverage(leverage, market = undefined) {
         const marketId = this.safeString(leverage, 'symbol');
@@ -1909,7 +1935,7 @@ class zebpay extends zebpay$1["default"] {
             'datetime': undefined,
         };
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         let bodySigned = undefined;
         let headersSigned = undefined;
         const paramsOmitted = this.omit(params, 'defaultType');
@@ -1922,27 +1948,25 @@ class zebpay extends zebpay$1["default"] {
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = baseApiUrl;
         const tail = '/api/' + this.implodeParams(path, paramsOmitted);
-        url += tail;
+        let suffix = '';
         const timestamp = this.milliseconds().toString();
         let signature = '';
         const query = this.omit(paramsOmitted, this.extractParams(path));
-        const queryLength = Object.keys(query).length;
-        const access = this.safeString(api, 0, 'public');
+        const access = api[0];
         if (access === 'public') {
             if (method === 'GET' || method === 'DELETE') {
-                if (queryLength !== 0) {
-                    url += '?' + this.urlencode(query);
+                if (Object.keys(query).length !== 0) {
+                    suffix = '?' + this.urlencode(query);
                 }
             }
             else {
                 const priceType = this.safeString(paramsOmitted, 'priceType');
                 const paramsBody = this.omit(paramsOmitted, 'priceType');
                 if (priceType !== undefined) {
-                    url += '?' + this.urlencode({ 'priceType': priceType });
+                    suffix = '?' + this.urlencode({ 'priceType': priceType });
                 }
-                bodySigned = JSON.stringify(paramsBody);
+                bodySigned = this.json(paramsBody);
                 headersSigned = {
                     'Referrer': 'ccxt',
                     'Content-Type': 'application/json',
@@ -1952,27 +1976,28 @@ class zebpay extends zebpay$1["default"] {
         else {
             this.checkRequiredCredentials();
             const isSpot = marketType === 'spot';
-            paramsOmitted['timestamp'] = timestamp;
+            const paramsSigned = this.extend(paramsOmitted, { 'timestamp': timestamp });
             if (method === 'GET' || (method === 'DELETE' && isSpot)) {
                 // For GET/DELETE: Append params to URL and sign the query string
-                const queryString = this.urlencode(paramsOmitted);
+                const queryString = this.urlencode(paramsSigned);
                 signature = this.hmac(this.encode(queryString), this.encode(this.secret), sha2_js.sha256, 'hex');
-                url += '?' + queryString;
+                suffix = '?' + queryString;
             }
             else {
                 // For POST/PUT: Convert body to JSON and sign the stringified payload
-                bodySigned = this.json(paramsOmitted);
+                bodySigned = this.json(paramsSigned);
                 signature = this.hmac(this.encode(bodySigned), this.encode(this.secret), sha2_js.sha256, 'hex');
             }
             headersSigned = {
                 'Referrer': 'ccxt',
                 'X-AUTH-APIKEY': this.apiKey,
                 'X-AUTH-SIGNATURE': signature,
+                'Content-Type': 'application/json',
             };
-            headersSigned['Content-Type'] = 'application/json';
         }
-        const headersResolved = (headersSigned === undefined) ? headers : headersSigned;
-        const bodyResolved = (bodySigned === undefined) ? body : bodySigned;
+        const url = baseApiUrl + tail + suffix;
+        const headersResolved = headersSigned;
+        const bodyResolved = bodySigned;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
@@ -1988,7 +2013,7 @@ class zebpay extends zebpay$1["default"] {
         // {"statusDescription":"Order quantity is out of range","data":{},"statusCode":400,"customMessage":["Order quantity is out of range"]}
         //
         const errorCode = this.safeString2(response, 'code', 'statusCode');
-        const message = this.safeString2(response, 'msg', 'statusDescription');
+        const message = this.safeString2(response, 'msg', 'statusDescription', '');
         const feedback = this.id + ' ' + message;
         this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
         this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);

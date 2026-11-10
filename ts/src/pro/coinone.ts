@@ -6,12 +6,12 @@ import { AuthenticationError } from '../base/errors.js';
 import type { Bool, Dict, Int, Market, OrderBook, Str, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache } from '../base/ws/Cache.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class coinone extends coinoneRest {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -77,7 +77,7 @@ export default class coinone extends coinoneRest {
             },
         };
         const message = this.extend (request, params);
-        const orderbook: Ob = await this.watch (url, messageHash, message, messageHash);
+        const orderbook: WsOrderBook = await this.watch (url, messageHash, message, messageHash);
         return orderbook.limit ();
     }
 
@@ -321,7 +321,7 @@ export default class coinone extends coinoneRest {
         //
         const data = this.safeDict (message, 'data', {});
         const trade = this.parseWsTrade (data);
-        const symbol = trade['symbol'];
+        const symbol = this.safeString (trade, 'symbol', '');
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -358,7 +358,7 @@ export default class coinone extends coinoneRest {
         const isSellerMaker = this.safeBool (trade, 'is_seller_maker');
         let side: Str = undefined;
         if (isSellerMaker !== undefined) {
-            side = (isSellerMaker === true) ? 'sell' : 'buy';
+            side = (isSellerMaker) ? 'sell' : 'buy';
         }
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'qty');
@@ -418,7 +418,7 @@ export default class coinone extends coinoneRest {
             const keys = Object.keys (methods);
             for (let i = 0; i < keys.length; i++) {
                 const key = keys[i];
-                if (topic.indexOf (keys[i]) >= 0) {
+                if (topic.indexOf (key) >= 0) {
                     const method = methods[key];
                     method.call (this, client, message);
                     return;

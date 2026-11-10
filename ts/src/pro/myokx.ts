@@ -1,12 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import okx from './okx.js';
+import okx from '../abstract/pro/myokx.js';
+import type { Dict } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
 export default class myokx extends okx {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'myokx',
             'name': 'MyOKX (EEA)',
@@ -14,7 +15,7 @@ export default class myokx extends okx {
             'urls': {
                 'api': {
                     'rest': 'https://{hostname}',
-                    'ws': 'wss://wseea.okx.com:8443/ws/v5',
+                    'ws': 'wss://wseea.okx.com:443/ws/v5',
                 },
                 'www': 'https://my.okx.com',
                 'doc': 'https://my.okx.com/docs-v5/en/#overview',
@@ -24,7 +25,7 @@ export default class myokx extends okx {
                     'discount': 0.2,
                 },
                 'test': {
-                    'ws': 'wss://wseeapap.okx.com:8443/ws/v5',
+                    'ws': 'wss://wseeapap.okx.com:443/ws/v5',
                 },
             },
             'has': {

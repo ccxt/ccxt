@@ -18,7 +18,7 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestWatchTickers extends BaseTest {
-    public CompletableFuture<Void> testWatchTickers(Exchange exchange, Object skippedProperties, Object symbol)
+    public CompletableFuture<Void> testWatchTickers(Exchange exchange, Object skippedProperties, String symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -73,10 +73,10 @@ public class TestWatchTickers extends BaseTest {
             {
                 return false;
             }
-            if (java.util.Objects.equals(success, true))
+            if (Boolean.TRUE.equals(success))
             {
                 Assert(exchange.isDictionary(response), ((((((exchange.id + " ") + method) + " ") + exchange.json(argSymbols)) + " must return a dictionary. ") + exchange.json(response)));
-                Object values = Helpers.objectValues(response);
+                List<Object> values = Helpers.objectValues(response);
                 Object checkedSymbol = null;
                 if (!java.util.Objects.equals(argSymbols, null) && (((List<?>)argSymbols).size() == 1))
                 {
@@ -85,10 +85,10 @@ public class TestWatchTickers extends BaseTest {
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
                 for (var i = 0; i < ((List<?>)values).size(); i++)
                 {
-                    Object ticker = (values == null || i < 0 || i >= ((List<?>)values).size() ? null : ((List<?>)values).get(i));
+                    Object ticker = (values == null || i < 0 || i >= values.size() ? null : values.get(i));
                     try
                     {
-                        TestTicker.testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+                        TestTicker.testTicker(exchange, skippedProperties, method, ticker, (String) (checkedSymbol));
                     } catch(Exception ex)
                     {
                         Object ohlcv = null;

@@ -5,7 +5,7 @@ import type { Balances, Currency, CurrencyInterface, Greeks, Int, Market, Market
  * @augments Exchange
  */
 export default class delta extends Exchange {
-    describe(): any;
+    describe(): Dict;
     createExpiredOptionMarket(symbol: string): MarketInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     /**
@@ -35,7 +35,7 @@ export default class delta extends Exchange {
     fetchCurrencies(params?: Dict): Promise<Currencies>;
     parseCurrency(rawCurrency: Dict): CurrencyInterface;
     loadMarkets(reload?: boolean, params?: Dict): Promise<import("./base/types.js").Dictionary<Market>>;
-    indexByStringifiedNumericId(input: NullableDict): Dict | undefined;
+    indexByStringifiedNumericId(input: NullableDict): NullableDict;
     /**
      * @method
      * @name delta#fetchMarkets
@@ -105,7 +105,7 @@ export default class delta extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name delta#fetchBalance
@@ -307,7 +307,7 @@ export default class delta extends Exchange {
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     reduceMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
-    modifyMarginHelper(symbol: string, amount: any, type: string, params?: Dict): Promise<MarginModification>;
+    modifyMarginHelper(symbol: string, amount: number, type: string, params?: Dict): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     /**
      * @method
@@ -319,7 +319,7 @@ export default class delta extends Exchange {
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     fetchOpenInterest(symbol: string, params?: Dict): Promise<OpenInterest>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name delta#fetchLeverage
@@ -422,6 +422,6 @@ export default class delta extends Exchange {
      */
     fetchPositionsADLRank(symbols?: Strings, params?: Dict): Promise<ADL[]>;
     parseADLRank(info: Dict, market?: Market): ADL;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

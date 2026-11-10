@@ -209,7 +209,7 @@ class foxbit extends foxbit$1["default"] {
                     'cardano': 'ADA',
                     'cosmos': 'ATOM',
                     'dogecoin': 'DOGE',
-                    'erc20': 'ETH',
+                    'erc20': 'ERC20',
                     'hedera': 'HBAR',
                     'litecoin': 'LTC',
                     'near': 'NEAR',
@@ -233,7 +233,7 @@ class foxbit extends foxbit$1["default"] {
                     'ADA': 'cardano',
                     'ATOM': 'cosmos',
                     'DOGE': 'dogecoin',
-                    'ETH': 'erc20',
+                    'ERC20': 'erc20',
                     'HBAR': 'hedera',
                     'LTC': 'litecoin',
                     'NEAR': 'near',
@@ -964,7 +964,7 @@ class foxbit extends foxbit$1["default"] {
                 request['time_in_force'] = timeInForce;
             }
         }
-        if (postOnly === true) {
+        if (postOnly) {
             request['post_only'] = true;
         }
         if (triggerPrice !== undefined) {
@@ -1010,7 +1010,7 @@ class foxbit extends foxbit$1["default"] {
             const order = this.safeDict(orders, i);
             const symbol = this.safeString(order, 'symbol');
             const market = this.market(symbol);
-            const type = this.safeStringUpper(order, 'type');
+            const type = this.safeStringUpper(order, 'type', '');
             const orderParams = this.safeDict(order, 'params', {});
             if (type !== 'LIMIT' && type !== 'MARKET' && type !== 'STOP_MARKET' && type !== 'STOP_LIMIT' && type !== 'INSTANT') {
                 throw new errors.InvalidOrder('Invalid order type: ' + type + '. Must be one of: limit, market, stop_market, stop_limit, instant.');
@@ -1037,7 +1037,7 @@ class foxbit extends foxbit$1["default"] {
                 }
                 delete orderParams['timeInForce'];
             }
-            if (postOnly === true) {
+            if (postOnly) {
                 request['post_only'] = true;
                 delete orderParams['postOnly'];
             }
@@ -1519,31 +1519,32 @@ class foxbit extends foxbit$1["default"] {
         }
         const market = this.market(symbol);
         this.checkRequiredArgument('editOrder', side, 'side');
+        const createRequest = {
+            'type': typeValue,
+            'side': side.toUpperCase(),
+            'market_symbol': market['id'],
+        };
+        if (typeValue === 'LIMIT' || typeValue === 'MARKET') {
+            createRequest['quantity'] = this.amountToPrecision(symbol, amount);
+            if (typeValue === 'LIMIT') {
+                createRequest['price'] = this.priceToPrecision(symbol, price);
+            }
+        }
+        if (typeValue === 'STOP_MARKET') {
+            createRequest['stop_price'] = this.priceToPrecision(symbol, price);
+            createRequest['quantity'] = this.amountToPrecision(symbol, amount);
+        }
+        if (typeValue === 'INSTANT') {
+            createRequest['amount'] = this.priceToPrecision(symbol, amount);
+        }
         const request = {
             'mode': 'ALLOW_FAILURE',
             'cancel': {
                 'type': 'ID',
                 'id': this.parseNumber(id),
             },
-            'create': {
-                'type': typeValue,
-                'side': side.toUpperCase(),
-                'market_symbol': market['id'],
-            },
+            'create': createRequest,
         };
-        if (typeValue === 'LIMIT' || typeValue === 'MARKET') {
-            request['create']['quantity'] = this.amountToPrecision(symbol, amount);
-            if (typeValue === 'LIMIT') {
-                request['create']['price'] = this.priceToPrecision(symbol, price);
-            }
-        }
-        if (typeValue === 'STOP_MARKET') {
-            request['create']['stop_price'] = this.priceToPrecision(symbol, price);
-            request['create']['quantity'] = this.amountToPrecision(symbol, amount);
-        }
-        if (typeValue === 'INSTANT') {
-            request['create']['amount'] = this.priceToPrecision(symbol, amount);
-        }
         const response = await this.v3PrivatePostOrdersCancelReplace(this.extend(request, params));
         // {
         //     "cancel": {
@@ -1565,12 +1566,13 @@ class foxbit extends foxbit$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -1716,7 +1718,15 @@ class foxbit extends foxbit$1["default"] {
         const bestAsk = this.safeDict(best, 'ask');
         const bestBid = this.safeDict(best, 'bid');
         const lastTrade = this.safeDict(ticker, 'last_trade');
-        const lastPrice = this.safeString(lastTrade, 'price');
+        let lastPrice = this.safeString(lastTrade, 'price');
+        let change = this.safeString(rolling_24h, 'price_change');
+        let percentage = this.safeString(rolling_24h, 'price_change_percent');
+        // never-traded markets report all-zero placeholders instead of omitting the values
+        if (Precise["default"].stringEq(lastPrice, '0')) {
+            lastPrice = undefined;
+            change = undefined;
+            percentage = undefined;
+        }
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': this.parseDate(this.safeString(lastTrade, 'date')),
@@ -1732,8 +1742,8 @@ class foxbit extends foxbit$1["default"] {
             'close': lastPrice,
             'last': lastPrice,
             'previousClose': undefined,
-            'change': this.safeString(rolling_24h, 'price_change'),
-            'percentage': this.safeString(rolling_24h, 'price_change_percent'),
+            'change': change,
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeString(rolling_24h, 'volume'),
             'quoteVolume': this.safeString(rolling_24h, 'quote_volume'),
@@ -1792,10 +1802,11 @@ class foxbit extends foxbit$1["default"] {
     parseOrder(order, market = undefined) {
         let symbol = this.safeString(order, 'market_symbol');
         let marketResolved = market;
-        if ((market === undefined) && (symbol !== undefined)) {
-            marketResolved = this.market(symbol);
+        if (market !== undefined) {
+            symbol = this.safeString(market, 'symbol');
         }
-        if (marketResolved !== undefined) {
+        else if (symbol !== undefined) {
+            marketResolved = this.market(symbol);
             symbol = this.safeString(marketResolved, 'symbol');
         }
         const timestamp = this.parseDate(this.safeString(order, 'created_at'));
@@ -1886,7 +1897,7 @@ class foxbit extends foxbit$1["default"] {
         const address = this.safeString2(cryptoDetails, 'receiving_address', 'destination_address');
         const sn = this.safeString(transaction, 'sn');
         let type = 'withdrawal';
-        if (sn !== undefined && sn[0] === 'D') {
+        if (sn !== undefined && sn.startsWith('D')) {
             type = 'deposit';
         }
         const fee = this.safeString(transaction, 'fee', '0');
@@ -1914,7 +1925,7 @@ class foxbit extends foxbit$1["default"] {
             'txid': this.safeString(cryptoDetails, 'transaction_id'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'network': this.safeString(transaction, 'network_code'),
+            'network': this.networkIdToCode(this.safeString(transaction, 'network_code'), currencyCode),
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -1971,18 +1982,16 @@ class foxbit extends foxbit$1["default"] {
         if (amount === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' parseLedgerEntry() requires a amount argument');
         }
-        if (amount < 0) {
-            direction = 'out';
-            if (amount === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' parseLedgerEntry() requires a amount argument');
-            }
-            realAmount = amount * -1;
-        }
         if (balance === undefined) {
             throw new errors.ExchangeError(this.id + ' parseLedgerEntry() missing balance');
         }
-        if (amount === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' parseLedgerEntry() requires a amount argument');
+        let before = undefined;
+        if (amount !== undefined && balance !== undefined) {
+            before = balance - amount;
+            if (0 > amount) {
+                direction = 'out';
+                realAmount = -amount;
+            }
         }
         return {
             'id': id,
@@ -1996,13 +2005,13 @@ class foxbit extends foxbit$1["default"] {
             'type': type,
             'currency': currencySymbol,
             'amount': realAmount,
-            'before': balance - amount,
+            'before': before,
             'after': balance,
             'status': 'ok',
             'fee': fee,
         };
     }
-    sign(path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = [], method = 'GET', params = {}) {
         const version = api[0];
         let urlPath = api[1];
         let fullPath = '/rest/' + version + '/' + this.implodeParams(path, params);
@@ -2022,6 +2031,7 @@ class foxbit extends foxbit$1["default"] {
         if (method === 'GET') {
             const paramKeys = Object.keys(paramsOmitted);
             const paramKeysLength = paramKeys.length;
+            const lastKeyIndex = paramKeysLength - 1;
             if (paramKeysLength > 0) {
                 query = this.urlencode(paramsOmitted);
                 url += '?' + query;
@@ -2032,12 +2042,12 @@ class foxbit extends foxbit$1["default"] {
                 if (value !== undefined) {
                     signatureQuery += key + '=' + value;
                 }
-                if (i < paramKeysLength - 1) {
+                if (i < lastKeyIndex) {
                     signatureQuery += '&';
                 }
             }
         }
-        let requestBody = body;
+        let requestBody = undefined;
         if (method === 'POST' || method === 'PUT') {
             requestBody = this.json(paramsOmitted);
         }
@@ -2052,33 +2062,33 @@ class foxbit extends foxbit$1["default"] {
         };
         if (urlPath === 'private') {
             this.checkRequiredCredentials();
-            const preHash = this.numberToString(timestamp) + method + fullPath + signatureQuery + bodyToSignature;
+            const preHash = timestamp.toString() + method + fullPath + signatureQuery + bodyToSignature;
             const signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha2_js.sha256, 'hex');
             headersValue['X-FB-ACCESS-KEY'] = this.apiKey;
-            headersValue['X-FB-ACCESS-TIMESTAMP'] = this.numberToString(timestamp);
+            headersValue['X-FB-ACCESS-TIMESTAMP'] = timestamp.toString();
             headersValue['X-FB-ACCESS-SIGNATURE'] = signature;
         }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': headersValue };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }
         const error = this.safeDict(response, 'error');
-        const code = this.safeString(error, 'code');
+        const codeError = this.safeString(error, 'code');
         const details = this.safeList(error, 'details');
-        const message = this.safeString(error, 'message');
+        const message = this.safeString(error, 'message', '');
         let detailsString = '';
         if (details !== undefined) {
             for (let i = 0; i < details.length; i++) {
-                detailsString = detailsString + details[i] + ' ';
+                detailsString = detailsString + this.safeString(details, i, '') + ' ';
             }
         }
         if (error !== undefined) {
             const feedback = this.id + ' ' + message + ' details: ' + detailsString;
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], detailsString, feedback);
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
             throw new errors.ExchangeError(feedback);
         }
         return undefined;

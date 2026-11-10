@@ -496,7 +496,7 @@ func Capitalize(s string) string {
 	return ccxt.Capitalize(s)
 }
 
-func CallInternalMethod(cache *sync.Map, itf interface{}, name2 string, args ...interface{}) <-chan ccxt.AsyncResult[any] {
+func CallInternalMethod(cache map[string]any, itf interface{}, name2 string, args ...interface{}) <-chan ccxt.AsyncResult[any] {
 	return ccxt.CallInternalMethod(cache, itf, name2, args...)
 }
 
@@ -529,3 +529,7 @@ func ReturnPanicError[T any](ch chan ccxt.AsyncResult[T]) {
 func callDynamically(name2 interface{}, args ...interface{}) <-chan ccxt.AsyncResult[any] {
 	panic("not implemented")
 }
+
+// StructToMap normalises a unified struct (ccxt.Ticker, ...) into its map shape so the
+// static asserts compare it like the stored json.
+var StructToMap = ccxt.StructToMap

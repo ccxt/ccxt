@@ -21,6 +21,7 @@ import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.OpenInterest;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Status;
 import io.github.ccxt.types.Ticker;
@@ -48,7 +49,7 @@ public class Paradex extends ParadexApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "paradex" );
@@ -61,7 +62,7 @@ public class Paradex extends ParadexApi
             put( "dex", true );
             put( "has", new HashMap<String, Object>() {{
                 put( "CORS", null );
-                put( "spot", false );
+                put( "spot", true );
                 put( "margin", false );
                 put( "swap", true );
                 put( "future", false );
@@ -592,44 +593,63 @@ public class Paradex extends ParadexApi
             }} );
             put( "exceptions", new HashMap<String, Object>() {{
                 put( "exact", new HashMap<String, Object>() {{
-                    put( "VALIDATION_ERROR", AuthenticationError.class );
-                    put( "BINDING_ERROR", OperationRejected.class );
+                    put( "VALIDATION_ERROR", BadRequest.class );
+                    put( "BINDING_ERROR", BadRequest.class );
                     put( "INTERNAL_ERROR", ExchangeError.class );
                     put( "NOT_FOUND", BadRequest.class );
-                    put( "SERVICE_UNAVAILABLE", ExchangeError.class );
+                    put( "SERVICE_UNAVAILABLE", ExchangeNotAvailable.class );
                     put( "INVALID_REQUEST_PARAMETER", BadRequest.class );
-                    put( "ORDER_ID_NOT_FOUND", InvalidOrder.class );
+                    put( "ORDER_ID_NOT_FOUND", OrderNotFound.class );
                     put( "ORDER_IS_CLOSED", InvalidOrder.class );
-                    put( "ORDER_IS_NOT_OPEN_YET", InvalidOrder.class );
-                    put( "CLIENT_ORDER_ID_NOT_FOUND", InvalidOrder.class );
-                    put( "DUPLICATED_CLIENT_ID", InvalidOrder.class );
-                    put( "INVALID_PRICE_PRECISION", OperationRejected.class );
-                    put( "INVALID_SYMBOL", OperationRejected.class );
-                    put( "INVALID_TOKEN", OperationRejected.class );
+                    put( "ORDER_IS_NOT_OPEN", InvalidOrder.class );
+                    put( "INVALID_PRICE_PRECISION", InvalidOrder.class );
+                    put( "INVALID_ORDER_SIZE", InvalidOrder.class );
+                    put( "CLIENT_ORDER_ID_NOT_FOUND", OrderNotFound.class );
+                    put( "ALGO_ID_NOT_FOUND", OrderNotFound.class );
+                    put( "DUPLICATED_CLIENT_ID", DuplicateOrderId.class );
+                    put( "INVALID_SYMBOL", BadSymbol.class );
+                    put( "INVALID_TOKEN", AuthenticationError.class );
+                    put( "INVALID_TOKEN_SCOPE", PermissionDenied.class );
                     put( "INVALID_ETHEREUM_ADDRESS", OperationRejected.class );
-                    put( "INVALID_ETHEREUM_SIGNATURE", OperationRejected.class );
+                    put( "INVALID_ETHEREUM_SIGNATURE", AuthenticationError.class );
+                    put( "INVALID_EVM_SIGNATURE", AuthenticationError.class );
                     put( "INVALID_STARKNET_ADDRESS", OperationRejected.class );
-                    put( "INVALID_STARKNET_SIGNATURE", OperationRejected.class );
+                    put( "INVALID_STARKNET_SIGNATURE", AuthenticationError.class );
                     put( "STARKNET_SIGNATURE_VERIFICATION_FAILED", AuthenticationError.class );
+                    put( "EVM_SIGNATURE_VERIFICATION_FAILED", AuthenticationError.class );
+                    put( "INVALID_SUBKEY", AuthenticationError.class );
+                    put( "SUBKEY_REVOKED", AuthenticationError.class );
                     put( "BAD_STARKNET_REQUEST", BadRequest.class );
                     put( "ETHEREUM_SIGNER_MISMATCH", BadRequest.class );
                     put( "ETHEREUM_HASH_MISMATCH", BadRequest.class );
-                    put( "NOT_ONBOARDED", BadRequest.class );
+                    put( "NOT_ONBOARDED", AccountNotEnabled.class );
                     put( "INVALID_TIMESTAMP", BadRequest.class );
-                    put( "INVALID_SIGNATURE_EXPIRATION", AuthenticationError.class );
+                    put( "INVALID_BLOCK_EXPIRATION", AuthenticationError.class );
                     put( "ACCOUNT_NOT_FOUND", AuthenticationError.class );
                     put( "INVALID_ORDER_SIGNATURE", AuthenticationError.class );
                     put( "PUBLIC_KEY_INVALID", BadRequest.class );
                     put( "UNAUTHORIZED_ETHEREUM_ADDRESS", BadRequest.class );
+                    put( "UNAUTHORIZED_ERROR", PermissionDenied.class );
+                    put( "NO_ACCESS_TO_MARKET", PermissionDenied.class );
+                    put( "IP_NOT_ALLOWED", PermissionDenied.class );
+                    put( "RPI_ACCOUNT_NOT_WHITELISTED", PermissionDenied.class );
                     put( "ETHEREUM_ADDRESS_ALREADY_ONBOARDED", BadRequest.class );
-                    put( "MARKET_NOT_FOUND", BadRequest.class );
+                    put( "MARKET_NOT_FOUND", BadSymbol.class );
                     put( "ALLOWLIST_ENTRY_NOT_FOUND", BadRequest.class );
                     put( "USERNAME_IN_USE", AuthenticationError.class );
                     put( "GEO_IP_BLOCK", PermissionDenied.class );
-                    put( "ETHEREUM_ADDRESS_BLOCKED", PermissionDenied.class );
+                    put( "ETHEREUM_ADDRESS_BLOCKED", AccountSuspended.class );
                     put( "PROGRAM_NOT_FOUND", BadRequest.class );
                     put( "INVALID_DASHBOARD", OperationRejected.class );
                     put( "MARKET_NOT_OPEN", BadRequest.class );
+                    put( "SYSTEM_STATUS_CANCEL_ONLY", OnMaintenance.class );
+                    put( "SYSTEM_STATUS_POST_ONLY", OperationRejected.class );
+                    put( "MMP_CONFIG_INVALID", OperationRejected.class );
+                    put( "MMP_NOT_ENABLED", OperationRejected.class );
+                    put( "MMP_NOT_CONFIGURED", OperationRejected.class );
+                    put( "MMP_MIN_FREEZE_NOT_ELAPSED", OperationRejected.class );
+                    put( "ONBOARDING_RATE_LIMITED", RateLimitExceeded.class );
+                    put( "RFQ_CREATE_BUDGET_EXCEEDED", RateLimitExceeded.class );
                     put( "INVALID_REFERRAL_CODE", OperationRejected.class );
                     put( "PARENT_ADDRESS_ALREADY_ONBOARDED", BadRequest.class );
                     put( "INVALID_PARENT_ACCOUNT", OperationRejected.class );
@@ -648,8 +668,14 @@ public class Paradex extends ParadexApi
                     put( "40110", AuthenticationError.class );
                     put( "40111", AuthenticationError.class );
                     put( "40112", PermissionDenied.class );
+                    put( "40300", PermissionDenied.class );
+                    put( "40301", NotSupported.class );
+                    put( "42900", OperationRejected.class );
+                    put( "42901", RateLimitExceeded.class );
                 }} );
                 put( "broad", new HashMap<String, Object>() {{
+                    put( "must be a multiple of", InvalidOrder.class );
+                    put( "market not found", BadSymbol.class );
                     put( "missing or malformed jwt", AuthenticationError.class );
                 }} );
             }} );
@@ -660,7 +686,15 @@ public class Paradex extends ParadexApi
                 put( "broker", "CCXT" );
             }} );
             put( "features", new HashMap<String, Object>() {{
-                put( "spot", null );
+                put( "spot", new HashMap<String, Object>() {{
+                    put( "extends", "forSwap" );
+                    put( "createOrder", new HashMap<String, Object>() {{
+                        put( "triggerPrice", false );
+                        put( "triggerDirection", false );
+                        put( "stopLossPrice", false );
+                        put( "takeProfitPrice", false );
+                    }} );
+                }} );
                 put( "forSwap", new HashMap<String, Object>() {{
                     put( "sandbox", true );
                     put( "createOrder", new HashMap<String, Object>() {{
@@ -719,7 +753,7 @@ public class Paradex extends ParadexApi
                     }} );
                     put( "fetchClosedOrders", null );
                     put( "fetchOHLCV", new HashMap<String, Object>() {{
-                        put( "limit", null );
+                        put( "limit", 1000 );
                     }} );
                 }} );
                 put( "swap", new HashMap<String, Object>() {{
@@ -924,12 +958,31 @@ public class Paradex extends ParadexApi
         //     ]
         //  }
         //
+        // spot
+        //
+        //     {
+        //         "symbol": "ETH-USD",
+        //         "base_currency": "ETH",
+        //         "quote_currency": "USD",
+        //         "settlement_currency": "USDC",
+        //         "order_size_increment": "0.0001",
+        //         "price_tick_size": "0.01",
+        //         "min_notional": "10",
+        //         "asset_kind": "SPOT",
+        //         "market_kind": "cross",
+        //         ...
+        //     }
+        //
         String assetKind = this.safeString(market, "asset_kind");
+        Boolean isSpot = (java.util.Objects.equals(assetKind, "SPOT"));
         Boolean isOptionPerpetual = (java.util.Objects.equals(assetKind, "PERP_OPTION"));
         Boolean isOptionDelivery = (java.util.Objects.equals(assetKind, "OPTION"));
         Boolean isOption = Boolean.TRUE.equals(isOptionPerpetual) || Boolean.TRUE.equals(isOptionDelivery);
         String type = "swap";
-        if (Boolean.TRUE.equals(isOption))
+        if (Boolean.TRUE.equals(isSpot))
+        {
+            type = "spot";
+        } else if (Boolean.TRUE.equals(isOption))
         {
             type = "option";
         }
@@ -937,15 +990,26 @@ public class Paradex extends ParadexApi
         String marketId = this.safeString(market, "symbol");
         String quoteId = this.safeString(market, "quote_currency");
         String baseId = this.safeString(market, "base_currency");
+        String settleId = this.safeString(market, "settlement_currency");
+        if (Boolean.TRUE.equals(isSpot))
+        {
+            // spot is quoted in "USD" but paid and received in the settlement token (USDC),
+            // a spot market has no settle, so the token it trades against is the quote
+            quoteId = settleId;
+            settleId = null;
+        }
         String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return null;
         }
-        String settleId = this.safeString(market, "settlement_currency");
         String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
-        String symbol = ((((base + "/") + quote) + ":") + settle);
+        String symbol = ((base + "/") + quote);
+        if (!Boolean.TRUE.equals(isSpot) && (!java.util.Objects.equals(settle, null)))
+        {
+            symbol = ((symbol + ":") + settle);
+        }
         Long expiry = this.safeInteger(market, "expiry_at");
         String optionType = this.safeString(market, "option_type");
         String strikePrice = this.safeString(market, "strike_price");
@@ -954,8 +1018,15 @@ public class Paradex extends ParadexApi
         if (Boolean.TRUE.equals(isOption))
         {
             String optionTypeSuffix = (((java.util.Objects.equals(optionType, "CALL")))) ? "C" : "P";
-            String deliveryValue = ((((expiry != null && expiry == 0)))) ? "" : (this.yymmdd(expiry) + "-");
-            symbol = (((((symbol + "-") + deliveryValue) + strikePrice) + "-") + optionTypeSuffix);
+            String deliveryValue = "";
+            if ((expiry == null || expiry != 0))
+            {
+                deliveryValue = (this.yymmdd(expiry) + "-");
+            }
+            if (!java.util.Objects.equals(strikePrice, null))
+            {
+                symbol = (((((symbol + "-") + deliveryValue) + strikePrice) + "-") + optionTypeSuffix);
+            }
             makerFee = this.parseNumber("0.0003");
         } else
         {
@@ -972,18 +1043,18 @@ public class Paradex extends ParadexApi
         mapLiteral1.put("quoteId", quoteId);
         mapLiteral1.put("settleId", settleId);
         mapLiteral1.put("type", type);
-        mapLiteral1.put("spot", false);
+        mapLiteral1.put("spot", isSpot);
         mapLiteral1.put("margin", null);
         mapLiteral1.put("swap", isSwap);
         mapLiteral1.put("future", false);
         mapLiteral1.put("option", isOption);
         mapLiteral1.put("active", this.safeBool(market, "enableTrading", (Object) null));
-        mapLiteral1.put("contract", true);
-        mapLiteral1.put("linear", true);
-        mapLiteral1.put("inverse", false);
+        mapLiteral1.put("contract", !Boolean.TRUE.equals(isSpot));
+        mapLiteral1.put("linear", ((Boolean.TRUE.equals(isSpot))) ? null : true);
+        mapLiteral1.put("inverse", ((Boolean.TRUE.equals(isSpot))) ? null : false);
         mapLiteral1.put("taker", takerFee);
         mapLiteral1.put("maker", makerFee);
-        mapLiteral1.put("contractSize", this.parseNumber("1"));
+        mapLiteral1.put("contractSize", ((Boolean.TRUE.equals(isSpot))) ? null : this.parseNumber("1"));
         mapLiteral1.put("expiry", expiry);
         mapLiteral1.put("expiryDatetime", expireDatetime);
         mapLiteral1.put("strike", this.parseNumber(strikePrice));
@@ -1100,7 +1171,7 @@ public class Paradex extends ParadexApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseTradingFee((Map<String, Object>) (first), market);
+            return this.parseTradingFee(first, market);
         }).thenApply(TradingFeeInterface::new);
 
     }
@@ -1166,7 +1237,7 @@ public class Paradex extends ParadexApi
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-     * @param {string} [params.price] "last", "mark", "index", default is "last"
+     * @param {string} [params.price] "last", "mark", "index" (sent as "underlying"), default is "last"
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public CompletableFuture<List<OHLCV>> fetchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
@@ -1183,37 +1254,37 @@ public class Paradex extends ParadexApi
                 put( "resolution", Paradex.this.safeString(Paradex.this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")) );
                 put( "symbol", market.get("id") );
             }};
-            Long now = this.milliseconds();
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Long until = (Long) this.safeInteger2(parameters, "until", "till", now);
             String price = this.safeString(parameters, "price");
             if (!java.util.Objects.equals(price, null))
             {
-                request.put("price_kind", price);
+                // the exchange names the index price "underlying" and rejects "index"
+                request.put("price_kind", (((java.util.Objects.equals(price, "index")))) ? "underlying" : price);
             }
-            Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "till", "price")));
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (parameters), 1);
+            Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
+            Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
+            Boolean hasEnd = (request.containsKey("end_at"));
+            Map<String, Object> paramsOmitted = this.omit(paramsUntil, new ArrayList<Object>(Arrays.asList("price")));
+            // exchange has undocumented limit slightly above, but 1000 is reliable limit
+            Object limitResolved = ((((java.util.Objects.equals(limit, null)) || ((limit > 1000))))) ? 1000 : limit;
+            Long windowLength = this.parseToInt(Helpers.multiply(Helpers.multiply(duration, (((Object) (switch ((Object) (this.parseToInt(limitResolved))) { case null -> (Object) null; case Long hx4J40v2 -> (Object) (hx4J40v2 + 1L); case Integer hx4J40v2 -> (Object) (hx4J40v2.longValue() + 1L); case Double hx4J40v2 -> (Object) (hx4J40v2 + ((double) 1L)); case String hx4J40v2 -> (Object) (hx4J40v2 + "1"); default -> (Object) null; })))), 1000));
             if (!java.util.Objects.equals(since, null))
             {
-                request.put("start_at", since);
-                if (!java.util.Objects.equals(limit, null))
+                ((Map<String, Object>)requestUntil).put("start_at", since);
+                if (!Boolean.TRUE.equals(hasEnd))
                 {
-                    request.put("end_at", Helpers.subtract(Helpers.add(since, Helpers.multiply(Helpers.multiply(duration, ((limit + 1L))), 1000)), 1));
-                } else
-                {
-                    request.put("end_at", until);
+                    Long sinceInt = this.parseToInt(since);
+                    ((Map<String, Object>)requestUntil).put("end_at", ((sinceInt + windowLength) - 1L));
                 }
             } else
             {
-                request.put("end_at", until);
-                if (!java.util.Objects.equals(limit, null))
-                {
-                    request.put("start_at", Helpers.add(Helpers.subtract(until, Helpers.multiply(Helpers.multiply(duration, ((limit + 1L))), 1000)), 1));
-                } else
-                {
-                    request.put("start_at", ((until - ((((long) duration) * 101L) * 1000L)) + 1L));
-                }
+                Long endAtRaw = this.safeInteger(requestUntil, "end_at", this.milliseconds());
+                Long endAt = this.parseToInt(endAtRaw);
+                ((Map<String, Object>)requestUntil).put("end_at", endAt);
+                ((Map<String, Object>)requestUntil).put("start_at", ((endAt - windowLength) + 1L));
             }
-            Map<String, Object> response = (this.publicGetMarketsKlines(this.extend(request, paramsOmitted))).join();
+            Map<String, Object> response = (this.publicGetMarketsKlines(this.extend(requestUntil, paramsOmitted))).join();
             //
             //     {
             //         "results": [
@@ -1463,7 +1534,7 @@ public class Paradex extends ParadexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            FundingRates rates = (this.fetchFundingRates(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(market.get("symbol")))), parameters)).join();
+            FundingRates rates = (this.fetchFundingRates(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), parameters)).join();
             Map<String, Object> rate = (Map<String, Object>) this.safeDict(rates, market.get("symbol"), (Object) null);
             if (java.util.Objects.equals(rate, null))
             {
@@ -1612,7 +1683,7 @@ public class Paradex extends ParadexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTrades", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTrades", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -1631,7 +1702,7 @@ public class Paradex extends ParadexApi
             {
                 request.put("start_at", since);
             }
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.publicGetTrades(this.extend(requestUntil, paramsUntil))).join();
@@ -1751,7 +1822,7 @@ public class Paradex extends ParadexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("contract"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {
                 throw new BadRequest((this.id + " fetchOpenInterest() supports contract markets only")) ;
             }
@@ -1820,13 +1891,13 @@ public class Paradex extends ParadexApi
         }}, marketResolved);
     }
 
-    public Object hashMessage(Object message)
+    public String hashMessage(Object message)
     {
         Object hashed = this.hash(message, keccak(), "hex");
         return ("0x" + hashed);
     }
 
-    public String signHash(Object hash, Object privateKey)
+    public String signHash(String hash, String privateKey)
     {
         Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
         Object r = signature.get("r");
@@ -1835,9 +1906,9 @@ public class Paradex extends ParadexApi
         return ((("0x" + (((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r))) + (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s))) + v);
     }
 
-    public String signMessage(Object message, Object privateKey)
+    public String signMessage(Object message, String privateKey)
     {
-        return this.signHash(this.hashMessage(message), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
+        return this.signHash((String) (this.hashMessage(message)), (String) ((privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0)))));
     }
 
     public CompletableFuture<Map<String, Object>> getSystemConfig()
@@ -1845,41 +1916,11 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> cachedConfig = (Map<String, Object>) this.safeDict(this.options, "systemConfig", (Object) null);
-            if (!java.util.Objects.equals(cachedConfig, null))
+            if (java.util.Objects.equals(this.safeDict(this.options, "systemConfig", (Object) null), null))
             {
-                return cachedConfig;
+                Map<String, Object> response = (this.publicGetSystemConfig(new HashMap<String, Object>() {{}})).join();
+                this.options.put("systemConfig", response);
             }
-            Map<String, Object> response = (this.publicGetSystemConfig()).join();
-            //
-            // {
-            //     "starknet_gateway_url": "https://potc-testnet-sepolia.starknet.io",
-            //     "starknet_fullnode_rpc_url": "https://pathfinder.api.testnet.paradex.trade/rpc/v0_7",
-            //     "starknet_chain_id": "PRIVATE_SN_POTC_SEPOLIA",
-            //     "block_explorer_url": "https://voyager.testnet.paradex.trade/",
-            //     "paraclear_address": "0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6",
-            //     "paraclear_decimals": 8,
-            //     "paraclear_account_proxy_hash": "0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9",
-            //     "paraclear_account_hash": "0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e",
-            //     "oracle_address": "0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f",
-            //     "bridged_tokens": [
-            //         {
-            //             "name": "TEST USDC",
-            //             "symbol": "USDC",
-            //             "decimals": 6,
-            //             "l1_token_address": "0x29A873159D5e14AcBd63913D4A7E2df04570c666",
-            //             "l1_bridge_address": "0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C",
-            //             "l2_token_address": "0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e",
-            //             "l2_bridge_address": "0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef"
-            //         }
-            //     ],
-            //     "l1_core_contract_address": "0x582CC5d9b509391232cd544cDF9da036e55833Af",
-            //     "l1_operator_address": "0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB",
-            //     "l1_chain_id": "11155111",
-            //     "liquidation_fee": "0.2"
-            // }
-            //
-            Helpers.addElementToObject(this.options, "systemConfig", response);
             return this.safeDict(this.options, "systemConfig", new HashMap<String, Object>() {{}});
         }).thenApply(res -> (Map<String, Object>) res);
 
@@ -1891,18 +1932,18 @@ public class Paradex extends ParadexApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> systemConfig = (this.getSystemConfig()).join();
-            if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(l1, false), true))
+            if (java.util.Objects.requireNonNullElse(l1, false))
             {
                 Map<String, Object> l1D = new HashMap<String, Object>() {{
                     put( "name", "Paradex" );
-                    put( "chainId", systemConfig.get("l1_chain_id") );
+                    put( "chainId", Paradex.this.safeString(systemConfig, "l1_chain_id") );
                     put( "version", "1" );
                 }};
                 return l1D;
             }
             Map<String, Object> domain = new HashMap<String, Object>() {{
                 put( "name", "Paradex" );
-                put( "chainId", systemConfig.get("starknet_chain_id") );
+                put( "chainId", Paradex.this.safeString(systemConfig, "starknet_chain_id") );
                 put( "version", 1 );
             }};
             return domain;
@@ -1915,33 +1956,31 @@ public class Paradex extends ParadexApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Map<String, Object> cachedAccount = (Map<String, Object>) this.safeDict(this.options, "paradexAccount", (Object) null);
-            if (!java.util.Objects.equals(cachedAccount, null))
+            if (java.util.Objects.equals(this.safeDict(this.options, "paradexAccount", (Object) null), null))
             {
-                return cachedAccount;
-            }
-            this.checkRequiredCredentials(true);
-            Map<String, Object> systemConfig = (this.getSystemConfig()).join();
-            Map<String, Object> domain = (this.prepareParadexDomain(true)).join();
-            Map<String, Object> messageTypes = new HashMap<String, Object>() {{
-                put( "Constant", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
+                this.checkRequiredCredentials(true);
+                Map<String, Object> systemConfig = (this.getSystemConfig()).join();
+                Map<String, Object> domain = (this.prepareParadexDomain(true)).join();
+                Map<String, Object> messageTypes = new HashMap<String, Object>() {{
+                    put( "Constant", new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "name", "action" );
         put( "type", "string" );
     }})) );
-            }};
-            Map<String, Object> message = new HashMap<String, Object>() {{
-                put( "action", "STARK Key" );
-            }};
-            Object msg = this.ethEncodeStructuredData(domain, messageTypes, message);
-            String signature = this.signMessage(msg, this.privateKey);
-            Object account = this.retrieveStarkAccount(signature, systemConfig.get("paraclear_account_hash"), systemConfig.get("paraclear_account_proxy_hash"));
-            Helpers.addElementToObject(this.options, "paradexAccount", account);
-            return account;
+                }};
+                Map<String, Object> message = new HashMap<String, Object>() {{
+                    put( "action", "STARK Key" );
+                }};
+                Object msg = this.ethEncodeStructuredData(domain, messageTypes, message);
+                String signature = this.signMessage(msg, (String) (this.privateKey));
+                Object account = this.retrieveStarkAccount(signature, this.safeString(systemConfig, "paraclear_account_hash"), this.safeString(systemConfig, "paraclear_account_proxy_hash"));
+                this.options.put("paradexAccount", account);
+            }
+            return this.safeDict(this.options, "paradexAccount", new HashMap<String, Object>() {{}});
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
 
-    public CompletableFuture<Object> onboarding(Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> onboarding(Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -1957,14 +1996,14 @@ public class Paradex extends ParadexApi
         put( "type", "felt" );
     }})) );
             }};
-            Object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, account.get("address"));
-            Object signature = this.starknetSign(msg, account.get("privateKey"));
+            String msg = this.starknetEncodeStructuredData(domain, messageTypes, req, this.safeString(account, "address"));
+            String signature = this.starknetSign(msg, account.get("privateKey"));
             parameters.put("signature", signature);
-            Helpers.addElementToObject(parameters, "account", account.get("address"));
-            Helpers.addElementToObject(parameters, "public_key", account.get("publicKey"));
+            Helpers.addElementToObject(parameters, "account", this.safeString(account, "address"));
+            Helpers.addElementToObject(parameters, "public_key", this.safeString(account, "publicKey"));
             Map<String, Object> response = (this.privatePostOnboarding(parameters)).join();
             return response;
-        });
+        }).thenApply(res -> (Map<String, Object>) res);
 
     }
 
@@ -1974,7 +2013,7 @@ public class Paradex extends ParadexApi
         return BaseExchange.supplyAsync(() -> {
 
             String cachedToken = this.safeString(this.options, "authToken");
-            Long now = this.nonce();
+            Long now = this.parseToInt(this.nonce());
             if (!java.util.Objects.equals(cachedToken, null))
             {
                 Long cachedExpires = this.safeInteger(this.options, "expires");
@@ -1989,7 +2028,7 @@ public class Paradex extends ParadexApi
             }
             Map<String, Object> account = (this.retrieveAccount()).join();
             // https://docs.paradex.trade/api-reference/general-information/authentication
-            Object expires = (now + 180L);
+            Long expires = (Long) (now + 180L);
             Map<String, Object> req = new HashMap<String, Object>();
             req.put("method", "POST");
             req.put("path", "/v1/auth");
@@ -2015,10 +2054,10 @@ public class Paradex extends ParadexApi
         put( "type", "felt" );
     }})) );
             }};
-            Object msg = this.starknetEncodeStructuredData(domain, messageTypes, req, account.get("address"));
-            Object signature = this.starknetSign(msg, account.get("privateKey"));
+            String msg = this.starknetEncodeStructuredData(domain, messageTypes, req, this.safeString(account, "address"));
+            String signature = this.starknetSign(msg, account.get("privateKey"));
             parameters.put("signature", signature);
-            Helpers.addElementToObject(parameters, "account", account.get("address"));
+            Helpers.addElementToObject(parameters, "account", this.safeString(account, "address"));
             parameters.put("timestamp", req.get("timestamp"));
             parameters.put("expiration", req.get("expiration"));
             Map<String, Object> response = (this.privatePostAuth(parameters)).join();
@@ -2028,8 +2067,8 @@ public class Paradex extends ParadexApi
             // }
             //
             String token = this.safeString(response, "jwt_token");
-            Helpers.addElementToObject(this.options, "authToken", token);
-            Helpers.addElementToObject(this.options, "expires", expires);
+            this.options.put("authToken", token);
+            this.options.put("expires", expires);
             return token;
         }).thenApply(res -> (String) res);
 
@@ -2067,7 +2106,12 @@ public class Paradex extends ParadexApi
         //
         Long timestamp = this.safeInteger(order, "created_at");
         String orderId = this.safeString(order, "id");
-        String clientOrderId = this.omitZero(this.safeString(order, "client_id"));
+        // a client id is free text, omitZero would drop every non-numeric one in php
+        String clientOrderId = this.safeString(order, "client_id");
+        if (java.util.Objects.equals(clientOrderId, ""))
+        {
+            clientOrderId = null;
+        }
         String marketId = this.safeString(order, "market");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) marketResolved.get("symbol");
@@ -2090,6 +2134,24 @@ public class Paradex extends ParadexApi
         String average = this.omitZero(this.safeString(order, "avg_fill_price"));
         String remaining = this.omitZero(this.safeString(order, "remaining_size"));
         String triggerPrice = this.omitZero(this.safeString(order, "trigger_price"));
+        String stopLossPrice = null;
+        String takeProfitPrice = null;
+        if (!java.util.Objects.equals(orderType, null))
+        {
+            if (((String)orderType).indexOf("STOP_LOSS") >= 0)
+            {
+                stopLossPrice = triggerPrice;
+            } else if (((String)orderType).indexOf("TAKE_PROFIT") >= 0)
+            {
+                takeProfitPrice = triggerPrice;
+            }
+        }
+        String timeInForce = this.parseTimeInForce(this.safeString(order, "instruction"));
+        Boolean postOnly = null;
+        if (!java.util.Objects.equals(timeInForce, null))
+        {
+            postOnly = (java.util.Objects.equals(timeInForce, "PO"));
+        }
         Long lastUpdateTimestamp = this.safeInteger(order, "last_updated_at");
         List<Object> flags = (List<Object>) this.safeList(order, "flags", (Object) null);
         Boolean reduceOnly = null;
@@ -2107,14 +2169,14 @@ public class Paradex extends ParadexApi
         mapLiteral4.put("status", this.parseOrderStatus(status));
         mapLiteral4.put("symbol", symbol);
         mapLiteral4.put("type", this.parseOrderType(orderType));
-        mapLiteral4.put("timeInForce", this.parseTimeInForce(this.safeString(order, "instruction")));
-        mapLiteral4.put("postOnly", null);
+        mapLiteral4.put("timeInForce", timeInForce);
+        mapLiteral4.put("postOnly", postOnly);
         mapLiteral4.put("reduceOnly", reduceOnly);
         mapLiteral4.put("side", side);
         mapLiteral4.put("price", price);
         mapLiteral4.put("triggerPrice", triggerPrice);
-        mapLiteral4.put("takeProfitPrice", null);
-        mapLiteral4.put("stopLossPrice", null);
+        mapLiteral4.put("takeProfitPrice", takeProfitPrice);
+        mapLiteral4.put("stopLossPrice", stopLossPrice);
         mapLiteral4.put("average", average);
         mapLiteral4.put("amount", amount);
         mapLiteral4.put("filled", null);
@@ -2135,6 +2197,7 @@ public class Paradex extends ParadexApi
             put( "IOC", "IOC" );
             put( "GTC", "GTC" );
             put( "POST_ONLY", "PO" );
+            put( "RPI", "PO" );
         }};
         return this.safeString(timeInForces, ((String)timeInForce));
     }
@@ -2161,13 +2224,34 @@ public class Paradex extends ParadexApi
             put( "MARKET", "market" );
             put( "STOP_LIMIT", "limit" );
             put( "STOP_MARKET", "market" );
+            put( "STOP_LOSS_LIMIT", "limit" );
+            put( "STOP_LOSS_MARKET", "market" );
+            put( "TAKE_PROFIT_LIMIT", "limit" );
+            put( "TAKE_PROFIT_MARKET", "market" );
         }};
         return this.safeStringLower(types, type, type);
     }
 
-    public String scaleNumber(Object num)
+    public String scaleNumber(String num)
     {
         return Precise.stringMul(num, "100000000");
+    }
+
+    public String encodeTimeInForce(String timeInForce)
+    {
+        Map<String, Object> timeInForces = new HashMap<String, Object>() {{
+            put( "GTC", "GTC" );
+            put( "IOC", "IOC" );
+            put( "PO", "POST_ONLY" );
+            put( "POST_ONLY", "POST_ONLY" );
+            put( "RPI", "RPI" );
+        }};
+        String instruction = this.safeString(timeInForces, timeInForce);
+        if (java.util.Objects.equals(instruction, null))
+        {
+            throw new NotSupported((((this.id + " createOrder() does not support timeInForce ") + timeInForce) + ", supported values are GTC, IOC, PO and RPI")) ;
+        }
+        return instruction;
     }
 
     public Map<String, Object> createOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
@@ -2183,12 +2267,11 @@ public class Paradex extends ParadexApi
         Map<String, Object> market = this.market(symbol);
         Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", (Object) null);
         String orderType = ((String)type).toUpperCase();
-        String orderSide = ((String)((String)side)).toUpperCase();
+        String orderSide = ((String)side).toUpperCase();
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("market", market.get("id"));
         request.put("side", orderSide);
         request.put("type", orderType);
-        request.put("instruction", "GTC");
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         String stopLossPrice = this.safeString(parameters, "stopLossPrice");
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
@@ -2197,18 +2280,31 @@ public class Paradex extends ParadexApi
         Boolean isStopLossOrder = (!java.util.Objects.equals(stopLossPrice, null));
         Boolean isStopOrder = (!java.util.Objects.equals(triggerPrice, null)) || Boolean.TRUE.equals(isTakeProfitOrder) || Boolean.TRUE.equals(isStopLossOrder);
         String timeInForce = this.safeStringUpper(parameters, "timeInForce");
-        Boolean postOnly = this.isPostOnly(isMarket, null, parameters);
-        if (!Boolean.TRUE.equals(isMarket))
+        Boolean postOnly = this.isPostOnly(isMarket, (Boolean) (null), parameters);
+        String instruction = "GTC";
+        if (!java.util.Objects.equals(timeInForce, null))
         {
-            if (Boolean.TRUE.equals(postOnly))
+            instruction = this.encodeTimeInForce(timeInForce);
+        }
+        if (Boolean.TRUE.equals(postOnly) && (!java.util.Objects.equals(instruction, "RPI")))
+        {
+            instruction = "POST_ONLY";
+        }
+        if ((java.util.Objects.equals(instruction, "POST_ONLY")) || (java.util.Objects.equals(instruction, "RPI")))
+        {
+            // both instructions only rest on the book, the exchange rejects them on market and trigger orders
+            if (Boolean.TRUE.equals(isMarket))
             {
-                request.put("instruction", "POST_ONLY");
-            } else if (java.util.Objects.equals(timeInForce, "IOC"))
+                throw new InvalidOrder((this.id + " createOrder() market orders cannot be post only or RPI")) ;
+            }
+            if (Boolean.TRUE.equals(isStopOrder))
             {
-                request.put("instruction", "IOC");
+                throw new InvalidOrder((this.id + " createOrder() trigger, stop loss and take profit orders cannot be post only or RPI")) ;
             }
         }
-        if (!java.util.Objects.equals(price, null))
+        request.put("instruction", instruction);
+        // the exchange requires the price to be omitted for every market order type
+        if ((!java.util.Objects.equals(price, null)) && !Boolean.TRUE.equals(isMarket))
         {
             request.put("price", this.priceToPrecision(symbol, price));
         }
@@ -2217,51 +2313,41 @@ public class Paradex extends ParadexApi
         {
             request.put("client_id", clientOrderId);
         }
+        List<Object> recvWindowparamsRecvWindowVariable = (List<Object>) this.handleOptionAndParams2(parameters, "createOrder", "recvWindow", "recv_window", (Object) null);
+        var recvWindow = ((List<Object>) recvWindowparamsRecvWindowVariable).get(0);
+        Map<String, Object> paramsRecvWindow = (Map<String, Object>) ((List<Object>) recvWindowparamsRecvWindowVariable).get(1);
+        if (!java.util.Objects.equals(recvWindow, null))
+        {
+            request.put("recv_window", this.parseToInt(recvWindow));
+        }
+        Boolean isTakeProfitOrStopLoss = Boolean.TRUE.equals(isStopLossOrder) || Boolean.TRUE.equals(isTakeProfitOrder);
         String sizeString = "0";
+        // a stop loss or take profit order with a size of 0 closes the whole position when triggered
+        if (!Boolean.TRUE.equals(isTakeProfitOrStopLoss) || ((!java.util.Objects.equals(amount, null)) && (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(amount, 0))))
+        {
+            sizeString = this.amountToPrecision(symbol, amount);
+        }
         String stopPrice = null;
         if (Boolean.TRUE.equals(isStopOrder))
         {
-            // flags: Reduce_Only must be provided for TPSL orders.
-            if (Boolean.TRUE.equals(isMarket))
+            if (Boolean.TRUE.equals(isTakeProfitOrStopLoss))
             {
-                if (Boolean.TRUE.equals(isStopLossOrder))
-                {
-                    stopPrice = this.priceToPrecision(symbol, stopLossPrice);
-                    reduceOnly = true;
-                    request.put("type", "STOP_LOSS_MARKET");
-                } else if (Boolean.TRUE.equals(isTakeProfitOrder))
-                {
-                    stopPrice = this.priceToPrecision(symbol, takeProfitPrice);
-                    reduceOnly = true;
-                    request.put("type", "TAKE_PROFIT_MARKET");
-                } else
-                {
-                    stopPrice = this.priceToPrecision(symbol, triggerPrice);
-                    sizeString = this.amountToPrecision(symbol, amount);
-                    request.put("type", "STOP_MARKET");
-                }
+                // flags: Reduce_Only must be provided for TPSL orders.
+                reduceOnly = true;
+            }
+            if (Boolean.TRUE.equals(isStopLossOrder))
+            {
+                stopPrice = this.priceToPrecision(symbol, stopLossPrice);
+                request.put("type", ((Boolean.TRUE.equals(isMarket))) ? "STOP_LOSS_MARKET" : "STOP_LOSS_LIMIT");
+            } else if (Boolean.TRUE.equals(isTakeProfitOrder))
+            {
+                stopPrice = this.priceToPrecision(symbol, takeProfitPrice);
+                request.put("type", ((Boolean.TRUE.equals(isMarket))) ? "TAKE_PROFIT_MARKET" : "TAKE_PROFIT_LIMIT");
             } else
             {
-                if (Boolean.TRUE.equals(isStopLossOrder))
-                {
-                    stopPrice = this.priceToPrecision(symbol, stopLossPrice);
-                    reduceOnly = true;
-                    request.put("type", "STOP_LOSS_LIMIT");
-                } else if (Boolean.TRUE.equals(isTakeProfitOrder))
-                {
-                    stopPrice = this.priceToPrecision(symbol, takeProfitPrice);
-                    reduceOnly = true;
-                    request.put("type", "TAKE_PROFIT_LIMIT");
-                } else
-                {
-                    stopPrice = this.priceToPrecision(symbol, triggerPrice);
-                    sizeString = this.amountToPrecision(symbol, amount);
-                    request.put("type", "STOP_LIMIT");
-                }
+                stopPrice = this.priceToPrecision(symbol, triggerPrice);
+                request.put("type", ((Boolean.TRUE.equals(isMarket))) ? "STOP_MARKET" : "STOP_LIMIT");
             }
-        } else
-        {
-            sizeString = this.amountToPrecision(symbol, amount);
         }
         if (!java.util.Objects.equals(stopPrice, null))
         {
@@ -2272,30 +2358,31 @@ public class Paradex extends ParadexApi
         {
             request.put("flags", new ArrayList<Object>(Arrays.asList("REDUCE_ONLY")));
         }
-        Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
+        Map<String, Object> paramsOmitted = this.omit(paramsRecvWindow, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "post_only", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
         return (Map<String, Object>) (this.extend(request, paramsOmitted));
     }
 
-    public CompletableFuture<Map<String, Object>> signOrderRequest(Map<String, Object> request, Object modify)
+    public CompletableFuture<Map<String, Object>> signOrderRequest(Map<String, Object> request, Boolean modify)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> account = (this.retrieveAccount()).join();
-            Long now = this.nonce();
+            Long now = this.milliseconds();
             String orderType = this.safeString(request, "type");
             if (java.util.Objects.equals(orderType, null))
             {
                 throw new ExchangeError((this.id + " signOrderRequest() missing orderType")) ;
             }
             Boolean isMarket = (((String)orderType).indexOf("MARKET") >= 0);
-            Map<String, Object> orderReq = new HashMap<String, Object>();
-            orderReq.put("timestamp", (now * 1000L));
-            orderReq.put("market", this.stringToBase16(request.get("market")));
-            orderReq.put("side", (((java.util.Objects.equals(this.safeString(request, "side"), "BUY")))) ? "1" : "2");
-            orderReq.put("orderType", this.stringToBase16(request.get("type")));
-            orderReq.put("size", this.scaleNumber(request.get("size")));
-            orderReq.put("price", ((Boolean.TRUE.equals(isMarket))) ? "0" : this.scaleNumber(request.get("price")));
+            Map<String, Object> orderReq = new HashMap<String, Object>() {{
+                put( "timestamp", now );
+                put( "market", Paradex.this.stringToBase16(Paradex.this.safeString(request, "market")) );
+                put( "side", (((java.util.Objects.equals(Paradex.this.safeString(request, "side"), "BUY")))) ? "1" : "2" );
+                put( "orderType", Paradex.this.stringToBase16(Paradex.this.safeString(request, "type")) );
+                put( "size", Paradex.this.scaleNumber(Paradex.this.safeString(request, "size")) );
+                put( "price", ((Boolean.TRUE.equals(isMarket))) ? "0" : Paradex.this.scaleNumber(Paradex.this.safeString(request, "price")) );
+            }};
             List<Object> orderFields = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
         put( "name", "timestamp" );
         put( "type", "felt" );
@@ -2316,9 +2403,9 @@ public class Paradex extends ParadexApi
         put( "type", "felt" );
     }}));
             Map<String, Object> messageTypes = new HashMap<String, Object>() {{}};
-            if (Helpers.isTrue(java.util.Objects.requireNonNullElse(modify, false)))
+            if (java.util.Objects.requireNonNullElse(modify, false))
             {
-                orderReq.put("id", request.get("id"));
+                orderReq.put("id", this.safeString(request, "id"));
                 ((List<Object>)orderFields).add(new HashMap<String, Object>() {{
                     put( "name", "id" );
                     put( "type", "felt" );
@@ -2333,11 +2420,13 @@ public class Paradex extends ParadexApi
                 }};
             }
             Map<String, Object> domain = (this.prepareParadexDomain(false)).join();
-            Object msg = this.starknetEncodeStructuredData(domain, messageTypes, orderReq, account.get("address"));
-            Object signature = this.starknetSign(msg, account.get("privateKey"));
-            request.put("signature", signature);
-            Helpers.addElementToObject(request, "signature_timestamp", orderReq.get("timestamp"));
-            return request;
+            String msg = this.starknetEncodeStructuredData(domain, messageTypes, orderReq, this.safeString(account, "address"));
+            String signature = this.starknetSign(msg, account.get("privateKey"));
+            Map<String, Object> signedRequest = this.extend(request, new HashMap<String, Object>() {{
+                put( "signature", signature );
+                put( "signature_timestamp", orderReq.get("timestamp") );
+            }});
+            return signedRequest;
         }).thenApply(res -> (Map<String, Object>) res);
 
     }
@@ -2355,12 +2444,13 @@ public class Paradex extends ParadexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
-     * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
-     * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
-     * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
+     * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at, an amount of 0 closes the whole position
+     * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at, an amount of 0 closes the whole position
+     * @param {string} [params.timeInForce] "GTC", "IOC", "PO" or "RPI" (retail price improvement), "FOK" and "GTD" are not supported
      * @param {bool} [params.postOnly] true or false
      * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
      * @param {string} [params.clientOrderId] a unique id for the order
+     * @param {int} [params.recvWindow] the number of milliseconds after the signature timestamp the order is accepted for, the exchange applies its own default when omitted
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public CompletableFuture<Order> createOrder(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
@@ -2375,7 +2465,7 @@ public class Paradex extends ParadexApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            request = (this.signOrderRequest((Map<String, Object>) (request), false)).join();
+            request = (this.signOrderRequest(request, false)).join();
             Map<String, Object> response = (this.privatePostOrders(request)).join();
             //
             // {
@@ -2421,10 +2511,12 @@ public class Paradex extends ParadexApi
      * @param {string} type 'limit' or a TPSL order type
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of the currency you want to trade in units of the base currency
-     * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, required for limit orders and ignored for market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] the price a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] the price a take profit order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
@@ -2436,9 +2528,10 @@ public class Paradex extends ParadexApi
             {
                 throw new ArgumentsRequired((this.id + " editOrder() requires an amount argument")) ;
             }
-            if (java.util.Objects.equals(price, null))
+            Boolean isMarket = (!java.util.Objects.equals(type, null)) && (java.util.Objects.equals(((String)((String)type)).toUpperCase(), "MARKET"));
+            if ((java.util.Objects.equals(price, null)) && !Boolean.TRUE.equals(isMarket))
             {
-                throw new ArgumentsRequired((this.id + " editOrder() requires a price argument")) ;
+                throw new ArgumentsRequired((this.id + " editOrder() requires a price argument for limit orders")) ;
             }
             (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
@@ -2447,7 +2540,7 @@ public class Paradex extends ParadexApi
             }
             Map<String, Object> market = this.market(symbol);
             Object request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
-            request = this.omit(request, new ArrayList<Object>(Arrays.asList("instruction", "client_id", "flags")));
+            request = this.omit(request, new ArrayList<Object>(Arrays.asList("instruction", "client_id", "flags", "recv_window")));
             ((Map<String, Object>)request).put("order_id", id);
             ((Map<String, Object>)request).put("id", id);
             request = (this.signOrderRequest((Map<String, Object>) (request), true)).join();
@@ -2522,43 +2615,54 @@ public class Paradex extends ParadexApi
                 Map<String, Object> orderParams = (Map<String, Object>) this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
                 Map<String, Object> extendedParams = this.extend(parameters, orderParams);
                 Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, extendedParams);
-                orderRequest = (this.signOrderRequest((Map<String, Object>) (orderRequest), false)).join();
+                orderRequest = (this.signOrderRequest(orderRequest, false)).join();
                 ((List<Object>)ordersRequests).add(orderRequest);
             }
             Map<String, Object> response = (this.privatePostOrdersBatch(ordersRequests)).join();
             //
-            // {
-            //     "errors": [
-            //         {
-            //             "error": "VALIDATION_ERROR",
-            //             "message": "Invalid order"
-            //         }
-            //     ],
-            //     "orders": [
-            //         {
-            //             "id": "123456",
-            //             "market": "BTC-USD-PERP",
-            //             "side": "BUY",
-            //             "type": "LIMIT",
-            //             "price": "26000",
-            //             "size": "0.05",
-            //             "status": "NEW"
-            //         }
-            //     ]
-            // }
+            // orders and errors are index-aligned with the request, null where the other array has the entry
+            //
+            //     {
+            //         "errors": [
+            //             null,
+            //             {
+            //                 "error": "DUPLICATED_CLIENT_ID",
+            //                 "message": "duplicated client order id"
+            //             }
+            //         ],
+            //         "orders": [
+            //             {
+            //                 "id": "123456",
+            //                 "market": "BTC-USD-PERP",
+            //                 "side": "BUY",
+            //                 "type": "LIMIT",
+            //                 "price": "26000",
+            //                 "size": "0.05",
+            //                 "status": "NEW"
+            //             },
+            //             null
+            //         ]
+            //     }
             //
             List<Object> responseOrders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-            List<Object> parsedOrders = this.parseOrders(responseOrders, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
             List<Object> errors = (List<Object>) this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)errors).size(); i++)
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; i < ((List<?>)orders).size(); i++)
             {
-                Object error = (errors == null || i < 0 || i >= errors.size() ? null : errors.get(i));
-                ((List<Object>)parsedOrders).add(this.safeOrder(new HashMap<String, Object>() {{
-                    put( "info", error );
-                    put( "status", "rejected" );
-                }}, (Map<String, Object>) null));
+                Map<String, Object> responseOrder = (Map<String, Object>) this.safeDict(responseOrders, i, (Object) null);
+                if (!java.util.Objects.equals(responseOrder, null))
+                {
+                    ((List<Object>)result).add(this.parseOrder(responseOrder, (Map<String, Object>) null));
+                } else
+                {
+                    Map<String, Object> error = (Map<String, Object>) this.safeDict(errors, i, (Object) null);
+                    ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
+                        put( "info", error );
+                        put( "status", "rejected" );
+                    }}, (Map<String, Object>) null));
+                }
             }
-            return parsedOrders;
+            return result;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
@@ -2628,7 +2732,7 @@ public class Paradex extends ParadexApi
             }
             List<Object> clientOrderIds = (List<Object>) this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")), (Object) null);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
-            Boolean hasOrderIds = (!java.util.Objects.equals(ids, null)) && ((ids instanceof List));
+            Boolean hasOrderIds = (ids instanceof List);
             Boolean hasClientOrderIds = (!java.util.Objects.equals(clientOrderIds, null)) && ((clientOrderIds instanceof List));
             if (!Boolean.TRUE.equals(hasOrderIds) && !Boolean.TRUE.equals(hasClientOrderIds))
             {
@@ -2687,13 +2791,13 @@ public class Paradex extends ParadexApi
                 {
                     orderStatus = "rejected";
                 }
-                ((List<Object>)orders).add(this.safeOrder(Helpers.newMap(
-                    "info", result,
-                    "id", this.safeString(result, "id"),
-                    "clientOrderId", this.safeString(result, "client_id"),
-                    "status", orderStatus,
-                    "symbol", market.get("symbol")
-                ), market));
+                ((List<Object>)orders).add(this.safeOrder((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
+                    j39v1.put("info", result);
+                    j39v1.put("id", this.safeString(result, "id"));
+                    j39v1.put("clientOrderId", this.safeString(result, "client_id"));
+                    j39v1.put("status", orderStatus);
+                    j39v1.put("symbol", market.get("symbol"));
+                    yield j39v1; } }), market));
             }
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -2828,7 +2932,7 @@ public class Paradex extends ParadexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrders", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrders", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -2850,7 +2954,7 @@ public class Paradex extends ParadexApi
             {
                 request.put("page_size", limit);
             }
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetOrdersHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -2987,7 +3091,7 @@ public class Paradex extends ParadexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> response = (this.privateGetBalance()).join();
+            Map<String, Object> response = (this.privateGetBalance(new HashMap<String, Object>() {{}})).join();
             //
             //     {
             //         "results": [
@@ -3000,17 +3104,17 @@ public class Paradex extends ParadexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parseBalance(data);
+            return this.parseBalanceList(data);
         }).thenApply(Balances::new);
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalanceList(Object response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; i < Helpers.getArrayLength(response); i++)
+        for (var i = 0; i < ((List<?>)response).size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "token");
@@ -3048,7 +3152,7 @@ public class Paradex extends ParadexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -3070,7 +3174,7 @@ public class Paradex extends ParadexApi
             {
                 request.put("start_at", since);
             }
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetFills(this.extend(requestUntil, paramsUntil))).join();
@@ -3110,7 +3214,7 @@ public class Paradex extends ParadexApi
     /**
      * @method
      * @name paradex#fetchPosition
-     * @description fetch data on an open position
+     * @description fetch data on a single position, a closed one included
      * @see https://docs.paradex.trade/api/prod/account/get-positions
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3127,7 +3231,18 @@ public class Paradex extends ParadexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            List<Position> positions = (this.fetchPositions(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(market.get("symbol")))), parameters)).join();
+            Map<String, Object> response = (this.privateGetPositions(parameters)).join();
+            List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            // unlike fetchPositions, a closed or flat position is kept so the market still gets a structured position
+            List<Object> matching = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; i < ((List<?>)data).size(); i++)
+            {
+                if (java.util.Objects.equals(this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "market"), market.get("id")))
+                {
+                    ((List<Object>)matching).add((data == null || i < 0 || i >= data.size() ? null : data.get(i)));
+                }
+            }
+            Object positions = this.parsePositions(matching, ((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), new HashMap<String, Object>() {{}});
             return this.safeDict(positions, 0, new HashMap<String, Object>() {{}});
         }).thenApply(Position::new);
 
@@ -3153,7 +3268,7 @@ public class Paradex extends ParadexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            Map<String, Object> response = (this.privateGetPositions()).join();
+            Map<String, Object> response = (this.privateGetPositions(parameters)).join();
             //
             //     {
             //         "results": [
@@ -3168,9 +3283,11 @@ public class Paradex extends ParadexApi
             //                 "realized_pnl": "0",
             //                 "unrealized_pnl": "-2.39677214",
             //                 "unrealized_funding_pnl": "-0.11214013",
+            //                 "leverage": "5",
             //                 "cost": "648.39960537",
             //                 "cost_usd": "648.529",
             //                 "cached_funding_index": "35202.1002351",
+            //                 "created_at": 1718947571560,
             //                 "last_updated_at": 1718950074249,
             //                 "last_fill_id": "1718947571560201703986670001",
             //                 "seq_no": 1718950074249176253,
@@ -3180,7 +3297,19 @@ public class Paradex extends ParadexApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            return this.parsePositions(data, symbolsNormalized, new HashMap<String, Object>() {{}});
+            // the endpoint keeps returning a market's position after it is closed, with a size of 0
+            List<Object> openPositions = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; i < ((List<?>)data).size(); i++)
+            {
+                Object position = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+                String status = this.safeString(position, "status");
+                String size = this.safeString(position, "size");
+                if ((!java.util.Objects.equals(status, "CLOSED")) && !Precise.stringEq(size, "0"))
+                {
+                    ((List<Object>)openPositions).add(position);
+                }
+            }
+            return this.parsePositions(openPositions, symbolsNormalized, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -3199,9 +3328,11 @@ public class Paradex extends ParadexApi
         //         "realized_pnl": "0",
         //         "unrealized_pnl": "-2.39677214",
         //         "unrealized_funding_pnl": "-0.11214013",
+        //         "leverage": "5",
         //         "cost": "648.39960537",
         //         "cost_usd": "648.529",
         //         "cached_funding_index": "35202.1002351",
+        //         "created_at": 1718947571560,
         //         "last_updated_at": 1718950074249,
         //         "last_fill_id": "1718947571560201703986670001",
         //         "seq_no": 1718950074249176253,
@@ -3212,38 +3343,39 @@ public class Paradex extends ParadexApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) marketResolved.get("symbol");
         String side = this.safeStringLower(position, "side");
-        String quantity = this.safeString(position, "size");
-        if (!java.util.Objects.equals(side, "long"))
-        {
-            quantity = Precise.stringMul("-1", quantity);
-        }
-        Long timestamp = this.safeInteger(position, "time");
+        // side carries the direction, the unified contracts is a magnitude whether or not size is signed
+        String quantity = Precise.stringAbs(this.safeString(position, "size"));
+        Long timestamp = this.safeInteger(position, "created_at");
         Double liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, "liquidation_price")));
-        HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
-        mapLiteral5.put("info", position);
-        mapLiteral5.put("id", this.safeString(position, "id"));
-        mapLiteral5.put("symbol", symbol);
-        mapLiteral5.put("entryPrice", this.safeNumber(position, "average_entry_price", (Object) null));
-        mapLiteral5.put("markPrice", null);
-        mapLiteral5.put("notional", null);
-        mapLiteral5.put("collateral", this.safeNumber(position, "cost", (Object) null));
-        mapLiteral5.put("unrealizedPnl", this.safeNumber(position, "unrealized_pnl", (Object) null));
-        mapLiteral5.put("side", side);
-        mapLiteral5.put("contracts", this.parseNumber(quantity));
-        mapLiteral5.put("contractSize", null);
-        mapLiteral5.put("timestamp", timestamp);
-        mapLiteral5.put("datetime", this.iso8601(timestamp));
-        mapLiteral5.put("hedged", null);
-        mapLiteral5.put("maintenanceMargin", null);
-        mapLiteral5.put("maintenanceMarginPercentage", null);
-        mapLiteral5.put("initialMargin", null);
-        mapLiteral5.put("initialMarginPercentage", null);
-        mapLiteral5.put("leverage", null);
-        mapLiteral5.put("liquidationPrice", liquidationPrice);
-        mapLiteral5.put("marginRatio", null);
-        mapLiteral5.put("marginMode", null);
-        mapLiteral5.put("percentage", null);
-        return this.safePosition(mapLiteral5);
+        // cost_usd is signed by side, the unified notional is a magnitude
+        String notionalString = Precise.stringAbs(this.safeString(position, "cost_usd"));
+        return this.safePosition(new HashMap<String, Object>() {{
+            put( "info", position );
+            put( "id", Paradex.this.safeString(position, "id") );
+            put( "symbol", symbol );
+            put( "entryPrice", Paradex.this.safeNumber(position, "average_entry_price", (Object) null) );
+            put( "markPrice", null );
+            put( "notional", Paradex.this.parseNumber(notionalString) );
+            put( "collateral", null );
+            put( "unrealizedPnl", Paradex.this.safeNumber(position, "unrealized_pnl", (Object) null) );
+            put( "realizedPnl", Paradex.this.safeNumber(position, "realized_pnl", (Object) null) );
+            put( "side", side );
+            put( "contracts", Paradex.this.parseNumber(quantity) );
+            put( "contractSize", null );
+            put( "timestamp", timestamp );
+            put( "datetime", Paradex.this.iso8601(timestamp) );
+            put( "lastUpdateTimestamp", Paradex.this.safeInteger(position, "last_updated_at") );
+            put( "hedged", null );
+            put( "maintenanceMargin", null );
+            put( "maintenanceMarginPercentage", null );
+            put( "initialMargin", null );
+            put( "initialMarginPercentage", null );
+            put( "leverage", Paradex.this.safeNumber(position, "leverage", (Object) null) );
+            put( "liquidationPrice", liquidationPrice );
+            put( "marginRatio", null );
+            put( "marginMode", "cross" );
+            put( "percentage", null );
+        }});
     }
 
     /**
@@ -3281,7 +3413,7 @@ public class Paradex extends ParadexApi
             {
                 market = this.market(symbol);
             }
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetLiquidations(this.extend(requestUntil, paramsUntil))).join();
@@ -3347,13 +3479,20 @@ public class Paradex extends ParadexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchDeposits", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchDeposits", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchDeposits", code, since, limit, paramsPaginate, "next", "cursor", (Long) null, 100L)).join();
+                // a page can hold no deposit at all, which would end the pagination early, so every row is paginated and filtered afterwards
+                Object transactions = (this.fetchPaginatedCallCursor("fetchDeposits", code, since, (Long) null, this.extend(paramsPaginate, new HashMap<String, Object>() {{
+                    put( "allKinds", true );
+                }}), "next", "cursor", (Long) null, 100L)).join();
+                List<Object> transactionsOfKind = (List<Object>) this.filterTransactionsByKind(transactions, "DEPOSIT");
+                return this.filterBySinceLimit(transactionsOfKind, since, limit, "timestamp", false);
             }
+            Boolean allKinds = (Boolean) this.safeBool(paramsPaginate, "allKinds", false);
+            Map<String, Object> paramsKinds = this.omit(paramsPaginate, "allKinds");
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
             {
@@ -3363,7 +3502,7 @@ public class Paradex extends ParadexApi
             {
                 request.put("start_at", since);
             }
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, paramsKinds, 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetTransfers(this.extend(requestUntil, paramsUntil))).join();
@@ -3389,11 +3528,17 @@ public class Paradex extends ParadexApi
             //     }
             //
             List<Object> rows = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            // the cursor pagination reads the next page cursor from the parsed entries
+            String next = this.safeString(response, "next");
+            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            {
+                Helpers.addElementToObject((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), "next", next);
+            }
             List<Object> deposits = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
                 Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
-                if (java.util.Objects.equals(this.safeString(row, "kind"), "DEPOSIT"))
+                if (Boolean.TRUE.equals(allKinds) || (java.util.Objects.equals(this.safeString(row, "kind"), "DEPOSIT")))
                 {
                     ((List<Object>)deposits).add(row);
                 }
@@ -3426,13 +3571,20 @@ public class Paradex extends ParadexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchWithdrawals", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchWithdrawals", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, paramsPaginate, "next", "cursor", (Long) null, 100L)).join();
+                // a page can hold no withdrawal at all, which would end the pagination early, so every row is paginated and filtered afterwards
+                Object transactions = (this.fetchPaginatedCallCursor("fetchWithdrawals", code, since, (Long) null, this.extend(paramsPaginate, new HashMap<String, Object>() {{
+                    put( "allKinds", true );
+                }}), "next", "cursor", (Long) null, 100L)).join();
+                List<Object> transactionsOfKind = (List<Object>) this.filterTransactionsByKind(transactions, "WITHDRAWAL");
+                return this.filterBySinceLimit(transactionsOfKind, since, limit, "timestamp", false);
             }
+            Boolean allKinds = (Boolean) this.safeBool(paramsPaginate, "allKinds", false);
+            Map<String, Object> paramsKinds = this.omit(paramsPaginate, "allKinds");
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(limit, null))
             {
@@ -3442,7 +3594,7 @@ public class Paradex extends ParadexApi
             {
                 request.put("start_at", since);
             }
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, paramsKinds, 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetTransfers(this.extend(requestUntil, paramsUntil))).join();
@@ -3468,11 +3620,17 @@ public class Paradex extends ParadexApi
             //     }
             //
             List<Object> rows = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            // the cursor pagination reads the next page cursor from the parsed entries
+            String next = this.safeString(response, "next");
+            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            {
+                Helpers.addElementToObject((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), "next", next);
+            }
             List<Object> deposits = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rows).size(); i++)
             {
                 Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
-                if (java.util.Objects.equals(this.safeString(row, "kind"), "WITHDRAWAL"))
+                if (Boolean.TRUE.equals(allKinds) || (java.util.Objects.equals(this.safeString(row, "kind"), "WITHDRAWAL")))
                 {
                     ((List<Object>)deposits).add(row);
                 }
@@ -3505,7 +3663,7 @@ public class Paradex extends ParadexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTransfers", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTransfers", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -3526,7 +3684,7 @@ public class Paradex extends ParadexApi
             {
                 request.put("start_at", since);
             }
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetTransfers(this.extend(requestUntil, paramsUntil))).join();
@@ -3552,6 +3710,12 @@ public class Paradex extends ParadexApi
             //     }
             //
             List<Object> rows = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            // the cursor pagination reads the next page cursor from the parsed entries
+            String next = this.safeString(response, "next");
+            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            {
+                Helpers.addElementToObject((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), "next", next);
+            }
             return this.parseTransfers(rows, currency, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(TransferEntry::new).collect(Collectors.toList()));
 
@@ -3660,6 +3824,20 @@ public class Paradex extends ParadexApi
         }
     }
 
+    public List<Object> filterTransactionsByKind(Object transactions, String kind)
+    {
+        List<Object> result = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < ((List<?>)transactions).size(); i++)
+        {
+            Map<String, Object> info = (Map<String, Object>) this.safeDict((transactions == null || i < 0 || i >= ((List<?>)transactions).size() ? null : ((List<?>)transactions).get(i)), "info", (Object) null);
+            if (java.util.Objects.equals(this.safeString(info, "kind"), kind))
+            {
+                ((List<Object>)result).add((transactions == null || i < 0 || i >= ((List<?>)transactions).size() ? null : ((List<?>)transactions).get(i)));
+            }
+        }
+        return result;
+    }
+
     public String parseTransactionStatus(String status)
     {
         Map<String, Object> statuses = new HashMap<String, Object>() {{
@@ -3733,7 +3911,7 @@ public class Paradex extends ParadexApi
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.leverage] the rate of leverage
+     * @param {float} [params.leverage] the rate of leverage, the current leverage of the market is kept when omitted
      * @returns {object} response from the exchange
      */
     public CompletableFuture<Object> setMarginMode(String marginMode, String symbol, Map<String, Object> parameters)
@@ -3748,15 +3926,24 @@ public class Paradex extends ParadexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Integer leverage = 1;
-            List<Object> leverageOptionparamsLeverageVariable = (List<Object>) this.handleOptionAndParams(parameters, "setMarginMode", "leverage", leverage);
+            List<Object> leverageOptionparamsLeverageVariable = (List<Object>) this.handleOptionAndParams(parameters, "setMarginMode", "leverage", (Object) null);
             var leverageOption = ((List<Object>) leverageOptionparamsLeverageVariable).get(0);
             Map<String, Object> paramsLeverage = (Map<String, Object>) ((List<Object>) leverageOptionparamsLeverageVariable).get(1);
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "market", market.get("id") );
-                put( "leverage", leverageOption );
-                put( "margin_type", Paradex.this.encodeMarginMode((String) (marginMode)) );
-            }};
+            Object leverage = leverageOption;
+            if (java.util.Objects.equals(leverage, null))
+            {
+                // the endpoint always sets the leverage too, keep the current one instead of resetting it
+                Leverage currentLeverage = (this.fetchLeverage(((String)symbol), new HashMap<String, Object>() {{}})).join();
+                leverage = this.safeInteger(currentLeverage, "longLeverage");
+                if (java.util.Objects.equals(leverage, null))
+                {
+                    throw new ArgumentsRequired((((this.id + " setMarginMode() requires a params.leverage argument, the current leverage of ") + market.get("symbol")) + " could not be fetched")) ;
+                }
+            }
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("market", market.get("id"));
+            request.put("leverage", leverage);
+            request.put("margin_type", this.encodeMarginMode((String) (marginMode)));
             return (this.privatePostAccountMarginMarket(this.extend(request, paramsLeverage))).join();
         });
 
@@ -3850,7 +4037,7 @@ public class Paradex extends ParadexApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            io.github.ccxt.base.Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("setLeverage", parameters, "cross");
+            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("setLeverage", parameters, "cross");
             String marginMode = marginModeparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3922,7 +4109,7 @@ public class Paradex extends ParadexApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> greeks = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            return this.parseGreeks((Map<String, Object>) (greeks), market);
+            return this.parseGreeks(greeks, market);
         }).thenApply(Greeks::new);
 
     }
@@ -4080,7 +4267,7 @@ public class Paradex extends ParadexApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingHistory", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingHistory", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -4102,7 +4289,7 @@ public class Paradex extends ParadexApi
             {
                 request.put("start_at", since);
             }
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_at", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.privateGetFundingPayments(this.extend(requestUntil, paramsUntil))).join();
@@ -4124,6 +4311,12 @@ public class Paradex extends ParadexApi
             // }
             //
             List<Object> results = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
+            // the cursor pagination reads the next page cursor from the parsed entries
+            String next = this.safeString(response, "next");
+            for (var i = 0; i < ((List<?>)results).size(); i++)
+            {
+                Helpers.addElementToObject((results == null || i < 0 || i >= results.size() ? null : results.get(i)), "next", next);
+            }
             return this.parseIncomes(results, market, since, limit);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
 
@@ -4244,13 +4437,14 @@ public class Paradex extends ParadexApi
 
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String version = this.version;
         Object pathValue = path;
         if ((((String)path).indexOf("v2/") == 0))
         {
-            pathValue = Helpers.replace(((String)path), "v2/", "");
+            pathValue = (path == null ? null : ((String)path).replaceFirst("v2/", ""));
         }
         if ((((String)path).indexOf("v2/") == 0))
         {
@@ -4263,13 +4457,13 @@ public class Paradex extends ParadexApi
         }
         String url = ((this.implodeHostname(baseApiUrl) + "/") + this.implodeParams(pathValue, parameters));
         Object query = this.omit(parameters, this.extractParams(pathValue));
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "public"))
+        if (java.util.Objects.equals(apiName, "public"))
         {
             if (((Map<String, Object>)query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
-        } else if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        } else if (java.util.Objects.equals(apiName, "private"))
         {
             Map<String, Object> privateHeaders = new HashMap<String, Object>() {{
                 put( "Accept", "application/json" );
@@ -4279,19 +4473,19 @@ public class Paradex extends ParadexApi
             // TODO: optimize
             if (java.util.Objects.equals(pathValue, "auth"))
             {
-                privateHeaders.put("PARADEX-STARKNET-ACCOUNT", ((Map<String, Object>)query).get("account"));
-                privateHeaders.put("PARADEX-STARKNET-SIGNATURE", ((Map<String, Object>)query).get("signature"));
-                privateHeaders.put("PARADEX-TIMESTAMP", String.valueOf(((Map<String, Object>)query).get("timestamp")));
-                privateHeaders.put("PARADEX-SIGNATURE-EXPIRATION", String.valueOf(((Map<String, Object>)query).get("expiration")));
+                privateHeaders.put("PARADEX-STARKNET-ACCOUNT", this.safeString(query, "account"));
+                privateHeaders.put("PARADEX-STARKNET-SIGNATURE", this.safeString(query, "signature"));
+                privateHeaders.put("PARADEX-TIMESTAMP", this.safeString(query, "timestamp"));
+                privateHeaders.put("PARADEX-SIGNATURE-EXPIRATION", this.safeString(query, "expiration"));
             } else if (java.util.Objects.equals(pathValue, "onboarding"))
             {
                 privateHeaders.put("PARADEX-ETHEREUM-ACCOUNT", this.walletAddress);
-                privateHeaders.put("PARADEX-STARKNET-ACCOUNT", ((Map<String, Object>)query).get("account"));
-                privateHeaders.put("PARADEX-STARKNET-SIGNATURE", ((Map<String, Object>)query).get("signature"));
-                privateHeaders.put("PARADEX-TIMESTAMP", String.valueOf(this.nonce()));
+                privateHeaders.put("PARADEX-STARKNET-ACCOUNT", this.safeString(query, "account"));
+                privateHeaders.put("PARADEX-STARKNET-SIGNATURE", this.safeString(query, "signature"));
+                privateHeaders.put("PARADEX-TIMESTAMP", this.numberToString(this.nonce()));
                 privateHeaders.put("Content-Type", "application/json");
                 privateBody = this.json(new HashMap<String, Object>() {{
-                    put( "public_key", ((Map<String, Object>)query).get("public_key") );
+                    put( "public_key", Paradex.this.safeString(query, "public_key") );
                 }});
             } else
             {
@@ -4322,7 +4516,7 @@ public class Paradex extends ParadexApi
             //         url += '?' + this.urlencode (query);
             //     }
             // }
-            String bodyResolved = (((!java.util.Objects.equals(privateBody, null)))) ? privateBody : body;
+            String bodyResolved = privateBody;
             {
                 HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
                 h2kMap4.put("url", url);
@@ -4336,13 +4530,13 @@ public class Paradex extends ParadexApi
             HashMap<String, Object> h2kMap5 = new HashMap<String, Object>();
             h2kMap5.put("url", url);
             h2kMap5.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap5.put("body", body);
-            h2kMap5.put("headers", headers);
+            h2kMap5.put("body", null);
+            h2kMap5.put("headers", null);
             return h2kMap5;
         }
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -4355,14 +4549,60 @@ public class Paradex extends ParadexApi
         //         "message": "User has never called /onboarding endpoint"
         //     }
         //
+        //     {
+        //         "error": "INVALID_REQUEST_PARAMETER",
+        //         "message": "market: FOO-USD-PERP does not exist.",
+        //         "data": { "market": "FOO-USD-PERP does not exist." }
+        //     }
+        //
+        //     {
+        //         "message": "missing or malformed jwt"
+        //     }
+        //
         String errorCode = this.safeString(response, "error");
-        if (!java.util.Objects.equals(errorCode, null))
+        String message = this.safeString(response, "message");
+        if ((java.util.Objects.equals(errorCode, null)) && ((code != null && ((Number) code).doubleValue() == 400)))
         {
-            String feedback = ((this.id + " ") + body);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
-            throw new ExchangeError(feedback) ;
+            //
+            // a batch where every order was rejected, errors are index-aligned with the request
+            //
+            //     {
+            //         "errors": [ { "error": "DUPLICATED_CLIENT_ID", "message": "..." } ],
+            //         "orders": [ null ]
+            //     }
+            //
+            List<Object> batchErrors = (List<Object>) this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));
+            for (var i = 0; i < ((List<?>)batchErrors).size(); i++)
+            {
+                String batchErrorCode = this.safeString((batchErrors == null || i < 0 || i >= batchErrors.size() ? null : batchErrors.get(i)), "error");
+                if (!java.util.Objects.equals(batchErrorCode, null))
+                {
+                    errorCode = batchErrorCode;
+                    message = this.safeString((batchErrors == null || i < 0 || i >= batchErrors.size() ? null : batchErrors.get(i)), "message");
+                    break;
+                }
+            }
         }
-        return null;
+        String feedback = ((this.id + " ") + body);
+        if (java.util.Objects.equals(errorCode, null))
+        {
+            if (((code != null && ((Number) code).doubleValue() >= 400)) && (!java.util.Objects.equals(message, null)))
+            {
+                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
+            }
+            return null;  // fallback to default error handler
+        }
+        // the broad patterns read the message of a validation failure only, other codes carry free text that could match them by accident
+        if ((java.util.Objects.equals(errorCode, "INVALID_REQUEST_PARAMETER")) && (!java.util.Objects.equals(message, null)))
+        {
+            // an unknown market fails the validation of the market field, "market: FOO-USD-PERP does not exist."
+            if (((((String)message).indexOf("market") == 0)) && (((String)message).indexOf("does not exist") >= 0))
+            {
+                throw new BadSymbol(feedback) ;
+            }
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
+        }
+        this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
+        throw new ExchangeError(feedback) ;
     }
 }

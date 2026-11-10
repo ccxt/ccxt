@@ -987,6 +987,7 @@ class aster extends aster$1["default"] {
             return undefined;
         }
         const active = this.safeString(market, 'status') === 'TRADING';
+        const tradingFees = this.safeDict(this.fees, 'trading', {});
         let spot = undefined;
         let symbol = undefined;
         let settle = undefined;
@@ -1002,10 +1003,11 @@ class aster extends aster$1["default"] {
             spot = false;
             swap = true;
             settleId = this.safeString(market, 'marginAsset');
-            settle = this.safeCurrencyCode(settleId);
-            symbol = base + '/' + quote + ':' + settle;
-            linear = settle === quote;
-            inverse = settle === base;
+            const settleCode = this.safeCurrencyCode(settleId);
+            settle = settleCode;
+            symbol = base + '/' + quote + ':' + settleCode;
+            linear = settleCode === quote;
+            inverse = settleCode === base;
             contractSize = this.safeNumber2(market, 'contractSize', 'unit', this.parseNumber('1'));
         }
         else {
@@ -1044,8 +1046,8 @@ class aster extends aster$1["default"] {
             'contract': isContract,
             'linear': linear,
             'inverse': inverse,
-            'taker': this.fees['trading']['taker'],
-            'maker': this.fees['trading']['maker'],
+            'taker': tradingFees['taker'],
+            'maker': tradingFees['maker'],
             'contractSize': contractSize,
             'expiry': undefined,
             'expiryDatetime': undefined,
@@ -1175,16 +1177,16 @@ class aster extends aster$1["default"] {
         const paramsOmitted = this.omit(paramsUntil, 'price');
         let response;
         if (isMark) {
-            requestUntil['symbol'] = market['id'];
+            requestUntil['symbol'] = this.safeString(market, 'id', '');
             response = await this.fapiPublicGetV3MarkPriceKlines(this.extend(requestUntil, paramsOmitted));
         }
         else if (isIndex) {
-            requestUntil['pair'] = market['id'];
+            requestUntil['pair'] = this.safeString(market, 'id', '');
             response = await this.fapiPublicGetV3IndexPriceKlines(this.extend(requestUntil, paramsOmitted));
         }
         else {
-            requestUntil['symbol'] = market['id'];
-            if (market['linear'] === true) {
+            requestUntil['symbol'] = this.safeString(market, 'id', '');
+            if (this.safeBool(market, 'linear', false)) {
                 response = await this.fapiPublicGetV3Klines(this.extend(requestUntil, paramsOmitted));
             }
             else {
@@ -1346,8 +1348,8 @@ class aster extends aster$1["default"] {
             request = this.handleUntilOption('endTime', request, params);
         }
         // use historical endpoint for targeted requests
-        if ('startTime' in request) {
-            if (market['swap'] === true) {
+        if (sinceDefined) {
+            if (this.safeBool(market, 'swap', false)) {
                 response = await this.fapiPublicGetV3AggTrades(this.extend(request, params));
             }
             else {
@@ -1370,7 +1372,7 @@ class aster extends aster$1["default"] {
             //
         }
         else {
-            if (market['swap'] === true) {
+            if (this.safeBool(market, 'swap', false)) {
                 response = await this.fapiPublicGetV3Trades(this.extend(request, params));
             }
             else {
@@ -1477,7 +1479,7 @@ class aster extends aster$1["default"] {
         if (limit !== undefined) {
             request['limit'] = this.findNearestCeiling([5, 10, 20, 50, 100, 500, 1000], limit);
         }
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.fapiPublicGetV3Depth(this.extend(request, params));
         }
         else {
@@ -1612,7 +1614,7 @@ class aster extends aster$1["default"] {
             'symbol': market['id'],
         };
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.fapiPublicGetV3Ticker24hr(this.extend(request, params));
         }
         else {
@@ -1753,7 +1755,7 @@ class aster extends aster$1["default"] {
             results.push(priceData);
         }
         const symbolsNormalized2 = this.marketSymbols(symbolsNormalized);
-        return this.filterByArray(results, 'symbol', symbolsNormalized2);
+        return this.indexBy(this.filterByArray(results, 'symbol', symbolsNormalized2, false), 'symbol');
     }
     parseLastPrice(entry, market = undefined) {
         //
@@ -2039,7 +2041,7 @@ class aster extends aster$1["default"] {
         await this.loadMarketsAndSignIn();
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         let response = undefined;
-        let data = undefined;
+        let data = [];
         if (marketType === 'swap') {
             data = await this.fapiPrivateGetV3Balance(paramsMarketType);
             //
@@ -2070,12 +2072,13 @@ class aster extends aster$1["default"] {
             //     ]
             //
         }
-        return this.parseBalance(data);
+        return this.parseBalanceList(data);
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = { 'info': response };
-        for (let i = 0; i < response.length; i++) {
-            const balance = this.safeDict(response, i);
+        const rows = this.toArray(response);
+        for (let i = 0; i < rows.length; i++) {
+            const balance = this.safeDict(rows, i);
             const currencyId = this.safeString(balance, 'asset');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
@@ -2196,7 +2199,7 @@ class aster extends aster$1["default"] {
             'symbol': market['id'],
         };
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.fapiPrivateGetV3CommissionRate(this.extend(request, params));
         }
         else {
@@ -2359,7 +2362,7 @@ class aster extends aster$1["default"] {
             request['orderId'] = id;
         }
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.fapiPrivateGetV3Order(this.extend(request, paramsOmitted));
         }
         else {
@@ -2425,7 +2428,7 @@ class aster extends aster$1["default"] {
             request['orderId'] = id;
         }
         let response;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             response = await this.sapiPrivateGetV3OpenOrder(this.extend(request, paramsOmitted));
         }
         else {
@@ -2492,7 +2495,7 @@ class aster extends aster$1["default"] {
         }
         const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, params);
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.fapiPrivateGetV3AllOrders(this.extend(requestUntil, paramsUntil));
         }
         else {
@@ -2630,7 +2633,7 @@ class aster extends aster$1["default"] {
         const market = this.market(symbol);
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.fapiPrivatePostV3Order(request);
         }
         else {
@@ -2681,26 +2684,27 @@ class aster extends aster$1["default"] {
         await this.loadMarketsAndSignIn();
         const ordersRequests = [];
         const orderSymbols = [];
-        if (orders.length > 5) {
+        const ordersLength = orders.length;
+        if (ordersLength > 5) {
             throw new errors.InvalidOrder(this.id + ' createOrders() order list max 5 orders');
         }
-        for (let i = 0; i < orders.length; i++) {
+        for (let i = 0; i < ordersLength; i++) {
             const rawOrder = this.safeDict(orders, i);
             const marketId = this.safeString(rawOrder, 'symbol');
             const currentMarket = this.market(marketId);
             orderSymbols.push(currentMarket['symbol']);
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
             ordersRequests.push(orderRequest);
         }
         const orderSymbolsResolved = this.marketSymbols(orderSymbols, undefined, false, true, true);
         const market = this.market(orderSymbolsResolved[0]);
-        if (market['spot'] === true) {
-            throw new errors.NotSupported(this.id + ' createOrders() does not support ' + market['type'] + ' orders');
+        if (this.safeBool(market, 'spot', false)) {
+            throw new errors.NotSupported(this.id + ' createOrders() does not support ' + this.safeString(market, 'type', '') + ' orders');
         }
         const request = {
             'batchOrders': ordersRequests,
@@ -2782,7 +2786,7 @@ class aster extends aster$1["default"] {
         let uppercaseType = initialUppercaseType;
         let stopPrice = undefined;
         if (isTrailingPercentOrder) {
-            if (market['swap'] === true) {
+            if (this.safeBool(market, 'swap', false)) {
                 uppercaseType = 'TRAILING_STOP_MARKET';
                 request['callbackRate'] = trailingPercent;
                 if (trailingTriggerPrice !== undefined) {
@@ -2824,11 +2828,12 @@ class aster extends aster$1["default"] {
         let quantityIsRequired = false;
         request['type'] = uppercaseType;
         if (uppercaseType === 'MARKET') {
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 const quoteOrderQty = this.handleOption('createOrder', 'quoteOrderQty', true);
                 if (quoteOrderQty === true) {
                     const quoteOrderQtyNew = this.safeString2(params, 'quoteOrderQty', 'cost');
-                    const precision = market['precision']['price'];
+                    const marketPrecision = this.safeDict(market, 'precision', {});
+                    const precision = marketPrecision['price'];
                     if (quoteOrderQtyNew !== undefined) {
                         request['quoteOrderQty'] = this.decimalToPrecision(quoteOrderQtyNew, number.TRUNCATE, precision, this.precisionMode);
                     }
@@ -2861,7 +2866,7 @@ class aster extends aster$1["default"] {
             triggerPriceIsRequired = true;
         }
         else if ((uppercaseType === 'STOP_MARKET') || (uppercaseType === 'TAKE_PROFIT_MARKET')) {
-            if (closePosition !== true) {
+            if (!closePosition) {
                 quantityIsRequired = true;
             }
             triggerPriceIsRequired = true;
@@ -2899,9 +2904,7 @@ class aster extends aster$1["default"] {
             if (stopPrice === undefined) {
                 throw new errors.InvalidOrder(this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
             }
-            if (stopPrice !== undefined) {
-                request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
-            }
+            request['stopPrice'] = this.priceToPrecision(symbol, stopPrice);
         }
         const [tifOption, paramsTifOption] = this.handleOptionStringAndParams(params, 'createOrder', 'timeInForce');
         const tifIsMissing = timeInForceIsRequired && (this.safeString(params, 'timeInForce') === undefined) && (this.safeString(request, 'timeInForce') === undefined);
@@ -2914,7 +2917,7 @@ class aster extends aster$1["default"] {
         else {
             requestParams = this.omit(params, omitKeys);
         }
-        if ((this.safeBool(this.options, 'builderFee', false)) && (market['swap'] === true)) {
+        if ((this.safeBool(this.options, 'builderFee', false)) && (this.safeBool(market, 'swap', false))) {
             request['builder'] = this.safeString(this.options, 'builder');
             request['feeRate'] = this.safeString(this.options, 'builderRate');
         }
@@ -2940,7 +2943,7 @@ class aster extends aster$1["default"] {
             'symbol': market['id'],
         };
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.fapiPrivateDeleteV3AllOpenOrders(this.extend(request, params));
         }
         else {
@@ -2989,7 +2992,7 @@ class aster extends aster$1["default"] {
         }
         const paramsOmitted = this.omit(params, ['origClientOrderId', 'clientOrderId']);
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.fapiPrivateDeleteV3Order(this.extend(request, paramsOmitted));
         }
         else {
@@ -3029,7 +3032,7 @@ class aster extends aster$1["default"] {
             request['orderIdList'] = ids;
         }
         let response;
-        if (market['swap'] === true) {
+        if (this.safeBool(market, 'swap', false)) {
             response = await this.fapiPrivateDeleteV3BatchOrders(this.extend(request, params));
             //
             //    [
@@ -3436,13 +3439,13 @@ class aster extends aster$1["default"] {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
-        const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, params);
         if (since !== undefined) {
-            requestUntil['startTime'] = since;
+            request['startTime'] = since;
         }
         if (limit !== undefined) {
-            requestUntil['limit'] = Math.min(limit, 1000); // max 1000
+            request['limit'] = Math.min(limit, 1000); // max 1000
         }
+        const [requestUntil, paramsUntil] = this.handleUntilOption('endTime', request, params);
         const response = await this.fapiPrivateGetV3Income(this.extend(requestUntil, paramsUntil));
         return this.parseIncomes(response, market, since, limit);
     }
@@ -3579,7 +3582,7 @@ class aster extends aster$1["default"] {
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
-            if (Precise["default"].stringLt(notionalStringAbs, bracket[0])) {
+            if (Precise["default"].stringLt(notionalStringAbs, this.safeString(bracket, 0))) {
                 break;
             }
             maintenanceMarginPercentageString = this.safeString(bracket, 1);
@@ -3653,7 +3656,9 @@ class aster extends aster$1["default"] {
         else {
             collateralString = this.safeString(position, 'isolatedMargin');
         }
-        collateralString = (collateralString === undefined) ? '0' : collateralString;
+        if (collateralString === undefined) {
+            collateralString = '0';
+        }
         const collateral = this.parseNumber(collateralString);
         const markPrice = this.parseNumber(this.omitZero(this.safeString(position, 'markPrice')));
         let timestamp = this.safeInteger(position, 'updateTime');
@@ -3671,7 +3676,7 @@ class aster extends aster$1["default"] {
         let initialMarginPercentageString = undefined;
         const leverageString = this.safeString(position, 'leverage');
         if (leverageString !== undefined) {
-            const leverage = parseInt(leverageString);
+            const leverage = this.parseToInt(leverageString);
             const rational = this.isRoundNumber(1000 % leverage);
             initialMarginPercentageString = Precise["default"].stringDiv('1', leverageString, 8);
             if (!rational) {
@@ -3693,6 +3698,10 @@ class aster extends aster$1["default"] {
         }
         const positionSide = this.safeString(position, 'positionSide');
         const hedged = positionSide !== 'BOTH';
+        let isolatedWalletString = undefined;
+        if (marginMode === 'isolated') {
+            isolatedWalletString = this.safeString(position, 'isolatedWallet');
+        }
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -3702,6 +3711,7 @@ class aster extends aster$1["default"] {
             'unrealizedPnl': unrealizedPnl,
             'leverage': this.parseNumber(leverageString),
             'liquidationPrice': liquidationPrice,
+            'positionMargin': this.parseNumber(isolatedWalletString),
             'collateral': collateral,
             'notional': notional,
             'markPrice': markPrice,
@@ -3825,16 +3835,17 @@ class aster extends aster$1["default"] {
             const position = positions[i];
             const marketId = this.safeString(position, 'symbol');
             const market = this.safeMarket(marketId, undefined, undefined, 'contract');
-            const code = (market['linear'] === true) ? market['quote'] : market['base'];
+            const code = (this.safeBool(market, 'linear', false)) ? market['quote'] : market['base'];
             const maintenanceMargin = this.safeString(position, 'maintMargin');
             // check for maintenance margin so empty positions are not returned
             const isPositionOpen = (maintenanceMargin !== '0') && (maintenanceMargin !== '0.00000000');
             if (!filterClosed || isPositionOpen) {
                 // sometimes not all the codes are correctly returned...
-                if (code in balances) {
+                const balance = this.safeDict(balances, code);
+                if (balance !== undefined) {
                     const parsed = this.parseAccountPosition(this.extend(position, {
-                        'crossMargin': balances[code]['crossMargin'],
-                        'crossWalletBalance': balances[code]['crossWalletBalance'],
+                        'crossMargin': this.safeString(balance, 'crossMargin'),
+                        'crossWalletBalance': this.safeString(balance, 'crossWalletBalance'),
                     }), market);
                     result.push(parsed);
                 }
@@ -3847,15 +3858,12 @@ class aster extends aster$1["default"] {
         const marketResolved = this.safeMarket(marketId, market, undefined, 'contract');
         const symbol = this.safeString(marketResolved, 'symbol');
         const leverageString = this.safeString(position, 'leverage');
-        const leverage = (leverageString !== undefined) ? parseInt(leverageString) : undefined;
         const initialMarginString = this.safeString(position, 'initialMargin');
         const initialMargin = this.parseNumber(initialMarginString);
         let initialMarginPercentageString = undefined;
         if (leverageString !== undefined) {
             initialMarginPercentageString = Precise["default"].stringDiv('1', leverageString, 8);
-            if (leverage === undefined) {
-                throw new errors.ExchangeError(this.id + ' parseAccountPosition() missing leverage');
-            }
+            const leverage = this.parseToInt(leverageString);
             const rational = this.isRoundNumber(1000 % leverage);
             if (!rational) {
                 initialMarginPercentageString = Precise["default"].stringDiv(Precise["default"].stringAdd(initialMarginPercentageString, '1e-8'), '1', 8);
@@ -3884,7 +3892,7 @@ class aster extends aster$1["default"] {
         let maintenanceMarginPercentageString = undefined;
         for (let i = 0; i < leverageBracket.length; i++) {
             const bracket = leverageBracket[i];
-            if (Precise["default"].stringLt(notionalStringAbs, bracket[0])) {
+            if (Precise["default"].stringLt(notionalStringAbs, this.safeString(bracket, 0))) {
                 break;
             }
             maintenanceMarginPercentageString = this.safeString(bracket, 1);
@@ -3896,10 +3904,14 @@ class aster extends aster$1["default"] {
         if (timestamp === 0) {
             timestamp = undefined;
         }
-        let isolated = this.safeBool(position, 'isolated');
-        if (isolated === undefined) {
+        const isolatedRaw = this.safeBool(position, 'isolated');
+        let isolated = false;
+        if (isolatedRaw === undefined) {
             const isolatedMarginRaw = this.safeString(position, 'isolatedMargin');
             isolated = !Precise["default"].stringEq(isolatedMarginRaw, '0');
+        }
+        else {
+            isolated = (isolatedRaw === true);
         }
         let marginMode = undefined;
         let collateralString = undefined;
@@ -3971,16 +3983,15 @@ class aster extends aster$1["default"] {
             }
             const pricePrecision = this.precisionFromString(this.safeString(marketResolved['precision'], 'price'));
             const pricePrecisionPlusOne = pricePrecision + 1;
-            const pricePrecisionPlusOneString = pricePrecisionPlusOne.toString();
             // round half up
-            const rounder = new Precise["default"]('5e-' + pricePrecisionPlusOneString);
-            const rounderString = rounder.toString();
+            const pricePrecisionPlusOneString = this.numberToString(pricePrecisionPlusOne);
+            const rounderString = '5e-' + pricePrecisionPlusOneString;
             const liquidationPriceRoundedString = Precise["default"].stringAdd(rounderString, liquidationPriceStringRaw);
             let truncatedLiquidationPrice = Precise["default"].stringDiv(liquidationPriceRoundedString, '1', pricePrecision);
             if (truncatedLiquidationPrice === undefined) {
                 throw new errors.ExchangeError(this.id + ' method() missing truncatedLiquidationPrice');
             }
-            if (truncatedLiquidationPrice[0] === '-') {
+            if (truncatedLiquidationPrice.startsWith('-')) {
                 // user cannot be liquidated
                 // since he has more collateral than the size of the position
                 truncatedLiquidationPrice = undefined;
@@ -3989,6 +4000,10 @@ class aster extends aster$1["default"] {
         }
         const positionSide = this.safeString(position, 'positionSide');
         const hedged = positionSide !== 'BOTH';
+        let isolatedWalletString = undefined;
+        if (marginMode === 'isolated') {
+            isolatedWalletString = this.safeString(position, 'isolatedWallet');
+        }
         return {
             'info': position,
             'id': undefined,
@@ -4008,6 +4023,7 @@ class aster extends aster$1["default"] {
             'marginRatio': marginRatio,
             'liquidationPrice': liquidationPrice,
             'markPrice': undefined,
+            'positionMargin': this.parseNumber(isolatedWalletString),
             'collateral': collateral,
             'marginMode': marginMode,
             'side': side,
@@ -4138,14 +4154,13 @@ class aster extends aster$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const tagAndParams = this.handleWithdrawTagAndParams(tag, params);
-        const paramsWithdrawTag = tagAndParams[1];
-        this.checkAddress(address);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
         await this.loadMarketsAndSignIn();
         const currency = this.currency(code);
         const nonce = this.milliseconds() * 1000;
@@ -4158,6 +4173,9 @@ class aster extends aster$1["default"] {
         // TODO: check how ARBI signature would work
         const networks = this.safeDict(this.options, 'networks', {});
         let network = this.safeStringUpper(paramsWithdrawTag, 'network');
+        if (network !== undefined) {
+            network = this.safeString(this.networkAliases, network, network); // accepts aliases like ETH for ERC20
+        }
         network = this.safeString(networks, network, network);
         if ((chainId === undefined) && (network !== undefined)) {
             const chainIds = this.safeDict(this.options, 'networksToChainId', {});
@@ -4283,18 +4301,19 @@ class aster extends aster$1["default"] {
         const v = this.intToBase16(this.sum(27, signature['v']));
         return '0x' + r.padStart(64, '0') + s.padStart(64, '0') + v;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const baseApiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = baseApiUrl + '/' + path;
-        if (api === 'fapiPublic' || api === 'sapiPublic') {
+        if (apiName === 'fapiPublic' || apiName === 'sapiPublic') {
             if (Object.keys(params).length > 0) {
                 url += '?' + this.rawencode(params);
             }
         }
-        else if (api === 'fapiPrivate' || api === 'sapiPrivate') {
+        else if (apiName === 'fapiPrivate' || apiName === 'sapiPrivate') {
             this.checkRequiredCredentials();
             const nonce = this.milliseconds() * 1000;
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
@@ -4366,7 +4385,7 @@ class aster extends aster$1["default"] {
                 return { 'url': url, 'method': method, 'body': queryString, 'headers': formHeaders };
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     encodeValuesWithJson(values) {
         let encodedString = '';
@@ -4418,11 +4437,11 @@ class aster extends aster$1["default"] {
     }
     async initializeClient(params = {}) {
         const builderFee = this.safeBool(params, 'builderFee', this.safeBool(this.options, 'builderFee', true)); // we shouldn't omit here
-        if (builderFee !== true) {
+        if (!builderFee) {
             return false; // skip if builder fee is not enabled
         }
         const approvedBuilderFee = this.safeBool(this.options, 'approvedBuilderFee', false);
-        if (approvedBuilderFee === true) {
+        if (approvedBuilderFee) {
             return true; // skip if builder fee is already approved
         }
         const result = await this.fapiPrivateGetV3Builder();
@@ -4436,13 +4455,14 @@ class aster extends aster$1["default"] {
         //        }
         //    ]
         //
-        const approvedBuilders = result;
+        const approvedBuilders = this.toArray(result);
         const length = approvedBuilders.length;
         let found = false;
+        const builderAddress = this.safeString(this.options, 'builder');
         for (let i = 0; i < length; i++) {
             const builderInfo = this.safeDict(approvedBuilders, i, {});
             const builderAccountId = this.safeString(builderInfo, 'builderAddress');
-            if (builderAccountId === this.safeString(this.options, 'builder')) {
+            if (builderAccountId === builderAddress) {
                 found = true;
                 break;
             }
@@ -4473,7 +4493,7 @@ class aster extends aster$1["default"] {
         }
         return undefined; // just c#
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -4483,12 +4503,12 @@ class aster extends aster$1["default"] {
         //        "msg": "Invalid symbol.",
         //    }
         //
-        const code = this.safeString(response, 'code');
+        const codeError = this.safeString(response, 'code');
         const message = this.safeString(response, 'msg');
-        if (code !== undefined && code !== '200') {
+        if (codeError !== undefined && codeError !== '200') {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
             throw new errors.ExchangeError(feedback); // unknown message
         }

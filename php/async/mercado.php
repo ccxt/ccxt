@@ -17,7 +17,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class mercado extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'mercado',
             'name' => 'Mercado Bitcoin',
@@ -317,7 +317,7 @@ class mercado extends Exchange {
         $amountLimits = $this->safe_dict($this->options, 'limits', array());
         $coins = $this->to_array($response);
         for ($i = 0; $i < count($coins); $i++) {
-            $coin = $coins[$i];
+            $coin = $this->safe_string($coins, $i, '');
             $baseId = $coin;
             $quoteId = 'BRL';
             $base = $this->safe_currency_code($baseId);
@@ -547,7 +547,7 @@ class mercado extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $data = $this->safe_dict($response, 'response_data', array());
         $balances = $this->safe_dict($data, 'balance', array());
         $result = array( 'info' => $response );
@@ -634,7 +634,7 @@ class mercado extends Exchange {
         // TODO: replace this with a call to parseOrder for unification
         return $this->safe_order(array(
             'info' => $response,
-            'id' => (string) $response['response_data']['order']['order_id'],
+            'id' => $this->safe_string($this->safe_value($this->safe_value($response, 'response_data'), 'order'), 'order_id'),
         ), $market);
     }
 
@@ -690,7 +690,7 @@ class mercado extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             '2' => 'open',
             '3' => 'canceled',
@@ -728,7 +728,7 @@ class mercado extends Exchange {
         $id = $this->safe_string($order, 'order_id');
         $order_type = $this->safe_string($order, 'order_type');
         $side = null;
-        if (is_array($order) && array_key_exists('order_type' ?? '', $order)) {
+        if ($order_type !== null) {
             $side = ($order_type === '1') ? 'buy' : 'sell';
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
@@ -793,7 +793,7 @@ class mercado extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'coin_pair' => $market['id'],
-            'order_id' => intval($id),
+            'order_id' => $this->parse_to_int($id),
         );
         $response = Async\await($this->privatePostGetOrder($this->extend($request, $params)));
         $responseData = $this->safe_dict($response, 'response_data', array());
@@ -801,22 +801,22 @@ class mercado extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a $withdrawal
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
+        $this->check_address($address, $code, $tagWithdrawTag);
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
@@ -839,7 +839,7 @@ class mercado extends Exchange {
             if ($code === 'XRP') {
                 if ($tagWithdrawTag === null) {
                     if (!(is_array($paramsWithdrawTag) && array_key_exists('destination_tag' ?? '', $paramsWithdrawTag))) {
-                        throw new ArgumentsRequired($this->id . ' withdraw() requires a tag argument or destination_tag parameter to withdraw ' . $code);
+                        throw new ArgumentsRequired($this->id . ' withdraw() requires a tag or destination_tag parameter to withdraw ' . $code);
                     }
                 } else {
                     $request['destination_tag'] = $tagWithdrawTag;
@@ -941,7 +941,7 @@ class mercado extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-            'symbol' => $market['base'] . '-' . $market['quote'], // exceptional endpoint, that needs custom symbol syntax
+            'symbol' => $this->safe_string($market, 'base', '') . '-' . $this->safe_string($market, 'quote', ''), // exceptional endpoint, that needs custom symbol syntax
         );
         // set some default limit, as it's required if user doesn't provide it
         $limitResolved = ($limit === null) ? 100 : $limit;
@@ -1053,7 +1053,7 @@ class mercado extends Exchange {
     public function orders_to_trades(array $orders): array {
         $result = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $trades = $this->safe_list($orders[$i], 'trades', array());
+            $trades = $this->safe_list($this->safe_value($orders, $i), 'trades', array());
             for ($y = 0; $y < count($trades); $y++) {
                 $result[] = $trades[$y];
             }
@@ -1061,20 +1061,21 @@ class mercado extends Exchange {
         return $result;
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         // the venue accepts any strictly-increasing integer tonce, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . '/';
         $query = $this->omit($params, $this->extract_params($path));
-        $isPublic = ($api === 'public') || ($api === 'v4Public') || ($api === 'v4PublicNet');
-        $privateBody = null;
+        $isPublic = ($apiName === 'public') || ($apiName === 'v4Public') || ($apiName === 'v4PublicNet');
+        $privateBody = '';
         $privateHeaders = null;
         if ($isPublic) {
             $url .= $this->implode_params($path, $params);
@@ -1099,16 +1100,16 @@ class mercado extends Exchange {
         }
         $requestBody = $privateBody;
         if ($isPublic) {
-            $requestBody = $body;
+            $requestBody = null;
         }
         $requestHeaders = $privateHeaders;
         if ($isPublic) {
-            $requestHeaders = $headers;
+            $requestHeaders = null;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }

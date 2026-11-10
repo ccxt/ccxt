@@ -10,7 +10,7 @@ public partial class blofin : Exchange
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "blofin" },
             { "name", "BloFin" },
-            { "countries", new List<object>() {"US"} },
+            { "countries", new List<object>() {"MH"} },
             { "version", "v1" },
             { "rateLimit", 200 },
             { "pro", true },
@@ -54,15 +54,15 @@ public partial class blofin : Exchange
                 { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
-                { "fetchCurrencies", false },
-                { "fetchDeposit", false },
-                { "fetchDepositAddress", false },
+                { "fetchCurrencies", true },
+                { "fetchDeposit", true },
+                { "fetchDepositAddress", true },
                 { "fetchDepositAddresses", false },
                 { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", false },
                 { "fetchDepositWithdrawFee", "emulated" },
-                { "fetchDepositWithdrawFees", false },
+                { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", true },
                 { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
@@ -89,7 +89,7 @@ public partial class blofin : Exchange
                 { "fetchOpenInterestHistory", false },
                 { "fetchOpenOrder", null },
                 { "fetchOpenOrders", true },
-                { "fetchOrder", null },
+                { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrderBooks", false },
                 { "fetchOrders", false },
@@ -119,7 +119,7 @@ public partial class blofin : Exchange
                 { "fetchTransfers", false },
                 { "fetchUnderlyingAssets", false },
                 { "fetchVolatilityHistory", false },
-                { "fetchWithdrawal", false },
+                { "fetchWithdrawal", true },
                 { "fetchWithdrawals", true },
                 { "fetchWithdrawalWhitelist", false },
                 { "reduceMargin", false },
@@ -526,7 +526,12 @@ public partial class blofin : Exchange
                         { "untilDays", 100000 },
                         { "symbolRequired", false },
                     } },
-                    { "fetchOrder", null },
+                    { "fetchOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "trigger", false },
+                        { "trailing", false },
+                        { "symbolRequired", true },
+                    } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 100 },
@@ -551,6 +556,9 @@ public partial class blofin : Exchange
                 } },
                 { "spot", new Dictionary<string, object>() {
                     { "extends", "default" },
+                    { "fetchCurrencies", new Dictionary<string, object>() {
+                        { "private", true },
+                    } },
                     { "createOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "triggerPrice", false },
@@ -582,7 +590,9 @@ public partial class blofin : Exchange
                     { "linear", new Dictionary<string, object>() {
                         { "extends", "forDerivatives" },
                     } },
-                    { "inverse", null },
+                    { "inverse", new Dictionary<string, object>() {
+                        { "extends", "forDerivatives" },
+                    } },
                 } },
                 { "future", new Dictionary<string, object>() {
                     { "linear", null },
@@ -711,8 +721,12 @@ public partial class blofin : Exchange
                     { "MATIC", "Polygon POS" },
                     { "AVAXC", "AVAX C-Chain" },
                     { "ARBITRUM", "Arbitrum One" },
-                    { "OP", "Optimism" },
+                    { "OPTIMISM", "Optimism" },
                     { "KAIA", "KAIA" },
+                    { "PLASMA", "Plasma" },
+                } },
+                { "networkCodeAliases", new Dictionary<string, object>() {
+                    { "OP", "OPTIMISM" },
                 } },
                 { "networkPrefixes", new Dictionary<string, object>() {
                     { "TRC20", "Tron" },
@@ -733,8 +747,9 @@ public partial class blofin : Exchange
                     { "Polygon POS", "MATIC" },
                     { "AVAX C-Chain", "AVAXC" },
                     { "Arbitrum One", "ARBITRUM" },
-                    { "Optimism", "OP" },
+                    { "Optimism", "OPTIMISM" },
                     { "BSC", "BEP20" },
+                    { "Plasma", "PLASMA" },
                 } },
                 { "fetchOpenInterestHistory", new Dictionary<string, object>() {
                     { "timeframes", new Dictionary<string, object>() {
@@ -806,16 +821,16 @@ public partial class blofin : Exchange
         string? quote = this.safeCurrencyCode(quoteId);
         if (((bs == null)) || ((quote == null)))
         {
-            return ccxt.BaseExchange.ToDict(null);
+            return null;
         }
         string symbol = ((bs + "/") + quote);
         if (swap)
         {
-            symbol = ((symbol + ":") + settle);
+            symbol = ((((bs + "/") + quote) + ":") + settle);
         }
-        object expiry = null;
-        object strikePrice = null;
-        object optionType = null;
+        string? expiry = null;
+        string? strikePrice = null;
+        string? optionType = null;
         string? tickSize = this.safeString(market, "tickSize");
         IDictionary<string, object> fees = this.safeDict2(this.fees, type, "trading", new Dictionary<string, object>() {});
         double? taker = this.safeNumber(fees, "taker");
@@ -902,10 +917,7 @@ public partial class blofin : Exchange
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Int64? limitValue = ((limit == null)) ? 50 : limit;
-        if ((limitValue != null))
-        {
-            request["size"] = limitValue; // max 100
-        }
+        request["size"] = limitValue; // max 100
         Dictionary<string, object> response = await this.publicGetMarketBooks(this.extend(request, parameters));
         //
         //     {
@@ -962,7 +974,7 @@ public partial class blofin : Exchange
         string? last = this.safeString(ticker, "last");
         string? open = this.safeString(ticker, "open24h");
         bool? spot = this.safeBool(marketResolved, "spot", false);
-        string? quoteVolume = ((spot == true)) ? this.safeString(ticker, "volCurrency24h") : null;
+        string? quoteVolume = spot == true ? this.safeString(ticker, "volCurrency24h") : null;
         string? baseVolume = this.safeString(ticker, "vol24h");
         string? high = this.safeString(ticker, "high24h");
         string? low = this.safeString(ticker, "low24h");
@@ -1037,7 +1049,7 @@ public partial class blofin : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
+            { "instId", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.publicGetMarketMarkPrice(this.extend(request, parameters));
         List<object> data = this.safeList(response, "data", new List<object>() {});
@@ -1061,7 +1073,7 @@ public partial class blofin : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         Dictionary<string, object> response = await this.publicGetMarketTickers(parameters);
         List<object> tickers = this.safeList(response, "data", new List<object>() {});
         return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbolsNormalized));
@@ -1143,7 +1155,9 @@ public partial class blofin : Exchange
         }
         if (isSpot)
         {
-            string? spotSymbol = ((string)add(add((marketResolved != null && marketResolved.ContainsKey("base") ? marketResolved["base"] : null), "/"), (marketResolved != null && marketResolved.ContainsKey("quote") ? marketResolved["quote"] : null)));
+            string spotBase = this.safeString(marketResolved, "base", "");
+            string? spotQuote = this.safeString(marketResolved, "quote", "");
+            string spotSymbol = ((spotBase + "/") + spotQuote);
             double? cost = this.parseNumber(Precise.stringMul(price, amount));
             Dictionary<string, object> result = new Dictionary<string, object>() {
                 { "info", trade },
@@ -1193,7 +1207,6 @@ public partial class blofin : Exchange
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -1203,13 +1216,8 @@ public partial class blofin : Exchange
         {
             await this.loadMarkets();
         }
-        (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
-        bool? paginate = paginateparamsPaginateVariable.Item1;
-        IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
-        if ((paginate == true))
-        {
-            return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, paramsPaginate, "tradeId", "after", null, 100));
-        }
+        // the endpoint returns the latest trades only and ignores 'after' / 'before', so there is no cursor to paginate with
+        IDictionary<string, object> paramsNoPaginate = ((IDictionary<string, object>)this.omit(parameters, "paginate"));
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
@@ -1219,7 +1227,7 @@ public partial class blofin : Exchange
         {
             request["limit"] = limit; // default 100
         }
-        (string?, object) methodparamsMethodVariable = this.handleOptionStringAndParams(paramsPaginate, "fetchTrades", "method", "publicGetMarketTrades");
+        (string?, object) methodparamsMethodVariable = this.handleOptionStringAndParams(paramsNoPaginate, "fetchTrades", "method", "publicGetMarketTrades");
         string? method = methodparamsMethodVariable.Item1;
         IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
         if ((method == "publicGetMarketTrades"))
@@ -1287,6 +1295,12 @@ public partial class blofin : Exchange
             { "bar", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "limit", limitResolved },
         };
+        if ((since != null))
+        {
+            Int64 durationInMilliseconds = (this.parseTimeframe(timeframeVar) * 1000L);
+            request["before"] = Math.Max((since.Value - 1), 0);
+            request["after"] = this.sum(since, (durationInMilliseconds * limitResolved));
+        }
         Int64? until = this.safeInteger(query, "until");
         if ((until != null))
         {
@@ -1337,7 +1351,7 @@ public partial class blofin : Exchange
         };
         if ((since != null))
         {
-            request["before"] = mathMax((since - 1), 0);
+            request["before"] = Math.Max((since.Value - 1), 0);
         }
         if ((limit != null))
         {
@@ -1354,7 +1368,7 @@ public partial class blofin : Exchange
         List<object> data = this.safeList(response, "data", new List<object>() {});
         for (int i = 0; i < (data?.Count ?? 0); i++)
         {
-            object rate = data[i];
+            IDictionary<string, object> rate = this.safeDict(data, i, new Dictionary<string, object>() {});
             Int64? timestamp = this.safeInteger(rate, "fundingTime");
             rates.Add(new Dictionary<string, object>() {
                 { "info", rate },
@@ -1380,6 +1394,17 @@ public partial class blofin : Exchange
         string? marketId = this.safeString(contract, "instId");
         string? symbol = this.safeSymbol(marketId, market);
         Int64? fundingTime = this.safeInteger(contract, "fundingTime");
+        string? fundingInterval = this.safeString(contract, "fundingInterval");
+        Dictionary<string, object> intervalUnits = new Dictionary<string, object>() {
+            { "hour", "h" },
+            { "minute", "m" },
+        };
+        string? intervalUnit = this.safeString(intervalUnits, this.safeString(contract, "fundingIntervalUnit"));
+        string? intervalString = null;
+        if (((fundingInterval != null)) && ((intervalUnit != null)))
+        {
+            intervalString = (fundingInterval + intervalUnit);
+        }
         // > The current interest is 0.
         return new Dictionary<string, object>() {
             { "info", contract },
@@ -1399,7 +1424,7 @@ public partial class blofin : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
-            { "interval", null },
+            { "interval", intervalString },
         };
     }
 
@@ -1420,7 +1445,7 @@ public partial class blofin : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        if ((((market.ContainsKey("swap") ? market["swap"] : null) as bool?) != true))
+        if (!(this.safeBool(market, "swap", false) == true))
         {
             throw new ExchangeError ((this.id + " fetchFundingRate() is only valid for swap markets")) ;
         }
@@ -1449,7 +1474,7 @@ public partial class blofin : Exchange
     public virtual object parseBalanceByType(IDictionary<string, object> response)
     {
         List<object> data = this.safeList(response, "data");
-        if (((data != null)) && ((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        if ((data != null))
         {
             return this.parseFundingBalance(response);
         } else
@@ -1557,7 +1582,7 @@ public partial class blofin : Exchange
         return this.safeBalance(result);
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object>? market = null)
     {
         return new Dictionary<string, object>() {
             { "info", fee },
@@ -1593,8 +1618,7 @@ public partial class blofin : Exchange
         Dictionary<string, object> response = null;
         if ((accountType != null) && !(accountType == "swap"))
         {
-            IDictionary<string, object> options = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
-            string? parsedAccountType = this.safeString(options, accountType, accountType);
+            string? parsedAccountType = this.safeString((this.options != null && this.options.ContainsKey("accountsByType") ? this.options["accountsByType"] : null), accountType, accountType);
             request["accountType"] = parsedAccountType;
             response = await this.privateGetAssetBalances(this.extend(request, paramsAccountType));
         } else
@@ -1794,8 +1818,12 @@ public partial class blofin : Exchange
         if ((feeCostString != null))
         {
             string? feeCostSigned = Precise.stringAbs(feeCostString);
-            string? feeCurrencyId = this.safeString(order, "feeCcy", "USDT");
+            string? feeCurrencyId = this.safeString(order, "feeCcy");
             string? feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            if ((feeCurrencyCode == null))
+            {
+                feeCurrencyCode = this.safeString(marketResolved, "settle");
+            }
             fee = new Dictionary<string, object>() {
                 { "cost", this.parseNumber(feeCostSigned) },
                 { "currency", feeCurrencyCode },
@@ -1806,10 +1834,9 @@ public partial class blofin : Exchange
         {
             clientOrderId = null; // fix empty clientOrderId string
         }
-        double? stopLossTriggerPrice = this.safeNumber(order, "slTriggerPrice");
-        double? stopLossPrice = this.safeNumber(order, "slOrderPrice");
-        double? takeProfitTriggerPrice = this.safeNumber(order, "tpTriggerPrice");
-        double? takeProfitPrice = this.safeNumber(order, "tpOrderPrice");
+        // unified stopLossPrice/takeProfitPrice are the trigger prices (createOrder sends them as sl/tpTriggerPrice)
+        double? stopLossPrice = this.safeNumber(order, "slTriggerPrice");
+        double? takeProfitPrice = this.safeNumber(order, "tpTriggerPrice");
         string? reduceOnlyRaw = this.safeString(order, "reduceOnly");
         bool reduceOnly = (reduceOnlyRaw == "true");
         return this.safeOrder(new Dictionary<string, object>() {
@@ -1826,8 +1853,6 @@ public partial class blofin : Exchange
             { "postOnly", postOnly },
             { "side", side },
             { "price", price },
-            { "stopLossTriggerPrice", stopLossTriggerPrice },
-            { "takeProfitTriggerPrice", takeProfitTriggerPrice },
             { "stopLossPrice", stopLossPrice },
             { "takeProfitPrice", takeProfitPrice },
             { "average", average },
@@ -2030,18 +2055,18 @@ public partial class blofin : Exchange
             request["clientOrderId"] = clientOrderId;
         } else
         {
-            if (((isTrigger != true)) && ((isTpsl != true)))
+            if ((isTrigger != true) && (isTpsl != true))
             {
-                request["orderId"] = id.ToString();
+                request["orderId"] = this.numberToString(id);
             } else if ((isTpsl == true))
             {
-                request["tpslId"] = id.ToString();
+                request["tpslId"] = this.numberToString(id);
             } else if ((isTrigger == true))
             {
-                request["algoId"] = id.ToString();
+                request["algoId"] = this.numberToString(id);
             }
         }
-        object query = this.omit(parameters, new List<object>() {"orderId", "clientOrderId", "stop", "trigger", "tpsl"});
+        IDictionary<string, object> query = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"orderId", "clientOrderId", "stop", "trigger", "tpsl"}));
         if ((isTpsl == true))
         {
             List<object> tpslResponse = ccxt.BaseExchange.FromOrderList(await this.CancelOrders(new List<object>() {id}, symbol, parameters));
@@ -2082,8 +2107,8 @@ public partial class blofin : Exchange
             string? marketId = this.safeString(rawOrder, "symbol");
             string? type = this.safeString(rawOrder, "type");
             string? side = this.safeString(rawOrder, "side");
-            object amount = this.safeValue(rawOrder, "amount");
-            object price = this.safeValue(rawOrder, "price");
+            double? amount = this.safeNumber(rawOrder, "amount");
+            double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             Dictionary<string, object> orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
@@ -2092,6 +2117,63 @@ public partial class blofin : Exchange
         Dictionary<string, object> response = await this.privatePostTradeBatchOrders(ordersRequests);
         List<object> data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data);
+    }
+
+    /**
+     * @method
+     * @name blofin#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.blofin.com/index.html#get-order-detail
+     * @see https://docs.blofin.com/index.html#get-tpsl-order-detail
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+     * @param {boolean} [params.tpsl] True if fetching a tpsl order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((symbol == null))
+        {
+            throw new ArgumentsRequired ((this.id + " fetchOrder() requires a symbol argument")) ;
+        }
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "instId", (market.ContainsKey("id") ? market["id"] : null) },
+        };
+        bool? isTpsl = this.safeBool2(parameters, "tpsl", "TPSL", false);
+        string? clientOrderId = this.safeString(parameters, "clientOrderId");
+        if ((clientOrderId != null))
+        {
+            request["clientOrderId"] = clientOrderId;
+        } else if ((isTpsl == true))
+        {
+            request["tpslId"] = id;
+        } else
+        {
+            request["orderId"] = id;
+        }
+        IDictionary<string, object> query = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"clientOrderId", "tpsl", "TPSL"}));
+        Dictionary<string, object> response = null;
+        if ((isTpsl == true))
+        {
+            response = await this.privateGetTradeOrderTpslDetail(this.extend(request, query));
+        } else
+        {
+            response = await this.privateGetTradeOrderDetail(this.extend(request, query));
+        }
+        IDictionary<string, object> data = this.safeDict(response, "data");
+        if ((data == null))
+        {
+            throw new OrderNotFound (((this.id + " fetchOrder() could not find order ") + id)) ;
+        }
+        return this.parseOrder(data, market);
     }
 
     /**
@@ -2141,10 +2223,10 @@ public partial class blofin : Exchange
         IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
         Dictionary<string, object> query = this.omit(paramsMethod, new List<object>() {"method", "stop", "trigger", "tpsl", "TPSL"});
         Dictionary<string, object> response = null;
-        if (((isTpSl == true)) || ((method == "privateGetTradeOrdersTpslPending")))
+        if ((isTpSl == true) || ((method == "privateGetTradeOrdersTpslPending")))
         {
             response = await this.privateGetTradeOrdersTpslPending(this.extend(request, query));
-        } else if (((isTrigger == true)) || ((method == "privateGetTradeOrdersAlgoPending")))
+        } else if ((isTrigger == true) || ((method == "privateGetTradeOrdersAlgoPending")))
         {
             request["orderType"] = "trigger";
             response = await this.privateGetTradeOrdersAlgoPending(this.extend(request, query));
@@ -2191,6 +2273,10 @@ public partial class blofin : Exchange
         {
             market = this.market(symbol);
             request["instId"] = (market.ContainsKey("id") ? market["id"] : null);
+        }
+        if ((since != null))
+        {
+            request["begin"] = since;
         }
         IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("end", request, paramsPaginate);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
@@ -2273,7 +2359,7 @@ public partial class blofin : Exchange
         }
         if ((since != null))
         {
-            request["before"] = mathMax((since - 1), 0);
+            request["before"] = Math.Max((since.Value - 1), 0);
         }
         if ((limit != null))
         {
@@ -2323,7 +2409,7 @@ public partial class blofin : Exchange
         }
         if ((since != null))
         {
-            request["before"] = mathMax((since - 1), 0);
+            request["before"] = Math.Max((since.Value - 1), 0);
         }
         if ((limit != null))
         {
@@ -2337,29 +2423,40 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(data, currency, since, limit, paramsUntil));
     }
 
-    public virtual string? networkCodeToChainId(string? networkCode)
+    public virtual string? networkCodeToChainId(string? networkCode, IDictionary<string, object>? currency = null)
     {
+        string? aliasedCode = this.safeString((this.options != null && this.options.ContainsKey("networkCodeAliases") ? this.options["networkCodeAliases"] : null), networkCode, networkCode);
+        string? unifiedCode = this.safeString(this.networkAliases, aliasedCode, aliasedCode);
+        // prefer the exact chain id from the currencies registry when it is
+        // loaded, since some ids are currency-specific (USDT on Optimism)
+        if ((currency != null))
+        {
+            IDictionary<string, object> currencyNetworks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
+            IDictionary<string, object> currencyNetwork = this.safeDict(currencyNetworks, unifiedCode);
+            string? currencyNetworkId = this.safeString(currencyNetwork, "id");
+            if ((currencyNetworkId != null))
+            {
+                return currencyNetworkId;
+            }
+        }
         // the live venue identifies chains by display names; the suffix
         // family is built here as prefix + space + parenthesized suffix
         // because such literals are not transpiler-safe in source
-        IDictionary<string, object> networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
-        string? direct = this.safeString(networks, networkCode);
+        string? direct = this.safeString((this.options != null && this.options.ContainsKey("networks") ? this.options["networks"] : null), unifiedCode);
         if ((direct != null))
         {
             return direct;
         }
-        IDictionary<string, object> prefixes = this.safeDict(this.options, "networkPrefixes", new Dictionary<string, object>() {});
-        string? prefix = this.safeString(prefixes, networkCode);
+        string? prefix = this.safeString((this.options != null && this.options.ContainsKey("networkPrefixes") ? this.options["networkPrefixes"] : null), unifiedCode);
         if ((prefix != null))
         {
-            IDictionary<string, object> suffixes = this.safeDict(this.options, "networkSuffixes", new Dictionary<string, object>() {});
-            string? suffix = this.safeString(suffixes, networkCode, networkCode);
+            string? suffix = this.safeString((this.options != null && this.options.ContainsKey("networkSuffixes") ? this.options["networkSuffixes"] : null), unifiedCode, unifiedCode);
             return ((((prefix + " ") + "(") + suffix) + ")");
         }
-        return ((string?)((object)(networkCode)));
+        return unifiedCode;
     }
 
-    public virtual object chainIdToNetworkCode(string? chainId)
+    public virtual string? chainIdToNetworkCode(string? chainId)
     {
         // live history rows and the currencies registry carry display-name
         // chain ids like Tron with a parenthesized TRC20 suffix (verified
@@ -2378,13 +2475,378 @@ public partial class blofin : Exchange
             string? tail = this.safeString(parts, 1, "");
             List<object> tailParts = tail.Split(new [] {")"}, StringSplitOptions.None).ToList<object>();
             string? suffix = this.safeString(tailParts, 0);
-            IDictionary<string, object> bySuffix = this.safeDict(this.options, "networkCodesBySuffix", new Dictionary<string, object>() {});
-            return this.safeString(bySuffix, suffix, suffix);
+            string? suffixCode = this.safeString((this.options != null && this.options.ContainsKey("networkCodesBySuffix") ? this.options["networkCodesBySuffix"] : null), suffix);
+            if ((suffixCode != null))
+            {
+                return suffixCode;
+            }
+            IDictionary<string, object> prefixes = this.safeDict(this.options, "networkPrefixes", new Dictionary<string, object>() {});
+            if (((suffix != null)) && (((suffix != null) && prefixes.ContainsKey(suffix))))
+            {
+                return suffix;
+            }
+            // the suffix is not always a chain: 'Optimism (USDT0)' carries
+            // the token name (verified live 2026-09-30), resolve by prefix
+            string? head = this.safeString(parts, 0, "");
+            return ((string?)((object)(this.networkIdToCode(head.Trim()))));
         }
         // delegate the paren-free branch to the base resolver so the
         // currency-scoped networks and the deprecated-network-code aliases
         // keep applying alongside options['networksById']
-        return this.networkIdToCode(chainId);
+        return ((string?)((object)(this.networkIdToCode(chainId))));
+    }
+
+    /**
+     * @method
+     * @name blofin#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.blofin.com/index.html#get-currencies
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
+    {
+        // GET /asset/currencies is a private endpoint, while fetchCurrencies
+        // is invoked from loadMarkets - skip it when no credentials are set
+        // and on the demo host, which has no funding account
+        parameters ??= new Dictionary<string, object>();
+        if (!this.checkRequiredCredentials(false) || this.isSandboxModeEnabled)
+        {
+            return new Dictionary<string, object>() {};
+        }
+        Dictionary<string, object> response = await this.privateGetAssetCurrencies(parameters);
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "currency": "USDT",
+        //                 "chain": "TRC20",
+        //                 "depositMinAmount": "1",
+        //                 "depositUnsafeConfirmation": 1,
+        //                 "depositConfirmation": 20,
+        //                 "withdrawMinAmount": "10",
+        //                 "withdrawFee": "1",
+        //                 "withdrawPrecision": 8,
+        //                 "supportMemo": 0,
+        //                 "isDepositAvailable": 1,
+        //                 "isWithdrawAvailable": 1,
+        //                 "recoveryEtaDeposit": 0,
+        //                 "recoveryEtaWithdraw": 0,
+        //                 "logo": "https://example.com/usdt.png"
+        //             }
+        //         ]
+        //     }
+        //
+        // one row per currency + chain pair, group them per currency
+        List<object> data = this.safeList(response, "data", new List<object>() {});
+        Dictionary<string, object> dataByCurrencyId = this.groupBy(data, "currency");
+        List<object> currencies = new List<object>(dataByCurrencyId.Values);
+        return this.parseCurrencies(currencies);
+    }
+
+    public override Dictionary<string, object> parseCurrency(object currency)
+    {
+        object chains = currency;
+        IDictionary<string, object> firstChain = this.safeDict(chains, 0, new Dictionary<string, object>() {});
+        string? currencyId = this.safeString(firstChain, "currency");
+        string? code = this.safeCurrencyCode(currencyId);
+        Dictionary<string, object> networks = new Dictionary<string, object>() {};
+        int chainsLength = getArrayLength(chains);
+        for (int i = 0; i < chainsLength; i++)
+        {
+            IDictionary<string, object> chain = this.safeDict(chains, i);
+            string? networkId = this.safeString(chain, "chain");
+            string? networkCode = this.chainIdToNetworkCode(networkId);
+            if ((networkCode == null))
+            {
+                continue;
+            }
+            networks[(string)networkCode] = new Dictionary<string, object>() {
+                { "id", networkId },
+                { "network", networkCode },
+                { "active", null },
+                { "deposit", (this.safeInteger(chain, "isDepositAvailable") == 1) },
+                { "withdraw", (this.safeInteger(chain, "isWithdrawAvailable") == 1) },
+                { "fee", this.safeNumber(chain, "withdrawFee") },
+                { "precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "withdrawPrecision"))) },
+                { "limits", new Dictionary<string, object>() {
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(chain, "depositMinAmount") },
+                        { "max", null },
+                    } },
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(chain, "withdrawMinAmount") },
+                        { "max", null },
+                    } },
+                } },
+                { "info", chain },
+            };
+        }
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "info", chains },
+            { "code", code },
+            { "id", currencyId },
+            { "name", null },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "precision", null },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "type", "crypto" },
+            { "networks", networks },
+        });
+    }
+
+    /**
+     * @method
+     * @name blofin#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://docs.blofin.com/index.html#get-deposit-address
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] unified network code, required unless the currency has a single network or a default in options['defaultNetworks']
+     * @param {string} [params.chain] the exchange-specific chain id, takes precedence over params.network
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
+    public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        Dictionary<string, object> currency = this.currency(code);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
+        };
+        // same reads as handleNetworkCodeAndParams, kept as typed locals
+        string? networkCode = this.safeString2(parameters, "networkCode", "network");
+        IDictionary<string, object> query = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"networkCode", "network"}));
+        string? chain = this.safeString(query, "chain");
+        if ((chain == null))
+        {
+            if ((networkCode == null))
+            {
+                IDictionary<string, object> networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
+                List<object> networkKeys = new List<object>(networks.Keys);
+                int networkKeysLength = networkKeys.Count;
+                if ((networkKeysLength == 1))
+                {
+                    networkCode = this.safeString(networkKeys, 0);
+                } else
+                {
+                    networkCode = this.safeString((this.options != null && this.options.ContainsKey("defaultNetworks") ? this.options["defaultNetworks"] : null), (currency.ContainsKey("code") ? currency["code"] : null));
+                }
+            }
+            if ((networkCode == null))
+            {
+                throw new ArgumentsRequired (((this.id + " fetchDepositAddress() requires a params[\"network\"] or params[\"chain\"] for ") + code)) ;
+            }
+            // the same display-name chain ids that withdrawal-apply and the currencies registry use
+            request["chain"] = this.networkCodeToChainId(networkCode, currency);
+        }
+        Dictionary<string, object> response = await this.privateGetAssetDepositAddress(this.extend(request, query));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "currency": "USDT",
+        //                 "chain": "TRC20",
+        //                 "address": "THmWeEJKyb976L76MvrTjeYMyNgiS9aKTu",
+        //                 "tag": ""
+        //             }
+        //         ]
+        //     }
+        //
+        List<object> data = this.safeList(response, "data", new List<object>() {});
+        IDictionary<string, object> first = this.safeDict(data, 0);
+        if ((first == null))
+        {
+            throw new InvalidAddress (((((this.id + " fetchDepositAddress() returned no address for ") + code) + " on ") + this.safeString(request, "chain", chain))) ;
+        }
+        return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(first, currency));
+    }
+
+    public override Dictionary<string, object> parseDepositAddress(object depositAddress, Dictionary<string, object> currency = null)
+    {
+        string? address = this.safeString(depositAddress, "address");
+        string? currencyId = this.safeString(depositAddress, "currency");
+        string? networkId = this.safeString(depositAddress, "chain");
+        string? tag = this.safeString(depositAddress, "tag");
+        if (tag == "")
+        {
+            tag = null;
+        }
+        this.checkAddress(address);
+        return new Dictionary<string, object>() {
+            { "info", depositAddress },
+            { "currency", this.safeCurrencyCode(currencyId, currency) },
+            { "network", this.chainIdToNetworkCode(networkId) },
+            { "address", address },
+            { "tag", tag },
+        };
+    }
+
+    /**
+     * @method
+     * @name blofin#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://docs.blofin.com/index.html#get-currencies
+     * @param {string[]} [codes] list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
+    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(IList<object> codes = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        Dictionary<string, object> response = await this.privateGetAssetCurrencies(parameters);
+        List<object> data = this.safeList(response, "data", new List<object>() {});
+        Dictionary<string, object> dataByCurrencyId = this.groupBy(data, "currency");
+        return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(dataByCurrencyId, codes));
+    }
+
+    public override object parseDepositWithdrawFee(object fee, Dictionary<string, object> currency = null)
+    {
+        //
+        // a list of GET /asset/currencies rows for one currency, see fetchCurrencies
+        //
+        Dictionary<string, object> result = this.depositWithdrawFee(fee);
+        int chainsLength = getArrayLength(fee);
+        for (int i = 0; i < chainsLength; i++)
+        {
+            IDictionary<string, object> chain = this.safeDict(fee, i);
+            string? networkCode = this.chainIdToNetworkCode(this.safeString(chain, "chain"));
+            if ((networkCode == null))
+            {
+                continue;
+            }
+            ((IDictionary<string,object>)(result != null && result.ContainsKey("networks") ? result["networks"] : null))[(string)networkCode] = new Dictionary<string, object>() {
+                { "withdraw", new Dictionary<string, object>() {
+                    { "fee", this.safeNumber(chain, "withdrawFee") },
+                    { "percentage", false },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "fee", null },
+                    { "percentage", null },
+                } },
+            };
+        }
+        if ((chainsLength == 1))
+        {
+            // a single network means the currency-level fee is unambiguous
+            IDictionary<string, object> networks = this.safeDict(result, "networks", new Dictionary<string, object>() {});
+            List<object> networkKeys = new List<object>(networks.Keys);
+            string? onlyNetwork = this.safeString(networkKeys, 0);
+            if ((onlyNetwork != null))
+            {
+                IDictionary<string, object> networkResolved = this.safeDict(networks, onlyNetwork, new Dictionary<string, object>() {});
+                result["withdraw"] = (networkResolved != null && networkResolved.ContainsKey("withdraw") ? networkResolved["withdraw"] : null);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name blofin#fetchDeposit
+     * @description fetch information on a deposit
+     * @see https://docs.blofin.com/index.html#get-deposit-history
+     * @param {string} id deposit id
+     * @param {string} [code] unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    public async virtual Task<ccxt.Transaction> FetchDeposit(string id, string code = null, IDictionary<string, object>? parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "depositId", id },
+        };
+        IDictionary<string, object> currency = null;
+        if ((code != null))
+        {
+            currency = this.currency(code);
+            request["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
+        }
+        Dictionary<string, object> response = await this.privateGetAssetDepositHistory(this.extend(request, parameters));
+        List<object> data = this.safeList(response, "data", new List<object>() {});
+        // only accept a row that matches the requested id, in case the
+        // venue ignores the filter and returns the latest records instead
+        int dataLength = (data?.Count ?? 0);
+        for (int i = 0; i < dataLength; i++)
+        {
+            object entry = this.safeValue(data, i);
+            if ((this.safeString(entry, "depositId") == id))
+            {
+                return ccxt.BaseExchange.ToTransaction(this.parseTransaction(entry, currency));
+            }
+        }
+        throw new ExchangeError (((this.id + " fetchDeposit() could not find deposit ") + id)) ;
+    }
+
+    /**
+     * @method
+     * @name blofin#fetchWithdrawal
+     * @description fetch data on a currency withdrawal via the withdrawal id
+     * @see https://docs.blofin.com/index.html#get-withdraw-history
+     * @param {string} id withdrawal id
+     * @param {string} [code] unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientId] look up by the client-supplied id instead, with id set to undefined
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    public async virtual Task<ccxt.Transaction> FetchWithdrawal(string id, string code = null, IDictionary<string, object>? parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        string? clientId = this.safeString(parameters, "clientId");
+        if (((id == null)) && ((clientId == null)))
+        {
+            throw new ArgumentsRequired ((this.id + " fetchWithdrawal() requires an id argument or a params[\"clientId\"]")) ;
+        }
+        await this.loadMarkets();
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
+        if ((id != null))
+        {
+            request["withdrawId"] = id;
+        }
+        IDictionary<string, object> currency = null;
+        if ((code != null))
+        {
+            currency = this.currency(code);
+            request["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
+        }
+        Dictionary<string, object> response = await this.privateGetAssetWithdrawalHistory(this.extend(request, parameters));
+        List<object> data = this.safeList(response, "data", new List<object>() {});
+        // only accept a row that matches the requested id (or clientId), in
+        // case the venue ignores the filter and returns the latest records
+        int dataLength = (data?.Count ?? 0);
+        for (int i = 0; i < dataLength; i++)
+        {
+            object entry = this.safeValue(data, i);
+            bool matches = false;
+            if ((id != null))
+            {
+                matches = ((this.safeString(entry, "withdrawId") == id));
+            } else
+            {
+                matches = ((this.safeString(entry, "clientId") == clientId));
+            }
+            if (matches)
+            {
+                return ccxt.BaseExchange.ToTransaction(this.parseTransaction(entry, currency));
+            }
+        }
+        object reference = ((id != null)) ? id : clientId;
+        throw new ExchangeError ((string)((this.id + " fetchWithdrawal() could not find withdrawal ") + (reference))) ;
     }
 
     /**
@@ -2395,8 +2857,8 @@ public partial class blofin : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw, the withdrawal fee is not included and must be reserved on top
      * @param {string} address the address to withdraw to, or a UID / email / phone number for an internal transfer
-     * @param {string} tag additional identifier (memo / payment id) required by certain networks
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.network] the unified network code for on-chain withdrawals, mapped to the exchange's chain name
      * @param {string} [params.dest] 'onchain' (default) or 'internal' for an internal transfer
      * @param {string} [params.addrType] address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone
@@ -2404,7 +2866,7 @@ public partial class blofin : Exchange
      * @param {string} [params.clientId] a client-supplied id of up to 32 case-sensitive alphanumerics
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         // LIVE API vs DOCS quirks, verified against the venue 2026-09-14:
         // - addrType is documented optional but the live venue rejects
@@ -2417,10 +2879,10 @@ public partial class blofin : Exchange
         // - 152002 responses omit the offending field name even though the
         //   error table documents the message as "Parameter {} error"
         parameters ??= new Dictionary<string, object>();
-        object tagValue = null;
+        string? tagValue = null;
         object query = null;
-        IList<object> tagValuequeryVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
-        tagValue = tagValuequeryVariable[0];
+        IList<object> tagValuequeryVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        tagValue = (string)tagValuequeryVariable[0];
         query = tagValuequeryVariable[1];
         await this.loadMarkets();
         Dictionary<string, object> currency = this.currency(code);
@@ -2434,7 +2896,7 @@ public partial class blofin : Exchange
         query = this.omit(query, "dest");
         if (dest == "onchain")
         {
-            this.checkAddress(address);
+            this.checkAddress(address, code, tagValue);
             // the doc's Request Parameters table marks addrType "Required:
             // No", but the live venue rejects on-chain withdrawals without
             // it (152001 "Parameter addrType cannot be empty") - default to
@@ -2457,7 +2919,7 @@ public partial class blofin : Exchange
         {
             if ((networkCode != null))
             {
-                request["chain"] = this.networkCodeToChainId(networkCode);
+                request["chain"] = this.networkCodeToChainId(networkCode, currency);
             } else if (dest == "onchain")
             {
                 throw new ArgumentsRequired ((this.id + " withdraw() requires a params[\"network\"] or params[\"chain\"] for on-chain withdrawals")) ;
@@ -2597,7 +3059,7 @@ public partial class blofin : Exchange
         // amount is NET of the fee: a 30 USDT withdrawal-apply lands as
         // amount 29 + fee 1
         string? networkId = this.safeString(transaction, "chain");
-        string? networkCode = ((string)this.chainIdToNetworkCode(networkId));
+        string? networkCode = this.chainIdToNetworkCode(networkId);
         string? txid = this.safeString(transaction, "txId");
         Int64? timestamp = this.safeInteger(transaction, "ts");
         string? feeCurrencyId = this.safeString(transaction, "feeCurrency");
@@ -2756,7 +3218,7 @@ public partial class blofin : Exchange
                 for (int i = 0; i < getArrayLength(tpslIds); i++)
                 {
                     request.Add(new Dictionary<string, object>() {
-                        { "tpslId", getValue(tpslIds, i) },
+                        { "tpslId", this.safeString(tpslIds, i) },
                         { "instId", (market.ContainsKey("id") ? market["id"] : null) },
                     });
                 }
@@ -2766,13 +3228,13 @@ public partial class blofin : Exchange
                 if ((trigger == true))
                 {
                     request.Add(new Dictionary<string, object>() {
-                        { "tpslId", getValue(orderIds, i) },
+                        { "tpslId", this.safeString(orderIds, i) },
                         { "instId", (market.ContainsKey("id") ? market["id"] : null) },
                     });
                 } else
                 {
                     request.Add(new Dictionary<string, object>() {
-                        { "orderId", getValue(orderIds, i) },
+                        { "orderId", this.safeString(orderIds, i) },
                         { "instId", (market.ContainsKey("id") ? market["id"] : null) },
                     });
                 }
@@ -2783,7 +3245,7 @@ public partial class blofin : Exchange
             {
                 request.Add(new Dictionary<string, object>() {
                     { "instId", (market.ContainsKey("id") ? market["id"] : null) },
-                    { "clientOrderId", getValue(clientOrderIds, i) },
+                    { "clientOrderId", this.safeString(clientOrderIds, i) },
                 });
             }
         }
@@ -2819,9 +3281,8 @@ public partial class blofin : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        IDictionary<string, object> accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
-        string? fromId = this.safeString(accountsByType, fromAccount, fromAccount);
-        string? toId = this.safeString(accountsByType, toAccount, toAccount);
+        string? fromId = this.safeString((this.options != null && this.options.ContainsKey("accountsByType") ? this.options["accountsByType"] : null), fromAccount, fromAccount);
+        string? toId = this.safeString((this.options != null && this.options.ContainsKey("accountsByType") ? this.options["accountsByType"] : null), toAccount, toAccount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "amount", this.currencyToPrecision(code, amount) },
@@ -2897,7 +3358,7 @@ public partial class blofin : Exchange
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
         Dictionary<string, object> response = await this.privateGetAccountPositions(parameters);
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IList<object> result = this.parsePositions(data);
@@ -2976,7 +3437,7 @@ public partial class blofin : Exchange
         //    }
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
-        IList<object> positions = this.parsePositions(data, symbols, paramsUntil);
+        IList<object> positions = this.parsePositions(data, this.toArray(symbols), paramsUntil);
         return ccxt.BaseExchange.ToPositionList(this.filterBySinceLimit(positions, since, limit));
     }
 
@@ -3059,9 +3520,12 @@ public partial class blofin : Exchange
         string? contractSizeString = this.numberToString(contractSize);
         string? markPriceString = this.safeString(position, "markPrice");
         string? notionalString = this.safeString(position, "notionalUsd");
-        if ((((marketResolved != null && marketResolved.ContainsKey("inverse") ? marketResolved["inverse"] : null) as bool?) == true))
+        if ((this.safeBool(marketResolved, "inverse", false) == true))
         {
             notionalString = Precise.stringDiv(Precise.stringMul(contractsAbs, contractSizeString), markPriceString);
+        } else if ((notionalString == null))
+        {
+            notionalString = Precise.stringMul(Precise.stringMul(contractsAbs, contractSizeString), markPriceString);
         }
         double? notional = this.parseNumber(notionalString);
         string? marginMode = this.safeString(position, "marginMode");
@@ -3071,14 +3535,21 @@ public partial class blofin : Exchange
         string? leverageString = this.safeString(position, "leverage");
         object initialMarginPercentage = null;
         string? collateralString = null;
+        string? marginString = null;
         if (marginMode == "cross")
         {
             initialMarginString = this.safeString(position, "initialMargin");
-            collateralString = Precise.stringAdd(initialMarginString, unrealizedPnlString);
+            collateralString = ((unrealizedPnlString != null)) ? Precise.stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
         } else if (marginMode == "isolated")
         {
             initialMarginPercentage = Precise.stringDiv("1", leverageString);
-            collateralString = this.safeString(position, "margin");
+            string? isolatedMarginString = ((string)this.omitZero(this.safeString2(position, "margin", "initialMargin")));
+            if ((isolatedMarginString != null))
+            {
+                initialMarginString = isolatedMarginString;
+                marginString = isolatedMarginString;
+                collateralString = ((unrealizedPnlString != null)) ? Precise.stringAdd(isolatedMarginString, unrealizedPnlString) : isolatedMarginString;
+            }
         }
         string? maintenanceMarginString = this.safeString(position, "maintenanceMargin");
         double? maintenanceMargin = this.parseNumber(maintenanceMarginString);
@@ -3092,8 +3563,22 @@ public partial class blofin : Exchange
             initialMarginString = Precise.stringMul(initialMarginPercentageString, notionalString);
         }
         string rounder = "0.00005"; // round to closest 0.01%
-        double? maintenanceMarginPercentage = this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4));
-        double? liquidationPrice = this.safeNumber(position, "liquidationPrice");
+        double? maintenanceMarginPercentage = ((maintenanceMarginPercentageString != null)) ? this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4)) : null;
+        string? liquidationPriceString = ((string)this.omitZero(this.safeString(position, "liquidationPrice")));
+        if (((liquidationPriceString == null)) && (marginMode == "isolated") && ((initialMarginString != null)) && ((entryPriceString != null)) && ((contractsAbs != null)) && Precise.stringGt(contractsAbs, "0") && ((contractSizeString != null)) && ((maintenanceMarginPercentage != null)))
+        {
+            string? takerFeeRate = this.safeString(marketResolved, "taker", "0.0006");
+            string? mmpWithFee = Precise.stringAdd(this.numberToString(maintenanceMarginPercentage), takerFeeRate);
+            string? totalSize = Precise.stringMul(contractsAbs, contractSizeString);
+            string? marginPerUnit = Precise.stringDiv(initialMarginString, totalSize);
+            string? num = (side == "long") ? Precise.stringSub(entryPriceString, marginPerUnit) : Precise.stringAdd(entryPriceString, marginPerUnit);
+            string? denom = (side == "long") ? Precise.stringSub("1", mmpWithFee) : Precise.stringAdd("1", mmpWithFee);
+            if (((denom != null)) && Precise.stringGt(denom, "0"))
+            {
+                liquidationPriceString = Precise.stringDiv(num, denom);
+            }
+        }
+        double? liquidationPrice = (((liquidationPriceString != null)) && Precise.stringGt(liquidationPriceString, "0")) ? this.parseNumber(liquidationPriceString) : null;
         string? percentageString = this.safeString(position, "unrealizedPnlRatio");
         double? percentage = this.parseNumber(Precise.stringMul(percentageString, "100"));
         Int64? timestamp = this.safeInteger(position, "updateTime");
@@ -3121,6 +3606,7 @@ public partial class blofin : Exchange
             { "lastUpdateTimestamp", null },
             { "maintenanceMargin", maintenanceMargin },
             { "maintenanceMarginPercentage", maintenanceMarginPercentage },
+            { "positionMargin", this.parseNumber(marginString) },
             { "collateral", this.parseNumber(collateralString) },
             { "initialMargin", this.parseNumber(initialMarginString) },
             { "initialMarginPercentage", this.parseNumber(initialMarginPercentage) },
@@ -3166,22 +3652,8 @@ public partial class blofin : Exchange
             throw new BadRequest ((this.id + " fetchLeverages() requires a marginMode parameter that must be either cross or isolated")) ;
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        IList<object> symbolsList = symbolsNormalized;
-        string instIds = "";
-        for (int i = 0; i < (symbolsList?.Count ?? 0); i++)
-        {
-            string? entry = ((string)symbolsList[i]);
-            Dictionary<string, object> entryMarket = this.market(entry);
-            if (i > 0)
-            {
-                instIds = ((instIds + ",") + ((entryMarket != null && entryMarket.ContainsKey("id") ? entryMarket["id"] : null)));
-            } else
-            {
-                instIds = (instIds + ((entryMarket != null && entryMarket.ContainsKey("id") ? entryMarket["id"] : null)));
-            }
-        }
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "instId", instIds },
+            { "instId", String.Join(",", ((IList<object>)this.marketIds(symbolsNormalized)).ToArray()) },
             { "marginMode", marginMode },
         };
         Dictionary<string, object> response = await this.privateGetAccountBatchLeverageInfo(this.extend(request, query));
@@ -3309,7 +3781,7 @@ public partial class blofin : Exchange
             { "instId", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = await this.privatePostAccountSetLeverage(this.extend(request, paramsMarginMode));
-        return ccxt.BaseExchange.ToDict(response);
+        return response;
     }
 
     /**
@@ -3327,9 +3799,9 @@ public partial class blofin : Exchange
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {boolean} [params.autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false
      * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
-     * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<IDictionary<string, object>> closePosition(string symbol, string side = null, object parameters = null)
+    public async override Task<ccxt.Order> ClosePosition(string symbol, string side = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3350,7 +3822,8 @@ public partial class blofin : Exchange
             request["clientOrderId"] = clientOrderId;
         }
         Dictionary<string, object> response = await this.privatePostTradeClosePosition(this.extend(request, paramsMarginMode));
-        return ((IDictionary<string, object>)((object)(this.safeDict(response, "data"))));
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseOrder(data, market);
     }
 
     /**
@@ -3402,7 +3875,7 @@ public partial class blofin : Exchange
         IDictionary<string, object> paramsMethod = ((IDictionary<string, object>)methodparamsMethodVariable.Item2);
         Dictionary<string, object> query = this.omit(paramsMethod, new List<object>() {"method", "stop", "trigger", "tpsl", "TPSL"});
         Dictionary<string, object> response = null;
-        if (((isTrigger == true)) || ((method == "privateGetTradeOrdersTpslHistory")))
+        if ((isTrigger == true) || ((method == "privateGetTradeOrdersTpslHistory")))
         {
             response = await this.privateGetTradeOrdersTpslHistory(this.extend(request, query));
         } else
@@ -3545,7 +4018,7 @@ public partial class blofin : Exchange
         //         }
         //     }
         //
-        return ccxt.BaseExchange.ToDict(await this.privatePostAccountSetPositionMode(this.extend(request, parameters)));
+        return await this.privatePostAccountSetPositionMode(this.extend(request, parameters));
     }
 
     /**
@@ -3639,7 +4112,7 @@ public partial class blofin : Exchange
         };
     }
 
-    public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {
@@ -3648,14 +4121,14 @@ public partial class blofin : Exchange
         //
         // {"code":"152002","msg":"Parameter bar error."}
         //
-        string? code = this.safeString(response, "code");
+        string? codeError = this.safeString(response, "code");
         string? message = this.safeString(response, "msg");
         string feedback = ((this.id + " ") + (body));
-        if ((code != null) && code != "0")
+        if ((codeError != null) && codeError != "0")
         {
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), code, feedback);
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), message, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }
         //
@@ -3672,34 +4145,35 @@ public partial class blofin : Exchange
         string? insideCode = this.safeString(first, "code");
         if ((insideCode != null) && insideCode != "0")
         {
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), insideCode, feedback);
-            this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), insideMsg, feedback);
-            this.throwBroadlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("broad") ? ((IDictionary<string, object>)this.exceptions)["broad"] : null), insideMsg, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), insideCode, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), insideMsg, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), insideMsg, feedback);
         }
         return null;
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object request = ((("/api/" + this.version) + "/") + this.implodeParams(path, parameters));
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
+        string request = ((("/api/" + this.version) + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        object apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "rest");
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "rest");
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
-        object url = add(apiUrl, request);
+        object url = (apiUrl + request);
         // const type = this.getPathAuthenticationType (path);
-        if ((api is "public"))
+        if (apiName == "public")
         {
             if (!this.isEmpty(query))
             {
-                url = add(url, ("?" + this.urlencode(query)));
+                url = ((object)(url == null ? null : url + (string)(object)(("?" + this.urlencode(query)))));
             }
-        } else if ((api is "private"))
+        } else if (apiName == "private")
         {
             this.checkRequiredCredentials();
             string timestamp = this.milliseconds().ToString();
@@ -3709,29 +4183,29 @@ public partial class blofin : Exchange
                 { "ACCESS-TIMESTAMP", timestamp },
                 { "ACCESS-NONCE", timestamp },
             };
-            string? sign_body = "";
+            string sign_body = "";
             string? signedBody = null;
             if ((method == "GET"))
             {
                 if (!this.isEmpty(query))
                 {
                     string urlencodedQuery = ("?" + this.urlencode(query));
-                    url = add(url, urlencodedQuery);
-                    request = add(request, urlencodedQuery);
+                    url = ((object)(url == null ? null : url + urlencodedQuery));
+                    request = request + urlencodedQuery;
                 }
             } else
             {
                 if (!this.isEmpty(query))
                 {
-                    signedBody = this.json(query);
-                    sign_body = signedBody;
+                    sign_body = this.json(query);
+                    signedBody = sign_body;
                 }
                 signedHeaders["Content-Type"] = "application/json";
             }
-            string? auth = ((string)add(add(add(add(request, method), timestamp), timestamp), sign_body));
+            string auth = ((((request + method) + timestamp) + timestamp) + sign_body);
             string signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256));
             signedHeaders["ACCESS-SIGN"] = signature;
-            object bodyResolved = ((signedBody == null)) ? body : signedBody;
+            string? bodyResolved = signedBody;
             return new Dictionary<string, object>() {
                 { "url", url },
                 { "method", method },
@@ -3742,8 +4216,8 @@ public partial class blofin : Exchange
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", body },
-            { "headers", headers },
+            { "body", null },
+            { "headers", null },
         };
     }
 }

@@ -1,8 +1,8 @@
 import poloniexRest from '../poloniex.js';
-import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict, Bool, Market, List } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Balances, Num, Dict, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class poloniex extends poloniexRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @ignore
      * @method
@@ -23,6 +23,17 @@ export default class poloniex extends poloniexRest {
      * @returns {object} data from the websocket stream
      */
     subscribe(name: string, messageHash: string, isPrivate: boolean, symbols?: Strings, params?: Dict): Promise<any>;
+    /**
+     * @ignore
+     * @method
+     * @description unsubscribes from a public websocket channel
+     * @param {string} name name of the channel
+     * @param {string[]} symbols CCXT market symbols
+     * @param {string[]} messageHashes unique identifiers resolved once the exchange acknowledges the unsubscribe
+     * @param {object} [params] extra parameters specific to the poloniex api
+     * @returns {object} true once the exchange acknowledges the unsubscribe
+     */
+    unSubscribe(name: string, symbols: string[], messageHashes: string[], params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method
@@ -105,6 +116,17 @@ export default class poloniex extends poloniexRest {
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
+     * @name poloniex#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#candlesticks
+     * @param {string} symbol unified symbol of the market to unwatch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: Dict): Promise<any>;
+    /**
+     * @method
      * @name poloniex#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
@@ -149,6 +171,26 @@ export default class poloniex extends poloniexRest {
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
+     * @name poloniex#unWatchTrades
+     * @description unWatches the list of most recent trades for a particular symbol
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+     * @param {string} symbol unified symbol of the market to unwatch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
+    /**
+     * @method
+     * @name poloniex#unWatchTradesForSymbols
+     * @description unWatches the list of most recent trades for a list of symbols
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+     * @param {string[]} symbols unified symbols of the markets to unwatch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    unWatchTradesForSymbols(symbols: string[], params?: Dict): Promise<any>;
+    /**
+     * @method
      * @name poloniex#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://api-docs.poloniex.com/spot/websocket/market-data#book-level-2
@@ -191,6 +233,8 @@ export default class poloniex extends poloniexRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     watchBalance(params?: Dict): Promise<Balances>;
+    setBalanceCache(client: Client, type: string): void;
+    loadBalanceSnapshot(client: Client, messageHash: string, type: string): Promise<void>;
     parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     handleOHLCV(client: Client, message: Dict): Dict;
     handleTrade(client: Client, message: Dict): Dict;
@@ -202,10 +246,10 @@ export default class poloniex extends poloniexRest {
     handleTicker(client: Client, message: Dict): Dict;
     handleOrderBook(client: Client, message: Dict): void;
     handleBalance(client: Client, message: Dict): void;
-    parseWsBalance(response: List): Balances;
     handleMyTrades(client: Client, parsedTrade: Trade): void;
     handlePong(client: Client): void;
     handleMessage(client: Client, message: Dict): void;
+    handleUnsubscription(client: Client, message: Dict): void;
     handleErrorMessage(client: Client, message: Dict): Bool;
     handleAuthenticate(client: Client, message: Dict): Dict;
     ping(client: Client): Dict;

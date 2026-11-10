@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class bitget(ccxt.async_support.bitget):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bitget, self).describe(), {
             'has': {
                 'ws': True,
@@ -34,6 +34,7 @@ class bitget(ccxt.async_support.bitget):
                 'watchBalance': True,
                 'watchMyTrades': True,
                 'watchOHLCV': True,
+                'unWatchOHLCV': True,
                 'watchOHLCVForSymbols': False,
                 'watchOrderBook': True,
                 'watchOrderBookForSymbols': True,
@@ -42,6 +43,7 @@ class bitget(ccxt.async_support.bitget):
                 'watchTickers': True,
                 'watchBidsAsks': True,
                 'watchTrades': True,
+                'unWatchTrades': True,
                 'watchTradesForSymbols': True,
                 'watchPositions': True,
             },
@@ -108,7 +110,7 @@ class bitget(ccxt.async_support.bitget):
         })
 
     def get_inst_type(self, methodName: Str, market: Market, uta: bool = False, params: dict = {}) -> list:
-        useProductType = (market is None) or (market['swap'] is True) or (market['future'] is True)
+        useProductType = (market is None) or (self.safe_bool(market, 'swap', False)) or (self.safe_bool(market, 'future', False))
         productTypeAndParams = [None, {}]
         if useProductType:
             productTypeAndParams = self.handleProductTypeAndParams(market, params)
@@ -138,7 +140,7 @@ class bitget(ccxt.async_support.bitget):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         messageHash = 'ticker:' + symbolValue
         uta, paramsUta = self.handle_option_bool_and_params(params, 'watchTicker', 'uta', False)
         instType, paramsValue = self.get_inst_type('watchTicker', market, uta, paramsUta)
@@ -184,7 +186,7 @@ class bitget(ccxt.async_support.bitget):
         if self.markets is None:
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, False)
-        symbolsList = [] if (symbolsNormalized is None) else symbolsNormalized
+        symbolsList = symbolsNormalized
         market = self.market(symbolsList[0])
         uta, paramsUta = self.handle_option_bool_and_params(params, 'watchTickers', 'uta', False)
         instType, paramsValue = self.get_inst_type('watchTickers', market, uta, paramsUta)
@@ -273,10 +275,10 @@ class bitget(ccxt.async_support.bitget):
         #
         self.handle_bid_ask(client, message)
         ticker = self.parse_ws_ticker(message)
-        symbol = ticker['symbol']
+        symbol = self.safe_string(ticker, 'symbol')
         if symbol is not None:
             self.tickers[symbol] = ticker
-        messageHash = 'ticker:' + symbol
+        messageHash = 'ticker:' + self.safe_string(ticker, 'symbol', '')
         client.resolve(ticker, messageHash)
 
     def parse_ws_ticker(self, message: dict, market: Market = None) -> Ticker:
@@ -427,7 +429,7 @@ class bitget(ccxt.async_support.bitget):
         if self.markets is None:
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, False)
-        symbolsList = [] if (symbolsNormalized is None) else symbolsNormalized
+        symbolsList = symbolsNormalized
         market = self.market(symbolsList[0])
         uta, paramsUta = self.handle_option_bool_and_params(params, 'watchBidsAsks', 'uta', False)
         instType, paramsValue = self.get_inst_type('watchBidsAsks', market, uta, paramsUta)
@@ -460,10 +462,10 @@ class bitget(ccxt.async_support.bitget):
 
     def handle_bid_ask(self, client: Client, message: dict):
         ticker = self.parse_ws_bid_ask(message)
-        symbol = ticker['symbol']
+        symbol = self.safe_string(ticker, 'symbol')
         if symbol is not None:
             self.bidsasks[symbol] = ticker
-        messageHash = 'bidask:' + symbol
+        messageHash = 'bidask:' + self.safe_string(ticker, 'symbol', '')
         client.resolve(ticker, messageHash)
 
     def parse_ws_bid_ask(self, message: dict, market: Market = None) -> Ticker:
@@ -509,19 +511,23 @@ class bitget(ccxt.async_support.bitget):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         timeframes = self.safe_dict(self.options, 'timeframes')
         interval = self.safe_string(timeframes, timeframe)
         messageHash = None
         uta, paramsUta = self.handle_option_bool_and_params(params, 'watchOHLCV', 'uta', False)
-        instType, paramsInstType = self.get_inst_type('watchOHLCV', market, uta, paramsUta)
+        isStock = market['stock']
+        paramsStock = self.omit(paramsUta, 'stock')
+        isStockSpot = isStock and (market['spot'] is True)
+        isStockOrUta = (isStockSpot or uta)
+        instType, paramsInstType = self.get_inst_type('watchOHLCV', market, isStockOrUta, paramsStock)
         paramsRequest = paramsInstType
-        if uta:
+        if isStockOrUta:
             paramsRequest = self.extend(paramsInstType, {'uta': True})
         args = {
             'instType': instType,
         }
-        if uta:
+        if isStockOrUta:
             args['topic'] = 'kline'
             args['symbol'] = market['id']
             args['interval'] = interval
@@ -530,7 +536,7 @@ class bitget(ccxt.async_support.bitget):
             args['channel'] = 'candle' + interval
             args['instId'] = market['id']
             messageHash = 'candles:' + timeframe + ':' + symbolValue
-        ohlcv = await self.watch_public(uta, messageHash, args, paramsRequest)
+        ohlcv = await self.watch_public(isStockOrUta, messageHash, args, paramsRequest)
         limitResolved = limit
         if self.newUpdates:
             limitResolved = ohlcv.getLimit(symbolValue, limit)
@@ -559,19 +565,23 @@ class bitget(ccxt.async_support.bitget):
         messageHash = None
         values = self.handle_option_bool_and_params(params, 'watchOHLCV', 'uta', False)
         uta = values[0]
-        instType, paramsInstType = self.get_inst_type('watchOHLCV', market, uta, params)
+        isStock = market['stock']
+        paramsStock = self.omit(params, 'stock')
+        isStockSpot = isStock and market['spot']
+        isStockOrUta = (isStockSpot or (uta is True))
+        instType, paramsInstType = self.get_inst_type('watchOHLCV', market, isStockOrUta, paramsStock)
         paramsRequest = paramsInstType
-        if uta:
+        if isStockOrUta:
             paramsRequest = self.extend(paramsInstType, {'uta': True, 'interval': interval})
         args = {
             'instType': instType,
         }
-        if uta:
+        if isStockOrUta:
             channel = 'kline'
             args['topic'] = channel
             args['symbol'] = market['id']
             args['interval'] = interval
-            messageHash = channel + symbol
+            messageHash = 'kline' + symbol
         else:
             channel = 'candle' + interval
             args['channel'] = channel
@@ -644,8 +654,9 @@ class bitget(ccxt.async_support.bitget):
             marketType = 'spot'
         marketId = self.safe_string_2(arg, 'instId', 'symbol')
         market = self.safe_market(marketId, None, None, marketType)
-        symbol = market['symbol']
-        self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
+        symbol = self.safe_string(market, 'symbol', '')
+        symbolOhlcvs = self.safe_dict(self.ohlcvs, symbol, {})
+        self.ohlcvs[symbol] = symbolOhlcvs
         channel = self.safe_string_2(arg, 'channel', 'topic', '')
         interval = self.safe_string(arg, 'interval')
         isUta = None
@@ -658,11 +669,11 @@ class bitget(ccxt.async_support.bitget):
         timeframe = self.find_timeframe(interval, timeframes)
         if timeframe is None:
             return
-        stored = self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe)
+        stored = self.safe_value(symbolOhlcvs, timeframe)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
-            self.ohlcvs[symbol][timeframe] = stored
+            symbolOhlcvs[timeframe] = stored
         data = self.safe_list(message, 'data', [])
         for i in range(0, len(data)):
             parsed = self.parse_ws_ohlcv(data[i], market)
@@ -700,15 +711,22 @@ class bitget(ccxt.async_support.bitget):
         #     }
         #
         volumeIndex = 5
-        if (market is not None) and (market['inverse'] is True):
+        isInverse = self.safe_bool(market, 'inverse', False)
+        if isInverse:
             volumeIndex = 6
+        timestamp = self.safe_integer_2(ohlcv, 'start', 0)
+        open = self.safe_number_2(ohlcv, 'open', 1)
+        high = self.safe_number_2(ohlcv, 'high', 2)
+        low = self.safe_number_2(ohlcv, 'low', 3)
+        close = self.safe_number_2(ohlcv, 'close', 4)
+        volume = self.safe_number_2(ohlcv, 'volume', volumeIndex)
         return [
-            self.safe_integer_2(ohlcv, 'start', 0),
-            self.safe_number_2(ohlcv, 'open', 1),
-            self.safe_number_2(ohlcv, 'high', 2),
-            self.safe_number_2(ohlcv, 'low', 3),
-            self.safe_number_2(ohlcv, 'close', 4),
-            self.safe_number_2(ohlcv, 'volume', volumeIndex),
+            timestamp,
+            open,
+            high,
+            low,
+            close,
+            volume,
         ]
 
     def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
@@ -743,12 +761,21 @@ class bitget(ccxt.async_support.bitget):
         """
         if self.markets is None:
             await self.load_markets()
+        market = self.market(symbol)
+        isStock = market['stock']
+        paramsStock = self.omit(params, 'stock')
+        uta, paramsUta = self.handle_option_bool_and_params(paramsStock, 'unWatchOrderBook', 'uta', False)
+        isStockSpot = isStock and market['spot']
+        isStockOrUta = (isStockSpot or uta)
+        paramsRequest = paramsUta
+        if isStockOrUta:
+            paramsRequest = self.extend(paramsUta, {'uta': True})
         channel = 'books'
-        limit = self.safe_integer(params, 'limit')
+        limit = self.safe_integer(paramsRequest, 'limit')
         isFixedDepth = (limit == 1) or (limit == 5) or (limit == 15) or (limit == 50)
-        paramsOmitted = params
+        paramsOmitted = paramsRequest
         if isFixedDepth:
-            paramsOmitted = self.omit(params, 'limit')
+            paramsOmitted = self.omit(paramsRequest, 'limit')
         if isFixedDepth:
             channel += str(limit)
         return await self.un_watch_channel(symbol, channel, 'orderbook', 'watchOrderBook', paramsOmitted)
@@ -759,7 +786,8 @@ class bitget(ccxt.async_support.bitget):
         market = self.market(symbol)
         messageHash = 'unsubscribe:' + messageHashTopic + ':' + market['symbol']
         uta, paramsUta = self.handle_option_bool_and_params(params, methodName, 'uta', False)
-        instType, paramsInstType = self.get_inst_type(methodName, market, uta, paramsUta)
+        privateChannel, paramsPrivateChannel = self.handle_option_bool_and_params(paramsUta, methodName, 'privateChannel', False)
+        instType, paramsInstType = self.get_inst_type(methodName, market, uta, paramsPrivateChannel)
         paramsRequest = paramsInstType
         if uta:
             paramsRequest = self.omit(self.extend(paramsInstType, {'uta': True}), 'interval')
@@ -769,10 +797,13 @@ class bitget(ccxt.async_support.bitget):
         if uta:
             args['topic'] = channel
             args['symbol'] = market['id']
-            args['interval'] = self.safe_string(paramsInstType, 'interval', '1m')
+            if channel == 'kline':
+                args['interval'] = self.safe_string(paramsInstType, 'interval', '1m')
         else:
             args['channel'] = channel
             args['instId'] = market['id']
+        if privateChannel:
+            return await self.un_watch_private(uta, messageHash, args, paramsRequest)
         return await self.un_watch_public(uta, messageHash, args, paramsRequest)
 
     async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params: dict = {}) -> OrderBook:
@@ -792,6 +823,15 @@ class bitget(ccxt.async_support.bitget):
         if self.markets is None:
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols)
+        symbolsLength = len(symbolsNormalized)
+        isStockSpot = False
+        if symbolsLength > 0:
+            market = self.market(symbolsNormalized[0])
+            isStock = market['stock']
+            isStockSpot = isStock and (market['spot'] is True)
+        paramsStock = self.omit(params, 'stock')
+        uta, paramsUta = self.handle_option_bool_and_params(paramsStock, 'watchOrderBookForSymbols', 'uta', False)
+        isStockOrUta = (isStockSpot or uta)
         channel = 'books'
         incrementalFeed = True
         if (limit == 1) or (limit == 5) or (limit == 15) or (limit == 50):
@@ -799,29 +839,28 @@ class bitget(ccxt.async_support.bitget):
             incrementalFeed = False
         topics = []
         messageHashes = []
-        uta, paramsUta = self.handle_option_bool_and_params(params, 'watchOrderBookForSymbols', 'uta', False)
         paramsCursor = paramsUta
-        for i in range(0, len(symbolsNormalized)):
+        for i in range(0, symbolsLength):
             symbol = symbolsNormalized[i]
             market = self.market(symbol)
-            instType, paramsInstType = self.get_inst_type('watchOrderBookForSymbols', market, uta, paramsCursor)
+            instType, paramsInstType = self.get_inst_type('watchOrderBookForSymbols', market, isStockOrUta, paramsCursor)
             paramsCursor = paramsInstType
             args = {
                 'instType': instType,
             }
             topicOrChannel = 'channel'
-            if uta:
+            if isStockOrUta:
                 topicOrChannel = 'topic'
             symbolOrInstId = 'instId'
-            if uta:
+            if isStockOrUta:
                 symbolOrInstId = 'symbol'
             args[topicOrChannel] = channel
             args[symbolOrInstId] = market['id']
             topics.append(args)
             messageHashes.append('orderbook:' + symbol)
-        if uta:
+        if isStockOrUta:
             paramsCursor['uta'] = True
-        orderbook = await self.watch_public_multiple(uta, messageHashes, topics, paramsCursor)
+        orderbook = await self.watch_public_multiple(isStockOrUta, messageHashes, topics, paramsCursor)
         if incrementalFeed:
             return orderbook.limit()
         else:
@@ -882,12 +921,15 @@ class bitget(ccxt.async_support.bitget):
             marketType = 'spot'
         marketId = self.safe_string_2(arg, 'instId', 'symbol')
         market = self.safe_market(marketId, None, None, marketType)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         messageHash = 'orderbook:' + symbol
-        data = self.safe_list(message, 'data')
-        rawOrderBook = self.safe_dict(data, 0, {})
+        data = self.safe_value(message, 'data')
+        # tokenized stock snapshots arrive as a plain dict instead of a list
+        rawOrderBook = self.safe_dict(data, 0, self.safe_dict(message, 'data'))
+        if rawOrderBook is None:
+            return
         timestamp = self.safe_integer(rawOrderBook, 'ts')
-        incrementalBook = channel == 'books'
+        incrementalBook = (channel == 'books')
         if incrementalBook:
             # storedOrderBook = this.safeValue (this.orderbooks, symbol);
             if not (symbol in self.orderbooks):
@@ -896,6 +938,11 @@ class bitget(ccxt.async_support.bitget):
                 ob['symbol'] = symbol
                 self.orderbooks[symbol] = ob
             storedOrderBook = self.orderbooks[symbol]
+            action = self.safe_string(message, 'action')
+            isSnapshot = (action == 'snapshot')  # snapshot does not have a checksum
+            if isSnapshot:
+                # a snapshot replaces the book, e.g. after a reconnect, levels absent from it must not survive
+                storedOrderBook.reset({'symbol': symbol})
             asks = self.safe_list_2(rawOrderBook, 'asks', 'a', [])
             bids = self.safe_list_2(rawOrderBook, 'bids', 'b', [])
             self.handle_deltas(storedOrderBook['asks'], asks)
@@ -903,7 +950,6 @@ class bitget(ccxt.async_support.bitget):
             storedOrderBook['timestamp'] = timestamp
             storedOrderBook['datetime'] = self.iso8601(timestamp)
             checksum = self.handle_option('watchOrderBook', 'checksum', True)
-            isSnapshot = self.safe_string(message, 'action') == 'snapshot'  # snapshot does not have a checksum
             # UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
             # so only validate the checksum when the exchange actually sends one
             responseChecksum = self.safe_integer(rawOrderBook, 'checksum')
@@ -915,18 +961,28 @@ class bitget(ccxt.async_support.bitget):
                 payloadArray = []
                 for i in range(0, 25):
                     if i < bidsLength:
-                        payloadArray.append(storedBids[i][2][0])
-                        payloadArray.append(storedBids[i][2][1])
+                        bidLevel = storedBids[i]
+                        bidParts = bidLevel[2]
+                        payloadArray.append(bidParts[0])
+                        payloadArray.append(bidParts[1])
                     if i < asksLength:
-                        payloadArray.append(storedAsks[i][2][0])
-                        payloadArray.append(storedAsks[i][2][1])
+                        askLevel = storedAsks[i]
+                        askParts = askLevel[2]
+                        payloadArray.append(askParts[0])
+                        payloadArray.append(askParts[1])
                 payload = ':'.join(payloadArray)
                 calculatedChecksum = self.crc32(payload, True)
                 if calculatedChecksum != responseChecksum:
                     self.spawn(self.handle_check_sum_error, client, symbol, messageHash)
                     return
         else:
-            orderbook = self.order_book({})
+            # reset the existing orderbook instead of replacing it: a consumer
+            # holds a reference to the old object and would never see updates
+            # after this snapshot (every frame of the non-incremental channels
+            # is a full snapshot)
+            if not (symbol in self.orderbooks):
+                self.orderbooks[symbol] = self.order_book({})
+            orderbook = self.orderbooks[symbol]
             bidsKey = 'bids'
             asksKey = 'asks'
             # bitget UTA has `a` and `b` instead of `asks` and `bids`
@@ -938,7 +994,6 @@ class bitget(ccxt.async_support.bitget):
                     bidsKey = 'b'
             parsedOrderbook = self.parse_order_book(rawOrderBook, symbol, timestamp, bidsKey, asksKey)
             orderbook.reset(parsedOrderbook)
-            self.orderbooks[symbol] = orderbook
         client.resolve(self.orderbooks[symbol], messageHash)
 
     async def handle_check_sum_error(self, client: Client, symbol: str, messageHash: str):
@@ -953,7 +1008,7 @@ class bitget(ccxt.async_support.bitget):
         bidAsk.append(delta)
         bookside.storeArray(bidAsk)
 
-    def handle_deltas(self, bookside: object, deltas: object):
+    def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
@@ -1095,7 +1150,7 @@ class bitget(ccxt.async_support.bitget):
             marketType = 'spot'
         marketId = self.safe_string_2(arg, 'instId', 'symbol')
         market = self.safe_market(marketId, None, None, marketType)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -1223,8 +1278,9 @@ class bitget(ccxt.async_support.bitget):
         if first is not None:
             feeCurrencyId = self.safe_string(first, 'feeCoin')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
+            feeCost = self.safe_string_2(first, 'totalFee', 'fee')
             fee = {
-                'cost': Precise.string_abs(self.safe_string_2(first, 'totalFee', 'fee')),
+                'cost': Precise.string_abs(feeCost),
                 'currency': feeCurrencyCode,
             }
         return self.safe_trade({
@@ -1237,8 +1293,8 @@ class bitget(ccxt.async_support.bitget):
             'type': self.safe_string(trade, 'orderType'),
             'side': self.safe_string_2(trade, 'side', 'S'),
             'takerOrMaker': self.safe_string(trade, 'tradeScope'),
-            'price': self.safe_string_n(trade, ['priceAvg', 'price', 'execPrice', 'P']),
-            'amount': self.safe_string_n(trade, ['size', 'baseVolume', 'execQty', 'v']),
+            'price': self.safe_string_n(trade, ['priceAvg', 'price', 'execPrice', 'P', 'p']),
+            'amount': self.safe_string_n(trade, ['size', 'baseVolume', 'execQty', 'v', 'qty']),
             'cost': self.safe_string_n(trade, ['amount', 'quoteVolume', 'execValue']),
             'fee': fee,
         }, marketResolved)
@@ -1549,7 +1605,7 @@ class bitget(ccxt.async_support.bitget):
             messageHash = messageHash + ':inverse'
         elif productType == 'USDC-FUTURES':
             messageHash = messageHash + ':usdcfutures'  # non unified channel
-        useSpotInstType = (market is None and type == 'spot')
+        useSpotInstType = (symbol is None and type == 'spot')
         instType = 'SPOT'
         paramsInstType = paramsSubType
         if not useSpotInstType:
@@ -1771,7 +1827,7 @@ class bitget(ccxt.async_support.bitget):
         #                   #### in case order had a partial fill: ####
         #         fillPrice: '35123',
         #         tradeId: '1171775539946528779',
-        #         baseVolume: '7', // field present in market order
+        #         baseVolume: '7', // amount filled by this incoming update/trade only, not cumulative (see accBaseVolume)
         #         fillTime: '1715098979937',
         #         fillFee: '-0.0069987',
         #         fillFeeCoin: 'BTC',
@@ -1808,7 +1864,7 @@ class bitget(ccxt.async_support.bitget):
         #         uTime: '1715065875539'
         #                   #### when filled order is incoming, these additional fields are present too: ###
         #         baseVolume: '9', // amount filled for the incoming update/trade
-        #         accBaseVolume: '13', // i.e. 9 has been filled from 13 amount (this value is same as 'size')
+        #         accBaseVolume: '13', // cumulative amount filled during the order's lifetime; equals 'size' only once fully filled
         #         fillFee: '-0.0062712',
         #         fillFeeCoin: 'SUSDT',
         #         fillNotionalUsd: '10.452',
@@ -1928,8 +1984,10 @@ class bitget(ccxt.async_support.bitget):
         avgPrice = None if (avgPriceString is None) else self.omit_zero(avgPriceString)
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'orderType')
-        accBaseVolume = self.omit_zero(self.safe_string_2(order, 'accBaseVolume', 'cumExecQty'))
-        newSizeValue = self.omit_zero(self.safe_string_2(order, 'newSize', 'cumExecValue'))
+        accBaseVolumeString = self.safe_string_2(order, 'accBaseVolume', 'cumExecQty')
+        accBaseVolume = self.omit_zero(accBaseVolumeString)
+        newSizeString = self.safe_string_2(order, 'newSize', 'cumExecValue')
+        newSizeValue = self.omit_zero(newSizeString)
         isMarketOrder = (type == 'market')
         isBuy = (side == 'buy')
         totalAmount = None
@@ -1943,11 +2001,7 @@ class bitget(ccxt.async_support.bitget):
                 totalFilled = self.safe_string_2(order, 'baseVolume', 'cumExecQty')
                 cost = self.safe_string_2(order, 'fillTotalAmount', 'cumExecValue')
             else:
-                partialFillAmount = self.safe_string(order, 'baseVolume')
-                if partialFillAmount is not None:
-                    filledAmount = partialFillAmount
-                else:
-                    filledAmount = totalFilled
+                filledAmount = totalFilled
                 if isMarketOrder:
                     if isBuy:
                         totalAmount = accBaseVolume
@@ -1959,10 +2013,16 @@ class bitget(ccxt.async_support.bitget):
                     totalAmount = self.safe_string_2(order, 'newSize', 'qty')
                     # we don't have cost for limit order
         else:
-            # baseVolume should not be used for "amount" for contracts !
-            filledAmount = self.safe_string_2(order, 'baseVolume', 'cumExecQty')
+            # baseVolume and fillNotionalUsd describe the incoming fill only, so filled is the cumulative accBaseVolume
+            # and cost is priceAvg * cumulative filled, quote-denominated for linear and inverse alike (same as quoteVolume in REST parseOrder);
+            # the channel has no cumulative notional field, so without a priceAvg no cost is set (cumExecValue stays the first read)
+            filledAmount = totalFilled
             totalAmount = self.safe_string_2(order, 'size', 'qty')
-            cost = self.safe_string_2(order, 'fillNotionalUsd', 'cumExecValue')
+            cost = self.safe_string(order, 'cumExecValue')
+            if cost is None:
+                priceAvgString = self.omit_zero(self.safe_string(order, 'priceAvg'))
+                if (priceAvgString is not None) and (totalFilled is not None):
+                    cost = Precise.string_mul(totalFilled, priceAvgString)
         remaining = Precise.string_sub(totalAmount, totalFilled)
         return self.safe_order({
             'info': order,
@@ -2024,7 +2084,7 @@ class bitget(ccxt.async_support.bitget):
             messageHash = messageHash + ':' + symbolResolved
         type, paramsMarketType = self.handle_market_type_and_params('watchMyTrades', market, params)
         uta, paramsUta = self.handle_option_bool_and_params(paramsMarketType, 'watchMyTrades', 'uta', False)
-        useSpotInstType = (market is None and type == 'spot')
+        useSpotInstType = (symbol is None and type == 'spot')
         instType = 'SPOT'
         paramsInstType = paramsUta
         if not useSpotInstType:
@@ -2184,7 +2244,7 @@ class bitget(ccxt.async_support.bitget):
                 market = self.safe_market(marketId, None, None, marketType)
             parsed = self.parse_ws_trade(trade, market)
             stored.append(parsed)
-            symbol = parsed['symbol']
+            symbol = self.safe_string(parsed, 'symbol', '')
             symbolSpecificMessageHash = 'myTrades:' + symbol
             client.resolve(stored, symbolSpecificMessageHash)
         client.resolve(stored, messageHash)
@@ -2204,10 +2264,13 @@ class bitget(ccxt.async_support.bitget):
         :param str [params.instType]: one of 'SPOT', 'MARGIN', 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         :param str [params.marginMode]: 'isolated' or 'cross' for watching spot margin balances
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
+        :param boolean [params.stock]: set to True for tokenized stock balances, defaults to False
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         uta, paramsUta = self.handle_option_bool_and_params(params, 'watchBalance', 'uta', False)
-        type, paramsMarketType = self.handle_market_type_and_params('watchBalance', None, paramsUta)
+        stock, paramsStock = self.handle_option_bool_and_params(paramsUta, 'watchBalance', 'stock', False)
+        isStockOrUta = (stock or uta)
+        type, paramsMarketType = self.handle_market_type_and_params('watchBalance', None, paramsStock)
         marginMode, paramsMarginMode = self.handle_margin_mode_and_params('watchBalance', paramsMarketType)
         instTypeDefault = None
         channel = 'account'
@@ -2215,32 +2278,32 @@ class bitget(ccxt.async_support.bitget):
             instTypeDefault = 'USDT-FUTURES'
         elif marginMode is not None:
             instTypeDefault = 'MARGIN'
-            if not uta:
+            if not isStockOrUta:
                 if marginMode == 'isolated':
                     channel = 'account-isolated'
                 else:
                     channel = 'account-crossed'
-        elif not uta:
+        elif not isStockOrUta:
             instTypeDefault = 'SPOT'
         instTypeOption, paramsInstType = self.handle_option_string_and_params(paramsMarginMode, 'watchBalance', 'instType', instTypeDefault)
         instType = instTypeOption
-        if uta:
+        if isStockOrUta:
             instType = 'UTA'
         args = {
             'instType': instType,
         }
         topicOrChannel = 'channel'
-        if uta:
+        if isStockOrUta:
             topicOrChannel = 'topic'
         args[topicOrChannel] = channel
         paramsRequest = paramsInstType
-        if uta:
+        if isStockOrUta:
             paramsRequest = self.extend(paramsInstType, {'uta': True})
-        if not uta:
+        if not isStockOrUta:
             args['coin'] = 'default'
-        instTypeLower = '' if (instType is None) else instType.lower()
+        instTypeLower = self.safe_string_lower(args, 'instType', '')
         messageHash = 'balance:' + instTypeLower
-        return await self.watch_private(uta, messageHash, messageHash, args, paramsRequest)
+        return await self.watch_private(isStockOrUta, messageHash, messageHash, args, paramsRequest)
 
     def handle_balance(self, client: Client, message: dict):
         #
@@ -2344,7 +2407,7 @@ class bitget(ccxt.async_support.bitget):
                     code = self.safe_currency_code(currencyId)
                     account = self.account()
                     if (code is not None) and (code in self.balance):
-                        account = self.balance[code]
+                        account = self.safe_dict(self.balance, code, account)
                     borrow = self.safe_string(entry, 'borrow')
                     debts = self.safe_string(entry, 'debts')
                     if (borrow is not None) or (debts is not None):
@@ -2359,7 +2422,7 @@ class bitget(ccxt.async_support.bitget):
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
                 if (code is not None) and (code in self.balance):
-                    account = self.balance[code]
+                    account = self.safe_dict(self.balance, code, account)
                 borrow = self.safe_string(rawBalance, 'borrow')
                 if borrow is not None:
                     interest = self.safe_string(rawBalance, 'interest')
@@ -2382,7 +2445,7 @@ class bitget(ccxt.async_support.bitget):
     async def watch_public(self, uta: bool, messageHash: str, args: dict, params: dict = {}):
         url = self.urls['api']['ws']['utaPublic'] if (uta is True) else self.urls['api']['ws']['public']
         sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
-        if sandboxMode is True:
+        if sandboxMode:
             instType = self.safe_string(args, 'instType')
             if (instType != 'SCOIN-FUTURES') and (instType != 'SUSDT-FUTURES') and (instType != 'SUSDC-FUTURES'):
                 if uta is True:
@@ -2399,7 +2462,7 @@ class bitget(ccxt.async_support.bitget):
     async def un_watch_public(self, uta: bool, messageHash: str, args: dict, params: dict = {}):
         url = self.urls['api']['ws']['utaPublic'] if (uta is True) else self.urls['api']['ws']['public']
         sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
-        if sandboxMode is True:
+        if sandboxMode:
             instType = self.safe_string(args, 'instType')
             if (instType != 'SCOIN-FUTURES') and (instType != 'SUSDT-FUTURES') and (instType != 'SUSDC-FUTURES'):
                 if uta is True:
@@ -2413,10 +2476,29 @@ class bitget(ccxt.async_support.bitget):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
+    async def un_watch_private(self, uta: object, messageHash: object, args: object, params: dict = {}):
+        isUta = (uta is True)
+        url = self.urls['api']['ws']['utaPrivate'] if isUta else self.urls['api']['ws']['private']
+        sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
+        if sandboxMode:
+            instType = self.safe_string(args, 'instType')
+            if (instType != 'SCOIN-FUTURES') and (instType != 'SUSDT-FUTURES') and (instType != 'SUSDC-FUTURES'):
+                if isUta:
+                    url = self.urls['api']['demo']['utaPrivate']
+                else:
+                    url = self.urls['api']['demo']['private']
+        await self.authenticate({'url': url})
+        request = {
+            'op': 'unsubscribe',
+            'args': [args],
+        }
+        message = self.extend(request, params)
+        return await self.watch(url, messageHash, message, messageHash)
+
     async def watch_public_multiple(self, uta: bool, messageHashes: list[str], argsArray: list[object], params: dict = {}):
         url = self.urls['api']['ws']['utaPublic'] if (uta is True) else self.urls['api']['ws']['public']
         sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
-        if sandboxMode is True:
+        if sandboxMode:
             argsArrayFirst = self.safe_dict(argsArray, 0, {})
             instType = self.safe_string(argsArrayFirst, 'instType')
             if (instType != 'SCOIN-FUTURES') and (instType != 'SUSDT-FUTURES') and (instType != 'SUSDC-FUTURES'):
@@ -2458,7 +2540,7 @@ class bitget(ccxt.async_support.bitget):
     async def watch_private(self, uta: bool, messageHash: str, subscriptionHash: str, args: dict, params: dict = {}):
         url = self.urls['api']['ws']['utaPrivate'] if (uta is True) else self.urls['api']['ws']['private']
         sandboxMode = self.safe_bool_2(self.options, 'sandboxMode', 'sandbox', False)
-        if sandboxMode is True:
+        if sandboxMode:
             instType = self.safe_string(args, 'instType')
             if (instType != 'SCOIN-FUTURES') and (instType != 'SUSDT-FUTURES') and (instType != 'SUSDC-FUTURES'):
                 if uta is True:
@@ -2506,7 +2588,11 @@ class bitget(ccxt.async_support.bitget):
                 client.reject(e)
             return True
 
-    def handle_message(self, client: Client, message: object):
+    def handle_text_message(self, client: Client, message: str):
+        if message == 'pong':
+            self.handle_pong(client, message)
+
+    def handle_message(self, client: Client, message: dict):
         #
         #   {
         #       "action": "snapshot",
@@ -2587,10 +2673,6 @@ class bitget(ccxt.async_support.bitget):
         #         }
         #     }
         #
-        if isinstance(message, str):
-            if message == 'pong':
-                self.handle_pong(client, message)
-            return
         if self.handle_error_message(client, message) is True:
             return
         content = self.safe_string(message, 'message')
@@ -2667,7 +2749,7 @@ class bitget(ccxt.async_support.bitget):
         instId = self.safe_string_2(arg, 'instId', 'symbol')
         market = self.safe_market(instId, None, None, type)
         symbol = market['symbol']
-        messageHash = 'unsubscribe:orderbook:' + market['symbol']
+        messageHash = 'unsubscribe:orderbook:' + self.safe_string(market, 'symbol', '')
         subMessageHash = 'orderbook:' + symbol
         if symbol in self.orderbooks:
             del self.orderbooks[symbol]
@@ -2691,8 +2773,8 @@ class bitget(ccxt.async_support.bitget):
             type = 'spot'
         instId = self.safe_string_2(arg, 'instId', 'symbol')
         market = self.safe_market(instId, None, None, type)
-        symbol = market['symbol']
-        messageHash = 'unsubscribe:trade:' + market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
+        messageHash = 'unsubscribe:trade:' + self.safe_string(market, 'symbol', '')
         subMessageHash = 'trade:' + symbol
         if symbol in self.trades:
             del self.trades[symbol]
@@ -2717,7 +2799,7 @@ class bitget(ccxt.async_support.bitget):
         instId = self.safe_string_2(arg, 'instId', 'symbol')
         market = self.safe_market(instId, None, None, type)
         symbol = market['symbol']
-        messageHash = 'unsubscribe:ticker:' + market['symbol']
+        messageHash = 'unsubscribe:ticker:' + self.safe_string(market, 'symbol', '')
         subMessageHash = 'ticker:' + symbol
         if symbol in self.tickers:
             del self.tickers[symbol]
@@ -2755,13 +2837,13 @@ class bitget(ccxt.async_support.bitget):
         timeframes = self.safe_dict(self.options, 'timeframes')
         timeframe = self.find_timeframe(interval, timeframes)
         market = self.safe_market(instId, None, None, type)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         messageHash = None
         subMessageHash = None
         if isUta:
             messageHash = 'unsubscribe:kline:' + symbol
             subMessageHash = 'kline:' + symbol
-        else:
+        elif timeframe is not None:
             messageHash = 'unsubscribe:candles:' + timeframe + ':' + symbol
             subMessageHash = 'candles:' + timeframe + ':' + symbol
         if symbol in self.ohlcvs:
@@ -2791,7 +2873,8 @@ class bitget(ccxt.async_support.bitget):
         #
         argsList = self.safe_list(message, 'args')
         if argsList is None:
-            argsList = [self.safe_dict(message, 'arg', {})]
+            arg = self.safe_dict(message, 'arg', {})
+            argsList = [arg]
         for i in range(0, len(argsList)):
             arg = self.safe_dict(argsList, i)
             channel = self.safe_string_2(arg, 'channel', 'topic', '')

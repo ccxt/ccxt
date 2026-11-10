@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\bitflyer as Exchange;
 
 class bitflyer extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitflyer',
             'name' => 'bitFlyer',
@@ -223,7 +223,7 @@ class bitflyer extends Exchange {
     public function parse_expiry_date(string $expiry): ?int {
         $day = mb_substr($expiry, 0, 2 - 0);
         $monthName = mb_substr($expiry, 2, 5 - 2);
-        $year = mb_substr($expiry, 5, 9 - 5);
+        $expiryYear = mb_substr($expiry, 5, 9 - 5);
         $months = array(
             'JAN' => '01',
             'FEB' => '02',
@@ -242,7 +242,7 @@ class bitflyer extends Exchange {
         if ($month === null) {
             return null;
         }
-        return $this->parse8601($year . '-' . $month . '-' . $day . 'T00:00:00Z');
+        return $this->parse8601($expiryYear . '-' . $month . '-' . $day . 'T00:00:00Z');
     }
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
@@ -349,8 +349,8 @@ class bitflyer extends Exchange {
                 continue;
             }
             $symbol = $base . '/' . $quote;
-            $taker = $this->fees['trading']['taker'];
-            $maker = $this->fees['trading']['maker'];
+            $taker = $this->safe_number($this->fees['trading'], 'taker');
+            $maker = $this->safe_number($this->fees['trading'], 'maker');
             $contract = $swap || $future;
             if ($contract) {
                 $maker = 0.0;
@@ -416,7 +416,7 @@ class bitflyer extends Exchange {
         return $result;
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance_list(array $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $this->safe_dict($response, $i);
@@ -464,7 +464,7 @@ class bitflyer extends Exchange {
         //         }
         //     ]
         //
-        return $this->parse_balance($response);
+        return $this->parse_balance_list($response);
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
@@ -573,10 +573,7 @@ class bitflyer extends Exchange {
         }
         $order = null;
         if ($side !== null) {
-            $idInner = $side . '_child_order_acceptance_id';
-            if (is_array($trade) && array_key_exists($idInner ?? '', $trade)) {
-                $order = $this->safe_string($trade, $idInner);
-            }
+            $order = $this->safe_string($trade, $side . '_child_order_acceptance_id');
         }
         if ($order === null) {
             $order = $this->safe_string($trade, 'child_order_acceptance_id');
@@ -739,7 +736,7 @@ class bitflyer extends Exchange {
         ));
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'ACTIVE' => 'open',
             'COMPLETED' => 'closed',
@@ -798,12 +795,12 @@ class bitflyer extends Exchange {
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = 100, $params = array()): array {
         /**
-         * fetches information on multiple $orders made by the user
+         * fetches information on multiple orders made by the user
          *
-         * @see https://lightning.bitflyer.com/docs?lang=en#list-$orders
+         * @see https://lightning.bitflyer.com/docs?lang=en#list-orders
          *
-         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
-         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
@@ -820,11 +817,10 @@ class bitflyer extends Exchange {
             'count' => $limit,
         );
         $response = $this->privateGetGetchildorders($this->extend($request, $params));
-        $orders = $this->parse_orders($response, $market, $since, $limit);
         if ($symbol !== null) {
-            $orders = $this->filter_by($orders, 'symbol', $symbol);
+            return $this->filter_by($this->parse_orders($response, $market, $since, $limit), 'symbol', $symbol);
         }
-        return $orders;
+        return $this->parse_orders($response, $market, $since, $limit);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = 100, $params = array()): array {
@@ -879,8 +875,8 @@ class bitflyer extends Exchange {
         }
         $orders = $this->fetch_orders($symbol);
         $ordersById = $this->index_by($orders, 'id');
-        if (is_array($ordersById) && array_key_exists($id ?? '', $ordersById)) {
-            $found = $this->safe_dict($ordersById, $id);
+        $found = $this->safe_dict($ordersById, $id);
+        if ($found !== null) {
             return $found;
         }
         throw new OrderNotFound($this->id . ' No order found with id ' . $id);
@@ -970,7 +966,7 @@ class bitflyer extends Exchange {
         return $response;
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -979,8 +975,8 @@ class bitflyer extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         $this->check_address($address);
@@ -1244,34 +1240,35 @@ class bitflyer extends Exchange {
         );
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $bodySigned = null;
         $headersSigned = null;
         $request = '/' . $this->version . '/';
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $request .= 'me/';
         }
         $request .= $path;
         if ($method === 'GET') {
-            if (count($params) > 0) {
-                $request .= '?' . $this->urlencode($params);
+            $query = $this->urlencode($params);
+            if ($query !== '') {
+                $request .= '?' . $query;
             }
         }
         $apiUrl = $this->safe_string($this->urls['api'], 'rest');
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
-        $baseUrl = $this->implode_hostname($apiUrl);
-        $url = $baseUrl . $request;
-        if ($api === 'private') {
+        $url = $this->implode_hostname($apiUrl) . $request;
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
-            $content = array( $nonce, $method, $request );
-            $auth = implode('', $content);
+            $auth = $nonce . $method . $request;
             if (count($params) > 0) {
                 if ($method !== 'GET') {
-                    $bodySigned = $this->json($params);
-                    $auth .= $bodySigned;
+                    $body = $this->json($params);
+                    $bodySigned = $body;
+                    $auth .= $body;
                 }
             }
             $headersSigned = array(
@@ -1281,19 +1278,19 @@ class bitflyer extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        $headersResolved = ($headersSigned === null) ? $headers : $headersSigned;
-        $bodyResolved = ($bodySigned === null) ? $body : $bodySigned;
+        $headersResolved = $headersSigned;
+        $bodyResolved = $bodySigned;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to the default error handler
         }
         $feedback = $this->id . ' ' . $body;
         // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
         $errorMessage = $this->safe_string($response, 'error_message');
-        $statusCode = $this->safe_integer($response, 'status');
+        $statusCode = $this->safe_string($response, 'status');
         if ($errorMessage !== null) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $statusCode, $feedback);
             throw new ExchangeError($feedback);

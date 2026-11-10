@@ -2,16 +2,16 @@ import type { Market } from './../base/types.js';
 //  ---------------------------------------------------------------------------
 import { sha256 } from '@noble/hashes/sha2.js';
 import coinbaseRest from '../coinbase.js';
-import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
-import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order, Str, Dict } from '../base/types.js';
+import { ArgumentsRequired, ExchangeError, NotSupported } from '../base/errors.js';
+import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order, Str, Dict, OHLCV } from '../base/types.js';
 import type Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class coinbase extends coinbaseRest {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -26,7 +26,7 @@ export default class coinbase extends coinbaseRest {
                 'fetchTradesWs': false,
                 'watchBalance': false,
                 'watchMyTrades': false,
-                'watchOHLCV': false,
+                'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
@@ -68,23 +68,14 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    async subscribe (name: string, isPrivate: boolean, symbol: Str | Strings = undefined, params: Dict = {}) {
+    async subscribe (name: string, isPrivate: boolean = false, symbol: Str = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
         let messageHash = name;
         let productIds: Str[] = [];
-        if (Array.isArray (symbol)) {
-            const symbols = this.marketSymbols (symbol);
-            const marketIds = this.marketIds (symbols);
-            if (marketIds === undefined) {
-                productIds = [];
-            } else {
-                productIds = marketIds;
-            }
-            messageHash = messageHash + '::' + symbols.join (',');
-        } else if (symbol !== undefined) {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             messageHash = name + '::' + symbol;
             productIds = [ this.safeString (market, 'id') ];
@@ -115,7 +106,7 @@ export default class coinbase extends coinbaseRest {
      * @param {string} [symbol] unified market symbol
      * @returns {object} subscription to a websocket channel
      */
-    async unSubscribe (topic: string, name: string, isPrivate: boolean, symbol: Str | Strings = undefined) {
+    async unSubscribe (topic: string, name: string, isPrivate: boolean = false, symbol: Str = undefined) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -127,20 +118,10 @@ export default class coinbase extends coinbaseRest {
         let watchMessageHash = name;
         let unWatchMessageHash = 'unsubscribe:' + name;
         let productIds: Str[] = [];
-        if (Array.isArray (symbol)) {
-            const symbols = this.marketSymbols (symbol);
-            const marketIds = this.marketIds (symbols);
-            if (marketIds === undefined) {
-                productIds = [];
-            } else {
-                productIds = marketIds;
-            }
-            watchMessageHash = watchMessageHash + '::' + symbols.join (',');
-            unWatchMessageHash = unWatchMessageHash + '::' + symbols.join (',');
-        } else if (symbol !== undefined) {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             watchMessageHash = name + '::' + symbol;
-            unWatchMessageHash = unWatchMessageHash + '::' + symbol;
+            unWatchMessageHash = 'unsubscribe:' + name + '::' + symbol;
             productIds = [ this.safeString (market, 'id') ];
         }
         const url = this.urls['api']['ws'];
@@ -178,7 +159,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    async subscribeMultiple (name: string, isPrivate: boolean, symbols: Strings = undefined, params: Dict = {}) {
+    async subscribeMultiple (name: string, isPrivate: boolean = false, symbols: Strings = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -216,7 +197,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    async unSubscribeMultiple (topic: string, name: string, isPrivate: boolean, symbols: Strings = undefined, params: Dict = {}) {
+    async unSubscribeMultiple (topic: string, name: string, isPrivate: boolean = false, symbols: Strings = undefined, params: Dict = {}) {
         if (this.safeBool (this.options, 'unSubscriptionPending', false)) {
             throw new ExchangeError (this.id + ' another unSubscription is pending, coinbase does not support concurrent unSubscriptions');
         }
@@ -264,21 +245,23 @@ export default class coinbase extends coinbaseRest {
         const timestamp = this.numberToString (this.seconds ());
         this.checkRequiredCredentials ();
         const isCloudAPiKey = (this.apiKey.indexOf ('organizations/') >= 0) || (this.secret.startsWith ('-----BEGIN'));
+        const isV2CloudAPiKey = this.isEddsaApiKey ();
         const auth = timestamp + name + productIds.join (',');
-        if (!isCloudAPiKey) {
+        if (!isCloudAPiKey && !isV2CloudAPiKey) {
             subscribe['api_key'] = this.apiKey;
             subscribe['timestamp'] = timestamp;
             subscribe['signature'] = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
         } else {
-            if (this.apiKey.startsWith ('-----BEGIN')) {
+            if (isCloudAPiKey && this.apiKey.startsWith ('-----BEGIN')) {
                 throw new ArgumentsRequired (this.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key');
             }
             const currentToken = this.safeString (this.options, 'wsToken');
-            const tokenTimestamp = this.safeInteger (this.options, 'wsTokenTimestamp', 0);
+            const tokenTimestamp = this.parseToInt (this.safeInteger (this.options, 'wsTokenTimestamp', 0));
             const seconds = this.seconds ();
-            if (currentToken === undefined || tokenTimestamp + 120 < seconds) {
+            const tokenExpiry = tokenTimestamp + 90;
+            if (currentToken === undefined || tokenExpiry < seconds) {
                 // we should generate new token
-                const token = this.createAuthToken (seconds);
+                const token = this.createAuthToken (seconds, '', undefined, this.isEddsaApiKey ());
                 this.options['wsToken'] = token;
                 this.options['wsTokenTimestamp'] = seconds;
             }
@@ -342,7 +325,7 @@ export default class coinbase extends coinbaseRest {
         const ticker = await this.subscribeMultiple (name, false, symbolsResolved, params);
         if (this.newUpdates) {
             const tickers: Dict = {};
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString (ticker, 'symbol', '');
             tickers[symbol] = ticker;
             return tickers;
         }
@@ -475,7 +458,7 @@ export default class coinbase extends coinbaseRest {
                 const result = this.parseWsTicker (ticker);
                 result['timestamp'] = timestamp;
                 result['datetime'] = datetime;
-                const symbol = result['symbol'];
+                const symbol = this.safeString (result, 'symbol', '');
                 if (symbol !== undefined) {
                     this.tickers[symbol] = result;
                 }
@@ -533,6 +516,92 @@ export default class coinbase extends coinbaseRest {
             'baseVolume': this.safeString (ticker, 'volume_24_h'),
             'quoteVolume': undefined,
         });
+    }
+
+    /**
+     * @method
+     * @name coinbase#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, close price, and volume of a market
+     * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/websocket/websocket-channels#candles-channel
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents, only 5m is supported
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    override async watchOHLCV (symbol: string, timeframe: string = '5m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
+        if (timeframe !== '5m') {
+            throw new NotSupported (this.id + ' watchOHLCV() only supports the 5m timeframe');
+        }
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const symbolValue: string = this.symbol (symbol);
+        const name = 'candles';
+        const ohlcv = await this.subscribe (name, false, symbolValue, params);
+        let limitResolved: Int = limit;
+        if (this.newUpdates) {
+            limitResolved = ohlcv.getLimit (symbolValue, limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
+    }
+
+    handleOHLCV (client: Client, message: any) {
+        //
+        //     {
+        //         "channel": "candles",
+        //         "timestamp": "2023-06-09T20:19:35.39625135Z",
+        //         "sequence_num": 0,
+        //         "events": [
+        //             {
+        //                 "type": "snapshot",
+        //                 "candles": [
+        //                     {
+        //                         "start": "1688998200",
+        //                         "high": "1867.72",
+        //                         "low": "1865.63",
+        //                         "open": "1867.38",
+        //                         "close": "1866.81",
+        //                         "volume": "0.20269406",
+        //                         "product_id": "ETH-USD"
+        //                     }
+        //                 ]
+        //             }
+        //         ]
+        //     }
+        //
+        const events = this.safeList (message, 'events', []);
+        const timeframe = '5m';
+        for (let i = 0; i < events.length; i++) {
+            const event = events[i];
+            const candles = this.safeList (event, 'candles', []);
+            for (let j = 0; j < candles.length; j++) {
+                const candle = candles[j];
+                const marketId = this.safeString (candle, 'product_id');
+                const market = this.safeMarket (marketId);
+                const symbol = market['symbol'];
+                const parsed = [
+                    this.safeTimestamp (candle, 'start'),
+                    this.safeNumber (candle, 'open'),
+                    this.safeNumber (candle, 'high'),
+                    this.safeNumber (candle, 'low'),
+                    this.safeNumber (candle, 'close'),
+                    this.safeNumber (candle, 'volume'),
+                ];
+                this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+                let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+                if (stored === undefined) {
+                    const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                    stored = new ArrayCacheByTimestamp (limit);
+                    this.ohlcvs[symbol][timeframe] = stored;
+                }
+                stored.append (parsed);
+                const messageHash = 'candles::' + symbol;
+                client.resolve (stored, messageHash);
+                this.tryResolveUsdc (client, messageHash, stored);
+            }
+        }
     }
 
     /**
@@ -677,8 +746,8 @@ export default class coinbase extends coinbaseRest {
         }
         const name = 'level2';
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
-        const orderbook: Ob = await this.subscribe (name, false, symbolValue, params);
+        const symbolValue: string = this.safeString (market, 'symbol', '');
+        const orderbook: WsOrderBook = await this.subscribe (name, false, symbolValue, params);
         return orderbook.limit ();
     }
 
@@ -715,11 +784,11 @@ export default class coinbase extends coinbaseRest {
             await this.loadMarkets ();
         }
         const name = 'level2';
-        const orderbook: Ob = await this.subscribeMultiple (name, false, symbols, params);
+        const orderbook: WsOrderBook = await this.subscribeMultiple (name, false, symbols, params);
         return orderbook.limit ();
     }
 
-    handleTrade (client: any, message: Dict) {
+    handleTrade (client: Client, message: Dict) {
         //
         //    {
         //        "channel": "market_trades",
@@ -776,7 +845,7 @@ export default class coinbase extends coinbaseRest {
         this.tryResolveUsdc (client, messageHash, tradesArray);
     }
 
-    handleOrder (client: any, message: Dict) {
+    handleOrder (client: Client, message: Dict) {
         //
         //    {
         //        "channel": "user",
@@ -894,7 +963,7 @@ export default class coinbase extends coinbaseRest {
         });
     }
 
-    handleOrderBookHelper (orderbook: any, updates: any) {
+    handleOrderBookHelper (orderbook: any, updates: any[]) {
         for (let i = 0; i < updates.length; i++) {
             const trade = this.safeDict (updates, i);
             const sideId = this.safeString (trade, 'side');
@@ -906,7 +975,7 @@ export default class coinbase extends coinbaseRest {
         }
     }
 
-    handleOrderBook (client: any, message: Dict) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //    {
         //        "channel": "l2_data",
@@ -946,19 +1015,24 @@ export default class coinbase extends coinbaseRest {
             const marketId = this.safeString (event, 'product_id');
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
             const market = this.safeMarket (marketId);
-            const symbol = market['symbol'];
+            const symbol = this.safeString (market, 'symbol', '');
             const messageHash = 'level2::' + symbol;
             const subscription = this.safeDict (client.subscriptions, messageHash, {});
             const limit = this.safeInteger (subscription, 'limit');
             const type = this.safeString (event, 'type');
             if (type === 'snapshot') {
-                this.orderbooks[symbol] = this.orderBook ({}, limit);
-            }
-            // unknown bug, can't reproduce, but sometimes orderbook is undefined
-            if (!(symbol in this.orderbooks) && this.orderbooks[symbol] === undefined) {
+                if (!(symbol in this.orderbooks)) {
+                    this.orderbooks[symbol] = this.orderBook ({}, limit);
+                }
+            } else if (!(symbol in this.orderbooks)) {
+                // an update can arrive after unWatchOrderBook deleted the orderbook (or before any snapshot)
                 continue;
             }
             const orderbook = this.orderbooks[symbol];
+            if (type === 'snapshot') {
+                // reset in place so consumers holding a reference keep receiving updates after a resync
+                orderbook.reset ({});
+            }
             this.handleOrderBookHelper (orderbook, updates);
             orderbook['timestamp'] = this.parse8601 (datetime);
             orderbook['datetime'] = datetime;
@@ -1040,6 +1114,7 @@ export default class coinbase extends coinbaseRest {
             'subscriptions': this.handleSubscriptionStatus,
             'ticker': this.handleTickers,
             'ticker_batch': this.handleTickers,
+            'candles': this.handleOHLCV,
             'market_trades': this.handleTrade,
             'user': this.handleOrder,
             'l2_data': this.handleOrderBook,

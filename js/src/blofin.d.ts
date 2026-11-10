@@ -1,11 +1,11 @@
 import Exchange from './abstract/blofin.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, NullableDict, PositionModeInfo } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Currencies, CurrencyInterface, DepositAddress, DepositWithdrawFees, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, PositionModeInfo, NullableDict } from './base/types.js';
 /**
  * @class blofin
  * @augments Exchange
  */
 export default class blofin extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name blofin#fetchMarkets
@@ -69,7 +69,6 @@ export default class blofin extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
@@ -115,7 +114,7 @@ export default class blofin extends Exchange {
      */
     fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     parseBalanceByType(response: Dict): Balances;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     parseFundingBalance(response: Dict): Balances;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     /**
@@ -190,6 +189,20 @@ export default class blofin extends Exchange {
     createOrders(orders: OrderRequest[], params?: Dict): Promise<Order[]>;
     /**
      * @method
+     * @name blofin#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.blofin.com/index.html#get-order-detail
+     * @see https://docs.blofin.com/index.html#get-tpsl-order-detail
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+     * @param {boolean} [params.tpsl] True if fetching a tpsl order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    fetchOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
+    /**
+     * @method
      * @name blofin#fetchOpenOrders
      * @description Fetch orders that are still open
      * @see https://blofin.com/docs#get-active-orders
@@ -248,8 +261,65 @@ export default class blofin extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
-    networkCodeToChainId(networkCode: string): Str;
+    networkCodeToChainId(networkCode: string, currency?: Currency): Str;
     chainIdToNetworkCode(chainId: Str): Str;
+    /**
+     * @method
+     * @name blofin#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.blofin.com/index.html#get-currencies
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    fetchCurrencies(params?: Dict): Promise<Currencies>;
+    parseCurrency(currency: Dict): CurrencyInterface;
+    /**
+     * @method
+     * @name blofin#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://docs.blofin.com/index.html#get-deposit-address
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] unified network code, required unless the currency has a single network or a default in options['defaultNetworks']
+     * @param {string} [params.chain] the exchange-specific chain id, takes precedence over params.network
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     */
+    fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
+    parseDepositAddress(depositAddress: Dict, currency?: Currency): DepositAddress;
+    /**
+     * @method
+     * @name blofin#fetchDepositWithdrawFees
+     * @description fetch deposit and withdraw fees
+     * @see https://docs.blofin.com/index.html#get-currencies
+     * @param {string[]} [codes] list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     */
+    fetchDepositWithdrawFees(codes?: Strings, params?: Dict): Promise<DepositWithdrawFees>;
+    parseDepositWithdrawFee(fee: any, currency?: Currency): any;
+    /**
+     * @method
+     * @name blofin#fetchDeposit
+     * @description fetch information on a deposit
+     * @see https://docs.blofin.com/index.html#get-deposit-history
+     * @param {string} id deposit id
+     * @param {string} [code] unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    fetchDeposit(id: string, code?: Str, params?: Dict): Promise<Transaction>;
+    /**
+     * @method
+     * @name blofin#fetchWithdrawal
+     * @description fetch data on a currency withdrawal via the withdrawal id
+     * @see https://docs.blofin.com/index.html#get-withdraw-history
+     * @param {string} id withdrawal id
+     * @param {string} [code] unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientId] look up by the client-supplied id instead, with id set to undefined
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     */
+    fetchWithdrawal(id: Str, code?: Str, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name blofin#withdraw
@@ -258,8 +328,8 @@ export default class blofin extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw, the withdrawal fee is not included and must be reserved on top
      * @param {string} address the address to withdraw to, or a UID / email / phone number for an internal transfer
-     * @param {string} tag additional identifier (memo / payment id) required by certain networks
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.network] the unified network code for on-chain withdrawals, mapped to the exchange's chain name
      * @param {string} [params.dest] 'onchain' (default) or 'internal' for an internal transfer
      * @param {string} [params.addrType] address type, 1: wallet address, 2: UID, 3: email, 4: mobile phone
@@ -267,7 +337,7 @@ export default class blofin extends Exchange {
      * @param {string} [params.clientId] a client-supplied id of up to 32 case-sensitive alphanumerics
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name blofin#fetchLedger
@@ -288,7 +358,7 @@ export default class blofin extends Exchange {
     parseTransactionDepositStatus(status: Str): Str;
     parseLedgerEntryType(type: Str): Str;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
-    parseIds(ids: any): any;
+    parseIds(ids: any): Strings;
     /**
      * @method
      * @name blofin#cancelOrders
@@ -404,7 +474,7 @@ export default class blofin extends Exchange {
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {boolean} [params.autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false
      * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
-     * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     closePosition(symbol: string, side?: Str, params?: Dict): Promise<Order>;
     /**
@@ -476,6 +546,6 @@ export default class blofin extends Exchange {
      */
     fetchPositionsADLRank(symbols?: Strings, params?: Dict): Promise<ADL[]>;
     parseADLRank(info: Dict, market?: Market): ADL;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    sign(path: string, api?: string, method?: any, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
 }

@@ -5,7 +5,7 @@ import type { Balances, Currencies, CurrencyInterface, Dict, Int, int, Leverage,
  * @augments Exchange
  */
 export default class zebpay extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name zebpay#fetchStatus
@@ -144,7 +144,7 @@ export default class zebpay extends Exchange {
     fetchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
-     * @name zebpatspot#fetchOrderTrades
+     * @name zebpay#fetchOrderTrades
      * @description fetch all the trades made from a single order
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#get-order-fills
      * @param {string} id order id
@@ -186,7 +186,7 @@ export default class zebpay extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
-    orderRequest(symbol: string, type: string, amount: Num, request: Dict, price?: Num, params?: Dict): Dict[];
+    spotOrderBody(symbol: string, type: string, amount: Num, request: Dict, price?: Num, params?: Dict): Dict;
     /**
      * @method
      * @name zebpay#cancelOrder
@@ -320,34 +320,12 @@ export default class zebpay extends Exchange {
     reduceMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
     fetchSpotMarkets(params?: Dict): Promise<Market[]>;
     fetchSwapMarkets(params?: Dict): Promise<Market[]>;
-    parseBalance(response: any): Balances;
-    parsePosition(position: Dict, market?: Market): {
-        info: Dict;
-        symbol: Str;
-        timestamp: number | undefined;
-        datetime: Str;
-        initialMargin: Num;
-        initialMarginPercentage: undefined;
-        maintenanceMargin: undefined;
-        maintenanceMarginPercentage: undefined;
-        entryPrice: Num;
-        notional: Num;
-        leverage: Num;
-        unrealizedPnl: undefined;
-        contracts: Num;
-        contractSize: Num;
-        marginRatio: undefined;
-        liquidationPrice: Num;
-        markPrice: undefined;
-        collateral: undefined;
-        marginType: string;
-        side: Str;
-        percentage: undefined;
-    };
+    parseBalance(response: Dict): Balances;
+    parsePosition(position: Dict, market?: Market): Position;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     parseMarginModification(info: Dict, market?: Market): MarginModification;
-    sign(path: string, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

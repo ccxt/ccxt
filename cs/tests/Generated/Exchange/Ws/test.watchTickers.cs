@@ -54,7 +54,7 @@ public partial class testMainClass : BaseTest
             {
                 return false;
             }
-            if ((success == true))
+            if (success)
             {
                 assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return a dictionary. "), exchange.json(response)));
                 List<object> values = new List<object>(((IDictionary<string,object>)response).Values);
@@ -76,7 +76,7 @@ public partial class testMainClass : BaseTest
                         object tickerSymbol = getValue(ticker, "symbol");
                         if (((tickerSymbol != null)) && isTrue(testSharedMethods.tickerExceptionNeedsOhlcv(ex, exchange, ticker)))
                         {
-                            ohlcv = detypeForComparison(await exchange.FetchOHLCV(((string)tickerSymbol), "1d",ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(5)));
+                            ohlcv = detypeForComparison(await exchange.FetchOHLCV(((string)tickerSymbol), "1d", null, 5L));
                         }
                         testSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv);
                     }

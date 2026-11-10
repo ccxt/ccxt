@@ -7,12 +7,12 @@ import { ArgumentsRequired, AuthenticationError, BadRequest } from '../base/erro
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Fee, FeeString, List, Market, NullableDict, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class whitebit extends whitebitRest {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -81,8 +81,7 @@ export default class whitebit extends whitebitRest {
         }
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
-        const timeframes = this.safeDict (this.options, 'timeframes', {});
-        const interval = this.safeInteger (timeframes, timeframe);
+        const interval = this.safeInteger (this.options['timeframes'], timeframe);
         const marketId = market['id'];
         // currently there is no way of knowing
         // the interval upon getting an update
@@ -126,11 +125,9 @@ export default class whitebit extends whitebitRest {
             const symbol = market['symbol'];
             const messageHash = 'candles' + ':' + symbol;
             const parsed = this.parseOHLCV (data, market);
-            // this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol);
             if (!(symbol in this.ohlcvs)) {
                 this.ohlcvs[symbol] = {};
             }
-            // let stored = this.ohlcvs[symbol]['unknown']; // we don't know the timeframe but we need to respect the type
             if (!('unknown' in this.ohlcvs[symbol])) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 const stored = new ArrayCacheByTimestamp (limit);
@@ -161,8 +158,7 @@ export default class whitebit extends whitebitRest {
         const limitValue: Int = (limit === undefined) ? 10 : limit;
         const messageHash = 'orderbook' + ':' + market['symbol'];
         const method = 'depth_subscribe';
-        const options = this.safeDict (this.options, 'watchOrderBook', {});
-        const defaultPriceInterval = this.safeString (options, 'priceInterval', '0');
+        const defaultPriceInterval = this.safeString (this.options['watchOrderBook'], 'priceInterval', '0');
         const priceInterval = this.safeString (params, 'priceInterval', defaultPriceInterval);
         const paramsOmitted: Dict = this.omit (params, 'priceInterval');
         const reqParams = [
@@ -171,7 +167,7 @@ export default class whitebit extends whitebitRest {
             priceInterval,
             true, // true for allowing multiple subscriptions
         ];
-        const orderbook: Ob = await this.watchPublic (messageHash, method, reqParams, paramsOmitted);
+        const orderbook: WsOrderBook = await this.watchPublic (messageHash, method, reqParams, paramsOmitted);
         return orderbook.limit ();
     }
 
@@ -214,7 +210,7 @@ export default class whitebit extends whitebitRest {
         //  }
         //
         const params = this.safeList (message, 'params', []);
-        const isSnapshot = this.safeBool (params, 0);
+        const isSnapshot = this.safeBool (params, 0, false);
         const marketId = this.safeString (params, 2);
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -227,7 +223,7 @@ export default class whitebit extends whitebitRest {
         const orderbook = this.orderbooks[symbol];
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
-        if (isSnapshot === true) {
+        if (isSnapshot) {
             const snapshot = this.parseOrderBook (data, symbol);
             orderbook.reset (snapshot);
         } else {
@@ -246,7 +242,7 @@ export default class whitebit extends whitebitRest {
         bookside.store (price, amount);
     }
 
-    override handleDeltas (bookside: any, deltas: any) {
+    override handleDeltas (bookside: any, deltas: any[]) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -288,7 +284,7 @@ export default class whitebit extends whitebitRest {
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, false);
         const method = 'market_subscribe';
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const id = this.incrementingNonce ();
         const messageHashes: string[] = [];
         const args: List = [];
@@ -424,7 +420,7 @@ export default class whitebit extends whitebitRest {
         for (let j = 0; j < parsedTrades.length; j++) {
             stored.append (parsedTrades[j]);
         }
-        const messageHash = 'trades:' + market['symbol'];
+        const messageHash = 'trades:' + symbol;
         client.resolve (stored, messageHash);
     }
 
@@ -479,7 +475,7 @@ export default class whitebit extends whitebitRest {
         //       "id": null
         //   }
         //
-        const trade = this.safeValue (message, 'params');
+        const trade = this.safeList (message, 'params', []);
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCache (limit);
@@ -487,7 +483,7 @@ export default class whitebit extends whitebitRest {
         const stored = this.myTrades;
         const parsed = this.parseWsTrade (trade);
         stored.append (parsed);
-        const symbol = parsed['symbol'];
+        const symbol = this.safeString (parsed, 'symbol', '');
         const messageHash = 'myTrades:' + symbol;
         client.resolve (stored, messageHash);
     }
@@ -629,7 +625,7 @@ export default class whitebit extends whitebitRest {
         const status = this.safeInteger (params, 0);
         const parsed = this.parseWsOrder (this.extend (data, { 'status': status }));
         stored.append (parsed);
-        const symbol = parsed['symbol'];
+        const symbol = this.safeString (parsed, 'symbol', '');
         const messageHash = 'orders:' + symbol;
         client.resolve (this.orders, messageHash);
     }
@@ -729,7 +725,7 @@ export default class whitebit extends whitebitRest {
         }, marketResolved);
     }
 
-    parseWsOrderType (status: any): string {
+    parseWsOrderType (status: Str): Str {
         const statuses: Dict = {
             '1': 'limit',
             '2': 'market',
@@ -770,7 +766,7 @@ export default class whitebit extends whitebitRest {
             method = 'balanceMargin_subscribe';
             messageHash += 'margin';
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const client = this.client (url);
         this.setBalanceCache (client, type, messageHash);
         const [ fetchBalanceSnapshot, paramsFetchBalanceSnapshot ] = this.handleOptionBoolAndParams (paramsMarketType, 'watchBalance', 'fetchBalanceSnapshot', true);
@@ -783,7 +779,7 @@ export default class whitebit extends whitebitRest {
         return await this.watchPrivate (messageHash, method, [], paramsAwaitBalanceSnapshot);
     }
 
-    setBalanceCache (client: Client, type: Str, subscriptionHash: any) {
+    setBalanceCache (client: Client, type: Str, subscriptionHash: string) {
         if (subscriptionHash in client.subscriptions) {
             return;
         }
@@ -797,7 +793,7 @@ export default class whitebit extends whitebitRest {
         }
     }
 
-    async loadBalanceSnapshot (client: any, messageHash: any, type: any, subscriptionHash: any) {
+    async loadBalanceSnapshot (client: Client, messageHash: string, type: Str, subscriptionHash: string) {
         const response = await this.fetchBalance ({ 'type': type });
         this.balance = this.extend (response, this.balance);
         // don't remove the future from the .futures cache
@@ -853,7 +849,7 @@ export default class whitebit extends whitebitRest {
         const data = this.safeList (message, 'params', []);
         for (let i = 0; i < data.length; i++) {
             const balanceDict = this.safeDict (data, i, {});
-            this.balance['info'] = balanceDict;
+            this.balance['info'] = this.safeDict (data, i, {});
             if (isMargin) {
                 const currencyId = this.safeString (balanceDict, 'a');
                 const code = this.safeCurrencyCode (currencyId);
@@ -890,7 +886,7 @@ export default class whitebit extends whitebitRest {
     }
 
     async watchPublic (messageHash: string , method: string , reqParams: any[] = [], params: Dict = {}) {
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const id = this.incrementingNonce ();
         const request: Dict = {
             'id': id,
@@ -905,7 +901,7 @@ export default class whitebit extends whitebitRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const id = this.incrementingNonce ();
         const client = this.safeValue (this.clients, url);
         let request: NullableDict = undefined;
@@ -934,7 +930,7 @@ export default class whitebit extends whitebitRest {
             const market = this.market (symbol);
             const marketId = market['id'];
             const isSubscribed = this.safeBool (subscription, marketId, false);
-            if (isSubscribed !== true) {
+            if (!isSubscribed) {
                 if (marketId !== undefined) {
                     subscription[marketId] = true;
                 }
@@ -966,7 +962,7 @@ export default class whitebit extends whitebitRest {
     async watchPrivate (messageHash: string , method: string , reqParams: any[] = [], params: Dict = {}) {
         this.checkRequiredCredentials ();
         await this.authenticate ();
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const id = this.incrementingNonce ();
         const request: Dict = {
             'id': id,
@@ -979,7 +975,7 @@ export default class whitebit extends whitebitRest {
 
     async authenticate (params: Dict = {}): Promise<number> {
         this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const client = this.client (url);
         const subscribeHash = 'authenticated';
         // handleAuthenticate () resolves the handshake future with 1, so 1 is

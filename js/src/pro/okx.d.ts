@@ -1,10 +1,10 @@
 import okxRest from '../okx.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, Liquidation, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class okx extends okxRest {
-    describe(): any;
-    getUrl(channel: Str, access?: string): string;
+    describe(): Dict;
+    getUrl(channel: string, access?: string): string;
     subscribeMultiple(access: string, channel: string, symbols?: Strings, params?: Dict): Promise<any>;
     subscribe(access: string, messageHash: string, channel: string, symbol: Str, params?: Dict): Promise<any>;
     /**
@@ -280,8 +280,8 @@ export default class okx extends okxRest {
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
-    handleOrderBookMessage(client: Client, message: Dict, orderbook: Ob, messageHash: string, market?: Market): Ob;
+    handleDeltas(bookside: any, deltas: any[]): void;
+    handleOrderBookMessage(client: Client, message: Dict, orderbook: WsOrderBook, messageHash: string, market?: Market): WsOrderBook;
     handleOrderBook(client: Client, message: Dict): Dict;
     authenticate(params?: Dict): Promise<any>;
     /**
@@ -407,13 +407,15 @@ export default class okx extends okxRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelAllOrdersWs(symbol?: Str, params?: Dict): Promise<Order[]>;
+    handleCancelOrders(client: Client, message: Dict): void;
     handleCancelAllOrders(client: Client, message: Dict): void;
     handleSubscriptionStatus(client: Client, message: Dict): Dict;
     handleAuthenticate(client: Client, message: Dict): void;
     ping(client: Client): string;
     handlePong(client: Client, message: any): any;
     handleErrorMessage(client: Client, message: Dict): Bool;
-    handleMessage(client: Client, message: any): void;
+    handleTextMessage(client: Client, message: string): void;
+    handleMessage(client: Client, message: Dict): void;
     handleUnSubscriptionTrades(client: Client, symbol: string, channel: string): void;
     handleUnsubscriptionOrderBook(client: Client, symbol: string, channel: string): void;
     handleUnsubscriptionOHLCV(client: Client, symbol: string, channel: string): void;

@@ -17,7 +17,7 @@ use ccxt\pro\ArrayCacheBySymbolById;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class gemini extends \ccxt\async\gemini {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -64,7 +64,7 @@ class gemini extends \ccxt\async\gemini {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $messageHash = 'trades:' . $market['symbol'];
+        $messageHash = 'trades:' . $this->safe_string($market, 'symbol', '');
         $marketId = $market['id'];
         if ($marketId === null) {
             throw new ArgumentsRequired($this->id . ' watchTrades() marketId is required');
@@ -80,7 +80,7 @@ class gemini extends \ccxt\async\gemini {
                 ),
             ),
         );
-        $subscribeHash = 'l2:' . $market['symbol'];
+        $subscribeHash = 'l2:' . $this->safe_string($market, 'symbol', '');
         $wsUrl = $this->safe_string($this->urls['api'], 'ws');
         if ($wsUrl === null) {
             throw new ExchangeError($this->id . ' watchTrades() has no websocket url');
@@ -111,7 +111,7 @@ class gemini extends \ccxt\async\gemini {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
         $trades = Async\await($this->helper_for_watch_multiple_construct('trades', $symbols, $params));
-        $first = $this->safe_list($trades, 0);
+        $first = $this->safe_dict($trades, 0);
         $tradeSymbol = $this->safe_string($first, 'symbol');
         $limitResolved = $limit;
         if ($this->newUpdates) {
@@ -246,7 +246,7 @@ class gemini extends \ccxt\async\gemini {
         $market = $this->safe_market($marketId);
         $trades = $this->safe_list($message, 'trades');
         if ($trades !== null) {
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $stored = $this->safe_value($this->trades, $symbol);
             if ($stored === null) {
@@ -254,7 +254,7 @@ class gemini extends \ccxt\async\gemini {
                 $this->trades[$symbol] = $stored;
             }
             for ($i = 0; $i < count($trades); $i++) {
-                $trade = $this->parse_ws_trade($trades[$i], $market);
+                $trade = $this->parse_ws_trade($this->safe_value($trades, $i), $market);
                 $stored->append($trade);
             }
             $messageHash = 'trades:' . $symbol;
@@ -263,31 +263,30 @@ class gemini extends \ccxt\async\gemini {
     }
 
     public function handle_trades_for_multidata(Client $client, array $trades, ?int $timestamp) {
-        if ($trades !== null) {
-            $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $storesForSymbols = array();
-            for ($i = 0; $i < count($trades); $i++) {
-                $marketId = $trades[$i]['symbol'];
-                $market = $this->safe_market(strtolower($marketId));
-                $symbol = $market['symbol'];
-                $trade = $this->parse_ws_trade($trades[$i], $market);
-                $trade['timestamp'] = $timestamp;
-                $trade['datetime'] = $this->iso8601($timestamp);
-                $stored = $this->safe_value($this->trades, $symbol);
-                if ($stored === null) {
-                    $stored = new ArrayCache($tradesLimit);
-                    $this->trades[$symbol] = $stored;
-                }
-                $stored->append($trade);
-                $storesForSymbols[$symbol] = $stored;
+        $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+        $storesForSymbols = array();
+        for ($i = 0; $i < count($trades); $i++) {
+            $rawTrade = $this->safe_value($trades, $i);
+            $marketId = strtolower($this->safe_string($rawTrade, 'symbol', ''));
+            $market = $this->safe_market($marketId);
+            $symbol = $this->safe_string($market, 'symbol', '');
+            $trade = $this->parse_ws_trade($rawTrade, $market);
+            $trade['timestamp'] = $timestamp;
+            $trade['datetime'] = $this->iso8601($timestamp);
+            $stored = $this->safe_value($this->trades, $symbol);
+            if ($stored === null) {
+                $stored = new ArrayCache($tradesLimit);
+                $this->trades[$symbol] = $stored;
             }
-            $symbols = is_array($storesForSymbols) ? array_keys($storesForSymbols) : array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $stored = $storesForSymbols[$symbol];
-                $messageHash = 'trades:' . $symbol;
-                $client->resolve($stored, $messageHash);
-            }
+            $stored->append($trade);
+            $storesForSymbols[$symbol] = $stored;
+        }
+        $symbols = is_array($storesForSymbols) ? array_keys($storesForSymbols) : array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
+            $stored = $storesForSymbols[$symbol];
+            $messageHash = 'trades:' . $symbol;
+            $client->resolve($stored, $messageHash);
         }
     }
 
@@ -324,7 +323,7 @@ class gemini extends \ccxt\async\gemini {
                 ),
             ),
         );
-        $messageHash = 'ohlcv:' . $market['symbol'] . ':' . $timeframeId;
+        $messageHash = 'ohlcv:' . $this->safe_string($market, 'symbol', '') . ':' . $timeframeId;
         $wsUrl = $this->safe_string($this->urls['api'], 'ws');
         if ($wsUrl === null) {
             throw new ExchangeError($this->id . ' watchOHLCV() has no websocket url');
@@ -365,9 +364,9 @@ class gemini extends \ccxt\async\gemini {
         //     }
         //
         $type = $this->safe_string($message, 'type', '');
-        $timeframeId = mb_substr($type, 8);
-        $timeframeEndIndex = mb_strpos($timeframeId, '_');
-        $timeframeId = mb_substr($timeframeId, 0, $timeframeEndIndex - 0);
+        $timeframeIdFull = mb_substr($type, 8);
+        $timeframeEndIndex = mb_strpos($timeframeIdFull, '_');
+        $timeframeId = mb_substr($timeframeIdFull, 0, $timeframeEndIndex - 0);
         $marketId = strtolower($this->safe_string($message, 'symbol', ''));
         $market = $this->safe_market($marketId);
         $symbol = $this->safe_symbol($marketId, $market);
@@ -389,7 +388,7 @@ class gemini extends \ccxt\async\gemini {
         // reverse order of array to store candles in ascending order
         for ($i = 0; $i < $changesLength; $i++) {
             $index = $changesLength - $i - 1;
-            $parsed = $this->parse_ohlcv($changes[$index], $market);
+            $parsed = $this->parse_ohlcv($this->safe_value($changes, $index), $market);
             $stored->append($parsed);
         }
         $messageHash = 'ohlcv:' . $symbol . ':' . $timeframeId;
@@ -416,7 +415,7 @@ class gemini extends \ccxt\async\gemini {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $messageHash = 'orderbook:' . $market['symbol'];
+        $messageHash = 'orderbook:' . $this->safe_string($market, 'symbol', '');
         $marketId = $market['id'];
         if ($marketId === null) {
             throw new ArgumentsRequired($this->id . ' watchOrderBook() marketId is required');
@@ -432,7 +431,7 @@ class gemini extends \ccxt\async\gemini {
                 ),
             ),
         );
-        $subscribeHash = 'l2:' . $market['symbol'];
+        $subscribeHash = 'l2:' . $this->safe_string($market, 'symbol', '');
         $wsUrl = $this->safe_string($this->urls['api'], 'ws');
         if ($wsUrl === null) {
             throw new ExchangeError($this->id . ' watchOrderBook() has no websocket url');
@@ -447,27 +446,41 @@ class gemini extends \ccxt\async\gemini {
         $changes = $this->safe_list($message, 'changes', array());
         $marketId = $this->safe_string_lower($message, 'symbol');
         $market = $this->safe_market($marketId);
-        $symbol = $market['symbol'];
+        $symbol = $this->safe_string($market, 'symbol', '');
         $messageHash = 'orderbook:' . $symbol;
-        // let orderbook = this.safeValue (this.orderbooks, symbol);
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
-            $this->orderbooks[$symbol] = $this->order_book();
-        } elseif ($isInitial) {
-            // handle https://github.com/ccxt/ccxt/issues/29210
-            if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
-                unset($this->orderbooks[$symbol]);
-            }
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
+        if ($isInitial) {
+            // the initial message carries the full book (https://github.com/ccxt/ccxt/issues/29210)
+            $bidsSnapshot = array();
+            $asksSnapshot = array();
+            for ($i = 0; $i < count($changes); $i++) {
+                $delta = $changes[$i];
+                $bidAsk = array( $this->safe_number($delta, 1), $this->safe_number($delta, 2) );
+                if ($this->safe_string($delta, 0) === 'buy') {
+                    $bidsSnapshot[] = $bidAsk;
+                } else {
+                    $asksSnapshot[] = $bidAsk;
+                }
+            }
+            $snapshot = $this->parse_order_book(array( 'bids' => $bidsSnapshot, 'asks' => $asksSnapshot ), $symbol);
+            $orderbook->reset($snapshot);
+            $client->resolve($orderbook, $messageHash);
+            return;
+        }
         for ($i = 0; $i < count($changes); $i++) {
             $delta = $changes[$i];
             $price = $this->safe_number($delta, 1);
             $size = $this->safe_number($delta, 2);
-            $side = ($this->safe_string($delta, 0) === 'buy') ? 'bids' : 'asks';
-            $bookside = $orderbook[$side];
-            $bookside->store($price, $size);
-            $orderbook[$side] = $bookside;
+            if ($this->safe_string($delta, 0) === 'buy') {
+                $bids = $orderbook['bids'];
+                $bids->store($price, $size);
+            } else {
+                $asks = $orderbook['asks'];
+                $asks->store($price, $size);
+            }
         }
         $orderbook['symbol'] = $symbol;
         $this->orderbooks[$symbol] = $orderbook;
@@ -534,14 +547,19 @@ class gemini extends \ccxt\async\gemini {
         //     type: 'update'
         // }
         //
-        $marketId = $rawBidAskChanges[0]['symbol'];
-        $market = $this->safe_market(strtolower($marketId));
-        $symbol = $market['symbol'];
-        if (!(is_array($this->bidsasks) && array_key_exists($symbol ?? '', $this->bidsasks))) {
-            $this->bidsasks[$symbol] = $this->parse_ticker(array());
-            $this->bidsasks[$symbol]['symbol'] = $symbol;
+        $firstBidAsk = $rawBidAskChanges[0];
+        $marketId = strtolower($this->safe_string($firstBidAsk, 'symbol', ''));
+        $market = $this->safe_market($marketId);
+        $symbol = $this->safe_string($market, 'symbol', '');
+        // read-modify-write: the cached entry is copied out, updated, and stored back whole
+        $currentBidAsk = array();
+        if (is_array($this->bidsasks) && array_key_exists($symbol ?? '', $this->bidsasks)) {
+            $cachedBidAsk = $this->bidsasks[$symbol];
+            $currentBidAsk = $this->extend(array(), $cachedBidAsk);
+        } else {
+            $currentBidAsk = $this->extend($this->parse_ticker(array()));
+            $currentBidAsk['symbol'] = $symbol;
         }
-        $currentBidAsk = $this->bidsasks[$symbol];
         $messageHash = 'bidsasks:' . $symbol;
         // last update always overwrites the previous state and is the latest state
         for ($i = 0; $i < count($rawBidAskChanges); $i++) {
@@ -583,13 +601,13 @@ class gemini extends \ccxt\async\gemini {
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, false, true, true);
         $firstMarket = $this->market($symbolsNormalized[0]);
-        if (($firstMarket['spot'] !== true) && ($firstMarket['linear'] !== true)) {
+        if ((!$this->safe_bool($firstMarket, 'spot', false)) && (!$this->safe_bool($firstMarket, 'linear', false))) {
             throw new NotSupported($this->id . ' watchMultiple supports only spot or linear-swap symbols');
         }
         $messageHashes = array();
         $marketIds = array();
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
-            $symbol = $symbolsNormalized[$i];
+            $symbol = $this->safe_string($symbolsNormalized, $i, '');
             $messageHash = $itemHashName . ':' . $symbol;
             $messageHashes[] = $messageHash;
             $market = $this->market($symbol);
@@ -627,9 +645,10 @@ class gemini extends \ccxt\async\gemini {
         //   },
         //   ...
         //
-        $marketId = $rawOrderBookChanges[0]['symbol'];
-        $market = $this->safe_market(strtolower($marketId));
-        $symbol = $market['symbol'];
+        $firstChange = $rawOrderBookChanges[0];
+        $marketId = strtolower($this->safe_string($firstChange, 'symbol', ''));
+        $market = $this->safe_market($marketId);
+        $symbol = $this->safe_string($market, 'symbol', '');
         $messageHash = 'orderbook:' . $symbol;
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $ob = $this->order_book();
@@ -649,8 +668,6 @@ class gemini extends \ccxt\async\gemini {
                 $asks->store($price, $size);
             }
         }
-        $orderbook['bids'] = $bids;
-        $orderbook['asks'] = $asks;
         $orderbook['symbol'] = $symbol;
         $orderbook['nonce'] = $nonce;
         $orderbook['timestamp'] = $timestamp;
@@ -802,7 +819,7 @@ class gemini extends \ccxt\async\gemini {
         }
         $orders = $this->orders;
         for ($i = 0; $i < count($message); $i++) {
-            $order = $this->parse_ws_order($message[$i]);
+            $order = $this->parse_ws_order($this->safe_value($message, $i));
             $orders->append($order);
         }
         $client->resolve($this->orders, $messageHash);
@@ -901,7 +918,11 @@ class gemini extends \ccxt\async\gemini {
         throw new ExchangeError($this->json($message));
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_list_message(Client $client, array $message) {
+        $this->handle_order($client, $message);
+    }
+
+    public function handle_message(Client $client, array $message) {
         //
         //  public
         //     {
@@ -937,11 +958,6 @@ class gemini extends \ccxt\async\gemini {
         //         }
         //     ]
         //
-        $isArray = (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message)));
-        if ($isArray) {
-            $this->handle_order($client, $message);
-            return;
-        }
         $reason = $this->safe_string($message, 'reason');
         if ($reason === 'error') {
             $this->handle_error($client, $message);
@@ -974,9 +990,10 @@ class gemini extends \ccxt\async\gemini {
             $collectedEventsOfTrades = array();
             $eventsLength = count($events);
             for ($i = 0; $i < count($events); $i++) {
-                $event = $events[$i];
+                $event = $this->safe_value($events, $i);
                 $eventType = $this->safe_string($event, 'type');
-                $isOrderBook = ($eventType === 'change') && (is_array($event) && array_key_exists('side' ?? '', $event)) && $this->in_array($event['side'], array( 'ask', 'bid' ));
+                $side = $this->safe_string($event, 'side');
+                $isOrderBook = ($eventType === 'change') && ($side !== null) && $this->in_array($side, array( 'ask', 'bid' ));
                 $eventReason = $this->safe_string($event, 'reason');
                 $isBidAsk = ($eventReason === 'top-of-book') || ($isOrderBook && ($eventReason === 'initial') && $eventsLength === 2);
                 if ($isBidAsk) {
@@ -984,7 +1001,7 @@ class gemini extends \ccxt\async\gemini {
                 } elseif ($isOrderBook) {
                     $orderBookItems[] = $event;
                 } elseif ($eventType === 'trade') {
-                    $collectedEventsOfTrades[] = $events[$i];
+                    $collectedEventsOfTrades[] = $event;
                 }
             }
             $lengthBa = count($bidaskItems);
@@ -1011,7 +1028,8 @@ class gemini extends \ccxt\async\gemini {
             return;
         }
         $this->check_required_credentials();
-        $startIndex = count($this->urls['api']['ws']);
+        $wsBaseUrl = $this->safe_string($this->urls['api'], 'ws', '');
+        $startIndex = count($wsBaseUrl);
         $urlParamsIndex = mb_strpos($url, '?');
         $urlLength = count($url);
         $endIndex = ($urlParamsIndex >= 0) ? $urlParamsIndex : $urlLength;
@@ -1031,7 +1049,9 @@ class gemini extends \ccxt\async\gemini {
         );
         // this.options = this.extend (defaultOptions, this.options);
         $this->extend_exchange_options($defaultOptions);
-        $originalHeaders = $this->options['ws']['options']['headers'];
+        $wsOptions = $this->safe_dict($this->options, 'ws', array());
+        $wsSubOptions = $this->safe_dict($wsOptions, 'options', array());
+        $originalHeaders = $this->safe_dict($wsSubOptions, 'headers', array());
         $headers = array(
             'X-GEMINI-APIKEY' => $this->apiKey,
             'X-GEMINI-PAYLOAD' => $b64,

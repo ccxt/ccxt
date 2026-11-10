@@ -3,7 +3,7 @@ import Exchange from './abstract/blockchaincom.js';
 import { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, List, Market, Num, NullableDict, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Fee, FeeString, Bool, Endpoint } from './base/types.js';
+import type { Balances, Currency, Dict, Int, List, Market, Num, Order, OrderBook, OrderBookL3, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, Fee, FeeString, Bool, Endpoint, NullableDict } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -12,7 +12,7 @@ import type { Balances, Currency, Dict, Int, List, Market, Num, NullableDict, Or
  * @augments Exchange
  */
 export default class blockchaincom extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'blockchaincom',
             'secret': undefined,
@@ -436,7 +436,7 @@ export default class blockchaincom extends Exchange {
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
-        return await this.fetchL3OrderBook (symbol, limit, params);
+        return await this.fetchL2OrderBook (symbol as string, limit, params);
     }
 
     /**
@@ -449,7 +449,7 @@ export default class blockchaincom extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchL3OrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+    override async fetchL3OrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBookL3> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -461,10 +461,10 @@ export default class blockchaincom extends Exchange {
             request['depth'] = limit;
         }
         const response = await this.publicGetL3Symbol (this.extend (request, params));
-        return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'px', 'qty');
+        return this.parseOrderBookL3 (response, market['symbol'], undefined, 'bids', 'asks', 'px', 'qty', 'num') as OrderBookL3;
     }
 
-    override async fetchL2OrderBook (symbol: string, limit: Int = undefined, params: Dict = {}) {
+    override async fetchL2OrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -476,7 +476,7 @@ export default class blockchaincom extends Exchange {
             request['depth'] = limit;
         }
         const response = await this.publicGetL2Symbol (this.extend (request, params));
-        return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'px', 'qty');
+        return this.parseOrderBook (response, market['symbol'], undefined, 'bids', 'asks', 'px', 'qty') as OrderBook;
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -871,11 +871,11 @@ export default class blockchaincom extends Exchange {
         const timestamp = this.safeInteger (trade, 'timestamp');
         const datetime = this.iso8601 (timestamp);
         const marketResolved: Market = this.safeMarket (marketId, market, '-');
-        const symbol = marketResolved['symbol'];
+        const symbol = this.safeString (marketResolved, 'symbol', '');
         let fee: FeeString = undefined;
         const feeCostString = this.safeString (trade, 'fee');
         if (feeCostString !== undefined) {
-            const feeCurrency = marketResolved['quote'];
+            const feeCurrency = this.safeString (marketResolved, 'quote', '');
             fee = { 'cost': feeCostString, 'currency': feeCurrency };
         }
         return this.safeTrade ({
@@ -1003,12 +1003,14 @@ export default class blockchaincom extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const state = this.safeString (transaction, 'state');
-        if ('depositId' in transaction) {
+        const depositId = this.safeString (transaction, 'depositId');
+        const withdrawalId = this.safeString (transaction, 'withdrawalId');
+        if (depositId !== undefined) {
             type = 'deposit';
-            id = this.safeString (transaction, 'depositId');
-        } else if ('withdrawalId' in transaction) {
+            id = depositId;
+        } else if (withdrawalId !== undefined) {
             type = 'withdrawal';
-            id = this.safeString (transaction, 'withdrawalId');
+            id = withdrawalId;
         }
         const feeCost = (type === 'withdrawal') ? this.safeNumber (transaction, 'fee') : undefined;
         let fee: Fee = undefined;
@@ -1049,11 +1051,11 @@ export default class blockchaincom extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1273,28 +1275,29 @@ export default class blockchaincom extends Exchange {
         return this.parseOrder (response);
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const requestPath = '/' + this.implodeParams (path, params);
-        const apiUrl = this.safeString (this.urls['api'], api);
+        const apiName = api[0];
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + requestPath;
         const query = this.omit (params, this.extractParams (path));
-        const isPrivate = (api === 'private');
+        const isPrivate = (apiName === 'private');
         const privateHeaders: Dict = {
             'X-API-Token': this.secret,
         };
-        let requestHeaders = headers;
+        let requestHeaders = undefined;
         if (isPrivate) {
             requestHeaders = privateHeaders;
         }
         const isPrivatePost = isPrivate && (method !== 'GET');
-        let requestBody: Str = body;
+        let requestBody: Str = undefined;
         if (isPrivatePost) {
             requestBody = this.json (query);
         }
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
@@ -1311,7 +1314,7 @@ export default class blockchaincom extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         // {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
         if (response === undefined) {
             return undefined;
@@ -1324,11 +1327,10 @@ export default class blockchaincom extends Exchange {
         }
         const errorCode = this.safeString (response, 'status');
         const errorMessage = this.safeString (response, 'error');
-        if (code !== undefined) {
-            const feedback = this.id + ' ' + this.json (response);
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
-        }
+        // code is an int: it is never undefined, the guard was dead
+        const feedback = this.id + ' ' + this.json (response);
+        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+        this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
         return undefined;
     }
 }

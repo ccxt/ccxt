@@ -1,13 +1,13 @@
 import Exchange from '../abstract/prediction/hyperliquid.js';
-import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Market, PredictionOrderBook, OHLCV, Balances, fetchEventsParams, Strings, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition } from '../base/types.js';
+import type { OrderSide, OrderType, Int, int, Str, Num, Dict, Market, PredictionOrderBook, OHLCV, Balances, fetchEventsParams, Strings, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, NullableDict } from '../base/types.js';
 /**
  * @class hyperliquid
  * @augments Exchange
  */
 export default class hyperliquid extends Exchange {
-    describe(): any;
+    describe(): Dict;
     setSandboxMode(enabled: boolean): void;
-    nonce(): number;
+    nonce(): int;
     /**
      * @ignore
      * @method
@@ -358,7 +358,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} raw a dict with parentSymbol and markets entries
      * @returns {object} an event structure
      */
-    parseEvent(raw: Dict): any;
+    parseEvent(raw: Dict): PredictionEvent;
     amountToPrecision(outcome: Str, amount: any): string;
     priceToPrecision(outcome: Str, price: any): string;
     hashMessage(message: any): string;
@@ -382,12 +382,12 @@ export default class hyperliquid extends Exchange {
     initializeClient(): Promise<any>;
     handlePublicAddress(methodName: string, params: Dict): [Str, Dict];
     formatVaultAddress(address?: Str): Str;
-    sign(path: string, api?: any, method?: string, params?: Dict, headers?: any, body?: any): {
+    sign(path: string, api?: string[], method?: string, params?: Dict): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: Str;
+        headers: NullableDict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: Dict): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    calculateRateLimiterCost(api: string[], method: string, path: string, params: any, config?: Dict): any;
 }

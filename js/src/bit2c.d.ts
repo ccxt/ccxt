@@ -5,8 +5,8 @@ import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, Orde
  * @augments Exchange
  */
 export default class bit2c extends Exchange {
-    describe(): any;
-    parseBalance(response: any): Balances;
+    describe(): Dict;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name bit2c#fetchBalance
@@ -135,7 +135,7 @@ export default class bit2c extends Exchange {
      */
     fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
     parseDepositAddress(depositAddress: Dict, currency?: Currency): DepositAddress;
-    nonce(): number;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    nonce(): int;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

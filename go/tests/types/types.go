@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
-	"sync"
 
 	ccxt "github.com/ccxt/ccxt/go/v4"
 )
@@ -126,7 +125,7 @@ func testTrade(exchange *ccxt.Binance) {
 	Blue("Testing Trade type")
 	file := GetRootDir() + BASE_DIR + "trades.json"
 	content := IoFileRead(file, true)
-	market, _ := exchange.Markets.Load("BTC/USDT")
+	market, _ := exchange.Markets["BTC/USDT"]
 	parsed := exchange.ParseTrades(content, market)
 	typed := ccxt.NewTradeArray(parsed)
 	Assert(len(typed) > 0)
@@ -134,7 +133,7 @@ func testTrade(exchange *ccxt.Binance) {
 	Assert(*typed[0].Side != "")
 	Assert(*typed[0].Price > 0)
 	Assert(*typed[0].Amount > 0)
-	Assert(len(typed[0].Info) > 0)
+	Assert(typed[0].Info != nil)
 
 }
 
@@ -151,7 +150,7 @@ func testTicker(exchange *ccxt.Binance) {
 	Assert(*ticker.Timestamp > 0)
 	Assert(*ticker.Close > 0)
 	Assert(*ticker.Last > 0)
-	Assert(len(ticker.Info) > 0)
+	Assert(ticker.Info != nil)
 }
 
 func testOrder(exchange *ccxt.Binance) {
@@ -168,7 +167,7 @@ func testOrder(exchange *ccxt.Binance) {
 	Assert(*typed[0].Status != "")
 	Assert(*typed[0].Price > 0)
 	Assert(*typed[0].Amount > 0)
-	Assert(len(typed[0].Info) > 0)
+	Assert(typed[0].Info != nil)
 }
 
 func testPosition(exchange *ccxt.Binance) {
@@ -189,7 +188,7 @@ func testPosition(exchange *ccxt.Binance) {
 	Assert(*typed[1].Contracts > 0)
 	Assert(*typed[1].Timestamp > 0)
 	Assert(*typed[1].Datetime != "")
-	Assert(len(typed[0].Info) > 0)
+	Assert(typed[0].Info != nil)
 }
 
 func testBalance(exchange *ccxt.Binance) {
@@ -231,7 +230,7 @@ func initExchangeOffline() *ccxt.Binance {
 	exchange := ccxt.NewBinance(nil)
 	marketsFile := GetRootDir() + "ts/src/test/static/markets/binance.json"
 	marketsContent := IoFileRead(marketsFile, true)
-	exchange.Markets = MapToSafeMap(marketsContent.(map[string]any))
+	exchange.Markets = marketsContent.(map[string]any)
 	exchange.LoadMarkets()
 	return exchange
 }
@@ -249,23 +248,4 @@ func main() {
 	testWsOrderBook(exchange)
 
 	Green("All tests passed")
-}
-
-func MapToSafeMap(input map[string]any) *sync.Map {
-	var sm sync.Map
-	for k, v := range input {
-		sm.Store(k, v)
-	}
-	return &sm
-}
-
-func SafeMapToMap(sm *sync.Map) map[string]any {
-	result := make(map[string]any)
-	sm.Range(func(key, value any) bool {
-		if strKey, ok := key.(string); ok {
-			result[strKey] = value
-		}
-		return true
-	})
-	return result
 }

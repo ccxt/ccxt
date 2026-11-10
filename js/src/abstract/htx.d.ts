@@ -1,6 +1,6 @@
 import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     v2PublicGetReferenceCurrencies(params?: {}): Promise<Dict>;
     v2PublicGetMarketStatus(params?: {}): Promise<Dict>;
     v2PrivateGetAccountLedger(params?: {}): Promise<Dict>;
@@ -478,7 +478,5 @@ interface Exchange {
     contractPrivatePostApiV6CopyTradingTraderFollowerSettings(params?: {}): Promise<Dict>;
     contractPrivatePostApiV6CopyTradingTraderConfig(params?: {}): Promise<Dict>;
     contractPrivatePostApiV6CopyTradingTraderApikey(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

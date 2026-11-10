@@ -33,7 +33,7 @@ public class Cryptomus extends CryptomusApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "cryptomus" );
@@ -421,8 +421,8 @@ public class Cryptomus extends CryptomusApi
             throw new ExchangeError((this.id + " parseMarket() missing marketId")) ;
         }
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("_"))));
-        String baseId = (String) (parts == null || 0 >= parts.size() ? null : parts.get(0));
-        String quoteId = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
+        String baseId = this.safeString(parts, 0);
+        String quoteId = this.safeString(parts, 1);
         String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
         String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
@@ -521,7 +521,7 @@ public class Cryptomus extends CryptomusApi
             //
             List<Object> coins = (List<Object>) this.safeList(response, "result", (Object) null);
             Map<String,Object> groupedById = this.groupBy(coins, "currency_code");
-            Object groupedArray = Helpers.objectValues(groupedById);
+            List<Object> groupedArray = new ArrayList<Object>(groupedById.values());
             return this.parseCurrencies(groupedArray);
         });
 
@@ -626,10 +626,9 @@ public class Cryptomus extends CryptomusApi
         //
         String marketId = this.safeString(ticker, "currency_pair");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        String symbol = (String) marketResolved.get("symbol");
         String last = this.safeString(ticker, "last_price");
         return this.safeTicker(new HashMap<String, Object>() {{
-            put( "symbol", symbol );
+            put( "symbol", marketResolved.get("symbol") );
             put( "timestamp", null );
             put( "datetime", null );
             put( "high", null );
@@ -822,12 +821,12 @@ public class Cryptomus extends CryptomusApi
             //     }
             //
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            return this.parseBalance(result);
+            return this.parseBalanceList(result);
         }).thenApply(Balances::new);
 
     }
 
-    public Balances parseBalance(Object balance)
+    public Balances parseBalanceList(Object balance)
     {
         //
         //     {
@@ -839,7 +838,7 @@ public class Cryptomus extends CryptomusApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", balance );
         }};
-        for (var i = 0; i < Helpers.getArrayLength(balance); i++)
+        for (var i = 0; i < ((List<?>)balance).size(); i++)
         {
             Map<String, Object> balanceEntry = (Map<String, Object>) this.safeDict(balance, i, (Object) null);
             String currencyId = this.safeString(balanceEntry, "ticker");
@@ -894,14 +893,13 @@ public class Cryptomus extends CryptomusApi
             Boolean sideBuy = java.util.Objects.equals(side, "buy");
             String amountToString = this.numberToString(amount);
             String priceToString = this.numberToString(price);
-            List<Object> costParamparamsCostVariable = (List<Object>) this.handleParamString(paramsOmitted, "cost", (String) null);
-            String costParam = (String) ((List<Object>) costParamparamsCostVariable).get(0);
-            Map<String, Object> paramsCost = (Map<String, Object>) ((List<Object>) costParamparamsCostVariable).get(1);
-            Object cost = costParam;
+            Map<String, Object> paramsCost = this.omit(paramsOmitted, "cost");
+            String costParam = this.safeString(paramsOmitted, "cost");
+            String cost = costParam;
             Map<String, Object> response = null;
             if (java.util.Objects.equals(type, "market"))
             {
-                List<Object> requiresPriceAndParams = (List<Object>) this.handleOptionBoolAndParams((Map<String, Object>) (paramsCost), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                List<Object> requiresPriceAndParams = (List<Object>) this.handleOptionBoolAndParams(paramsCost, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 Object paramsMarket = paramsCost;
                 if (Boolean.TRUE.equals(sideBuy))
                 {
@@ -912,16 +910,16 @@ public class Cryptomus extends CryptomusApi
                     Boolean createMarketBuyOrderRequiresPrice = (Boolean) ((List<Object>)requiresPriceAndParams).get(0);
                     if (Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice))
                     {
-                        if ((java.util.Objects.equals(price, null)) && (java.util.Objects.equals(cost, null)))
+                        if ((java.util.Objects.equals(price, null)) && (java.util.Objects.equals(costParam, null)))
                         {
                             throw new InvalidOrder((this.id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument")) ;
-                        } else if (java.util.Objects.equals(cost, null))
+                        } else if (java.util.Objects.equals(costParam, null))
                         {
                             cost = Precise.stringMul(amountToString, priceToString);
                         }
                     } else
                     {
-                        cost = (((!java.util.Objects.equals(cost, null) && !java.util.Objects.equals(cost, "")))) ? cost : amountToString;
+                        cost = (((!java.util.Objects.equals(costParam, null) && !java.util.Objects.equals(costParam, "")))) ? costParam : amountToString;
                     }
                     request.put("value", cost);
                 } else
@@ -1066,8 +1064,7 @@ public class Cryptomus extends CryptomusApi
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Object order = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
-                ((List<Object>)orders).add(this.parseOrder(order, market));
+                ((List<Object>)orders).add(this.parseOrder((result == null || i < 0 || i >= result.size() ? null : result.get(i)), market));
             }
             return orders;
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -1209,10 +1206,12 @@ public class Cryptomus extends CryptomusApi
         String feeCurrency = this.safeString(firstTx, "feeCurrency");
         if (!java.util.Objects.equals(feeCurrency, null))
         {
-            fee = Helpers.newMap(
-                "currency", this.safeCurrencyCode(feeCurrency, (Map<String, Object>) null),
-                "cost", this.safeNumber(firstTx, "fee", (Object) null)
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("currency", this.safeCurrencyCode(feeCurrency, (Map<String, Object>) null));
+                hx4NewMap0.put("cost", this.safeNumber(firstTx, "fee", (Object) null));
+                fee = hx4NewMap0;
+            }
         }
         if (java.util.Objects.equals(price, null))
         {
@@ -1376,17 +1375,18 @@ public class Cryptomus extends CryptomusApi
         }};
     }
 
-    public Object sign(Object path, Object api, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object api, Object method, Object parameters)
     {
         String endpoint = (String) this.implodeParams(path, parameters);
         Object paramsOmitted = this.omit(parameters, this.extractParams(path));
-        String apiUrl = this.safeString(this.urls.get("api"), java.util.Objects.requireNonNullElse(api, "public"));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
         {
             throw new ExchangeError((this.id + " sign() has no API URL for this endpoint")) ;
         }
         String url = ((apiUrl + "/") + endpoint);
-        if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(api, "public"), "private"))
+        if (java.util.Objects.equals(apiName, "private"))
         {
             this.checkRequiredCredentials(true);
             String jsonParams = "";
@@ -1409,7 +1409,7 @@ public class Cryptomus extends CryptomusApi
             String stringToSign = (jsonParamsBase64 + this.secret);
             Object signature = this.hash(this.encode(stringToSign), md5());
             privateHeaders.put("sign", signature);
-            String privateBody = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? jsonParams : body;
+            String privateBody = (((!java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")))) ? jsonParams : null;
             {
                 HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
                 h2kMap0.put("url", url);
@@ -1430,33 +1430,33 @@ public class Cryptomus extends CryptomusApi
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("url", url);
             h2kMap1.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap1.put("body", body);
-            h2kMap1.put("headers", headers);
+            h2kMap1.put("body", null);
+            h2kMap1.put("headers", null);
             return h2kMap1;
         }
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
             return null;
         }
-        if (Helpers.inOp(response, "code"))
+        String codeError = this.safeString(response, "code");
+        String message = this.safeString(response, "message");
+        if (!java.util.Objects.equals(codeError, null))
         {
-            String code = this.safeString(response, "code");
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), codeError, feedback);
             throw new ExchangeError(feedback) ;
-        } else if (Helpers.inOp(response, "message"))
+        } else if (!java.util.Objects.equals(message, null))
         {
             //
             //      {"message":"Minimum amount 15 USDT","state":1}
             //
-            String message = this.safeString(response, "message");
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

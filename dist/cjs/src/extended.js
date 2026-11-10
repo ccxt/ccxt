@@ -365,7 +365,7 @@ class extended extends extended$1["default"] {
         const keys = Object.keys(input);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const item = input[key];
+            const item = this.safeDict(input, key, {});
             const numericIdString = this.safeString(item, 'numericId');
             if (numericIdString === undefined) {
                 continue;
@@ -1030,7 +1030,7 @@ class extended extends extended$1["default"] {
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict(data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend(entry, { 'cursor': cursor });
             }
@@ -1099,7 +1099,7 @@ class extended extends extended$1["default"] {
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict(data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend(entry, { 'cursor': cursor });
             }
@@ -1140,7 +1140,7 @@ class extended extends extended$1["default"] {
     parseFundingHistories(histories, market = undefined, since = undefined, limit = undefined) {
         const result = [];
         for (let i = 0; i < histories.length; i++) {
-            result.push(this.parseFundingHistory(histories[i], market));
+            result.push(this.parseFundingHistory(this.safeDict(histories, i, {}), market));
         }
         const symbol = (market === undefined) ? undefined : this.safeString(market, 'symbol');
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
@@ -1316,12 +1316,15 @@ class extended extends extended$1["default"] {
             return await this.fetchPaginatedCallCursor('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'cursor', 'cursor', undefined, 10000);
         }
         const market = this.market(symbol);
-        const symbolValue = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const limitResolved = (limit === undefined) ? 100 : limit;
         const until = this.safeInteger(paramsPaginate, 'until', this.milliseconds());
         const endTime = this.safeInteger(paramsPaginate, 'endTime', until);
         const paramsOmitted = this.omit(paramsPaginate, ['endTime', 'until']);
-        const sinceResolved = (since === undefined) ? endTime - (limitResolved * 60 * 60 * 1000) : since;
+        let sinceResolved = since;
+        if ((endTime !== undefined) && (since === undefined)) {
+            sinceResolved = endTime - (limitResolved * 60 * 60 * 1000);
+        }
         const request = {
             'market': market['id'],
             'startTime': sinceResolved,
@@ -1351,7 +1354,7 @@ class extended extends extended$1["default"] {
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict(data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend(entry, { 'cursor': cursor });
             }
@@ -1403,7 +1406,10 @@ class extended extends extended$1["default"] {
         const until = this.safeInteger(params, 'until', this.milliseconds());
         const endTime = this.safeInteger(params, 'endTime', until);
         const paramsOmitted = this.omit(params, ['endTime', 'until']);
-        const sinceResolved = (since === undefined) ? endTime - (limitResolved * this.parseTimeframe(timeframe) * 1000) : since;
+        let sinceResolved = since;
+        if ((endTime !== undefined) && (since === undefined)) {
+            sinceResolved = endTime - (limitResolved * this.parseTimeframe(timeframe) * 1000);
+        }
         const request = {
             'market': market['id'],
             'interval': interval,
@@ -1488,9 +1494,9 @@ class extended extends extended$1["default"] {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        return this.parseBalance(data);
+        return this.parseBalanceList(data);
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = this.safeDict(response, i, {});
@@ -1619,7 +1625,7 @@ class extended extends extended$1["default"] {
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict(data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend(entry, { 'cursor': cursor });
             }
@@ -1731,7 +1737,7 @@ class extended extends extended$1["default"] {
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict(data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend(entry, { 'cursor': cursor });
             }
@@ -1777,17 +1783,18 @@ class extended extends extended$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the Starknet address to withdraw to
-     * @param {string} tag unused
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {string} [params.chainId] only STRK is supported
      * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 14 days + 60 seconds
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
+        const [tag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         this.checkRequiredCredentials();
         await this.loadMarkets();
         const currency = this.currency(code);
-        const chainId = this.safeStringUpper2(params, 'chainId', 'network', 'STRK');
+        const chainId = this.safeStringUpper2(paramsWithdrawTag, 'chainId', 'network', 'STRK');
         if (chainId !== 'STRK') {
             throw new errors.BadRequest(this.id + ' withdraw() only supports Starknet withdrawals with chainId STRK');
         }
@@ -1797,7 +1804,7 @@ class extended extends extended$1["default"] {
         const account = await this.fetchExtendedAccount();
         const amountString = this.currencyToPrecision(code, amount);
         const accountId = this.safeString(account, 'accountId');
-        const settlement = this.createWithdrawalSettlementData(address, amountString, currency, account, params);
+        const settlement = this.createWithdrawalSettlementData(address, amountString, currency, account, paramsWithdrawTag);
         const request = {
             'accountId': accountId,
             'amount': amountString,
@@ -1805,7 +1812,7 @@ class extended extends extended$1["default"] {
             'asset': currency['id'],
             'settlement': settlement,
         };
-        const paramsOmitted = this.omit(params, ['chainId', 'network', 'settlementExpiration', 'nonce', 'recipient', 'positionId', 'l2Vault', 'collateralId', 'resolution']);
+        const paramsOmitted = this.omit(paramsWithdrawTag, ['chainId', 'network', 'settlementExpiration', 'nonce', 'recipient', 'positionId', 'l2Vault', 'collateralId', 'resolution']);
         const response = await this.v1PrivatePostUserWithdrawal(this.extend(request, paramsOmitted));
         //
         //     {
@@ -1872,7 +1879,7 @@ class extended extends extended$1["default"] {
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict(data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend(entry, { 'cursor': cursor });
             }
@@ -1901,8 +1908,7 @@ class extended extends extended$1["default"] {
         const currency = this.currency(code);
         const account = await this.fetchExtendedAccount();
         const currentAccountId = this.safeString(account, 'accountId', '');
-        const fromAccountResolved = (fromAccount === undefined) ? currentAccountId : fromAccount;
-        if (fromAccountResolved !== currentAccountId) {
+        if ((fromAccount !== undefined) && (fromAccount !== currentAccountId)) {
             throw new errors.BadRequest(this.id + ' transfer() can only transfer from the authenticated account');
         }
         const toVault = this.safeString2(params, 'toVault', 'receiverPositionId');
@@ -1913,7 +1919,7 @@ class extended extends extended$1["default"] {
         const amountString = this.currencyToPrecision(code, amount);
         const settlement = this.createTransferSettlementData(amountString, currency, account, toVault, toL2Key, params);
         const request = {
-            'fromAccount': fromAccountResolved,
+            'fromAccount': currentAccountId,
             'toAccount': toAccount,
             'amount': amountString,
             'transferredAsset': currency['id'],
@@ -1944,7 +1950,7 @@ class extended extends extended$1["default"] {
             'datetime': this.iso8601(now),
             'currency': currency['code'],
             'amount': this.parseNumber(amountString),
-            'fromAccount': fromAccountResolved,
+            'fromAccount': currentAccountId,
             'toAccount': toAccount,
             'status': status,
         };
@@ -1993,7 +1999,7 @@ class extended extends extended$1["default"] {
             return this.safeString(currencyByNumericId, 'code');
         }
         if (currency !== undefined) {
-            return currency['code'];
+            return this.safeString(currency, 'code');
         }
         let code = this.safeCurrencyCode(assetId);
         if (code === 'USD') {
@@ -2047,7 +2053,7 @@ class extended extends extended$1["default"] {
             };
         }
         const transactionType = this.parseTransactionType(this.safeString(transaction, 'type'));
-        const network = this.safeString(transaction, 'chain');
+        const network = this.networkIdToCode(this.safeString(transaction, 'chain'));
         return {
             'info': transaction,
             'id': this.safeString(transaction, 'id'),
@@ -2364,7 +2370,7 @@ class extended extends extended$1["default"] {
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict(data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend(entry, { 'cursor': cursor });
             }
@@ -2405,7 +2411,7 @@ class extended extends extended$1["default"] {
         let lastUpdateTimestamp = this.safeInteger2(position, 'updatedAt', 'updatedTime');
         lastUpdateTimestamp = this.safeInteger(position, 'closedTime', lastUpdateTimestamp);
         const side = this.safeStringLower(position, 'side');
-        const margin = this.safeString(position, 'margin');
+        const margin = this.safeNumber(position, 'margin');
         return this.safePosition({
             'info': position,
             'id': this.safeString(position, 'id'),
@@ -2417,44 +2423,43 @@ class extended extends extended$1["default"] {
             'initialMarginPercentage': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
-            'entryPrice': this.safeString(position, 'openPrice'),
-            'notional': this.safeString(position, 'value'),
-            'leverage': this.safeString(position, 'leverage'),
-            'unrealizedPnl': this.safeString(position, 'unrealisedPnl'),
-            'realizedPnl': this.safeString(position, 'realisedPnl'),
-            'contracts': this.safeString(position, 'size'),
-            'contractSize': this.safeString(marketResolved, 'contractSize'),
+            'entryPrice': this.safeNumber(position, 'openPrice'),
+            'notional': this.safeNumber(position, 'value'),
+            'leverage': this.safeNumber(position, 'leverage'),
+            'unrealizedPnl': this.safeNumber(position, 'unrealisedPnl'),
+            'realizedPnl': this.safeNumber(position, 'realisedPnl'),
+            'contracts': this.safeNumber(position, 'size'),
+            'contractSize': this.safeNumber(marketResolved, 'contractSize'),
             'marginRatio': undefined,
-            'liquidationPrice': this.safeString(position, 'liquidationPrice'),
-            'markPrice': this.safeString(position, 'markPrice'),
-            'lastPrice': this.safeString(position, 'exitPrice'),
+            'liquidationPrice': this.safeNumber(position, 'liquidationPrice'),
+            'markPrice': this.safeNumber(position, 'markPrice'),
+            'lastPrice': this.safeNumber(position, 'exitPrice'),
             'collateral': margin,
             'marginMode': undefined,
             'side': side,
             'percentage': undefined,
             'hedged': undefined,
-            'stopLossPrice': this.safeString(position, 'slTriggerPrice'),
-            'takeProfitPrice': this.safeString(position, 'tpTriggerPrice'),
+            'stopLossPrice': this.safeNumber(position, 'slTriggerPrice'),
+            'takeProfitPrice': this.safeNumber(position, 'tpTriggerPrice'),
         });
     }
     getExtendedStarkAmount(amount, resolution, roundUp = false) {
         const resolutionString = this.numberToString(resolution);
         const precise = Precise["default"].stringMul(amount, resolutionString);
-        let result = this.decimalToPrecision(precise, number.TRUNCATE, 0, number.DECIMAL_PLACES, number.NO_PADDING);
+        const result = this.decimalToPrecision(precise, number.TRUNCATE, 0, number.DECIMAL_PLACES, number.NO_PADDING);
         if (roundUp && Precise["default"].stringGt(precise, result)) {
-            result = Precise["default"].stringAdd(result, '1');
+            return Precise["default"].stringAdd(result, '1');
         }
         return result;
     }
     async fetchExtendedAccount(params = {}) {
-        let account = this.safeDict(this.options, 'account');
-        if (account !== undefined) {
-            return account;
+        const cachedAccount = this.safeDict(this.options, 'account');
+        if (cachedAccount !== undefined) {
+            return this.safeDict(this.options, 'account', {});
         }
         const accountData = await this.fetchAccount(params);
-        account = accountData['info'];
-        this.options['account'] = account;
-        return account;
+        this.options['account'] = this.safeDict(accountData, 'info', {});
+        return this.safeDict(this.options, 'account', {});
     }
     createOrderSettlementData(isBuy, amountString, priceString, params = {}) {
         const totalFee = this.safeString(params, 'totalFee');
@@ -2492,8 +2497,8 @@ class extended extends extended$1["default"] {
         };
         const msgHash = this.getExtendedOrderMsgHash(settlement);
         const sig = JSON.parse(this.extendedStarknetSign(msgHash, this.privateKey));
-        const r = this.getExtendedSignatureHex(sig[0]);
-        const s = this.getExtendedSignatureHex(sig[1]);
+        const r = this.getExtendedSignatureHex(this.safeString(sig, 0, '0'));
+        const s = this.getExtendedSignatureHex(this.safeString(sig, 1, '0'));
         settlement['r'] = r;
         settlement['s'] = s;
         return settlement;
@@ -2506,7 +2511,7 @@ class extended extends extended$1["default"] {
         const recipient = this.safeString(params, 'recipient', address);
         const currencyInfo = this.safeDict(currency, 'info', {});
         const collateralId = this.safeString(params, 'collateralId', this.safeString2(currencyInfo, 'starkexId', 'l1Id'));
-        const resolution = this.safeInteger(params, 'resolution', this.safeValue2(currencyInfo, 'starkexResolution', 'l1Resolution'));
+        const resolution = this.safeInteger(params, 'resolution', this.safeInteger2(currencyInfo, 'starkexResolution', 'l1Resolution'));
         const starkKey = this.safeString(account, 'l2Key');
         if ((positionId === undefined) || (collateralId === undefined) || (resolution === undefined) || (starkKey === undefined)) {
             throw new errors.BadRequest(this.id + ' withdraw() requires currency starkexId/starkexResolution, account l2Vault and account l2Key');
@@ -2525,8 +2530,8 @@ class extended extends extended$1["default"] {
         const msgHash = this.getExtendedWithdrawalMsgHash(settlement, starkKey);
         const sig = JSON.parse(this.extendedStarknetSign(msgHash, this.privateKey));
         settlement['signature'] = {
-            'r': this.getExtendedSignatureHex(sig[0]),
-            's': this.getExtendedSignatureHex(sig[1]),
+            'r': this.getExtendedSignatureHex(this.safeString(sig, 0, '0')),
+            's': this.getExtendedSignatureHex(this.safeString(sig, 1, '0')),
         };
         return settlement;
     }
@@ -2538,7 +2543,7 @@ class extended extends extended$1["default"] {
         const fromL2Key = this.safeString2(params, 'fromL2Key', 'senderPublicKey', this.safeString(account, 'l2Key'));
         const currencyInfo = this.safeDict(currency, 'info', {});
         const collateralId = this.safeString2(params, 'assetId', 'collateralId', this.safeString2(currencyInfo, 'starkexId', 'l1Id'));
-        const resolution = this.safeInteger(params, 'resolution', this.safeValue2(currencyInfo, 'starkexResolution', 'l1Resolution'));
+        const resolution = this.safeInteger(params, 'resolution', this.safeInteger2(currencyInfo, 'starkexResolution', 'l1Resolution'));
         if ((fromVault === undefined) || (fromL2Key === undefined) || (collateralId === undefined) || (resolution === undefined)) {
             throw new errors.BadRequest(this.id + ' transfer() requires currency starkexId/starkexResolution, account l2Vault and account l2Key');
         }
@@ -2556,8 +2561,8 @@ class extended extends extended$1["default"] {
         const msgHash = this.getExtendedTransferMsgHash(settlement);
         const sig = JSON.parse(this.extendedStarknetSign(msgHash, this.privateKey));
         settlement['signature'] = {
-            'r': this.getExtendedSignatureHex(sig[0]),
-            's': this.getExtendedSignatureHex(sig[1]),
+            'r': this.getExtendedSignatureHex(this.safeString(sig, 0, '0')),
+            's': this.getExtendedSignatureHex(this.safeString(sig, 1, '0')),
         };
         return settlement;
     }
@@ -2572,7 +2577,7 @@ class extended extends extended$1["default"] {
         const market = this.market(symbol);
         const uppercaseType = type.toUpperCase();
         const uppercaseSide = side.toUpperCase();
-        if ((market['spot'] === true) && uppercaseType !== 'LIMIT') {
+        if ((this.safeBool(market, 'spot', false)) && uppercaseType !== 'LIMIT') {
             throw new errors.BadRequest(this.id + ' createOrder() supports limit orders for spot markets only');
         }
         if (!this.inArray(uppercaseType, ['LIMIT', 'MARKET', 'CONDITIONAL', 'TPSL'])) {
@@ -2592,16 +2597,19 @@ class extended extends extended$1["default"] {
         const fee = this.safeString(params, 'fee', '0.0005');
         let builderFeeRate = undefined;
         let builderId = undefined;
-        let paramsBuilder = undefined;
-        if (this.isSandboxModeEnabled) {
-            builderFeeRate = this.safeString2(params, 'builderFeeRate', 'defaultBuilderFeeRate');
-            builderId = this.safeString2(params, 'builderId', 'defaultBuilderId');
-            paramsBuilder = this.omit(params, ['builderFeeRate', 'defaultBuilderFeeRate', 'builderId', 'defaultBuilderId']);
-        }
-        else {
-            let paramsBuilderFeeRate = undefined;
-            [builderFeeRate, paramsBuilderFeeRate] = this.handleOptionStringAndParams(params, 'createOrder', 'builderFeeRate', '0.0001');
-            [builderId, paramsBuilder] = this.handleOptionStringAndParams(paramsBuilderFeeRate, 'createOrder', 'builderId');
+        let paramsBuilder = params;
+        const builderEnabled = this.safeBool(this.options, 'builderFee', false);
+        if (builderEnabled) {
+            if (this.isSandboxModeEnabled) {
+                builderFeeRate = this.safeString2(params, 'builderFeeRate', 'defaultBuilderFeeRate');
+                builderId = this.safeString2(params, 'builderId', 'defaultBuilderId');
+                paramsBuilder = this.omit(params, ['builderFeeRate', 'defaultBuilderFeeRate', 'builderId', 'defaultBuilderId']);
+            }
+            else {
+                let paramsBuilderFeeRate = undefined;
+                [builderFeeRate, paramsBuilderFeeRate] = this.handleOptionStringAndParams(params, 'createOrder', 'builderFeeRate', '0.0001');
+                [builderId, paramsBuilder] = this.handleOptionStringAndParams(paramsBuilderFeeRate, 'createOrder', 'builderId');
+            }
         }
         let totalFee = fee;
         if (builderFeeRate !== undefined) {
@@ -2609,7 +2617,8 @@ class extended extends extended$1["default"] {
         }
         const now = this.milliseconds();
         const expiryEpochMillis = this.safeInteger(paramsBuilder, 'expiryEpochMillis', now + 3600000);
-        const settlementExpiration = this.safeInteger(paramsBuilder, 'settlementExpiration', this.parseToInt((expiryEpochMillis + 999) / 1000) + 1209600);
+        const settlementDefault = (expiryEpochMillis !== undefined) ? this.parseToInt((expiryEpochMillis + 999) / 1000) + 1209600 : undefined;
+        const settlementExpiration = this.safeInteger(paramsBuilder, 'settlementExpiration', settlementDefault);
         const nonce = this.numberToString(this.nonce());
         const account = await this.fetchExtendedAccount();
         const starkKey = this.safeString(account, 'l2Key');
@@ -2914,8 +2923,11 @@ class extended extends extended$1["default"] {
     async cancelOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
         let market = undefined;
+        let orderSymbol = symbol;
         if (symbol !== undefined) {
-            market = this.market(symbol);
+            const symbolMarket = this.market(symbol);
+            market = symbolMarket;
+            orderSymbol = symbolMarket['symbol'];
         }
         let response = undefined;
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'client_id');
@@ -2941,7 +2953,6 @@ class extended extends extended$1["default"] {
         //     }
         //
         const orderId = (clientOrderId === undefined) ? id : undefined;
-        const orderSymbol = (market === undefined) ? symbol : market['symbol'];
         return this.safeOrder({
             'info': response,
             'id': orderId,
@@ -3205,7 +3216,7 @@ class extended extends extended$1["default"] {
         const result = [];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            let entry = data[i];
+            let entry = this.safeDict(data, i, {});
             if ((cursor !== undefined) && (i === dataLength - 1)) {
                 entry = this.extend(entry, { 'cursor': cursor });
             }
@@ -3360,18 +3371,13 @@ class extended extends extended$1["default"] {
         return value;
     }
     getExtendedDecimalToBase16(value) {
-        let decimalString = '';
-        if (typeof value === 'string') {
-            decimalString = value;
-        }
-        else {
-            decimalString = this.numberToString(value);
-        }
+        let decimalString = value;
         const hexChars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];
         let result = '';
         while (Precise["default"].stringGt(decimalString, '0')) {
             const remainder = this.parseToInt(Precise["default"].stringMod(decimalString, '16'));
-            result = hexChars[remainder] + result;
+            const hexChar = this.safeString(hexChars, remainder, '');
+            result = hexChar + result;
             decimalString = Precise["default"].stringDiv(decimalString, '16', 0);
         }
         if (result === '') {
@@ -3380,21 +3386,15 @@ class extended extends extended$1["default"] {
         return result;
     }
     getExtendedSignatureHex(signature) {
-        if (typeof signature === 'string') {
-            if (signature.indexOf('0x') === 0) {
-                return signature;
-            }
-            return '0x' + this.getExtendedDecimalToBase16(signature);
+        if (signature.indexOf('0x') === 0) {
+            return signature;
         }
-        const signatureString = this.numberToString(signature);
-        if (signatureString.indexOf('0x') === 0) {
-            return signatureString;
-        }
-        return '0x' + this.getExtendedDecimalToBase16(signatureString);
+        return '0x' + this.getExtendedDecimalToBase16(signature);
     }
     getExtendedDomainHash() {
         const domainTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName('"StarknetDomain"("name":"shortstring","version":"shortstring","chainId":"shortstring","revision":"shortstring")'));
-        const isTestnet = this.urls['api']['rest'].indexOf('sepolia') >= 0;
+        const restUrl = this.safeString(this.urls['api'], 'rest', '');
+        const isTestnet = restUrl.indexOf('sepolia') >= 0;
         let defaultChainId = 'SN_MAIN';
         if (isTestnet) {
             defaultChainId = 'SN_SEPOLIA';
@@ -3483,7 +3483,7 @@ class extended extends extended$1["default"] {
             transferHash,
         ]);
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -3501,11 +3501,10 @@ class extended extends extended$1["default"] {
         }
         return undefined;
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let requestHeaders = headers;
-        let requestBody = body;
-        const version = this.safeString(api, 0);
-        const accessibility = this.safeString(api, 1);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        let requestHeaders = undefined;
+        let requestBody = undefined;
+        const accessibility = api[1];
         const endpoint = '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         const queryPost = (path === 'user/deadmanswitch');
@@ -3526,7 +3525,7 @@ class extended extends extended$1["default"] {
                 requestHeaders['Content-Type'] = 'application/json';
             }
         }
-        let url = this.implodeHostname(baseApiUrl) + '/api/' + version + endpoint;
+        let url = this.implodeHostname(baseApiUrl) + '/api/' + api[0] + endpoint;
         if ((method === 'GET' || method === 'DELETE' || queryPost) && (Object.keys(query).length > 0)) {
             url += '?' + this.urlencodeWithArrayRepeat(query);
         }

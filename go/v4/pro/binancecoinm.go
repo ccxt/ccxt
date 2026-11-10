@@ -15,11 +15,10 @@ func newBinancecoinm() *Binancecoinm {
 	base := newBinance()
 	p.base = base
 	p.Binance = base
-	ccxt.SetDefaults(p)
 	return p
 }
 
-func (this *Binancecoinm) Describe() any {
+func (this *Binancecoinm) Describe() map[string]any {
 	// eslint-disable-next-line new-cap
 	restInstance := ccxt.NewBinancecoinm(nil)
 	var restDescribe any = restInstance.Describe()

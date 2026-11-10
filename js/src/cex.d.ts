@@ -5,7 +5,7 @@ import type { Bool, Currency, CurrencyInterface, Currencies, Dict, Int, Market, 
  * @augments Exchange
  */
 export default class cex extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name cex#fetchCurrencies
@@ -120,7 +120,7 @@ export default class cex extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name cex#fetchOrders
@@ -277,6 +277,6 @@ export default class cex extends Exchange {
      */
     fetchDepositAddress(code: string, params?: Dict): Promise<DepositAddress>;
     parseDepositAddress(depositAddress: Dict, currency?: Currency): DepositAddress;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

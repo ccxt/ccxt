@@ -26,6 +26,9 @@ export default class kraken extends krakenRest {
                 'watchBidsAsks': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
+                'unWatchOHLCV': true,
+                'unWatchTrades': true,
+                'unWatchTradesForSymbols': true,
                 'createOrderWs': true,
                 'editOrderWs': true,
                 'cancelOrderWs': true,
@@ -119,26 +122,26 @@ export default class kraken extends krakenRest {
             },
         });
     }
-    orderRequestWs(method, symbol, type, request, amount, price = undefined, params = {}) {
+    orderRequestWs(method, symbol, type, request, orderParams, amount, price = undefined, params = {}) {
         const isLimitOrder = type.endsWith('limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
         if (isLimitOrder) {
             if (price === undefined) {
                 throw new ArgumentsRequired(this.id + ' limit orders require a price argument');
             }
-            request['params']['limit_price'] = this.parseToNumeric(this.priceToPrecision(symbol, price));
+            orderParams['limit_price'] = this.parseToNumeric(this.priceToPrecision(symbol, price));
         }
         const isMarket = (type === 'market');
         const [postOnly, paramsPostOnly] = this.handlePostOnly(isMarket, false, params);
-        if (postOnly === true) {
-            request['params']['post_only'] = true;
+        if (postOnly) {
+            orderParams['post_only'] = true;
         }
         const clientOrderId = this.safeString(paramsPostOnly, 'clientOrderId');
         if (clientOrderId !== undefined) {
-            request['params']['cl_ord_id'] = clientOrderId;
+            orderParams['cl_ord_id'] = clientOrderId;
         }
         const cost = this.safeString(paramsPostOnly, 'cost');
         if (cost !== undefined) {
-            request['params']['order_qty'] = this.parseToNumeric(this.costToPrecision(symbol, cost));
+            orderParams['order_qty'] = this.parseToNumeric(this.costToPrecision(symbol, cost));
         }
         const stopLoss = this.safeDict(paramsPostOnly, 'stopLoss', {});
         const takeProfit = this.safeDict(paramsPostOnly, 'takeProfit', {});
@@ -182,78 +185,83 @@ export default class kraken extends krakenRest {
             priceType = 'pct';
         }
         if (method === 'createOrderWs') {
-            const reduceOnly = this.safeBool(paramsPostOnly, 'reduceOnly');
-            if (reduceOnly === true) {
-                request['params']['reduce_only'] = true;
+            const reduceOnly = this.safeBool(paramsPostOnly, 'reduceOnly', false);
+            if (reduceOnly) {
+                orderParams['reduce_only'] = true;
             }
             const timeInForce = this.safeStringLower(paramsPostOnly, 'timeInForce');
             if (timeInForce !== undefined) {
-                request['params']['time_in_force'] = timeInForce;
+                orderParams['time_in_force'] = timeInForce;
             }
-            if (isStopLossPriceOrder || isTakeProfitPriceOrder || isTrailingAmountOrder || isTrailingPercentOrder || isTrailingLimitAmountOrder || isTrailingLimitPercentOrder) {
-                request['params']['triggers'] = {};
-            }
+            const triggers = {};
+            const conditional = {};
             if (isPresetStopLoss || isPresetTakeProfit) {
-                request['params']['conditional'] = {};
                 if (isPresetStopLoss) {
-                    request['params']['conditional']['order_type'] = 'stop-loss';
-                    request['params']['conditional']['trigger_price'] = this.parseToNumeric(this.priceToPrecision(symbol, presetStopLoss));
+                    conditional['order_type'] = 'stop-loss';
+                    conditional['trigger_price'] = this.parseToNumeric(this.priceToPrecision(symbol, presetStopLoss));
                 }
                 else if (isPresetTakeProfit) {
-                    request['params']['conditional']['order_type'] = 'take-profit';
-                    request['params']['conditional']['trigger_price'] = this.parseToNumeric(this.priceToPrecision(symbol, presetTakeProfit));
+                    conditional['order_type'] = 'take-profit';
+                    conditional['trigger_price'] = this.parseToNumeric(this.priceToPrecision(symbol, presetTakeProfit));
                 }
                 if (presetStopLossLimit !== undefined) {
-                    request['params']['conditional']['order_type'] = 'stop-loss-limit';
-                    request['params']['conditional']['limit_price'] = this.parseToNumeric(this.priceToPrecision(symbol, presetStopLossLimit));
+                    conditional['order_type'] = 'stop-loss-limit';
+                    conditional['limit_price'] = this.parseToNumeric(this.priceToPrecision(symbol, presetStopLossLimit));
                 }
                 else if (presetTakeProfitLimit !== undefined) {
-                    request['params']['conditional']['order_type'] = 'take-profit-limit';
-                    request['params']['conditional']['limit_price'] = this.parseToNumeric(this.priceToPrecision(symbol, presetTakeProfitLimit));
+                    conditional['order_type'] = 'take-profit-limit';
+                    conditional['limit_price'] = this.parseToNumeric(this.priceToPrecision(symbol, presetTakeProfitLimit));
                 }
             }
             else if (isStopLossPriceOrder || isTakeProfitPriceOrder) {
                 if (isStopLossPriceOrder) {
-                    request['params']['triggers']['price'] = this.parseToNumeric(this.priceToPrecision(symbol, stopLossPrice));
+                    triggers['price'] = this.parseToNumeric(this.priceToPrecision(symbol, stopLossPrice));
                     if (isLimitOrder) {
-                        request['params']['order_type'] = 'stop-loss-limit';
+                        orderParams['order_type'] = 'stop-loss-limit';
                     }
                     else {
-                        request['params']['order_type'] = 'stop-loss';
+                        orderParams['order_type'] = 'stop-loss';
                     }
                 }
                 else {
-                    request['params']['triggers']['price'] = this.parseToNumeric(this.priceToPrecision(symbol, takeProfitPrice));
+                    triggers['price'] = this.parseToNumeric(this.priceToPrecision(symbol, takeProfitPrice));
                     if (isLimitOrder) {
-                        request['params']['order_type'] = 'take-profit-limit';
+                        orderParams['order_type'] = 'take-profit-limit';
                     }
                     else {
-                        request['params']['order_type'] = 'take-profit';
+                        orderParams['order_type'] = 'take-profit';
                     }
                 }
             }
             else if (isTrailingAmountOrder || isTrailingPercentOrder || isTrailingLimitAmountOrder || isTrailingLimitPercentOrder) {
-                request['params']['triggers']['price_type'] = priceType;
+                triggers['price_type'] = priceType;
                 if (!isLimitOrder && (isTrailingAmountOrder || isTrailingPercentOrder)) {
-                    request['params']['order_type'] = 'trailing-stop';
+                    orderParams['order_type'] = 'trailing-stop';
                     if (isTrailingAmountOrder) {
-                        request['params']['triggers']['price'] = this.parseToNumeric(trailingAmountString);
+                        triggers['price'] = this.parseToNumeric(trailingAmountString);
                     }
                     else {
-                        request['params']['triggers']['price'] = this.parseToNumeric(trailingPercentString);
+                        triggers['price'] = this.parseToNumeric(trailingPercentString);
                     }
                 }
                 else {
                     // trailing limit orders are not conventionally supported because the static limit_price_type param is not available for trailing-stop-limit orders
-                    request['params']['limit_price_type'] = priceType;
-                    request['params']['order_type'] = 'trailing-stop-limit';
+                    orderParams['limit_price_type'] = priceType;
+                    orderParams['order_type'] = 'trailing-stop-limit';
                     if (isTrailingLimitAmountOrder) {
-                        request['params']['triggers']['price'] = this.parseToNumeric(trailingLimitAmountString);
+                        triggers['price'] = this.parseToNumeric(trailingLimitAmountString);
                     }
                     else {
-                        request['params']['triggers']['price'] = this.parseToNumeric(trailingLimitPercentString);
+                        triggers['price'] = this.parseToNumeric(trailingLimitPercentString);
                     }
                 }
+            }
+            // attach after the writes so a copy-semantics port sees the filled dict
+            if (isStopLossPriceOrder || isTakeProfitPriceOrder || isTrailingAmountOrder || isTrailingPercentOrder || isTrailingLimitAmountOrder || isTrailingLimitPercentOrder) {
+                orderParams['triggers'] = triggers;
+            }
+            if (isPresetStopLoss || isPresetTakeProfit) {
+                orderParams['conditional'] = conditional;
             }
         }
         else if (method === 'editOrderWs') {
@@ -262,29 +270,29 @@ export default class kraken extends krakenRest {
             }
             if (isStopLossPriceOrder || isTakeProfitPriceOrder) {
                 if (isStopLossPriceOrder) {
-                    request['params']['trigger_price'] = this.parseToNumeric(this.priceToPrecision(symbol, stopLossPrice));
+                    orderParams['trigger_price'] = this.parseToNumeric(this.priceToPrecision(symbol, stopLossPrice));
                 }
                 else {
-                    request['params']['trigger_price'] = this.parseToNumeric(this.priceToPrecision(symbol, takeProfitPrice));
+                    orderParams['trigger_price'] = this.parseToNumeric(this.priceToPrecision(symbol, takeProfitPrice));
                 }
             }
             else if (isTrailingAmountOrder || isTrailingPercentOrder || isTrailingLimitAmountOrder || isTrailingLimitPercentOrder) {
-                request['params']['trigger_price_type'] = priceType;
+                orderParams['trigger_price_type'] = priceType;
                 if (!isLimitOrder && (isTrailingAmountOrder || isTrailingPercentOrder)) {
                     if (isTrailingAmountOrder) {
-                        request['params']['trigger_price'] = this.parseToNumeric(trailingAmountString);
+                        orderParams['trigger_price'] = this.parseToNumeric(trailingAmountString);
                     }
                     else {
-                        request['params']['trigger_price'] = this.parseToNumeric(trailingPercentString);
+                        orderParams['trigger_price'] = this.parseToNumeric(trailingPercentString);
                     }
                 }
                 else {
-                    request['params']['limit_price_type'] = priceType;
+                    orderParams['limit_price_type'] = priceType;
                     if (isTrailingLimitAmountOrder) {
-                        request['params']['trigger_price'] = this.parseToNumeric(trailingLimitAmountString);
+                        orderParams['trigger_price'] = this.parseToNumeric(trailingLimitAmountString);
                     }
                     else {
-                        request['params']['trigger_price'] = this.parseToNumeric(trailingLimitPercentString);
+                        orderParams['trigger_price'] = this.parseToNumeric(trailingLimitPercentString);
                     }
                 }
             }
@@ -299,6 +307,7 @@ export default class kraken extends krakenRest {
             paramsPreset = this.omit(paramsCreate, ['stopLoss', 'takeProfit']);
         }
         const paramsOmitted = this.omit(paramsPreset, ['clientOrderId', 'cost', 'offset', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent']);
+        request['params'] = orderParams;
         return [request, paramsOmitted];
     }
     /**
@@ -321,18 +330,19 @@ export default class kraken extends krakenRest {
         const url = this.urls['api']['ws']['privateV2'];
         const requestId = this.requestId();
         const messageHash = this.numberToString(requestId);
+        const orderParams = {
+            'order_type': type,
+            'side': side,
+            'order_qty': this.parseToNumeric(this.amountToPrecision(symbol, amount)),
+            'symbol': market['symbol'],
+            'token': token,
+        };
         const request = {
             'method': 'add_order',
-            'params': {
-                'order_type': type,
-                'side': side,
-                'order_qty': this.parseToNumeric(this.amountToPrecision(symbol, amount)),
-                'symbol': market['symbol'],
-                'token': token,
-            },
+            'params': orderParams,
             'req_id': requestId,
         };
-        const [requestValue, paramsValue] = this.orderRequestWs('createOrderWs', symbol, type, request, amount, price, params);
+        const [requestValue, paramsValue] = this.orderRequestWs('createOrderWs', symbol, type, request, orderParams, amount, price, params);
         return await this.watch(url, messageHash, this.extend(requestValue, paramsValue), messageHash);
     }
     handleCreateEditOrder(client, message) {
@@ -387,16 +397,17 @@ export default class kraken extends krakenRest {
         const url = this.urls['api']['ws']['privateV2'];
         const requestId = this.requestId();
         const messageHash = this.numberToString(requestId);
+        const orderParams = {
+            'order_id': id,
+            'order_qty': this.parseToNumeric(this.amountToPrecision(symbol, amount)),
+            'token': token,
+        };
         const request = {
             'method': 'amend_order',
-            'params': {
-                'order_id': id,
-                'order_qty': this.parseToNumeric(this.amountToPrecision(symbol, amount)),
-                'token': token,
-            },
+            'params': orderParams,
             'req_id': requestId,
         };
-        const [requestValue, paramsValue] = this.orderRequestWs('editOrderWs', symbol, type, request, amount, price, params);
+        const [requestValue, paramsValue] = this.orderRequestWs('editOrderWs', symbol, type, request, orderParams, amount, price, params);
         return await this.watch(url, messageHash, this.extend(requestValue, paramsValue), messageHash);
     }
     /**
@@ -766,11 +777,52 @@ export default class kraken extends krakenRest {
         const trades = await this.watchMultiHelper('trade', 'trade', symbols, undefined, params);
         let limitResolved = limit;
         if (this.newUpdates) {
-            const first = this.safeList(trades, 0);
+            const first = this.safeDict(trades, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
             limitResolved = trades.getLimit(tradeSymbol, limit);
         }
         return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
+    }
+    /**
+     * @method
+     * @name kraken#unWatchTrades
+     * @description stop watching the list of most recent trades for a particular symbol
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+     * @param {string} symbol unified symbol of the market to stop watching the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchTrades(symbol, params = {}) {
+        return await this.unWatchTradesForSymbols([symbol], params);
+    }
+    /**
+     * @method
+     * @name kraken#unWatchTradesForSymbols
+     * @description stop watching the list of most recent trades for a list of symbols
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
+     * @param {string[]} symbols unified symbols of the markets to stop watching the trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchTradesForSymbols(symbols, params = {}) {
+        await this.loadMarkets();
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true, false);
+        const unsubMessageHashes = [];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            unsubMessageHashes.push('unsubscribe:' + this.getMessageHash('trade', undefined, symbolsNormalized[i]));
+        }
+        const request = {
+            'method': 'unsubscribe',
+            'params': {
+                'channel': 'trade',
+                'symbol': symbolsNormalized,
+            },
+            'req_id': this.requestId(),
+        };
+        request['params'] = this.deepExtend(request['params'], params);
+        const url = this.urls['api']['ws']['publicV2'];
+        // kraken acknowledges each symbol separately, see handleUnsubscriptionStatus
+        return await this.watchMultiple(url, unsubMessageHashes, request, unsubMessageHashes);
     }
     /**
      * @method
@@ -844,6 +896,35 @@ export default class kraken extends krakenRest {
             limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
         return this.filterBySinceLimit(ohlcv, since, limitResolved, 'timestamp', true);
+    }
+    /**
+     * @method
+     * @name kraken#unWatchOHLCV
+     * @description stop watching historical candlestick data for a market
+     * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ohlc
+     * @param {string} symbol unified symbol of the market to stop watching the candles for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const symbolValue = market['symbol'];
+        const interval = this.safeString(this.timeframes, timeframe, timeframe);
+        const unsubMessageHash = 'unsubscribe:' + this.getMessageHash('ohlcv', interval, symbolValue);
+        const unsubscribe = {
+            'method': 'unsubscribe',
+            'params': {
+                'channel': 'ohlc',
+                'symbol': [symbolValue],
+                'interval': this.safeValue(this.timeframes, timeframe, timeframe),
+            },
+            'req_id': this.requestId(),
+        };
+        const request = this.deepExtend(unsubscribe, params);
+        const url = this.urls['api']['ws']['publicV2'];
+        return await this.watch(url, unsubMessageHash, request, unsubMessageHash);
     }
     async loadMarkets(reload = false, params = {}) {
         const markets = await super.loadMarkets(reload, params);
@@ -976,9 +1057,26 @@ export default class kraken extends krakenRest {
         }
         else {
             // snapshot
-            const depth = a.length;
-            this.orderbooks[symbol] = this.orderBook({}, depth);
+            const subscription = this.safeDict(client.subscriptions, messageHash, {});
+            // size the book from the subscribed depth (10 by default), not from
+            // the level count of this snapshot: a thin market's snapshot can
+            // carry fewer levels than the subscription and must not cap the book
+            const limit = this.parseToInt(this.safeInteger(subscription, 'limit', 10));
+            const asksLength = a.length;
+            const depth = this.parseToInt((asksLength > limit) ? asksLength : limit);
+            const depths = this.safeDict(this.options, 'wsOrderBookDepths', {});
+            const storedDepth = this.safeInteger(depths, symbol);
+            if (!(symbol in this.orderbooks) || (storedDepth !== depth)) {
+                // rebuild only on the first snapshot or when the depth changes,
+                // e.g. a re-subscription with a different limit
+                this.orderbooks[symbol] = this.orderBook({}, depth);
+                depths[symbol] = depth;
+                this.options['wsOrderBookDepths'] = depths;
+            }
+            // reset in place so that references held by users keep receiving
+            // updates after a reconnect snapshot (a new object would orphan them)
             orderbook = this.orderbooks[symbol];
+            orderbook.reset({});
             const keys = ['asks', 'bids'];
             for (let i = 0; i < keys.length; i++) {
                 const key = keys[i];
@@ -1002,13 +1100,21 @@ export default class kraken extends krakenRest {
                 // const checkAsks = asks.map ((elem) => [ elem['price'], elem['qty'] ]);
                 // const checkBids = bids.map ((elem) => [ elem['price'], elem['qty'] ]);
                 for (let i = 0; i < 10; i++) {
-                    const currentAsk = this.safeValue(checkAsks, i, {});
-                    const formattedAsk = this.formatNumber(currentAsk[0]) + this.formatNumber(currentAsk[1]);
+                    const currentAsk = this.safeList(checkAsks, i, []);
+                    const currentAskLength = currentAsk.length;
+                    let formattedAsk = '';
+                    if (currentAskLength > 1) {
+                        formattedAsk = this.formatNumber(currentAsk[0]) + this.formatNumber(currentAsk[1]);
+                    }
                     payloadArray.push(formattedAsk);
                 }
                 for (let i = 0; i < 10; i++) {
-                    const currentBid = this.safeValue(checkBids, i, {});
-                    const formattedBid = this.formatNumber(currentBid[0]) + this.formatNumber(currentBid[1]);
+                    const currentBid = this.safeList(checkBids, i, []);
+                    const currentBidLength = currentBid.length;
+                    let formattedBid = '';
+                    if (currentBidLength > 1) {
+                        formattedBid = this.formatNumber(currentBid[0]) + this.formatNumber(currentBid[1]);
+                    }
                     payloadArray.push(formattedBid);
                 }
             }
@@ -1043,15 +1149,11 @@ export default class kraken extends krakenRest {
     }
     formatNumber(data) {
         const parts = data.split('.');
-        const integer = this.safeString(parts, 0);
+        const integer = this.safeString(parts, 0, '');
         const decimals = this.safeString(parts, 1, '');
         let joinedResult = integer + decimals;
-        let i = 0;
-        while (joinedResult[i] === '0') {
-            i += 1;
-        }
-        if (i > 0) {
-            joinedResult = joinedResult.slice(i);
+        while (joinedResult.startsWith('0')) {
+            joinedResult = joinedResult.slice(1);
         }
         return joinedResult;
     }
@@ -1091,8 +1193,9 @@ export default class kraken extends krakenRest {
         let subscription = this.safeValue(client.subscriptions, authenticated);
         const now = this.seconds();
         const start = this.safeInteger(subscription, 'start');
-        const expires = this.safeInteger(subscription, 'expires');
-        if ((subscription === undefined) || ((subscription !== undefined) && (start + expires) <= now)) {
+        const expires = this.safeInteger(subscription, 'expires', -1);
+        const expired = (start !== undefined) && (expires >= 0) && (start <= (now - expires));
+        if ((subscription === undefined) || expired) {
             // single-flight leader election, see
             // https://github.com/ccxt/ccxt/issues/29393: the staleness gate
             // above is followed by an awaited privatePostGetWebSocketsToken (),
@@ -1124,14 +1227,13 @@ export default class kraken extends krakenRest {
                 //         }
                 //     }
                 //
-                subscription = this.safeDict(response, 'result');
+                subscription = this.extend(this.safeDict(response, 'result'), { 'start': now });
                 const token = this.safeString(subscription, 'token');
                 if (token === undefined) {
                     // reject instead of caching an empty credential, so
                     // waiters retry rather than proceed unauthenticated
                     throw new AuthenticationError(this.id + ' authenticate() received an empty token');
                 }
-                subscription['start'] = now;
                 client.subscriptions[authenticated] = subscription;
                 // settle the flight and wake every waiter - resolve () also
                 // clears the registry entry, so the next refresh re-leads
@@ -1154,9 +1256,10 @@ export default class kraken extends krakenRest {
         const token = await this.authenticate();
         const subscriptionHash = 'executions';
         let messageHash = name;
-        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : undefined;
-        if (symbolResolved !== undefined) {
-            messageHash += ':' + symbolResolved;
+        let symbolResolved = undefined;
+        if (symbol !== undefined) {
+            symbolResolved = this.symbol(symbol);
+            messageHash = name + ':' + symbolResolved;
         }
         const url = this.urls['api']['ws']['privateV2'];
         const requestId = this.requestId();
@@ -1370,15 +1473,16 @@ export default class kraken extends krakenRest {
                 const previousOrder = this.safeDict(previousOrders, id);
                 let newOrder = parsed;
                 if (previousOrder !== undefined) {
-                    const newRawOrder = this.extend(previousOrder['info'], newOrder['info']);
+                    const newRawOrder = this.extend(previousOrder['info'], parsed['info']);
                     newOrder = this.parseWsOrder(newRawOrder);
                 }
                 const length = stored.length;
                 if (length === limit && (previousOrder === undefined)) {
                     const first = stored[0];
                     const symbolsByOrderId = this.safeDict(this.options, 'symbolsByOrderId', {});
-                    if (first['id'] in symbolsByOrderId) {
-                        delete symbolsByOrderId[first['id']];
+                    const firstId = this.safeString(first, 'id');
+                    if ((firstId !== undefined) && (firstId in symbolsByOrderId)) {
+                        delete symbolsByOrderId[firstId];
                     }
                 }
                 stored.append(newOrder);
@@ -1542,21 +1646,27 @@ export default class kraken extends krakenRest {
         //         "sequence": 1
         //     }
         //
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance[type], and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make updates landing in that
+        // window invisible to the consumer forever (issue #26773)
+        const type = 'spot';
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        this.balance[type] = this.safeDict(this.balance, type, {});
+        this.balance[type]['info'] = message;
         const data = this.safeList(message, 'data', []);
-        const result = { 'info': message };
         for (let i = 0; i < data.length; i++) {
             const currencyId = this.safeString(data[i], 'asset');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
             const eq = this.safeString(data[i], 'balance');
             account['total'] = eq;
-            result[code] = account;
+            this.balance[type][code] = account;
         }
-        const type = 'spot';
-        const balance = this.safeBalance(result);
-        const oldBalance = this.safeDict(this.balance, type, {});
-        const newBalance = this.deepExtend(oldBalance, balance);
-        this.balance[type] = this.safeBalance(newBalance);
+        this.balance[type] = this.safeBalance(this.balance[type]);
         const channel = this.safeString(message, 'channel');
         client.resolve(this.balance[type], channel);
     }
@@ -1608,6 +1718,37 @@ export default class kraken extends krakenRest {
         // if (requestId in client.futures) {
         //     delete client.futures[requestId];
         // }
+    }
+    handleUnsubscriptionStatus(client, message) {
+        //
+        // one acknowledgement per symbol in the unsubscribe request
+        //
+        //     {
+        //         "method": "unsubscribe",
+        //         "req_id": 4,
+        //         "result": { "channel": "ohlc", "interval": 5, "symbol": "BTC/USD" },
+        //         "success": true,
+        //         "time_in": "2026-10-26T16:12:36.610481Z",
+        //         "time_out": "2026-10-26T16:12:36.610502Z"
+        //     }
+        //
+        const result = this.safeDict(message, 'result', {});
+        const channel = this.safeString(result, 'channel');
+        const symbol = this.safeSymbol(this.safeString(result, 'symbol'));
+        if (channel === 'trade') {
+            const subMessageHash = this.getMessageHash('trade', undefined, symbol);
+            this.cleanCache({ 'topic': 'trades', 'symbols': [symbol] });
+            this.cleanUnsubscription(client, subMessageHash, 'unsubscribe:' + subMessageHash);
+        }
+        else if (channel === 'ohlc') {
+            const interval = this.safeInteger(result, 'interval');
+            const timeframe = this.findTimeframe(interval);
+            const subMessageHash = this.getMessageHash('ohlcv', undefined, symbol);
+            const unsubMessageHash = 'unsubscribe:' + this.getMessageHash('ohlcv', this.numberToString(interval), symbol);
+            this.cleanCache({ 'topic': 'ohlcv', 'symbolsAndTimeframes': [[symbol, timeframe]] });
+            this.cleanUnsubscription(client, subMessageHash, unsubMessageHash);
+        }
+        return message;
     }
     handleErrorMessage(client, message) {
         //
@@ -1678,6 +1819,7 @@ export default class kraken extends krakenRest {
                 'heartbeat': this.handleHeartbeat,
                 'systemStatus': this.handleSystemStatus,
                 'subscriptionStatus': this.handleSubscriptionStatus,
+                'unsubscribe': this.handleUnsubscriptionStatus,
                 'add_order': this.handleCreateEditOrder,
                 'amend_order': this.handleCreateEditOrder,
                 'cancel_order': this.handleCancelOrder,

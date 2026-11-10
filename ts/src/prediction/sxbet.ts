@@ -7,7 +7,7 @@ import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NotSupported, OrderNotFillable, OrderNotFound, PermissionDenied } from '../base/errors.js';
 import type Client from '../base/ws/Client.js';
-import type { OrderSide, OrderType, Balances, Dict, Endpoint, Int, int, Market, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
+import type { OrderSide, OrderType, Balances, Dict, Endpoint, Int, int, Market, NullableDict, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -16,7 +16,7 @@ import type { OrderSide, OrderType, Balances, Dict, Endpoint, Int, int, Market, 
  * @augments Exchange
  */
 export default class sxbet extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'sxbet',
             'name': 'SX Bet',
@@ -243,8 +243,9 @@ export default class sxbet extends Exchange {
         const pageSize = this.safeInteger (this.options, 'marketsPageSize', 100);
         const maxPages = this.safeInteger (this.options, 'maxMarketsPages', 50);
         const rawMarkets: any[] = [];
+        const collectCap = this.safeInteger ({ 'limit': userLimit }, 'limit');
         let paginationKey: Str = undefined;
-        let page = 0;
+        let page = this.parseToInt (0);
         while (true) {
             const request: Dict = { 'pageSize': pageSize };
             if (paginationKey !== undefined) {
@@ -258,9 +259,9 @@ export default class sxbet extends Exchange {
                 rawMarkets.push (pageMarkets[i]);
             }
             paginationKey = this.safeString (result, 'nextKey');
-            page = this.sum (page, 1);
-            const collectedLength = rawMarkets.length;
-            if ((pageMarketsLength < pageSize) || (page >= maxPages) || (paginationKey === undefined) || ((userLimit !== undefined) && (collectedLength >= userLimit))) {
+            page = this.parseToInt (page + 1);
+            const collectedLength = this.parseToInt (rawMarkets.length);
+            if ((pageMarketsLength < pageSize) || (page >= maxPages) || (paginationKey === undefined) || ((collectCap !== undefined) && (collectedLength >= collectCap))) {
                 break;
             }
         }
@@ -329,11 +330,7 @@ export default class sxbet extends Exchange {
         // variants) whose outcomeOneName text can coincide or nearly coincide, so a text-only
         // slug isn't guaranteed unique. suffix with the market hash instead (always unique,
         // letters+digits only so it survives shortenSlug in one atomic word)
-        // parseToInt-wrapped .length: the bare `const n = str.length;` statement is the php
-        // transpiler's ARRAY hint (count()), which breaks on a string — this form emits
-        // strlen()/len() correctly in both python and php
-        const hashLength = this.parseToInt (marketHash.length);
-        const hashSuffix = marketHash.slice (hashLength - 6);
+        const hashSuffix = marketHash.slice (-6);
         const marketSlug = this.shortenSlug (outcomeOneName) + '_' + hashSuffix;
         const marketSymbol = this.slugToMarketSymbol (eventSlug, marketSlug);
         const status = this.safeStringUpper (raw, 'status');
@@ -579,10 +576,10 @@ export default class sxbet extends Exchange {
      * @param {object[]} rawMarkets the raw sx.bet market objects belonging to this fixture
      * @returns {object} an event structure
      */
-    parseEvent (fixtureId: string, rawMarkets: any[]): any {
-        const marketsList: Market[] = [];
+    parseEvent (fixtureId: string, rawMarkets: any[]): PredictionEvent {
+        const marketsList: any[] = [];
         let anyActive = false;
-        let earliestGameTime: Str = undefined;
+        let earliestGameTime = this.safeInteger ({}, 'gameTime');
         let teamOneName: Str = undefined;
         let teamTwoName: Str = undefined;
         let leagueLabel: Str = undefined;
@@ -594,7 +591,7 @@ export default class sxbet extends Exchange {
                 throw new ExchangeError (this.id + ' parseEvent() could not resolve parsed market');
             }
             marketsList.push (parsed);
-            if (parsed['active'] === true) {
+            if (this.safeBool (parsed, 'active', false)) {
                 anyActive = true;
             }
             if (teamOneName === undefined) {
@@ -602,9 +599,9 @@ export default class sxbet extends Exchange {
                 teamTwoName = this.safeString (raw, 'teamTwoName');
                 leagueLabel = this.safeString (raw, 'leagueLabel');
             }
-            const gameTime = this.safeString (raw, 'gameTime');
+            const gameTime = this.safeInteger (raw, 'gameTime');
             // skip the zero sentinel for "no scheduled game time" so it can't become the epoch
-            if ((gameTime !== undefined) && (gameTime !== '0') && ((earliestGameTime === undefined) || (gameTime < earliestGameTime))) {
+            if ((gameTime !== undefined) && (gameTime !== 0) && ((earliestGameTime === undefined) || (gameTime < earliestGameTime))) {
                 earliestGameTime = gameTime;
             }
         }
@@ -724,7 +721,7 @@ export default class sxbet extends Exchange {
         const hex = this.remove0xPrefix (result);
         // dynamic ABI string return: [32-byte offset][32-byte length][utf8 bytes, right-padded]
         const lengthHex = hex.slice (64, 128);
-        const length = this.hexToInt (lengthHex);
+        const length = this.parseToInt (this.hexToInt (lengthHex));
         const dataEnd = this.sum (128, length * 2);
         const dataHex = hex.slice (128, dataEnd);
         return this.decode (this.base16ToBinary (dataHex));
@@ -738,15 +735,16 @@ export default class sxbet extends Exchange {
      * @param {string} hex the hex string, no '0x' prefix
      * @returns {int} the parsed integer
      */
-    hexToInt (hex: string): number {
+    hexToInt (hex: string): int {
         const digits = '0123456789abcdef';
         const lowerHex = hex.toLowerCase ();
         const hexLength = lowerHex.length;
-        let result = 0;
+        let result = this.parseToInt (0);
         for (let i = 0; i < hexLength; i++) {
             const ch = lowerHex[i];
-            const digitValue = digits.indexOf (ch);
-            result = (result * 16) + digitValue;
+            const digitValue = this.parseToInt (digits.indexOf (ch));
+            const shifted = result * 16;
+            result = this.parseToInt (this.sum (shifted, digitValue));
         }
         return result;
     }
@@ -786,7 +784,7 @@ export default class sxbet extends Exchange {
         }
         const proxy = await this.fetchSxbetProxy ();
         const deployed = this.safeBool (proxy, 'deployed', false);
-        if (deployed !== true) {
+        if (!deployed) {
             await this.sxbetPrivatePostUserDeployProxy ();
             // deployment is asynchronous - poll until the proxy exists
             for (let i = 0; i < 30; i++) {
@@ -890,7 +888,7 @@ export default class sxbet extends Exchange {
         // the venue has no post-only or trigger mechanics - reject the unified params instead
         // of forwarding fields the exchange would silently ignore
         const postOnly = this.safeBool (params, 'postOnly', false);
-        if (postOnly === true) {
+        if (postOnly) {
             throw new NotSupported (this.id + ' createOrder() does not support postOnly - GTC orders may cross on entry');
         }
         const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
@@ -1144,14 +1142,20 @@ export default class sxbet extends Exchange {
         const chunkCount = this.parseToInt (this.sum (idsLength, chunkSize - 1) / chunkSize);
         let result: PredictionOrder[] = [];
         for (let c = 0; c < chunkCount; c++) {
-            const start = c * chunkSize;
-            let end = start + chunkSize;
-            if (end > idsLength) {
-                end = idsLength;
+            const chunkIndex = this.parseToInt (c);
+            const chunkWidth = this.parseToInt (chunkSize);
+            const start = chunkIndex * chunkWidth;
+            const nextChunkIndex = chunkIndex + 1;
+            const chunkEnd = nextChunkIndex * chunkWidth;
+            let end = chunkEnd;
+            if (chunkEnd > idsLength) {
+                end = this.parseToInt (idsLength);
             }
             const orderItems: Dict[] = [];
-            for (let i = start; i < end; i++) {
-                orderItems.push ({ 'orderId': ids[i] });
+            const chunkIds = this.arraySlice (ids, start, end);
+            const chunkIdsLength = chunkIds.length;
+            for (let i = 0; i < chunkIdsLength; i++) {
+                orderItems.push ({ 'orderId': chunkIds[i] });
             }
             const request: Dict = { 'orders': orderItems };
             const response = await this.sxbetPrivateDeleteOrdersV3 (this.extend (request, params));
@@ -1185,11 +1189,14 @@ export default class sxbet extends Exchange {
         } else {
             response = await this.sxbetPrivateDeleteOrdersV3All (rest);
         }
-        let result = this.parseSxbetCancelResponse (response);
+        let result: PredictionOrder[] = [];
+        result = this.arrayConcat (result, this.parseSxbetCancelResponse (response));
         // both paths paginate their async submission - keep going on the SAME route while more remain
         let hasMore = this.safeBool (this.safeDict (response, 'data', {}), 'hasMore', false);
-        let guard = 0;
-        while ((hasMore === true) && (guard < 50)) {
+        for (let guard = 0; guard < 50; guard++) {
+            if (!hasMore) {
+                break;
+            }
             let nextResponse = undefined;
             if (isEventScoped) {
                 const nextRequest: Dict = { 'eventId': eventId };
@@ -1199,7 +1206,6 @@ export default class sxbet extends Exchange {
             }
             result = this.arrayConcat (result, this.parseSxbetCancelResponse (nextResponse));
             hasMore = this.safeBool (this.safeDict (nextResponse, 'data', {}), 'hasMore', false);
-            guard = this.sum (guard, 1);
         }
         return result;
     }
@@ -1304,11 +1310,14 @@ export default class sxbet extends Exchange {
      * @returns {int} the limit clamped to at most 100
      */
     clampSxbetPerPage (limit: Int): Int {
-        const maxPerPage = 100;
         if (limit === undefined) {
-            return undefined;
+            return limit;
         }
-        return (limit > maxPerPage) ? maxPerPage : limit;
+        const requested = this.parseToInt (limit);
+        if (requested >= 100) {
+            return 100;
+        }
+        return limit;
     }
 
     /**
@@ -1500,7 +1509,7 @@ export default class sxbet extends Exchange {
         const isMaker = this.safeBool (fill, 'isMaker');
         let takerOrMaker: Str = undefined;
         if (isMaker !== undefined) {
-            takerOrMaker = (isMaker === true) ? 'maker' : 'taker';
+            takerOrMaker = (isMaker) ? 'maker' : 'taker';
         }
         return this.safePredictionTrade ({
             'id': this.safeString (fill, 'id'),
@@ -1685,13 +1694,13 @@ export default class sxbet extends Exchange {
     override async fetchSettlements (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionSettlement[]> {
         this.checkRequiredCredentials ();
         const request: Dict = { 'status': 'SETTLED' };
-        let wantedOutcomeId: Str = undefined;
+        let outcomeObj: NullableDict = undefined;
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
-            const outcomeObj = this.outcome (outcome);
+            outcomeObj = this.outcome (outcome);
             request['marketHash'] = this.safeString (outcomeObj['info'], 'marketHash', '');
-            wantedOutcomeId = this.safeString (outcomeObj, 'outcomeId');
         }
+        const wantedOutcomeId = this.safeString (outcomeObj, 'outcomeId');
         if (since !== undefined) {
             request['startDate'] = this.iso8601 (since);
         }
@@ -1749,10 +1758,7 @@ export default class sxbet extends Exchange {
         const winner = this.safeInteger (settlement, 'outcome');
         const isVoid = (winner === 0);
         const heldNumber = (isBettingOutcomeOne) ? 1 : 2;
-        let won: any = undefined;
-        if ((winner !== undefined) && !isVoid) {
-            won = (winner === heldNumber);
-        }
+        const won = ((winner !== undefined) && !isVoid) ? (winner === heldNumber) : undefined;
         const usdcDecimals = '1000000';
         const stake = Precise.stringDiv (this.safeString (trade, 'totalStake', '0'), usdcDecimals, 6);
         const payout = Precise.stringDiv (this.safeString (settlement, 'settleReturnAmount', '0'), usdcDecimals, 6);
@@ -1772,7 +1778,7 @@ export default class sxbet extends Exchange {
         const timestamp = this.parse8601 (this.safeString (settlement, 'settleDate'));
         let settlePrice: Num = undefined;
         if (won !== undefined) {
-            settlePrice = (won === true) ? 1 : 0;
+            settlePrice = won ? 1 : 0;
         }
         return {
             'info': trade,
@@ -1909,10 +1915,14 @@ export default class sxbet extends Exchange {
         const chunkSize = this.safeInteger (this.options, 'bestOddsBatchSize', 100);
         const chunkCount = this.parseToInt (this.sum (hashesLength, chunkSize - 1) / chunkSize);
         for (let c = 0; c < chunkCount; c++) {
-            const start = c * chunkSize;
-            let end = start + chunkSize;
-            if (end > hashesLength) {
-                end = hashesLength;
+            const chunkIndex = this.parseToInt (c);
+            const chunkWidth = this.parseToInt (chunkSize);
+            const start = chunkIndex * chunkWidth;
+            const nextChunkIndex = chunkIndex + 1;
+            const chunkEnd = nextChunkIndex * chunkWidth;
+            let end = chunkEnd;
+            if (chunkEnd > hashesLength) {
+                end = this.parseToInt (hashesLength);
             }
             const chunk = this.arraySlice (hashesOrder, start, end);
             const rows = await this.fetchSxbetBestOdds (chunk, params);
@@ -2052,17 +2062,13 @@ export default class sxbet extends Exchange {
         let sortedAsks = this.safeList (sides, 'asks', []);
         if (limit !== undefined) {
             const bidsLength = sortedBids.length;
-            let bidsEnd = limit;
-            if (bidsEnd > bidsLength) {
-                bidsEnd = bidsLength;
+            if (limit < bidsLength) {
+                sortedBids = this.arraySlice (sortedBids, 0, limit);
             }
-            sortedBids = this.arraySlice (sortedBids, 0, bidsEnd);
             const asksLength = sortedAsks.length;
-            let asksEnd = limit;
-            if (asksEnd > asksLength) {
-                asksEnd = asksLength;
+            if (limit < asksLength) {
+                sortedAsks = this.arraySlice (sortedAsks, 0, limit);
             }
-            sortedAsks = this.arraySlice (sortedAsks, 0, asksEnd);
         }
         const timestamp = this.milliseconds ();
         return this.safePredictionOrderBook ({
@@ -2119,6 +2125,12 @@ export default class sxbet extends Exchange {
         };
     }
 
+    setWsOption (group: string, key: string, value: Str | Dict) {
+        const entry: Dict = {};
+        entry[key] = value;
+        this.options[group] = this.extend (this.safeDict (this.options, group, {}), entry);
+    }
+
     requestId (url: Str): number {
         const existing = this.safeValue (this.options, 'requestId');
         if (existing === undefined) {
@@ -2143,12 +2155,8 @@ export default class sxbet extends Exchange {
      * @param {string} subscription the subscription hash registered by watch() ('connect' or the channel name)
      */
     registerSxbetWsRequest (requestId: number, messageHash: string, subscription: string) {
-        const existing = this.safeDict (this.options, 'wsPendingRequests');
-        if (existing === undefined) {
-            this.options['wsPendingRequests'] = this.createSafeDictionary ();
-        }
         const requestIdString = this.numberToString (requestId);
-        this.options['wsPendingRequests'][requestIdString] = { 'messageHash': messageHash, 'subscription': subscription };
+        this.setWsOption ('wsPendingRequests', requestIdString, { 'messageHash': messageHash, 'subscription': subscription });
     }
 
     /**
@@ -2205,25 +2213,25 @@ export default class sxbet extends Exchange {
         return await this.watch (url, messageHash, subscribeMsg, channel);
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleTextMessage (client: Client, message: string) {
+        const lines = message.split ('\n');
+        const linesLength = lines.length;
+        for (let i = 0; i < linesLength; i++) {
+            const line = lines[i];
+            if (line.length > 0) {
+                const parsed = JSON.parse (line);
+                this.handleCentrifugoFrame (client, parsed);
+            }
+        }
+    }
+
+    override handleMessage (client: Client, message: Dict) {
         // Centrifugo packs several commands per frame joined by newlines; a multi-command frame fails the
         // base JSON.parse and arrives here in raw-string form, a single command arrives already parsed
-        if (typeof message === 'string') {
-            const lines = message.split ('\n');
-            const linesLength = lines.length;
-            for (let i = 0; i < linesLength; i++) {
-                const line = lines[i];
-                if (line.length > 0) {
-                    const parsed = JSON.parse (line);
-                    this.handleCentrifugoFrame (client, parsed);
-                }
-            }
-            return;
-        }
         this.handleCentrifugoFrame (client, message);
     }
 
-    handleCentrifugoFrame (client: Client, msg: any) {
+    handleCentrifugoFrame (client: Client, msg: Dict) {
         const keys = Object.keys (msg);
         const keysLength = keys.length;
         if (keysLength === 0) {
@@ -2319,8 +2327,8 @@ export default class sxbet extends Exchange {
     override async watchOrderBook (outcome: string, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrderBook> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
-        const sym = this.safeString (outcomeObj, 'outcome');
-        const marketHash = this.safeString (outcomeObj['info'], 'marketHash');
+        const sym = this.safeString (outcomeObj, 'outcome', '');
+        const marketHash = this.safeString (outcomeObj['info'], 'marketHash', '');
         const channel = 'orderbook_v3:' + marketHash;
         const messageHash = 'orderbook::' + sym;
         const url = this.safeString (this.urls['api'] as Dict, 'ws');
@@ -2329,11 +2337,7 @@ export default class sxbet extends Exchange {
         const isNewSubscription = this.safeValue (client.subscriptions, channel) === undefined;
         if (this.safeValue (this.orderbooks, sym) === undefined) {
             // seed from the REST snapshot so the book is served before the first publication
-            const watchedBooks = this.safeDict (this.options, 'wsWatchedBooks');
-            if (watchedBooks === undefined) {
-                this.options['wsWatchedBooks'] = this.createSafeDictionary ();
-            }
-            this.options['wsWatchedBooks'][sym as string] = marketHash;
+            this.setWsOption ('wsWatchedBooks', sym, marketHash);
             const snapshot = await this.fetchSxbetBookSnapshot (marketHash);
             this.applySxbetWsSnapshot (snapshot);
             if (this.safeValue (this.orderbooks, sym) === undefined) {
@@ -2368,16 +2372,12 @@ export default class sxbet extends Exchange {
         if (marketHash === undefined) {
             return refreshed;
         }
-        const versionsAll = this.safeDict (this.options, 'wsBookVersions');
-        if (versionsAll === undefined) {
-            this.options['wsBookVersions'] = this.createSafeDictionary ();
-        }
-        const held = this.safeString (this.options['wsBookVersions'], marketHash, '');
+        const held = this.safeString (this.safeDict (this.options, 'wsBookVersions', {}), marketHash, '');
         // versions are fixed-width numeric strings - replace only on a strictly newer publication
         if ((held !== '') && (version <= held)) {
             return refreshed;
         }
-        this.options['wsBookVersions'][marketHash] = version;
+        this.setWsOption ('wsBookVersions', marketHash, version);
         const watchedBooks = this.safeDict (this.options, 'wsWatchedBooks', {});
         const watchedSyms = Object.keys (watchedBooks);
         const timestamp = this.milliseconds ();
@@ -2441,27 +2441,23 @@ export default class sxbet extends Exchange {
     override async watchTicker (outcome: string, params: Dict = {}): Promise<PredictionTicker> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
-        const sym = this.safeString (outcomeObj, 'outcome');
+        const sym = this.safeString (outcomeObj, 'outcome', '');
         const marketHash = this.safeString (outcomeObj['info'], 'marketHash');
         const messageHash = 'ticker::' + sym;
-        const watchedTickers = this.safeDict (this.options, 'wsWatchedTickers');
-        if (watchedTickers === undefined) {
-            this.options['wsWatchedTickers'] = this.createSafeDictionary ();
-        }
-        this.options['wsWatchedTickers'][sym as string] = marketHash;
+        this.setWsOption ('wsWatchedTickers', sym, marketHash);
         const url = this.safeString (this.urls['api'] as Dict, 'ws');
         await this.connectSxbetCentrifugo (url);
         const client = this.client (url);
         const channel = 'best_odds_v3:global';
         let hydrated = false;
-        if (this.safeValue (this.tickers, sym) === undefined) {
+        if (this.safeDict (this.safeDict (this.options, 'wsTickers', {}), sym) === undefined) {
             // hydrate from the REST snapshot so the first call does not hang until the
             // market's next top-of-book change - the channel is global, so the seed must fire
             // for every newly watched market, not only on a fresh subscription
             const snapshot = await this.fetchSxbetBookSnapshot (marketHash);
             const raw = this.parseSxbetSnapshotBestOdds (snapshot);
             const ticker = this.parsePredictionTicker (raw, outcomeObj as any);
-            this.tickers[sym as string] = ticker as any;
+            this.setWsOption ('wsTickers', sym, ticker as any);
             hydrated = true;
         }
         const requestId = this.requestId (url);
@@ -2469,7 +2465,7 @@ export default class sxbet extends Exchange {
         const subscribeMsg: Dict = { 'subscribe': { 'channel': channel }, 'id': requestId };
         const future = this.watch (url, messageHash, subscribeMsg, channel);
         if (hydrated) {
-            client.resolve (this.safeValue (this.tickers, sym), messageHash);
+            client.resolve (this.safeDict (this.safeDict (this.options, 'wsTickers', {}), sym), messageHash);
         }
         const tickerResult = await future;
         return tickerResult as PredictionTicker;
@@ -2509,7 +2505,7 @@ export default class sxbet extends Exchange {
                 }
                 const outcomeObj = this.outcome (sym) as any;
                 const ticker = this.parsePredictionTicker (raw, outcomeObj);
-                this.tickers[sym] = ticker as any;
+                this.setWsOption ('wsTickers', sym, ticker as any);
                 client.resolve (ticker, 'ticker::' + sym);
             }
         }
@@ -2529,7 +2525,7 @@ export default class sxbet extends Exchange {
     override async watchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
-        const sym = this.safeString (outcomeObj, 'outcome');
+        const sym = this.safeString (outcomeObj, 'outcome', '');
         const messageHash = 'trades::' + sym;
         const trades = await this.subscribeSxbetChannel (messageHash, 'recent_trades_v3:global');
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true) as PredictionTrade[];
@@ -2588,7 +2584,8 @@ export default class sxbet extends Exchange {
         //
         const rowsLength = rows.length;
         for (let i = 0; i < rowsLength; i++) {
-            const row = this.safeDict (rows[i], 'trade', rows[i]);
+            const rawRow = rows[i];
+            const row = this.safeDict (rawRow, 'trade', rawRow);
             const trade = this.parseSxbetV3PublicTrade (row);
             const sym = this.safeString (trade, 'outcome');
             if (sym === undefined) {
@@ -2627,7 +2624,7 @@ export default class sxbet extends Exchange {
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
             const outcomeObj = this.outcome (outcome);
-            const sym = this.safeString (outcomeObj, 'outcome');
+            const sym = this.safeString (outcomeObj, 'outcome', '');
             messageHash = 'myTrades::' + sym;
         }
         const channel = 'account:fills_v3_#' + this.walletAddress;
@@ -2641,7 +2638,8 @@ export default class sxbet extends Exchange {
         //
         const rowsLength = rows.length;
         for (let i = 0; i < rowsLength; i++) {
-            const row = this.safeDict (rows[i], 'fill', rows[i]);
+            const rawRow = rows[i];
+            const row = this.safeDict (rawRow, 'fill', rawRow);
             const trade = this.parseSxbetV3Fill (row);
             const sym = this.safeString (trade, 'outcome');
             if (sym === undefined) {
@@ -2677,7 +2675,7 @@ export default class sxbet extends Exchange {
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
             const outcomeObj = this.outcome (outcome);
-            const sym = this.safeString (outcomeObj, 'outcome');
+            const sym = this.safeString (outcomeObj, 'outcome', '');
             messageHash = 'orders::' + sym;
         }
         const channel = 'account:orders_v3_#' + this.walletAddress;
@@ -2691,7 +2689,8 @@ export default class sxbet extends Exchange {
         //
         const rowsLength = rows.length;
         for (let i = 0; i < rowsLength; i++) {
-            const row = this.safeDict (rows[i], 'order', rows[i]);
+            const rawRow = rows[i];
+            const row = this.safeDict (rawRow, 'order', rawRow);
             const order = this.parsePredictionOrder (row);
             if (this.orders === undefined) {
                 const cacheLimit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -2707,7 +2706,7 @@ export default class sxbet extends Exchange {
         }
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         // sx.bet returns { "error": "Bad Request", "message": <code or [strings]>, "statusCode": 4xx };
         // map the known codes to ccxt errors so callers can distinguish a rejected order or a
         // validation problem from a transport outage (the base otherwise maps a bare 4xx to the
@@ -2743,16 +2742,14 @@ export default class sxbet extends Exchange {
      * @name sxbet#sign
      * @description builds the request url and attaches the x-sx-api-key header; every private v3 route authenticates with the apiKey credential, so its absence fails fast instead of surfacing a raw 401
      * @param {string} path the endpoint path
-     * @param {string|string[]} api the api group and access level
+     * @param {string[]} api the api group and access level
      * @param {string} method the http method
      * @param {object} params the request parameters
-     * @param {object} [headers] request headers
-     * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    override sign (path: string, api: any = 'sxbet', method = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined) {
-        const apiGroup: string = typeof api === 'string' ? api : api[0];
-        const accessLevel: string = typeof api === 'string' ? 'public' : api[1];
+    override sign (path: string, api: string[] = [ 'sxbet' ], method: string = 'GET', params: Dict = {}) {
+        const apiGroup: string = api[0];
+        const accessLevel: string = api[1];
         if ((accessLevel === 'private') && (this.apiKey === undefined)) {
             throw new AuthenticationError (this.id + ' ' + path + ' is a private endpoint and requires the apiKey credential (the x-sx-api-key header)');
         }
@@ -2760,7 +2757,7 @@ export default class sxbet extends Exchange {
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['sxbet'] as string);
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        const existingHeaders = (headers !== undefined) ? headers : {};
+        const existingHeaders = {};
         const headersExtended: any = this.extend ({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
@@ -2772,19 +2769,16 @@ export default class sxbet extends Exchange {
         // /orders-v3/all and /orders-v3/event - take query parameters, like every GET
         let sendAsQuery = (method === 'GET');
         if (method === 'DELETE') {
-            const hasOrdersList = ('orders' in query);
-            sendAsQuery = !hasOrdersList;
+            sendAsQuery = !('orders' in query);
         }
-        let bodyValue: any = body;
+        let bodyValue: any = undefined;
         if (sendAsQuery) {
             const querystring = this.urlencode (query);
             if (querystring !== '') {
                 url += '?' + querystring;
             }
         } else {
-            const queryKeys = Object.keys (query);
-            const queryKeysLength = queryKeys.length;
-            if (queryKeysLength > 0) {
+            if (Object.keys (query).length > 0) {
                 bodyValue = this.json (query);
             }
         }

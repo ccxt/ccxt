@@ -5,7 +5,7 @@ import type { IndexType, Balances, Currency, CurrencyInterface, Int, List, Marke
  * @augments Exchange
  */
 export default class ndax extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name ndax#fetchStatus
@@ -112,7 +112,7 @@ export default class ndax extends Exchange {
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     fetchAccounts(params?: Dict): Promise<Account[]>;
-    parseBalance(response: any): Balances;
+    parseBalanceList(response: Dict[]): Balances;
     /**
      * @method
      * @name ndax#fetchBalance
@@ -136,7 +136,7 @@ export default class ndax extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
-    parseOrderStatus(status: Str): string | undefined;
+    parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -294,7 +294,7 @@ export default class ndax extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
-    parseTransactionStatusByType(status?: Str, type?: Str): string | undefined;
+    parseTransactionStatusByType(status?: Str, type?: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
      * @method
@@ -303,12 +303,12 @@ export default class ndax extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
-    nonce(): number;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
+    nonce(): int;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

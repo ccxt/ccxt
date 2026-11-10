@@ -5,8 +5,8 @@ import type { Balances, Dict, int, Int, Market, Num, OrderBook, OrderSide, Order
  * @augments Exchange
  */
 export default class coinspot extends Exchange {
-    describe(): any;
-    parseBalance(response: any): Balances;
+    describe(): Dict;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name coinspot#fetchBalance
@@ -99,7 +99,7 @@ export default class coinspot extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    nonce(): number;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    nonce(): int;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
 }

@@ -40,11 +40,11 @@ public partial class testMainClass : BaseTest
         for (int i = 0; i < (marketTypes?.Count ?? 0); i++)
         {
             string? mType = ((string)marketTypes[i]);
-            if (!isEqual(getValue(exchange.has, mType), null) && !isEqual(getValue(exchange.has, mType), false))
+            if (!(getValue(exchange.has, mType) == null) && !(getValue(exchange.has, mType) is false))
             {
                 bool skipMarketTypes = (inOp(skippedProperties, "optionsNotLoadedByDefault")) && mType == "option";
                 assert(isTrue(exchange.inArray(mType, collectedTypes)) || skipMarketTypes, (((("exchange.has[" + mType) + "] is true, but no markets of type ") + mType) + " were found in exchange.markets"));
-            } else if (isEqual(getValue(exchange.has, mType), false))
+            } else if ((getValue(exchange.has, mType) is false))
             {
                 // some exchanges might have a couple of markets of a certain type loaded even though 'has[type]' is
                 // marked as false (e.g. a legacy/edge-case market); such known exceptions can be whitelisted per-exchange

@@ -20,15 +20,15 @@ public final class MarketInterface extends TypedMap {
     public Boolean active;
     public String type;
     public String subType;
-    public Boolean spot;
+    public boolean spot;
     public Boolean margin;
-    public Boolean swap;
-    public Boolean future;
-    public Boolean option;
+    public boolean swap;
+    public boolean future;
+    public boolean option;
     public Boolean index;
     public Boolean stock;
     public Boolean prediction;
-    public Boolean contract;
+    public boolean contract;
     public String settle;
     public String settleId;
     public Double contractSize;
@@ -48,7 +48,17 @@ public final class MarketInterface extends TypedMap {
     public MarketMarginModes marginModes;
     public Limits limits;
     public Long created;
+    public String baseName;
+    public String id2;
+    public Long instIdCode;
+    public Map<String, Object> tiers;
     public List<PredictionOutcome> outcomes;
+    public String market;
+    public String marketType;
+    public String executionModel;
+    public String collateral;
+    public Boolean resolved;
+    public String resolvedOutcome;
     public Map<String, Object> info;
 
     @SuppressWarnings("unchecked")
@@ -67,15 +77,15 @@ public final class MarketInterface extends TypedMap {
         this.active = TypeHelper.safeBool(data, "active");
         this.type = TypeHelper.safeString(data, "type");
         this.subType = TypeHelper.safeString(data, "subType");
-        this.spot = TypeHelper.safeBool(data, "spot");
+        this.spot = Boolean.TRUE.equals(TypeHelper.safeBool(data, "spot"));
         this.margin = TypeHelper.safeBool(data, "margin");
-        this.swap = TypeHelper.safeBool(data, "swap");
-        this.future = TypeHelper.safeBool(data, "future");
-        this.option = TypeHelper.safeBool(data, "option");
+        this.swap = Boolean.TRUE.equals(TypeHelper.safeBool(data, "swap"));
+        this.future = Boolean.TRUE.equals(TypeHelper.safeBool(data, "future"));
+        this.option = Boolean.TRUE.equals(TypeHelper.safeBool(data, "option"));
         this.index = TypeHelper.safeBool(data, "index");
         this.stock = TypeHelper.safeBool(data, "stock");
         this.prediction = TypeHelper.safeBool(data, "prediction");
-        this.contract = TypeHelper.safeBool(data, "contract");
+        this.contract = Boolean.TRUE.equals(TypeHelper.safeBool(data, "contract"));
         this.settle = TypeHelper.safeString(data, "settle");
         this.settleId = TypeHelper.safeString(data, "settleId");
         this.contractSize = TypeHelper.safeFloat(data, "contractSize");
@@ -98,10 +108,21 @@ public final class MarketInterface extends TypedMap {
         Object limitsRaw = TypeHelper.safeValue(data, "limits");
         this.limits = limitsRaw != null ? new Limits(limitsRaw) : null;
         this.created = TypeHelper.safeInteger(data, "created");
+        this.baseName = TypeHelper.safeString(data, "baseName");
+        this.id2 = TypeHelper.safeString(data, "id2");
+        this.instIdCode = TypeHelper.safeInteger(data, "instIdCode");
+        Object tiersRaw = TypeHelper.safeValue(data, "tiers");
+        this.tiers = tiersRaw instanceof Map ? (Map<String, Object>) tiersRaw : null;
         Object outcomesRaw = TypeHelper.safeValue(data, "outcomes");
         if (outcomesRaw instanceof List<?> outcomesList) {
             this.outcomes = ((List<Object>) outcomesList).stream().map(PredictionOutcome::new).collect(Collectors.toList());
         }
+        this.market = TypeHelper.safeString(data, "market");
+        this.marketType = TypeHelper.safeString(data, "marketType");
+        this.executionModel = TypeHelper.safeString(data, "executionModel");
+        this.collateral = TypeHelper.safeString(data, "collateral");
+        this.resolved = TypeHelper.safeBool(data, "resolved");
+        this.resolvedOutcome = TypeHelper.safeString(data, "resolvedOutcome");
         this.info = TypeHelper.getInfo(data);
     }
 }

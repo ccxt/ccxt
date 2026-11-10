@@ -31,7 +31,7 @@ from ccxt.base.precise import Precise
 
 class luno(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(luno, self).describe(), {
             'id': 'luno',
             'name': 'Luno',
@@ -497,7 +497,7 @@ class luno(Exchange, ImplicitAPI):
         return self.parse_currencies(values)
 
     def parse_currency(self, rawCurrency: list[dict]) -> CurrencyInterface:
-        id = self.safe_string(rawCurrency[0], 'native_currency')  # first item is guaranteed
+        id = self.safe_string(self.safe_dict(rawCurrency, 0), 'native_currency')  # first item is guaranteed
         code = self.safe_currency_code(id)
         networks = {}
         for i in range(0, len(rawCurrency)):
@@ -692,7 +692,7 @@ class luno(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         wallets = self.safe_list(response, 'balance', [])
         result = {
             'info': response,
@@ -709,8 +709,10 @@ class luno(Exchange, ImplicitAPI):
             reservedUnconfirmed = Precise.string_add(reserved, unconfirmed)
             balanceUnconfirmed = Precise.string_add(balance, unconfirmed)
             if (code is not None) and (code in result):
-                result[code]['used'] = Precise.string_add(result[code]['used'], reservedUnconfirmed)
-                result[code]['total'] = Precise.string_add(result[code]['total'], balanceUnconfirmed)
+                result[code] = self.extend(result[code], {
+                    'used': Precise.string_add(self.safe_string(result[code], 'used'), reservedUnconfirmed),
+                    'total': Precise.string_add(self.safe_string(result[code], 'total'), balanceUnconfirmed),
+                })
             elif code is not None:
                 account = self.account()
                 account['used'] = reservedUnconfirmed
@@ -768,7 +770,7 @@ class luno(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(response, 'timestamp')
         return self.parse_order_book(response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume')
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             # todo add other statuses
             'PENDING': 'open',
@@ -795,7 +797,6 @@ class luno(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(order, 'creation_timestamp')
         status = self.parse_order_status(self.safe_string(order, 'state'))
-        status = status if (status == 'open') else status
         side = None
         orderType = self.safe_string(order, 'type')
         if (orderType == 'ASK') or (orderType == 'SELL'):
@@ -1316,9 +1317,10 @@ class luno(Exchange, ImplicitAPI):
             response = await self.privatePostPostorder(self.extend(request, params))
         if response is None:
             raise NullResponse(self.id + ' createOrder() returned empty response')
+        orderId = self.safe_string(response, 'order_id')
         return self.safe_order({
             'info': response,
-            'id': response['order_id'],
+            'id': orderId,
         }, market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
@@ -1375,8 +1377,8 @@ class luno(Exchange, ImplicitAPI):
         await self.load_accounts()
         currency = None
         id = self.safe_string(params, 'id')  # account id
-        min_row = self.safe_value(params, 'min_row')
-        max_row = self.safe_value(params, 'max_row')
+        minRowParam = self.safe_integer(params, 'min_row')
+        maxRowParam = self.safe_integer(params, 'max_row')
         if id is None:
             if code is None:
                 raise ArgumentsRequired(self.id + ' fetchLedger() requires a currency code argument if no account id specified in params')
@@ -1386,17 +1388,17 @@ class luno(Exchange, ImplicitAPI):
             if account is None:
                 raise ExchangeError(self.id + ' fetchLedger() could not find account id for ' + code)
             id = self.safe_string(account, 'id')
-        if min_row is None and max_row is None:
-            max_row = 0  # Default to most recent transactions
-            min_row = -1000  # Maximum number of records supported
-        elif min_row is None or max_row is None:
+        if (minRowParam is None or maxRowParam is None) and (minRowParam is not None or maxRowParam is not None):
             raise ExchangeError(self.id + " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined")
-        if limit is not None and max_row - min_row > limit:
-            if max_row <= 0:
-                min_row = max_row - limit
-            elif min_row > 0:
-                max_row = min_row + limit
-        if max_row - min_row > 1000:
+        maxRowBase = self.safe_integer(params, 'max_row', 0)  # Default to most recent transactions
+        minRowBase = self.safe_integer(params, 'min_row', -1000)  # Maximum number of records supported
+        limitApplies = (limit is not None) and (maxRowBase - minRowBase > limit)
+        min_row = maxRowBase - limit if (limitApplies and (limit is not None) and maxRowBase <= 0) else minRowBase
+        max_row = maxRowBase
+        if limitApplies and maxRowBase > 0 and minRowBase > 0:
+            max_row = minRowBase + limit
+        limitAdjusts = limitApplies and (maxRowBase <= 0 or minRowBase > 0)  # max_row - min_row becomes limit
+        if (limitAdjusts and limit > 1000) or (not limitAdjusts and maxRowBase - minRowBase > 1000):
             raise ExchangeError(self.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")
         request = {
             'id': id,
@@ -1407,7 +1409,7 @@ class luno(Exchange, ImplicitAPI):
         entries = self.safe_list(response, 'transactions', [])
         return self.parse_ledger(entries, currency, since, limit)
 
-    def parse_ledger_comment(self, comment: object):
+    def parse_ledger_comment(self, comment: str) -> dict:
         words = comment.split(' ')
         types = {
             'Withdrawal': 'fee',
@@ -1447,12 +1449,12 @@ class luno(Exchange, ImplicitAPI):
         available_delta = self.safe_string(entry, 'available_delta')
         balance_delta = self.safe_string(entry, 'balance_delta')
         after = self.safe_string(entry, 'balance')
-        comment = self.safe_string(entry, 'description')
+        comment = self.safe_string(entry, 'description', '')
         before = after
         amount = '0.0'
         result = self.parse_ledger_comment(comment)
-        type = result['type']
-        referenceId = result['referenceId']
+        resultType = self.safe_string(result, 'type')
+        resultReferenceId = self.safe_string(result, 'referenceId')
         direction = None
         status = None
         if not Precise.string_equals(balance_delta, '0.0'):
@@ -1474,9 +1476,9 @@ class luno(Exchange, ImplicitAPI):
             'id': id,
             'direction': direction,
             'account': account_id,
-            'referenceId': referenceId,
+            'referenceId': resultReferenceId,
             'referenceAccount': None,
-            'type': type,
+            'type': resultType,
             'currency': code,
             'amount': self.parse_to_numeric(amount),
             'timestamp': timestamp,
@@ -1628,12 +1630,15 @@ class luno(Exchange, ImplicitAPI):
         #     }
         #
         result = self.deposit_withdraw_fee(response)
-        result['withdraw']['fee'] = self.safe_number(response, 'fee')
-        result['withdraw']['percentage'] = False
+        result['withdraw'] = {
+            'fee': self.safe_number(response, 'fee'),
+            'percentage': False,
+        }
         return self.assign_default_deposit_withdraw_fees(result, currency)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        apiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + self.version + '/' + self.implode_params(path, params)
@@ -1641,16 +1646,16 @@ class luno(Exchange, ImplicitAPI):
         requestHeaders = None
         if len(query) > 0:
             url += '?' + self.urlencode(query)
-        if (api == 'private') or (api == 'exchangePrivate'):
+        if (apiName == 'private') or (apiName == 'exchangePrivate'):
             self.check_required_credentials()
             auth = self.string_to_base64(self.apiKey + ':' + self.secret)
             requestHeaders = {
                 'Authorization': 'Basic ' + auth,
             }
-        headersResolved = headers if (requestHeaders is None) else requestHeaders
-        return {'url': url, 'method': method, 'body': body, 'headers': headersResolved}
+        headersResolved = requestHeaders
+        return {'url': url, 'method': method, 'body': None, 'headers': headersResolved}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
         error = self.safe_value(response, 'error')

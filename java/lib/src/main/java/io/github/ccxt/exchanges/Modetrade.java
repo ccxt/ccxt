@@ -16,10 +16,15 @@ import io.github.ccxt.types.LedgerEntry;
 import io.github.ccxt.types.Leverage;
 import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
+import io.github.ccxt.types.OpenInterest;
+import io.github.ccxt.types.OpenInterests;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Status;
+import io.github.ccxt.types.Ticker;
+import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
 import io.github.ccxt.types.TradingFees;
 import io.github.ccxt.types.Transaction;
@@ -41,7 +46,7 @@ public class Modetrade extends ModetradeApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "modetrade" );
@@ -111,7 +116,9 @@ public class Modetrade extends ModetradeApi
                 put( "fetchMarkOHLCV", false );
                 put( "fetchMyTrades", true );
                 put( "fetchOHLCV", true );
+                put( "fetchOpenInterest", true );
                 put( "fetchOpenInterestHistory", false );
+                put( "fetchOpenInterests", true );
                 put( "fetchOpenOrder", false );
                 put( "fetchOpenOrders", true );
                 put( "fetchOrder", true );
@@ -123,8 +130,8 @@ public class Modetrade extends ModetradeApi
                 put( "fetchPositions", true );
                 put( "fetchPremiumIndexOHLCV", false );
                 put( "fetchStatus", true );
-                put( "fetchTicker", false );
-                put( "fetchTickers", false );
+                put( "fetchTicker", true );
+                put( "fetchTickers", true );
                 put( "fetchTime", true );
                 put( "fetchTrades", true );
                 put( "fetchTradingFee", false );
@@ -767,7 +774,7 @@ public class Modetrade extends ModetradeApi
     public void setSandboxMode(Boolean enable)
     {
         super.setSandboxMode(enable);
-        Helpers.addElementToObject(this.options, "sandboxMode", enable);
+        this.options.put("sandboxMode", enable);
     }
 
     /**
@@ -853,6 +860,7 @@ public class Modetrade extends ModetradeApi
         //
         //   {
         //     "symbol": "PERP_BTC_USDC",
+        //     "status": "ACTIVE",
         //     "quote_min": 123,
         //     "quote_max": 100000,
         //     "quote_tick": 0.1,
@@ -878,18 +886,24 @@ public class Modetrade extends ModetradeApi
         //   }
         //
         String marketId = this.safeString(market, "symbol", "");
+        String status = this.safeString(market, "status");
+        Boolean active = null;
+        if (!java.util.Objects.equals(status, null))
+        {
+            active = (java.util.Objects.equals(status, "ACTIVE"));
+        }
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("_"))));
         String marketType = "swap";
         String baseId = this.safeString(parts, 1);
         String quoteId = this.safeString(parts, 2);
         String base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
         String quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
-        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
+        String settleId = this.safeString(parts, 2);
+        String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
+        if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)) || (java.util.Objects.equals(settle, null)))
         {
             return null;
         }
-        String settleId = this.safeString(parts, 2);
-        String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
         String symbol = ((((base + "/") + quote) + ":") + settle);
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("id", marketId);
@@ -906,7 +920,7 @@ public class Modetrade extends ModetradeApi
         mapLiteral1.put("swap", true);
         mapLiteral1.put("future", false);
         mapLiteral1.put("option", false);
-        mapLiteral1.put("active", null);
+        mapLiteral1.put("active", active);
         mapLiteral1.put("contract", true);
         mapLiteral1.put("linear", true);
         mapLiteral1.put("inverse", false);
@@ -964,6 +978,7 @@ public class Modetrade extends ModetradeApi
             //       "rows": [
             //         {
             //           "symbol": "PERP_BTC_USDC",
+            //           "status": "ACTIVE",
             //           "quote_min": 123,
             //           "quote_max": 100000,
             //           "quote_tick": 0.1,
@@ -1053,7 +1068,7 @@ public class Modetrade extends ModetradeApi
             Object network = (networks == null || j < 0 || j >= networks.size() ? null : networks.get(j));
             // TODO: transform chain id to human readable name
             String networkId = this.safeString(network, "chain_id", "");
-            Object precision = this.parsePrecision(this.safeString(network, "decimals"));
+            String precision = (String) this.parsePrecision(this.safeString(network, "decimals"));
             if (!java.util.Objects.equals(precision, null))
             {
                 minPrecision = (((java.util.Objects.equals(minPrecision, null)))) ? precision : Precise.stringMin(precision, minPrecision);
@@ -1103,7 +1118,7 @@ public class Modetrade extends ModetradeApi
         return this.safeCurrencyStructure(mapLiteral3);
     }
 
-    public Object parseTokenAndFeeTemp(Map<String, Object> item, Object feeTokenKey, Object feeAmountKey)
+    public Object parseTokenAndFeeTemp(Map<String, Object> item, String feeTokenKey, String feeAmountKey)
     {
         String feeCost = this.safeString(item, feeAmountKey);
         Map<String, Object> fee = null;
@@ -1111,10 +1126,12 @@ public class Modetrade extends ModetradeApi
         {
             String feeCurrencyId = this.safeString(item, feeTokenKey);
             String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
-            fee = Helpers.newMap(
-                "cost", feeCost,
-                "currency", feeCurrencyCode
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCost);
+                hx4NewMap0.put("currency", feeCurrencyCode);
+                fee = hx4NewMap0;
+            }
         }
         return fee;
     }
@@ -1148,7 +1165,8 @@ public class Modetrade extends ModetradeApi
         //         "is_maker": "1"
         //     }
         //
-        Boolean isFromFetchOrder = (((Map<?, ?>)trade).containsKey("id"));
+        String id = this.safeString(trade, "id");
+        Boolean isFromFetchOrder = !java.util.Objects.equals(id, null);
         Long timestamp = this.safeInteger(trade, "executed_timestamp");
         String marketId = this.safeString(trade, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
@@ -1157,14 +1175,8 @@ public class Modetrade extends ModetradeApi
         String amount = this.safeString(trade, "executed_quantity");
         String order_id = this.safeString(trade, "order_id");
         Object fee = this.parseTokenAndFeeTemp((Map<String, Object>) (trade), "fee_asset", "fee");
-        String feeCost = this.safeString(fee, "cost");
-        if ((!java.util.Objects.equals(feeCost, null)) && (!java.util.Objects.equals(fee, null)))
-        {
-            Helpers.addElementToObject(fee, "cost", feeCost);
-        }
         String cost = Precise.stringMul(price, amount);
         String side = this.safeStringLower(trade, "side");
-        String id = this.safeString(trade, "id");
         String takerOrMaker = null;
         if (Boolean.TRUE.equals(isFromFetchOrder))
         {
@@ -1260,7 +1272,7 @@ public class Modetrade extends ModetradeApi
         String fundingTimeString = this.safeString(fundingRate, "last_funding_rate_timestamp");
         String nextFundingTimeString = this.safeString(fundingRate, "next_funding_time");
         String millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
-        Object fundingSymbol = (((!java.util.Objects.equals(marketValue, null)))) ? ((Map<String, Object>)marketValue).get("symbol") : null;
+        String fundingSymbol = this.safeString(marketValue, "symbol");
         return new HashMap<String, Object>() {{
             put( "info", fundingRate );
             put( "symbol", fundingSymbol );
@@ -1424,7 +1436,7 @@ public class Modetrade extends ModetradeApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -1443,7 +1455,7 @@ public class Modetrade extends ModetradeApi
             {
                 request.put("start_t", since);
             }
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_t", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 0.001);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_t", request, (Map<String, Object>) (paramsPaginate), 0.001);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.v1PublicGetPublicFundingRateHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -1482,9 +1494,264 @@ public class Modetrade extends ModetradeApi
                     put( "datetime", Modetrade.this.iso8601(timestamp) );
                 }});
             }
-            List<Object> sorted = this.sortBy(rates, "timestamp");
-            return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit, false);
+            return this.filterBySymbolSinceLimit(this.sortBy(rates, "timestamp"), symbolResolved, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(FundingRateHistory::new).collect(Collectors.toList()));
+
+    }
+
+    public Ticker parseTicker(Object ticker, Map<String, Object> market)
+    {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "display_symbol_name": "BTC",
+        //         "broker_id": null,
+        //         "status": "ACTIVE",
+        //         "index_price": 81559.8,
+        //         "mark_price": 81542.2,
+        //         "sum_unitary_funding": 27744.3,
+        //         "est_funding_rate": 0.00008318,
+        //         "last_funding_rate": 0.0000394,
+        //         "next_funding_time": 1792281600000,
+        //         "open_interest": 42.65602,
+        //         "is_pretge": false,
+        //         "24h_open": 81606.8,
+        //         "24h_close": 81518.1,
+        //         "24h_high": 81706.7,
+        //         "24h_low": 81069.9,
+        //         "24h_volume": 65.48965,
+        //         "24h_amount": 5333323.390584
+        //     }
+        //
+        String marketId = this.safeString(ticker, "symbol");
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Long timestamp = this.safeInteger(ticker, "timestamp");
+        return this.safeTicker(new HashMap<String, Object>() {{
+            put( "symbol", marketResolved.get("symbol") );
+            put( "timestamp", timestamp );
+            put( "datetime", Modetrade.this.iso8601(timestamp) );
+            put( "high", Modetrade.this.safeString(ticker, "24h_high") );
+            put( "low", Modetrade.this.safeString(ticker, "24h_low") );
+            put( "bid", null );
+            put( "bidVolume", null );
+            put( "ask", null );
+            put( "askVolume", null );
+            put( "vwap", null );
+            put( "open", Modetrade.this.safeString(ticker, "24h_open") );
+            put( "close", Modetrade.this.safeString(ticker, "24h_close") );
+            put( "last", Modetrade.this.safeString(ticker, "24h_close") );
+            put( "previousClose", null );
+            put( "change", null );
+            put( "percentage", null );
+            put( "average", null );
+            put( "baseVolume", Modetrade.this.safeString(ticker, "24h_volume") );
+            put( "quoteVolume", Modetrade.this.safeString(ticker, "24h_amount") );
+            put( "indexPrice", Modetrade.this.safeString(ticker, "index_price") );
+            put( "markPrice", Modetrade.this.safeString(ticker, "mark_price") );
+            put( "info", ticker );
+        }}, marketResolved);
+    }
+
+    /**
+     * @method
+     * @name modetrade#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Ticker> fetchTicker(String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "symbol", market.get("id") );
+            }};
+            Map<String, Object> response = (this.v1PublicGetPublicFuturesSymbol(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "success": true,
+            //         "data": {
+            //             "symbol": "PERP_BTC_USDC",
+            //             "24h_close": 81518.1
+            //         },
+            //         "timestamp": 1792270455082
+            //     }
+            //
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Long timestamp = this.safeInteger(response, "timestamp");
+            Map<String, Object> ticker = this.extend(new HashMap<String, Object>() {{
+                put( "timestamp", timestamp );
+            }}, data);
+            return this.parseTicker(ticker, market);
+        }).thenApply(Ticker::new);
+
+    }
+
+    /**
+     * @method
+     * @name modetrade#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> fetchTickers(List<String> symbols, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            Map<String, Object> response = (this.v1PublicGetPublicFutures(parameters)).join();
+            //
+            //     {
+            //         "success": true,
+            //         "data": {
+            //             "rows": [
+            //                 {
+            //                     "symbol": "PERP_BTC_USDC",
+            //                     "24h_close": 81518.1
+            //                 }
+            //             ]
+            //         },
+            //         "timestamp": 1792270455518
+            //     }
+            //
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            Long timestamp = this.safeInteger(response, "timestamp");
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            {
+                Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
+                String marketId = this.safeString(row, "symbol", "");
+                if ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId)))
+                {
+                    continue;
+                }
+                Map<String, Object> ticker = this.extend(new HashMap<String, Object>() {{
+                    put( "timestamp", timestamp );
+                }}, row);
+                ((List<Object>)result).add(this.parseTicker(ticker, (Map<String, Object>) null));
+            }
+            return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
+        }).thenApply(Tickers::new);
+
+    }
+
+    public Object parseOpenInterest(Object interest, Map<String, Object> market)
+    {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 81559.8,
+        //         "mark_price": 81542.2,
+        //         "open_interest": 42.65602,
+        //         "24h_open": 81606.8,
+        //         "24h_close": 81518.1,
+        //         "24h_high": 81706.7,
+        //         "24h_low": 81069.9,
+        //         "24h_volume": 65.48965,
+        //         "24h_amount": 5333323.390584
+        //     }
+        //
+        String marketId = this.safeString(interest, "symbol");
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Long timestamp = this.safeInteger(interest, "timestamp");
+        return this.safeOpenInterest(new HashMap<String, Object>() {{
+            put( "symbol", marketResolved.get("symbol") );
+            put( "openInterestAmount", Modetrade.this.safeNumber(interest, "open_interest", (Object) null) );
+            put( "openInterestValue", null );
+            put( "timestamp", timestamp );
+            put( "datetime", Modetrade.this.iso8601(timestamp) );
+            put( "info", interest );
+        }}, marketResolved);
+    }
+
+    /**
+     * @method
+     * @name modetrade#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    public CompletableFuture<OpenInterest> fetchOpenInterest(String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "symbol", market.get("id") );
+            }};
+            Map<String, Object> response = (this.v1PublicGetPublicFuturesSymbol(this.extend(request, parameters))).join();
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            Long timestamp = this.safeInteger(response, "timestamp");
+            Map<String, Object> interest = this.extend(new HashMap<String, Object>() {{
+                put( "timestamp", timestamp );
+            }}, data);
+            return this.parseOpenInterest(interest, market);
+        }).thenApply(OpenInterest::new);
+
+    }
+
+    /**
+     * @method
+     * @name modetrade#fetchOpenInterests
+     * @description retrieves the open interest for a list of contract trading pairs
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    public CompletableFuture<OpenInterests> fetchOpenInterests(List<String> symbols, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            Map<String, Object> response = (this.v1PublicGetPublicFutures(parameters)).join();
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
+            Long timestamp = this.safeInteger(response, "timestamp");
+            List<Object> result = new ArrayList<Object>(Arrays.asList());
+            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            {
+                Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
+                String marketId = this.safeString(row, "symbol", "");
+                if ((java.util.Objects.equals(this.markets_by_id, null)) || !(((Map<?, ?>)this.markets_by_id).containsKey(marketId)))
+                {
+                    continue;
+                }
+                Map<String, Object> interest = this.extend(new HashMap<String, Object>() {{
+                    put( "timestamp", timestamp );
+                }}, row);
+                ((List<Object>)result).add(this.parseOpenInterest(interest, (Map<String, Object>) null));
+            }
+            return this.indexBy(this.filterByArray(result, "symbol", symbolsNormalized, false), "symbol");
+        }).thenApply(OpenInterests::new);
 
     }
 
@@ -1545,7 +1812,7 @@ public class Modetrade extends ModetradeApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingHistory", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingHistory", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -2001,10 +2268,11 @@ public class Modetrade extends ModetradeApi
         Boolean hasStopLoss = !java.util.Objects.equals(stopLoss, null);
         Boolean hasTakeProfit = !java.util.Objects.equals(takeProfit, null);
         String algoType = this.safeString(parameters, "algoType");
-        Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit) || (!java.util.Objects.equals(this.safeValue(parameters, "childOrders"), null));
+        Object paramsChildOrders = this.safeValue(parameters, "childOrders");
+        Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit) || (!java.util.Objects.equals(paramsChildOrders, null));
         Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
         String timeInForce = this.safeStringLower(parameters, "timeInForce");
-        Boolean postOnly = this.isPostOnly(isMarket, null, parameters);
+        Boolean postOnly = this.isPostOnly(isMarket, (Boolean) (null), parameters);
         String orderQtyKey = "order_quantity";
         if (Boolean.TRUE.equals(isConditional))
         {
@@ -2067,7 +2335,7 @@ public class Modetrade extends ModetradeApi
                 put( "algo_type", "POSITIONAL_TP_SL" );
                 put( "child_orders", new ArrayList<Object>(Arrays.asList()) );
             }};
-            Object childOrders = outterOrder.get("child_orders");
+            List<Object> childOrders = new ArrayList<Object>(Arrays.asList());
             String closeSide = "BUY";
             if (java.util.Objects.equals(orderSide, "BUY"))
             {
@@ -2095,6 +2363,7 @@ public class Modetrade extends ModetradeApi
                 takeProfitOrder.put("reduce_only", true);
                 ((List<Object>)childOrders).add(takeProfitOrder);
             }
+            outterOrder.put("child_orders", childOrders);
             request.put("child_orders", new ArrayList<Object>(Arrays.asList(outterOrder)));
         }
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit")));
@@ -2140,7 +2409,8 @@ public class Modetrade extends ModetradeApi
             String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
             Object stopLoss = this.safeValue(parameters, "stopLoss");
             Object takeProfit = this.safeValue(parameters, "takeProfit");
-            Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLoss, null) || !java.util.Objects.equals(takeProfit, null) || (!java.util.Objects.equals(this.safeValue(parameters, "childOrders"), null));
+            Object childOrders = this.safeValue(parameters, "childOrders");
+            Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLoss, null) || !java.util.Objects.equals(takeProfit, null) || (!java.util.Objects.equals(childOrders, null));
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isConditional))
             {
@@ -2150,7 +2420,7 @@ public class Modetrade extends ModetradeApi
                 response = (this.v1PrivatePostOrder(request)).join();
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(data, "timestamp", this.safeInteger(response, "timestamp"));
+            data.put("timestamp", this.safeInteger(response, "timestamp"));
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(data, market);
             order.put("type", type);
             return order;
@@ -2193,7 +2463,8 @@ public class Modetrade extends ModetradeApi
                 String triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
                 Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(orderParams, "stopLoss", (Object) null);
                 Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(orderParams, "takeProfit", (Object) null);
-                Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLoss, null) || !java.util.Objects.equals(takeProfit, null) || (!java.util.Objects.equals(this.safeValue(orderParams, "childOrders"), null));
+                Object childOrders = this.safeValue(orderParams, "childOrders");
+                Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLoss, null) || !java.util.Objects.equals(takeProfit, null) || (!java.util.Objects.equals(childOrders, null));
                 if (Boolean.TRUE.equals(isConditional))
                 {
                     throw new NotSupported((this.id + " createOrders() only support non-stop order")) ;
@@ -2265,7 +2536,8 @@ public class Modetrade extends ModetradeApi
             {
                 request.put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
             }
-            Boolean isConditional = (!java.util.Objects.equals(triggerPrice, null)) || (!java.util.Objects.equals(this.safeValue(parameters, "childOrders"), null));
+            Object childOrders = this.safeValue(parameters, "childOrders");
+            Boolean isConditional = (!java.util.Objects.equals(triggerPrice, null)) || (!java.util.Objects.equals(childOrders, null));
             String orderQtyKey = "order_quantity";
             if (Boolean.TRUE.equals(isConditional))
             {
@@ -2299,7 +2571,7 @@ public class Modetrade extends ModetradeApi
                 String orderType = ((String)type).toUpperCase();
                 String timeInForce = this.safeStringLower(paramsOmitted, "timeInForce");
                 Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
-                Boolean postOnly = this.isPostOnly(isMarket, null, paramsOmitted);
+                Boolean postOnly = this.isPostOnly(isMarket, (Boolean) (null), paramsOmitted);
                 if (Boolean.TRUE.equals(postOnly))
                 {
                     request.put("order_type", "POST_ONLY");
@@ -2333,7 +2605,7 @@ public class Modetrade extends ModetradeApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(data, "timestamp", this.safeInteger(response, "timestamp"));
+            data.put("timestamp", this.safeInteger(response, "timestamp"));
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -2361,7 +2633,7 @@ public class Modetrade extends ModetradeApi
 
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
-            if ((!java.util.Objects.equals(trigger, true)) && (java.util.Objects.equals(symbol, null)))
+            if ((!Boolean.TRUE.equals(trigger)) && (java.util.Objects.equals(symbol, null)))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
             }
@@ -2381,7 +2653,7 @@ public class Modetrade extends ModetradeApi
             Boolean isByClientOrder = !java.util.Objects.equals(clientOrderIdExchangeSpecific, null);
             Map<String, Object> paramsClientOrder = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(trigger, true))
+            if (Boolean.TRUE.equals(trigger))
             {
                 if (Boolean.TRUE.equals(isByClientOrder))
                 {
@@ -2428,7 +2700,7 @@ public class Modetrade extends ModetradeApi
             {
                 extendParams.put("id", id);
             }
-            if (java.util.Objects.equals(trigger, true))
+            if (Boolean.TRUE.equals(trigger))
             {
                 return this.extend(this.parseOrder(response, (Map<String, Object>) null), extendParams);
             }
@@ -2580,7 +2852,7 @@ public class Modetrade extends ModetradeApi
             String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "clOrdID", "clientOrderId", "client_order_id")));
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(trigger, true))
+            if (Boolean.TRUE.equals(trigger))
             {
                 if (!java.util.Objects.equals(clientOrderId, null) && !java.util.Objects.equals(clientOrderId, ""))
                 {
@@ -2663,8 +2935,8 @@ public class Modetrade extends ModetradeApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
-            Long maxLimit = (((java.util.Objects.equals(isTrigger, true)))) ? 100L : 500L;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrders", "paginate", false);
+            Long maxLimit = ((Boolean.TRUE.equals(isTrigger))) ? 100L : 500L;
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrders", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -2690,15 +2962,15 @@ public class Modetrade extends ModetradeApi
             {
                 request.put("size", maxLimit);
             }
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 request.put("algo_type", "STOP");
             }
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_t", (Map<String, Object>) (request), (Map<String, Object>) (paramsOmitted), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_t", request, paramsOmitted, 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 response = (this.v1PrivateGetAlgoOrders(this.extend(requestUntil, paramsUntil))).join();
             } else
@@ -2894,7 +3166,7 @@ public class Modetrade extends ModetradeApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -2919,7 +3191,7 @@ public class Modetrade extends ModetradeApi
             {
                 request.put("size", 500);
             }
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_t", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_t", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.v1PrivateGetTrades(this.extend(requestUntil, paramsUntil))).join();
@@ -2956,7 +3228,7 @@ public class Modetrade extends ModetradeApi
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -3010,13 +3282,13 @@ public class Modetrade extends ModetradeApi
             //     }
             // }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseBalance(data);
         }).thenApply(Balances::new);
 
     }
 
-    public CompletableFuture<Object> getAssetHistoryRows(String code, Long since, Long limit, Object parameters)
+    public CompletableFuture<Object> getAssetHistoryRows(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3030,7 +3302,7 @@ public class Modetrade extends ModetradeApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency((String) (code));
-                request.put("token", currency.get("id"));
+                request.put("token", this.safeString(currency, "id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -3041,7 +3313,7 @@ public class Modetrade extends ModetradeApi
                 request.put("size", limit);
             }
             String transactionType = this.safeString(parameters, "type");
-            Object paramsOmitted = this.omit(parameters, "type");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "type");
             if (!java.util.Objects.equals(transactionType, null))
             {
                 request.put("type", transactionType);
@@ -3109,10 +3381,12 @@ public class Modetrade extends ModetradeApi
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "currency", code,
-                "cost", feeCost
-            );
+            {
+                HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
+                hx4NewMap1.put("currency", code);
+                hx4NewMap1.put("cost", feeCost);
+                fee = hx4NewMap1;
+            }
         }
         HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
         mapLiteral8.put("id", this.safeString(item, "id"));
@@ -3163,7 +3437,7 @@ public class Modetrade extends ModetradeApi
             Object currencyRows = (this.getAssetHistoryRows(code, since, limit, parameters)).join();
             Object currency = this.safeValue(currencyRows, 0);
             List<Object> rows = (List<Object>) this.safeList(currencyRows, 1, (Object) null);
-            return this.parseLedger(rows, Helpers.toMapArg(currency), since, limit, parameters);
+            return this.parseLedger(rows, ((Map<String, Object>) (switch ((Object) (currency)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })), since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
@@ -3195,10 +3469,12 @@ public class Modetrade extends ModetradeApi
         Map<String, Object> fee = null;
         if (!java.util.Objects.equals(feeCost, null))
         {
-            fee = Helpers.newMap(
-                "currency", code,
-                "cost", feeCost
-            );
+            {
+                HashMap<String, Object> hx4NewMap2 = new HashMap<String, Object>();
+                hx4NewMap2.put("currency", code);
+                hx4NewMap2.put("cost", feeCost);
+                fee = hx4NewMap2;
+            }
         }
         Long timestamp = this.safeInteger(transaction, "created_time");
         {
@@ -3326,7 +3602,7 @@ public class Modetrade extends ModetradeApi
             //     }
             //
             Map<String, Object> paramsOmitted = this.omit(parameters, "side"); // request-side filter, not a unified transaction field
-            return this.parseTransactions(rows, Helpers.toMapArg(currency), since, limit, paramsOmitted);
+            return this.parseTransactions(rows, ((Map<String, Object>) (switch ((Object) (currency)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })), since, limit, paramsOmitted);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -3346,8 +3622,7 @@ public class Modetrade extends ModetradeApi
             //         }
             //     }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.safeNumber(data, "withdraw_nonce", (Object) null);
+            return this.safeNumber(this.safeDict(response, "data", new HashMap<String, Object>() {{}}), "withdraw_nonce", (Object) null);
         }).thenApply(res -> (res instanceof Number n) ? n.doubleValue() : null);
 
     }
@@ -3357,18 +3632,18 @@ public class Modetrade extends ModetradeApi
         return ("0x" + this.hash(message, keccak(), "hex"));
     }
 
-    public String signHash(Object hash, Object privateKey)
+    public String signHash(String hash, String privateKey)
     {
         Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
-        Object r = signature.get("r");
-        Object s = signature.get("s");
+        String r = this.safeString(signature, "r", "");
+        String s = this.safeString(signature, "s", "");
         String v = this.intToBase16(this.sum(27, signature.get("v")));
         return ((("0x" + (((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r))) + (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s))) + v);
     }
 
-    public String signMessage(Object message, Object privateKey)
+    public String signMessage(Object message, String privateKey)
     {
-        return this.signHash(this.hashMessage(message), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
+        return this.signHash((String) (this.hashMessage(message)), (String) ((privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0)))));
     }
 
     /**
@@ -3379,11 +3654,11 @@ public class Modetrade extends ModetradeApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3392,7 +3667,7 @@ public class Modetrade extends ModetradeApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            this.checkAddress(address);
+            this.checkAddress(address, (String) null, (String) null);
             String codeUpper = ((String)code).toUpperCase();
             if (!java.util.Objects.equals(codeUpper, "USDC"))
             {
@@ -3444,11 +3719,11 @@ public class Modetrade extends ModetradeApi
             withdrawRequest.put("chainId", this.parseToInt(chainId));
             withdrawRequest.put("receiver", address);
             withdrawRequest.put("token", codeUpper);
-            withdrawRequest.put("amount", String.valueOf(amount));
+            withdrawRequest.put("amount", this.numberToString(amount));
             withdrawRequest.put("withdrawNonce", withdrawNonce);
             withdrawRequest.put("timestamp", nonce);
             Object msg = this.ethEncodeStructuredData(domain, messageTypes, withdrawRequest);
-            String signature = this.signMessage(msg, this.privateKey);
+            String signature = this.signMessage(msg, (String) (this.privateKey));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "signature", signature );
                 put( "userAddress", address );
@@ -3467,7 +3742,7 @@ public class Modetrade extends ModetradeApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (data), currency);
+            return this.parseTransaction(data, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -3532,7 +3807,7 @@ public class Modetrade extends ModetradeApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseLeverage((Map<String, Object>) (data), market);
+            return this.parseLeverage(data, market);
         }).thenApply(Leverage::new);
 
     }
@@ -3556,8 +3831,8 @@ public class Modetrade extends ModetradeApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Boolean isMinLeverage = Helpers.isLessThan(leverage, 1);
-            Boolean isMaxLeverage = Helpers.isGreaterThan(leverage, 50);
+            Boolean isMinLeverage = (leverage == null || !(((Number) leverage).doubleValue() >= 1));
+            Boolean isMaxLeverage = (leverage != null && ((Number) leverage).doubleValue() > 50);
             if (Boolean.TRUE.equals(isMinLeverage) || Boolean.TRUE.equals(isMaxLeverage))
             {
                 throw new BadRequest((this.id + " leverage should be between 1 and 50")) ;
@@ -3634,7 +3909,6 @@ public class Modetrade extends ModetradeApi
         mapLiteral9.put("lastPrice", null);
         mapLiteral9.put("collateral", null);
         mapLiteral9.put("marginMode", "cross");
-        mapLiteral9.put("marginType", null);
         mapLiteral9.put("side", side);
         mapLiteral9.put("percentage", null);
         mapLiteral9.put("hedged", null);
@@ -3697,7 +3971,7 @@ public class Modetrade extends ModetradeApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parsePosition((Map<String, Object>) (data), market);
+            return this.parsePosition(data, market);
         }).thenApply(Position::new);
 
     }
@@ -3771,10 +4045,10 @@ public class Modetrade extends ModetradeApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object section, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object section, Object method, Object parameters)
     {
-        Object version = Helpers.GetValue(java.util.Objects.requireNonNullElse(section, "public"), 0);
-        Object access = Helpers.GetValue(java.util.Objects.requireNonNullElse(section, "public"), 1);
+        String version = (String) (section == null || 0 >= ((List<?>)section).size() ? null : ((List<?>)section).get(0));
+        String access = (String) (section == null || 1 >= ((List<?>)section).size() ? null : ((List<?>)section).get(1));
         String pathWithParams = (String) this.implodeParams(path, parameters);
         String apiUrl = this.safeString(this.urls.get("api"), access);
         if (java.util.Objects.equals(apiUrl, null))
@@ -3798,16 +4072,20 @@ public class Modetrade extends ModetradeApi
             if (Boolean.TRUE.equals(isPostOrPut) && Boolean.TRUE.equals(isOrder))
             {
                 Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
-                if (!java.util.Objects.equals(isSandboxMode, true))
+                if (!Boolean.TRUE.equals(isSandboxMode))
                 {
                     String brokerId = this.safeString(this.options, "brokerId", "CCXTMODE");
                     if (java.util.Objects.equals(path, "batch-order"))
                     {
                         List<Object> ordersList = (List<Object>) this.safeList(paramsSorted, "orders", new ArrayList<Object>(Arrays.asList()));
+                        List<Object> taggedOrders = new ArrayList<Object>(Arrays.asList());
                         for (var i = 0; i < ((List<?>)ordersList).size(); i++)
                         {
-                            Helpers.addElementToObject(Helpers.GetValue(paramsSorted.get("orders"), i), "order_tag", brokerId);
+                            ((List<Object>)taggedOrders).add(this.extend(this.safeDict(ordersList, i, new HashMap<String, Object>() {{}}), new HashMap<String, Object>() {{
+                                put( "order_tag", brokerId );
+                            }}));
                         }
+                        paramsSorted.put("orders", taggedOrders);
                     } else
                     {
                         paramsSorted.put("order_tag", brokerId);
@@ -3819,19 +4097,18 @@ public class Modetrade extends ModetradeApi
             {
                 paramsSigned = this.keysort(paramsSorted);
             }
-            String auth = "";
             String ts = String.valueOf(this.nonce());
             url = (url + pathWithParams);
             String apiKey = this.apiKey;
-            if (((String)apiKey).indexOf("ed25519:") < 0)
+            if (((String)this.apiKey).indexOf("ed25519:") < 0)
             {
-                apiKey = ("ed25519:" + apiKey);
+                apiKey = ("ed25519:" + this.apiKey);
             }
             Map<String, Object> signedHeaders = new HashMap<String, Object>();
             signedHeaders.put("orderly-account-id", this.accountId);
             signedHeaders.put("orderly-key", apiKey);
             signedHeaders.put("orderly-timestamp", ts);
-            auth = (((((ts + java.util.Objects.requireNonNullElse(method, "GET")) + "/") + version) + "/") + pathWithParams);
+            String auth = (((((ts + java.util.Objects.requireNonNullElse(method, "GET")) + "/") + version) + "/") + pathWithParams);
             String signedBody = null;
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT"))
             {
@@ -3846,12 +4123,12 @@ public class Modetrade extends ModetradeApi
                     auth = (auth + ("?" + this.rawencode(paramsSigned)));
                 }
                 signedHeaders.put("content-type", "application/x-www-form-urlencoded");
-                signedBody = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")))) ? "" : body;
+                signedBody = (((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")))) ? "" : null;
             }
             Object secret = this.secret;
-            if (((String)secret).indexOf("ed25519:") >= 0)
+            if (((String)this.secret).indexOf("ed25519:") >= 0)
             {
-                List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)secret).split(java.util.regex.Pattern.quote("ed25519:"))));
+                List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)this.secret).split(java.util.regex.Pattern.quote("ed25519:"))));
                 secret = (parts == null || 1 >= parts.size() ? null : parts.get(1));
             }
             Object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());
@@ -3869,13 +4146,13 @@ public class Modetrade extends ModetradeApi
             HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
             h2kMap4.put("url", url);
             h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap4.put("body", body);
-            h2kMap4.put("headers", headers);
+            h2kMap4.put("body", null);
+            h2kMap4.put("headers", null);
             return h2kMap4;
         }
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if ((java.util.Objects.equals(response, null)) || (java.util.Objects.equals(response, null)))
         {
@@ -3885,13 +4162,13 @@ public class Modetrade extends ModetradeApi
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        Boolean success = (Boolean) this.safeBool(response, "success", (Object) null);
+        Boolean success = (Boolean) this.safeBool(response, "success", false);
         String errorCode = this.safeString(response, "code");
-        if (!java.util.Objects.equals(success, true))
+        if (!Boolean.TRUE.equals(success))
         {
             String feedback = ((this.id + " ") + this.json(response));
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

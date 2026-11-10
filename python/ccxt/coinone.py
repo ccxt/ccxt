@@ -19,7 +19,7 @@ from ccxt.base.precise import Precise
 
 class coinone(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(coinone, self).describe(), {
             'id': 'coinone',
             'name': 'CoinOne',
@@ -477,7 +477,7 @@ class coinone(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         result = {'info': response}
         balances = self.omit(response, [
             'errorCode',
@@ -929,7 +929,7 @@ class coinone(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'live': 'open',
             'partially_filled': 'open',
@@ -986,12 +986,8 @@ class coinone(Exchange, ImplicitAPI):
         id = self.safe_string_2(order, 'orderId', 'order_id')
         baseId = self.safe_string_2(order, 'baseCurrency', 'target_currency')
         quoteId = self.safe_string_2(order, 'targetCurrency', 'quote_currency')
-        base = None
-        quote = None
-        if baseId is not None:
-            base = self.safe_currency_code(baseId)
-        if quoteId is not None:
-            quote = self.safe_currency_code(quoteId)
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
         symbol = None
         if (base is not None) and (quote is not None):
             symbol = base + '/' + quote
@@ -1202,45 +1198,42 @@ class coinone(Exchange, ImplicitAPI):
             currencyId = self.safe_string(parts, 0)
             secondPart = self.safe_string(parts, 1)
             code = self.safe_currency_code(currencyId)
-            depositAddress = self.safe_dict(result, code)
-            if depositAddress is None:
-                depositAddress = {
-                    'info': value,
-                    'currency': code,
-                    'network': None,
-                    'address': None,
-                    'tag': None,
-                }
-            address = self.safe_string(depositAddress, 'address', value)
+            address = self.safe_string(self.safe_value(result, code), 'address', value)
             self.check_address(address)
-            depositAddress['address'] = address
-            depositAddress['info'] = address
+            depositAddress = {
+                'info': address,
+                'currency': code,
+                'network': None,
+                'address': address,
+                'tag': self.safe_string(self.safe_value(result, code), 'tag'),
+            }
             if (secondPart == 'tag' or secondPart == 'memo'):
                 depositAddress['tag'] = value
                 depositAddress['info'] = [address, value]
             if code is not None:
                 result[code] = depositAddress
-        return result
+        return self.to_array(result)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
         request = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         apiUrl = self.safe_string(self.urls['api'], 'rest')
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/'
-        isPublic = (api == 'public') or (api == 'v2Public')
-        if api == 'v2Public':
+        isPublic = (apiName == 'public') or (apiName == 'v2Public')
+        if apiName == 'v2Public':
             apiUrl2 = self.safe_string(self.urls['api'], 'v2Public')
             if apiUrl2 is None:
                 raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
             url = apiUrl2 + '/'
-        elif api == 'v2Private':
+        elif apiName == 'v2Private':
             apiUrl3 = self.safe_string(self.urls['api'], 'v2Private')
             if apiUrl3 is None:
                 raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
             url = apiUrl3 + '/'
-        elif api == 'v2_1Private':
+        elif apiName == 'v2_1Private':
             apiUrl4 = self.safe_string(self.urls['api'], 'v2_1Private')
             if apiUrl4 is None:
                 raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
@@ -1256,10 +1249,10 @@ class coinone(Exchange, ImplicitAPI):
             url += request
             # the v2.1 api requires a uuid nonce, the older apis use a numeric one
             nonce = None
-            if api == 'v2_1Private':
+            if apiName == 'v2_1Private':
                 nonce = self.uuid()
             else:
-                nonce = str(self.nonce())
+                nonce = self.number_to_string(self.nonce())
             json = self.json(self.extend({
                 'access_token': self.apiKey,
                 'nonce': nonce,
@@ -1273,11 +1266,11 @@ class coinone(Exchange, ImplicitAPI):
                 'X-COINONE-PAYLOAD': payload,
                 'X-COINONE-SIGNATURE': signature,
             }
-        bodyResolved = body if (requestBody is None) else requestBody
-        headersResolved = headers if (requestHeaders is None) else requestHeaders
+        bodyResolved = requestBody
+        headersResolved = requestHeaders
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
         #

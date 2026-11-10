@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.modetrade import ImplicitAPI
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, FundingHistory, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction, FundingRateHistory
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, FundingHistory, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFees, Transaction, FundingRateHistory
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -21,7 +21,7 @@ from ccxt.base.precise import Precise
 
 class modetrade(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(modetrade, self).describe(), {
             'id': 'modetrade',
             'name': 'Mode Trade',
@@ -90,7 +90,9 @@ class modetrade(Exchange, ImplicitAPI):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': True,
                 'fetchOpenOrder': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -102,8 +104,8 @@ class modetrade(Exchange, ImplicitAPI):
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
-                'fetchTicker': False,
-                'fetchTickers': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
@@ -527,6 +529,7 @@ class modetrade(Exchange, ImplicitAPI):
         #
         #   {
         #     "symbol": "PERP_BTC_USDC",
+        #     "status": "ACTIVE",
         #     "quote_min": 123,
         #     "quote_max": 100000,
         #     "quote_tick": 0.1,
@@ -552,16 +555,20 @@ class modetrade(Exchange, ImplicitAPI):
         #   }
         #
         marketId = self.safe_string(market, 'symbol', '')
+        status = self.safe_string(market, 'status')
+        active = None
+        if status is not None:
+            active = (status == 'ACTIVE')
         parts = marketId.split('_')
         marketType = 'swap'
         baseId = self.safe_string(parts, 1)
         quoteId = self.safe_string(parts, 2)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
-        if (base is None) or (quote is None):
-            return None
         settleId = self.safe_string(parts, 2)
         settle = self.safe_currency_code(settleId)
+        if (base is None) or (quote is None) or (settle is None):
+            return None
         symbol = base + '/' + quote + ':' + settle
         return self.safe_market_structure({
             'id': marketId,
@@ -578,7 +585,7 @@ class modetrade(Exchange, ImplicitAPI):
             'swap': True,
             'future': False,
             'option': False,
-            'active': None,
+            'active': active,
             'contract': True,
             'linear': True,
             'inverse': False,
@@ -631,6 +638,7 @@ class modetrade(Exchange, ImplicitAPI):
         #       "rows": [
         #         {
         #           "symbol": "PERP_BTC_USDC",
+        #           "status": "ACTIVE",
         #           "quote_min": 123,
         #           "quote_max": 100000,
         #           "quote_tick": 0.1,
@@ -794,7 +802,8 @@ class modetrade(Exchange, ImplicitAPI):
         #         "is_maker": "1"
         #     }
         #
-        isFromFetchOrder = ('id' in trade)
+        id = self.safe_string(trade, 'id')
+        isFromFetchOrder = id is not None
         timestamp = self.safe_integer(trade, 'executed_timestamp')
         marketId = self.safe_string(trade, 'symbol')
         marketResolved = self.safe_market(marketId, market)
@@ -803,12 +812,8 @@ class modetrade(Exchange, ImplicitAPI):
         amount = self.safe_string(trade, 'executed_quantity')
         order_id = self.safe_string(trade, 'order_id')
         fee = self.parse_token_and_fee_temp(trade, 'fee_asset', 'fee')
-        feeCost = self.safe_string(fee, 'cost')
-        if (feeCost is not None) and (fee is not None):
-            fee['cost'] = feeCost
         cost = Precise.string_mul(price, amount)
         side = self.safe_string_lower(trade, 'side')
-        id = self.safe_string(trade, 'id')
         takerOrMaker = None
         if isFromFetchOrder:
             isMaker = self.safe_string(trade, 'is_maker') == '1'
@@ -889,7 +894,7 @@ class modetrade(Exchange, ImplicitAPI):
         fundingTimeString = self.safe_string(fundingRate, 'last_funding_rate_timestamp')
         nextFundingTimeString = self.safe_string(fundingRate, 'next_funding_time')
         millisecondsInterval = Precise.string_sub(nextFundingTimeString, fundingTimeString)
-        fundingSymbol = marketValue['symbol'] if (marketValue is not None) else None
+        fundingSymbol = self.safe_string(marketValue, 'symbol')
         return {
             'info': fundingRate,
             'symbol': fundingSymbol,
@@ -1065,8 +1070,207 @@ class modetrade(Exchange, ImplicitAPI):
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
             })
-        sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, symbolResolved, since, limit)
+        return self.filter_by_symbol_since_limit(self.sort_by(rates, 'timestamp'), symbolResolved, since, limit)
+
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
+        #
+        #     {
+        #         "symbol": "PERP_BTC_USDC",
+        #         "display_symbol_name": "BTC",
+        #         "broker_id": null,
+        #         "status": "ACTIVE",
+        #         "index_price": 81559.8,
+        #         "mark_price": 81542.2,
+        #         "sum_unitary_funding": 27744.3,
+        #         "est_funding_rate": 0.00008318,
+        #         "last_funding_rate": 0.0000394,
+        #         "next_funding_time": 1792281600000,
+        #         "open_interest": 42.65602,
+        #         "is_pretge": false,
+        #         "24h_open": 81606.8,
+        #         "24h_close": 81518.1,
+        #         "24h_high": 81706.7,
+        #         "24h_low": 81069.9,
+        #         "24h_volume": 65.48965,
+        #         "24h_amount": 5333323.390584
+        #     }
+        #
+        marketId = self.safe_string(ticker, 'symbol')
+        marketResolved = self.safe_market(marketId, market)
+        timestamp = self.safe_integer(ticker, 'timestamp')
+        return self.safe_ticker({
+            'symbol': marketResolved['symbol'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_string(ticker, '24h_high'),
+            'low': self.safe_string(ticker, '24h_low'),
+            'bid': None,
+            'bidVolume': None,
+            'ask': None,
+            'askVolume': None,
+            'vwap': None,
+            'open': self.safe_string(ticker, '24h_open'),
+            'close': self.safe_string(ticker, '24h_close'),
+            'last': self.safe_string(ticker, '24h_close'),
+            'previousClose': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': self.safe_string(ticker, '24h_volume'),
+            'quoteVolume': self.safe_string(ticker, '24h_amount'),
+            'indexPrice': self.safe_string(ticker, 'index_price'),
+            'markPrice': self.safe_string(ticker, 'mark_price'),
+            'info': ticker,
+        }, marketResolved)
+
+    def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.v1PublicGetPublicFuturesSymbol(self.extend(request, params))
+        #
+        #     {
+        #         "success": true,
+        #         "data": {
+        #             "symbol": "PERP_BTC_USDC",
+        #             "24h_close": 81518.1
+        #         },
+        #         "timestamp": 1792270455082
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        timestamp = self.safe_integer(response, 'timestamp')
+        ticker = self.extend({'timestamp': timestamp}, data)
+        return self.parse_ticker(ticker, market)
+
+    def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
+        """
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        symbolsNormalized = self.market_symbols(symbols)
+        response = self.v1PublicGetPublicFutures(params)
+        #
+        #     {
+        #         "success": true,
+        #         "data": {
+        #             "rows": [
+        #                 {
+        #                     "symbol": "PERP_BTC_USDC",
+        #                     "24h_close": 81518.1
+        #                 }
+        #             ]
+        #         },
+        #         "timestamp": 1792270455518
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        rows = self.safe_list(data, 'rows', [])
+        timestamp = self.safe_integer(response, 'timestamp')
+        result = []
+        for i in range(0, len(rows)):
+            row = rows[i]
+            marketId = self.safe_string(row, 'symbol', '')
+            if (self.markets_by_id is None) or not (marketId in self.markets_by_id):
+                continue  # the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
+            ticker = self.extend({'timestamp': timestamp}, row)
+            result.append(self.parse_ticker(ticker))
+        return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
+
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
+        #
+        #     {
+        #         "symbol": "PERP_BTC_USDC",
+        #         "index_price": 81559.8,
+        #         "mark_price": 81542.2,
+        #         "open_interest": 42.65602,
+        #         "24h_open": 81606.8,
+        #         "24h_close": 81518.1,
+        #         "24h_high": 81706.7,
+        #         "24h_low": 81069.9,
+        #         "24h_volume": 65.48965,
+        #         "24h_amount": 5333323.390584
+        #     }
+        #
+        marketId = self.safe_string(interest, 'symbol')
+        marketResolved = self.safe_market(marketId, market)
+        timestamp = self.safe_integer(interest, 'timestamp')
+        return self.safe_open_interest({
+            'symbol': marketResolved['symbol'],
+            'openInterestAmount': self.safe_number(interest, 'open_interest'),
+            'openInterestValue': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': interest,
+        }, marketResolved)
+
+    def fetch_open_interest(self, symbol: str, params: dict = {}) -> OpenInterest:
+        """
+        retrieves the open interest of a contract trading pair
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+
+        :param str symbol: unified CCXT market symbol
+        :param dict [params]: exchange specific parameters
+        :returns dict: an `open interest structure <https://docs.ccxt.com/?id=open-interest-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.v1PublicGetPublicFuturesSymbol(self.extend(request, params))
+        data = self.safe_dict(response, 'data', {})
+        timestamp = self.safe_integer(response, 'timestamp')
+        interest = self.extend({'timestamp': timestamp}, data)
+        return self.parse_open_interest(interest, market)
+
+    def fetch_open_interests(self, symbols: Strings = None, params: dict = {}) -> OpenInterests:
+        """
+        retrieves the open interest for a list of contract trading pairs
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+
+        :param str[] [symbols]: a list of unified CCXT market symbols
+        :param dict [params]: exchange specific parameters
+        :returns dict: a dictionary of `open interest structures <https://docs.ccxt.com/?id=open-interest-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        symbolsNormalized = self.market_symbols(symbols)
+        response = self.v1PublicGetPublicFutures(params)
+        data = self.safe_dict(response, 'data', {})
+        rows = self.safe_list(data, 'rows', [])
+        timestamp = self.safe_integer(response, 'timestamp')
+        result = []
+        for i in range(0, len(rows)):
+            row = rows[i]
+            marketId = self.safe_string(row, 'symbol', '')
+            if (self.markets_by_id is None) or not (marketId in self.markets_by_id):
+                continue  # the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
+            interest = self.extend({'timestamp': timestamp}, row)
+            result.append(self.parse_open_interest(interest))
+        return self.index_by(self.filter_by_array(result, 'symbol', symbolsNormalized, False), 'symbol')
 
     def parse_income(self, income: dict, market: Market = None) -> dict:
         #
@@ -1426,7 +1630,7 @@ class modetrade(Exchange, ImplicitAPI):
             'info': order,
         }, marketResolved)
 
-    def parse_time_in_force(self, timeInForce: Str):
+    def parse_time_in_force(self, timeInForce: Str) -> Str:
         timeInForces = {
             'ioc': 'IOC',
             'fok': 'FOK',
@@ -1436,7 +1640,7 @@ class modetrade(Exchange, ImplicitAPI):
             return None
         return self.safe_string(timeInForces, timeInForce)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         if status is not None:
             statuses = {
                 'NEW': 'open',
@@ -1454,7 +1658,7 @@ class modetrade(Exchange, ImplicitAPI):
             return self.safe_string(statuses, status, status)
         return None
 
-    def parse_order_type(self, type: Str):
+    def parse_order_type(self, type: Str) -> Str:
         types = {
             'LIMIT': 'limit',
             'MARKET': 'market',
@@ -1496,7 +1700,8 @@ class modetrade(Exchange, ImplicitAPI):
         hasStopLoss = stopLoss is not None
         hasTakeProfit = takeProfit is not None
         algoType = self.safe_string(params, 'algoType')
-        isConditional = triggerPrice is not None or hasStopLoss or hasTakeProfit or (self.safe_value(params, 'childOrders') is not None)
+        paramsChildOrders = self.safe_value(params, 'childOrders')
+        isConditional = triggerPrice is not None or hasStopLoss or hasTakeProfit or (paramsChildOrders is not None)
         isMarket = orderType == 'MARKET'
         timeInForce = self.safe_string_lower(params, 'timeInForce')
         postOnly = self.is_post_only(isMarket, None, params)
@@ -1539,7 +1744,7 @@ class modetrade(Exchange, ImplicitAPI):
                 'algo_type': 'POSITIONAL_TP_SL',
                 'child_orders': [],
             }
-            childOrders = outterOrder['child_orders']
+            childOrders = []
             closeSide = 'BUY'
             if orderSide == 'BUY':
                 closeSide = 'SELL'
@@ -1563,6 +1768,7 @@ class modetrade(Exchange, ImplicitAPI):
                     'reduce_only': True,
                 }
                 childOrders.append(takeProfitOrder)
+            outterOrder['child_orders'] = childOrders
             request['child_orders'] = [outterOrder]
         paramsOmitted = self.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit'])
         return self.extend(request, paramsOmitted)
@@ -1600,7 +1806,8 @@ class modetrade(Exchange, ImplicitAPI):
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLoss = self.safe_value(params, 'stopLoss')
         takeProfit = self.safe_value(params, 'takeProfit')
-        isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(params, 'childOrders') is not None)
+        childOrders = self.safe_value(params, 'childOrders')
+        isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (childOrders is not None)
         response: dict
         if isConditional:
             response = self.v1PrivatePostAlgoOrder(request)
@@ -1665,7 +1872,8 @@ class modetrade(Exchange, ImplicitAPI):
             triggerPrice = self.safe_string_2(orderParams, 'triggerPrice', 'stopPrice')
             stopLoss = self.safe_dict(orderParams, 'stopLoss')
             takeProfit = self.safe_dict(orderParams, 'takeProfit')
-            isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (self.safe_value(orderParams, 'childOrders') is not None)
+            childOrders = self.safe_value(orderParams, 'childOrders')
+            isConditional = triggerPrice is not None or stopLoss is not None or takeProfit is not None or (childOrders is not None)
             if isConditional:
                 raise NotSupported(self.id + ' createOrders() only support non-stop order')
             orderRequest = self.create_order_request(marketId, type, side, amount, price, orderParams)
@@ -1723,7 +1931,8 @@ class modetrade(Exchange, ImplicitAPI):
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice'])
         if triggerPrice is not None:
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
-        isConditional = (triggerPrice is not None) or (self.safe_value(params, 'childOrders') is not None)
+        childOrders = self.safe_value(params, 'childOrders')
+        isConditional = (triggerPrice is not None) or (childOrders is not None)
         orderQtyKey = 'order_quantity'
         if isConditional:
             orderQtyKey = 'quantity'
@@ -1792,7 +2001,7 @@ class modetrade(Exchange, ImplicitAPI):
         """
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         paramsOmitted = self.omit(params, ['stop', 'trigger'])
-        if (trigger is not True) and (symbol is None):
+        if (not trigger) and (symbol is None):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         if self.markets is None:
             self.load_markets()
@@ -1807,7 +2016,7 @@ class modetrade(Exchange, ImplicitAPI):
         isByClientOrder = clientOrderIdExchangeSpecific is not None
         paramsClientOrder = self.omit(paramsOmitted, ['clOrdID', 'clientOrderId', 'client_order_id'])
         response: dict
-        if trigger is True:
+        if trigger:
             if isByClientOrder:
                 request['client_order_id'] = clientOrderIdExchangeSpecific
                 response = self.v1PrivateDeleteAlgoClientOrder(self.extend(request, paramsClientOrder))
@@ -1841,7 +2050,7 @@ class modetrade(Exchange, ImplicitAPI):
             extendParams['client_order_id'] = clientOrderIdExchangeSpecific
         else:
             extendParams['id'] = id
-        if trigger is True:
+        if trigger:
             return self.extend(self.parse_order(response), extendParams)
         data = self.safe_dict(response, 'data', {})
         return self.extend(self.parse_order(data), extendParams)
@@ -1956,7 +2165,7 @@ class modetrade(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         paramsOmitted = self.omit(params, ['stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id'])
         response: dict
-        if trigger is True:
+        if trigger:
             if clientOrderId is not None and clientOrderId != '':
                 request['client_order_id'] = clientOrderId
                 response = self.v1PrivateGetAlgoClientOrderClientOrderId(self.extend(request, paramsOmitted))
@@ -2021,7 +2230,7 @@ class modetrade(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         isTrigger = self.safe_bool_2(params, 'stop', 'trigger', False)
-        maxLimit = 100 if (isTrigger is True) else 500
+        maxLimit = 100 if (isTrigger) else 500
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOrders', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_incremental('fetchOrders', symbol, since, limit, paramsPaginate, 'page', maxLimit)
@@ -2037,11 +2246,11 @@ class modetrade(Exchange, ImplicitAPI):
             request['size'] = min(limit, maxLimit)
         else:
             request['size'] = maxLimit
-        if isTrigger is True:
+        if isTrigger:
             request['algo_type'] = 'STOP'
         requestUntil, paramsUntil = self.handle_until_option('end_t', request, paramsOmitted)
         response: dict
-        if isTrigger is True:
+        if isTrigger:
             response = self.v1PrivateGetAlgoOrders(self.extend(requestUntil, paramsUntil))
         else:
             response = self.v1PrivateGetOrders(self.extend(requestUntil, paramsUntil))
@@ -2238,7 +2447,7 @@ class modetrade(Exchange, ImplicitAPI):
         trades = self.safe_list(data, 'rows', [])
         return self.parse_trades(trades, market, since, limit, paramsUntil)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         result = {
             'info': response,
         }
@@ -2280,17 +2489,17 @@ class modetrade(Exchange, ImplicitAPI):
         #     }
         # }
         #
-        data = self.safe_dict(response, 'data')
+        data = self.safe_dict(response, 'data', {})
         return self.parse_balance(data)
 
-    def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> object:
+    def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> object:
         if self.markets is None:
             self.load_markets()
         request = {}
         currency = None
         if code is not None:
             currency = self.currency(code)
-            request['token'] = currency['id']
+            request['token'] = self.safe_string(currency, 'id')
         if since is not None:
             request['start_t'] = since
         if limit is not None:
@@ -2454,7 +2663,7 @@ class modetrade(Exchange, ImplicitAPI):
             'network': None,  # raw rows carry only a chain id, no mapping to unified network codes exists yet
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',
@@ -2544,23 +2753,22 @@ class modetrade(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_dict(response, 'data', {})
-        return self.safe_number(data, 'withdraw_nonce')
+        return self.safe_number(self.safe_dict(response, 'data', {}), 'withdraw_nonce')
 
     def hash_message(self, message: object):
         return '0x' + self.hash(message, 'keccak', 'hex')
 
     def sign_hash(self, hash: str, privateKey: str) -> str:
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
-        r = signature['r']
-        s = signature['s']
+        r = self.safe_string(signature, 'r', '')
+        s = self.safe_string(signature, 's', '')
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
     def sign_message(self, message: object, privateKey: str) -> str:
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -2569,8 +2777,8 @@ class modetrade(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         if self.markets is None:
@@ -2611,7 +2819,7 @@ class modetrade(Exchange, ImplicitAPI):
             'chainId': self.parse_to_int(chainId),
             'receiver': address,
             'token': codeUpper,
-            'amount': str(amount),
+            'amount': self.number_to_string(amount),
             'withdrawNonce': withdrawNonce,
             'timestamp': nonce,
         }
@@ -2774,7 +2982,6 @@ class modetrade(Exchange, ImplicitAPI):
             'lastPrice': None,
             'collateral': None,
             'marginMode': 'cross',
-            'marginType': None,
             'side': side,
             'percentage': None,
             'hedged': None,
@@ -2885,10 +3092,10 @@ class modetrade(Exchange, ImplicitAPI):
         positions = self.safe_list(result, 'rows', [])
         return self.parse_positions(positions, symbols)
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds()
 
-    def sign(self, path: str, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, section: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         version = section[0]
         access = section[1]
         pathWithParams = self.implode_params(path, params)
@@ -2907,23 +3114,24 @@ class modetrade(Exchange, ImplicitAPI):
             isOrder = path == 'algo/order' or path == 'order' or path == 'batch-order'
             if isPostOrPut and isOrder:
                 isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-                if isSandboxMode is not True:
+                if not isSandboxMode:
                     brokerId = self.safe_string(self.options, 'brokerId', 'CCXTMODE')
                     if path == 'batch-order':
                         ordersList = self.safe_list(paramsSorted, 'orders', [])
+                        taggedOrders = []
                         for i in range(0, len(ordersList)):
-                            paramsSorted['orders'][i]['order_tag'] = brokerId
+                            taggedOrders.append(self.extend(self.safe_dict(ordersList, i, {}), {'order_tag': brokerId}))
+                        paramsSorted['orders'] = taggedOrders
                     else:
                         paramsSorted['order_tag'] = brokerId
             paramsSigned = paramsSorted
             if isPostOrPut and isOrder:
                 paramsSigned = self.keysort(paramsSorted)
-            auth = ''
             ts = str(self.nonce())
             url += pathWithParams
             apiKey = self.apiKey
-            if apiKey.find('ed25519:') < 0:
-                apiKey = 'ed25519:' + apiKey
+            if self.apiKey.find('ed25519:') < 0:
+                apiKey = 'ed25519:' + self.apiKey
             signedHeaders = {
                 'orderly-account-id': self.accountId,
                 'orderly-key': apiKey,
@@ -2940,26 +3148,26 @@ class modetrade(Exchange, ImplicitAPI):
                     url += '?' + self.urlencode(paramsSigned)
                     auth += '?' + self.rawencode(paramsSigned)
                 signedHeaders['content-type'] = 'application/x-www-form-urlencoded'
-                signedBody = '' if (method == 'DELETE') else body
+                signedBody = '' if (method == 'DELETE') else None
             secret = self.secret
-            if secret.find('ed25519:') >= 0:
-                parts = secret.split('ed25519:')
+            if self.secret.find('ed25519:') >= 0:
+                parts = self.secret.split('ed25519:')
                 secret = parts[1]
             signature = self.eddsa(self.encode(auth), self.base58_to_binary(secret), 'ed25519')
             signedHeaders['orderly-signature'] = self.urlencode_base64(self.base64_to_binary(signature))
             return {'url': url, 'method': method, 'body': signedBody, 'headers': signedHeaders}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if (response is None) or (response is None):
             return None  # fallback to default error handler
         #
         #     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         #                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         #
-        success = self.safe_bool(response, 'success')
+        success = self.safe_bool(response, 'success', False)
         errorCode = self.safe_string(response, 'code')
-        if success is not True:
+        if not success:
             feedback = self.id + ' ' + self.json(response)
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)

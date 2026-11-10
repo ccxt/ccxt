@@ -233,10 +233,10 @@ export default class bitteam extends Exchange {
                     'ethereum': 'ERC20',
                     'Tron': 'TRC20',
                     'tron': 'TRC20',
-                    'Binance': 'BSC',
-                    'binance': 'BSC',
-                    'Binance Smart Chain': 'BSC',
-                    'bscscan': 'BSC',
+                    'Binance': 'BEP20',
+                    'binance': 'BEP20',
+                    'Binance Smart Chain': 'BEP20',
+                    'bscscan': 'BEP20',
                     'Bitcoin': 'BTC',
                     'bitcoin': 'BTC',
                     'Litecoin': 'LTC',
@@ -474,7 +474,7 @@ export default class bitteam extends Exchange {
         let minCost = undefined;
         const currenciesValuedInUsd = this.handleOption('fetchMarkets', 'currenciesValuedInUsd', {});
         const quoteInUsd = this.safeBool(currenciesValuedInUsd, quote, false);
-        if (quoteInUsd === true) {
+        if (quoteInUsd) {
             const settings = this.safeDict(market, 'settings', {});
             minCost = this.safeNumber(settings, 'limit_usd');
         }
@@ -680,7 +680,7 @@ export default class bitteam extends Exchange {
             feesByNetworkId[blockChain] = fee;
         }
         else {
-            feesByNetworkId = withdrawCommissionFixed;
+            feesByNetworkId = this.extend(withdrawCommissionFixed, {});
         }
         const statuses = this.safeDict(statusesResponse, numericId, {});
         const deposit = this.safeBool(statuses, 'depositStatus');
@@ -1753,7 +1753,7 @@ export default class bitteam extends Exchange {
         let bestAskVolume = undefined;
         const bids = this.safeList(ticker, 'bids');
         const asks = this.safeList(ticker, 'asks');
-        if ((bids !== undefined) && (Array.isArray(bids)) && (asks !== undefined) && (Array.isArray(asks))) {
+        if ((bids !== undefined) && (asks !== undefined)) {
             const bestBid = this.safeDict(bids, 0, {});
             bestBidPrice = this.safeString(bestBid, 'price');
             bestBidVolume = this.safeString(bestBid, 'quantity');
@@ -2108,7 +2108,7 @@ export default class bitteam extends Exchange {
     }
     /**
      * @method
-     * @name betteam#fetchBalance
+     * @name bitteam#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://bit.team/trade/api/documentation#/PRIVATE/getTradeApiCcxtBalance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2409,10 +2409,11 @@ export default class bitteam extends Exchange {
         };
         return this.safeString(statuses, status, status);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         const request = this.omit(params, this.extractParams(path));
         const endpoint = '/' + this.implodeParams(path, params);
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -2420,7 +2421,7 @@ export default class bitteam extends Exchange {
         const query = this.urlencode(request);
         let requestBody = undefined;
         let requestHeaders = undefined;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             if (method === 'POST') {
                 requestBody = this.json(request);
@@ -2439,8 +2440,8 @@ export default class bitteam extends Exchange {
         else if (query.length !== 0) {
             url += '?' + query;
         }
-        const bodyResolved = (requestBody === undefined) ? body : requestBody;
-        const headersResolved = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResolved = requestBody;
+        const headersResolved = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
@@ -2451,12 +2452,12 @@ export default class bitteam extends Exchange {
             if (code === 404) {
                 if ((url.indexOf('/ccxt/order/') >= 0) && (method === 'GET')) {
                     const parts = url.split('/order/');
-                    const orderId = this.safeString(parts, 1);
+                    const orderId = this.safeString(parts, 1, '');
                     throw new OrderNotFound(this.id + ' order ' + orderId + ' not found');
                 }
                 if (url.indexOf('/cmc/orderbook/') >= 0) {
                     const parts = url.split('/cmc/orderbook/');
-                    const symbolId = this.safeString(parts, 1);
+                    const symbolId = this.safeString(parts, 1, '');
                     throw new BadSymbol(this.id + ' symbolId ' + symbolId + ' not found');
                 }
             }

@@ -23,6 +23,7 @@ import io.github.ccxt.types.OpenInterest;
 import io.github.ccxt.types.OpenInterests;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Status;
 import io.github.ccxt.types.Ticker;
@@ -48,7 +49,7 @@ public class Woofipro extends WoofiproApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "woofipro" );
@@ -817,7 +818,7 @@ public class Woofipro extends WoofiproApi
     public void setSandboxMode(Boolean enable)
     {
         super.setSandboxMode(enable);
-        Helpers.addElementToObject(this.options, "sandboxMode", enable);
+        this.options.put("sandboxMode", enable);
     }
 
     /**
@@ -944,7 +945,7 @@ public class Woofipro extends WoofiproApi
         }
         String settleId = this.safeString(parts, 2);
         String settle = this.safeCurrencyCode(settleId, (Map<String, Object>) null);
-        String symbol = ((((base + "/") + quote) + ":") + settle);
+        String symbol = ((((base + "/") + quote) + ":") + quote);
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("id", marketId);
         mapLiteral1.put("symbol", symbol);
@@ -1183,7 +1184,7 @@ public class Woofipro extends WoofiproApi
         }});
     }
 
-    public Object parseTokenAndFeeTemp(Map<String, Object> item, Object feeTokenKey, Object feeAmountKey)
+    public Object parseTokenAndFeeTemp(Map<String, Object> item, String feeTokenKey, String feeAmountKey)
     {
         String feeCost = this.safeString(item, feeAmountKey);
         Map<String, Object> fee = null;
@@ -1191,10 +1192,12 @@ public class Woofipro extends WoofiproApi
         {
             String feeCurrencyId = this.safeString(item, feeTokenKey);
             String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, (Map<String, Object>) null);
-            fee = Helpers.newMap(
-                "cost", feeCost,
-                "currency", feeCurrencyCode
-            );
+            {
+                HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
+                hx4NewMap0.put("cost", feeCost);
+                hx4NewMap0.put("currency", feeCurrencyCode);
+                fee = hx4NewMap0;
+            }
         }
         return fee;
     }
@@ -1237,12 +1240,6 @@ public class Woofipro extends WoofiproApi
         String amount = this.safeString(trade, "executed_quantity");
         String order_id = this.safeString(trade, "order_id");
         Object fee = this.parseTokenAndFeeTemp((Map<String, Object>) (trade), "fee_asset", "fee");
-        String feeCost = this.safeString(fee, "cost");
-        if ((!java.util.Objects.equals(fee, null)) && (!java.util.Objects.equals(feeCost, null)))
-        {
-            Helpers.addElementToObject(fee, "cost", feeCost);
-        }
-        String cost = Precise.stringMul(price, amount);
         String side = this.safeStringLower(trade, "side");
         String id = this.safeString(trade, "id");
         String takerOrMaker = null;
@@ -1259,7 +1256,7 @@ public class Woofipro extends WoofiproApi
         mapLiteral3.put("side", side);
         mapLiteral3.put("price", price);
         mapLiteral3.put("amount", amount);
-        mapLiteral3.put("cost", cost);
+        mapLiteral3.put("cost", Precise.stringMul(price, amount));
         mapLiteral3.put("order", order_id);
         mapLiteral3.put("takerOrMaker", takerOrMaker);
         mapLiteral3.put("type", null);
@@ -1576,7 +1573,7 @@ public class Woofipro extends WoofiproApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(data, "timestamp", this.safeInteger(response, "timestamp"));
+            data.put("timestamp", this.safeInteger(response, "timestamp"));
             return this.parseTicker(data, market);
         }).thenApply(Ticker::new);
 
@@ -1716,7 +1713,7 @@ public class Woofipro extends WoofiproApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(data, "timestamp", this.safeInteger(response, "timestamp"));
+            data.put("timestamp", this.safeInteger(response, "timestamp"));
             return this.parseOpenInterest(data, market);
         }).thenApply(OpenInterest::new);
 
@@ -1775,7 +1772,7 @@ public class Woofipro extends WoofiproApi
                 }}, row);
                 ((List<Object>)result).add(this.parseOpenInterest(interest, (Map<String, Object>) null));
             }
-            return this.filterByArray(result, "symbol", symbolsNormalized, true);
+            return this.indexBy(this.filterByArray(result, "symbol", symbolsNormalized, false), "symbol");
         }).thenApply(OpenInterests::new);
 
     }
@@ -1802,7 +1799,7 @@ public class Woofipro extends WoofiproApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -1821,7 +1818,7 @@ public class Woofipro extends WoofiproApi
             {
                 request.put("start_t", since);
             }
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_t", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 0.001);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_t", request, (Map<String, Object>) (paramsPaginate), 0.001);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.v1PublicGetPublicFundingRateHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -1923,7 +1920,7 @@ public class Woofipro extends WoofiproApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingHistory", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingHistory", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -2230,7 +2227,6 @@ public class Woofipro extends WoofiproApi
         String side = this.safeStringLower(order, "side");
         String filled = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("total_executed_quantity", "totalExecutedQuantity", "executed_quantity", "executed")));
         String average = this.omitZero(this.safeString2(order, "average_executed_price", "averageExecutedPrice"));
-        String remaining = Precise.stringSub(amount, filled);
         Object fee = this.safeValue2(order, "total_fee", "totalFee");
         String feeCurrency = this.safeString2(order, "fee_asset", "feeAsset");
         List<Object> transactions = (List<Object>) this.safeList(order, "Transactions", (Object) null);
@@ -2273,7 +2269,7 @@ public class Woofipro extends WoofiproApi
         mapLiteral4.put("average", average);
         mapLiteral4.put("amount", amount);
         mapLiteral4.put("filled", filled);
-        mapLiteral4.put("remaining", remaining);
+        mapLiteral4.put("remaining", Precise.stringSub(amount, filled));
         mapLiteral4.put("cost", cost);
         mapLiteral4.put("trades", transactions);
         mapLiteral4.put("fee", new HashMap<String, Object>() {{
@@ -2364,10 +2360,11 @@ public class Woofipro extends WoofiproApi
         Boolean hasStopLoss = (!java.util.Objects.equals(stopLoss, null));
         Boolean hasTakeProfit = (!java.util.Objects.equals(takeProfit, null));
         String algoType = this.safeString(parameters, "algoType");
-        Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit) || (!java.util.Objects.equals(this.safeValue(parameters, "childOrders"), null));
+        Object paramsChildOrders = this.safeValue(parameters, "childOrders");
+        Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || Boolean.TRUE.equals(hasStopLoss) || Boolean.TRUE.equals(hasTakeProfit) || (!java.util.Objects.equals(paramsChildOrders, null));
         Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
         String timeInForce = this.safeStringLower(parameters, "timeInForce");
-        Boolean postOnly = this.isPostOnly(isMarket, null, parameters);
+        Boolean postOnly = this.isPostOnly(isMarket, (Boolean) (null), parameters);
         String orderQtyKey = ((Boolean.TRUE.equals(isConditional))) ? "quantity" : "order_quantity";
         String priceKey = ((Boolean.TRUE.equals(isConditional))) ? "price" : "order_price";
         String typeKey = ((Boolean.TRUE.equals(isConditional))) ? "type" : "order_type";
@@ -2486,7 +2483,8 @@ public class Woofipro extends WoofiproApi
             String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
             Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(parameters, "stopLoss", (Object) null);
             Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(parameters, "takeProfit", (Object) null);
-            Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLoss, null) || !java.util.Objects.equals(takeProfit, null) || (!java.util.Objects.equals(this.safeList(parameters, "childOrders", (Object) null), null));
+            List<Object> paramsChildOrders = (List<Object>) this.safeList(parameters, "childOrders", (Object) null);
+            Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLoss, null) || !java.util.Objects.equals(takeProfit, null) || (!java.util.Objects.equals(paramsChildOrders, null));
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isConditional))
             {
@@ -2496,7 +2494,7 @@ public class Woofipro extends WoofiproApi
                 response = (this.v1PrivatePostOrder(request)).join();
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(data, "timestamp", this.safeInteger(response, "timestamp"));
+            data.put("timestamp", this.safeInteger(response, "timestamp"));
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(data, market);
             order.put("type", type);
             return order;
@@ -2535,7 +2533,8 @@ public class Woofipro extends WoofiproApi
                 String triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
                 Map<String, Object> stopLoss = (Map<String, Object>) this.safeDict(orderParams, "stopLoss", (Object) null);
                 Map<String, Object> takeProfit = (Map<String, Object>) this.safeDict(orderParams, "takeProfit", (Object) null);
-                Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLoss, null) || !java.util.Objects.equals(takeProfit, null) || (!java.util.Objects.equals(this.safeList(orderParams, "childOrders", (Object) null), null));
+                List<Object> paramsChildOrders = (List<Object>) this.safeList(orderParams, "childOrders", (Object) null);
+                Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLoss, null) || !java.util.Objects.equals(takeProfit, null) || (!java.util.Objects.equals(paramsChildOrders, null));
                 if (Boolean.TRUE.equals(isConditional))
                 {
                     throw new NotSupported((this.id + " createOrders() only support non-stop order")) ;
@@ -2607,7 +2606,8 @@ public class Woofipro extends WoofiproApi
             {
                 request.put("triggerPrice", this.priceToPrecision(symbol, triggerPrice));
             }
-            Boolean isConditional = (!java.util.Objects.equals(triggerPrice, null)) || (!java.util.Objects.equals(this.safeValue(parameters, "childOrders"), null));
+            Object paramsChildOrders = this.safeValue(parameters, "childOrders");
+            Boolean isConditional = (!java.util.Objects.equals(triggerPrice, null)) || (!java.util.Objects.equals(paramsChildOrders, null));
             String orderQtyKey = ((Boolean.TRUE.equals(isConditional))) ? "quantity" : "order_quantity";
             String priceKey = ((Boolean.TRUE.equals(isConditional))) ? "price" : "order_price";
             if (!java.util.Objects.equals(price, null))
@@ -2631,7 +2631,7 @@ public class Woofipro extends WoofiproApi
                 String orderType = ((String)type).toUpperCase();
                 String timeInForce = this.safeStringLower(paramsOmitted, "timeInForce");
                 Boolean isMarket = java.util.Objects.equals(orderType, "MARKET");
-                Boolean postOnly = this.isPostOnly(isMarket, null, paramsOmitted);
+                Boolean postOnly = this.isPostOnly(isMarket, (Boolean) (null), paramsOmitted);
                 if (Boolean.TRUE.equals(postOnly))
                 {
                     request.put("order_type", "POST_ONLY");
@@ -2665,7 +2665,7 @@ public class Woofipro extends WoofiproApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(data, "timestamp", this.safeInteger(response, "timestamp"));
+            data.put("timestamp", this.safeInteger(response, "timestamp"));
             return this.parseOrder(data, market);
         }).thenApply(Order::new);
 
@@ -2693,7 +2693,7 @@ public class Woofipro extends WoofiproApi
 
             Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
-            if ((!java.util.Objects.equals(trigger, true)) && (java.util.Objects.equals(symbol, null)))
+            if ((!Boolean.TRUE.equals(trigger)) && (java.util.Objects.equals(symbol, null)))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
             }
@@ -2712,7 +2712,7 @@ public class Woofipro extends WoofiproApi
             String clientOrderIdExchangeSpecific = this.safeString(paramsOmitted, "client_order_id", clientOrderIdUnified);
             Boolean isByClientOrder = !java.util.Objects.equals(clientOrderIdExchangeSpecific, null);
             Object response = null;
-            if (java.util.Objects.equals(trigger, true))
+            if (Boolean.TRUE.equals(trigger))
             {
                 if (Boolean.TRUE.equals(isByClientOrder))
                 {
@@ -2761,7 +2761,7 @@ public class Woofipro extends WoofiproApi
             {
                 extendParams.put("id", id);
             }
-            if (java.util.Objects.equals(trigger, true))
+            if (Boolean.TRUE.equals(trigger))
             {
                 Object parsedResponse = (((java.util.Objects.equals(response, null)))) ? new HashMap<String, Object>() {{}} : response;
                 return this.extend(this.parseOrder(parsedResponse, (Map<String, Object>) null), extendParams);
@@ -2914,7 +2914,7 @@ public class Woofipro extends WoofiproApi
             String clientOrderId = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "clOrdID", "clientOrderId", "client_order_id")));
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(trigger, true))
+            if (Boolean.TRUE.equals(trigger))
             {
                 if (!java.util.Objects.equals(clientOrderId, null) && !java.util.Objects.equals(clientOrderId, ""))
                 {
@@ -2964,8 +2964,11 @@ public class Woofipro extends WoofiproApi
             //     }
             // }
             //
-            Object orders = this.safeDict(response, "data", response);
-            Object parsedOrders = (((java.util.Objects.equals(orders, null)))) ? new HashMap<String, Object>() {{}} : orders;
+            Map<String, Object> parsedOrders = (Map<String, Object>) this.safeDict(response, "data", response);
+            if (java.util.Objects.equals(parsedOrders, null))
+            {
+                parsedOrders = new HashMap<String, Object>() {{}};
+            }
             return this.parseOrder(parsedOrders, market);
         }).thenApply(Order::new);
 
@@ -2998,8 +3001,8 @@ public class Woofipro extends WoofiproApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Boolean isTrigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
-            Long maxLimit = (((java.util.Objects.equals(isTrigger, true)))) ? 100L : 500L;
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrders", "paginate", false);
+            Long maxLimit = ((Boolean.TRUE.equals(isTrigger))) ? 100L : 500L;
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrders", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -3025,15 +3028,15 @@ public class Woofipro extends WoofiproApi
             {
                 request.put("size", maxLimit);
             }
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 request.put("algo_type", "STOP");
             }
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_t", (Map<String, Object>) (request), (Map<String, Object>) (paramsOmitted), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_t", request, paramsOmitted, 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(isTrigger, true))
+            if (Boolean.TRUE.equals(isTrigger))
             {
                 response = (this.v1PrivateGetAlgoOrders(this.extend(requestUntil, paramsUntil))).join();
             } else
@@ -3074,7 +3077,7 @@ public class Woofipro extends WoofiproApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", response);
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", response);
             List<Object> orders = (List<Object>) this.safeList(data, "rows", (Object) null);
             return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -3229,7 +3232,7 @@ public class Woofipro extends WoofiproApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -3254,7 +3257,7 @@ public class Woofipro extends WoofiproApi
             {
                 request.put("size", 500);
             }
-            io.github.ccxt.base.Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_t", (Map<String, Object>) (request), (Map<String, Object>) (paramsPaginate), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_t", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
             Map<String, Object> response = (this.v1PrivateGetTrades(this.extend(requestUntil, paramsUntil))).join();
@@ -3291,7 +3294,7 @@ public class Woofipro extends WoofiproApi
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -3345,13 +3348,13 @@ public class Woofipro extends WoofiproApi
             //     }
             // }
             //
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
+            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             return this.parseBalance(data);
         }).thenApply(Balances::new);
 
     }
 
-    public CompletableFuture<Object> getAssetHistoryRows(String code, Long since, Long limit, Object parameters)
+    public CompletableFuture<Object> getAssetHistoryRows(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3365,7 +3368,7 @@ public class Woofipro extends WoofiproApi
             if (!java.util.Objects.equals(code, null))
             {
                 currency = this.currency((String) (code));
-                request.put("balance_token", currency.get("id"));
+                request.put("balance_token", this.safeString(currency, "id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
@@ -3376,7 +3379,7 @@ public class Woofipro extends WoofiproApi
                 request.put("pageSize", limit);
             }
             String transactionType = this.safeString(parameters, "type");
-            Object paramsOmitted = this.omit(parameters, "type");
+            Map<String, Object> paramsOmitted = this.omit(parameters, "type");
             if (!java.util.Objects.equals(transactionType, null))
             {
                 request.put("type", transactionType);
@@ -3422,7 +3425,7 @@ public class Woofipro extends WoofiproApi
         String side = this.safeString(item, "token_side");
         String direction = (((java.util.Objects.equals(side, "DEPOSIT")))) ? "in" : "out";
         Long timestamp = this.safeInteger(item, "created_time");
-        Object fee = this.parseTokenAndFeeTemp((Map<String, Object>) (item), "fee_token", "fee_amount");
+        Object fee = this.parseTokenAndFeeTemp(item, "fee_token", "fee_amount");
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "id", Woofipro.this.safeString(item, "id") );
             put( "currency", code );
@@ -3470,7 +3473,7 @@ public class Woofipro extends WoofiproApi
             Object currencyRows = (this.getAssetHistoryRows(code, since, limit, parameters)).join();
             Object currency = this.safeValue(currencyRows, 0);
             List<Object> rows = (List<Object>) this.safeList(currencyRows, 1, (Object) null);
-            return this.parseLedger(rows, Helpers.toMapArg(currency), since, limit, parameters);
+            return this.parseLedger(rows, ((Map<String, Object>) (switch ((Object) (currency)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })), since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(LedgerEntry::new).collect(Collectors.toList()));
 
     }
@@ -3484,7 +3487,7 @@ public class Woofipro extends WoofiproApi
         {
             movementDirection = "withdrawal";
         }
-        Object fee = this.parseTokenAndFeeTemp((Map<String, Object>) (transaction), "fee_token", "fee_amount");
+        Object fee = this.parseTokenAndFeeTemp(transaction, "fee_token", "fee_amount");
         String addressTo = this.safeString(transaction, "target_address");
         String addressFrom = this.safeString(transaction, "source_address");
         Long timestamp = this.safeInteger(transaction, "created_time");
@@ -3610,7 +3613,7 @@ public class Woofipro extends WoofiproApi
             {
                 rowsList = rows;
             }
-            return this.parseTransactions(rowsList, Helpers.toMapArg(currency), since, limit, parameters);
+            return this.parseTransactions(rowsList, ((Map<String, Object>) (switch ((Object) (currency)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })), since, limit, parameters);
         }).thenApply(res -> ((List<?>) res).stream().map(Transaction::new).collect(Collectors.toList()));
 
     }
@@ -3636,24 +3639,24 @@ public class Woofipro extends WoofiproApi
 
     }
 
-    public Object hashMessage(Object message)
+    public String hashMessage(Object message)
     {
         Object hashed = this.hash(message, keccak(), "hex");
         return ("0x" + hashed);
     }
 
-    public String signHash(Object hash, Object privateKey)
+    public String signHash(String hash, String privateKey)
     {
         Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
-        Object r = signature.get("r");
-        Object s = signature.get("s");
+        String r = this.safeString(signature, "r", "");
+        String s = this.safeString(signature, "s", "");
         String v = this.intToBase16(this.sum(27, signature.get("v")));
         return ((("0x" + (((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r))) + (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s))) + v);
     }
 
-    public String signMessage(Object message, Object privateKey)
+    public String signMessage(Object message, String privateKey)
     {
-        return this.signHash(this.hashMessage(message), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))));
+        return this.signHash((String) (this.hashMessage(message)), (String) ((privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0)))));
     }
 
     /**
@@ -3664,11 +3667,11 @@ public class Woofipro extends WoofiproApi
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, String tag, Map<String, Object> parameters)
+    public CompletableFuture<Transaction> withdraw(String code, Object amount, String address, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3677,7 +3680,7 @@ public class Woofipro extends WoofiproApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            this.checkAddress(address);
+            this.checkAddress(address, (String) null, (String) null);
             String codeUpper = ((String)code).toUpperCase();
             if (!java.util.Objects.equals(codeUpper, "USDC"))
             {
@@ -3730,11 +3733,11 @@ public class Woofipro extends WoofiproApi
             withdrawRequest.put("chainId", this.parseToInt(chainId));
             withdrawRequest.put("receiver", address);
             withdrawRequest.put("token", codeUpper);
-            withdrawRequest.put("amount", String.valueOf(amount));
+            withdrawRequest.put("amount", this.numberToString(amount));
             withdrawRequest.put("withdrawNonce", withdrawNonce);
             withdrawRequest.put("timestamp", nonce);
             Object msg = this.ethEncodeStructuredData(domain, messageTypes, withdrawRequest);
-            String signature = this.signMessage(msg, this.privateKey);
+            String signature = this.signMessage(msg, (String) (this.privateKey));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "signature", signature );
                 put( "userAddress", address );
@@ -3753,7 +3756,7 @@ public class Woofipro extends WoofiproApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (data), currency);
+            return this.parseTransaction(data, currency);
         }).thenApply(Transaction::new);
 
     }
@@ -3833,7 +3836,7 @@ public class Woofipro extends WoofiproApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            MarginModes marginModes = (this.fetchMarginModes(Helpers.toStringListArg(new ArrayList<Object>(Arrays.asList(market.get("symbol")))), parameters)).join();
+            MarginModes marginModes = (this.fetchMarginModes(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), parameters)).join();
             Map<String, Object> marginMode = (Map<String, Object>) this.safeDict(marginModes, market.get("symbol"), (Object) null);
             if (java.util.Objects.equals(marginMode, null))
             {
@@ -3897,20 +3900,18 @@ public class Woofipro extends WoofiproApi
         //
         Long timestamp = this.safeInteger(data, "timestamp");
         Boolean success = (Boolean) this.safeBool(data, "success", false);
-        {
-            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
-            h2kMap3.put("info", data);
-            h2kMap3.put("symbol", this.safeString(market, "symbol"));
-            h2kMap3.put("type", null);
-            h2kMap3.put("marginMode", "isolated");
-            h2kMap3.put("amount", null);
-            h2kMap3.put("total", null);
-            h2kMap3.put("code", this.safeString(market, "settle"));
-            h2kMap3.put("status", (((java.util.Objects.equals(success, true)))) ? "ok" : "failed");
-            h2kMap3.put("timestamp", timestamp);
-            h2kMap3.put("datetime", this.iso8601(timestamp));
-            return h2kMap3;
-        }
+        return new HashMap<String, Object>() {{
+            put( "info", data );
+            put( "symbol", Woofipro.this.safeString(market, "symbol") );
+            put( "type", null );
+            put( "marginMode", "isolated" );
+            put( "amount", null );
+            put( "total", null );
+            put( "code", Woofipro.this.safeString(market, "settle") );
+            put( "status", ((Boolean.TRUE.equals(success))) ? "ok" : "failed" );
+            put( "timestamp", timestamp );
+            put( "datetime", Woofipro.this.iso8601(timestamp) );
+        }};
     }
 
     /**
@@ -3925,7 +3926,7 @@ public class Woofipro extends WoofiproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object type, Map<String, Object> parameters)
+    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, String type, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -3946,9 +3947,9 @@ public class Woofipro extends WoofiproApi
             //     "timestamp": 1702989203989
             // }
             //
-            Object modification = this.parseMarginModification((Map<String, Object>) (response), market);
-            ((Map<String, Object>)modification).put("type", (((java.util.Objects.equals(type, "ADD")))) ? "add" : "reduce");
-            ((Map<String, Object>)modification).put("amount", this.parseNumber(this.numberToString(amount)));
+            Map<String, Object> modification = (Map<String, Object>) this.parseMarginModification(response, market);
+            modification.put("type", (((java.util.Objects.equals(type, "ADD")))) ? "add" : "reduce");
+            modification.put("amount", this.parseNumber(this.numberToString(amount)));
             return modification;
         });
 
@@ -3969,7 +3970,7 @@ public class Woofipro extends WoofiproApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, "ADD", parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, "ADD", parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -3989,7 +3990,7 @@ public class Woofipro extends WoofiproApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.modifyMarginHelper(symbol, amount, "REDUCE", parameters)).join();
+            return (this.modifyMarginHelper((String) (symbol), amount, "REDUCE", parameters)).join();
         }).thenApply(MarginModification::new);
 
     }
@@ -4054,7 +4055,7 @@ public class Woofipro extends WoofiproApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseLeverage((Map<String, Object>) (data), market);
+            return this.parseLeverage(data, market);
         }).thenApply(Leverage::new);
 
     }
@@ -4078,7 +4079,7 @@ public class Woofipro extends WoofiproApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            if ((Helpers.isLessThan(leverage, 1)) || (Helpers.isGreaterThan(leverage, 50)))
+            if (((leverage == null || !(((Number) leverage).doubleValue() >= 1))) || ((leverage != null && ((Number) leverage).doubleValue() > 50)))
             {
                 throw new BadRequest((this.id + " leverage should be between 1 and 50")) ;
             }
@@ -4154,7 +4155,6 @@ public class Woofipro extends WoofiproApi
         mapLiteral7.put("lastPrice", null);
         mapLiteral7.put("collateral", null);
         mapLiteral7.put("marginMode", "cross");
-        mapLiteral7.put("marginType", null);
         mapLiteral7.put("side", side);
         mapLiteral7.put("percentage", null);
         mapLiteral7.put("hedged", null);
@@ -4213,7 +4213,7 @@ public class Woofipro extends WoofiproApi
             // }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parsePosition((Map<String, Object>) (data), market);
+            return this.parsePosition(data, market);
         }).thenApply(Position::new);
 
     }
@@ -4287,10 +4287,10 @@ public class Woofipro extends WoofiproApi
         return this.milliseconds();
     }
 
-    public Object sign(Object path, Object section, Object method, Object parameters, Object headers, String body)
+    public Object sign(Object path, Object section, Object method, Object parameters)
     {
-        Object version = Helpers.GetValue(java.util.Objects.requireNonNullElse(section, "public"), 0);
-        Object access = Helpers.GetValue(java.util.Objects.requireNonNullElse(section, "public"), 1);
+        String version = (String) (section == null || 0 >= ((List<?>)section).size() ? null : ((List<?>)section).get(0));
+        String access = (String) (section == null || 1 >= ((List<?>)section).size() ? null : ((List<?>)section).get(1));
         String pathWithParams = (String) this.implodeParams(path, parameters);
         String apiUrl = this.safeString(this.urls.get("api"), access);
         if (java.util.Objects.equals(apiUrl, null))
@@ -4314,7 +4314,7 @@ public class Woofipro extends WoofiproApi
             if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT")) && (java.util.Objects.equals(path, "algo/order") || java.util.Objects.equals(path, "order") || java.util.Objects.equals(path, "batch-order")))
             {
                 Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
-                if (!java.util.Objects.equals(isSandboxMode, true))
+                if (!Boolean.TRUE.equals(isSandboxMode))
                 {
                     String brokerId = this.safeString(this.options, "brokerId", "CCXT");
                     if (java.util.Objects.equals(path, "batch-order"))
@@ -4335,21 +4335,20 @@ public class Woofipro extends WoofiproApi
             String ts = String.valueOf(this.nonce());
             url = (url + pathWithParams);
             String apiKey = this.apiKey;
-            if (((String)apiKey).indexOf("ed25519:") < 0)
+            if (((String)this.apiKey).indexOf("ed25519:") < 0)
             {
-                apiKey = ("ed25519:" + apiKey);
+                apiKey = ("ed25519:" + this.apiKey);
             }
-            requestHeaders = Helpers.newMap(
-                "orderly-account-id", this.accountId,
-                "orderly-key", apiKey,
-                "orderly-timestamp", ts
-            );
+            Map<String, Object> authHeaders = new HashMap<String, Object>();
+            authHeaders.put("orderly-account-id", this.accountId);
+            authHeaders.put("orderly-key", apiKey);
+            authHeaders.put("orderly-timestamp", ts);
             auth = (((((ts + java.util.Objects.requireNonNullElse(method, "GET")) + "/") + version) + "/") + pathWithParams);
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST") || java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "PUT"))
             {
                 requestBody = this.json(requestParams);
                 auth = (auth + requestBody);
-                requestHeaders.put("content-type", "application/json");
+                authHeaders.put("content-type", "application/json");
             } else
             {
                 if (requestParams.size() > 0)
@@ -4357,34 +4356,33 @@ public class Woofipro extends WoofiproApi
                     url = (url + ("?" + this.urlencode(requestParams)));
                     auth = (auth + ("?" + this.rawencode(requestParams)));
                 }
-                requestHeaders.put("content-type", "application/x-www-form-urlencoded");
+                authHeaders.put("content-type", "application/x-www-form-urlencoded");
                 if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE"))
                 {
                     requestBody = "";
                 }
             }
             Object secret = this.secret;
-            if (((String)secret).indexOf("ed25519:") >= 0)
+            if (((String)this.secret).indexOf("ed25519:") >= 0)
             {
-                List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)secret).split(java.util.regex.Pattern.quote("ed25519:"))));
+                List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)this.secret).split(java.util.regex.Pattern.quote("ed25519:"))));
                 secret = (parts == null || 1 >= parts.size() ? null : parts.get(1));
             }
             Object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());
-            requestHeaders.put("orderly-signature", this.urlencodeBase64(this.base64ToBinary(signature)));
+            authHeaders.put("orderly-signature", this.urlencodeBase64(this.base64ToBinary(signature)));
+            requestHeaders = authHeaders;
         }
-        String bodyResult = (((java.util.Objects.equals(requestBody, null)))) ? body : requestBody;
-        Object headersResult = (((java.util.Objects.equals(requestHeaders, null)))) ? headers : requestHeaders;
         {
-            HashMap<String, Object> h2kMap4 = new HashMap<String, Object>();
-            h2kMap4.put("url", url);
-            h2kMap4.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap4.put("body", bodyResult);
-            h2kMap4.put("headers", headersResult);
-            return h2kMap4;
+            HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
+            h2kMap3.put("url", url);
+            h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
+            h2kMap3.put("body", requestBody);
+            h2kMap3.put("headers", requestHeaders);
+            return h2kMap3;
         }
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -4394,13 +4392,13 @@ public class Woofipro extends WoofiproApi
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        Boolean success = (Boolean) this.safeBool(response, "success", (Object) null);
+        Boolean success = (Boolean) this.safeBool(response, "success", false);
         String errorCode = this.safeString(response, "code");
-        if (!java.util.Objects.equals(success, true))
+        if (!Boolean.TRUE.equals(success))
         {
             String feedback = ((this.id + " ") + this.json(response));
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), body, feedback);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), errorCode, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (body), feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

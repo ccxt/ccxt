@@ -8,13 +8,14 @@ from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById,
 import hashlib
 from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.precise import Precise
 
 
 class phemex(ccxt.async_support.phemex):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(phemex, self).describe(), {
             'has': {
                 'ws': True,
@@ -25,6 +26,8 @@ class phemex(ccxt.async_support.phemex):
                 'watchOrders': True,
                 'watchOrderBook': True,
                 'watchOHLCV': True,
+                'unWatchTrades': True,
+                'unWatchOHLCV': True,
                 'watchPositions': None,  # TODO
                 # multi-endpoints are not supported: https://github.com/ccxt/ccxt/pull/21490
                 'watchOrderBookForSymbols': False,
@@ -274,10 +277,10 @@ class phemex(ccxt.async_support.phemex):
         #
         tickers = []
         if 'market24h' in message:
-            ticker = self.safe_value(message, 'market24h')
+            ticker = self.safe_dict(message, 'market24h', {})
             tickers.append(self.parse_swap_ticker(ticker))
         elif 'spot_market24h' in message:
-            ticker = self.safe_value(message, 'spot_market24h')
+            ticker = self.safe_dict(message, 'spot_market24h', {})
             tickers.append(self.parse_ticker(ticker))
         elif 'data' in message:
             data = self.safe_list(message, 'data', [])
@@ -285,7 +288,7 @@ class phemex(ccxt.async_support.phemex):
                 tickers.append(self.parse_perpetual_ticker(data[i]))
         for i in range(0, len(tickers)):
             ticker = tickers[i]
-            symbol = ticker['symbol']
+            symbol = self.safe_string(ticker, 'symbol', '')
             messageHash = 'ticker:' + symbol
             timestamp = self.safe_integer_product(message, 'timestamp', 0.000001)
             ticker['timestamp'] = timestamp
@@ -309,8 +312,9 @@ class phemex(ccxt.async_support.phemex):
             await self.load_markets()
         type, paramsMarketType = self.handle_market_type_and_params('watchBalance', None, params)
         usePerpetualApi = self.safe_string(paramsMarketType, 'settle') == 'USDT'
-        messageHash = ':balance'
-        messageHash = 'perpetual' + messageHash if usePerpetualApi else type + messageHash
+        messageHash = 'perpetual:balance'
+        if not usePerpetualApi:
+            messageHash = type + ':balance'
         return await self.subscribe_private(type, messageHash, paramsMarketType)
 
     def handle_balance(self, type: str, client: Client, message: list[object]):
@@ -682,6 +686,103 @@ class phemex(ccxt.async_support.phemex):
             limitResolved = ohlcv.getLimit(symbolValue, limit)
         return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
 
+    async def un_subscribe_public(self, method: str, subMessageHash: str, marketParams: list, subscription: dict, params: dict = {}):
+        url = self.urls['api']['ws']
+        requestId = self.request_id()
+        messageHash = 'unsubscribe:' + subMessageHash
+        request = {
+            'method': method,
+            'id': requestId,
+            'params': marketParams,
+        }
+        unsubscription = self.extend(subscription, {
+            'id': requestId,
+            'unsubscribe': True,
+            'subMessageHash': subMessageHash,
+            'messageHash': messageHash,
+        })
+        return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash, unsubscription)
+
+    async def un_watch_trades(self, symbol: str, params: dict = {}) -> object:
+        """
+        unWatches from the stream channel
+
+        https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#unsubscribe-trade
+        https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#unsubscribe-trade
+        https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#unsubscribe-trade
+
+        :param str symbol: unified symbol of the market to unwatch the trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: status of the unwatch request
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        symbolValue = market['symbol']
+        isUsdtSwap = (market['swap'] is True) and (market['settle'] == 'USDT')
+        name = 'trade'
+        if isUsdtSwap:
+            name = 'trade_p'
+        subscription = {
+            'topic': 'trades',
+            'symbols': [symbolValue],
+        }
+        return await self.un_subscribe_public(name + '.unsubscribe', 'trade:' + symbolValue, [market['id']], subscription, params)
+
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params: dict = {}) -> object:
+        """
+        unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+        https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#unsubscribe-kline
+        https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#unsubscribe-kline
+        https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#unsubscribe-kline
+
+        :param str symbol: unified symbol of the market to unwatch the candles for
+        :param str [timeframe]: the length of time each candle represents
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: status of the unwatch request
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        symbolValue = market['symbol']
+        isUsdtSwap = (market['swap'] is True) and (market['settle'] == 'USDT')
+        name = 'kline'
+        if isUsdtSwap:
+            name = 'kline_p'
+        subscription = {
+            'topic': 'ohlcv',
+            'symbolsAndTimeframes': [[symbolValue, timeframe]],
+        }
+        # phemex drops only the given interval when it is sent along with the symbol
+        marketParams = [market['id'], self.safe_integer(self.timeframes, timeframe)]
+        return await self.un_subscribe_public(name + '.unsubscribe', 'kline:' + timeframe + ':' + symbolValue, marketParams, subscription, params)
+
+    def handle_un_subscription(self, client: Client, message: dict):
+        #
+        # phemex answers subscribe and unsubscribe requests alike, so the answer is matched to a pending unsubscribe by id
+        #
+        #     { "error": null, "id": 3, "result": { "status": "success" } }
+        #     { "error": { "code": 6001, "message": "invalid argument" }, "id": 2, "result": null }
+        #
+        id = self.safe_string(message, 'id')
+        subscriptionHashes = list(client.subscriptions.keys())
+        for i in range(0, len(subscriptionHashes)):
+            subscriptionHash = subscriptionHashes[i]
+            subscription = client.subscriptions[subscriptionHash]
+            isUnSubscription = self.safe_bool(subscription, 'unsubscribe', False)
+            subscriptionId = self.safe_string(subscription, 'id')
+            if isUnSubscription and (subscriptionId is not None) and (subscriptionId == id):
+                subMessageHash = self.safe_string(subscription, 'subMessageHash')
+                messageHash = self.safe_string(subscription, 'messageHash')
+                error = self.safe_dict(message, 'error')
+                if error is not None:
+                    # the stream stays subscribed, so drop only the pending unsubscribe
+                    del client.subscriptions[subscriptionHash]
+                    client.reject(ExchangeError(self.id + ' ' + self.json(error)), subscriptionHash)
+                    return
+                self.clean_unsubscription(client, subMessageHash, messageHash)
+                self.clean_cache(subscription)
+                return
+
     def custom_handle_delta(self, bookside: object, delta: list[object], market: Market = None):
         bidAsk = self.custom_parse_bid_ask(delta, 0, 1, market)
         bookside.storeArray(bidAsk)
@@ -747,8 +848,13 @@ class phemex(ccxt.async_support.phemex):
             book = self.safe_dict_2(message, 'book', 'orderbook_p', {})
             snapshot = self.custom_parse_order_book(book, symbol, timestamp, 'bids', 'asks', 0, 1, market)
             snapshot['nonce'] = nonce
-            orderbook = self.order_book(snapshot, depth)
-            self.orderbooks[symbol] = orderbook
+            # reset the existing orderbook instead of replacing it: a consumer
+            # holds a reference to the old object and would never see updates
+            # after a re-subscription snapshot
+            if not (symbol in self.orderbooks):
+                self.orderbooks[symbol] = self.order_book({}, depth)
+            orderbook = self.orderbooks[symbol]
+            orderbook.reset(snapshot)
             client.resolve(orderbook, messageHash)
         else:
             if symbol in self.orderbooks:
@@ -780,15 +886,18 @@ class phemex(ccxt.async_support.phemex):
         symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
         if symbol is not None:
             market = self.market(symbol)
-            messageHash = messageHash + market['symbol']
+            messageHash = 'trades:' + self.safe_string(market, 'symbol', '')
         isUsdtMarket = (market is not None) and (market['settle'] == 'USDT')
         settleRequest = {}
         if isUsdtMarket:
             settleRequest = {'settle': 'USDT'}
         type, paramsType = self.handle_market_type_and_params('watchMyTrades', market, self.extend(params, settleRequest))
-        if symbolResolved is None:
+        if symbol is None:
             settle = self.safe_string(paramsType, 'settle')
-            messageHash = (messageHash + 'perpetual') if (settle == 'USDT') else (messageHash + type)
+            if settle == 'USDT':
+                messageHash = 'trades:perpetual'
+            else:
+                messageHash = 'trades:' + type
         trades = await self.subscribe_private(type, messageHash, paramsType)
         limitResolved = limit
         if self.newUpdates:
@@ -899,7 +1008,7 @@ class phemex(ccxt.async_support.phemex):
             cachedTrades = ArrayCacheBySymbolById(limit)
         marketIds = {}
         type = None
-        for i in range(0, len(message)):
+        for i in range(0, tradesLength):
             rawTrade = message[i]
             marketId = self.safe_string(rawTrade, 'symbol')
             market = self.safe_market(marketId)
@@ -907,7 +1016,8 @@ class phemex(ccxt.async_support.phemex):
             cachedTrades.append(parsed)
             symbol = parsed['symbol']
             if type is None:
-                type = 'perpetual' if (market['settle'] == 'USDT') else market['type']
+                marketSettle = self.safe_string(market, 'settle')
+                type = 'perpetual' if (marketSettle == 'USDT') else market['type']
             if symbol is not None:
                 marketIds[symbol] = True
         keys = list(marketIds.keys())
@@ -935,15 +1045,18 @@ class phemex(ccxt.async_support.phemex):
         symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
         if symbol is not None:
             market = self.market(symbol)
-            messageHash = messageHash + market['symbol']
+            messageHash = 'orders:' + self.safe_string(market, 'symbol', '')
         isUsdtMarket = (market is not None) and (market['settle'] == 'USDT')
         settleRequest = {}
         if isUsdtMarket:
             settleRequest = {'settle': 'USDT'}
         type, paramsType = self.handle_market_type_and_params('watchOrders', market, self.extend(params, settleRequest))
         isUSDTSettled = self.safe_string(paramsType, 'settle') == 'USDT'
-        if symbolResolved is None:
-            messageHash = (messageHash + 'perpetual') if (isUSDTSettled) else (messageHash + type)
+        if symbol is None:
+            if isUSDTSettled:
+                messageHash = 'orders:perpetual'
+            else:
+                messageHash = 'orders:' + type
         orders = await self.subscribe_private(type, messageHash, paramsType)
         limitResolved = limit
         if self.newUpdates:
@@ -1127,7 +1240,7 @@ class phemex(ccxt.async_support.phemex):
             messageLength = len(message)
             if messageLength == 0:
                 return
-            for i in range(0, len(message)):
+            for i in range(0, messageLength):
                 update = message[i]
                 action = self.safe_string(update, 'action')
                 if (action is not None) and (action != 'Cancel'):
@@ -1433,6 +1546,9 @@ class phemex(ccxt.async_support.phemex):
             if method is not True:
                 method(client, message)
                 return
+        if ('result' in message) or ('error' in message):
+            self.handle_un_subscription(client, message)
+            return
         methodName = self.safe_string(message, 'method', '')
         if ('market24h' in message) or ('spot_market24h' in message) or (methodName.find('perp_market24h_pack_p') >= 0):
             self.handle_ticker(client, message)

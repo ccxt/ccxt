@@ -525,6 +525,9 @@ export default class dydx extends Exchange {
         }
         const settleId = 'USDC';
         const settle = this.safeCurrencyCode(settleId);
+        if (settle === undefined) {
+            return undefined;
+        }
         const symbol = base + '/' + quote + ':' + settle;
         const contract = true;
         const swap = true;
@@ -1093,7 +1096,6 @@ export default class dydx extends Exchange {
         //
         const marketId = this.safeString(position, 'market');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
         const side = this.safeStringLower(position, 'side');
         let quantity = this.safeString(position, 'size');
         if (side !== 'long') {
@@ -1103,7 +1105,7 @@ export default class dydx extends Exchange {
         return this.safePosition({
             'info': position,
             'id': undefined,
-            'symbol': symbol,
+            'symbol': this.safeString(marketResolved, 'symbol'),
             'entryPrice': this.safeNumber(position, 'entryPrice'),
             'markPrice': undefined,
             'notional': undefined,
@@ -1196,8 +1198,8 @@ export default class dydx extends Exchange {
     }
     signHash(hash, privateKey) {
         const signature = ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString(signature, 'r', '');
+        const s = this.safeString(signature, 's', '');
         return {
             'r': r.padStart(64, '0'),
             's': s.padStart(64, '0'),
@@ -1229,21 +1231,27 @@ export default class dydx extends Exchange {
     signDydxTx(privateKey, message, memo, chainId, account, authenticators, fee = undefined) {
         const [encodedTx, signDoc] = this.encodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee);
         const signature = this.signHash(encodedTx, privateKey);
-        return this.encodeDydxTxRaw(signDoc, signature['r'] + signature['s']);
+        const signatureR = this.safeString(signature, 'r', '');
+        const signatureS = this.safeString(signature, 's', '');
+        return this.encodeDydxTxRaw(signDoc, signatureR + signatureS);
     }
     retrieveCredentials() {
         let credentials = this.safeDict(this.options, 'dydxCredentials');
         if (credentials !== undefined) {
             return credentials;
         }
-        let privateKey = this.safeString(this.options, 'privateKey');
-        if (privateKey === undefined) {
-            const signature = this.signOnboardingAction();
-            privateKey = this.hashMessage(this.base16ToBinary(signature['r'] + signature['s']));
+        const privateKeyOption = this.safeString(this.options, 'privateKey');
+        if (privateKeyOption !== undefined) {
+            credentials = this.retrieveDydxCredentials(privateKeyOption);
         }
-        credentials = this.retrieveDydxCredentials(privateKey);
-        credentials['privateKey'] = this.binaryToBase16(credentials['privateKey']);
-        credentials['publicKey'] = this.binaryToBase16(credentials['publicKey']);
+        else {
+            const signature = this.signOnboardingAction();
+            credentials = this.retrieveDydxCredentials(this.hashMessage(this.base16ToBinary(this.safeString(signature, 'r', '') + this.safeString(signature, 's', ''))));
+        }
+        credentials = {
+            'privateKey': this.binaryToBase16(credentials['privateKey']),
+            'publicKey': this.binaryToBase16(credentials['publicKey']),
+        };
         this.options['dydxCredentials'] = credentials;
         return credentials;
     }
@@ -1252,7 +1260,7 @@ export default class dydx extends Exchange {
         await this.loadDydxProtos();
         const dydxAccount = this.safeDict(this.options, 'dydxAccount');
         if (dydxAccount !== undefined) {
-            return dydxAccount;
+            return this.safeDict(this.options, 'dydxAccount', {});
         }
         if (this.walletAddress === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg: dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz');
@@ -1278,12 +1286,13 @@ export default class dydx extends Exchange {
         //
         const response = await this.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request);
         const account = this.safeDict(response, 'info', {});
+        const pubKey = this.safeDict(account, 'pub_key', {});
         account['pub_key'] = {
             // encode with binary key would fail in python
-            'key': account['pub_key']['key'],
+            'key': pubKey['key'],
         };
         this.options['dydxAccount'] = account;
-        return account;
+        return this.safeDict(this.options, 'dydxAccount', {});
     }
     pow(n, m) {
         let r = Precise.stringMul(n, '1');
@@ -1311,8 +1320,8 @@ export default class dydx extends Exchange {
         const subaccountId = 0;
         const [subaccountIdOption, paramsSubAccountId] = this.handleOptionIntegerAndParams(params, 'createOrder', 'subAccountId', subaccountId);
         const triggerPrice = this.safeString2(paramsSubAccountId, 'triggerPrice', 'stopPrice');
-        const stopLossPrice = this.safeValue(paramsSubAccountId, 'stopLossPrice', triggerPrice);
-        const takeProfitPrice = this.safeValue(paramsSubAccountId, 'takeProfitPrice');
+        const stopLossPrice = this.safeString(paramsSubAccountId, 'stopLossPrice', triggerPrice);
+        const takeProfitPrice = this.safeString(paramsSubAccountId, 'takeProfitPrice');
         const isConditional = triggerPrice !== undefined || stopLossPrice !== undefined || takeProfitPrice !== undefined;
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringUpper(paramsSubAccountId, 'timeInForce', 'GTT');
@@ -1381,7 +1390,8 @@ export default class dydx extends Exchange {
         let goodTillBlock = this.safeInteger(paramsSubAccountId, 'goodTillBlock');
         let goodTillBlockTime = undefined;
         const goodTillBlockTimeInSeconds = 2592000;
-        const [goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds] = this.handleOptionIntegerAndParams(paramsSubAccountId, 'createOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
+        // default is 30 days
+        const [goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds] = this.handleOptionIntegerAndParams(paramsSubAccountId, 'createOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds);
         if (orderFlag === 0) {
             if (goodTillBlock === undefined) {
                 // short term order
@@ -1440,10 +1450,10 @@ export default class dydx extends Exchange {
     }
     createOrderIdFromParts(address, subAccountNumber, clientOrderId, orderFlags, clobPairId) {
         const nameSp = this.safeString(this.options, 'namespace', '0f9da948-a6fb-4c45-9edc-4685c3f3317d');
-        const prefixAddress = address + '-' + subAccountNumber.toString();
-        const prefix = this.uuid5(nameSp, prefixAddress);
-        const orderInfo = prefix + '-' + this.numberToString(clientOrderId) + '-' + this.numberToString(clobPairId) + '-' + this.numberToString(orderFlags);
-        return this.uuid5(nameSp, orderInfo);
+        const clientOrderIdString = this.numberToString(clientOrderId);
+        const clobPairIdString = this.numberToString(clobPairId);
+        const orderFlagsString = this.numberToString(orderFlags);
+        return this.uuid5(nameSp, this.uuid5(nameSp, address + '-' + this.numberToString(subAccountNumber)) + '-' + clientOrderIdString + '-' + clobPairIdString + '-' + orderFlagsString);
     }
     async fetchLatestBlockHeight(params = {}) {
         const response = await this.nodeRpcGetAbciInfo(params);
@@ -1504,7 +1514,7 @@ export default class dydx extends Exchange {
         const orderId = orderRequestRes[0];
         const orderRequest = orderRequestRes[1];
         const chainName = this.safeString(this.options, 'chainName');
-        const signedTx = this.signDydxTx(credentials['privateKey'], orderRequest, '', chainName, account, undefined);
+        const signedTx = this.signDydxTx(this.safeString(credentials, 'privateKey'), orderRequest, '', chainName, account, undefined);
         const request = {
             'tx': signedTx,
         };
@@ -1524,10 +1534,13 @@ export default class dydx extends Exchange {
         // }
         //
         const result = this.safeDict(response, 'result');
+        const requestValue = this.safeDict(orderRequest, 'value', {});
+        const requestOrder = this.safeDict(requestValue, 'order', {});
+        const requestOrderId = this.safeDict(requestOrder, 'orderId', {});
         return this.safeOrder({
             'info': result,
             'id': orderId,
-            'clientOrderId': orderRequest['value']['order']['orderId']['clientId'],
+            'clientOrderId': this.safeString(requestOrderId, 'clientId'),
         });
     }
     /**
@@ -1549,7 +1562,7 @@ export default class dydx extends Exchange {
     async cancelOrder(id, symbol = undefined, params = {}) {
         const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         const paramsOmitted = this.omit(params, ['trigger', 'stop']);
-        if ((isTrigger !== true) && (symbol === undefined)) {
+        if ((!isTrigger) && (symbol === undefined)) {
             throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
         if (this.markets === undefined) {
@@ -1560,18 +1573,20 @@ export default class dydx extends Exchange {
         if (clientOrderId === undefined) {
             throw new ArgumentsRequired(this.id + ' cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.');
         }
-        const idString = id.toString();
+        const idString = this.numberToString(id);
         if (idString.indexOf('-') > -1) {
             throw new NotSupported(this.id + ' cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.');
         }
-        let goodTillBlock = this.safeInteger(paramsOmitted, 'goodTillBlock');
+        const goodTillBlockOption = this.safeInteger(paramsOmitted, 'goodTillBlock');
+        let goodTillBlock = goodTillBlockOption;
         const goodTillBlockTimeInSeconds = 2592000;
-        const [goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds] = this.handleOptionIntegerAndParams(paramsOmitted, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
+        // default is 30 days
+        const [goodTillBlockTimeInSecondsOption, paramsGoodTillBlockTimeInSeconds] = this.handleOptionIntegerAndParams(paramsOmitted, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds);
         let goodTillBlockTime = undefined;
-        const defaultOrderFlags = (isTrigger === true) ? 32 : 64;
+        const defaultOrderFlags = (isTrigger) ? 32 : 64;
         const orderFlags = this.safeInteger(paramsGoodTillBlockTimeInSeconds, 'orderFlags', defaultOrderFlags);
         const subAccountId = 0;
-        const subAccountIdOption = this.handleOptionIntegerAndParams(paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', subAccountId)[0];
+        const [subAccountIdOption] = this.handleOptionIntegerAndParams(paramsGoodTillBlockTimeInSeconds, 'cancelOrder', 'subAccountId', subAccountId);
         if (orderFlags !== 0 && orderFlags !== 64 && orderFlags !== 32) {
             throw new InvalidOrder(this.id + ' invalid orderFlags, allowed values are (0, 64, 32).');
         }
@@ -1579,7 +1594,7 @@ export default class dydx extends Exchange {
             if (goodTillBlockTimeInSecondsOption === undefined) {
                 throw new ArgumentsRequired(this.id + ' goodTillBlockTimeInSeconds is required in params for long term or conditional order.');
             }
-            if (goodTillBlock !== undefined && goodTillBlock > 0) {
+            if (goodTillBlockOption !== undefined && goodTillBlockOption > 0) {
                 throw new InvalidOrder(this.id + ' goodTillBlock should be 0 for long term or conditional order.');
             }
             goodTillBlockTime = this.seconds() + goodTillBlockTimeInSecondsOption;
@@ -1592,6 +1607,7 @@ export default class dydx extends Exchange {
         }
         const credentials = this.retrieveCredentials();
         const account = await this.fetchDydxAccount();
+        const marketInfo = this.safeDict(market, 'info', {});
         const cancelPayload = {
             'orderId': {
                 'subaccountId': {
@@ -1600,7 +1616,7 @@ export default class dydx extends Exchange {
                 },
                 'clientId': clientOrderId,
                 'orderFlags': orderFlags,
-                'clobPairId': market['info']['clobPairId'],
+                'clobPairId': marketInfo['clobPairId'],
             },
             'goodTilBlock': goodTillBlock,
             'goodTilBlockTime': goodTillBlockTime,
@@ -1610,7 +1626,7 @@ export default class dydx extends Exchange {
             'value': cancelPayload,
         };
         const chainName = this.safeString(this.options, 'chainName');
-        const signedTx = this.signDydxTx(credentials['privateKey'], signingPayload, '', chainName, account, undefined);
+        const signedTx = this.signDydxTx(this.safeString(credentials, 'privateKey'), signingPayload, '', chainName, account, undefined);
         const request = {
             'tx': signedTx,
         };
@@ -1663,9 +1679,10 @@ export default class dydx extends Exchange {
         }
         const credentials = this.retrieveCredentials();
         const account = await this.fetchDydxAccount();
+        const marketInfo = this.safeDict(market, 'info', {});
         const cancelOrders = {
             'clientIds': clientOrderIds,
-            'clobPairId': market['info']['clobPairId'],
+            'clobPairId': marketInfo['clobPairId'],
         };
         const cancelPayload = {
             'subaccountId': {
@@ -1680,7 +1697,7 @@ export default class dydx extends Exchange {
             'value': cancelPayload,
         };
         const chainName = this.safeString(this.options, 'chainName');
-        const signedTx = this.signDydxTx(credentials['privateKey'], signingPayload, '', chainName, account, undefined);
+        const signedTx = this.signDydxTx(this.safeString(credentials, 'privateKey'), signingPayload, '', chainName, account, undefined);
         const request = {
             'tx': signedTx,
         };
@@ -1826,11 +1843,11 @@ export default class dydx extends Exchange {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const response = await this.fetchTransactionsHelper(code, since, limit, this.extend(params, { 'methodName': 'fetchLedger' }));
+        const response = await this.fetchTransactionsHelper('fetchLedger', code, since, limit, this.omit(params, 'methodName'));
         return this.parseLedger(response, currency, since, limit);
     }
     async estimateTxFee(message, memo, account) {
-        const txBytes = this.encodeDydxTxForSimulation(message, memo, account['sequence'], account['pub_key']);
+        const txBytes = this.encodeDydxTxForSimulation(message, memo, this.safeString(account, 'sequence'), this.safeDict(account, 'pub_key', {}));
         const request = {
             'txBytes': txBytes,
         };
@@ -1957,7 +1974,7 @@ export default class dydx extends Exchange {
         }
         const txFee = await this.estimateTxFee(signingPayload, '', account);
         const chainName = this.safeString(this.options, 'chainName');
-        const signedTx = this.signDydxTx(credentials['privateKey'], signingPayload, '', chainName, account, undefined, txFee);
+        const signedTx = this.signDydxTx(this.safeString(credentials, 'privateKey'), signingPayload, '', chainName, account, undefined, txFee);
         const request = {
             'tx': signedTx,
         };
@@ -2040,7 +2057,7 @@ export default class dydx extends Exchange {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const response = await this.fetchTransactionsHelper(code, since, limit, this.extend(params, { 'methodName': 'fetchTransfers' }));
+        const response = await this.fetchTransactionsHelper('fetchTransfers', code, since, limit, this.omit(params, 'methodName'));
         const transferIn = this.filterBy(response, 'type', 'TRANSFER_IN');
         const transferOut = this.filterBy(response, 'type', 'TRANSFER_OUT');
         const rows = this.arrayConcat(transferIn, transferOut);
@@ -2106,11 +2123,12 @@ export default class dydx extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
+        const [tag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         if (code !== 'USDC') {
             throw new NotSupported(this.id + ' withdraw() only support USDC');
         }
@@ -2118,7 +2136,7 @@ export default class dydx extends Exchange {
             await this.loadMarkets();
         }
         this.checkAddress(address);
-        const subaccountId = this.safeInteger(params, 'subaccountId');
+        const subaccountId = this.safeInteger(paramsWithdrawTag, 'subaccountId');
         if (subaccountId === undefined) {
             throw new ArgumentsRequired(this.id + ' withdraw requires subaccountId.');
         }
@@ -2141,7 +2159,7 @@ export default class dydx extends Exchange {
         };
         const txFee = await this.estimateTxFee(signingPayload, tag, account);
         const chainName = this.safeString(this.options, 'chainName');
-        const signedTx = this.signDydxTx(credentials['privateKey'], signingPayload, tag, chainName, account, undefined, txFee);
+        const signedTx = this.signDydxTx(this.safeString(credentials, 'privateKey'), signingPayload, tag, chainName, account, undefined, txFee);
         const request = {
             'tx': signedTx,
         };
@@ -2184,7 +2202,7 @@ export default class dydx extends Exchange {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const response = await this.fetchTransactionsHelper(code, since, limit, this.extend(params, { 'methodName': 'fetchWithdrawals' }));
+        const response = await this.fetchTransactionsHelper('fetchWithdrawals', code, since, limit, this.omit(params, 'methodName'));
         const rows = this.filterBy(response, 'type', 'WITHDRAWAL');
         return this.parseTransactions(rows, currency, since, limit);
     }
@@ -2209,7 +2227,7 @@ export default class dydx extends Exchange {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const response = await this.fetchTransactionsHelper(code, since, limit, this.extend(params, { 'methodName': 'fetchDeposits' }));
+        const response = await this.fetchTransactionsHelper('fetchDeposits', code, since, limit, this.omit(params, 'methodName'));
         const rows = this.filterBy(response, 'type', 'DEPOSIT');
         return this.parseTransactions(rows, currency, since, limit);
     }
@@ -2234,16 +2252,14 @@ export default class dydx extends Exchange {
         if (code !== undefined) {
             currency = this.currency(code);
         }
-        const response = await this.fetchTransactionsHelper(code, since, limit, this.extend(params, { 'methodName': 'fetchDepositsWithdrawals' }));
+        const response = await this.fetchTransactionsHelper('fetchDepositsWithdrawals', code, since, limit, this.omit(params, 'methodName'));
         const withdrawals = this.filterBy(response, 'type', 'WITHDRAWAL');
         const deposits = this.filterBy(response, 'type', 'DEPOSIT');
         const rows = this.arrayConcat(withdrawals, deposits);
         return this.parseTransactions(rows, currency, since, limit);
     }
-    async fetchTransactionsHelper(code = undefined, since = undefined, limit = undefined, params = {}) {
-        const methodName = this.safeString(params, 'methodName');
-        const paramsOmitted = this.omit(params, 'methodName');
-        const [userAddress, paramsPublicAddress] = this.handlePublicAddress(methodName, paramsOmitted);
+    async fetchTransactionsHelper(methodName, code = undefined, since = undefined, limit = undefined, params = {}) {
+        const [userAddress, paramsPublicAddress] = this.handlePublicAddress(methodName, params);
         const [subAccountNumber, paramsSubAccountNumber] = this.handleOptionStringAndParams(paramsPublicAddress, methodName, 'subAccountNumber', '0');
         const request = {
             'address': userAddress,
@@ -2273,7 +2289,8 @@ export default class dydx extends Exchange {
         //     ]
         // }
         //
-        return this.safeList(response, 'transfers', []);
+        const transfers = this.safeList(response, 'transfers', []);
+        return transfers;
     }
     /**
      * @method
@@ -2428,7 +2445,7 @@ export default class dydx extends Exchange {
         //     }
         // }
         //
-        const data = this.safeDict(response, 'subaccount');
+        const data = this.safeDict(response, 'subaccount', {});
         return this.parseBalance(data);
     }
     parseBalance(response) {
@@ -2461,21 +2478,20 @@ export default class dydx extends Exchange {
         }
         throw new ArgumentsRequired(this.id + ' getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.');
     }
-    sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, section = ['public'], method = 'GET', params = {}) {
         let requestHeaders = undefined;
         let requestBody = undefined;
         const pathWithParams = this.implodeParams(path, params);
-        const apiUrl = this.safeString(this.urls['api'], section);
+        const apiUrl = this.safeString(this.urls['api'], section[0]);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = apiUrl;
+        let url = apiUrl + '/' + pathWithParams;
         const paramsOmitted = this.omit(params, this.extractParams(path));
         const paramsSorted = this.keysort(paramsOmitted);
-        url += '/' + pathWithParams;
         if (method === 'GET') {
             if (Object.keys(paramsSorted).length > 0) {
-                url += '?' + this.urlencode(paramsSorted);
+                url = apiUrl + '/' + pathWithParams + '?' + this.urlencode(paramsSorted);
             }
         }
         else {
@@ -2484,11 +2500,11 @@ export default class dydx extends Exchange {
                 'Content-type': 'application/json',
             };
         }
-        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        const headersResult = requestHeaders;
+        const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }
@@ -2505,7 +2521,7 @@ export default class dydx extends Exchange {
             errorCode = this.safeString(response, 'code');
         }
         if ((errorCode !== undefined) && (errorCode !== '')) {
-            const errorCodeNum = this.parseToNumeric(errorCode);
+            const errorCodeNum = this.parseToInt(errorCode);
             if (errorCodeNum > 0) {
                 const feedback = this.id + ' ' + this.json(response);
                 this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);

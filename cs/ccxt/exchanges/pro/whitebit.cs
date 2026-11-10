@@ -82,13 +82,12 @@ public partial class whitebit : ccxt.whitebit
         }
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-        IDictionary<string, object> timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
-        Int64? interval = this.safeInteger(timeframes, timeframeVar);
+        Int64? interval = this.safeInteger((this.options != null && this.options.ContainsKey("timeframes") ? this.options["timeframes"] : null), timeframeVar);
         string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
         // currently there is no way of knowing
         // the interval upon getting an update
         // so that can't be part of the message hash, and the user can only subscribe
-        // to one timeframeVar per symbol
+        // to one timeframe per symbol
         string messageHash = ("candles:" + symbolValue);
         List<object> reqParams = new List<object>() {marketId, interval};
         string method = "candles_subscribe";
@@ -98,7 +97,7 @@ public partial class whitebit : ccxt.whitebit
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(ohlcv, symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
+        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(this.toArray(ohlcv), since, limitResolved, 0, true));
     }
 
     public virtual object handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
@@ -130,12 +129,10 @@ public partial class whitebit : ccxt.whitebit
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
             string messageHash = (("candles" + ":") + symbol);
             IList<object> parsed = this.parseOHLCV(data, market);
-            // this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol);
-            if (!((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol))))
+            if (!(((symbol != null) && (this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol)))))
             {
                 this.ohlcvs[(string)symbol] = new Dictionary<string, object>() {};
             }
-            // let stored = this.ohlcvs[symbol]['unknown']; // we don't know the timeframe but we need to respect the type
             if (!(inOp((this.ohlcvs != null && symbol != null && this.ohlcvs.ContainsKey(symbol) ? this.ohlcvs[symbol] : null), "unknown")))
             {
                 Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -170,13 +167,12 @@ public partial class whitebit : ccxt.whitebit
         Int64? limitValue = ((limit == null)) ? 10 : limit;
         string messageHash = (("orderbook" + ":") + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
         string method = "depth_subscribe";
-        IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
-        string? defaultPriceInterval = this.safeString(options, "priceInterval", "0");
+        string? defaultPriceInterval = this.safeString((this.options != null && this.options.ContainsKey("watchOrderBook") ? this.options["watchOrderBook"] : null), "priceInterval", "0");
         string? priceInterval = this.safeString(parameters, "priceInterval", defaultPriceInterval);
-        object paramsOmitted = this.omit(parameters, "priceInterval");
+        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "priceInterval"));
         List<object> reqParams = new List<object>() {(market.ContainsKey("id") ? market["id"] : null), limitValue, priceInterval, true};
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublic(messageHash, method, reqParams, paramsOmitted));
-        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
+        return (orderbook as IOrderBook).limit().Copy();
     }
 
     public virtual void handleOrderBook(WebSocketClient client, Dictionary<string, object> message)
@@ -219,13 +215,13 @@ public partial class whitebit : ccxt.whitebit
         //  }
         //
         List<object> parameters = this.safeList(message, "params", new List<object>() {});
-        bool? isSnapshot = this.safeBool(parameters, 0);
+        bool? isSnapshot = this.safeBool(parameters, 0, false);
         string? marketId = this.safeString(parameters, 2);
         Dictionary<string, object> market = this.safeMarket(marketId);
         string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         IDictionary<string, object> data = this.safeDict(parameters, 1);
         Int64? timestamp = this.safeTimestamp(data, "timestamp");
-        if (!((this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol))))
+        if (!(((symbol != null) && (this.orderbooks != null && symbol != null && this.orderbooks.ContainsKey(symbol)))))
         {
             ccxt.pro.OrderBook ob = this.orderBook();
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
@@ -303,9 +299,9 @@ public partial class whitebit : ccxt.whitebit
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
+        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
         string method = "market_subscribe";
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         Int64? id = this.incrementingNonce();
         List<object> messageHashes = new List<object>() {};
         List<object> args = new List<object>() {};
@@ -406,7 +402,7 @@ public partial class whitebit : ccxt.whitebit
         {
             limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolValue, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)
@@ -452,7 +448,7 @@ public partial class whitebit : ccxt.whitebit
         {
             stored.append(parsedTrades[j]);
         }
-        string messageHash = ("trades:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
+        string messageHash = ("trades:" + symbol);
         client.resolve(stored, messageHash);
     }
 
@@ -513,7 +509,7 @@ public partial class whitebit : ccxt.whitebit
         //       "id": null
         //   }
         //
-        List<object> trade = ((List<object>)this.safeValue(message, "params"));
+        List<object> trade = this.safeList(message, "params", new List<object>() {});
         if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -522,7 +518,7 @@ public partial class whitebit : ccxt.whitebit
         ccxt.pro.ArrayCache stored = this.myTrades;
         ccxt.Trade parsed = this.parseWsTrade(trade);
         stored.append(ccxt.BaseExchange.FromTrade(parsed));
-        string? symbol = parsed.symbol;
+        string? symbol = this.safeString(ccxt.BaseExchange.FromTrade(parsed), "symbol", "");
         string messageHash = ("myTrades:" + symbol);
         client.resolve(stored, messageHash);
     }
@@ -681,7 +677,7 @@ public partial class whitebit : ccxt.whitebit
             { "status", status },
         }));
         stored.append(ccxt.BaseExchange.FromOrder(parsed));
-        string? symbol = parsed.symbol;
+        string? symbol = this.safeString(ccxt.BaseExchange.FromOrder(parsed), "symbol", "");
         string messageHash = ("orders:" + symbol);
         client.resolve(this.orders, messageHash);
     }
@@ -826,11 +822,11 @@ public partial class whitebit : ccxt.whitebit
             await this.loadMarkets();
         }
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchBalance", null, parameters);
-        var type = typeparamsMarketTypeVariable[0];
+        string type = (string)typeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
         string messageHash = "wallet:";
         string? method = null;
-        if ((type is "spot"))
+        if ((type == "spot"))
         {
             method = "balanceSpot_subscribe";
             messageHash = messageHash + "spot";
@@ -839,7 +835,7 @@ public partial class whitebit : ccxt.whitebit
             method = "balanceMargin_subscribe";
             messageHash = messageHash + "margin";
         }
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         var client = this.client(url);
         this.setBalanceCache(client, type, messageHash);
         (bool?, object) fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable = this.handleOptionBoolAndParams(paramsMarketType, "watchBalance", "fetchBalanceSnapshot", true);
@@ -850,16 +846,16 @@ public partial class whitebit : ccxt.whitebit
         IDictionary<string, object> paramsAwaitBalanceSnapshot = ((IDictionary<string, object>)awaitBalanceSnapshotparamsAwaitBalanceSnapshotVariable.Item2);
         if ((fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true))
         {
-            await client.future(add(type, ":fetchBalanceSnapshot"));
+            await client.future((type + ":fetchBalanceSnapshot"));
         }
         // an empty params array subscribes to updates for all assets,
         // listing all tickers explicitly is rejected with "invalid argument"
         return ccxt.BaseExchange.ToBalances(await this.watchPrivate(messageHash, method, new List<object>() {}, paramsAwaitBalanceSnapshot));
     }
 
-    public virtual void setBalanceCache(WebSocketClient client, object type, object subscriptionHash)
+    public virtual void setBalanceCache(WebSocketClient client, object type, string subscriptionHash)
     {
-        if ((client.subscriptions != null && subscriptionHash is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0)))
+        if ((client.subscriptions != null && subscriptionHash != null && client.subscriptions.ContainsKey(subscriptionHash)))
         {
             return;
         }
@@ -867,7 +863,7 @@ public partial class whitebit : ccxt.whitebit
         if ((fetchBalanceSnapshot == true))
         {
             object messageHash = add(type, ":fetchBalanceSnapshot");
-            if (!(inOp(client.futures, messageHash)))
+            if (!((client.futures != null && messageHash != null && client.futures.ContainsKey((string)messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadBalanceSnapshot, new object[] { client, messageHash, type, subscriptionHash});
@@ -875,14 +871,14 @@ public partial class whitebit : ccxt.whitebit
         }
     }
 
-    public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type, object subscriptionHash)
+    public async virtual Task loadBalanceSnapshot(WebSocketClient client, string messageHash, object type, string subscriptionHash)
     {
         Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(new Dictionary<string, object>() { { "type", type }, }));
         this.balance = this.extend(response, this.balance);
         // don't remove the future from the .futures cache
-        if (inOp(client.futures, messageHash))
+        if ((client.futures != null && client.futures.ContainsKey(messageHash)))
         {
-            Future future = ((Future)getValue(client.futures, messageHash));
+            Future future = (client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash) ? client.futures[messageHash] : null);
             (future as Future).resolve();
             client.resolve(this.balance, subscriptionHash);
         }
@@ -936,7 +932,7 @@ public partial class whitebit : ccxt.whitebit
         for (int i = 0; i < data.Count; i++)
         {
             IDictionary<string, object> balanceDict = this.safeDict(data, i, new Dictionary<string, object>() {});
-            this.balance["info"] = balanceDict;
+            this.balance["info"] = this.safeDict(data, i, new Dictionary<string, object>() {});
             if (isMargin)
             {
                 string? currencyId = this.safeString(balanceDict, "a");
@@ -983,7 +979,7 @@ public partial class whitebit : ccxt.whitebit
     {
         reqParams ??= new List<object>();
         parameters ??= new Dictionary<string, object>();
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         Int64? id = this.incrementingNonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", id },
@@ -1002,7 +998,7 @@ public partial class whitebit : ccxt.whitebit
         {
             await this.loadMarkets();
         }
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         Int64? id = this.incrementingNonce();
         WebSocketClient client = ((WebSocketClient)this.safeValue(this.clients, url));
         Dictionary<string, object> request = null;
@@ -1035,7 +1031,7 @@ public partial class whitebit : ccxt.whitebit
             Dictionary<string, object> market = this.market(symbol);
             string? marketId = ((string)(market.ContainsKey("id") ? market["id"] : null));
             bool? isSubscribed = this.safeBool(subscription, marketId, false);
-            if ((isSubscribed != true))
+            if (isSubscribed != true)
             {
                 if ((marketId != null))
                 {
@@ -1061,7 +1057,7 @@ public partial class whitebit : ccxt.whitebit
                     { "method", method },
                     { "params", marketIdsNew },
                 };
-                if (inOp(client.subscriptions, method))
+                if ((client.subscriptions != null && method is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0)))
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove((string)method);
                 }
@@ -1076,7 +1072,7 @@ public partial class whitebit : ccxt.whitebit
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         await this.authenticate();
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         Int64? id = this.incrementingNonce();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", id },
@@ -1091,7 +1087,7 @@ public partial class whitebit : ccxt.whitebit
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        string? url = ((string)getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"));
+        string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         var client = this.client(url);
         string subscribeHash = "authenticated";
         // handleAuthenticate () resolves the handshake future with 1, so 1 is
@@ -1102,7 +1098,7 @@ public partial class whitebit : ccxt.whitebit
         // the handshake gate subscriptions['authenticated'] is only registered after the awaited
         // token fetch, so concurrent cold callers would each burn a private REST call and push
         // their own authorize frame. the flight lives in client.futures of the handshake client
-        // under a non-messageHash key and settles only via client.resolve () / ((WebSocketClient)client).reject ()
+        // under a non-messageHash key and settles only via client.resolve () / client.reject ()
         string messageHash = "authenticateFlight";
         if ((client.futures != null && client.futures.ContainsKey(messageHash)))
         {
@@ -1122,8 +1118,8 @@ public partial class whitebit : ccxt.whitebit
         }
         // register the flight BEFORE the first await, so a caller arriving
         // during the fetch or the authorize round-trip finds it and waits
-        // instead of re-leading, and so ((WebSocketClient)client).reject () below always has a
-        // waiter and can never park the error in ((WebSocketClient)client).rejections
+        // instead of re-leading, and so client.reject () below always has a
+        // waiter and can never park the error in client.rejections
         var future = client.reusableFuture(messageHash);
         try
         {
@@ -1159,8 +1155,8 @@ public partial class whitebit : ccxt.whitebit
             // parks a rejected future under the same key when the dial fails,
             // and either one left behind would make every later authenticate ()
             // replay that failure. the stale future is settled through
-            // ((WebSocketClient)client).reject () - guarded, so it always has a waiter and the
-            // error is never parked in ((WebSocketClient)client).rejections
+            // client.reject () - guarded, so it always has a waiter and the
+            // error is never parked in client.rejections
             if ((client.subscriptions != null && client.subscriptions.ContainsKey(subscribeHash)))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(subscribeHash);
@@ -1184,7 +1180,7 @@ public partial class whitebit : ccxt.whitebit
         //
         //     { error: null, result: { status: "success" }, id: 1656084550 }
         //
-        Future future = ((Future)getValue(client.futures, "authenticated"));
+        Future future = (client.futures != null && client.futures.ContainsKey("authenticated") ? client.futures["authenticated"] : null);
         (future as Future).resolve(1);
         return message;
     }
@@ -1205,7 +1201,7 @@ public partial class whitebit : ccxt.whitebit
             {
                 string? code = this.safeString(message, "code");
                 string feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException(getValue((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("ws") ? ((IDictionary<string, object>)this.exceptions)["ws"] : null), "exact"), code, feedback);
+                this.throwExactlyMatchedException(getValue((this.exceptions != null && this.exceptions.ContainsKey("ws") ? this.exceptions["ws"] : null), "exact"), code, feedback);
             }
         } catch(Exception e)
         {
@@ -1231,7 +1227,7 @@ public partial class whitebit : ccxt.whitebit
         // pong
         //    { error: null, result: "pong", id: 0 }
         //
-        if (!isEqual(this.handleErrorMessage(client, message), true))
+        if (!(this.handleErrorMessage(client, message) == true))
         {
             return;
         }

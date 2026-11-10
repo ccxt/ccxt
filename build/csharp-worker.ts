@@ -1,6 +1,6 @@
 import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
-import { ts, csharpTypeOfValue, installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpConditionOperands, installCsharpLocalTypes, installCsharpNativeArithmetic, installCsharpNumericComparisons, installCsharpNumericReturns, installCsharpParameterDeclarations, installCsharpBooleanParams, installCsharpGuardedMinMax, installCsharpDictIdentKeyReads, installCsharpNativeComparisons, installCsharpNativeIntProducts, installCsharpOrderBookSideReads, installCsharpStringParams, installCsharpParameterTypes, installCsharpReceiverTypes, installCsharpStringReceivers, installCsharpStringReturns } from './csharp-local-types.js';
+import { ts, csharpTypeOfValue, installCsharpAsyncCoreReturns, installCsharpCollectionReturns, installCsharpConditionOperands, installCsharpLocalTypes, installCsharpNativeArithmetic, installCsharpNumericComparisons, installCsharpNumericReturns, installCsharpParameterDeclarations, installCsharpBooleanParams, installCsharpGuardedMinMax, installCsharpDictIdentKeyReads, installCsharpNativeComparisons, installCsharpNativeIntProducts, installCsharpOrderBookSideReads, installCsharpStringParams, installCsharpParameterTypes, installCsharpReceiverTypes, installCsharpStringReceivers, installCsharpStringReturns, installCsharpDeclaredCollectionLocals, installCsharpNativeInt64Add, installCsharpNonNullConcat } from './csharp-local-types.js';
 import log from 'ololog'
 
 // task payload posted by csharpTranspiler.ts#webworkerTranspile (structured clone)
@@ -23,6 +23,9 @@ interface CsharpWorkerTask {
 export function setupCsharpPrinter (transpiler: Transpiler) {
     transpiler.setVerboseMode (false);
     const csharp = transpiler.csharpTranspiler;
+    // the printer (config typedCores) renames every `Promise<int|Int>` core to its `Task<Int64> <Name>` public
+    // declaration: the printer binds the awaited calls to that name, so the Int64 local types follow
+    (csharp as any).csharpPascalInt64TaskCalls = true;
     csharp.printElementAccessExpressionExceptionIfAny = (node: any) => {
         const parent = node.parent;
         const isLeftSideOfAssignment = parent?.kind === ts.SyntaxKind.BinaryExpression
@@ -162,10 +165,14 @@ export function setupCsharpPrinter (transpiler: Transpiler) {
     installCsharpGuardedMinMax (transpiler);
     // `getValue (d, k)` on a never-null dictionary local with a string key prints the indexer read
     installCsharpDictIdentKeyReads (transpiler);
-    // S17: `return ((bool)((object)(x))!)` in a bool / bool? method is an identity box + unbox.
+    // `return ((bool)((object)(x))!)` in a bool / bool? method is an identity box + unbox.
     // Drop it when the returned expression's own C# static type already IS the method's boolean
     // type — exact match only, so no nullability (and no spelling) is crossed.
     installCsharpBooleanReturnCasts (csharp);
+    // emitted collection declarations answer the printer's indexer-read resolver
+    installCsharpDeclaredCollectionLocals (transpiler);
+    installCsharpNativeInt64Add (transpiler); // proven non-null Int64 add prints native
+    installCsharpNonNullConcat (transpiler); // proven non-null string concat prints native
 }
 
 // bare helper calls whose hand-written C# signature returns `bool` and whose printed form IS
@@ -222,13 +229,17 @@ function installCsharpBooleanReturnCasts (csharp: any) {
 let cachedTranspiler: Transpiler | null = null;
 let cachedConfigKey: string | null = null;
 let rawComments: string[] = [];
+let programCache: ReturnType<typeof Transpiler.createProgramCache> | null = null;
 
 const verbose = !!process.env['CCXT_TRANSPILE_VERBOSE'];
 
 export default async ({ transpilerConfig, configKey, file, files, roots }: CsharpWorkerTask) => {
     const key = configKey || JSON.stringify (transpilerConfig);
     if (!cachedTranspiler || cachedConfigKey !== key) {
-        cachedTranspiler = new Transpiler (transpilerConfig);
+        if (!programCache) {
+            programCache = Transpiler.createProgramCache ();
+        }
+        cachedTranspiler = new Transpiler (transpilerConfig, programCache);
         setupCsharpPrinter (cachedTranspiler);
         // the main thread turns these into C# doc comments — collect the raw ones and let
         // it replay its own transform so the wrapper docs stay identical

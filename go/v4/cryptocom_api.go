@@ -8,686 +8,686 @@
 package ccxt
 
 // BasePublicGetV1PublicGetAnnouncements returns a channel that yields a JSON object.
-func (this *Cryptocom) BasePublicGetV1PublicGetAnnouncements(args ...any) <-chan any {
-	return this.Fetch2Async("v1/public/get-announcements", []string{"base", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Cryptocom) BasePublicGetV1PublicGetAnnouncements(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "v1/public/get-announcements", []string{"base", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicAuth returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PublicGetPublicAuth(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicAuth", args...)
+func (this *Cryptocom) V1PublicGetPublicAuth(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PublicGetPublicAuth", args...))
 }
 
 // V1PublicGetPublicGetInstruments returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PublicGetPublicGetInstruments(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicGetInstruments", args...)
+func (this *Cryptocom) V1PublicGetPublicGetInstruments(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PublicGetPublicGetInstruments", args...))
 }
 
 // V1PublicGetPublicGetBook returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PublicGetPublicGetBook(args ...any) <-chan any {
-	return this.Fetch2Async("public/get-book", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Cryptocom) V1PublicGetPublicGetBook(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/get-book", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicGetCandlestick returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PublicGetPublicGetCandlestick(args ...any) <-chan any {
-	return this.Fetch2Async("public/get-candlestick", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Cryptocom) V1PublicGetPublicGetCandlestick(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/get-candlestick", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicGetTrades returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PublicGetPublicGetTrades(args ...any) <-chan any {
-	return this.Fetch2Async("public/get-trades", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Cryptocom) V1PublicGetPublicGetTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/get-trades", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicGetTickers returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PublicGetPublicGetTickers(args ...any) <-chan any {
-	return this.Fetch2Async("public/get-tickers", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Cryptocom) V1PublicGetPublicGetTickers(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/get-tickers", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicGetValuations returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PublicGetPublicGetValuations(args ...any) <-chan any {
-	return this.Fetch2Async("public/get-valuations", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Cryptocom) V1PublicGetPublicGetValuations(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/get-valuations", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicGetExpiredSettlementPrice returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PublicGetPublicGetExpiredSettlementPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PublicGetPublicGetExpiredSettlementPrice", args...)
+func (this *Cryptocom) V1PublicGetPublicGetExpiredSettlementPrice(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PublicGetPublicGetExpiredSettlementPrice", args...))
 }
 
 // V1PublicGetPublicGetInsurance returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PublicGetPublicGetInsurance(args ...any) <-chan any {
-	return this.Fetch2Async("public/get-insurance", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Cryptocom) V1PublicGetPublicGetInsurance(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/get-insurance", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicGetAnnouncements returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PublicGetPublicGetAnnouncements(args ...any) <-chan any {
-	return this.Fetch2Async("public/get-announcements", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Cryptocom) V1PublicGetPublicGetAnnouncements(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/get-announcements", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicGetPublicGetRiskParameters returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PublicGetPublicGetRiskParameters(args ...any) <-chan any {
-	return this.Fetch2Async("public/get-risk-parameters", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Cryptocom) V1PublicGetPublicGetRiskParameters(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/get-risk-parameters", []string{"v1", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V1PublicPostPublicStakingGetConversionRate returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PublicPostPublicStakingGetConversionRate(args ...any) <-chan any {
-	return this.Fetch2Async("public/staking/get-conversion-rate", []string{"v1", "public"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+func (this *Cryptocom) V1PublicPostPublicStakingGetConversionRate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/staking/get-conversion-rate", []string{"v1", "public"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // V1PrivatePostPrivateSetCancelOnDisconnect returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateSetCancelOnDisconnect(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateSetCancelOnDisconnect", args...)
+func (this *Cryptocom) V1PrivatePostPrivateSetCancelOnDisconnect(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateSetCancelOnDisconnect", args...))
 }
 
 // V1PrivatePostPrivateGetCancelOnDisconnect returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateGetCancelOnDisconnect(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateGetCancelOnDisconnect", args...)
+func (this *Cryptocom) V1PrivatePostPrivateGetCancelOnDisconnect(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateGetCancelOnDisconnect", args...))
 }
 
 // V1PrivatePostPrivateUserBalance returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateUserBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateUserBalance", args...)
+func (this *Cryptocom) V1PrivatePostPrivateUserBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateUserBalance", args...))
 }
 
 // V1PrivatePostPrivateUserBalanceHistory returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateUserBalanceHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateUserBalanceHistory", args...)
+func (this *Cryptocom) V1PrivatePostPrivateUserBalanceHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateUserBalanceHistory", args...))
 }
 
 // V1PrivatePostPrivateGetPositions returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateGetPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateGetPositions", args...)
+func (this *Cryptocom) V1PrivatePostPrivateGetPositions(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateGetPositions", args...))
 }
 
 // V1PrivatePostPrivateCreateOrder returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateCreateOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateCreateOrder", args...)
+func (this *Cryptocom) V1PrivatePostPrivateCreateOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateCreateOrder", args...))
 }
 
 // V1PrivatePostPrivateAmendOrder returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateAmendOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateAmendOrder", args...)
+func (this *Cryptocom) V1PrivatePostPrivateAmendOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateAmendOrder", args...))
 }
 
 // V1PrivatePostPrivateCreateOrderList returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateCreateOrderList(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateCreateOrderList", args...)
+func (this *Cryptocom) V1PrivatePostPrivateCreateOrderList(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateCreateOrderList", args...))
 }
 
 // V1PrivatePostPrivateCancelOrder returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateCancelOrder", args...)
+func (this *Cryptocom) V1PrivatePostPrivateCancelOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateCancelOrder", args...))
 }
 
 // V1PrivatePostPrivateCancelOrderList returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateCancelOrderList(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateCancelOrderList", args...)
+func (this *Cryptocom) V1PrivatePostPrivateCancelOrderList(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateCancelOrderList", args...))
 }
 
 // V1PrivatePostPrivateCancelAllOrders returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateCancelAllOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateCancelAllOrders", args...)
+func (this *Cryptocom) V1PrivatePostPrivateCancelAllOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateCancelAllOrders", args...))
 }
 
 // V1PrivatePostPrivateClosePosition returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateClosePosition(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateClosePosition", args...)
+func (this *Cryptocom) V1PrivatePostPrivateClosePosition(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateClosePosition", args...))
 }
 
 // V1PrivatePostPrivateGetOrderHistory returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateGetOrderHistory(args ...any) <-chan any {
-	return this.Fetch2Async("private/get-order-history", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
+func (this *Cryptocom) V1PrivatePostPrivateGetOrderHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "private/get-order-history", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
 }
 
 // V1PrivatePostPrivateGetOpenOrders returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateGetOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateGetOpenOrders", args...)
+func (this *Cryptocom) V1PrivatePostPrivateGetOpenOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateGetOpenOrders", args...))
 }
 
 // V1PrivatePostPrivateGetOrderDetail returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateGetOrderDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateGetOrderDetail", args...)
+func (this *Cryptocom) V1PrivatePostPrivateGetOrderDetail(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateGetOrderDetail", args...))
 }
 
 // V1PrivatePostPrivateGetTrades returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateGetTrades(args ...any) <-chan any {
-	return this.Fetch2Async("private/get-trades", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
+func (this *Cryptocom) V1PrivatePostPrivateGetTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "private/get-trades", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
 }
 
 // V1PrivatePostPrivateChangeAccountLeverage returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateChangeAccountLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateChangeAccountLeverage", args...)
+func (this *Cryptocom) V1PrivatePostPrivateChangeAccountLeverage(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateChangeAccountLeverage", args...))
 }
 
 // V1PrivatePostPrivateGetTransactions returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateGetTransactions(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateGetTransactions", args...)
+func (this *Cryptocom) V1PrivatePostPrivateGetTransactions(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateGetTransactions", args...))
 }
 
 // V1PrivatePostPrivateCreateSubaccountTransfer returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateCreateSubaccountTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateCreateSubaccountTransfer", args...)
+func (this *Cryptocom) V1PrivatePostPrivateCreateSubaccountTransfer(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateCreateSubaccountTransfer", args...))
 }
 
 // V1PrivatePostPrivateGetSubaccountBalances returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateGetSubaccountBalances(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateGetSubaccountBalances", args...)
+func (this *Cryptocom) V1PrivatePostPrivateGetSubaccountBalances(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateGetSubaccountBalances", args...))
 }
 
 // V1PrivatePostPrivateGetOrderList returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateGetOrderList(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateGetOrderList", args...)
+func (this *Cryptocom) V1PrivatePostPrivateGetOrderList(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateGetOrderList", args...))
 }
 
 // V1PrivatePostPrivateCreateWithdrawal returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateCreateWithdrawal(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateCreateWithdrawal", args...)
+func (this *Cryptocom) V1PrivatePostPrivateCreateWithdrawal(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateCreateWithdrawal", args...))
 }
 
 // V1PrivatePostPrivateGetCurrencyNetworks returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateGetCurrencyNetworks(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateGetCurrencyNetworks", args...)
+func (this *Cryptocom) V1PrivatePostPrivateGetCurrencyNetworks(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateGetCurrencyNetworks", args...))
 }
 
 // V1PrivatePostPrivateGetDepositAddress returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateGetDepositAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateGetDepositAddress", args...)
+func (this *Cryptocom) V1PrivatePostPrivateGetDepositAddress(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateGetDepositAddress", args...))
 }
 
 // V1PrivatePostPrivateGetAccounts returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateGetAccounts(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateGetAccounts", args...)
+func (this *Cryptocom) V1PrivatePostPrivateGetAccounts(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateGetAccounts", args...))
 }
 
 // V1PrivatePostPrivateGetWithdrawalHistory returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateGetWithdrawalHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateGetWithdrawalHistory", args...)
+func (this *Cryptocom) V1PrivatePostPrivateGetWithdrawalHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateGetWithdrawalHistory", args...))
 }
 
 // V1PrivatePostPrivateGetDepositHistory returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateGetDepositHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateGetDepositHistory", args...)
+func (this *Cryptocom) V1PrivatePostPrivateGetDepositHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateGetDepositHistory", args...))
 }
 
 // V1PrivatePostPrivateGetFeeRate returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateGetFeeRate(args ...any) <-chan any {
-	return this.Fetch2Async("private/get-fee-rate", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+func (this *Cryptocom) V1PrivatePostPrivateGetFeeRate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "private/get-fee-rate", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // V1PrivatePostPrivateGetInstrumentFeeRate returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateGetInstrumentFeeRate(args ...any) <-chan any {
-	return this.Fetch2Async("private/get-instrument-fee-rate", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+func (this *Cryptocom) V1PrivatePostPrivateGetInstrumentFeeRate(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "private/get-instrument-fee-rate", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // V1PrivatePostPrivateGetFeeCreditBalances returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateGetFeeCreditBalances(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateGetFeeCreditBalances", args...)
+func (this *Cryptocom) V1PrivatePostPrivateGetFeeCreditBalances(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateGetFeeCreditBalances", args...))
 }
 
 // V1PrivatePostPrivateFiatFiatDepositInfo returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateFiatFiatDepositInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatDepositInfo", args...)
+func (this *Cryptocom) V1PrivatePostPrivateFiatFiatDepositInfo(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateFiatFiatDepositInfo", args...))
 }
 
 // V1PrivatePostPrivateFiatFiatDepositHistory returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateFiatFiatDepositHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatDepositHistory", args...)
+func (this *Cryptocom) V1PrivatePostPrivateFiatFiatDepositHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateFiatFiatDepositHistory", args...))
 }
 
 // V1PrivatePostPrivateFiatFiatWithdrawHistory returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateFiatFiatWithdrawHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatWithdrawHistory", args...)
+func (this *Cryptocom) V1PrivatePostPrivateFiatFiatWithdrawHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateFiatFiatWithdrawHistory", args...))
 }
 
 // V1PrivatePostPrivateFiatFiatCreateWithdraw returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateFiatFiatCreateWithdraw(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatCreateWithdraw", args...)
+func (this *Cryptocom) V1PrivatePostPrivateFiatFiatCreateWithdraw(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateFiatFiatCreateWithdraw", args...))
 }
 
 // V1PrivatePostPrivateFiatFiatTransactionQuota returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateFiatFiatTransactionQuota(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatTransactionQuota", args...)
+func (this *Cryptocom) V1PrivatePostPrivateFiatFiatTransactionQuota(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateFiatFiatTransactionQuota", args...))
 }
 
 // V1PrivatePostPrivateFiatFiatTransactionLimit returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateFiatFiatTransactionLimit(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatTransactionLimit", args...)
+func (this *Cryptocom) V1PrivatePostPrivateFiatFiatTransactionLimit(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateFiatFiatTransactionLimit", args...))
 }
 
 // V1PrivatePostPrivateFiatFiatGetBankAccounts returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateFiatFiatGetBankAccounts(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatGetBankAccounts", args...)
+func (this *Cryptocom) V1PrivatePostPrivateFiatFiatGetBankAccounts(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateFiatFiatGetBankAccounts", args...))
 }
 
 // V1PrivatePostPrivateStakingStake returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateStakingStake(args ...any) <-chan any {
-	return this.Fetch2Async("private/staking/stake", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+func (this *Cryptocom) V1PrivatePostPrivateStakingStake(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "private/staking/stake", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // V1PrivatePostPrivateStakingUnstake returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateStakingUnstake(args ...any) <-chan any {
-	return this.Fetch2Async("private/staking/unstake", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+func (this *Cryptocom) V1PrivatePostPrivateStakingUnstake(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "private/staking/unstake", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // V1PrivatePostPrivateStakingGetStakingPosition returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateStakingGetStakingPosition(args ...any) <-chan any {
-	return this.Fetch2Async("private/staking/get-staking-position", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+func (this *Cryptocom) V1PrivatePostPrivateStakingGetStakingPosition(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "private/staking/get-staking-position", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // V1PrivatePostPrivateStakingGetStakingInstruments returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateStakingGetStakingInstruments(args ...any) <-chan any {
-	return this.Fetch2Async("private/staking/get-staking-instruments", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+func (this *Cryptocom) V1PrivatePostPrivateStakingGetStakingInstruments(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "private/staking/get-staking-instruments", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // V1PrivatePostPrivateStakingGetOpenStake returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateStakingGetOpenStake(args ...any) <-chan any {
-	return this.Fetch2Async("private/staking/get-open-stake", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+func (this *Cryptocom) V1PrivatePostPrivateStakingGetOpenStake(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "private/staking/get-open-stake", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // V1PrivatePostPrivateStakingGetStakeHistory returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateStakingGetStakeHistory(args ...any) <-chan any {
-	return this.Fetch2Async("private/staking/get-stake-history", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+func (this *Cryptocom) V1PrivatePostPrivateStakingGetStakeHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "private/staking/get-stake-history", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // V1PrivatePostPrivateStakingGetRewardHistory returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateStakingGetRewardHistory(args ...any) <-chan any {
-	return this.Fetch2Async("private/staking/get-reward-history", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+func (this *Cryptocom) V1PrivatePostPrivateStakingGetRewardHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "private/staking/get-reward-history", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // V1PrivatePostPrivateStakingConvert returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateStakingConvert(args ...any) <-chan any {
-	return this.Fetch2Async("private/staking/convert", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+func (this *Cryptocom) V1PrivatePostPrivateStakingConvert(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "private/staking/convert", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // V1PrivatePostPrivateStakingGetOpenConvert returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateStakingGetOpenConvert(args ...any) <-chan any {
-	return this.Fetch2Async("private/staking/get-open-convert", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+func (this *Cryptocom) V1PrivatePostPrivateStakingGetOpenConvert(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "private/staking/get-open-convert", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // V1PrivatePostPrivateStakingGetConvertHistory returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateStakingGetConvertHistory(args ...any) <-chan any {
-	return this.Fetch2Async("private/staking/get-convert-history", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
+func (this *Cryptocom) V1PrivatePostPrivateStakingGetConvertHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "private/staking/get-convert-history", []string{"v1", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(2)})
 }
 
 // V1PrivatePostPrivateCreateIsolatedMarginTransfer returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateCreateIsolatedMarginTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateCreateIsolatedMarginTransfer", args...)
+func (this *Cryptocom) V1PrivatePostPrivateCreateIsolatedMarginTransfer(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateCreateIsolatedMarginTransfer", args...))
 }
 
 // V1PrivatePostPrivateChangeIsolatedMarginLeverage returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateChangeIsolatedMarginLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateChangeIsolatedMarginLeverage", args...)
+func (this *Cryptocom) V1PrivatePostPrivateChangeIsolatedMarginLeverage(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateChangeIsolatedMarginLeverage", args...))
 }
 
 // V1PrivatePostPrivateBotCreateTradingBot returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateBotCreateTradingBot(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateBotCreateTradingBot", args...)
+func (this *Cryptocom) V1PrivatePostPrivateBotCreateTradingBot(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateBotCreateTradingBot", args...))
 }
 
 // V1PrivatePostPrivateBotUpdateTradingBot returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateBotUpdateTradingBot(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateBotUpdateTradingBot", args...)
+func (this *Cryptocom) V1PrivatePostPrivateBotUpdateTradingBot(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateBotUpdateTradingBot", args...))
 }
 
 // V1PrivatePostPrivateBotTerminateTradingBot returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateBotTerminateTradingBot(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateBotTerminateTradingBot", args...)
+func (this *Cryptocom) V1PrivatePostPrivateBotTerminateTradingBot(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateBotTerminateTradingBot", args...))
 }
 
 // V1PrivatePostPrivateBotPauseTradingBot returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateBotPauseTradingBot(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateBotPauseTradingBot", args...)
+func (this *Cryptocom) V1PrivatePostPrivateBotPauseTradingBot(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateBotPauseTradingBot", args...))
 }
 
 // V1PrivatePostPrivateBotResumeTradingBot returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateBotResumeTradingBot(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateBotResumeTradingBot", args...)
+func (this *Cryptocom) V1PrivatePostPrivateBotResumeTradingBot(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateBotResumeTradingBot", args...))
 }
 
 // V1PrivatePostPrivateBotGetTradingBots returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateBotGetTradingBots(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateBotGetTradingBots", args...)
+func (this *Cryptocom) V1PrivatePostPrivateBotGetTradingBots(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateBotGetTradingBots", args...))
 }
 
 // V1PrivatePostPrivateBotGetTradingBotExecutions returns a channel that yields a JSON object.
-func (this *Cryptocom) V1PrivatePostPrivateBotGetTradingBotExecutions(args ...any) <-chan any {
-	return this.callEndpointAsync("v1PrivatePostPrivateBotGetTradingBotExecutions", args...)
+func (this *Cryptocom) V1PrivatePostPrivateBotGetTradingBotExecutions(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v1PrivatePostPrivateBotGetTradingBotExecutions", args...))
 }
 
 // V2PublicGetPublicAuth returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PublicGetPublicAuth(args ...any) <-chan any {
-	return this.Fetch2Async("public/auth", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Cryptocom) V2PublicGetPublicAuth(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/auth", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PublicGetPublicGetInstruments returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PublicGetPublicGetInstruments(args ...any) <-chan any {
-	return this.Fetch2Async("public/get-instruments", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Cryptocom) V2PublicGetPublicGetInstruments(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/get-instruments", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PublicGetPublicGetBook returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PublicGetPublicGetBook(args ...any) <-chan any {
-	return this.Fetch2Async("public/get-book", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Cryptocom) V2PublicGetPublicGetBook(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/get-book", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PublicGetPublicGetCandlestick returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PublicGetPublicGetCandlestick(args ...any) <-chan any {
-	return this.Fetch2Async("public/get-candlestick", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Cryptocom) V2PublicGetPublicGetCandlestick(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/get-candlestick", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PublicGetPublicGetTicker returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PublicGetPublicGetTicker(args ...any) <-chan any {
-	return this.Fetch2Async("public/get-ticker", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Cryptocom) V2PublicGetPublicGetTicker(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/get-ticker", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PublicGetPublicGetTrades returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PublicGetPublicGetTrades(args ...any) <-chan any {
-	return this.Fetch2Async("public/get-trades", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Cryptocom) V2PublicGetPublicGetTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/get-trades", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PublicGetPublicMarginGetTransferCurrencies returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PublicGetPublicMarginGetTransferCurrencies(args ...any) <-chan any {
-	return this.Fetch2Async("public/margin/get-transfer-currencies", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Cryptocom) V2PublicGetPublicMarginGetTransferCurrencies(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/margin/get-transfer-currencies", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PublicGetPublicMarginGetLoadCurrenices returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PublicGetPublicMarginGetLoadCurrenices(args ...any) <-chan any {
-	return this.Fetch2Async("public/margin/get-load-currenices", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Cryptocom) V2PublicGetPublicMarginGetLoadCurrenices(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/margin/get-load-currenices", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PublicGetPublicRespondHeartbeat returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PublicGetPublicRespondHeartbeat(args ...any) <-chan any {
-	return this.Fetch2Async("public/respond-heartbeat", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Cryptocom) V2PublicGetPublicRespondHeartbeat(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/respond-heartbeat", []string{"v2", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // V2PrivatePostPrivateSetCancelOnDisconnect returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateSetCancelOnDisconnect(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostPrivateSetCancelOnDisconnect", args...)
+func (this *Cryptocom) V2PrivatePostPrivateSetCancelOnDisconnect(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v2PrivatePostPrivateSetCancelOnDisconnect", args...))
 }
 
 // V2PrivatePostPrivateGetCancelOnDisconnect returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateGetCancelOnDisconnect(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostPrivateGetCancelOnDisconnect", args...)
+func (this *Cryptocom) V2PrivatePostPrivateGetCancelOnDisconnect(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v2PrivatePostPrivateGetCancelOnDisconnect", args...))
 }
 
 // V2PrivatePostPrivateCreateWithdrawal returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateCreateWithdrawal(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostPrivateCreateWithdrawal", args...)
+func (this *Cryptocom) V2PrivatePostPrivateCreateWithdrawal(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v2PrivatePostPrivateCreateWithdrawal", args...))
 }
 
 // V2PrivatePostPrivateGetWithdrawalHistory returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateGetWithdrawalHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostPrivateGetWithdrawalHistory", args...)
+func (this *Cryptocom) V2PrivatePostPrivateGetWithdrawalHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v2PrivatePostPrivateGetWithdrawalHistory", args...))
 }
 
 // V2PrivatePostPrivateGetCurrencyNetworks returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateGetCurrencyNetworks(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostPrivateGetCurrencyNetworks", args...)
+func (this *Cryptocom) V2PrivatePostPrivateGetCurrencyNetworks(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v2PrivatePostPrivateGetCurrencyNetworks", args...))
 }
 
 // V2PrivatePostPrivateGetDepositHistory returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateGetDepositHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostPrivateGetDepositHistory", args...)
+func (this *Cryptocom) V2PrivatePostPrivateGetDepositHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v2PrivatePostPrivateGetDepositHistory", args...))
 }
 
 // V2PrivatePostPrivateGetDepositAddress returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateGetDepositAddress(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostPrivateGetDepositAddress", args...)
+func (this *Cryptocom) V2PrivatePostPrivateGetDepositAddress(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v2PrivatePostPrivateGetDepositAddress", args...))
 }
 
 // V2PrivatePostPrivateExportCreateExportRequest returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateExportCreateExportRequest(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostPrivateExportCreateExportRequest", args...)
+func (this *Cryptocom) V2PrivatePostPrivateExportCreateExportRequest(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v2PrivatePostPrivateExportCreateExportRequest", args...))
 }
 
 // V2PrivatePostPrivateExportGetExportRequests returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateExportGetExportRequests(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostPrivateExportGetExportRequests", args...)
+func (this *Cryptocom) V2PrivatePostPrivateExportGetExportRequests(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v2PrivatePostPrivateExportGetExportRequests", args...))
 }
 
 // V2PrivatePostPrivateExportDownloadExportOutput returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateExportDownloadExportOutput(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostPrivateExportDownloadExportOutput", args...)
+func (this *Cryptocom) V2PrivatePostPrivateExportDownloadExportOutput(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v2PrivatePostPrivateExportDownloadExportOutput", args...))
 }
 
 // V2PrivatePostPrivateGetAccountSummary returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateGetAccountSummary(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostPrivateGetAccountSummary", args...)
+func (this *Cryptocom) V2PrivatePostPrivateGetAccountSummary(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v2PrivatePostPrivateGetAccountSummary", args...))
 }
 
 // V2PrivatePostPrivateCreateOrder returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateCreateOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostPrivateCreateOrder", args...)
+func (this *Cryptocom) V2PrivatePostPrivateCreateOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v2PrivatePostPrivateCreateOrder", args...))
 }
 
 // V2PrivatePostPrivateCancelOrder returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostPrivateCancelOrder", args...)
+func (this *Cryptocom) V2PrivatePostPrivateCancelOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v2PrivatePostPrivateCancelOrder", args...))
 }
 
 // V2PrivatePostPrivateCancelAllOrders returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateCancelAllOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostPrivateCancelAllOrders", args...)
+func (this *Cryptocom) V2PrivatePostPrivateCancelAllOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v2PrivatePostPrivateCancelAllOrders", args...))
 }
 
 // V2PrivatePostPrivateCreateOrderList returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateCreateOrderList(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostPrivateCreateOrderList", args...)
+func (this *Cryptocom) V2PrivatePostPrivateCreateOrderList(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v2PrivatePostPrivateCreateOrderList", args...))
 }
 
 // V2PrivatePostPrivateGetOrderHistory returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateGetOrderHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostPrivateGetOrderHistory", args...)
+func (this *Cryptocom) V2PrivatePostPrivateGetOrderHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v2PrivatePostPrivateGetOrderHistory", args...))
 }
 
 // V2PrivatePostPrivateGetOpenOrders returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateGetOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostPrivateGetOpenOrders", args...)
+func (this *Cryptocom) V2PrivatePostPrivateGetOpenOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v2PrivatePostPrivateGetOpenOrders", args...))
 }
 
 // V2PrivatePostPrivateGetOrderDetail returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateGetOrderDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostPrivateGetOrderDetail", args...)
+func (this *Cryptocom) V2PrivatePostPrivateGetOrderDetail(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v2PrivatePostPrivateGetOrderDetail", args...))
 }
 
 // V2PrivatePostPrivateGetTrades returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateGetTrades(args ...any) <-chan any {
-	return this.Fetch2Async("private/get-trades", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
+func (this *Cryptocom) V2PrivatePostPrivateGetTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "private/get-trades", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
 }
 
 // V2PrivatePostPrivateGetAccounts returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateGetAccounts(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostPrivateGetAccounts", args...)
+func (this *Cryptocom) V2PrivatePostPrivateGetAccounts(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v2PrivatePostPrivateGetAccounts", args...))
 }
 
 // V2PrivatePostPrivateGetSubaccountBalances returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateGetSubaccountBalances(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostPrivateGetSubaccountBalances", args...)
+func (this *Cryptocom) V2PrivatePostPrivateGetSubaccountBalances(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v2PrivatePostPrivateGetSubaccountBalances", args...))
 }
 
 // V2PrivatePostPrivateCreateSubaccountTransfer returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateCreateSubaccountTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostPrivateCreateSubaccountTransfer", args...)
+func (this *Cryptocom) V2PrivatePostPrivateCreateSubaccountTransfer(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v2PrivatePostPrivateCreateSubaccountTransfer", args...))
 }
 
 // V2PrivatePostPrivateOtcGetOtcUser returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateOtcGetOtcUser(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostPrivateOtcGetOtcUser", args...)
+func (this *Cryptocom) V2PrivatePostPrivateOtcGetOtcUser(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v2PrivatePostPrivateOtcGetOtcUser", args...))
 }
 
 // V2PrivatePostPrivateOtcGetInstruments returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateOtcGetInstruments(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostPrivateOtcGetInstruments", args...)
+func (this *Cryptocom) V2PrivatePostPrivateOtcGetInstruments(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v2PrivatePostPrivateOtcGetInstruments", args...))
 }
 
 // V2PrivatePostPrivateOtcRequestQuote returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateOtcRequestQuote(args ...any) <-chan any {
-	return this.Fetch2Async("private/otc/request-quote", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
+func (this *Cryptocom) V2PrivatePostPrivateOtcRequestQuote(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "private/otc/request-quote", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
 }
 
 // V2PrivatePostPrivateOtcAcceptQuote returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateOtcAcceptQuote(args ...any) <-chan any {
-	return this.Fetch2Async("private/otc/accept-quote", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
+func (this *Cryptocom) V2PrivatePostPrivateOtcAcceptQuote(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "private/otc/accept-quote", []string{"v2", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
 }
 
 // V2PrivatePostPrivateOtcGetQuoteHistory returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateOtcGetQuoteHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostPrivateOtcGetQuoteHistory", args...)
+func (this *Cryptocom) V2PrivatePostPrivateOtcGetQuoteHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v2PrivatePostPrivateOtcGetQuoteHistory", args...))
 }
 
 // V2PrivatePostPrivateOtcGetTradeHistory returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateOtcGetTradeHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostPrivateOtcGetTradeHistory", args...)
+func (this *Cryptocom) V2PrivatePostPrivateOtcGetTradeHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v2PrivatePostPrivateOtcGetTradeHistory", args...))
 }
 
 // V2PrivatePostPrivateOtcCreateOrder returns a channel that yields a JSON object.
-func (this *Cryptocom) V2PrivatePostPrivateOtcCreateOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("v2PrivatePostPrivateOtcCreateOrder", args...)
+func (this *Cryptocom) V2PrivatePostPrivateOtcCreateOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("v2PrivatePostPrivateOtcCreateOrder", args...))
 }
 
 // DerivativesPublicGetPublicAuth returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPublicGetPublicAuth(args ...any) <-chan any {
-	return this.callEndpointAsync("derivativesPublicGetPublicAuth", args...)
+func (this *Cryptocom) DerivativesPublicGetPublicAuth(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("derivativesPublicGetPublicAuth", args...))
 }
 
 // DerivativesPublicGetPublicGetInstruments returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPublicGetPublicGetInstruments(args ...any) <-chan any {
-	return this.callEndpointAsync("derivativesPublicGetPublicGetInstruments", args...)
+func (this *Cryptocom) DerivativesPublicGetPublicGetInstruments(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("derivativesPublicGetPublicGetInstruments", args...))
 }
 
 // DerivativesPublicGetPublicGetBook returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPublicGetPublicGetBook(args ...any) <-chan any {
-	return this.Fetch2Async("public/get-book", []string{"derivatives", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Cryptocom) DerivativesPublicGetPublicGetBook(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/get-book", []string{"derivatives", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DerivativesPublicGetPublicGetCandlestick returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPublicGetPublicGetCandlestick(args ...any) <-chan any {
-	return this.Fetch2Async("public/get-candlestick", []string{"derivatives", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Cryptocom) DerivativesPublicGetPublicGetCandlestick(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/get-candlestick", []string{"derivatives", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DerivativesPublicGetPublicGetTrades returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPublicGetPublicGetTrades(args ...any) <-chan any {
-	return this.Fetch2Async("public/get-trades", []string{"derivatives", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Cryptocom) DerivativesPublicGetPublicGetTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/get-trades", []string{"derivatives", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DerivativesPublicGetPublicGetTickers returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPublicGetPublicGetTickers(args ...any) <-chan any {
-	return this.Fetch2Async("public/get-tickers", []string{"derivatives", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Cryptocom) DerivativesPublicGetPublicGetTickers(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/get-tickers", []string{"derivatives", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DerivativesPublicGetPublicGetValuations returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPublicGetPublicGetValuations(args ...any) <-chan any {
-	return this.Fetch2Async("public/get-valuations", []string{"derivatives", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Cryptocom) DerivativesPublicGetPublicGetValuations(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/get-valuations", []string{"derivatives", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DerivativesPublicGetPublicGetExpiredSettlementPrice returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPublicGetPublicGetExpiredSettlementPrice(args ...any) <-chan any {
-	return this.callEndpointAsync("derivativesPublicGetPublicGetExpiredSettlementPrice", args...)
+func (this *Cryptocom) DerivativesPublicGetPublicGetExpiredSettlementPrice(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("derivativesPublicGetPublicGetExpiredSettlementPrice", args...))
 }
 
 // DerivativesPublicGetPublicGetInsurance returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPublicGetPublicGetInsurance(args ...any) <-chan any {
-	return this.Fetch2Async("public/get-insurance", []string{"derivatives", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
+func (this *Cryptocom) DerivativesPublicGetPublicGetInsurance(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "public/get-insurance", []string{"derivatives", "public"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
 // DerivativesPrivatePostPrivateSetCancelOnDisconnect returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPrivatePostPrivateSetCancelOnDisconnect(args ...any) <-chan any {
-	return this.callEndpointAsync("derivativesPrivatePostPrivateSetCancelOnDisconnect", args...)
+func (this *Cryptocom) DerivativesPrivatePostPrivateSetCancelOnDisconnect(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("derivativesPrivatePostPrivateSetCancelOnDisconnect", args...))
 }
 
 // DerivativesPrivatePostPrivateGetCancelOnDisconnect returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPrivatePostPrivateGetCancelOnDisconnect(args ...any) <-chan any {
-	return this.callEndpointAsync("derivativesPrivatePostPrivateGetCancelOnDisconnect", args...)
+func (this *Cryptocom) DerivativesPrivatePostPrivateGetCancelOnDisconnect(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("derivativesPrivatePostPrivateGetCancelOnDisconnect", args...))
 }
 
 // DerivativesPrivatePostPrivateUserBalance returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPrivatePostPrivateUserBalance(args ...any) <-chan any {
-	return this.callEndpointAsync("derivativesPrivatePostPrivateUserBalance", args...)
+func (this *Cryptocom) DerivativesPrivatePostPrivateUserBalance(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("derivativesPrivatePostPrivateUserBalance", args...))
 }
 
 // DerivativesPrivatePostPrivateUserBalanceHistory returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPrivatePostPrivateUserBalanceHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("derivativesPrivatePostPrivateUserBalanceHistory", args...)
+func (this *Cryptocom) DerivativesPrivatePostPrivateUserBalanceHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("derivativesPrivatePostPrivateUserBalanceHistory", args...))
 }
 
 // DerivativesPrivatePostPrivateGetPositions returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPrivatePostPrivateGetPositions(args ...any) <-chan any {
-	return this.callEndpointAsync("derivativesPrivatePostPrivateGetPositions", args...)
+func (this *Cryptocom) DerivativesPrivatePostPrivateGetPositions(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("derivativesPrivatePostPrivateGetPositions", args...))
 }
 
 // DerivativesPrivatePostPrivateCreateOrder returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPrivatePostPrivateCreateOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("derivativesPrivatePostPrivateCreateOrder", args...)
+func (this *Cryptocom) DerivativesPrivatePostPrivateCreateOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("derivativesPrivatePostPrivateCreateOrder", args...))
 }
 
 // DerivativesPrivatePostPrivateCreateOrderList returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPrivatePostPrivateCreateOrderList(args ...any) <-chan any {
-	return this.callEndpointAsync("derivativesPrivatePostPrivateCreateOrderList", args...)
+func (this *Cryptocom) DerivativesPrivatePostPrivateCreateOrderList(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("derivativesPrivatePostPrivateCreateOrderList", args...))
 }
 
 // DerivativesPrivatePostPrivateCancelOrder returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPrivatePostPrivateCancelOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("derivativesPrivatePostPrivateCancelOrder", args...)
+func (this *Cryptocom) DerivativesPrivatePostPrivateCancelOrder(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("derivativesPrivatePostPrivateCancelOrder", args...))
 }
 
 // DerivativesPrivatePostPrivateCancelOrderList returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPrivatePostPrivateCancelOrderList(args ...any) <-chan any {
-	return this.callEndpointAsync("derivativesPrivatePostPrivateCancelOrderList", args...)
+func (this *Cryptocom) DerivativesPrivatePostPrivateCancelOrderList(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("derivativesPrivatePostPrivateCancelOrderList", args...))
 }
 
 // DerivativesPrivatePostPrivateCancelAllOrders returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPrivatePostPrivateCancelAllOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("derivativesPrivatePostPrivateCancelAllOrders", args...)
+func (this *Cryptocom) DerivativesPrivatePostPrivateCancelAllOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("derivativesPrivatePostPrivateCancelAllOrders", args...))
 }
 
 // DerivativesPrivatePostPrivateClosePosition returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPrivatePostPrivateClosePosition(args ...any) <-chan any {
-	return this.callEndpointAsync("derivativesPrivatePostPrivateClosePosition", args...)
+func (this *Cryptocom) DerivativesPrivatePostPrivateClosePosition(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("derivativesPrivatePostPrivateClosePosition", args...))
 }
 
 // DerivativesPrivatePostPrivateConvertCollateral returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPrivatePostPrivateConvertCollateral(args ...any) <-chan any {
-	return this.callEndpointAsync("derivativesPrivatePostPrivateConvertCollateral", args...)
+func (this *Cryptocom) DerivativesPrivatePostPrivateConvertCollateral(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("derivativesPrivatePostPrivateConvertCollateral", args...))
 }
 
 // DerivativesPrivatePostPrivateGetOrderHistory returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPrivatePostPrivateGetOrderHistory(args ...any) <-chan any {
-	return this.Fetch2Async("private/get-order-history", []string{"derivatives", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
+func (this *Cryptocom) DerivativesPrivatePostPrivateGetOrderHistory(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "private/get-order-history", []string{"derivatives", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
 }
 
 // DerivativesPrivatePostPrivateGetOpenOrders returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPrivatePostPrivateGetOpenOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("derivativesPrivatePostPrivateGetOpenOrders", args...)
+func (this *Cryptocom) DerivativesPrivatePostPrivateGetOpenOrders(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("derivativesPrivatePostPrivateGetOpenOrders", args...))
 }
 
 // DerivativesPrivatePostPrivateGetOrderDetail returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPrivatePostPrivateGetOrderDetail(args ...any) <-chan any {
-	return this.callEndpointAsync("derivativesPrivatePostPrivateGetOrderDetail", args...)
+func (this *Cryptocom) DerivativesPrivatePostPrivateGetOrderDetail(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("derivativesPrivatePostPrivateGetOrderDetail", args...))
 }
 
 // DerivativesPrivatePostPrivateGetTrades returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPrivatePostPrivateGetTrades(args ...any) <-chan any {
-	return this.Fetch2Async("private/get-trades", []string{"derivatives", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
+func (this *Cryptocom) DerivativesPrivatePostPrivateGetTrades(args ...any) <-chan EndpointResult[map[string]any] {
+	return Fetch2Result[map[string]any](this, "private/get-trades", []string{"derivatives", "private"}, "POST", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(100)})
 }
 
 // DerivativesPrivatePostPrivateChangeAccountLeverage returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPrivatePostPrivateChangeAccountLeverage(args ...any) <-chan any {
-	return this.callEndpointAsync("derivativesPrivatePostPrivateChangeAccountLeverage", args...)
+func (this *Cryptocom) DerivativesPrivatePostPrivateChangeAccountLeverage(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("derivativesPrivatePostPrivateChangeAccountLeverage", args...))
 }
 
 // DerivativesPrivatePostPrivateGetTransactions returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPrivatePostPrivateGetTransactions(args ...any) <-chan any {
-	return this.callEndpointAsync("derivativesPrivatePostPrivateGetTransactions", args...)
+func (this *Cryptocom) DerivativesPrivatePostPrivateGetTransactions(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("derivativesPrivatePostPrivateGetTransactions", args...))
 }
 
 // DerivativesPrivatePostPrivateCreateSubaccountTransfer returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPrivatePostPrivateCreateSubaccountTransfer(args ...any) <-chan any {
-	return this.callEndpointAsync("derivativesPrivatePostPrivateCreateSubaccountTransfer", args...)
+func (this *Cryptocom) DerivativesPrivatePostPrivateCreateSubaccountTransfer(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("derivativesPrivatePostPrivateCreateSubaccountTransfer", args...))
 }
 
 // DerivativesPrivatePostPrivateGetSubaccountBalances returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPrivatePostPrivateGetSubaccountBalances(args ...any) <-chan any {
-	return this.callEndpointAsync("derivativesPrivatePostPrivateGetSubaccountBalances", args...)
+func (this *Cryptocom) DerivativesPrivatePostPrivateGetSubaccountBalances(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("derivativesPrivatePostPrivateGetSubaccountBalances", args...))
 }
 
 // DerivativesPrivatePostPrivateGetOrderList returns a channel that yields a JSON object.
-func (this *Cryptocom) DerivativesPrivatePostPrivateGetOrderList(args ...any) <-chan any {
-	return this.callEndpointAsync("derivativesPrivatePostPrivateGetOrderList", args...)
+func (this *Cryptocom) DerivativesPrivatePostPrivateGetOrderList(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("derivativesPrivatePostPrivateGetOrderList", args...))
 }

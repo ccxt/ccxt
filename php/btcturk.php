@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\btcturk as Exchange;
 
 class btcturk extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'btcturk',
             'name' => 'BTCTurk',
@@ -385,7 +385,7 @@ class btcturk extends Exchange {
         ));
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $data = $this->safe_list($response, 'data', array());
         $result = array(
             'info' => $response,
@@ -727,26 +727,35 @@ class btcturk extends Exchange {
             'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe), // allows the user to pass custom timeframes if needed
         );
         $until = $this->safe_integer($params, 'until', $this->milliseconds());
-        $request['to'] = $this->parse_to_int(($until / 1000));
+        $untilSeconds = $this->parse_to_int(($until / 1000));
+        $request['to'] = $untilSeconds;
         if ($since !== null) {
             $request['from'] = $this->parse_to_int($since / 1000);
         }
-        $limitDefaulted = $limit;
-        if (($since === null) && ($limit === null)) {
-            $limitDefaulted = 100; // default value
+        $limitResolved = null;
+        if ($limit !== null) {
+            $limitResolved = $limit;
+            if ($limit > 11000) {
+                $limitResolved = 11000; // max 11000 candles diapason can be covered
+            }
+        } elseif ($since === null) {
+            $limitResolved = 100; // default value
         }
-        $limitResolved = ($limitDefaulted !== null) ? min($limitDefaulted, 11000) : null; // max 11000 candles diapason can be covered
-        if ($limitResolved !== null) {
+        if (($limit !== null) || ($since === null)) {
             if ($timeframe === '1y') { // difficult with leap years
                 throw new BadRequest($this->id . ' fetchOHLCV () does not accept a limit parameter when timeframe == "1y"');
             }
             $seconds = $this->parse_timeframe($timeframe);
-            $limitSeconds = $seconds * ($limitResolved - 1);
+            $limitCount = ($limit === null) ? 100 : min($limit, 11000);
+            $limitSeconds = $this->parse_to_int($seconds * ($limitCount - 1));
             if ($since !== null) {
-                $to = $this->parse_to_int($since / 1000) . $limitSeconds;
-                $request['to'] = min($request['to'], $to);
+                $sinceSeconds = $this->parse_to_int($since / 1000);
+                $to = $sinceSeconds . $limitSeconds;
+                if ($to < $untilSeconds) {
+                    $request['to'] = $to;
+                }
             } else {
-                $request['from'] = $this->parse_to_int(0 / 1000) - $limitSeconds;
+                $request['from'] = 0 - $limitSeconds;
             }
         }
         $response = $this->graphGetKlinesHistory($this->extend($request, $params));
@@ -954,7 +963,7 @@ class btcturk extends Exchange {
         return $this->parse_orders($data, $market, $since, $limit);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'Untouched' => 'open',
             'Partial' => 'open',
@@ -1080,33 +1089,35 @@ class btcturk extends Exchange {
         return $this->parse_trades($dataList, $market, $since, $limit);
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         if ($this->id === 'btctrader') {
             throw new ExchangeError($this->id . ' is an abstract base API for BTCExchange, BTCTurk');
         }
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . '/' . $path;
         $isQueryMethod = ($method === 'GET') || ($method === 'DELETE');
         if ($isQueryMethod) {
-            if (count($params) > 0) {
-                $url .= '?' . $this->urlencode($params);
+            $query = $this->urlencode($params);
+            if (strlen($query) > 0) {
+                $url .= '?' . $query;
             }
         }
         $requestBody = null;
         if ($isQueryMethod) {
-            $requestBody = $body;
+            $requestBody = null;
         } else {
             $requestBody = $this->json($params);
         }
         $privateHeaders = null;
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
             $secret = base64_decode($this->secret);
@@ -1118,20 +1129,19 @@ class btcturk extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        $requestHeaders = ($privateHeaders !== null) ? $privateHeaders : $headers;
-        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $privateHeaders );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         $errorCode = $this->safe_string($response, 'code', '0');
         $message = $this->safe_string($response, 'message');
-        $output = $message;
-        if ($message === null) {
-            $output = $body;
+        $feedback = $this->id . ' ' . $body;
+        if ($message !== null) {
+            $feedback = $this->id . ' ' . $message;
         }
-        $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $this->id . ' ' . $output);
+        $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
         if (($errorCode !== '0') && ($errorCode !== 'SUCCESS')) {
-            throw new ExchangeError($this->id . ' ' . $output);
+            throw new ExchangeError($feedback);
         }
         return null;
     }

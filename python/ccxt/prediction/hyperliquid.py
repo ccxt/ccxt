@@ -18,7 +18,7 @@ from ccxt.base.precise import Precise
 
 class hyperliquid(PredictionExchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(hyperliquid, self).describe(), {
             'id': 'hyperliquid',
             'name': 'Hyperliquid',
@@ -153,7 +153,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         super(hyperliquid, self).set_sandbox_mode(enabled)
         self.options['sandboxMode'] = enabled
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         # the venue nonce is a millisecond timestamp and must be strictly increasing per signer
         # incrementingNonce () reads this and bumps past the previous value when two signed actions share a millisecond
         return self.milliseconds()
@@ -166,7 +166,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param int side: outcome side, 0 = YES, 1 = NO
         :returns int: the outcome side encoding
         """
-        return self.sum(10 * outcomeId, side)
+        outcomeIdInt = self.parse_to_int(outcomeId)
+        return self.sum(10 * outcomeIdInt, side)
 
     def outcome_asset_id(self, encoding: float) -> float:
         """
@@ -225,23 +226,24 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :returns str: the outcome
         """
         underlying = self.safe_string(desc, 'underlying', 'OUTCOME' + str(outcomeId))
-        targetPrice = self.safe_string(desc, 'targetPrice')
+        targetPrice = self.safe_string(desc, 'targetPrice', '')
         expiry = self.safe_string(desc, 'expiry', '')
         # Parse expiry: "20260503-0600" → "20260503"
         expiryDate = ''
         if expiry != '':
-            expiryDate = expiry.split('-')[0]
+            expiryParts = expiry.split('-')
+            expiryDate = expiryParts[0]
         label = 'NO'
         if side == 0:
             label = 'YES'
         base = underlying.upper()
-        if (targetPrice is not None) and (targetPrice != ''):
+        if targetPrice != '':
             base = base + '_ABOVE_' + targetPrice
-        if (expiryDate is not None) and (expiryDate != ''):
+        if expiryDate != '':
             base = base + '_' + expiryDate
         return base + ':' + label
 
-    def build_outcome_parent_symbol(self, desc: dict, outcomeId: float, name='', question: dict = {}) -> str:
+    def build_outcome_parent_symbol(self, desc: dict, outcomeId: float, name: str = '', question: dict = {}) -> str:
         """
  @ignore
         builds a market id(parent outcome without YES/NO) from a parsed description, e.g. BTC_ABOVE_78213_20260503 for priceBinary outcomes or OUTCOME_9345 for non-priceBinary outcomes using the name field
@@ -251,19 +253,21 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param dict [question]: linked question object from outcomeMeta
         :returns str: the parent market outcome
         """
-        underlying = self.safe_string(desc, 'underlying')
-        if (underlying is not None) and (underlying != ''):
-            targetPrice = self.safe_string(desc, 'targetPrice')
+        underlying = self.safe_string(desc, 'underlying', '')
+        if underlying != '':
+            targetPrice = self.safe_string(desc, 'targetPrice', '')
             expiry = self.safe_string(desc, 'expiry', '')
             expiryDate = ''
             if expiry != '':
-                expiryDate = expiry.split('-')[0]
-            base = underlying.upper()
-            if (targetPrice is not None) and (targetPrice != ''):
-                base = base + '_ABOVE_' + targetPrice
-            if (expiryDate is not None) and (expiryDate != ''):
-                base = base + '_' + expiryDate
-            return base
+                expiryParts = expiry.split('-')
+                expiryDate = expiryParts[0]
+            targetPart = ''
+            if targetPrice != '':
+                targetPart = '_ABOVE_' + targetPrice
+            expiryPart = ''
+            if expiryDate != '':
+                expiryPart = '_' + expiryDate
+            return underlying.upper() + targetPart + expiryPart
         questionDescription = self.safe_string(question, 'description')
         if (questionDescription is not None) and (questionDescription != ''):
             questionDesc = self.parse_outcome_description(questionDescription)
@@ -271,9 +275,13 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             if questionClass == 'pricebucket':
                 questionUnderlying = self.safe_string(questionDesc, 'underlying')
                 questionExpiry = self.safe_string(questionDesc, 'expiry', '')
-                expiryDate = ''
+                questionExpiryDate = ''
                 if questionExpiry != '':
-                    expiryDate = questionExpiry.split('-')[0]
+                    questionExpiryParts = questionExpiry.split('-')
+                    questionExpiryDate = questionExpiryParts[0]
+                questionExpiryPart = ''
+                if questionExpiryDate != '':
+                    questionExpiryPart = '_' + questionExpiryDate
                 thresholdsRaw = self.safe_string(questionDesc, 'priceThresholds', '')
                 indexStr = self.safe_string(desc, 'index')
                 rawDescription = self.safe_string_lower(desc, 'description', '')
@@ -296,16 +304,10 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                             bucketLabel = 'ABOVE_' + thresholds[lastIdx]
                         else:
                             bucketLabel = 'BETWEEN_' + thresholds[index - 1] + '_' + thresholds[index]
-                        base = questionUnderlying.upper() + '_' + bucketLabel
-                        if (expiryDate is not None) and (expiryDate != ''):
-                            base = base + '_' + expiryDate
-                        return base
+                        return questionUnderlying.upper() + '_' + bucketLabel + questionExpiryPart
                 isFallbackLike = (rawDescription == 'other') or (nameLower.find('fallback') >= 0) or (nameLower.find('other') >= 0)
                 if (questionUnderlying is not None and questionUnderlying != '') and isFallbackLike:
-                    base = questionUnderlying.upper() + '_OTHER'
-                    if (expiryDate is not None) and (expiryDate != ''):
-                        base = base + '_' + expiryDate
-                    return base
+                    return questionUnderlying.upper() + '_OTHER' + questionExpiryPart
         questionName = self.safe_string(question, 'name')
         if (questionName is not None) and (questionName != ''):
             questionSlug = self.shorten_slug(questionName)
@@ -558,12 +560,17 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         midStr = self.number_to_string(midPx)
         parts = midStr.split('.')
         intPart = parts[0]
-        significantDigits = max(5, len(intPart))
-        maxDecimals = 8 - szDecimals
-        pricePrecisionDecimals = max(1, min(maxDecimals, significantDigits - len(intPart)))
+        intPartLength = len(intPart)
+        szDecimalsInt = self.parse_to_int(szDecimals)
+        maxDecimals = 8 - szDecimalsInt
+        # significantDigits - intPartLength, with significantDigits = max (5, intPartLength)
+        digitsLeft = 0
+        if intPartLength <= 5:
+            digitsLeft = 5 - intPartLength
+        cappedDecimals = maxDecimals if (maxDecimals < digitsLeft) else digitsLeft
+        # appends max (1, cappedDecimals) - 1 zeros
         zeros = ''
-        zeroCount = pricePrecisionDecimals - 1
-        for zi in range(0, zeroCount):
+        for zi in range(1, cappedDecimals):
             zeros = zeros + '0'
         return self.parse_to_numeric('0.' + zeros + '1')
 
@@ -761,7 +768,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         orderbook = self.parse_order_book({'bids': bids, 'asks': asks}, self.safe_string(outcomeObj, 'outcome', outcome), timestamp)
         return self.safe_prediction_order_book(orderbook, outcomeObj)
 
-    async def fetch_ohlcv(self, outcome: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
+    async def fetch_ohlcv(self, outcome: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches candlestick OHLCV data for an outcome market
 
@@ -786,10 +793,11 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             tf = self.parse_timeframe(timeframe)
             candleCount = limit if (limit is not None) else 100
             startOffset = tf * candleCount * -1000
-            startTime = self.sum(until, startOffset)
+            shiftedStart = self.sum(until, startOffset)
+            startTime = shiftedStart
             if startTime is None:
                 raise ExchangeError(self.id + ' fetchOHLCV() missing startTime')
-            if startTime < 0:
+            if shiftedStart < 0:
                 startTime = 0
         request = {
             'type': 'candleSnapshot',
@@ -1126,7 +1134,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         defaultTif = 'Gtc'
         if isMarket:
             defaultTif = 'Ioc'
-        if postOnly is True:
+        if postOnly:
             defaultTif = 'Alo'
         tif = self.capitalize(self.safe_string_lower(params, 'timeInForce', defaultTif))  # eslint-disable-line
         if price is None:
@@ -1753,7 +1761,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             # push through a local and write the slice back — the go transpiler's
             # AppendToArray reassigns only a local copy of a map-stored array, so a
             # direct push on groupMap[parentSymbol] loses the element in go
-            parentMarkets = self.safe_value(groupMap, parentSymbol)
+            parentMarkets = self.safe_list(groupMap, parentSymbol, [])
             parentMarkets.append(mkt)
             if parentSymbol is not None:
                 groupMap[parentSymbol] = parentMarkets
@@ -1768,7 +1776,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         # so getEvent() resolves these events by any of the three keys
         return self.apply_event_fetch_params(events, params, queries)
 
-    def parse_event(self, raw: dict) -> object:
+    def parse_event(self, raw: dict) -> PredictionEvent:
         """
  @ignore
         parses a grouped set of outcome markets into a unified prediction event object
@@ -1814,10 +1822,6 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             'event': parentSymbol,
             'title': title,
             'markets': markets,
-            'underlying': underlying,
-            'targetPrice': targetPrice,
-            'class': self.safe_string(desc, 'class'),
-            'period': self.safe_string(desc, 'period'),
             'url': None,
             'image': None,
             'created': None,
@@ -1872,7 +1876,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
     def sign_message(self, message: object, privateKey: str) -> dict:
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
-    def construct_phantom_agent(self, hash: object, isTestnet=True) -> dict:
+    def construct_phantom_agent(self, hash: object, isTestnet: bool = True) -> dict:
         source = 'a'
         if isTestnet:
             source = 'b'
@@ -1949,7 +1953,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         nonce = self.incrementing_nonce()
         isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         payload = {
-            'hyperliquidChain': 'Testnet' if (isSandboxMode is True) else 'Mainnet',
+            'hyperliquidChain': 'Testnet' if (isSandboxMode) else 'Mainnet',
             'maxFeeRate': maxFeeRate,
             'builder': builder,
             'nonce': nonce,
@@ -1977,7 +1981,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         # async for the PHP and typed transpilers, which mishandle an async body that never suspends
         await self.load_markets()
         buildFee = self.safe_bool(self.options, 'builderFee', False)
-        if buildFee is not True:
+        if not buildFee:
             return None
         if self.safe_bool(self.options, 'approvedBuilderFee', False):
             return None  # already approved
@@ -2009,25 +2013,25 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             normalized = normalized[2:]
         return normalized.lower()
 
-    def sign(self, path: str, api: object = 'public', method='POST', params: dict = {}, headers: object = None, body: object = None):
-        apiGroup = api[0] if isinstance(api, list) else api
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'POST', params: dict = {}):
+        apiGroup = api[0]
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         baseUrl: str
-        if sandboxMode is True:
+        if sandboxMode:
             testUrls = self.safe_dict(self.urls, 'test', {})
             baseUrl = self.safe_string(testUrls, apiGroup, self.safe_string(testUrls, 'public', ''))
         else:
             apiUrls = self.safe_dict(self.urls, 'api', {})
             baseUrl = self.safe_string(apiUrls, apiGroup, self.safe_string(apiUrls, 'public', ''))
         url = baseUrl + '/' + path
-        headersValue = headers
-        bodyValue = body
+        headersValue = None
+        bodyValue = None
         if method == 'POST':
             headersValue = {'Content-Type': 'application/json'}
             bodyValue = self.json(params)
         return {'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
         status = self.safe_string(response, 'status', '')
@@ -2050,7 +2054,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                 raise ExchangeError(feedback)
         return None
 
-    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: dict = {}):
+    def calculate_rate_limiter_cost(self, api: list[str], method: str, path: str, params: object, config: dict = {}):
         if ('byType' in config) and ('type' in params):
             type = params['type']
             byType = config['byType']

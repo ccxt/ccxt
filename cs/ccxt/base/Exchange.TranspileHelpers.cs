@@ -862,7 +862,7 @@ public partial class BaseExchange
         }
     }
 
-    // cs90 U35: every return path of this helper is the Convert.ToInt64 box or null (the
+    // Every return path of this helper is the Convert.ToInt64 box or null (the
     // catch), so the signature names that single box instead of `object`. A call site that
     // keeps the value in an object context (a dict slot, a request value, an object local)
     // is unchanged — the same box, only the static type is named. Retyping the signature
@@ -928,9 +928,9 @@ public partial class BaseExchange
             return (str[Convert.ToInt32(key)]).ToString();
         }
 
-        // check if array
+        // object[] (and covariant reference arrays) already index as IList<object>; copy only other arrays
         object value = value2;
-        if (value2.GetType().IsArray == true)
+        if (value2.GetType().IsArray == true && !(value2 is IList<object>))
         {
             value = new List<object>((object[])value2);
         }
@@ -1113,24 +1113,6 @@ public partial class BaseExchange
         }
         var results = await Task.WhenAll(tasks);
         return results.ToList();
-    }
-
-    // A typed core gathers sibling typed cores (`fetchSpotMarkets` + `fetchSwapMarkets`)
-    // in an untyped promise list, then wants the flattened typed rows back. Awaiting via
-    // AsTaskOfObject keeps Task<T> invariance out of it; ToXList re-materialises the rows.
-    public static async Task<List<T>> PromiseAllTyped<T>(object promisesObj, Func<object, List<T>> toList)
-    {
-        var results = await PromiseAll(promisesObj);
-        var flat = new List<T>();
-        foreach (var result in results)
-        {
-            var rows = toList(result);
-            if (rows != null)
-            {
-                flat.AddRange(rows);
-            }
-        }
-        return flat;
     }
 
     // A watch* core hands back the LIVE order book: without a copy the caller keeps

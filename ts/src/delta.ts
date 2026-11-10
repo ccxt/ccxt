@@ -15,7 +15,7 @@ import type{ Balances, Currency, CurrencyInterface, Greeks, Int, Market, MarketI
  * @augments Exchange
  */
 export default class delta extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'delta',
             'name': 'Delta Exchange',
@@ -350,23 +350,15 @@ export default class delta extends Exchange {
         const quote = 'USDT';
         const optionParts = symbol.split ('-');
         const symbolBase = symbol.split ('/');
-        let base: Str = undefined;
-        let expiry: Str = undefined;
-        let optionType: Str = undefined;
-        if (symbol.indexOf ('/') > -1) {
-            base = this.safeString (symbolBase, 0);
-            expiry = this.safeString (optionParts, 1);
-            optionType = this.safeString (optionParts, 3);
-        } else {
-            base = this.safeString (optionParts, 1);
-            expiry = this.safeString (optionParts, 3);
-            optionType = this.safeString (optionParts, 0);
-        }
-        if (expiry !== undefined) {
-            expiry = expiry.slice (4) + expiry.slice (2, 4) + expiry.slice (0, 2);
-        }
+        const hasSlash = symbol.indexOf ('/') > -1;
+        const partSource = hasSlash ? symbolBase : optionParts;
+        const baseIndex = hasSlash ? 0 : 1;
+        const base = this.safeString (partSource, baseIndex, '');
+        const optionType = this.safeString (optionParts, hasSlash ? 3 : 0, '');
+        const rawExpiry = this.safeString (optionParts, hasSlash ? 1 : 3, '');
+        const expiry = rawExpiry.slice (4) + rawExpiry.slice (2, 4) + rawExpiry.slice (0, 2);
         const settle = quote;
-        const strike = this.safeString (optionParts, 2);
+        const strike = this.safeString (optionParts, 2, '');
         const datetime = this.convertExpireDate (expiry);
         const timestamp = this.parse8601 (datetime);
         let optionTypeUnified: Str = 'put';
@@ -651,7 +643,7 @@ export default class delta extends Exchange {
         return markets;
     }
 
-    indexByStringifiedNumericId (input: NullableDict) {
+    indexByStringifiedNumericId (input: NullableDict): NullableDict {
         const result: Dict = {};
         if (input === undefined) {
             return undefined;
@@ -659,7 +651,7 @@ export default class delta extends Exchange {
         const keys = Object.keys (input);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const item = input[key];
+            const item = this.safeDict (input, key, {});
             const numericIdString = this.safeString (item, 'numericId');
             if (numericIdString === undefined) {
                 continue;
@@ -903,7 +895,7 @@ export default class delta extends Exchange {
             }
             const linear = (settle === quote);
             let optionType: Str = undefined;
-            let symbol = base + '/' + quote;
+            let symbol: string = base + '/' + quote;
             if (swap || future || option) {
                 symbol = symbol + ':' + settle;
                 if (future || option) {
@@ -1664,33 +1656,34 @@ export default class delta extends Exchange {
         };
         const duration = this.parseTimeframe (timeframe);
         let limitValue: Int = 2000;
+        let windowSeconds = 2000 * duration;
         if (limit !== undefined && limit !== null && limit !== 0) {
             limitValue = limit; // max 2000
+            windowSeconds = limit * duration;
         }
-        let until = this.safeIntegerProduct (params, 'until', 0.001);
-        const untilIsDefined = (until !== undefined);
-        if (untilIsDefined) {
-            until = this.parseToInt (until);
-        }
+        const until: Int = this.safeIntegerProduct (params, 'until', 0.001);
         if (since === undefined) {
-            const end = untilIsDefined ? until : this.seconds ();
-            request['end'] = end;
-            if (end === undefined) {
-                throw new ExchangeError (this.id + ' fetchOHLCV() missing end');
+            let end: Int = this.seconds ();
+            if (until !== undefined) {
+                end = this.parseToInt (until);
             }
-            request['start'] = end - limitValue * duration;
+            request['end'] = end;
+            request['start'] = end - windowSeconds;
         } else {
             const start = this.parseToInt (since / 1000);
             request['start'] = start;
-            request['end'] = untilIsDefined ? until : this.sum (start, limitValue * duration);
+            request['end'] = (until !== undefined) ? until : this.sum (start, windowSeconds);
         }
         const price = this.safeString (params, 'price');
+        const marketId = this.safeString (market, 'id', '');
         if (price === 'mark') {
-            request['symbol'] = 'MARK:' + market['id'];
+            request['symbol'] = 'MARK:' + marketId;
         } else if (price === 'index') {
-            request['symbol'] = market['info']['spot_index']['symbol'];
+            const marketInfo = this.safeDict (market, 'info');
+            const spotIndex = this.safeDict (marketInfo, 'spot_index');
+            request['symbol'] = this.safeString (spotIndex, 'symbol');
         } else {
-            request['symbol'] = market['id'];
+            request['symbol'] = marketId;
         }
         const paramsOmitted: Dict = this.omit (params, [ 'price', 'until' ]);
         const response = await this.publicGetHistoryCandles (this.extend (request, paramsOmitted));
@@ -1708,7 +1701,7 @@ export default class delta extends Exchange {
         return this.parseOHLCVs (result, market, timeframe, since, limitValue);
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         const balances: Dict[] = this.safeList (response, 'result', []);
         const result: Dict = { 'info': response };
         const currenciesByNumericId = this.safeDict (this.options, 'currenciesByNumericId', {});
@@ -1863,9 +1856,9 @@ export default class delta extends Exchange {
         let side: Str = undefined;
         if (sizeString !== undefined) {
             if (Precise.stringGt (sizeString, '0')) {
-                side = 'buy';
+                side = 'long';
             } else if (Precise.stringLt (sizeString, '0')) {
-                side = 'sell';
+                side = 'short';
             }
         }
         return this.safePosition ({
@@ -1873,7 +1866,7 @@ export default class delta extends Exchange {
             'id': undefined,
             'symbol': symbol,
             'notional': undefined,
-            'marginMode': undefined,
+            'marginMode': this.safeString (position, 'margin_mode'),
             'liquidationPrice': this.safeNumber (position, 'liquidation_price'),
             'entryPrice': this.safeNumber (position, 'entry_price'),
             'unrealizedPnl': undefined, // todo - realized_pnl ?
@@ -1887,6 +1880,7 @@ export default class delta extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
+            'positionMargin': this.safeNumber (position, 'margin'),
             'collateral': undefined,
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
@@ -1897,7 +1891,7 @@ export default class delta extends Exchange {
         });
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'open': 'open',
             'pending': 'open',
@@ -1983,7 +1977,7 @@ export default class delta extends Exchange {
         if (marketValue === undefined) {
             symbol = marketId;
         } else {
-            symbol = marketValue['symbol'];
+            symbol = this.safeString (marketValue, 'symbol');
         }
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const side = this.safeString (order, 'side');
@@ -2000,7 +1994,8 @@ export default class delta extends Exchange {
         if (feeCostString !== undefined) {
             let feeCurrencyCode: Str = undefined;
             if (marketValue !== undefined) {
-                const settlingAsset = this.safeDict (marketValue['info'], 'settling_asset', {});
+                const marketInfo = this.safeDict (marketValue, 'info');
+                const settlingAsset = this.safeDict (marketInfo, 'settling_asset', {});
                 const feeCurrencyId = this.safeString (settlingAsset, 'symbol');
                 feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             }
@@ -2132,7 +2127,7 @@ export default class delta extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
-            'id': parseInt (id),
+            'id': this.parseToInt (id),
             'product_id': market['numericId'],
             // "limit_price": this.priceToPrecision (symbol, price),
             // "size": this.amountToPrecision (symbol, amount),
@@ -2142,7 +2137,7 @@ export default class delta extends Exchange {
             if (sizeString === undefined) {
                 sizeString = '0';
             }
-            request['size'] = parseInt (sizeString);
+            request['size'] = this.parseToInt (sizeString);
         }
         if (price !== undefined) {
             request['limit_price'] = this.priceToPrecision (symbol, price);
@@ -2186,7 +2181,7 @@ export default class delta extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
-            'id': parseInt (id),
+            'id': this.parseToInt (id),
             'product_id': market['numericId'],
         };
         const response = await this.privateDeleteOrders (this.extend (request, params));
@@ -2369,7 +2364,7 @@ export default class delta extends Exchange {
             request['product_ids'] = market['numericId']; // accepts a comma-separated list of ids
         }
         if (since !== undefined) {
-            request['start_time'] = since.toString () + '000';
+            request['start_time'] = this.numberToString (since * 1000);
         }
         if (limit !== undefined) {
             request['page_size'] = limit;
@@ -2435,7 +2430,7 @@ export default class delta extends Exchange {
             request['product_ids'] = market['numericId']; // accepts a comma-separated list of ids
         }
         if (since !== undefined) {
-            request['start_time'] = since.toString () + '000';
+            request['start_time'] = this.numberToString (since * 1000);
         }
         if (limit !== undefined) {
             request['page_size'] = limit;
@@ -2544,7 +2539,7 @@ export default class delta extends Exchange {
         return this.parseLedger (result, currency, since, limit);
     }
 
-    parseLedgerEntryType (type: Str) {
+    parseLedgerEntryType (type: Str): Str {
         const types: Dict = {
             'pnl': 'pnl',
             'deposit': 'transaction',
@@ -2592,7 +2587,7 @@ export default class delta extends Exchange {
         const currencyId = this.safeString (item, 'asset_id');
         const currenciesByNumericId = this.safeDict (this.options, 'currenciesByNumericId');
         const currencyValue: Currency = this.safeValue (currenciesByNumericId, currencyId, currency);
-        const code = (currencyValue === undefined) ? undefined : currencyValue['code'];
+        const code = this.safeString (currencyValue, 'code');
         const amount = this.safeString (item, 'amount');
         const timestamp = this.parse8601 (this.safeString (item, 'created_at'));
         const after = this.safeString (item, 'balance');
@@ -2700,7 +2695,7 @@ export default class delta extends Exchange {
     override async fetchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool (market, 'swap', false)) {
             throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
         }
         const request: Dict = {
@@ -2920,10 +2915,10 @@ export default class delta extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
-    async modifyMarginHelper (symbol: string, amount: any, type: string, params: Dict = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: number, type: string, params: Dict = {}): Promise<MarginModification> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const amountString = amount.toString ();
+        const amountString = this.numberToString (amount);
         const deltaMargin = (type === 'reduce') ? Precise.stringMul (amountString, '-1') : amountString;
         const request: Dict = {
             'product_id': market['numericId'],
@@ -3006,7 +3001,7 @@ export default class delta extends Exchange {
     override async fetchOpenInterest (symbol: string, params: Dict = {}): Promise<OpenInterest> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool (market, 'contract', false)) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request: Dict = {
@@ -3069,7 +3064,7 @@ export default class delta extends Exchange {
         return this.parseOpenInterest (result, market);
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         //
         //     {
         //         "close": 894.0,
@@ -3633,7 +3628,7 @@ export default class delta extends Exchange {
     override parseMarginMode (marginMode: Dict, market: Market = undefined): MarginMode {
         let symbol: Str = undefined;
         if (market !== undefined) {
-            symbol = market['symbol'];
+            symbol = this.safeString (market, 'symbol');
         }
         return {
             'info': marginMode,
@@ -4177,9 +4172,10 @@ export default class delta extends Exchange {
         } as ADL;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = {}, body: Str = undefined): Dict {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
         const requestPath = '/' + this.version + '/' + this.implodeParams (path, params);
-        const apiUrl = this.safeString (this.urls['api'], api);
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
@@ -4187,38 +4183,39 @@ export default class delta extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
-        if (api === 'public') {
-            if (Object.keys (query).length > 0) {
+        if (apiName === 'public') {
+            if (!this.isEmpty (query)) {
                 url += '?' + this.urlencode (query);
             }
-        } else if (api === 'private') {
+        } else if (apiName === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.seconds ().toString ();
-            requestHeaders = {
+            const privateHeaders: Dict = {
                 'api-key': this.apiKey,
                 'timestamp': timestamp,
             };
-            let auth = method + timestamp + requestPath;
+            let auth: string = method + timestamp + requestPath;
             if (method === 'GET') {
-                if (Object.keys (query).length > 0) {
+                if (!this.isEmpty (query)) {
                     const queryString = '?' + this.urlencode (query);
-                    auth += queryString;
+                    auth = method + timestamp + requestPath + queryString;
                     url += queryString;
                 }
             } else {
                 requestBody = this.json (query);
-                auth += requestBody;
-                requestHeaders['Content-Type'] = 'application/json';
+                auth = method + timestamp + requestPath + requestBody;
+                privateHeaders['Content-Type'] = 'application/json';
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
-            requestHeaders['signature'] = signature;
+            privateHeaders['signature'] = signature;
+            requestHeaders = privateHeaders;
         }
-        const bodyResult = (requestBody === undefined) ? body : requestBody;
-        const headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResult = requestBody;
+        const headersResult = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined;
         }

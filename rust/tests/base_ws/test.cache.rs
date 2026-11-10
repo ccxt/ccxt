@@ -167,12 +167,13 @@ pub fn testWsCache() {
     let mut cacheSymbolId5 = ArrayCacheBySymbolById::new(Value::Int(5));
     {
                 let mut i: Value = Value::Int(1);
-        let mut __for_first_1492: bool = true;
-        while { if !__for_first_1492 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1492 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(11).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1534: bool = true;
+        while { if !__for_first_1534 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+            } __for_first_1534 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(11).as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId5.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
-                m.insert("id".to_string(), to_string_val(&i));
+                m.insert("id".to_string(), Value::Str(format!("{}", i).into()));
                 m.insert("i".to_string(), i.clone());
             m
         }));
@@ -211,12 +212,13 @@ pub fn testWsCache() {
 })])))));
     {
                 let mut i: Value = Value::Int(1);
-        let mut __for_first_1493: bool = true;
-        while { if !__for_first_1493 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1493 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(11).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1535: bool = true;
+        while { if !__for_first_1535 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+            } __for_first_1535 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(11).as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId5.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
-                m.insert("id".to_string(), to_string_val(&i));
+                m.insert("id".to_string(), Value::Str(format!("{}", i).into()));
                 m.insert("i".to_string(), (match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
             m
         }));
@@ -333,12 +335,13 @@ pub fn testWsCache() {
 })])))));
     {
                 let mut i: Value = Value::Int(30);
-        let mut __for_first_1494: bool = true;
-        while { if !__for_first_1494 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1494 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(33).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1536: bool = true;
+        while { if !__for_first_1536 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+            } __for_first_1536 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(33).as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId5.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
-                m.insert("id".to_string(), to_string_val(&i));
+                m.insert("id".to_string(), Value::Str(format!("{}", i).into()));
                 m.insert("i".to_string(), (match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }));
             m
         }));
@@ -460,12 +463,13 @@ pub fn testWsCache() {
     let mut initialLength: Value = Value::Int(5);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1495: bool = true;
-        while { if !__for_first_1495 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1495 = false; i.as_f64().unwrap_or(f64::NAN) < initialLength.as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1537: bool = true;
+        while { if !__for_first_1537 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+            } __for_first_1537 = false; i.as_f64().unwrap_or(f64::NAN) < initialLength.as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId2.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
-                m.insert("id".to_string(), to_string_val(&i));
+                m.insert("id".to_string(), Value::Str(format!("{}", i).into()));
                 m.insert("i".to_string(), i.clone());
             m
         }));
@@ -478,12 +482,13 @@ pub fn testWsCache() {
     let mut appendItemsLength: Value = Value::Int(3);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1496: bool = true;
-        while { if !__for_first_1496 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1496 = false; i.as_f64().unwrap_or(f64::NAN) < appendItemsLength.as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1538: bool = true;
+        while { if !__for_first_1538 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+            } __for_first_1538 = false; i.as_f64().unwrap_or(f64::NAN) < appendItemsLength.as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId3.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
-                m.insert("id".to_string(), to_string_val(&i));
+                m.insert("id".to_string(), Value::Str(format!("{}", i).into()));
                 m.insert("i".to_string(), i.clone());
             m
         }));
@@ -502,12 +507,13 @@ pub fn testWsCache() {
     initialLength = Value::Int(5);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1497: bool = true;
-        while { if !__for_first_1497 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1497 = false; i.as_f64().unwrap_or(f64::NAN) < initialLength.as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1539: bool = true;
+        while { if !__for_first_1539 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+            } __for_first_1539 = false; i.as_f64().unwrap_or(f64::NAN) < initialLength.as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId4.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
-                m.insert("id".to_string(), to_string_val(&i));
+                m.insert("id".to_string(), Value::Str(format!("{}", i).into()));
                 m.insert("i".to_string(), i.clone());
             m
         }));
@@ -520,12 +526,13 @@ pub fn testWsCache() {
     appendItemsLength = Value::Int(3);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1498: bool = true;
-        while { if !__for_first_1498 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1498 = false; i.as_f64().unwrap_or(f64::NAN) < appendItemsLength.as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1540: bool = true;
+        while { if !__for_first_1540 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+            } __for_first_1540 = false; i.as_f64().unwrap_or(f64::NAN) < appendItemsLength.as_f64().unwrap_or(f64::NAN) } {
         cacheSymbolId6.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol.clone());
-                m.insert("id".to_string(), to_string_val(&i));
+                m.insert("id".to_string(), Value::Str(format!("{}", i).into()));
                 m.insert("i".to_string(), i.clone());
             m
         }));
@@ -574,9 +581,13 @@ pub fn testWsCache() {
     initialLength = Value::Int(5);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1499: bool = true;
-        while { if !__for_first_1499 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1499 = false; i.as_f64().unwrap_or(f64::NAN) < initialLength.as_f64().unwrap_or(f64::NAN) } {
-        timestampCache2.append(Value::from(vec![(match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+        let mut __for_first_1541: bool = true;
+        while { if !__for_first_1541 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+            } __for_first_1541 = false; i.as_f64().unwrap_or(f64::NAN) < initialLength.as_f64().unwrap_or(f64::NAN) } {
+        timestampCache2.append(Value::from(vec![(match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }),
+            (match (&(i), &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i),
+            &(Value::Int(10))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(10))) { (Value::Int(x),
+            Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
     }
     }
     limited = timestampCache2.get_limit(Value::Null, Value::Null);
@@ -584,9 +595,13 @@ pub fn testWsCache() {
     appendItemsLength = Value::Int(3);
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1500: bool = true;
-        while { if !__for_first_1500 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1500 = false; i.as_f64().unwrap_or(f64::NAN) < appendItemsLength.as_f64().unwrap_or(f64::NAN) } {
-        timestampCache2.append(Value::from(vec![(match (&(i), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+        let mut __for_first_1542: bool = true;
+        while { if !__for_first_1542 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+            } __for_first_1542 = false; i.as_f64().unwrap_or(f64::NAN) < appendItemsLength.as_f64().unwrap_or(f64::NAN) } {
+        timestampCache2.append(Value::from(vec![(match (&(i), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i),
+            &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(4))) { (Value::Int(x),
+            Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), (match (&(i), &(Value::Int(4))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y),
+            (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
     }
     }
     outsideLimit = Value::Int(5);
@@ -1055,8 +1070,9 @@ pub fn testWsCache() {
     let mut cacheTimestampLimited = ArrayCacheByTimestamp::new(Value::Int(3));
     {
                 let mut i: Value = Value::Int(1);
-        let mut __for_first_1501: bool = true;
-        while { if !__for_first_1501 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1501 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(7).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1543: bool = true;
+        while { if !__for_first_1543 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+            } __for_first_1543 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(7).as_f64().unwrap_or(f64::NAN) } {
         cacheTimestampLimited.append(Value::from(vec![(match (&(i), &(Value::Int(100))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }), i.clone(), i.clone(), i.clone()]));
     }
     }
@@ -1146,11 +1162,12 @@ pub fn testWsCache() {
     let mut cacheEvictBuckets = ArrayCacheBySymbolById::new(Value::Int(3));
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1502: bool = true;
-        while { if !__for_first_1502 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null }); } __for_first_1502 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(10).as_f64().unwrap_or(f64::NAN) } {
+        let mut __for_first_1544: bool = true;
+        while { if !__for_first_1544 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+            } __for_first_1544 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(10).as_f64().unwrap_or(f64::NAN) } {
         cacheEvictBuckets.append(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("S".into()), to_string_val(&i)).into()), Value::Str("/USDT".into())).into()));
+                m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("S".into()), Value::Str(format!("{}", i).into())).into()), Value::Str("/USDT".into())).into()));
                 m.insert("id".to_string(), Value::Str("x".into()));
                 m.insert("i".to_string(), i.clone());
             m

@@ -77,7 +77,7 @@ const mainRules = {
     'no-nested-ternary': 'error',
     'eqeqeq': 'error',
     'quotes': ['error', 'single', { 'avoidEscape': true }],
-    'no-unused-vars': ['error', { 'argsIgnorePattern': '^(exchange|headers|body|account|info|symbol|price|tag|side|since|name|limit|params|market|timeframe|api|path|code|currency|statusCode|statusText|url|method|response|requestHeaders|requestBody|bidsKey|asksKey|context|config|type|priceKey|amountKey|networkCode|marginMode|subscription|message|client|nonce|orderbook|bookside|deltas|delta|countOrIdKey|amount|fromCurrency|toCurrency|rawCurrency|error|reject|queries|outcome|outcomes|dictionaryOrList|defaultValue|keys|key1|key2|key|allowEmpty|sameTypeOnly|sameSubTypeOnly)', 'caughtErrors': 'none' }],
+    'no-unused-vars': ['error', { 'argsIgnorePattern': '^(exchange|headers|body|account|info|symbol|price|tag|side|since|name|limit|params|market|timeframe|api|path|code|currency|statusCode|statusText|reason|url|method|response|requestHeaders|requestBody|bidsKey|asksKey|context|config|type|priceKey|amountKey|networkCode|marginMode|subscription|message|client|nonce|orderbook|bookside|deltas|delta|countOrIdKey|amount|fromCurrency|toCurrency|rawCurrency|error|reject|queries|outcome|outcomes|dictionaryOrList|defaultValue|keys|key1|key2|key|allowEmpty|sameTypeOnly|sameSubTypeOnly)', 'caughtErrors': 'none' }],
     'new-parens': 'error',
     'new-cap': ['error', {
         'capIsNewExceptionPattern': '^Future$|^globalThis\\.',
@@ -223,27 +223,6 @@ const mainSourceIgnores = [
     'ts/src/base/ws/**',
 ];
 
-// type-aware linting (required by rules like strict-boolean-expressions)
-const typedLanguageOptions = {
-    ...sharedLanguageOptions,
-    parserOptions: {
-        project: './tsconfig.json',
-        tsconfigRootDir: import.meta.dirname,
-    },
-};
-
-const typedRules = {
-    '@typescript-eslint/strict-boolean-expressions': ['error', {
-        allowString: false,
-        allowNumber: false,
-        allowNullableObject: false,
-        allowNullableBoolean: false,
-        allowNullableString: false,
-        allowNullableNumber: false,
-        allowAny: false,
-    }],
-};
-
 export default [
     {
         ignores: [
@@ -283,6 +262,14 @@ export default [
         },
     },
     {
+        // Generated implicit-API files: the generator emits the exchange style, so hold it to it.
+        files: ['ts/src/abstract/**/*.ts'],
+        languageOptions: sharedLanguageOptions,
+        plugins: sharedPlugins,
+        settings: sharedSettings,
+        rules: mainRulesWithoutJsdoc,
+    },
+    {
         files: ['ts/src/test/**/*.ts'],
         languageOptions: sharedLanguageOptions,
         plugins: sharedPlugins,
@@ -311,14 +298,6 @@ export default [
         plugins: sharedPlugins,
         settings: sharedSettings,
         rules: wsRules,
-    },
-    {
-        files: ['ts/src/**/*.ts'],
-        ignores: mainSourceIgnores,
-        languageOptions: typedLanguageOptions,
-        plugins: sharedPlugins,
-        settings: sharedSettings,
-        rules: typedRules,
     },
     {
         files: ['cli/ts/**/*.ts'],

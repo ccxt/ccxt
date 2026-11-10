@@ -472,7 +472,6 @@ export default class bitvavo extends Exchange {
     }
     parseMarkets(markets) {
         const result = [];
-        const fees = this.fees;
         for (let i = 0; i < markets.length; i++) {
             const market = this.safeDict(markets, i);
             const id = this.safeString(market, 'market');
@@ -508,8 +507,8 @@ export default class bitvavo extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'taker': fees['trading']['taker'],
-                'maker': fees['trading']['maker'],
+                'taker': this.safeNumber(this.fees['trading'], 'taker'),
+                'maker': this.safeNumber(this.fees['trading'], 'maker'),
                 'precision': {
                     'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityDecimals'))),
                     'price': this.safeNumber(market, 'tickSize'),
@@ -918,7 +917,7 @@ export default class bitvavo extends Exchange {
         const taker = this.safeBool(trade, 'taker');
         let takerOrMaker = undefined;
         if (taker !== undefined) {
-            takerOrMaker = (taker === true) ? 'taker' : 'maker';
+            takerOrMaker = (taker) ? 'taker' : 'maker';
         }
         const feeCostString = this.safeString(trade, 'fee');
         let fee = undefined;
@@ -986,7 +985,7 @@ export default class bitvavo extends Exchange {
         const taker = this.safeNumber(feesValue, 'taker');
         const result = {};
         for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+            const symbol = this.safeString(this.symbols, i, '');
             result[symbol] = {
                 'info': fees,
                 'symbol': symbol,
@@ -1114,14 +1113,13 @@ export default class bitvavo extends Exchange {
             const sinceLimit = (limit === undefined) ? 1440 : Math.min(limit, 1440);
             request['end'] = this.sum(since, sinceLimit * duration * 1000);
         }
+        if (limit !== undefined) {
+            request['limit'] = Math.min(limit, 1440); // default 1440, max 1440
+        }
+        else if (since !== undefined) {
+            request['limit'] = 1440;
+        }
         const [requestUntil, paramsUntil] = this.handleUntilOption('end', request, params);
-        let limitResolved = limit;
-        if ((since !== undefined) && (limit === undefined)) {
-            limitResolved = 1440;
-        }
-        if (limitResolved !== undefined) {
-            requestUntil['limit'] = Math.min(limitResolved, 1440); // default 1440, max 1440
-        }
         return this.extend(requestUntil, paramsUntil);
     }
     /**
@@ -1158,7 +1156,7 @@ export default class bitvavo extends Exchange {
         //
         return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = {
             'info': response,
             'timestamp': undefined,
@@ -1199,7 +1197,7 @@ export default class bitvavo extends Exchange {
         //         }
         //     ]
         //
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     /**
      * @method
@@ -1259,23 +1257,18 @@ export default class bitvavo extends Exchange {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
-        let subaccountId = this.safeString(params, 'subaccountId');
-        const paramsOmitted = this.omit(params, 'subaccountId');
         let direction = undefined;
+        let subaccountId = undefined;
         if ((fromAccount === 'master') && (toAccount === 'master')) {
             throw new ArgumentsRequired(this.id + ' transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)');
         }
         else if (fromAccount === 'master') {
             direction = 'masterToSub';
-            if (subaccountId === undefined) {
-                subaccountId = toAccount;
-            }
+            subaccountId = this.safeString(params, 'subaccountId', toAccount);
         }
         else if (toAccount === 'master') {
             direction = 'subToMaster';
-            if (subaccountId === undefined) {
-                subaccountId = fromAccount;
-            }
+            subaccountId = this.safeString(params, 'subaccountId', fromAccount);
         }
         else {
             throw new ArgumentsRequired(this.id + ' transfer() requires either fromAccount or toAccount to be master');
@@ -1289,7 +1282,7 @@ export default class bitvavo extends Exchange {
             'symbol': currency['id'],
             'amount': this.currencyToPrecision(code, amount),
         };
-        const response = await this.privatePostSubaccountsTransfers(this.extend(request, paramsOmitted));
+        const response = await this.privatePostSubaccountsTransfers(this.extend(request, this.omit(params, 'subaccountId')));
         //
         //     {
         //         "transferId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
@@ -1508,7 +1501,7 @@ export default class bitvavo extends Exchange {
                 cost = this.safeNumber(paramsOmitted, 'cost');
             }
             if (cost !== undefined) {
-                const precision = this.currency(market['quote'])['precision'];
+                const precision = this.safeNumber(this.currency(market['quote']), 'precision');
                 request['amountQuote'] = this.decimalToPrecision(cost, TRUNCATE, precision, this.precisionMode);
             }
             else {
@@ -1763,7 +1756,7 @@ export default class bitvavo extends Exchange {
             request['operatorId'] = this.parseToInt(operatorId);
         }
         else {
-            throw new ArgumentsRequired(this.id + ' canceAllOrders() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
+            throw new ArgumentsRequired(this.id + ' cancelAllOrders() requires an operatorId in params or options, eg: exchange.options[\'operatorId\'] = 1234567890');
         }
         const response = await this.privateDeleteOrders(this.extend(request, paramsOperatorId));
         //
@@ -2334,13 +2327,13 @@ export default class bitvavo extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
-        this.checkAddress(address);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -2643,24 +2636,25 @@ export default class bitvavo extends Exchange {
         //
         return this.parseDepositWithdrawFees(response, codes, 'symbol');
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let requestHeaders = headers;
-        let requestBody = body;
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        let requestHeaders = undefined;
+        let requestBody = undefined;
         const query = this.omit(params, this.extractParams(path));
         let url = '/' + this.version + '/' + this.implodeParams(path, params);
         const getOrDelete = (method === 'GET') || (method === 'DELETE');
         if (getOrDelete) {
-            if (Object.keys(query).length > 0) {
+            if (!this.isEmpty(query)) {
                 url += '?' + this.urlencode(query);
             }
         }
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             let payload = '';
             if (!getOrDelete) {
-                if (Object.keys(query).length > 0) {
-                    requestBody = this.json(query);
-                    payload = requestBody;
+                if (!this.isEmpty(query)) {
+                    payload = this.json(query);
+                    requestBody = payload;
                 }
             }
             const timestamp = this.milliseconds().toString();
@@ -2677,14 +2671,14 @@ export default class bitvavo extends Exchange {
                 requestHeaders['Content-Type'] = 'application/json';
             }
         }
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const fullUrl = apiUrl + url;
         return { 'url': fullUrl, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

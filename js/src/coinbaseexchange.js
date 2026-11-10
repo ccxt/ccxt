@@ -401,10 +401,10 @@ export default class coinbaseexchange extends Exchange {
                 'networks': {
                     'BTC': 'bitcoin',
                     // LIGHTNING unsupported
-                    'ETH': 'ethereum',
-                    // TRON unsupported
+                    'ERC20': 'ethereum',
+                    // TRC20 unsupported
                     'SOL': 'solana',
-                    // BSC unsupported
+                    // BEP20 unsupported
                     'ARBITRUM': 'arbitrum',
                     'AVAXC': 'avacchain',
                     'MATIC': 'polygon',
@@ -412,7 +412,7 @@ export default class coinbaseexchange extends Exchange {
                     'SUI': 'sui',
                     'OP': 'optimism',
                     'NEAR': 'near',
-                    // CRONOS unsupported
+                    // CRC20 unsupported
                     // GNO unsupported
                     'APT': 'aptos',
                     // SCROLL unsupported
@@ -665,7 +665,9 @@ export default class coinbaseexchange extends Exchange {
         for (let i = 0; i < rawMarkets.length; i++) {
             const market = rawMarkets[i];
             const id = this.safeString(market, 'id');
-            const [baseId, quoteId] = id.split('-');
+            const parts = id.split('-');
+            const baseId = parts[0];
+            const quoteId = parts[1];
             // BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
             // const baseId = this.safeString (market, 'base_currency');
             // const quoteId = this.safeString (market, 'quote_currency');
@@ -782,10 +784,11 @@ export default class coinbaseexchange extends Exchange {
             'info': account,
         };
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = { 'info': response };
-        for (let i = 0; i < response.length; i++) {
-            const balance = this.safeDict(response, i);
+        const rawBalances = this.toArray(response);
+        for (let i = 0; i < rawBalances.length; i++) {
+            const balance = this.safeDict(rawBalances, i);
             const currencyId = this.safeString(balance, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
@@ -811,7 +814,7 @@ export default class coinbaseexchange extends Exchange {
             await this.loadMarkets();
         }
         const response = await this.privateGetAccounts(params);
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     /**
      * @method
@@ -897,7 +900,7 @@ export default class coinbaseexchange extends Exchange {
         let low = undefined;
         let open = undefined;
         let volume = undefined;
-        const symbol = (market === undefined) ? undefined : market['symbol'];
+        const symbol = this.safeString(market, 'symbol');
         if (Array.isArray(ticker)) {
             last = this.safeString(ticker, 4);
         }
@@ -1211,8 +1214,9 @@ export default class coinbaseexchange extends Exchange {
         const maker = this.safeNumber(response, 'maker_fee_rate');
         const taker = this.safeNumber(response, 'taker_fee_rate');
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1280,17 +1284,19 @@ export default class coinbaseexchange extends Exchange {
         const until = this.safeValue2(paramsPaginate, 'until', 'end');
         const paramsOmitted = this.omit(paramsPaginate, ['until']);
         // https://docs.pro.coinbase.com/#get-historic-rates max = 300
-        const cappedLimit = (limit === undefined) ? 300 : Math.min(300, limit);
+        const cappedLimit = this.parseToInt((limit === undefined) ? 300 : Math.min(limit, 300));
         const limitResolved = (since !== undefined) ? cappedLimit : limit;
         if (since !== undefined) {
             request['start'] = this.iso8601(since);
             if (until === undefined) {
-                const parsedTimeframeMilliseconds = parsedTimeframe * 1000;
-                if (this.isRoundNumber(since % parsedTimeframeMilliseconds)) {
-                    request['end'] = this.iso8601(this.sum((cappedLimit - 1) * parsedTimeframeMilliseconds, since));
-                }
-                else {
-                    request['end'] = this.iso8601(this.sum(cappedLimit * parsedTimeframeMilliseconds, since));
+                if (parsedTimeframe !== undefined) {
+                    const parsedTimeframeMilliseconds = parsedTimeframe * 1000;
+                    if (this.isRoundNumber(since % parsedTimeframeMilliseconds)) {
+                        request['end'] = this.iso8601(this.sum((cappedLimit * parsedTimeframeMilliseconds) - parsedTimeframeMilliseconds, since));
+                    }
+                    else {
+                        request['end'] = this.iso8601(this.sum(cappedLimit * parsedTimeframeMilliseconds, since));
+                    }
                 }
             }
             else {
@@ -1590,7 +1596,7 @@ export default class coinbaseexchange extends Exchange {
             request['time_in_force'] = timeInForce;
         }
         const postOnly = this.safeBool2(params, 'postOnly', 'post_only', false);
-        if (postOnly === true) {
+        if (postOnly) {
             request['post_only'] = true;
         }
         const paramsOmitted = this.omit(params, ['timeInForce', 'time_in_force', 'stopPrice', 'stop_price', 'clientOrderId', 'client_oid', 'postOnly', 'post_only', 'triggerPrice']);
@@ -1605,14 +1611,11 @@ export default class coinbaseexchange extends Exchange {
             request['size'] = this.amountToPrecision(symbol, amount);
         }
         else if (type === 'market') {
-            let cost = costParam;
-            if (cost === undefined) {
-                if (price !== undefined) {
-                    cost = amount * price;
-                }
+            if (costParam !== undefined) {
+                request['funds'] = this.costToPrecision(symbol, costParam);
             }
-            if (cost !== undefined) {
-                request['funds'] = this.costToPrecision(symbol, cost);
+            else if (price !== undefined) {
+                request['funds'] = this.costToPrecision(symbol, amount * price);
             }
             else {
                 request['size'] = this.amountToPrecision(symbol, amount);
@@ -1713,13 +1716,13 @@ export default class coinbaseexchange extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
-        this.checkAddress(address);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -2079,7 +2082,8 @@ export default class coinbaseexchange extends Exchange {
         const timestamp = this.parse8601(this.safeString(transaction, 'created_at'));
         const currencyId = this.safeString(transaction, 'currency');
         const code = this.safeCurrencyCode(currencyId, currency);
-        let amount = this.safeNumber(transaction, 'amount');
+        const amountRaw = this.safeNumber(transaction, 'amount');
+        let amount = amountRaw;
         let type = this.safeString(transaction, 'type');
         let address = this.safeString(details, 'crypto_address');
         address = this.safeString(transaction, 'crypto_address', address);
@@ -2093,8 +2097,8 @@ export default class coinbaseexchange extends Exchange {
             address = this.safeString(details, 'sent_to_address', address);
             const feeCost = this.safeNumber(details, 'fee');
             if (feeCost !== undefined) {
-                if (amount !== undefined) {
-                    amount -= feeCost;
+                if (amountRaw !== undefined) {
+                    amount = amountRaw - feeCost;
                 }
                 fee['cost'] = feeCost;
                 fee['currency'] = code;
@@ -2145,7 +2149,8 @@ export default class coinbaseexchange extends Exchange {
             this.options['coinbaseAccountsByCurrencyId'] = this.indexBy(accounts, 'currency');
         }
         const currencyId = currency['id'];
-        const account = this.safeDict(this.options['coinbaseAccountsByCurrencyId'], currencyId);
+        const accountsByCurrencyId = this.safeDict(this.options, 'coinbaseAccountsByCurrencyId');
+        const account = this.safeDict(accountsByCurrencyId, currencyId);
         if (account === undefined) {
             // eslint-disable-next-line quotes
             throw new InvalidAddress(this.id + " createDepositAddress() could not find currency code " + code + " with id = " + currencyId + " in this.options['coinbaseAccountsByCurrencyId']");
@@ -2164,9 +2169,10 @@ export default class coinbaseexchange extends Exchange {
             'info': response,
         };
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let requestHeaders = headers;
-        let requestBody = body;
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        let requestHeaders = undefined;
+        let requestBody = undefined;
         let request = '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (method === 'GET') {
@@ -2174,19 +2180,19 @@ export default class coinbaseexchange extends Exchange {
                 request += '?' + this.urlencode(query);
             }
         }
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const url = this.implodeHostname(apiUrl) + request;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const nonce = this.nonce().toString();
             let payload = '';
             if (method !== 'GET') {
                 if (Object.keys(query).length > 0) {
-                    requestBody = this.json(query);
-                    payload = requestBody;
+                    payload = this.json(query);
+                    requestBody = payload;
                 }
             }
             const what = nonce + method + request + payload;
@@ -2210,7 +2216,7 @@ export default class coinbaseexchange extends Exchange {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((code === 400) || (code === 404)) {
-            if (body[0] === '{') {
+            if (body.startsWith('{')) {
                 const message = this.safeString(response, 'message');
                 const feedback = this.id + ' ' + message;
                 this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
@@ -2221,8 +2227,8 @@ export default class coinbaseexchange extends Exchange {
         }
         return undefined;
     }
-    async request(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
-        const response = await this.fetch2(path, api, method, params, headers, body, config);
+    async request(path, api = ['public'], method = 'GET', params = {}, config = {}) {
+        const response = await this.fetch2(path, api, method, params, config);
         if (typeof response !== 'string') {
             if ('message' in response) {
                 throw new ExchangeError(this.id + ' ' + this.json(response));

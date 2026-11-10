@@ -30,7 +30,7 @@ from ccxt.base.precise import Precise
 
 class gate(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(gate, self).describe(), {
             'id': 'gate',
             'name': 'Gate',
@@ -825,13 +825,10 @@ class gate(Exchange, ImplicitAPI):
                 'networks': {
                     'BTC': 'BTC',
                     'BRC20': 'BTCBRC',  # for eg: ORDI, RATS, ...
-                    'ETH': 'ETH',
                     'ERC20': 'ETH',
-                    'TRX': 'TRX',
                     'TRC20': 'TRX',
                     'HECO': 'HT',
                     'HRC20': 'HT',
-                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'SOL': 'SOL',
                     'MATIC': 'MATIC',
@@ -843,7 +840,7 @@ class gate(Exchange, ImplicitAPI):
                     'ARBITRUM_NOVA': 'ARBNOVA',
                     'BASE': 'BASEEVM',
                     'SUI': 'SUI',
-                    'CRONOS': 'CRO',
+                    'CRC20': 'CRO',
                     'CRO': 'CRO',
                     'APT': 'APT',
                     'SCROLL': 'SCROLLETH',
@@ -1282,7 +1279,8 @@ class gate(Exchange, ImplicitAPI):
             except Exception as e:
                 # if the request fails, the unifiedAccount is disabled
                 self.options['unifiedAccount'] = False
-        return self.options['unifiedAccount']
+        unified = self.safe_bool(self.options, 'unifiedAccount') is True
+        return unified
 
     async def upgrade_unified_trade_account(self, params: dict = {}) -> dict:
         return await self.privateUnifiedPutUnifiedMode(params)
@@ -1311,15 +1309,13 @@ class gate(Exchange, ImplicitAPI):
         optionParts = symbol.split('-')
         symbolBase = symbol.split('/')
         marketIdBase = symbol.split('_')
-        base = None
-        expiry = self.safe_string(optionParts, 1)
-        if symbol.find('/') > -1:
-            base = self.safe_string(symbolBase, 0)
-        else:
-            base = self.safe_string(marketIdBase, 0)
+        base = self.safe_string(symbolBase, 0, '')
+        expiry = self.safe_string(optionParts, 1, '')
+        if symbol.find('/') == -1:
+            base = self.safe_string(marketIdBase, 0, '')
             expiry = expiry[2:8]  # convert 20230728 to 230728
-        strike = self.safe_string(optionParts, 2)
-        optionType = self.safe_string(optionParts, 3)
+        strike = self.safe_string(optionParts, 2, '')
+        optionType = self.safe_string(optionParts, 3, '')
         datetime = self.convert_expire_date(expiry)
         timestamp = self.parse8601(datetime)
         return {
@@ -1459,7 +1455,9 @@ class gate(Exchange, ImplicitAPI):
             id = self.safe_string(spotMarket, 'id')
             marginMarket = self.safe_dict(marginMarkets, id)
             market = self.deep_extend(marginMarket, spotMarket)
-            baseId, quoteId = id.split('_')
+            idParts = id.split('_')
+            baseId = self.safe_string(idParts, 0)
+            quoteId = self.safe_string(idParts, 1)
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             if (base is None) or (quote is None):
@@ -1534,7 +1532,7 @@ class gate(Exchange, ImplicitAPI):
         if self.safe_bool(self.options, 'sandboxMode', False):
             swapSettlementCurrencies = ['usdt']  # gate sandbox only has usdt-margined swaps
         for c in range(0, len(swapSettlementCurrencies)):
-            settleId = swapSettlementCurrencies[c]
+            settleId = self.safe_string(swapSettlementCurrencies, c)
             request = {
                 'settle': settleId,
             }
@@ -1552,7 +1550,7 @@ class gate(Exchange, ImplicitAPI):
         result = []
         futureSettlementCurrencies = self.get_settlement_currencies('future', 'fetchMarkets')
         for c in range(0, len(futureSettlementCurrencies)):
-            settleId = futureSettlementCurrencies[c]
+            settleId = self.safe_string(futureSettlementCurrencies, c)
             request = {
                 'settle': settleId,
             }
@@ -1698,6 +1696,14 @@ class gate(Exchange, ImplicitAPI):
         if contractSize == '0':
             contractSize = '1'  # 1 USD in WEB: https://i.imgur.com/MBBUI04.png
         status = self.safe_string(market, 'status', 'trading')  # or "suspend"
+        amountPrecision = self.parse_number('1')
+        enableDecimal = self.safe_bool(market, 'enable_decimal', False)
+        orderSizeMin = self.safe_string(market, 'order_size_min')
+        swap = marketType == 'swap'
+        minAmount = self.parse_number(orderSizeMin)
+        if swap and enableDecimal and (orderSizeMin is not None) and (minAmount is not None) and Precise.string_gt(orderSizeMin, '0'):
+            amountPrecision = minAmount
+        active = (status == 'trading')
         return {
             'id': id,
             'symbol': symbol,
@@ -1710,10 +1716,10 @@ class gate(Exchange, ImplicitAPI):
             'type': marketType,
             'spot': False,
             'margin': False,
-            'swap': marketType == 'swap',
-            'future': marketType == 'future',
+            'swap': swap,
+            'future': (marketType == 'future'),
             'option': False,
-            'active': status == 'trading',
+            'active': active,
             'contract': True,
             'linear': isLinear,
             'inverse': not isLinear,
@@ -1725,7 +1731,7 @@ class gate(Exchange, ImplicitAPI):
             'strike': None,
             'optionType': None,
             'precision': {
-                'amount': self.parse_number('1'),  # all contracts have this step size
+                'amount': amountPrecision,
                 'price': self.safe_number(market, 'order_price_round'),
             },
             'limits': {
@@ -1734,7 +1740,7 @@ class gate(Exchange, ImplicitAPI):
                     'max': self.safe_number(market, 'leverage_max'),
                 },
                 'amount': {
-                    'min': self.safe_number(market, 'order_size_min'),
+                    'min': minAmount,
                     'max': self.safe_number(market, 'order_size_max'),
                 },
                 'price': {
@@ -1806,17 +1812,16 @@ class gate(Exchange, ImplicitAPI):
                 quote = self.safe_currency_code(quoteId)
                 if (base is None) or (quote is None):
                     continue
-                symbol = base + '/' + quote
                 expiry = self.safe_timestamp(market, 'expiration_time')
-                strike = self.safe_string(market, 'strike_price')
-                isCall = self.safe_bool(market, 'is_call')
+                strike = self.safe_string(market, 'strike_price', '')
+                isCall = self.safe_bool(market, 'is_call', False)
                 optionLetter = 'P'
-                if isCall is True:
+                if isCall:
                     optionLetter = 'C'
                 optionType = 'put'
-                if isCall is True:
+                if isCall:
                     optionType = 'call'
-                symbol = symbol + ':' + quote + '-' + self.yymmdd(expiry) + '-' + strike + '-' + optionLetter
+                symbol = base + '/' + quote + ':' + quote + '-' + self.yymmdd(expiry) + '-' + strike + '-' + optionLetter
                 priceDeviate = self.safe_string(market, 'order_price_deviate')
                 markPrice = self.safe_string(market, 'mark_price')
                 minMultiplier = Precise.string_sub('1', priceDeviate)
@@ -1910,9 +1915,9 @@ class gate(Exchange, ImplicitAPI):
         # * Do not call for multi spot order methods like cancelAllOrders and fetchOpenOrders. Use multiOrderSpotPrepareRequest instead
         request = {}
         if market is not None:
-            if market['contract'] is True:
+            if self.safe_bool(market, 'contract', False):
                 request['contract'] = market['id']
-                if market['option'] is not True:
+                if not self.safe_bool(market, 'option', False):
                     request['settle'] = market['settleId']
             else:
                 request['currency_pair'] = market['id']
@@ -2116,7 +2121,7 @@ class gate(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
         request, query = self.prepare_request(market, None, params)
         response = await self.publicFuturesGetSettleContractsContract(self.extend(request, query))
@@ -2322,7 +2327,7 @@ class gate(Exchange, ImplicitAPI):
             'currency': currency['id'],  # todo: currencies have network-junctions
         }
         response = await self.privateWalletGetDepositAddress(self.extend(request, params))
-        addresses = self.safe_value(response, 'multichain_addresses')
+        addresses = self.safe_list(response, 'multichain_addresses', [])
         currencyId = self.safe_string(response, 'currency')
         codeValue = self.safe_currency_code(currencyId)
         result = {}
@@ -2391,8 +2396,8 @@ class gate(Exchange, ImplicitAPI):
         networkCode, paramsNetworkCode = self.handle_network_code_and_params(params)
         chainsIndexedByIdRaw = await self.fetch_deposit_addresses_by_network(code, paramsNetworkCode)
         chainsIndexedById = chainsIndexedByIdRaw
-        selectedNetworkIdOrCode = self.select_network_code_from_unified_networks(code, networkCode, chainsIndexedById)
-        return chainsIndexedById[selectedNetworkIdOrCode]
+        selectedNetworkIdOrCode = self.select_network_key_from_networks(code, networkCode, chainsIndexedById, True)
+        return self.safe_dict(chainsIndexedById, selectedNetworkIdOrCode)
 
     def parse_deposit_address(self, depositAddress: dict, currency: Currency = None) -> DepositAddress:
         #
@@ -2500,19 +2505,19 @@ class gate(Exchange, ImplicitAPI):
         #        "futures_maker_fee": "0"
         #    }
         #
-        gtDiscount = self.safe_bool(info, 'gt_discount')
+        gtDiscount = self.safe_bool(info, 'gt_discount', False)
         taker = 'taker_fee'
-        if gtDiscount is True:
+        if gtDiscount:
             taker = 'gt_taker_fee'
         maker = 'maker_fee'
-        if gtDiscount is True:
+        if gtDiscount:
             maker = 'gt_maker_fee'
-        contract = self.safe_bool(market, 'contract')
+        contract = self.safe_bool(market, 'contract', False)
         takerKey = taker
-        if contract is True:
+        if contract:
             takerKey = 'futures_taker_fee'
         makerKey = maker
-        if contract is True:
+        if contract:
             makerKey = 'futures_maker_fee'
         return {
             'info': info,
@@ -2614,7 +2619,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_withdraw_fees(response, codes, 'currency')
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
+    def parse_deposit_withdraw_fee(self, fee: dict, currency: Currency = None) -> object:
         #
         #    {
         #        "currency": "MTN",
@@ -2693,7 +2698,7 @@ class gate(Exchange, ImplicitAPI):
             request['from'] = self.parse_to_int(since / 1000)
         if limit is not None:
             request['limit'] = limit
-        response: dict
+        response: List
         if type == 'swap':
             response = await self.privateFuturesGetSettleAccountBook(self.extend(request, requestParams))
         elif type == 'future':
@@ -2714,7 +2719,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_funding_histories(response, symbolResolved, since, limit)
 
-    def parse_funding_histories(self, response: object, symbol: Str, since: Int, limit: Int) -> list[FundingHistory]:
+    def parse_funding_histories(self, response: list, symbol: Str, since: Int, limit: Int) -> list[FundingHistory]:
         result = []
         for i in range(0, len(response)):
             entry = self.safe_dict(response, i)
@@ -2723,7 +2728,7 @@ class gate(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def parse_funding_history(self, info: dict, market: Market = None):
+    def parse_funding_history(self, info: dict, market: Market = None) -> FundingHistory:
         #
         #    {
         #        "time": 1646899200,
@@ -2774,17 +2779,18 @@ class gate(Exchange, ImplicitAPI):
         request, query = self.prepare_request(market, self.safe_string(market, 'type'), params)
         if limit is not None:
             # gateeu returns an empty book for a spot limit above 100
-            maxLimit = self.handle_option('fetchOrderBook', 'maxSpotLimit', 1000) if (market['spot'] is True) else 300
+            maxSpotLimit = self.parse_to_int(self.handle_option('fetchOrderBook', 'maxSpotLimit', 1000))
+            maxLimit = maxSpotLimit if (self.safe_bool(market, 'spot', False)) else 300
             request['limit'] = min(limit, maxLimit)
         request['with_id'] = True
         response: dict
-        if (market['spot'] is True) or (market['margin'] is True):
+        if (self.safe_bool(market, 'spot', False)) or (self.safe_bool(market, 'margin', False)):
             response = await self.publicSpotGetOrderBook(self.extend(request, query))
-        elif market['swap'] is True:
+        elif self.safe_bool(market, 'swap', False):
             response = await self.publicFuturesGetSettleOrderBook(self.extend(request, query))
-        elif market['future'] is True:
+        elif self.safe_bool(market, 'future', False):
             response = await self.publicDeliveryGetSettleOrderBook(self.extend(request, query))
-        elif market['option'] is True:
+        elif self.safe_bool(market, 'option', False):
             response = await self.publicOptionsGetOrderBook(self.extend(request, query))
         else:
             raise NotSupported(self.id + ' fetchOrderBook() not support self market type')
@@ -2852,13 +2858,14 @@ class gate(Exchange, ImplicitAPI):
         #         "update": 1634350208.724
         #     }
         #
-        timestamp = self.safe_integer(response, 'current')
-        if timestamp is None:
+        current = self.safe_integer(response, 'current')
+        if current is None:
             raise ExchangeError(self.id + ' method() missing timestamp')
-        if market['spot'] is not True:
-            timestamp = timestamp * 1000
-        priceKey = 0 if (market['spot'] is True) else 'p'
-        amountKey = 1 if (market['spot'] is True) else 's'
+        timestamp = current
+        if not self.safe_bool(market, 'spot', False):
+            timestamp = current * 1000
+        priceKey = 0 if (self.safe_bool(market, 'spot', False)) else 'p'
+        amountKey = 1 if (self.safe_bool(market, 'spot', False)) else 's'
         nonce = self.safe_integer(response, 'id')
         result = self.parse_order_book(response, symbol, timestamp, 'bids', 'asks', priceKey, amountKey)
         result['nonce'] = nonce
@@ -2882,13 +2889,13 @@ class gate(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request, query = self.prepare_request(market, None, params)
         response: dict
-        if (market['spot'] is True) or (market['margin'] is True):
+        if (self.safe_bool(market, 'spot', False)) or (self.safe_bool(market, 'margin', False)):
             response = await self.publicSpotGetTickers(self.extend(request, query))
-        elif market['swap'] is True:
+        elif self.safe_bool(market, 'swap', False):
             response = await self.publicFuturesGetSettleTickers(self.extend(request, query))
-        elif market['future'] is True:
+        elif self.safe_bool(market, 'future', False):
             response = await self.publicDeliveryGetSettleTickers(self.extend(request, query))
-        elif market['option'] is True:
+        elif self.safe_bool(market, 'option', False):
             marketId = market['id']
             optionParts = marketId.split('-')
             request['underlying'] = self.safe_string(optionParts, 0)
@@ -2896,10 +2903,12 @@ class gate(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + ' fetchTicker() not support self market type')
         ticker = None
-        if market['option'] is True:
+        if self.safe_bool(market, 'option', False):
+            optionMarketId = self.safe_string(market, 'id')
             for i in range(0, len(response)):
                 entry = response[i]
-                if self.safe_string(entry, 'name') == market['id']:
+                entryName = self.safe_string(entry, 'name')
+                if entryName == optionMarketId:
                     ticker = entry
                     break
         else:
@@ -3062,7 +3071,7 @@ class gate(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchTickers() not support self market type, provide symbols or set params["defaultType"] to one from spot/margin/swap/future/option')
         return self.parse_tickers(response, symbolsNormalized)
 
-    def parse_balance_helper(self, entry: dict):
+    def parse_balance_helper(self, entry: dict) -> dict:
         account = self.account()
         account['used'] = self.safe_string_2(entry, 'freeze', 'locked')
         account['free'] = self.safe_string(entry, 'available')
@@ -3375,22 +3384,24 @@ class gate(Exchange, ImplicitAPI):
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 1000)
-        if market['option'] is True:
+        if self.safe_bool(market, 'option', False):
             return await self.fetch_option_ohlcv(symbol, timeframe, since, limit, paramsPaginate)
         price = self.safe_string(paramsPaginate, 'price')
         request, paramsRequest = self.prepare_request(market, None, paramsPaginate)
         request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
-        maxLimit = 1999 if (market['contract'] is True) else 1000
+        maxLimit = 1999 if (self.safe_bool(market, 'contract', False)) else 1000
         limitValue = maxLimit if (limit is None) else min(limit, maxLimit)
-        until = self.safe_integer(paramsRequest, 'until')
-        if until is not None:
-            until = self.parse_to_int(until / 1000)
+        untilMs = self.safe_integer(paramsRequest, 'until')
+        until = None
+        if untilMs is not None:
+            until = self.parse_to_int(untilMs / 1000)
         paramsOmitted = self.omit(paramsRequest, 'until')
         if since is not None:
             duration = self.parse_timeframe(timeframe)
-            request['from'] = self.parse_to_int(since / 1000)
+            fromTimestamp = self.parse_to_int(since / 1000)
+            request['from'] = fromTimestamp
             distance = (limitValue - 1) * duration
-            toTimestamp = self.sum(request['from'], distance)
+            toTimestamp = self.sum(fromTimestamp, distance)
             currentTimestamp = self.seconds()
             to = min(toTimestamp, currentTimestamp)
             if until is not None:
@@ -3402,7 +3413,7 @@ class gate(Exchange, ImplicitAPI):
                 request['to'] = until
             request['limit'] = limitValue
         response = []
-        if market['contract'] is True:
+        if self.safe_bool(market, 'contract', False):
             isMark = (price == 'mark')
             isIndex = (price == 'index')
             if isMark or isIndex:
@@ -3410,9 +3421,9 @@ class gate(Exchange, ImplicitAPI):
             paramsContract = paramsOmitted
             if isMark or isIndex:
                 paramsContract = self.omit(paramsOmitted, 'price')
-            if market['future'] is True:
+            if self.safe_bool(market, 'future', False):
                 response = await self.publicDeliveryGetSettleCandlesticks(self.extend(request, paramsContract))
-            elif market['swap'] is True:
+            elif self.safe_bool(market, 'swap', False):
                 response = await self.publicFuturesGetSettleCandlesticks(self.extend(request, paramsContract))
         else:
             response = await self.publicSpotGetCandlesticks(self.extend(request, paramsOmitted))
@@ -3450,7 +3461,7 @@ class gate(Exchange, ImplicitAPI):
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate)
         market = self.market(symbol)
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise BadSymbol(self.id + ' fetchFundingRateHistory() supports swap contracts only')
         request, paramsRequest = self.prepare_request(market, None, paramsPaginate)
         if limit is not None:
@@ -3576,14 +3587,14 @@ class gate(Exchange, ImplicitAPI):
             request['to'] = self.parse_to_int(until / 1000)
         if limit is not None:
             request['limit'] = min(limit, 1000)  # default 100, max 1000
-        if since is not None and (market['contract'] is True):
+        if since is not None and (self.safe_bool(market, 'contract', False)):
             request['from'] = self.parse_to_int(since / 1000)
         response: List
         if market['type'] == 'spot' or market['type'] == 'margin':
             response = await self.publicSpotGetTrades(self.extend(request, query))
-        elif market['swap'] is True:
+        elif self.safe_bool(market, 'swap', False):
             response = await self.publicFuturesGetSettleTrades(self.extend(request, query))
-        elif market['future'] is True:
+        elif self.safe_bool(market, 'future', False):
             response = await self.publicDeliveryGetSettleTrades(self.extend(request, query))
         elif market['type'] == 'option':
             response = await self.publicOptionsGetTrades(self.extend(request, query))
@@ -3670,8 +3681,7 @@ class gate(Exchange, ImplicitAPI):
         #          }
         #      ]
         #
-        response = await self.fetch_my_trades(symbol, since, limit, {'order_id': id})
-        return response
+        return await self.fetch_my_trades(symbol, since, limit, {'order_id': id})
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -3707,14 +3717,16 @@ class gate(Exchange, ImplicitAPI):
             return await self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, paramsPaginate)
         marginMode = None
         request = {}
-        query = None
-        market = self.market(symbol) if (symbol is not None) else None
+        query: dict
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         until = self.safe_integer(paramsPaginate, 'until')
         paramsOmitted = self.omit(paramsPaginate, ['until'])
         type, paramsMarketType = self.handle_market_type_and_params('fetchMyTrades', market, paramsOmitted)
         contract = (type == 'swap') or (type == 'future') or (type == 'option')
         if contract:
-            contractQuery = None
+            contractQuery: dict
             request, contractQuery = self.prepare_request(market, type, paramsMarketType)
             query = self.omit(contractQuery, 'order_id') if (type == 'option') else contractQuery
         else:
@@ -4038,7 +4050,7 @@ class gate(Exchange, ImplicitAPI):
         response = await self.privateWalletGetWithdrawals(self.extend(requestUntil, paramsUntil))
         return self.parse_transactions(response, currency)
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -4047,12 +4059,12 @@ class gate(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
@@ -4078,7 +4090,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'PEND': 'pending',
             'REQUEST': 'pending',
@@ -4168,7 +4180,7 @@ class gate(Exchange, ImplicitAPI):
         type = None
         amountString = self.safe_string(transaction, 'amount')
         if id is not None:
-            if id[0] == 'b':
+            if id.startswith('b'):
                 # GateCode handling
                 type = 'deposit' if Precise.string_gt(amountString, '0') else 'withdrawal'
                 amountString = Precise.string_abs(amountString)
@@ -4253,9 +4265,9 @@ class gate(Exchange, ImplicitAPI):
             await self.load_markets()
         await self.load_unified_status()
         market = self.market(symbol)
-        trigger = self.safe_value(params, 'trigger')
-        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
-        stopLossPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)
+        trigger = self.safe_bool(params, 'trigger')
+        triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
+        stopLossPrice = self.safe_number(params, 'stopLossPrice', triggerPrice)
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
         isStopLossOrder = stopLossPrice is not None
         isTakeProfitOrder = takeProfitPrice is not None
@@ -4263,17 +4275,17 @@ class gate(Exchange, ImplicitAPI):
         nonTriggerOrder = not isTpsl and (trigger is None)
         orderRequest = self.create_order_request(symbol, type, side, amount, price, params)
         response: dict
-        if (market['spot'] is True) or (market['margin'] is True):
+        if (self.safe_bool(market, 'spot', False)) or (self.safe_bool(market, 'margin', False)):
             if nonTriggerOrder:
                 response = await self.privateSpotPostOrders(orderRequest)
             else:
                 response = await self.privateSpotPostPriceOrders(orderRequest)
-        elif market['swap'] is True:
+        elif self.safe_bool(market, 'swap', False):
             if nonTriggerOrder:
                 response = await self.privateFuturesPostSettleOrders(orderRequest)
             else:
                 response = await self.privateFuturesPostSettlePriceOrders(orderRequest)
-        elif market['future'] is True:
+        elif self.safe_bool(market, 'future', False):
             if nonTriggerOrder:
                 response = await self.privateDeliveryPostSettleOrders(orderRequest)
             else:
@@ -4372,7 +4384,7 @@ class gate(Exchange, ImplicitAPI):
             ordersRequests.append(orderRequest)
         symbols = self.market_symbols(orderSymbols, None, False, True, True)
         market = self.market(symbols[0])
-        if (market['future'] is True) or (market['option'] is True):
+        if (self.safe_bool(market, 'future', False)) or (self.safe_bool(market, 'option', False)):
             raise NotSupported(self.id + ' createOrders() does not support futures or options markets')
         return ordersRequests
 
@@ -4394,11 +4406,23 @@ class gate(Exchange, ImplicitAPI):
         firstOrder = orders[0]
         market = self.market(firstOrder['symbol'])
         response = None
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             response = await self.privateSpotPostBatchOrders(ordersRequests)
-        elif market['swap'] is True:
+        elif self.safe_bool(market, 'swap', False):
             response = await self.privateFuturesPostSettleBatchOrders(ordersRequests)
         return self.parse_orders(response)
+
+    def is_gate_futures_contract_with_decimal_size(self, market: Market) -> bool:
+        info = self.safe_dict(market, 'info', {})
+        isSwap = self.safe_bool(market, 'swap', False)
+        enableDecimal = self.safe_bool(info, 'enable_decimal', False)
+        return isSwap and enableDecimal
+
+    def get_gate_futures_signed_amount(self, symbol: Str, side: Str, amount: Num) -> Str:
+        amountString = self.amount_to_precision(symbol, amount)
+        if side == 'sell':
+            return Precise.string_neg(amountString)
+        return amountString
 
     def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
         if type is None:
@@ -4407,24 +4431,25 @@ class gate(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
         contract = market['contract']
-        trigger = self.safe_value(params, 'trigger')
-        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
-        stopLossPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)
-        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
+        trigger = self.safe_bool(params, 'trigger')
+        triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
+        stopLossPrice = self.safe_number(params, 'stopLossPrice', triggerPrice)
+        takeProfitPrice = self.safe_number(params, 'takeProfitPrice')
         isStopLossOrder = stopLossPrice is not None
         isTakeProfitOrder = takeProfitPrice is not None
         isTpsl = isStopLossOrder or isTakeProfitOrder
         if isStopLossOrder and isTakeProfitOrder:
             raise ExchangeError(self.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined')
-        reduceOnly = self.safe_value(params, 'reduceOnly')
+        reduceOnly = self.safe_bool(params, 'reduceOnly')
         exchangeSpecificTimeInForce = self.safe_string_lower_n(params, ['timeInForce', 'tif', 'time_in_force'])
         postOnly, paramsPostOnly = self.handle_post_only(type == 'market', exchangeSpecificTimeInForce == 'poc', params)
         timeInForce = self.handle_time_in_force(paramsPostOnly)
-        if postOnly is True:
+        if postOnly:
             timeInForce = 'poc'
         # we only omit the unified params here
         # this is because the other params will get extended into the request
-        clientOrderId = self.safe_string_2(paramsPostOnly, 'text', 'clientOrderId')
+        clientOrderIdRaw = self.safe_string_2(paramsPostOnly, 'text', 'clientOrderId')
+        clientOrderId = clientOrderIdRaw
         query = self.omit(paramsPostOnly, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly', 'clientOrderId'])
         isLimitOrder = (type == 'limit')
         isMarketOrder = (type == 'market')
@@ -4442,23 +4467,27 @@ class gate(Exchange, ImplicitAPI):
         if isMarketOrder and (contract is True):
             priceResolved = 0
         contractAmount = 0
+        signedAmount = None
+        useGateFuturesDecimalSize = False
         if contract is True:
-            isClose = self.safe_bool(query, 'close')
-            if isClose is not True:
-                amountToPrecision = self.amount_to_precision(symbol, amount)
-                signedAmount = amountToPrecision
-                if side == 'sell':
-                    signedAmount = Precise.string_neg(amountToPrecision)
-                contractAmount = int(signedAmount)
+            isClose = self.safe_bool(query, 'close', False)
+            if not isClose:
+                signedAmount = self.get_gate_futures_signed_amount(symbol, side, amount)
+                useGateFuturesDecimalSize = self.is_gate_futures_contract_with_decimal_size(market)
+                if not useGateFuturesDecimalSize:
+                    contractAmount = int(signedAmount)
         amountResolved = contractAmount if (contract is True) else amount
-        request = None
+        sizeRequest = amountResolved
+        if useGateFuturesDecimalSize:
+            sizeRequest = signedAmount
+        request = {}
         nonTriggerOrder = not isTpsl and (trigger is None)
         if nonTriggerOrder:
             if contract is True:
                 # contract order
                 request = {
                     'contract': market['id'],  # filled in prepareRequest above
-                    'size': amountResolved,  # int64, positive = bid, negative = ask
+                    'size': sizeRequest,  # int64 (decimal string on enable_decimal markets), positive = bid, negative = ask
                     # 'iceberg': 0, // int64, display size for iceberg order, 0 for non-iceberg, note that you will have to pay the taker fee for the hidden size
                     # 'close': false, // true to close the position, with size set to 0
                     # 'reduce_only': false, // St as true to be reduce-only order
@@ -4466,7 +4495,7 @@ class gate(Exchange, ImplicitAPI):
                     # 'text': clientOrderId, // 't-abcdef1234567890',
                     # 'auto_size': '', // close_long, close_short, note size also needs to be set to 0
                 }
-                if market['option'] is not True:
+                if not self.safe_bool(market, 'option', False):
                     request['settle'] = market['settleId']  # filled in prepareRequest above
                 if isMarketOrder:
                     request['price'] = '0'  # set to 0 for market orders
@@ -4517,42 +4546,53 @@ class gate(Exchange, ImplicitAPI):
                 if timeInForce is not None:
                     request['time_in_force'] = timeInForce
             textIsRequired = self.safe_bool(query, 'textIsRequired', False)
-            if clientOrderId is not None:
+            if clientOrderIdRaw is not None:
                 # user-defined, must follow the rules if not empty
                 #     prefixed with t-
                 #     no longer than 28 bytes without t- prefix
                 #     can only include 0-9, A-Z, a-z, underscores (_), hyphens (-) or dots (.)
-                if len(clientOrderId) > 28:
+                if len(clientOrderIdRaw) > 28:
                     raise BadRequest(self.id + ' createOrder () clientOrderId or text param must be up to 28 characters')
                 query = self.omit(query, 'textIsRequired')
-                if clientOrderId[0] != 't':
-                    clientOrderId = 't-' + clientOrderId
+                if not clientOrderIdRaw.startswith('t'):
+                    clientOrderId = 't-' + clientOrderIdRaw
                 request['text'] = clientOrderId
             else:
-                if textIsRequired is True:
+                if textIsRequired:
                     # batchOrders requires text in the request
                     request['text'] = 't-' + self.uuid16()
         else:
-            if market['option'] is True:
+            if self.safe_bool(market, 'option', False):
                 raise NotSupported(self.id + ' createOrder() conditional option orders are not supported')
             if contract is True:
                 # contract conditional order
+                initial = {
+                    'contract': market['id'],
+                    # positive = buy, negative = sell, set to 0 to close the position
+                    # 'price': (price === 0) ? '0' : this.priceToPrecision (symbol, price), // set to 0 to use market price
+                    # 'close': false, // set to true if trying to close the position
+                    # 'tif': 'gtc', // gtc, ioc, if using market price, only ioc is supported
+                    # 'text': clientOrderId, // web, api, app
+                    # 'reduce_only': false,
+                }
+                if useGateFuturesDecimalSize:
+                    initial['amount'] = signedAmount  # FuturesInitialOrder.amount takes precedence over size
+                else:
+                    initial['size'] = amountResolved
+                if type == 'market':
+                    initial['price'] = '0'
+                else:
+                    initial['price'] = '0' if (priceResolved == 0) else self.price_to_precision(symbol, priceResolved)
+                if reduceOnly is not None:
+                    initial['reduce_only'] = reduceOnly
+                if timeInForce is not None:
+                    initial['tif'] = timeInForce
+                if clientOrderId is not None:
+                    initial['text'] = clientOrderId
                 request = {
-                    'initial': {
-                        'contract': market['id'],
-                        'size': amountResolved,  # positive = buy, negative = sell, set to 0 to close the position
-                        # 'price': (price === 0) ? '0' : this.priceToPrecision (symbol, price), // set to 0 to use market price
-                        # 'close': false, // set to true if trying to close the position
-                        # 'tif': 'gtc', // gtc, ioc, if using market price, only ioc is supported
-                        # 'text': clientOrderId, // web, api, app
-                        # 'reduce_only': false,
-                    },
+                    'initial': initial,
                     'settle': market['settleId'],
                 }
-                if type == 'market':
-                    request['initial']['price'] = '0'
-                else:
-                    request['initial']['price'] = '0' if (priceResolved == 0) else self.price_to_precision(symbol, priceResolved)
                 if trigger is None:
                     rule = None
                     triggerOrderPrice = None
@@ -4575,12 +4615,6 @@ class gate(Exchange, ImplicitAPI):
                         'rule': rule,  # 1 means price_type >= price, 2 means price_type <= price
                         # 'expiration': expiration, how many seconds to wait for the condition to be triggered before cancelling the order
                     }
-                if reduceOnly is not None:
-                    request['initial']['reduce_only'] = reduceOnly
-                if timeInForce is not None:
-                    request['initial']['tif'] = timeInForce
-                if clientOrderId is not None:
-                    request['initial']['text'] = clientOrderId
             else:
                 # spot conditional order
                 options = self.safe_dict(self.options, 'createOrder', {})
@@ -4612,13 +4646,14 @@ class gate(Exchange, ImplicitAPI):
                     elif isTakeProfitOrder:
                         rule = '<=' if (side == 'buy') else '>='
                         triggerOrderPrice = self.price_to_precision(symbol, takeProfitPrice)
-                    request['trigger'] = {
+                    triggerRequest = {
                         'price': self.price_to_precision(symbol, triggerOrderPrice),
                         'rule': rule,  # >= triggered when market price larger than or equal to price field, <= triggered when market price less than or equal to price field
                         'expiration': expiration,  # required, how long (in seconds) to wait for the condition to be triggered before cancelling the order
                     }
                     if clientOrderId is not None:
-                        request['trigger']['text'] = clientOrderId
+                        triggerRequest['text'] = clientOrderId
+                    request['trigger'] = triggerRequest
         return self.extend(request, query)
 
     async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params: dict = {}) -> Order:
@@ -4637,7 +4672,7 @@ class gate(Exchange, ImplicitAPI):
             await self.load_markets()
         await self.load_unified_status()
         market = self.market(symbol)
-        if market['spot'] is not True:
+        if not self.safe_bool(market, 'spot', False):
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         paramsExtended = self.extend(params, {'createMarketBuyOrderRequiresPrice': False})
         return await self.create_order(symbol, 'market', 'buy', cost, None, paramsExtended)
@@ -4645,10 +4680,9 @@ class gate(Exchange, ImplicitAPI):
     def edit_order_request(self, id: str, symbol: Str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> dict:
         market = self.market(symbol)
         marketType, paramsMarketType = self.handle_market_type_and_params('editOrder', market, params)
-        account = self.convert_type_to_account(marketType)
+        accountParsed = self.convert_type_to_account(marketType)
         isUnifiedAccount, paramsUnifiedAccount = self.handle_option_bool_and_params(paramsMarketType, 'editOrder', 'unifiedAccount', False)
-        if isUnifiedAccount:
-            account = 'unified'
+        account = 'unified' if isUnifiedAccount else accountParsed
         isLimitOrder = (type == 'limit')
         if account == 'spot':
             if not isLimitOrder:
@@ -4660,16 +4694,17 @@ class gate(Exchange, ImplicitAPI):
             'account': account,
         }
         if amount is not None:
-            if market['spot'] is True:
+            if self.safe_bool(market, 'spot', False):
                 request['amount'] = self.amount_to_precision(symbol, amount)
             else:
-                if side == 'sell':
-                    request['size'] = self.parse_to_numeric(Precise.string_neg(self.amount_to_precision(symbol, amount)))
+                signedAmount = self.get_gate_futures_signed_amount(symbol, side, amount)
+                if self.is_gate_futures_contract_with_decimal_size(market):
+                    request['size'] = signedAmount
                 else:
-                    request['size'] = self.parse_to_numeric(self.amount_to_precision(symbol, amount))
+                    request['size'] = self.parse_to_numeric(signedAmount)
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
-        if market['spot'] is not True:
+        if not self.safe_bool(market, 'spot', False):
             request['settle'] = market['settleId']
         return self.extend(request, paramsUnifiedAccount)
 
@@ -4696,7 +4731,7 @@ class gate(Exchange, ImplicitAPI):
         market = self.market(symbol)
         extendedRequest = self.edit_order_request(id, symbol, type, side, amount, price, params)
         response: dict
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             response = await self.privateSpotPatchOrdersOrderId(extendedRequest)
         else:
             response = await self.privateFuturesPutSettleOrdersOrderId(extendedRequest)
@@ -4733,7 +4768,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'open': 'open',
             '_new': 'open',
@@ -4948,7 +4983,7 @@ class gate(Exchange, ImplicitAPI):
         #     }
         #
         succeeded = self.safe_bool(order, 'succeeded', True)
-        if succeeded is not True:
+        if not succeeded:
             # cancelOrders response
             return self.safe_order({
                 'clientOrderId': self.safe_string(order, 'text'),
@@ -5055,9 +5090,10 @@ class gate(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string(order, 'text')
         if clientOrderId is None:
             if 'initial' in order:
-                clientOrderId = self.safe_string(order['initial'], 'text')
+                clientOrderId = self.safe_string(initial, 'text')
             elif 'trigger' in order:
-                clientOrderId = self.safe_string(order['trigger'], 'text')
+                triggerOrder = self.safe_dict(order, 'trigger', {})
+                clientOrderId = self.safe_string(triggerOrder, 'text')
         return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': clientOrderId,
@@ -5085,16 +5121,19 @@ class gate(Exchange, ImplicitAPI):
         }, market)
 
     def fetch_order_request(self, id: str, symbol: Str = None, params: dict = {}) -> list:
-        market = None if (symbol is None) else self.market(symbol)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         trigger = self.safe_bool_n(params, ['trigger', 'is_stop_order', 'stop'], False)
         paramsOmitted = self.omit(params, ['is_stop_order', 'stop', 'trigger'])
-        clientOrderId = self.safe_string_2(paramsOmitted, 'text', 'clientOrderId')
+        clientOrderIdRaw = self.safe_string_2(paramsOmitted, 'text', 'clientOrderId')
         orderId = id
-        if clientOrderId is not None:
-            if clientOrderId[0] != 't':
-                clientOrderId = 't-' + clientOrderId
-            orderId = clientOrderId
-        paramsOrder = self.omit(paramsOmitted, ['text', 'clientOrderId']) if (clientOrderId is not None) else paramsOmitted
+        if clientOrderIdRaw is not None:
+            if not clientOrderIdRaw.startswith('t'):
+                orderId = 't-' + clientOrderIdRaw
+            else:
+                orderId = clientOrderIdRaw
+        paramsOrder = self.omit(paramsOmitted, ['text', 'clientOrderId']) if (clientOrderIdRaw is not None) else paramsOmitted
         type, query = self.handle_market_type_and_params('fetchOrder', market, paramsOrder)
         contract = (type == 'swap') or (type == 'future') or (type == 'option')
         request, requestParams = self.prepare_request(market, type, query) if contract else self.spot_order_prepare_request(market, trigger, query)
@@ -5126,23 +5165,25 @@ class gate(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         await self.load_unified_status()
-        market = None if (symbol is None) else self.market(symbol)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         type = self.handle_market_type_and_params('fetchOrder', market, params)[0]
         trigger = self.safe_bool_n(params, ['trigger', 'is_stop_order', 'stop'], False)
         request, requestParams = self.fetch_order_request(id, symbol, params)
         response: dict
         if type == 'spot' or type == 'margin':
-            if trigger is True:
+            if trigger:
                 response = await self.privateSpotGetPriceOrdersOrderId(self.extend(request, requestParams))
             else:
                 response = await self.privateSpotGetOrdersOrderId(self.extend(request, requestParams))
         elif type == 'swap':
-            if trigger is True:
+            if trigger:
                 response = await self.privateFuturesGetSettlePriceOrdersOrderId(self.extend(request, requestParams))
             else:
                 response = await self.privateFuturesGetSettleOrdersOrderId(self.extend(request, requestParams))
         elif type == 'future':
-            if trigger is True:
+            if trigger:
                 response = await self.privateDeliveryGetSettlePriceOrdersOrderId(self.extend(request, requestParams))
             else:
                 response = await self.privateDeliveryGetSettleOrdersOrderId(self.extend(request, requestParams))
@@ -5465,7 +5506,9 @@ class gate(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         await self.load_unified_status()
-        market = None if (symbol is None) else self.market(symbol)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         trigger = self.safe_bool_n(params, ['is_stop_order', 'stop', 'trigger'], False)
         paramsOmitted = self.omit(params, ['is_stop_order', 'stop', 'trigger'])
         type, query = self.handle_market_type_and_params('cancelOrder', market, paramsOmitted)
@@ -5473,17 +5516,17 @@ class gate(Exchange, ImplicitAPI):
         request['order_id'] = id
         response: dict
         if type == 'spot' or type == 'margin':
-            if trigger is True:
+            if trigger:
                 response = await self.privateSpotDeletePriceOrdersOrderId(self.extend(request, requestParams))
             else:
                 response = await self.privateSpotDeleteOrdersOrderId(self.extend(request, requestParams))
         elif type == 'swap':
-            if trigger is True:
+            if trigger:
                 response = await self.privateFuturesDeleteSettlePriceOrdersOrderId(self.extend(request, requestParams))
             else:
                 response = await self.privateFuturesDeleteSettleOrdersOrderId(self.extend(request, requestParams))
         elif type == 'future':
-            if trigger is True:
+            if trigger:
                 response = await self.privateDeliveryDeleteSettlePriceOrdersOrderId(self.extend(request, requestParams))
             else:
                 response = await self.privateDeliveryDeleteSettleOrdersOrderId(self.extend(request, requestParams))
@@ -5606,7 +5649,7 @@ class gate(Exchange, ImplicitAPI):
         if isSpot:
             ordersRequests = []
             for i in range(0, len(ids)):
-                id = ids[i]
+                id = self.safe_string(ids, i, '')
                 orderItem = {
                     'id': id,
                     'symbol': symbol,
@@ -5618,7 +5661,7 @@ class gate(Exchange, ImplicitAPI):
         }
         finalList = [request]  # hacky but needs to be done here
         for i in range(0, len(ids)):
-            finalList.append(ids[i])
+            finalList.append(self.safe_string(ids, i, ''))
         response = await self.privateFuturesPostSettleBatchCancelOrders(finalList)
         return self.parse_orders(response)
 
@@ -5642,7 +5685,7 @@ class gate(Exchange, ImplicitAPI):
             order = self.safe_dict(orders, i)
             symbol = self.safe_string(order, 'symbol')
             market = self.market(symbol)
-            if market['spot'] is not True:
+            if not self.safe_bool(market, 'spot', False):
                 raise NotSupported(self.id + ' cancelOrdersForSymbols() supports only spot markets')
             id = self.safe_string(order, 'id')
             orderItem = {
@@ -5681,7 +5724,9 @@ class gate(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         await self.load_unified_status()
-        market = None if (symbol is None) else self.market(symbol)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
         paramsOmitted = self.omit(params, ['stop', 'trigger'])
         type, query = self.handle_market_type_and_params('cancelAllOrders', market, paramsOmitted)
@@ -5760,12 +5805,13 @@ class gate(Exchange, ImplicitAPI):
             'currency': currency['id'],  # todo: currencies have network-junctions
             'amount': truncated,
         }
-        if not (fromId in self.options['accountsByType']):
+        accountsByType = self.safe_dict(self.options, 'accountsByType', {})
+        if not (fromId in accountsByType):
             request['from'] = 'margin'
             request['currency_pair'] = fromId
         else:
             request['from'] = fromId
-        if not (toId in self.options['accountsByType']):
+        if not (toId in accountsByType):
             request['to'] = 'margin'
             request['currency_pair'] = toId
         else:
@@ -5853,9 +5899,9 @@ class gate(Exchange, ImplicitAPI):
         else:
             request['leverage'] = stringifiedMargin
         response: dict
-        if market['swap'] is True:
+        if self.safe_bool(market, 'swap', False):
             response = await self.privateFuturesPostSettlePositionsContractLeverage(self.extend(request, query))
-        elif market['future'] is True:
+        elif self.safe_bool(market, 'future', False):
             response = await self.privateDeliveryPostSettlePositionsContractLeverage(self.extend(request, query))
         else:
             raise NotSupported(self.id + ' setLeverage() not support self market type')
@@ -5986,6 +6032,16 @@ class gate(Exchange, ImplicitAPI):
         # gate returns the actual maintenance margin requirement in the maintenance_margin field (= value * (average_maintenance_rate + taker fee))
         # it is the exact liquidation threshold: the position is liquidated when margin + unrealised_pnl drops to maintenance_margin
         maintenanceMarginString = self.omit_zero(self.safe_string(position, 'maintenance_margin'))
+        marketInfo = self.safe_dict(marketResolved, 'info', {})
+        takerFeeRate = self.safe_string(marketInfo, 'taker_fee_rate', '0.00075')
+        hasPositiveMarginBalance = (marginBalance is None) or Precise.string_gt(marginBalance, '0')
+        if (initialMarginString is None) and hasPositiveMarginBalance and (notional is not None) and (leverage is not None) and Precise.string_gt(leverage, '0'):
+            closeFee = Precise.string_mul(notional, takerFeeRate)
+            initialMarginString = Precise.string_add(Precise.string_div(notional, leverage), closeFee)
+        liqPriceString = self.omit_zero(self.safe_string(position, 'liq_price'))
+        maintenanceRate = self.omit_zero(self.safe_string(position, 'maintenance_rate'))
+        if (maintenanceMarginString is None) and (liqPriceString is None) and hasPositiveMarginBalance and (notional is not None) and (maintenanceRate is not None):
+            maintenanceMarginString = Precise.string_mul(notional, Precise.string_add(maintenanceRate, takerFeeRate))
         # the margin field is the position margin balance, which excludes the unrealized pnl,
         # the position is liquidated when margin + unrealised_pnl drops to the maintenance margin,
         # so the unified collateral (the amount that can be lost, affected by pnl) includes it
@@ -6015,9 +6071,10 @@ class gate(Exchange, ImplicitAPI):
             'contracts': self.parse_number(Precise.string_abs(size)),
             'contractSize': self.safe_number(marketResolved, 'contractSize'),
             'marginRatio': None,
-            'liquidationPrice': self.safe_number(position, 'liq_price'),
+            'liquidationPrice': self.parse_number(liqPriceString),
             'markPrice': self.safe_number(position, 'mark_price'),
             'lastPrice': None,
+            'positionMargin': self.parse_number(marginBalance),
             'collateral': self.parse_number(collateral),
             'marginMode': marginMode,
             'side': side,
@@ -6041,14 +6098,14 @@ class gate(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['contract'] is not True:
+        if not self.safe_bool(market, 'contract', False):
             raise BadRequest(self.id + ' fetchPosition() supports contract markets only')
         request, paramsValue = self.prepare_request(market, self.safe_string(market, 'type'), params)
         extendedRequest = self.extend(request, paramsValue)
         response = None
-        if market['swap'] is True:
+        if self.safe_bool(market, 'swap', False):
             response = await self.privateFuturesGetSettlePositionsContract(extendedRequest)
-        elif market['future'] is True:
+        elif self.safe_bool(market, 'future', False):
             response = await self.privateDeliveryGetSettlePositionsContract(extendedRequest)
         elif market['type'] == 'option':
             response = await self.privateOptionsGetPositionsContract(extendedRequest)
@@ -6219,13 +6276,18 @@ class gate(Exchange, ImplicitAPI):
 
     async def fetch_leverage_tiers(self, symbols: Strings = None, params: dict = {}) -> LeverageTiers:
         """
-        retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+        retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, automatically paginating through all contracts
 
-        https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts
-        https://www.gate.com/docs/developers/apiv4/en/#query-all-futures-contracts-2
+        https://www.gate.com/docs/developers/apiv4/en/#query-risk-limit-tiers
+        https://www.gate.com/docs/developers/apiv4/en/#query-risk-limit-tiers-2
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.type]: 'swap' or 'future'
+        :param str [params.settle]: settlement currency, default 'usdt' for swaps and 'btc' for futures
+        :param int [params.limit]: number of contracts per request, between 1 and 100, default 100
+        :param int [params.offset]: starting contract offset, default 0
+        :param str [params.contract]: exchange-specific contract id to fetch tiers for a single contract
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/?id=leverage-tiers-structure>`, indexed by market symbols
         """
         if self.markets is None:
@@ -6234,106 +6296,33 @@ class gate(Exchange, ImplicitAPI):
         request, requestParams = self.prepare_request(None, type, query)
         if type != 'future' and type != 'swap':
             raise BadRequest(self.id + ' fetchLeverageTiers only supports swap and future')
-        response: dict
-        if type == 'swap':
-            response = await self.publicFuturesGetSettleContracts(self.extend(request, requestParams))
-        elif type == 'future':
-            response = await self.publicDeliveryGetSettleContracts(self.extend(request, requestParams))
-        else:
-            raise NotSupported(self.id + ' fetchLeverageTiers() not support self market type')
-        #
-        # Perpetual swap
-        #
-        #    [
-        #        {
-        #            "name": "BTC_USDT",
-        #            "type": "direct",
-        #            "quanto_multiplier": "0.0001",
-        #            "ref_discount_rate": "0",
-        #            "order_price_deviate": "0.5",
-        #            "maintenance_rate": "0.005",
-        #            "mark_type": "index",
-        #            "last_price": "38026",
-        #            "mark_price": "37985.6",
-        #            "index_price": "37954.92",
-        #            "funding_rate_indicative": "0.000219",
-        #            "mark_price_round": "0.01",
-        #            "funding_offset": 0,
-        #            "in_delisting": false,
-        #            "risk_limit_base": "1000000",
-        #            "interest_rate": "0.0003",
-        #            "order_price_round": "0.1",
-        #            "order_size_min": 1,
-        #            "ref_rebate_rate": "0.2",
-        #            "funding_interval": 28800,
-        #            "risk_limit_step": "1000000",
-        #            "leverage_min": "1",
-        #            "leverage_max": "100",
-        #            "risk_limit_max": "8000000",
-        #            "maker_fee_rate": "-0.00025",
-        #            "taker_fee_rate": "0.00075",
-        #            "funding_rate": "0.002053",
-        #            "order_size_max": 1000000,
-        #            "funding_next_apply": 1610035200,
-        #            "short_users": 977,
-        #            "config_change_time": 1609899548,
-        #            "trade_size": 28530850594,
-        #            "position_size": 5223816,
-        #            "long_users": 455,
-        #            "funding_impact_value": "60000",
-        #            "orders_limit": 50,
-        #            "trade_id": 10851092,
-        #            "orderbook_id": 2129638396
-        #        }
-        #    ]
-        #
-        # Delivery Futures
-        #
-        #    [
-        #        {
-        #            "name": "BTC_USDT_20200814",
-        #            "underlying": "BTC_USDT",
-        #            "cycle": "WEEKLY",
-        #            "type": "direct",
-        #            "quanto_multiplier": "0.0001",
-        #            "mark_type": "index",
-        #            "last_price": "9017",
-        #            "mark_price": "9019",
-        #            "index_price": "9005.3",
-        #            "basis_rate": "0.185095",
-        #            "basis_value": "13.7",
-        #            "basis_impact_value": "100000",
-        #            "settle_price": "0",
-        #            "settle_price_interval": 60,
-        #            "settle_price_duration": 1800,
-        #            "settle_fee_rate": "0.0015",
-        #            "expire_time": 1593763200,
-        #            "order_price_round": "0.1",
-        #            "mark_price_round": "0.1",
-        #            "leverage_min": "1",
-        #            "leverage_max": "100",
-        #            "maintenance_rate": "1000000",
-        #            "risk_limit_base": "140.726652109199",
-        #            "risk_limit_step": "1000000",
-        #            "risk_limit_max": "8000000",
-        #            "maker_fee_rate": "-0.00025",
-        #            "taker_fee_rate": "0.00075",
-        #            "ref_discount_rate": "0",
-        #            "ref_rebate_rate": "0.2",
-        #            "order_price_deviate": "0.5",
-        #            "order_size_min": 1,
-        #            "order_size_max": 1000000,
-        #            "orders_limit": 50,
-        #            "orderbook_id": 63,
-        #            "trade_id": 26,
-        #            "trade_size": 435,
-        #            "position_size": 130,
-        #            "config_change_time": 1593158867,
-        #            "in_delisting": false
-        #        }
-        #    ]
-        #
-        return self.parse_leverage_tiers(response, symbols, 'name')
+        requestedLimit = self.safe_integer(requestParams, 'limit', 100)
+        limit = self.parse_to_int(100 if (requestedLimit is None) else max(1, min(requestedLimit, 100)))
+        offset = self.safe_integer(requestParams, 'offset', 0)
+        contract = self.safe_string(requestParams, 'contract', '')
+        paramsOmitted = self.omit(requestParams, ['limit', 'offset'])
+        request['limit'] = limit
+        tiers = {}
+        while(True):
+            request['offset'] = offset
+            response: List
+            if type == 'swap':
+                response = await self.publicFuturesGetSettleRiskLimitTiers(self.extend(request, paramsOmitted))
+            else:
+                response = await self.publicDeliveryGetSettleRiskLimitTiers(self.extend(request, paramsOmitted))
+            # Each page contains all tiers for up to limit contracts, not limit rows.
+            grouped = {}
+            if contract != '':
+                grouped[contract] = response
+            else:
+                grouped = self.group_by(response, 'contract')
+            tiers = self.extend(tiers, grouped)
+            contracts = list(grouped.keys())
+            numContracts = len(contracts)
+            if (contract != '') or (numContracts < limit):
+                break
+            offset = self.sum(offset, limit)
+        return self.parse_leverage_tiers(tiers, symbols)
 
     async def fetch_market_leverage_tiers(self, symbol: str, params: dict = {}) -> list[LeverageTier]:
         """
@@ -6421,7 +6410,7 @@ class gate(Exchange, ImplicitAPI):
             tiers.append({
                 'tier': self.sum(i, 1),
                 'symbol': self.safe_string(market, 'symbol'),
-                'currency': self.safe_string(market, 'base'),
+                'currency': self.safe_string(market, 'settle'),
                 'minNotional': minNotional,
                 'maxNotional': maxNotional,
                 'maintenanceMarginRate': self.safe_number(item, 'maintenance_rate'),
@@ -6719,21 +6708,21 @@ class gate(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         timeDifference = self.safe_integer(self.options, 'timeDifference')
         if timeDifference is None:
             raise ExchangeError(self.id + ' nonce() requires a numeric options["timeDifference"]')
         return self.milliseconds() - timeDifference
 
-    def sign(self, path: str, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = [], method: str = 'GET', params: dict = {}) -> dict:
         authentication = api[0]  # public, private
         type = api[1]  # spot, margin, future, delivery
         query = self.omit(params, self.extract_params(path))
-        pathImploded = None
+        pathImploded = ''
         bodyJson = None
         signedHeaders = None
         containsSettle = path.find('settle') > -1
-        if containsSettle and (path.endswith('batch_cancel_orders') is True):  # weird check to prevent $settle in php and converting {settle} to array(settle)
+        if containsSettle and (path.endswith('batch_cancel_orders')):  # weird check to prevent $settle in php and converting {settle} to array(settle)
             # special case where we need to extract the settle from the path
             # but the body is an array of strings
             settle = self.safe_dict(params, 0)
@@ -6752,18 +6741,16 @@ class gate(Exchange, ImplicitAPI):
             pathImploded = self.implode_params(path, first)
         else:
             pathImploded = self.implode_params(path, params)
-        endPart = None
-        if pathImploded == '':
-            endPart = ''
-        else:
-            endPart = ('/' + pathImploded)
+        endPart = ''
+        if pathImploded != '':
+            endPart = '/' + pathImploded
         entirePath = '/' + type + endPart
         if (type == 'subAccounts') or (type == 'withdrawals'):
             entirePath = endPart
-        url = self.urls['api'][authentication][type]
-        if url is None:
+        baseUrl = self.safe_string(self.urls['api'][authentication], type)
+        if baseUrl is None:
             raise NotSupported(self.id + ' does not have a testnet for the ' + type + ' market type.')
-        url += entirePath
+        url = baseUrl + entirePath
         if authentication == 'public':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
@@ -6796,8 +6783,7 @@ class gate(Exchange, ImplicitAPI):
                     url += '?' + queryString
                 query = self.omit(query, 'query')
                 bodyJson = self.json(query)
-            bodySigned = body if (bodyJson is None) else bodyJson
-            bodyPayload = '' if (bodySigned is None) else bodySigned
+            bodyPayload = '' if (bodyJson is None) else bodyJson
             bodySignature = self.hash(self.encode(bodyPayload), 'sha512')
             nonce = self.nonce()
             timestamp = self.parse_to_int(nonce / 1000)
@@ -6813,8 +6799,12 @@ class gate(Exchange, ImplicitAPI):
                 'SIGN': signature,
                 'Content-Type': 'application/json',
             }
-        bodyResolved = body if (bodyJson is None) else bodyJson
-        headersResolved = headers if (signedHeaders is None) else signedHeaders
+        headersResolved = signedHeaders
+        if type == 'futures':
+            if headersResolved is None:
+                headersResolved = {}
+            headersResolved['X-Gate-Size-Decimal'] = '1'
+        bodyResolved = bodyJson
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
     async def modify_margin_helper(self, symbol: str, amount: Num, params: dict = {}) -> MarginModification:
@@ -6824,9 +6814,9 @@ class gate(Exchange, ImplicitAPI):
         request, query = self.prepare_request(market, None, params)
         request['change'] = self.number_to_string(amount)
         response: dict
-        if market['swap'] is True:
+        if self.safe_bool(market, 'swap', False):
             response = await self.privateFuturesPostSettlePositionsContractMargin(self.extend(request, query))
-        elif market['future'] is True:
+        elif self.safe_bool(market, 'future', False):
             response = await self.privateDeliveryPostSettlePositionsContractMargin(self.extend(request, query))
         else:
             raise NotSupported(self.id + ' modifyMarginHelper() not support self market type')
@@ -6906,7 +6896,7 @@ class gate(Exchange, ImplicitAPI):
 
     async def fetch_open_interest_history(self, symbol: str, timeframe='5m', since: Int = None, limit: Int = None, params: dict = {}):
         """
-        Retrieves the open interest of a currency
+        Retrieves the open interest history of a currency
 
         https://www.gate.com/docs/developers/apiv4/en/#futures-statistics
 
@@ -6924,8 +6914,8 @@ class gate(Exchange, ImplicitAPI):
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchOpenInterestHistory', symbol, since, limit, timeframe, paramsPaginate, 100)
         market = self.market(symbol)
-        if market['swap'] is not True:
-            raise BadRequest(self.id + ' fetchOpenInterest() supports swap markets only')
+        if not self.safe_bool(market, 'swap', False):
+            raise BadRequest(self.id + ' fetchOpenInterestHistory() supports swap markets only')
         request = {
             'contract': market['id'],
             'settle': market['settleId'],
@@ -6959,7 +6949,7 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_open_interests_history(response, market, since, limit)
 
-    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         #
         #    {
         #        "long_liq_size": "0",
@@ -7445,7 +7435,9 @@ class gate(Exchange, ImplicitAPI):
         :param str params['settle']: settle currency
         :returns dict: response from the exchange
         """
-        market = self.market(symbol) if (symbol is not None) else None
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         request, query = self.prepare_request(market, 'swap', params)
         request['dual_mode'] = hedged
         return await self.privateFuturesPostSettleDualMode(self.extend(request, query))
@@ -7502,7 +7494,7 @@ class gate(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise NotSupported(self.id + ' fetchLiquidations() supports swap markets only')
         request = {
             'settle': market['settleId'],
@@ -7551,19 +7543,19 @@ class gate(Exchange, ImplicitAPI):
             'contract': market['id'],
         }
         response: dict | List
-        if (market['swap'] is True) or (market['future'] is True):
+        if (self.safe_bool(market, 'swap', False)) or (self.safe_bool(market, 'future', False)):
             if limit is not None:
                 request['limit'] = limit
             request['settle'] = market['settleId']
-        elif market['option'] is True:
+        elif self.safe_bool(market, 'option', False):
             marketId = market['id']
             optionParts = marketId.split('-')
             request['underlying'] = self.safe_string(optionParts, 0)
-        if market['swap'] is True:
+        if self.safe_bool(market, 'swap', False):
             response = await self.privateFuturesGetSettleLiquidates(self.extend(request, params))
-        elif market['future'] is True:
+        elif self.safe_bool(market, 'future', False):
             response = await self.privateDeliveryGetSettleLiquidates(self.extend(request, params))
-        elif market['option'] is True:
+        elif self.safe_bool(market, 'option', False):
             response = await self.privateOptionsGetPositionClose(self.extend(request, params))
         else:
             raise NotSupported(self.id + ' fetchMyLiquidations() does not support ' + market['type'] + ' orders')
@@ -7695,7 +7687,7 @@ class gate(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         request = {
-            'underlying': market['info']['underlying'],
+            'underlying': self.safe_string(market['info'], 'underlying'),
         }
         response = await self.publicOptionsGetTickers(self.extend(request, params))
         #
@@ -7771,7 +7763,7 @@ class gate(Exchange, ImplicitAPI):
             'askPrice': self.parse_number(self.safe_number(greeks, 'ask1_price')),
             'markPrice': self.parse_number(self.safe_number(greeks, 'mark_price')),
             'lastPrice': self.parse_number(self.safe_number(greeks, 'last_price')),
-            'underlyingPrice': self.parse_number(market['info']['underlying_price']),
+            'underlyingPrice': self.parse_number(self.safe_string(market['info'], 'underlying_price')),
             'info': greeks,
         }
 
@@ -7816,11 +7808,11 @@ class gate(Exchange, ImplicitAPI):
             market = self.market(symbol)
         request = {}
         response: dict
-        isUnified = self.safe_bool(params, 'unified')
+        isUnified = self.safe_bool(params, 'unified', False)
         paramsOmitted = self.omit(params, 'unified')
         if self.safe_bool(market, 'spot', False):
             request['currency_pair'] = self.safe_string(market, 'id')
-            if isUnified is True:
+            if isUnified:
                 response = await self.publicMarginGetUniCurrencyPairsCurrencyPair(self.extend(request, paramsOmitted))
                 #
                 #     {
@@ -7844,7 +7836,7 @@ class gate(Exchange, ImplicitAPI):
                 #         "status": 1
                 #     }
                 #
-        elif isUnified is True:
+        elif isUnified:
             response = await self.privateUnifiedGetAccounts(self.extend(request, paramsOmitted))
             #
             #     {
@@ -7915,10 +7907,10 @@ class gate(Exchange, ImplicitAPI):
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols)
         response: dict | List
-        isUnified = self.safe_bool(params, 'unified')
+        isUnified = self.safe_bool(params, 'unified', False)
         paramsOmitted = self.omit(params, 'unified')
         marketIdRequest = 'id'
-        if isUnified is True:
+        if isUnified:
             marketIdRequest = 'currency_pair'
             response = await self.publicMarginGetUniCurrencyPairs(paramsOmitted)
             #
@@ -8214,7 +8206,7 @@ class gate(Exchange, ImplicitAPI):
             responseList = self.to_array(response)
         return self.parse_positions(responseList, symbols, paramsValue)
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
         #

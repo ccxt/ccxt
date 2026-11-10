@@ -1,15 +1,15 @@
 
 import lbankRest from '../lbank.js';
-import { ExchangeError, NotSupported } from '../base/errors.js';
+import { BadRequest, ExchangeError, NetworkError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Balances, Dict, Int, List, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class lbank extends lbankRest {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -26,6 +26,8 @@ export default class lbank extends lbankRest {
                 'watchOrders': true,
                 'watchOrderBook': true,
                 'watchOHLCV': true,
+                'unWatchOHLCV': true,
+                'unWatchTrades': true,
             },
             'urls': {
                 'api': {
@@ -67,9 +69,39 @@ export default class lbank extends lbankRest {
     checkContractMarket (market: Market, methodName: string) {
         // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
         // see https://github.com/ccxt/ccxt/issues/26864
-        if ((market !== undefined) && (market['contract'] === true)) {
-            throw new NotSupported (this.id + ' ' + methodName + '() does not support ' + market['type'] + ' markets yet');
+        if ((market !== undefined) && (this.safeBool (market, 'contract', false))) {
+            const marketType = this.safeString (market, 'type', '');
+            throw new NotSupported (this.id + ' ' + methodName + '() does not support ' + marketType + ' markets yet');
         }
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description sends an unsubscribe request and drops the subscription and its cache
+     * @param {string} subHash the messageHash the watch method subscribed with
+     * @param {object} request the unsubscribe request
+     * @param {object} subscription the cache to clean, see cleanCache
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true
+     */
+    async unSubscribe (subHash: string, request: Dict, subscription: Dict, params: Dict = {}) {
+        const url = this.urls['api']['ws'];
+        const client = this.client (url);
+        if (subHash in client.subscriptions) {
+            try {
+                await client.send (this.deepExtend (request, params));
+            } catch (e) {
+                // the socket is not open (yet), so the queued subscribe has not gone out either -
+                // keep the subscription instead of letting that subscribe stream unwatched
+                throw new NetworkError (this.id + ' could not unsubscribe ' + subHash + ', the websocket connection is not open');
+            }
+        }
+        // lbank does not acknowledge an unsubscribe, it just stops streaming the channel,
+        // so the subscription is cleaned up as soon as the request is sent
+        this.cleanCache (subscription);
+        this.cleanUnsubscription (client, subHash, 'unsubscribe:' + subHash);
+        return true;
     }
 
     /**
@@ -102,7 +134,8 @@ export default class lbank extends lbankRest {
             'pair': market['id'],
         };
         if (since !== undefined) {
-            message['start'] = this.parseToInt (Math.floor (since / 1000));
+            const sinceInt = this.parseToInt (since);
+            message['start'] = this.parseToInt (sinceInt / 1000);
         }
         if (limit !== undefined) {
             message['size'] = limit;
@@ -148,6 +181,41 @@ export default class lbank extends lbankRest {
             limitResolved = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
+    }
+
+    /**
+     * @method
+     * @name lbank#unWatchOHLCV
+     * @see https://www.lbank.com/en-US/docs/index.html#subscription-of-k-line-data
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to unwatch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true once the unsubscribe request has been sent (lbank does not acknowledge it)
+     */
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        this.checkContractMarket (market, 'unWatchOHLCV');
+        const watchOHLCVOptions = this.safeDict (this.options, 'watchOHLCV', {});
+        const timeframes = this.safeDict (watchOHLCVOptions, 'timeframes', {});
+        const timeframeId = this.safeString (timeframes, timeframe);
+        if (timeframeId === undefined) {
+            throw new BadRequest (this.id + ' unWatchOHLCV() does not support the ' + timeframe + ' timeframe');
+        }
+        const request: Dict = {
+            'action': 'unsubscribe',
+            'subscribe': 'kbar',
+            'kbar': timeframeId,
+            'pair': market['id'],
+        };
+        const subscription: Dict = {
+            'topic': 'ohlcv',
+            'symbolsAndTimeframes': [ [ market['symbol'], timeframe ] ],
+        };
+        return await this.unSubscribe ('ohlcv:' + market['symbol'] + ':' + timeframeId, request, subscription, params);
     }
 
     handleOHLCV (client: Client, message: Dict) {
@@ -217,21 +285,22 @@ export default class lbank extends lbankRest {
                 this.safeNumber (rawOHLCV, 4),
                 this.safeNumber (rawOHLCV, 5),
             ];
-            const timeframeId = this.safeString (message, 'kbar');
+            const timeframeId = this.safeString (message, 'kbar', '');
             const timeframe = this.findTimeframe (timeframeId, timeframes);
-            this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            const ohlcvsForSymbol: Dict = this.safeDict (this.ohlcvs, symbol, {});
+            this.ohlcvs[symbol] = ohlcvsForSymbol;
+            let stored = this.safeValue (ohlcvsForSymbol, timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol][timeframe as string] = stored;
+                ohlcvsForSymbol[timeframe as string] = stored;
             }
             stored.append (parsed);
             const messageHash = 'fetchOHLCV:' + symbol + ':' + timeframeId;
             client.resolve (stored, messageHash);
         } else {  // from subscription
             const rawOHLCV = this.safeDict (message, 'kbar', {});
-            const timeframeId = this.safeString (rawOHLCV, 'slot');
+            const timeframeId = this.safeString (rawOHLCV, 'slot', '');
             const datetime = this.safeString (rawOHLCV, 't');
             const parsed = [
                 this.parse8601 (datetime),
@@ -241,16 +310,21 @@ export default class lbank extends lbankRest {
                 this.safeNumber (rawOHLCV, 'c'),
                 this.safeNumber (rawOHLCV, 'v'),
             ];
+            const messageHash = 'ohlcv:' + symbol + ':' + timeframeId;
+            if (!(messageHash in client.subscriptions)) {
+                // a candle lbank pushed before it processed an unWatchOHLCV, which it does not acknowledge
+                return;
+            }
             const timeframe = this.findTimeframe (timeframeId, timeframes);
-            this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            const ohlcvsForSymbol: Dict = this.safeDict (this.ohlcvs, symbol, {});
+            this.ohlcvs[symbol] = ohlcvsForSymbol;
+            let stored = this.safeValue (ohlcvsForSymbol, timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol][timeframe as string] = stored;
+                ohlcvsForSymbol[timeframe as string] = stored;
             }
             stored.append (parsed);
-            const messageHash = 'ohlcv:' + symbol + ':' + timeframeId;
             client.resolve (stored, messageHash);
         }
     }
@@ -452,6 +526,33 @@ export default class lbank extends lbankRest {
         return this.sortBy (result, 'timestamp') as Trade[]; // needed bcz of https://github.com/ccxt/ccxt/actions/runs/21364685870/job/61493905690?pr=27750#step:11:1067
     }
 
+    /**
+     * @method
+     * @name lbank#unWatchTrades
+     * @see https://www.lbank.com/en-US/docs/index.html#trade-record
+     * @description unWatches the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to unwatch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true once the unsubscribe request has been sent (lbank does not acknowledge it)
+     */
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        this.checkContractMarket (market, 'unWatchTrades');
+        const request: Dict = {
+            'action': 'unsubscribe',
+            'subscribe': 'trade',
+            'pair': market['id'],
+        };
+        const subscription: Dict = {
+            'topic': 'trades',
+            'symbols': [ market['symbol'] ],
+        };
+        return await this.unSubscribe ('trades:' + market['symbol'], request, subscription, params);
+    }
+
     handleTrades (client: Client, message: Dict) {
         //
         // request
@@ -482,13 +583,18 @@ export default class lbank extends lbankRest {
         const marketId = this.safeString (message, 'pair');
         const symbol = this.safeSymbol (marketId);
         const market = this.safeMarket (marketId);
+        const rawTrade = this.safeDict (message, 'trade');
+        const subHash = 'trades:' + symbol;
+        if ((rawTrade !== undefined) && !(subHash in client.subscriptions)) {
+            // a trade lbank pushed before it processed an unWatchTrades, which it does not acknowledge
+            return;
+        }
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
         }
-        const rawTrade = this.safeDict (message, 'trade');
         const rawTrades: Dict[] = this.safeList (message, 'trades', [ rawTrade ]);
         for (let i = 0; i < rawTrades.length; i++) {
             const trade = this.parseWsTrade (rawTrades[i], market);
@@ -610,17 +716,13 @@ export default class lbank extends lbankRest {
         //
         const marketId = this.safeString (message, 'pair');
         const symbol = this.safeSymbol (marketId, undefined, '_');
-        let myOrders = this.orders;
+        const order = this.parseWsOrder (message);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            myOrders = new ArrayCacheBySymbolById (limit);
+            this.orders = new ArrayCacheBySymbolById (limit);
         }
-        const order = this.parseWsOrder (message);
-        if (myOrders === undefined) {
-            return;
-        }
+        const myOrders = this.orders;
         myOrders.append (order);
-        this.orders = myOrders;
         client.resolve (myOrders, 'orders');
         const messageHash = 'orders:' + symbol;
         client.resolve (myOrders, messageHash);
@@ -806,7 +908,7 @@ export default class lbank extends lbankRest {
             'pair': market['id'],
         };
         const request = this.deepExtend (subscribe, params);
-        const orderbook: Ob = await this.watch (url, messageHash, request, messageHash);
+        const orderbook: WsOrderBook = await this.watch (url, messageHash, request, messageHash);
         return orderbook.limit ();
     }
 
@@ -837,7 +939,7 @@ export default class lbank extends lbankRest {
             'pair': market['id'],
         };
         const request = this.deepExtend (subscribe, paramsOmitted);
-        const orderbook: Ob = await this.watch (url, messageHash, request, messageHash);
+        const orderbook: WsOrderBook = await this.watch (url, messageHash, request, messageHash);
         return orderbook.limit ();
     }
 
@@ -998,8 +1100,8 @@ export default class lbank extends lbankRest {
                 //
                 // {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
                 //
-                const result = this.safeBool (response, 'result');
-                if (result !== true) {
+                const result = this.safeBool (response, 'result', false);
+                if (!result) {
                     throw new ExchangeError (this.id + ' failed to get subscribe key');
                 }
                 client.subscriptions['authenticated'] = {
@@ -1020,12 +1122,12 @@ export default class lbank extends lbankRest {
                     if (result !== 'true') {
                         throw new ExchangeError (this.id + ' failed to refresh the SubscribeKey');
                     }
-                    client['subscriptions']['authenticated']['expires'] = this.sum (now, 3300000); // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
+                    client.subscriptions['authenticated']['expires'] = this.sum (now, 3300000); // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
                 }
             }
             // settle the flight through the client so that every write to the
             // futures map happens inside the base class
-            client.resolve (client.subscriptions['authenticated']['key'], messageHash);
+            client.resolve (this.safeString (this.safeDict (client.subscriptions, 'authenticated'), 'key'), messageHash);
         } catch (e) {
             // reject the flight - all waiters throw and the next caller
             // re-leads instead of deadlocking on a dead flight

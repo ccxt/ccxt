@@ -6,7 +6,7 @@ import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balance
  * @description Set rateLimit to 1000 if fully verified
  */
 export default class kraken extends Exchange {
-    describe(): any;
+    describe(): Dict;
     feeToPrecision(symbol: Str, fee: any): string;
     /**
      * @method
@@ -112,7 +112,7 @@ export default class kraken extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
-    fetchLedgerEntriesByIds(ids: any, code?: Str, params?: Dict): Promise<LedgerEntry[]>;
+    fetchLedgerEntriesByIds(ids: string[], code?: Str, params?: Dict): Promise<LedgerEntry[]>;
     fetchLedgerEntry(id: string, code?: Str, params?: Dict): Promise<LedgerEntry>;
     parseTrade(trade: Dict | List | string, market?: Market): Trade;
     /**
@@ -127,7 +127,7 @@ export default class kraken extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name kraken#fetchBalance
@@ -194,9 +194,9 @@ export default class kraken extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrders(orders: OrderRequest[], params?: Dict): Promise<Order[]>;
-    findMarketByAltnameOrId(id: any): any;
+    findMarketByAltnameOrId(id: any): MarketInterface;
     resolveMarketByAltnameOrId(marketId: Str, market?: Market): Market;
-    getDelistedMarketById(id: any): any;
+    getDelistedMarketById(id: Str): any;
     parseOrderStatus(status: Str): Str;
     parseOrderType(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
@@ -259,7 +259,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOrdersByIds(ids: any, symbol?: Str, params?: Dict): Promise<Order[]>;
+    fetchOrdersByIds(ids: string[], symbol?: Str, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name kraken#fetchMyTrades
@@ -350,7 +350,7 @@ export default class kraken extends Exchange {
     parseTransactionStatus(status: Str): Str;
     parseNetwork(network: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionsByType(type: string, transactions: any, code?: Str, since?: Int, limit?: Int): any[];
+    parseTransactionsByType(type: string, transactions: any, code?: Str, since?: Int, limit?: Int): Transaction[];
     /**
      * @method
      * @name kraken#fetchDeposits
@@ -389,7 +389,7 @@ export default class kraken extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
-    addPaginationCursorToResult(result: any): any;
+    addPaginationCursorToResult(result: Dict): List;
     /**
      * @method
      * @name kraken#createDepositAddress
@@ -429,11 +429,11 @@ export default class kraken extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to, not required can be '' or undefined/none/null
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name kraken#fetchPositions
@@ -445,7 +445,7 @@ export default class kraken extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
-    parseAccountType(account: Str): Str;
+    parseAccountType(account: string): Str;
     /**
      * @method
      * @name kraken#transferOut
@@ -471,7 +471,7 @@ export default class kraken extends Exchange {
      */
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: Dict): Promise<TransferEntry>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
-    nonce(): number;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
+    nonce(): int;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

@@ -5,8 +5,8 @@ import type { ADL, Account, Balances, Bool, BorrowInterest, CrossBorrowRate, Cur
  * @augments Exchange
  */
 export default class kucoin extends Exchange {
-    describe(): any;
-    nonce(): number;
+    describe(): Dict;
+    nonce(): int;
     /**
      * @method
      * @name kucoin#fetchTime
@@ -107,7 +107,7 @@ export default class kucoin extends Exchange {
     parseSpotOrUtaTicker(ticker: Dict, market?: Market): Ticker;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     parseContractTicker(ticker: Dict, market?: Market): Ticker;
-    typeToTradeType(type: Str): Str;
+    typeToTradeType(type: string): Str;
     /**
      * @method
      * @name kucoin#fetchTickers
@@ -273,15 +273,15 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-part-orderbook
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-full-orderbook
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-part-orderbook
-     * @see https://www.kucoin.com/docs-new/rest/ua/get-orderbook
+     * @see https://www.kucoin.com/docs-new/v2/rest/ua/get-orderbook
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {int} [limit] the maximum amount of order book entries to return, for uta any depth is accepted and the full book is returned when omitted
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false, the uta orderbook endpoint is public
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
-    handleTriggerPrices(params: Dict): [Num, Num, Num];
+    checkTriggerPrices(params: Dict): void;
     /**
      * @method
      * @name kucoin#createOrder
@@ -1006,12 +1006,12 @@ export default class kucoin extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
-    parseTransactionStatus(status: Str): string | undefined;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
+    parseTransactionStatus(status: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
      * @method
@@ -1184,10 +1184,10 @@ export default class kucoin extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<LedgerEntry[]>;
-    calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: Dict): any;
+    calculateRateLimiterCost(api: string[], method: string, path: string, params: any, config?: Dict): any;
     parseBorrowRate(info: any, currency?: Currency): {
         currency: Str;
-        rate: Num;
+        rate: number;
         period: number;
         timestamp: Int;
         datetime: string | undefined;
@@ -1317,6 +1317,7 @@ export default class kucoin extends Exchange {
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     fetchLeverage(symbol: string, params?: Dict): Promise<Leverage>;
+    parseLeverage(leverage: Dict, market?: Market): Leverage;
     /**
      * @method
      * @name kucoin#setLeverage
@@ -1587,7 +1588,7 @@ export default class kucoin extends Exchange {
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     fetchOpenInterests(symbols?: Strings, params?: Dict): Promise<OpenInterests>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name kucoin#fetchOpenInterestHistory
@@ -1612,8 +1613,10 @@ export default class kucoin extends Exchange {
      * @returns {boolean} true if unified account is enabled, false otherwise
      */
     isUTAEnabled(params?: Dict): Promise<boolean>;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    getDepositAddressesVersion(): string;
+    setDepositAddressesVersion(version: string): void;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     /**
      * @method
      * @name kucoin#fetchTransfers

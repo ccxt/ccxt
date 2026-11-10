@@ -1,0 +1,104 @@
+{
+    "exchange": "bitopro",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "watchBalance": [
+            {
+                "description": "account balance snapshot followed by a second push - pushes arriving while no consumer is awaiting must still reach the object handed to the consumer (same class as issue 26773); frame shape from the documented ACCOUNT_BALANCE payload",
+                "disabledPHP": "php arrays are value types - the consumer holds a copy, so updates resolved with no waiter can only be delivered by a client-level queue (see issue 30220)",
+                "disabledCS": "the typed WatchBalance wrapper copies the dict into a Balances struct at resolve time, freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "disabledGO": "since the go typed-returns campaign the WatchBalance wrapper copies the map into a Balances struct at resolve time (NewBalances), freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "disabledRS": "the rust Value runtime is copy-on-write (Arc-backed dicts) - the in-place merge detaches from the clone the consumer received at resolve time, and the typed watch_balance wrapper additionally copies into a Balances struct (Balances::from_value), freezing the consumer's view - only a client-level queue can deliver later updates (see issue 30220)",
+                "input": [],
+                "url": "wss://stream.bitopro.com:443/ws/v1/pub/auth/account-balance",
+                "messages": [
+                    {
+                        "event": "ACCOUNT_BALANCE",
+                        "timestamp": 1650450505715,
+                        "datetime": "2022-04-20T10:28:25.715Z",
+                        "data": {
+                            "BTC": {
+                                "currency": "BTC",
+                                "amount": "0.50000000",
+                                "available": "0.40000000",
+                                "stake": "0",
+                                "tradable": true
+                            },
+                            "USDT": {
+                                "currency": "USDT",
+                                "amount": "1000.00000000",
+                                "available": "750.00000000",
+                                "stake": "0",
+                                "tradable": true
+                            }
+                        }
+                    },
+                    {
+                        "event": "ACCOUNT_BALANCE",
+                        "timestamp": 1650450509715,
+                        "datetime": "2022-04-20T10:28:29.715Z",
+                        "data": {
+                            "BTC": {
+                                "currency": "BTC",
+                                "amount": "0.75000000",
+                                "available": "0.75000000",
+                                "stake": "0",
+                                "tradable": true
+                            },
+                            "USDT": {
+                                "currency": "USDT",
+                                "amount": "1000.00000000",
+                                "available": "750.00000000",
+                                "stake": "0",
+                                "tradable": true
+                            }
+                        }
+                    }
+                ],
+                "parsedResponse": {
+                    "info": {
+                        "BTC": {
+                            "currency": "BTC",
+                            "amount": "0.75000000",
+                            "available": "0.75000000",
+                            "stake": "0",
+                            "tradable": true
+                        },
+                        "USDT": {
+                            "currency": "USDT",
+                            "amount": "1000.00000000",
+                            "available": "750.00000000",
+                            "stake": "0",
+                            "tradable": true
+                        }
+                    },
+                    "timestamp": 1650450509715,
+                    "datetime": "2022-04-20T10:28:29.715Z",
+                    "BTC": {
+                        "free": 0.75,
+                        "used": 0,
+                        "total": 0.75
+                    },
+                    "USDT": {
+                        "free": 750,
+                        "used": 250,
+                        "total": 1000
+                    },
+                    "free": {
+                        "BTC": 0.75,
+                        "USDT": 750
+                    },
+                    "used": {
+                        "BTC": 0,
+                        "USDT": 250
+                    },
+                    "total": {
+                        "BTC": 0.75,
+                        "USDT": 1000
+                    }
+                }
+            }
+        ]
+    }
+}

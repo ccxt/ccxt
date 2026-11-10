@@ -1,9 +1,9 @@
 import bitvavoRest from '../bitvavo.js';
 import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict, Strings, Tickers, Bool, Currencies, Market, Transaction } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class bitvavo extends bitvavoRest {
-    describe(): any;
+    describe(): Dict;
     watchPublic(name: string, symbol: string, params?: Dict): Promise<any>;
     watchPublicMultiple(methodName: string, channelName: string, symbols: string[], params?: Dict): Promise<any>;
     /**
@@ -172,14 +172,14 @@ export default class bitvavo extends bitvavoRest {
      */
     unWatchOrderBookForSymbols(symbols: string[], params?: Dict): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
-    handleDeltas(bookside: any, deltas: any): void;
+    handleDeltas(bookside: any, deltas: any[]): void;
     handleOrderBookMessage(client: Client, message: Dict, orderbook: any): any;
     handleOrderBook(client: Client, message: Dict): void;
-    watchOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): Promise<Ob | undefined>;
+    watchOrderBookSnapshot(client: Client, message: Dict, subscription: Dict): Promise<WsOrderBook | undefined>;
     handleOrderBookSnapshot(client: Client, message: Dict): void;
     handleOrderBookSubscription(client: Client, message: Dict, subscription: Dict): void;
     handleOrderBookSubscriptions(client: Client, message: Dict, marketIds: any[]): void;
-    unWatchChannels(topic: string, channels: any[], subMessageHashes: string[], subscriptionArgs: Dict, params?: {}): Promise<any>;
+    unWatchChannels(topic: string, channels: any[], subMessageHashes: string[], subscriptionArgs: Dict, params?: Dict): Promise<any>;
     handleUnsubscriptionStatus(client: Client, message: Dict): Dict;
     /**
      * @method
@@ -321,11 +321,11 @@ export default class bitvavo extends bitvavoRest {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdrawWs(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdrawWs(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     handleWithdraw(client: Client, message: Dict): void;
     /**
      * @method
@@ -383,7 +383,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchMarketsWs(params?: {}): Promise<any>;
+    fetchMarketsWs(params?: Dict): Promise<any>;
     /**
      * @method
      * @name bitvavo#fetchCurrenciesWs

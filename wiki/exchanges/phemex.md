@@ -49,6 +49,8 @@
 * [watchTrades](#watchtrades)
 * [watchOrderBook](#watchorderbook)
 * [watchOHLCV](#watchohlcv)
+* [unWatchTrades](#unwatchtrades)
+* [unWatchOHLCV](#unwatchohlcv)
 * [watchMyTrades](#watchmytrades)
 * [watchOrders](#watchorders)
 
@@ -840,13 +842,13 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 | params.network | <code>string</code> | No | unified network code |
 
 
 ```javascript
-phemex.withdraw (code, amount, address, tag, params?)
+phemex.withdraw (code, amount, address, params?)
 ```
 
 
@@ -1133,6 +1135,59 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 ```javascript
 phemex.watchOHLCV (symbol, timeframe, since?, limit?, params?)
+```
+
+
+<a name="unWatchTrades" id="unwatchtrades"></a>
+
+### unWatchTrades{docsify-ignore}
+unWatches from the stream channel
+
+**Kind**: instance method of [<code>phemex</code>](#phemex)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**
+
+- https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#unsubscribe-trade
+- https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#unsubscribe-trade
+- https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#unsubscribe-trade
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to unwatch the trades for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+phemex.unWatchTrades (symbol, params?)
+```
+
+
+<a name="unWatchOHLCV" id="unwatchohlcv"></a>
+
+### unWatchOHLCV{docsify-ignore}
+unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+**Kind**: instance method of [<code>phemex</code>](#phemex)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**
+
+- https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#unsubscribe-kline
+- https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#unsubscribe-kline
+- https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#unsubscribe-kline
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to unwatch the candles for |
+| timeframe | <code>string</code> | No | the length of time each candle represents |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+phemex.unWatchOHLCV (symbol, timeframe?, params?)
 ```
 
 

@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\cex as Exchange;
 
 class cex extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'cex',
             'name' => 'CEX.IO',
@@ -258,7 +258,7 @@ class cex extends Exchange {
                 'networks' => array(
                     'BTC' => 'bitcoin',
                     'ERC20' => 'ERC20',
-                    'BSC20' => 'binancesmartchain',
+                    'BEP20' => 'binancesmartchain',
                     'DOGE' => 'dogecoin',
                     'ALGO' => 'algorand',
                     'XLM' => 'stellar',
@@ -270,7 +270,7 @@ class cex extends Exchange {
                     'THETA' => 'theta',
                     'XTZ' => 'tezos',
                     'TIA' => 'celestia',
-                    'CRONOS' => 'cronos', // CRC20
+                    'CRC20' => 'cronos',
                     'MATIC' => 'polygon',
                     'TON' => 'ton',
                     'TRC20' => 'tron',
@@ -1001,7 +1001,7 @@ class cex extends Exchange {
         return $this->parse_balance($accountBalance);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $result = array(
             'info' => $response,
         );
@@ -1138,47 +1138,49 @@ class cex extends Exchange {
 
     public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
-         * fetches information on an open order made by the user
+         * fetches information on an open $order made by the user
          *
          * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
          *
-         * @param {string} $id order $id
-         * @param {string} [$symbol] unified $symbol of the market the order was made in
+         * @param {string} $id $order $id
+         * @param {string} [$symbol] unified $symbol of the market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
         $request = array(
-            'orderId' => intval($id),
+            'orderId' => $this->parse_to_int($id),
         );
         $result = $this->fetch_open_orders($symbol, null, null, $this->extend($request, $params));
-        return $result[0];
+        $order = $this->safe_dict($result, 0);
+        return $order;
     }
 
     public function fetch_closed_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
-         * fetches information on an closed order made by the user
+         * fetches information on an closed $order made by the user
          *
          * @see https://trade.cex.io/docs/#rest-private-api-calls-orders
          *
-         * @param {string} $id order $id
-         * @param {string} [$symbol] unified $symbol of the market the order was made in
+         * @param {string} $id $order $id
+         * @param {string} [$symbol] unified $symbol of the market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
         $request = array(
-            'orderId' => intval($id),
+            'orderId' => $this->parse_to_int($id),
         );
         $result = $this->fetch_closed_orders($symbol, null, null, $this->extend($request, $params));
-        return $result[0];
+        $order = $this->safe_dict($result, 0);
+        return $order;
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'PENDING_NEW' => 'open',
             'NEW' => 'open',
@@ -1386,7 +1388,7 @@ class cex extends Exchange {
             $this->load_markets();
         }
         $request = array(
-            'orderId' => intval($id),
+            'orderId' => $this->parse_to_int($id),
             'cancelRequestId' => 'c_' . (string) ($this->milliseconds()),
             'timestamp' => $this->milliseconds(),
         );
@@ -1617,7 +1619,7 @@ class cex extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'rejected' => 'rejected',
             'pending' => 'pending',
@@ -1811,14 +1813,15 @@ class cex extends Exchange {
         );
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $apiUrl . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        if ($api === 'public') {
+        if ($apiName === 'public') {
             if ($method === 'GET') {
                 if (count($query) > 0) {
                     $url .= '?' . $this->urlencode($query);
@@ -1844,10 +1847,10 @@ class cex extends Exchange {
             );
             return array( 'url' => $url, 'method' => $method, 'body' => $bodySigned, 'headers' => $headersSigned );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         // in some cases, like from createOrder, exchange returns nested escaped JSON string:
         //      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"} }
         // and because of `.parseJson` bug, we need extra fix
@@ -1855,7 +1858,7 @@ class cex extends Exchange {
         if ($response === null) {
             if ($body === null) {
                 throw new NullResponse($this->id . ' returned empty response');
-            } elseif ($body[0] === '{') {
+            } elseif (str_starts_with($body, '{')) {
                 $fixed = $this->fix_stringified_json_members($body);
                 $responseFixed = $this->parse_json($fixed);
             } else {

@@ -18,7 +18,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class zebpay extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'zebpay',
             'name' => 'Zebpay',
@@ -339,7 +339,7 @@ class zebpay extends Exchange {
         $defaultMarkets = array( 'spot', 'swap' );
         $types = $this->safe_list($fetchMarketsOptions, 'types', $defaultMarkets);
         for ($i = 0; $i < count($types); $i++) {
-            $type = $this->safe_string($types, $i);
+            $type = $this->safe_string($types, $i, '');
             if ($type === 'spot') {
                 $promisesUnresolved[] = $this->fetch_spot_markets($params);
             } elseif ($type === 'swap') {
@@ -420,20 +420,36 @@ class zebpay extends Exchange {
             $networkId = $this->safe_string($chain, 'chainId');
             $networkCode = $this->network_id_to_code($networkId, $code);
             $depositAllowed = $this->safe_bool($chain, 'isDepositEnabled', false);
-            $deposit = ($depositAllowed) ? $depositAllowed : $deposit;
+            if ($depositAllowed) {
+                $deposit = true;
+            }
             $withdrawAllowed = $this->safe_bool($chain, 'isWithdrawEnabled', false);
-            $withdraw = ($withdrawAllowed) ? $withdrawAllowed : $withdraw;
+            if ($withdrawAllowed) {
+                $withdraw = true;
+            }
             $withdrawFeeString = $this->safe_string($chain, 'withdrawalFee');
             if ($withdrawFeeString !== null) {
-                $minWithdrawFeeString = ($minWithdrawFeeString === null) ? $withdrawFeeString : Precise::string_min($withdrawFeeString, $minWithdrawFeeString);
+                if ($minWithdrawFeeString === null) {
+                    $minWithdrawFeeString = $withdrawFeeString;
+                } else {
+                    $minWithdrawFeeString = Precise::string_min($withdrawFeeString, $minWithdrawFeeString);
+                }
             }
             $minNetworkWithdrawString = $this->safe_string($chain, 'withdrawalMinSize');
             if ($minNetworkWithdrawString !== null) {
-                $minWithdrawString = ($minWithdrawString === null) ? $minNetworkWithdrawString : Precise::string_min($minNetworkWithdrawString, $minWithdrawString);
+                if ($minWithdrawString === null) {
+                    $minWithdrawString = $minNetworkWithdrawString;
+                } else {
+                    $minWithdrawString = Precise::string_min($minNetworkWithdrawString, $minWithdrawString);
+                }
             }
             $minNetworkDepositString = $this->safe_string($chain, 'depositMinSize');
             if ($minNetworkDepositString !== null) {
-                $minDepositString = ($minDepositString === null) ? $minNetworkDepositString : Precise::string_min($minNetworkDepositString, $minDepositString);
+                if ($minDepositString === null) {
+                    $minDepositString = $minNetworkDepositString;
+                } else {
+                    $minDepositString = Precise::string_min($minNetworkDepositString, $minDepositString);
+                }
             }
             if ($networkCode !== null) {
                 $networks[$networkCode] = array(
@@ -511,7 +527,7 @@ class zebpay extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $response = Async\await($this->privateSpotGetV2ExTradefee($this->extend($request, $params)));
             //
             // {
@@ -622,7 +638,7 @@ class zebpay extends Exchange {
             $request['limit'] = $limit;
         }
         $response = null;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             //
             //       {
             //         "asks": [
@@ -668,7 +684,7 @@ class zebpay extends Exchange {
             'symbol' => $market['id'],
         );
         $response = null;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $response = Async\await($this->publicSpotGetV2MarketTicker($this->extend($request, $params)));
             //
             //     [
@@ -772,7 +788,7 @@ class zebpay extends Exchange {
         $paramsOmitted = $this->omit($params, array( 'until', 'endtime', 'endTime', 'interval', 'startTime' ));
         $response = null;
         $limitResolved = $limit;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             if ($limit === null) {
                 $limitResolved = 100;
             }
@@ -863,11 +879,11 @@ class zebpay extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if (($market['spot'] === true) && $limit !== null) {
+        if (($this->safe_bool($market, 'spot', false)) && $limit !== null) {
             $request['limit'] = $limit;
         }
         $response = null;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $response = Async\await($this->publicSpotGetV2MarketTrades($this->extend($request, $params)));
         } else {
             $response = Async\await($this->publicSwapGetV1MarketAggTrade($this->extend($request, $params)));
@@ -1116,9 +1132,8 @@ class zebpay extends Exchange {
             'side' => strtoupper($side),
         );
         $response = null;
-        if ($market['spot'] === true) {
-            list($request, $query) = $this->order_request($symbol, $type, $amount, $request, $price, $query);
-            $response = Async\await($this->privateSpotPostV2ExOrders($this->extend($request, $query)));
+        if ($this->safe_bool($market, 'spot', false)) {
+            $response = Async\await($this->privateSpotPostV2ExOrders($this->spot_order_body($symbol, $type, $amount, $request, $price, $query)));
         } else {
             $marginAsset = $this->safe_string($query, 'marginAsset', 'INR');
             $formType = $this->safe_string_upper($query, 'formType', 'ORDER_FORM');
@@ -1157,7 +1172,7 @@ class zebpay extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function order_request(string $symbol, string $type, ?float $amount, array $request, ?float $price = null, $params = array()) {
+    public function spot_order_body(string $symbol, string $type, ?float $amount, array $request, ?float $price = null, $params = array()): array {
         $upperCaseType = strtoupper($type);
         $triggerPrice = $this->safe_string($params, 'stopLossPrice');
         $quoteOrderQty = $this->safe_string_2($params, 'quoteOrderQty', 'cost', null);
@@ -1179,7 +1194,7 @@ class zebpay extends Exchange {
             $request['amount'] = $this->amount_to_precision($symbol, $amount);
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        return array( $request, $paramsOmitted );
+        return $this->extend($request, $paramsOmitted);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
@@ -1205,7 +1220,7 @@ class zebpay extends Exchange {
         $market = $this->market($symbol);
         $response = null;
         $request = array();
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $request['orderId'] = $id;
             $response = Async\await($this->privateSpotDeleteV2ExOrder($this->extend($request, $params)));
         } else {
@@ -1290,7 +1305,7 @@ class zebpay extends Exchange {
         );
         $response = null;
         $orders = array();
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $request['currentPage'] = 1;
             if ($limit !== null) {
                 $request['pageSize'] = $limit;
@@ -1361,7 +1376,7 @@ class zebpay extends Exchange {
         $market = $this->market($symbol);
         $request = array();
         $response = null;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $request['orderId'] = $id;
             $response = Async\await($this->privateSpotGetV2ExOrder($this->extend($request, $params)));
         } else {
@@ -1841,12 +1856,11 @@ class zebpay extends Exchange {
             if (($base === null) || ($quote === null)) {
                 continue;
             }
-            $settle = $this->safe_currency_code($quoteId);
             $status = $this->safe_string($market, 'status');
             $symbol = $base . '/' . $quote;
             $result[] = $this->safe_market_structure(array(
                 'id' => $id,
-                'symbol' => $symbol . ':' . $settle,
+                'symbol' => $symbol . ':' . $quote,
                 'base' => $base,
                 'quote' => $quote,
                 'baseId' => $baseId,
@@ -1879,7 +1893,7 @@ class zebpay extends Exchange {
         return $result;
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -1917,12 +1931,20 @@ class zebpay extends Exchange {
         $datetime = $this->safe_string($position, 'datetime');
         $marketId = $this->safe_string($position, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        return array(
+        $marginMode = $this->safe_string_lower($position, 'marginMode', 'isolated');
+        $initialMargin = $this->safe_number($position, 'initialMargin');
+        // isolated positions hold exactly the initial margin posted for them
+        $positionMargin = null;
+        if ($marginMode === 'isolated') {
+            $positionMargin = $initialMargin;
+        }
+        return $this->safe_position(array(
             'info' => $position,
-            'symbol' => $marketId,
+            'id' => $this->safe_string($position, 'id'),
+            'symbol' => $marketResolved['symbol'],
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
-            'initialMargin' => $this->safe_number($position, 'initialMargin'),
+            'initialMargin' => $initialMargin,
             'initialMarginPercentage' => null,
             'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => null,
@@ -1935,11 +1957,12 @@ class zebpay extends Exchange {
             'marginRatio' => null,
             'liquidationPrice' => $this->safe_number($position, 'liquidationPrice'),
             'markPrice' => null,
+            'positionMargin' => $positionMargin,
             'collateral' => null,
-            'marginType' => 'isolated',
-            'side' => $this->safe_string($position, 'side'),
+            'marginMode' => $marginMode,
+            'side' => $this->safe_string_lower($position, 'side'),
             'percentage' => null,
-        );
+        ));
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {
@@ -2046,7 +2069,7 @@ class zebpay extends Exchange {
         );
     }
 
-    public function sign(string $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
         $bodySigned = null;
         $headersSigned = null;
         $paramsOmitted = $this->omit($params, 'defaultType');
@@ -2059,26 +2082,24 @@ class zebpay extends Exchange {
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
-        $url = $baseApiUrl;
         $tail = '/api/' . $this->implode_params($path, $paramsOmitted);
-        $url .= $tail;
+        $suffix = '';
         $timestamp = (string) $this->milliseconds();
         $signature = '';
         $query = $this->omit($paramsOmitted, $this->extract_params($path));
-        $queryLength = count($query);
-        $access = $this->safe_string($api, 0, 'public');
+        $access = $api[0];
         if ($access === 'public') {
             if ($method === 'GET' || $method === 'DELETE') {
-                if ($queryLength !== 0) {
-                    $url .= '?' . $this->urlencode($query);
+                if (count($query) !== 0) {
+                    $suffix = '?' . $this->urlencode($query);
                 }
             } else {
                 $priceType = $this->safe_string($paramsOmitted, 'priceType');
                 $paramsBody = $this->omit($paramsOmitted, 'priceType');
                 if ($priceType !== null) {
-                    $url .= '?' . $this->urlencode(array( 'priceType' => $priceType ));
+                    $suffix = '?' . $this->urlencode(array( 'priceType' => $priceType ));
                 }
-                $bodySigned = json_encode($paramsBody);
+                $bodySigned = $this->json($paramsBody);
                 $headersSigned = array(
                     'Referrer' => 'ccxt',
                     'Content-Type' => 'application/json',
@@ -2087,30 +2108,31 @@ class zebpay extends Exchange {
         } else {
             $this->check_required_credentials();
             $isSpot = $marketType === 'spot';
-            $paramsOmitted['timestamp'] = $timestamp;
+            $paramsSigned = $this->extend($paramsOmitted, array( 'timestamp' => $timestamp ));
             if ($method === 'GET' || ($method === 'DELETE' && $isSpot)) {
                 // For GET/DELETE: Append params to URL and sign the query string
-                $queryString = $this->urlencode($paramsOmitted);
+                $queryString = $this->urlencode($paramsSigned);
                 $signature = $this->hmac($this->encode($queryString), $this->encode($this->secret), 'sha256', 'hex');
-                $url .= '?' . $queryString;
+                $suffix = '?' . $queryString;
             } else {
                 // For POST/PUT: Convert body to JSON and sign the stringified payload
-                $bodySigned = $this->json($paramsOmitted);
+                $bodySigned = $this->json($paramsSigned);
                 $signature = $this->hmac($this->encode($bodySigned), $this->encode($this->secret), 'sha256', 'hex');
             }
             $headersSigned = array(
                 'Referrer' => 'ccxt',
                 'X-AUTH-APIKEY' => $this->apiKey,
                 'X-AUTH-SIGNATURE' => $signature,
+                'Content-Type' => 'application/json',
             );
-            $headersSigned['Content-Type'] = 'application/json';
         }
-        $headersResolved = ($headersSigned === null) ? $headers : $headersSigned;
-        $bodyResolved = ($bodySigned === null) ? $body : $bodySigned;
+        $url = $baseApiUrl . $tail . $suffix;
+        $headersResolved = $headersSigned;
+        $bodyResolved = $bodySigned;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $body);
             return null;
@@ -2123,7 +2145,7 @@ class zebpay extends Exchange {
         // {"statusDescription":"Order quantity is out of range","data":{},"statusCode":400,"customMessage":["Order quantity is out of range"]}
         //
         $errorCode = $this->safe_string_2($response, 'code', 'statusCode');
-        $message = $this->safe_string_2($response, 'msg', 'statusDescription');
+        $message = $this->safe_string_2($response, 'msg', 'statusDescription', '');
         $feedback = $this->id . ' ' . $message;
         $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
         $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);

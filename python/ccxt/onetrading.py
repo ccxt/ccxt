@@ -24,7 +24,7 @@ from ccxt.base.precise import Precise
 
 class onetrading(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(onetrading, self).describe(), {
             'id': 'onetrading',
             'name': 'One Trading',
@@ -38,7 +38,7 @@ class onetrading(Exchange, ImplicitAPI):
                 'spot': True,
                 'margin': False,
                 'swap': True,
-                'future': False,
+                'future': True,
                 'option': False,
                 'addMargin': False,
                 'borrowCrossMargin': False,
@@ -545,6 +545,25 @@ class onetrading(Exchange, ImplicitAPI):
         #      "state": "ACTIVE"
         #  }
         #
+        #  {
+        #      "base": { "code": "BTC", "precision": 8 },
+        #      "quote": { "code": "USD", "precision": 8 },
+        #      "amount_precision": 5,
+        #      "market_precision": 2,
+        #      "min_size": "10.0",
+        #      "min_price": "1000",
+        #      "max_price": "10000000",
+        #      "id": "BTC_USD_P",
+        #      "price_collar_percentage": "10",
+        #      "type": "DATED_FUTURE", // or EQUITY_FUTURE
+        #      "state": "ACTIVE",
+        #      "funding_period": 240,
+        #      "market_offset": 0,
+        #      "funding_schedule": { "type": "FIXED_INTERVAL", "period_minutes": 240 },
+        #      "contract_expiry_date": "2031-04-20",
+        #      "contract_duration": "5Y"
+        #  }
+        #
         baseAsset = self.safe_dict(market, 'base', {})
         quoteAsset = self.safe_dict(market, 'quote', {})
         baseId = self.safe_string(baseAsset, 'code')
@@ -557,31 +576,44 @@ class onetrading(Exchange, ImplicitAPI):
         state = self.safe_string(market, 'state')
         type = self.safe_string(market, 'type')
         isPerp = type == 'PERP'
+        isFuture = (type == 'DATED_FUTURE') or (type == 'EQUITY_FUTURE')
+        isContract = isPerp or isFuture
+        expiry = None
+        expiryDate = self.safe_string(market, 'contract_expiry_date')
+        if expiryDate is not None:
+            expiry = self.parse8601(expiryDate + 'T00:00:00Z')
         symbol = base + '/' + quote
-        if isPerp:
+        if isContract:
             symbol = symbol + ':' + quote
+            if isFuture and (expiry is not None):
+                symbol = symbol + '-' + self.yymmdd(expiry)
+        marketType = 'spot'
+        if isPerp:
+            marketType = 'swap'
+        elif isFuture:
+            marketType = 'future'
         return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
             'base': base,
             'quote': quote,
-            'settle': quote if isPerp else None,
+            'settle': quote if isContract else None,
             'baseId': baseId,
             'quoteId': quoteId,
-            'settleId': quoteId if isPerp else None,
-            'type': 'swap' if isPerp else 'spot',
-            'spot': not isPerp,
+            'settleId': quoteId if isContract else None,
+            'type': marketType,
+            'spot': not isContract,
             'margin': False,
             'swap': isPerp,
-            'future': False,
+            'future': isFuture,
             'option': False,
-            'active': (state == 'ACTIVE'),
-            'contract': isPerp,
-            'linear': True if isPerp else None,
-            'inverse': False if isPerp else None,
-            'contractSize': self.parse_number('1') if isPerp else None,
-            'expiry': None,
-            'expiryDatetime': None,
+            'active': (state == 'ACTIVE') or (state == 'POST_ONLY'),  # POST_ONLY markets accept maker orders and reject taker orders — deliberately flagged tradeable rather than hidden, ccxt has no partial-trading flag
+            'contract': isContract,
+            'linear': True if isContract else None,
+            'inverse': False if isContract else None,
+            'contractSize': self.parse_number('1') if isContract else None,
+            'expiry': expiry,
+            'expiryDatetime': self.iso8601(expiry),
             'strike': None,
             'optionType': None,
             'precision': {
@@ -692,7 +724,7 @@ class onetrading(Exchange, ImplicitAPI):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            tierObject = firstSpotTier if (market['spot'] is True) else firstFuturesTier
+            tierObject = firstSpotTier if (self.safe_bool(market, 'spot', False)) else firstFuturesTier
             result[symbol] = {
                 'info': spotFees,
                 'symbol': symbol,
@@ -757,8 +789,8 @@ class onetrading(Exchange, ImplicitAPI):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
-            makerFee = spotMakerFee if (market['spot'] is True) else futuresMakerFee
-            takerFee = spotTakerFee if (market['spot'] is True) else futuresTakerFee
+            makerFee = spotMakerFee if (self.safe_bool(market, 'spot', False)) else futuresMakerFee
+            takerFee = spotTakerFee if (self.safe_bool(market, 'spot', False)) else futuresTakerFee
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1037,7 +1069,8 @@ class onetrading(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(ohlcv, 'time'))
         if timestamp is None:
             raise ExchangeError(self.id + ' parseOHLCV() missing timestamp')
-        alignedTimestamp = duration * self.parse_to_int(timestamp / duration)
+        periods = self.parse_to_int(timestamp / duration)
+        alignedTimestamp = duration * periods
         options = self.safe_dict(self.options, 'fetchOHLCV', {})
         volumeField = self.safe_string(options, 'volume', 'total_amount')
         return [
@@ -1068,7 +1101,9 @@ class onetrading(Exchange, ImplicitAPI):
         periodUnit = self.safe_string(self.timeframes, timeframe)
         if periodUnit is None:
             raise ExchangeError(self.id + ' fetchOHLCV() missing periodUnit')
-        period, unit = periodUnit.split('/')
+        periodUnitParts = periodUnit.split('/')
+        period = periodUnitParts[0]
+        unit = periodUnitParts[1]
         durationInSeconds = self.parse_timeframe(timeframe)
         duration = durationInSeconds * 1000
         limitResolved = 1500 if (limit is None) else limit
@@ -1176,7 +1211,7 @@ class onetrading(Exchange, ImplicitAPI):
             'info': tradeValue,
         }, market)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         balances = self.safe_list(response, 'balances', [])
         result = {'info': response}
         for i in range(0, len(balances)):
@@ -1220,7 +1255,7 @@ class onetrading(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'OPEN': 'open',
             'BOOKED': 'open',
@@ -1342,7 +1377,7 @@ class onetrading(Exchange, ImplicitAPI):
             'trades': rawTrades,
         }, market)
 
-    def parse_time_in_force(self, timeInForce: Str):
+    def parse_time_in_force(self, timeInForce: Str) -> Str:
         timeInForces = {
             'GOOD_TILL_CANCELLED': 'GTC',
             'GOOD_TILL_TIME': 'GTT',
@@ -1830,31 +1865,32 @@ class onetrading(Exchange, ImplicitAPI):
         tradeHistory = self.safe_list(response, 'trade_history', [])
         return self.parse_trades(tradeHistory, market, since, limit)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        apiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        if api == 'public':
+        if apiName == 'public':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
-        elif api == 'private':
+        elif apiName == 'private':
             self.check_required_credentials()
             headersSigned = {
                 'Accept': 'application/json',
                 'Authorization': 'Bearer ' + self.apiKey,
             }
-            bodyJson = self.json(query) if (method == 'POST') else body
+            bodyJson = self.json(query) if (method == 'POST') else None
             if method == 'POST':
                 headersSigned['Content-Type'] = 'application/json'
             else:
                 if len(query) > 0:
                     url += '?' + self.urlencode(query)
             return {'url': url, 'method': method, 'body': bodyJson, 'headers': headersSigned}
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
         #

@@ -172,7 +172,7 @@ fetches the public trade history for a given market symbol
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
 | since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
-| limit | <code>int</code> | No | the maximum number of trades to return (1-1900, default 1900) |
+| limit | <code>int</code> | No | the maximum number of trades to return (1-100) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest trade to fetch |
 | params.cursor | <code>string</code> | No | pagination cursor from the previous response |
@@ -225,6 +225,11 @@ create a trade order
 | params.cost | <code>float</code> | No | the order cost in units of the quote currency (alternative to amount) |
 | params.timeInForce | <code>string</code> | No | 'gtc' or 'ioc' for limit orders |
 | params.executionInstructions | <code>Array&lt;string&gt;</code> | No | limit order instructions, e.g. ['post_only'] or ['allow_taker'] |
+| params.triggerPrice | <code>float</code> | No | place a conditional order that is submitted once the market reaches this price, as a limit order at `price` for type 'limit' or as a market order for type 'market' |
+| params.stopLossPrice | <code>float</code> | No | place a Take Profit/Stop Loss order with a stop loss leg that triggers at this price |
+| params.takeProfitPrice | <code>float</code> | No | place a Take Profit/Stop Loss order with a take profit leg that triggers at this price |
+| params.stopLoss | <code>object</code> | No | stop loss leg as *{ triggerPrice, price }*, a leg `price` makes it a limit leg |
+| params.takeProfit | <code>object</code> | No | take profit leg as *{ triggerPrice, price }*, a leg `price` makes it a limit leg; with a single leg, type 'limit' and `price` do the same |
 
 
 ```javascript
@@ -316,6 +321,7 @@ fetches all open orders for the authenticated user
 | params.cursor | <code>string</code> | No | pagination cursor from the previous response |
 | params.orderStates | <code>Array&lt;string&gt;</code> | No | filter by order states, e.g. ['new', 'partially_filled'] |
 | params.orderTypes | <code>Array&lt;string&gt;</code> | No | filter by order types, e.g. ['limit', 'market'] |
+| params.trigger | <code>boolean</code> | No | set to true to fetch only conditional and TP/SL orders |
 | params.side | <code>string</code> | No | filter by side, 'buy' or 'sell' |
 
 
@@ -344,6 +350,7 @@ fetches historical orders for the authenticated user
 | params.cursor | <code>string</code> | No | pagination cursor from the previous response |
 | params.orderStates | <code>Array&lt;string&gt;</code> | No | filter by order states, e.g. ['filled', 'cancelled', 'rejected'] |
 | params.orderTypes | <code>Array&lt;string&gt;</code> | No | filter by order types, e.g. ['limit', 'market'] |
+| params.trigger | <code>boolean</code> | No | set to true to fetch only conditional and TP/SL orders |
 
 
 ```javascript

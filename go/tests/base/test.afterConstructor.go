@@ -26,7 +26,7 @@ func HelperTestInitThrottler() {
 	Assert(!(ccxt.InOp(tokenBucket, "maxCapacity")) || ccxt.EvalTruthy(exchange.InArray(ccxt.GetValue(tokenBucket, "maxCapacity"), []any{1000, 1000})))
 }
 func HelperTestSandboxState(exchange *ccxt.Exchange, optionalArgs ...any) {
-	expectEnabled := ccxt.GetArg(optionalArgs, 0, true)
+	var expectEnabled bool = ccxt.GetArgBool(optionalArgs, 0, true)
 	_ = expectEnabled
 	Assert(!ccxt.IsEqual(exchange.Urls, nil))
 	Assert(ccxt.InOp(exchange.Urls, "test"))
@@ -76,6 +76,18 @@ func HelperTestInitSandbox() {
 	HelperTestSandboxState(exchange4, true)
 	exchange4.SetSandboxMode(false)
 	HelperTestSandboxState(exchange4, false)
+	//
+	// CASE C: passed 'sandbox' within userConfig
+	//
+	ccxt.AddElementToObject(opts["options"], "sandbox", false)
+	// @ts-expect-error
+	opts["sandbox"] = true
+	exchange5 := ccxt.NewExchange().(*ccxt.Exchange)
+	exchange5.DerivedExchange = exchange5
+	exchange5.InitParent(opts, map[string]any{}, exchange5)
+	HelperTestSandboxState(exchange5, true)
+	exchange5.SetSandboxMode(false)
+	HelperTestSandboxState(exchange5, false)
 }
 func HelperTestInitMarket() {
 	// ############# markets ############# //
@@ -97,7 +109,7 @@ func HelperTestInitMarket() {
 			"BTC/USD": sampleMarket,
 		},
 	}, map[string]any{}, exchange2)
-	Assert((!ccxt.IsEqual(exchange2.Markets, nil)) && (!ccxt.IsEqual(ccxt.GetValue(exchange2.Markets, "BTC/USD"), nil)))
+	Assert((!ccxt.IsEqual(exchange2.Markets, nil)) && (!ccxt.IsEqual(exchange2.Markets["BTC/USD"], nil)))
 }
 func HelperTestProperties() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
@@ -106,40 +118,28 @@ func HelperTestProperties() {
 	//
 	// userAgents
 	//
-	var keys []any = []any{"chrome", "chrome39", "chrome100"}
+	var keys []string = []string{"chrome", "chrome39", "chrome100"}
 	Assert(!ccxt.IsEqual(ExchangeProp(exchange, "userAgents"), nil))
 	for i := 0; i < len(keys); i++ {
-		var key any = func() any {
-			if i >= 0 && i < len(keys) {
-				return ccxt.DerefScalar(keys[i])
-			}
-			return nil
-		}()
+		var key string = keys[i]
 		var userAgent any = ccxt.GetValue(ExchangeProp(exchange, "userAgents"), key)
-		Assert(!ccxt.IsEqual(userAgent, nil))
+		Assert(userAgent != nil)
 	}
 	//
 	// options
 	//
 	Assert(!ccxt.IsEqual(exchange.Options, nil))
-	// const defaultNetworkCodeReplacements = [
-	//     { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
-	//     { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
-	//     { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
-	//     { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
-	// ];
-	// assertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
 	//
-	// credentials
+	// credentials: the Go port declares them as plain strings, so unset is '' there
 	//
-	assert(ccxt.IsEqual(ExchangeProp(exchange, "apiKey"), nil), "apiKey should be empty string")
-	assert(ccxt.IsEqual(exchange.Secret, nil), "secret should be empty string")
-	assert(ccxt.IsEqual(exchange.Uid, nil), "uid should be empty string")
+	assert((ccxt.IsEqual(ExchangeProp(exchange, "apiKey"), nil)) || (ccxt.IsEqual(ExchangeProp(exchange, "apiKey"), "")), "apiKey should be empty string")
+	assert((ccxt.IsEqual(exchange.Secret, nil)) || (exchange.Secret == ""), "secret should be empty string")
+	assert((ccxt.IsEqual(exchange.Uid, nil)) || (exchange.Uid == ""), "uid should be empty string")
 	assert(ccxt.IsEqual(exchange.Login, nil), "login should be empty string")
-	assert(ccxt.IsEqual(exchange.Password, nil), "password should be empty string")
+	assert((ccxt.IsEqual(exchange.Password, nil)) || (exchange.Password == ""), "password should be empty string")
 	assert(ccxt.IsEqual(exchange.Twofa, nil), "twofa should be undefined")
-	assert(ccxt.IsEqual(ExchangeProp(exchange, "privateKey"), nil), "privateKey should be empty string")
-	assert(ccxt.IsEqual(ExchangeProp(exchange, "walletAddress"), nil), "walletAddress should be empty string")
+	assert((ccxt.IsEqual(ExchangeProp(exchange, "privateKey"), nil)) || (ccxt.IsEqual(ExchangeProp(exchange, "privateKey"), "")), "privateKey should be empty string")
+	assert((ccxt.IsEqual(ExchangeProp(exchange, "walletAddress"), nil)) || (ccxt.IsEqual(ExchangeProp(exchange, "walletAddress"), "")), "walletAddress should be empty string")
 	assert(ccxt.IsEqual(exchange.Token, nil), "token should be empty string")
 	var requiredCredentials map[string]any = map[string]any{
 		"apiKey":        true,

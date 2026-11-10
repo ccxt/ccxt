@@ -15,7 +15,7 @@ import { Precise } from './base/Precise.js';
  * @augments Exchange
  */
 export default class mercado extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'mercado',
             'name': 'Mercado Bitcoin',
@@ -313,7 +313,7 @@ export default class mercado extends Exchange {
         const amountLimits = this.safeDict (this.options, 'limits', {});
         const coins = this.toArray (response);
         for (let i = 0; i < coins.length; i++) {
-            const coin = coins[i];
+            const coin = this.safeString (coins, i, '');
             const baseId = coin;
             const quoteId = 'BRL';
             const base = this.safeCurrencyCode (baseId);
@@ -537,7 +537,7 @@ export default class mercado extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         const data = this.safeDict (response, 'response_data', {});
         const balances = this.safeDict (data, 'balance', {});
         const result: Dict = { 'info': response };
@@ -620,7 +620,7 @@ export default class mercado extends Exchange {
         // TODO: replace this with a call to parseOrder for unification
         return this.safeOrder ({
             'info': response,
-            'id': response['response_data']['order']['order_id'].toString (),
+            'id': this.safeString (this.safeValue (this.safeValue (response, 'response_data'), 'order'), 'order_id'),
         }, market);
     }
 
@@ -674,7 +674,7 @@ export default class mercado extends Exchange {
         return this.parseOrder (order as Dict, market);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             '2': 'open',
             '3': 'canceled',
@@ -712,7 +712,7 @@ export default class mercado extends Exchange {
         const id = this.safeString (order, 'order_id');
         const order_type = this.safeString (order, 'order_type');
         let side: Str = undefined;
-        if ('order_type' in order) {
+        if (order_type !== undefined) {
             side = (order_type === '1') ? 'buy' : 'sell';
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
@@ -775,7 +775,7 @@ export default class mercado extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {
             'coin_pair': market['id'],
-            'order_id': parseInt (id),
+            'order_id': this.parseToInt (id),
         };
         const response = await this.privatePostGetOrder (this.extend (request, params));
         const responseData = this.safeDict (response, 'response_data', {});
@@ -790,13 +790,13 @@ export default class mercado extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
-        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleWithdrawTagAndParams (tag, params);
-        this.checkAddress (address);
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
+        this.checkAddress (address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -819,7 +819,7 @@ export default class mercado extends Exchange {
             if (code === 'XRP') {
                 if (tagWithdrawTag === undefined) {
                     if (!('destination_tag' in paramsWithdrawTag)) {
-                        throw new ArgumentsRequired (this.id + ' withdraw() requires a tag argument or destination_tag parameter to withdraw ' + code);
+                        throw new ArgumentsRequired (this.id + ' withdraw() requires a tag or destination_tag parameter to withdraw ' + code);
                     }
                 } else {
                     request['destination_tag'] = tagWithdrawTag;
@@ -919,7 +919,7 @@ export default class mercado extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {
             'resolution': this.safeString (this.timeframes, timeframe, timeframe),
-            'symbol': market['base'] + '-' + market['quote'], // exceptional endpoint, that needs custom symbol syntax
+            'symbol': this.safeString (market, 'base', '') + '-' + this.safeString (market, 'quote', ''), // exceptional endpoint, that needs custom symbol syntax
         };
         // set some default limit, as it's required if user doesn't provide it
         const limitResolved = (limit === undefined) ? 100 : limit;
@@ -1025,7 +1025,7 @@ export default class mercado extends Exchange {
     ordersToTrades (orders: Order[]): Trade[] {
         const result: Trade[] = [];
         for (let i = 0; i < orders.length; i++) {
-            const trades = this.safeList (orders[i], 'trades', []);
+            const trades = this.safeList (this.safeValue (orders, i), 'trades', []);
             for (let y = 0; y < trades.length; y++) {
                 result.push (trades[y]);
             }
@@ -1033,20 +1033,21 @@ export default class mercado extends Exchange {
         return result;
     }
 
-    override nonce (): number {
+    override nonce (): int {
         // the venue accepts any strictly-increasing integer tonce, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
         return this.milliseconds ();
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        const apiUrl = this.safeString (this.urls['api'], api);
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/';
         const query: Dict = this.omit (params, this.extractParams (path));
-        const isPublic = (api === 'public') || (api === 'v4Public') || (api === 'v4PublicNet');
-        let privateBody: Str = undefined;
+        const isPublic = (apiName === 'public') || (apiName === 'v4Public') || (apiName === 'v4PublicNet');
+        let privateBody = '';
         let privateHeaders: NullableDict = undefined;
         if (isPublic) {
             url += this.implodeParams (path, params);
@@ -1062,7 +1063,7 @@ export default class mercado extends Exchange {
                 'tapi_method': path,
                 'tapi_nonce': nonce,
             }, params));
-            const auth = '/tapi/' + this.version + '/' + '?' + privateBody;
+            const auth: string = '/tapi/' + this.version + '/' + '?' + privateBody;
             privateHeaders = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'TAPI-ID': this.apiKey,
@@ -1071,16 +1072,16 @@ export default class mercado extends Exchange {
         }
         let requestBody: Str = privateBody;
         if (isPublic) {
-            requestBody = body;
+            requestBody = undefined;
         }
         let requestHeaders: NullableDict = privateHeaders;
         if (isPublic) {
-            requestHeaders = headers;
+            requestHeaders = undefined;
         }
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined;
         }

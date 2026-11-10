@@ -338,6 +338,7 @@ export default class bittrade extends Exchange {
                 'broad': {
                     'contract is restricted of closing positions on API.  Please contact customer service': OnMaintenance,
                     'maintain': OnMaintenance,
+                    'trade not open now': BadSymbol, // {"status":"error","err-code":"bad-request","err-msg":"symbol:maticjpy trade not open now "}
                 },
                 'exact': {
                     // err-code
@@ -376,8 +377,8 @@ export default class bittrade extends Exchange {
             'options': {
                 'defaultNetwork': 'ERC20',
                 'networks': {
-                    'ETH': 'erc20',
-                    'TRX': 'trc20',
+                    'ERC20': 'erc20',
+                    'TRC20': 'trc20',
                     'HRC20': 'hrc20',
                     'HECO': 'hrc20',
                     'HT': 'hrc20',
@@ -385,7 +386,7 @@ export default class bittrade extends Exchange {
                 },
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStates': {
-                    'method': 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
+                    'method': 'privateGetOrderOrders', // 'privateGetOrderHistory' // https://github.com/ccxt/ccxt/pull/5392
                 },
                 'fetchOpenOrders': {
                     'method': 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
@@ -504,7 +505,8 @@ export default class bittrade extends Exchange {
         };
     }
     costToPrecision(symbol, cost) {
-        return this.decimalToPrecision(cost, TRUNCATE, this.market(symbol)['precision']['cost'], this.precisionMode);
+        const precision = this.safeDict(this.market(symbol), 'precision', {});
+        return this.decimalToPrecision(cost, TRUNCATE, precision['cost'], this.precisionMode);
     }
     /**
      * @method
@@ -514,7 +516,7 @@ export default class bittrade extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        const method = this.handleOption('fetchMarkets', 'method', 'publicGetCommonSymbols');
+        const method = this.safeString(this.options['fetchMarkets'], 'method', 'publicGetCommonSymbols');
         let response = undefined;
         if (method === 'publicGetCommonSymbols') {
             response = await this.publicGetCommonSymbols(params);
@@ -676,23 +678,25 @@ export default class bittrade extends Exchange {
         let bidVolume = undefined;
         let ask = undefined;
         let askVolume = undefined;
-        if ('bid' in ticker) {
-            if (Array.isArray(ticker['bid'])) {
-                bid = this.safeString(ticker['bid'], 0);
-                bidVolume = this.safeString(ticker['bid'], 1);
-            }
-            else {
-                bid = this.safeString(ticker, 'bid');
+        const bidList = this.safeList(ticker, 'bid');
+        if (bidList !== undefined) {
+            bid = this.safeString(bidList, 0);
+            bidVolume = this.safeString(bidList, 1);
+        }
+        else {
+            bid = this.safeString(ticker, 'bid');
+            if (bid !== undefined) {
                 bidVolume = this.safeString(ticker, 'bidSize');
             }
         }
-        if ('ask' in ticker) {
-            if (Array.isArray(ticker['ask'])) {
-                ask = this.safeString(ticker['ask'], 0);
-                askVolume = this.safeString(ticker['ask'], 1);
-            }
-            else {
-                ask = this.safeString(ticker, 'ask');
+        const askList = this.safeList(ticker, 'ask');
+        if (askList !== undefined) {
+            ask = this.safeString(askList, 0);
+            askVolume = this.safeString(askList, 1);
+        }
+        else {
+            ask = this.safeString(ticker, 'ask');
+            if (ask !== undefined) {
                 askVolume = this.safeString(ticker, 'askSize');
             }
         }
@@ -764,10 +768,10 @@ export default class bittrade extends Exchange {
         //     }
         //
         if ('tick' in response) {
-            if ((response['tick'] === undefined) || (response['tick'] === null)) {
+            const tick = this.safeDict(response, 'tick');
+            if (tick === undefined) {
                 throw new BadSymbol(this.id + ' fetchOrderBook() returned empty response: ' + this.json(response));
             }
-            const tick = this.safeDict(response, 'tick');
             const timestamp = this.safeInteger(tick, 'ts', this.safeInteger(response, 'ts'));
             const result = this.parseOrderBook(tick, symbol, timestamp);
             result['nonce'] = this.safeInteger(tick, 'version');
@@ -885,11 +889,12 @@ export default class bittrade extends Exchange {
         const timestamp = this.safeInteger2(trade, 'ts', 'created-at');
         const order = this.safeString(trade, 'order-id');
         let side = this.safeString(trade, 'direction');
-        let type = this.safeString(trade, 'type');
-        if (type !== undefined) {
-            const typeParts = type.split('-');
-            side = typeParts[0];
-            type = typeParts[1];
+        let type = undefined;
+        const typeRaw = this.safeString(trade, 'type');
+        if (typeRaw !== undefined) {
+            const typeParts = typeRaw.split('-');
+            side = this.safeString(typeParts, 0);
+            type = this.safeString(typeParts, 1);
         }
         const takerOrMaker = this.safeString(trade, 'role');
         const price = this.safeString(trade, 'price');
@@ -1113,7 +1118,7 @@ export default class bittrade extends Exchange {
             await this.loadMarkets();
         }
         const response = await this.privateGetAccountAccounts(params);
-        return this.safeList(response, 'data', []);
+        return this.toArray(this.safeList(response, 'data', []));
     }
     /**
      * @method
@@ -1175,10 +1180,10 @@ export default class bittrade extends Exchange {
         const code = this.safeCurrencyCode(id);
         const depositEnabled = this.safeBool(currency, 'deposit-enabled');
         const withdrawEnabled = this.safeBool(currency, 'withdraw-enabled');
-        const countryDisabled = this.safeBool(currency, 'country-disabled');
+        const countryDisabled = this.safeBool(currency, 'country-disabled', false);
         const visible = this.safeBool(currency, 'visible', false);
         const state = this.safeString(currency, 'state');
-        const active = (visible === true) && (depositEnabled === true) && (withdrawEnabled === true) && (state === 'online') && (countryDisabled !== true);
+        const active = (visible) && (depositEnabled === true) && (withdrawEnabled === true) && (state === 'online') && (countryDisabled !== true);
         const name = this.safeString(currency, 'display-name');
         const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'withdraw-precision')));
         return this.safeCurrencyStructure({
@@ -1213,27 +1218,16 @@ export default class bittrade extends Exchange {
         });
     }
     parseBalance(response) {
-        const balances = this.safeList(response['data'], 'list', []);
+        const data = this.safeDict(response, 'data', {});
+        const balances = this.safeList(data, 'list', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString(balance, 'currency');
             const code = this.safeCurrencyCode(currencyId);
-            let account = undefined;
-            if ((code !== undefined) && (code in result)) {
-                account = result[code];
-            }
-            else {
-                account = this.account();
-            }
-            if (account === undefined) {
-                throw new ExchangeError(this.id + ' parseBalance() could not resolve account');
-            }
+            const account = this.safeDict(result, code, this.account());
             if (this.safeString(balance, 'type') === 'trade') {
                 account['free'] = this.safeString(balance, 'balance');
-            }
-            if (account === undefined) {
-                throw new ExchangeError(this.id + ' parseBalance() could not resolve account');
             }
             if (this.safeString(balance, 'type') === 'frozen') {
                 account['used'] = this.safeString(balance, 'balance');
@@ -1256,9 +1250,10 @@ export default class bittrade extends Exchange {
             await this.loadMarkets();
         }
         await this.loadAccounts();
-        const method = this.handleOption('fetchBalance', 'method', 'privateGetAccountAccountsIdBalance');
+        const method = this.safeString(this.options['fetchBalance'], 'method', 'privateGetAccountAccountsIdBalance');
+        const account = this.safeDict(this.accounts, 0, {});
         const request = {
-            'id': this.accounts[0]['id'],
+            'id': account['id'],
         };
         let response = undefined;
         if (method === 'privateGetAccountAccountsIdBalance') {
@@ -1281,7 +1276,7 @@ export default class bittrade extends Exchange {
             market = this.market(symbol);
             request['symbol'] = market['id'];
         }
-        const method = this.handleOption('fetchOrdersByStates', 'method', 'private_get_order_orders');
+        const method = this.safeString(this.options['fetchOrdersByStates'], 'method', 'privateGetOrderOrders');
         let response = undefined;
         if ((method === 'private_get_order_history') || (method === 'privateGetOrderHistory')) {
             response = await this.privateGetOrderHistory(this.extend(request, params));
@@ -1306,7 +1301,7 @@ export default class bittrade extends Exchange {
         //                                 "state": "filled",
         //                         "canceled-at":  0                      }  ] }
         //
-        return this.parseOrders(response['data'], market, since, limit);
+        return this.parseOrders(this.safeList(response, 'data', []), market, since, limit);
     }
     /**
      * @method
@@ -1352,7 +1347,7 @@ export default class bittrade extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const method = this.handleOption('fetchOpenOrders', 'method', 'fetch_open_orders_v1');
+        const method = this.safeString(this.options['fetchOpenOrders'], 'method', 'fetch_open_orders_v1');
         if ((method === 'fetch_open_orders_v2') || (method === 'fetchOpenOrdersV2')) {
             return await this.fetchOpenOrdersV2(symbol, since, limit, params);
         }
@@ -1393,7 +1388,7 @@ export default class bittrade extends Exchange {
             await this.loadAccounts();
             for (let i = 0; i < this.accounts.length; i++) {
                 const account = this.accounts[i];
-                if (account['type'] === 'spot') {
+                if (this.safeString(account, 'type') === 'spot') {
                     accountId = this.safeString(account, 'id');
                     if (accountId !== undefined) {
                         break;
@@ -1477,10 +1472,11 @@ export default class bittrade extends Exchange {
         let side = undefined;
         let type = undefined;
         let status = undefined;
-        if ('type' in order) {
-            const orderType = order['type'].split('-');
-            side = orderType[0];
-            type = orderType[1];
+        const orderTypeRaw = this.safeString(order, 'type');
+        if (orderTypeRaw !== undefined) {
+            const orderType = orderTypeRaw.split('-');
+            side = this.safeString(orderType, 0);
+            type = this.safeString(orderType, 1);
             status = this.parseOrderStatus(this.safeString(order, 'state'));
         }
         const marketId = this.safeString(order, 'symbol');
@@ -1544,7 +1540,7 @@ export default class bittrade extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['spot'] !== true) {
+        if (!this.safeBool(market, 'spot', false)) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         params['createMarketBuyOrderRequiresPrice'] = false;
@@ -1568,15 +1564,15 @@ export default class bittrade extends Exchange {
         }
         await this.loadAccounts();
         const market = this.market(symbol);
+        const account = this.safeDict(this.accounts, 0, {});
         const request = {
-            'account-id': this.accounts[0]['id'],
+            'account-id': account['id'],
             'symbol': market['id'],
             'type': side + '-' + type,
         };
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'client-order-id'); // must be 64 chars max and unique within 24 hours
         if (clientOrderId === undefined) {
-            const broker = this.safeDict(this.options, 'broker', {});
-            const brokerId = this.safeString(broker, 'id');
+            const brokerId = this.safeString(this.options['broker'], 'id', '');
             request['client-order-id'] = brokerId + this.uuid();
         }
         else {
@@ -1619,7 +1615,7 @@ export default class bittrade extends Exchange {
         if (type === 'limit' || type === 'ioc' || type === 'limit-maker' || type === 'stop-limit' || type === 'stop-limit-fok') {
             request['price'] = this.priceToPrecision(symbol, price);
         }
-        const method = this.handleOption('createOrder', 'method', 'privatePostOrderOrdersPlace');
+        const method = this.safeString(this.options['createOrder'], 'method', 'privatePostOrderOrdersPlace');
         let response = undefined;
         if (method === 'privatePostOrderOrdersPlace') {
             response = await this.privatePostOrderOrdersPlace(this.extend(request, paramsOrder));
@@ -1768,7 +1764,7 @@ export default class bittrade extends Exchange {
         const failed = this.safeList2(orders, 'errors', 'failed', []);
         const result = [];
         for (let i = 0; i < success.length; i++) {
-            const order = success[i];
+            const order = this.safeString(success, i);
             result.push(this.safeOrder({
                 'info': order,
                 'id': order,
@@ -1845,8 +1841,8 @@ export default class bittrade extends Exchange {
         const networkId = this.safeString(depositAddress, 'chain');
         const networks = this.safeDict(currencyResolved, 'networks', {});
         const networksById = this.indexBy(networks, 'id');
-        const networkValue = this.safeValue(networksById, networkId, networkId);
-        const network = this.safeString(networkValue, 'network');
+        const networkEntry = this.safeDict(networksById, networkId);
+        const network = this.safeString(networkEntry, 'network');
         this.checkAddress(address);
         return {
             'currency': code,
@@ -1867,10 +1863,7 @@ export default class bittrade extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        let limitResolved = limit;
-        if (limit === undefined || limit > 100) {
-            limitResolved = 100;
-        }
+        const limitResolved = ((limit === undefined) || (limit > 100)) ? 100 : limit;
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -1885,9 +1878,7 @@ export default class bittrade extends Exchange {
         if (currency !== undefined) {
             request['currency'] = currency['id'];
         }
-        if (limitResolved !== undefined) {
-            request['size'] = limitResolved; // max 100
-        }
+        request['size'] = limitResolved; // max 100
         const response = await this.privateGetQueryDepositWithdraw(this.extend(request, params));
         // return response
         const data = this.safeList(response, 'data', []);
@@ -1904,10 +1895,7 @@ export default class bittrade extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        let limitResolved = limit;
-        if (limit === undefined || limit > 100) {
-            limitResolved = 100;
-        }
+        const limitResolved = ((limit === undefined) || (limit > 100)) ? 100 : limit;
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -1922,9 +1910,7 @@ export default class bittrade extends Exchange {
         if (currency !== undefined) {
             request['currency'] = currency['id'];
         }
-        if (limitResolved !== undefined) {
-            request['size'] = limitResolved; // max 100
-        }
+        request['size'] = limitResolved; // max 100
         const response = await this.privateGetQueryDepositWithdraw(this.extend(request, params));
         // return response
         const data = this.safeList(response, 'data', []);
@@ -1989,7 +1975,7 @@ export default class bittrade extends Exchange {
             'txid': this.safeString(transaction, 'tx-hash'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': this.safeStringUpper(transaction, 'chain'),
+            'network': this.networkIdToCode(this.safeStringUpper(transaction, 'chain'), code),
             'address': this.safeString(transaction, 'address'),
             'addressTo': undefined,
             'addressFrom': undefined,
@@ -2040,28 +2026,30 @@ export default class bittrade extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagWithdrawTag);
         const currency = this.currency(code);
         const request = {
             'address': address, // only supports existing addresses in your withdraw address list
             'amount': amount,
-            'currency': currency['id'].toLowerCase(),
+            'currency': this.safeStringLower(currency, 'id'),
         };
         if (tagWithdrawTag !== undefined) {
             request['addr-tag'] = tagWithdrawTag; // only for XRP?
         }
-        const networks = this.safeDict(this.options, 'networks', {});
-        let network = this.safeStringUpper(paramsWithdrawTag, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeStringLower(networks, network, network); // handle ETH>ERC20 alias
+        let network = this.safeStringUpper(paramsWithdrawTag, 'network');
+        if (network !== undefined) {
+            network = this.safeString(this.networkAliases, network, network); // accepts aliases like ETH for ERC20
+        }
+        network = this.safeStringLower(this.options['networks'], network, network); // handle ETH>ERC20 alias
         if (network !== undefined) {
             // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
             if (network === 'erc20') {
@@ -2081,22 +2069,23 @@ export default class bittrade extends Exchange {
         //
         return this.parseTransaction(response, currency);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let requestHeaders = undefined;
         let requestBody = undefined;
         let url = '/';
-        if (api === 'market') {
+        if (apiName === 'market') {
             url += 'market';
         }
-        else if ((api === 'public') || (api === 'private')) {
+        else if ((apiName === 'public') || (apiName === 'private')) {
             url += this.version;
         }
-        else if ((api === 'v2Public') || (api === 'v2Private')) {
+        else if ((apiName === 'v2Public') || (apiName === 'v2Private')) {
             url += 'v2';
         }
         url += '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        if (api === 'private' || api === 'v2Private') {
+        if (apiName === 'private' || apiName === 'v2Private') {
             this.checkRequiredCredentials();
             const timestamp = this.ymdhms(this.milliseconds(), 'T');
             let request = {
@@ -2111,9 +2100,8 @@ export default class bittrade extends Exchange {
             const requestSorted = this.keysort(request);
             let auth = this.urlencode(requestSorted);
             // unfortunately, PHP demands double quotes for the escaped newline symbol
-            const content = [method, this.hostname, url, auth];
             // eslint-disable-next-line quotes
-            const payload = content.join("\n");
+            const payload = method + "\n" + this.hostname + "\n" + url + "\n" + auth;
             const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, 'base64');
             auth += '&' + this.urlencode({ 'Signature': signature });
             url += '?' + auth;
@@ -2134,31 +2122,31 @@ export default class bittrade extends Exchange {
                 url += '?' + this.urlencode(params);
             }
         }
-        const baseApiUrl = this.safeString(this.urls['api'], api);
+        const baseApiUrl = this.safeString(this.urls['api'], apiName);
         if (baseApiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         url = this.implodeParams(baseApiUrl, {
             'hostname': this.hostname,
         }) + url;
-        const headersResult = (requestHeaders !== undefined) ? requestHeaders : headers;
-        const bodyResult = (requestBody !== undefined) ? requestBody : body;
+        const headersResult = requestHeaders;
+        const bodyResult = requestBody;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
-        if ('status' in response) {
+        if (this.safeString(response, 'status') !== undefined) {
             //
             //     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
             //
             const status = this.safeString(response, 'status');
             if (status === 'error') {
-                const code = this.safeString(response, 'err-code');
+                const codeError = this.safeString(response, 'err-code');
                 const feedback = this.id + ' ' + body;
                 this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
-                this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+                this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
                 const message = this.safeString(response, 'err-msg');
                 this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
                 throw new ExchangeError(feedback);

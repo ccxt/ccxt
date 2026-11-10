@@ -8,6 +8,105 @@
     },
     "isSandboxModeEnabled": true,
     "methods": {
+        "fetchOHLCV": [
+            {
+                "description": "swap +since -limit -until",
+                "method": "fetchOHLCV",
+                "url": "https://api.pacifica.fi/api/v1/kline?symbol=BTC&interval=1m&end_time=1793780960999&start_time=1793543961000",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1m",
+                    1793543961000,
+                    null
+                ],
+                "output": null
+            },
+            {
+                "description": "swap +since +limit -until",
+                "method": "fetchOHLCV",
+                "url": "https://api.pacifica.fi/api/v1/kline?symbol=BTC&interval=1m&end_time=1793544080999&start_time=1793543961000",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1m",
+                    1793543961000,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "swap -since +limit +until",
+                "method": "fetchOHLCV",
+                "url": "https://api.pacifica.fi/api/v1/kline?symbol=BTC&interval=1m&end_time=1793544161000&start_time=1793544041000",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1m",
+                    null,
+                    2,
+                    {
+                        "until": 1793544161000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "swap +since -limit +until",
+                "method": "fetchOHLCV",
+                "url": "https://api.pacifica.fi/api/v1/kline?symbol=BTC&interval=1m&end_time=1793544161000&start_time=1793543961000",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1m",
+                    1793543961000,
+                    null,
+                    {
+                        "until": 1793544161000
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "ledger direction from signed amount",
+                "method": "fetchLedger",
+                "url": "https://test-api.pacifica.fi/api/v1/account/balance/history?account=bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "funding history amount is the payout",
+                "method": "fetchFundingHistory",
+                "url": "https://api.pacifica.fi/api/v1/funding/history?account=6V21hxa3rGZYc9mCEBHmeN6WKw9W3vUu57ofYsRB98wn&limit=2",
+                "input": [
+                    null,
+                    null,
+                    2,
+                    {
+                        "account": "6V21hxa3rGZYc9mCEBHmeN6WKw9W3vUu57ofYsRB98wn"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "fetch trading fees for all markets",
+                "method": "fetchTradingFees",
+                "url": "https://test-api.pacifica.fi/api/v1/account?account=bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetch USDC deposits from balance history",
+                "method": "fetchDeposits",
+                "url": "https://test-api.pacifica.fi/api/v1/account/balance/history?account=bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchOpenInterests": [
             {
                 "description": "open interest for all markets",

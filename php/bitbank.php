@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\bitbank as Exchange;
 
 class bitbank extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitbank',
             'name' => 'bitbank',
@@ -560,7 +560,7 @@ class bitbank extends Exchange {
             $pair = $pairs[$i];
             $marketId = $this->safe_string($pair, 'name');
             $market = $this->safe_market($marketId);
-            $symbol = $market['symbol'];
+            $symbol = $this->safe_string($market, 'symbol', '');
             $result[$symbol] = array(
                 'info' => $pair,
                 'symbol' => $symbol,
@@ -611,7 +611,11 @@ class bitbank extends Exchange {
         $windowLimit = ($limit === null) ? 1000 : $limit;
         $limitResolved = ($since === null) ? $windowLimit : $limit;
         $duration = $this->parse_timeframe($timeframe);
-        $sinceResolved = ($since === null) ? $this->milliseconds() - $duration * 1000 * $windowLimit : $since;
+        $windowMs = $duration * 1000 * 1000;
+        if ($limit !== null) {
+            $windowMs = $duration * 1000 * $limit;
+        }
+        $sinceResolved = ($since === null) ? $this->milliseconds() - $windowMs : $since;
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -647,7 +651,7 @@ class bitbank extends Exchange {
         return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $sinceResolved, $limitResolved);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -719,7 +723,7 @@ class bitbank extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'UNFILLED' => 'open',
             'PARTIALLY_FILLED' => 'open',
@@ -989,7 +993,7 @@ class bitbank extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
+    public function withdraw(string $code, float $amount, string $address, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -998,13 +1002,15 @@ class bitbank extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        $tagAndParams = $this->handle_withdraw_tag_and_params($tag, $params);
+        $tagAndParams = $this->handle_param_string($params, 'tag');
+        $tagWithdrawTag = $tagAndParams[0];
         $paramsWithdrawTag = $tagAndParams[1];
-        if (!(is_array($paramsWithdrawTag) && array_key_exists('uuid' ?? '', $paramsWithdrawTag))) {
+        $this->check_address($address, $code, $tagWithdrawTag);
+        if (!(is_array($params) && array_key_exists('uuid' ?? '', $params))) {
             throw new ExchangeError($this->id . ' uuid is required for withdrawal');
         }
         if ($this->markets === null) {
@@ -1080,20 +1086,21 @@ class bitbank extends Exchange {
         );
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds();
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
-        $query = $this->omit($params, $this->extract_params($path));
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
+        $query = $this->extend(array(), $this->omit($params, $this->extract_params($path)));
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
         $url = $this->implode_hostname($apiUrl) . '/';
         $requestBody = null;
         $requestHeaders = null;
-        if (($api === 'public') || ($api === 'markets')) {
+        if (($apiName === 'public') || ($apiName === 'markets')) {
             $url .= $this->implode_params($path, $params);
             if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
@@ -1115,14 +1122,15 @@ class bitbank extends Exchange {
             }
             $url .= $this->version . '/' . $this->implode_params($path, $params);
             if ($method === 'POST') {
-                $requestBody = $this->json($query);
-                $auth .= $requestBody;
+                $jsonBody = $this->json($query);
+                $requestBody = $jsonBody;
+                $auth .= $jsonBody;
             } else {
                 $auth .= '/' . $this->version . '/' . $path;
                 if (count($query) > 0) {
-                    $query = $this->urlencode($query);
-                    $url .= '?' . $query;
-                    $auth .= '?' . $query;
+                    $queryString = $this->urlencode($query);
+                    $url .= '?' . $queryString;
+                    $auth .= '?' . $queryString;
                 }
             }
             $requestHeaders = array(
@@ -1131,18 +1139,17 @@ class bitbank extends Exchange {
                 'ACCESS-SIGNATURE' => $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256'),
             );
             if ($isTimeWindow) {
-                $requestHeaders['ACCESS-REQUEST-TIME'] = $requestTime;
-                $requestHeaders['ACCESS-TIME-WINDOW'] = $timeWindow;
+                $requestHeaders = $this->extend($requestHeaders, array( 'ACCESS-REQUEST-TIME' => $requestTime, 'ACCESS-TIME-WINDOW' => $timeWindow ));
             } else {
-                $requestHeaders['ACCESS-NONCE'] = $nonce;
+                $requestHeaders = $this->extend($requestHeaders, array( 'ACCESS-NONCE' => $nonce ));
             }
         }
-        $bodyResolved = ($requestBody === null) ? $body : $requestBody;
-        $headersResolved = ($requestHeaders === null) ? $headers : $requestHeaders;
+        $bodyResolved = $requestBody;
+        $headersResolved = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }
@@ -1211,9 +1218,9 @@ class bitbank extends Exchange {
                 '70009' => 'We are currently temporarily restricting orders to be carried out. Please use the limit order.',
                 '70010' => 'We are temporarily raising the minimum order quantity as the system load is now rising.',
             );
-            $code = $this->safe_string($data, 'code');
-            $message = $this->safe_string($errorMessages, $code, 'Error');
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $message);
+            $codeError = $this->safe_string($data, 'code');
+            $message = $this->safe_string($errorMessages, $codeError, 'Error');
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $codeError, $message);
             throw new ExchangeError($this->id . ' ' . $this->json($response));
         }
         return null;

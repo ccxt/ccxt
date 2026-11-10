@@ -24,7 +24,7 @@ from ccxt.base.precise import Precise
 
 class btse(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(btse, self).describe(), {
             'id': 'btse',
             'name': 'BTSE',
@@ -771,8 +771,8 @@ class btse(Exchange, ImplicitAPI):
             'contract': isSwap or isFuture,
             'linear': None if isSpot else True,
             'inverse': None if isSpot else False,
-            'taker': fees['taker'],
-            'maker': fees['maker'],
+            'taker': self.safe_number(fees, 'taker'),
+            'maker': self.safe_number(fees, 'maker'),
             'contractSize': self.parse_number(contractSize),
             'expiry': expiry,
             'expiryDatetime': self.iso8601(expiry),
@@ -845,8 +845,7 @@ class btse(Exchange, ImplicitAPI):
                 # if so, just omit until for correct paginated calls for not to get an error from the exchange
                 duration = self.parse_timeframe(timeframe)
                 maxDelta = duration * maxLimit * 1000  # parseTimeframe returns seconds, the difference below is in milliseconds
-                difference = until - since
-                if difference < maxDelta:
+                if (until - since) < maxDelta:
                     request['end'] = self.parse_to_int(until / 1000)
             else:
                 request['end'] = self.parse_to_int(until / 1000)
@@ -870,8 +869,7 @@ class btse(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        result = self.parse_ohlcvs(data, market, timeframe, since, limit)
-        return result
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
@@ -951,7 +949,7 @@ class btse(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        if market['contract'] is not True:
+        if not self.safe_bool(market, 'contract', False):
             raise BadRequest(self.id + ' fetchFundingRateHistory() supports contract markets only')
         period = None
         paramsPeriod = None
@@ -959,11 +957,12 @@ class btse(Exchange, ImplicitAPI):
         if period is None:
             period = '7D'
             if since is not None:
-                age = self.milliseconds() - since
-                day = 86400000
-                if age > 14 * day:
+                now = self.milliseconds()
+                twoWeeksAgo = now - 1209600000  # 14 days in ms
+                oneWeekAgo = now - 604800000  # 7 days in ms
+                if since < twoWeeksAgo:
                     period = '1M'
-                elif age > 7 * day:
+                elif since < oneWeekAgo:
                     period = '2W'
         request = {
             'symbol': market['id'],
@@ -986,9 +985,9 @@ class btse(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        rates = self.parse_funding_rate_histories(data, market, since, limit)
         if until is None:
-            return rates
+            return self.parse_funding_rate_histories(data, market, since, limit)
+        rates = self.parse_funding_rate_histories(data, market, since, limit)
         result = []
         for i in range(0, len(rates)):
             rate = rates[i]
@@ -1072,9 +1071,9 @@ class btse(Exchange, ImplicitAPI):
             #         }
             #     ]
             #
-        return self.parse_balance(response)
+        return self.parse_balance_list(response)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance_list(self, response: list[dict]) -> Balances:
         result = {
             'info': response,
         }
@@ -1158,10 +1157,8 @@ class btse(Exchange, ImplicitAPI):
         #
         # a single-symbol request returns the entry directly in data
         #
-        data = self.safe_list(response, 'data')
-        if data is None:
-            single = self.safe_dict(response, 'data', {})
-            data = [single]
+        single = self.safe_dict(response, 'data', {})
+        data = self.safe_list(response, 'data', [single])
         result = {}
         for i in range(0, len(data)):
             entry = self.safe_dict(data, i)
@@ -1171,35 +1168,25 @@ class btse(Exchange, ImplicitAPI):
             if symbolsNormalized is None or self.in_array(symbol, symbolsNormalized):
                 levels = self.safe_list(entry, 'riskLimits', [])
                 tiers = []
+                # each tier's floor is the previous tier's cap (0 for the first)
+                minNotional = None
                 for j in range(0, len(levels)):
                     level = levels[j]
+                    maxNotional = self.safe_number(level, 'value')
                     # the endpoint only reports the notional ladder, the
                     # per-tier leverage and margin rates are not available
                     tiers.append({
                         'tier': self.safe_integer(level, 'level'),
                         'symbol': symbol,
                         'currency': market['settle'],
-                        'minNotional': None,
-                        'maxNotional': self.safe_number(level, 'value'),
+                        'minNotional': 0 if (j == 0) else minNotional,
+                        'maxNotional': maxNotional,
                         'maintenanceMarginRate': None,
                         'maxLeverage': None,
                         'info': level,
                     })
+                    minNotional = maxNotional
                 result[symbol] = tiers  # rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
-        # the exchange only provides the cap of each risk tier, so the floor
-        # is derived from the previous tier: 0 for the first tier, and the
-        # previous tier's maxNotional for every subsequent tier
-        symbolKeys = list(result.keys())
-        for i in range(0, len(symbolKeys)):
-            symbolKey = symbolKeys[i]
-            tiersList = result[symbolKey]
-            for j in range(0, len(tiersList)):
-                if j == 0:
-                    tiersList[j]['minNotional'] = 0
-                else:
-                    tiersList[j]['minNotional'] = tiersList[j - 1]['maxNotional']
-            # php copies arrays by value, so the mutated list must be written back explicitly
-            result[symbolKey] = tiersList
         return result
 
     def fetch_market_leverage_tiers(self, symbol: str, params: dict = {}) -> list[LeverageTier]:
@@ -1214,10 +1201,11 @@ class btse(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        if market['contract'] is not True:
+        if not self.safe_bool(market, 'contract', False):
             raise BadRequest(self.id + ' fetchMarketLeverageTiers() supports contract markets only')
         result = self.fetch_leverage_tiers([symbol], params)
-        return result[symbol]
+        tiers = self.safe_list(result, symbol)
+        return tiers
 
     def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -1286,10 +1274,8 @@ class btse(Exchange, ImplicitAPI):
         #     }
         #
         # a single-symbol query returns data as one object, a multi-symbol or bare query returns an array
-        data = self.safe_dict(response, 'data')
-        if data is None:
-            rows = self.safe_list(response, 'data', [])
-            data = self.safe_dict(rows, 0, {})
+        rows = self.safe_list(response, 'data', [])
+        data = self.safe_dict(response, 'data', self.safe_dict(rows, 0, {}))
         return self.parse_ticker(data, market)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
@@ -1301,7 +1287,7 @@ class btse(Exchange, ImplicitAPI):
         marketResolved = self.safe_market(marketId, market)
         last = self.safe_string(ticker, 'lastPrice')
         baseVolume = self.safe_string(ticker, 'amount')
-        if (baseVolume is not None) and (marketResolved is not None) and (marketResolved['contract'] is True):
+        if (baseVolume is not None) and (marketResolved is not None) and (self.safe_bool(marketResolved, 'contract', False)):
             # for contract markets the amount field is denominated in contracts, verified live -
             # scaling by contractSize converts it into base currency units
             contractSizeString = self.number_to_string(marketResolved['contractSize'])
@@ -1347,16 +1333,14 @@ class btse(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             raise BadRequest(self.id + ' fetchOpenInterest() symbol does not support market ' + symbol)
         request = {
             'symbol': market['id'],
         }
         response = self.publicGetPublicApiMarketV1Ticker24hr(self.extend(request, params))
-        interest = self.safe_dict(response, 'data')
-        if interest is None:
-            rows = self.safe_list(response, 'data', [])
-            interest = self.safe_dict(rows, 0, {})
+        rows = self.safe_list(response, 'data', [])
+        interest = self.safe_dict(response, 'data', self.safe_dict(rows, 0, {}))
         return self.parse_open_interest(interest, market)
 
     def fetch_open_interests(self, symbols: Strings = None, params: dict = {}) -> OpenInterests:
@@ -1381,7 +1365,7 @@ class btse(Exchange, ImplicitAPI):
                 rows.append(row)
         return self.parse_open_interests(rows, symbolsNormalized)
 
-    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         #
         # ticker/24hr contract rows, see parseFundingRate for the full shape
         #
@@ -1409,16 +1393,14 @@ class btse(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             raise BadRequest(self.id + ' fetchFundingRate() symbol does not support spot markets')
         request = {
             'symbol': market['id'],
         }
         response = self.publicGetPublicApiMarketV1Ticker24hr(self.extend(request, params))
-        data = self.safe_dict(response, 'data')
-        if data is None:
-            rows = self.safe_list(response, 'data', [])
-            data = self.safe_dict(rows, 0, {})
+        rows = self.safe_list(response, 'data', [])
+        data = self.safe_dict(response, 'data', self.safe_dict(rows, 0, {}))
         return self.parse_funding_rate(data, market)
 
     def fetch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
@@ -1546,9 +1528,9 @@ class btse(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        trades = self.parse_trades(data, market, since, limit)
         if until is None:
-            return trades
+            return self.parse_trades(data, market, since, limit)
+        trades = self.parse_trades(data, market, since, limit)
         result = []
         for i in range(0, len(trades)):
             trade = trades[i]
@@ -1574,13 +1556,13 @@ class btse(Exchange, ImplicitAPI):
         """
         self.load_markets()
         paginate = self.safe_bool(params, 'paginate', False)
-        if paginate is True:
+        if paginate:
             return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, self.omit(params, 'paginate'))
         market = None
         request = {}
         if symbol is not None:
             market = self.market(symbol)
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         if since is not None:
             request['startTime'] = since
         if limit is not None:
@@ -1625,8 +1607,8 @@ class btse(Exchange, ImplicitAPI):
         else:
             # the futures endpoint does not support a count parameter, the limit is applied client-side
             request = self.omit(request, 'count')
-            if market is not None:
-                request['symbol'] = self.futures_request_id(market)
+            if symbol is not None:
+                request['symbol'] = self.futures_request_id(self.market(symbol))
             #
             #     {
             #         "data": [
@@ -1663,9 +1645,7 @@ class btse(Exchange, ImplicitAPI):
             #     }
             #
             response = self.privateGetFuturesApiV3TradeTradeHistory(self.extend(request, paramsMarketType))
-        rows = self.safe_list(response, 'data')
-        if rows is None:
-            rows = response
+        rows = self.safe_list(response, 'data', response)
         return self.parse_trades(rows, market, since, limit)
 
     def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
@@ -1830,7 +1810,7 @@ class btse(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             return self.create_spot_order(symbol, type, side, amount, price, params)
         else:
             return self.create_contract_order(symbol, type, side, amount, price, params)
@@ -1961,14 +1941,17 @@ class btse(Exchange, ImplicitAPI):
                 triggerPriceToSend = None
                 if isStopLossOrder:
                     triggerOrderType = 'STOP_LOSS'
+                    if isLimitOrder:
+                        triggerOrderType = 'STOP_LOSS_LIMIT'
                     triggerPriceToSend = stopLossPrice
                 else:
                     triggerOrderType = 'TAKE_PROFIT'
+                    if isLimitOrder:
+                        triggerOrderType = 'TAKE_PROFIT_LIMIT'
                     triggerPriceToSend = triggerPrice
                     if triggerPriceToSend is None:
                         triggerPriceToSend = takeProfitPrice
                 if isLimitOrder:
-                    triggerOrderType = triggerOrderType + '_LIMIT'
                     request['orderPrice'] = self.price_to_precision(symbol, price)
                 request['triggerOrderType'] = triggerOrderType
                 request['triggerPrice'] = self.price_to_precision(symbol, triggerPriceToSend)
@@ -2198,7 +2181,7 @@ class btse(Exchange, ImplicitAPI):
             order = self.safe_dict(response, 0, {})
         return self.parse_order(order, market)
 
-    def encode_trigger_price_type(self, priceType: Str):
+    def encode_trigger_price_type(self, priceType: Str) -> Str:
         priceTypes = {
             'last': 'LAST_PRICE',
             'mark': 'MARK_PRICE',
@@ -2291,10 +2274,10 @@ class btse(Exchange, ImplicitAPI):
         if price is not None:
             request['orderPrice'] = self.price_to_precision(symbol, price)
         isSlide = self.safe_bool(query, 'slide', False)
-        if (amount is None) and (price is None) and (triggerPrice is None) and (isSlide is not True):
+        if (amount is None) and (price is None) and (triggerPrice is None) and (not isSlide):
             raise ArgumentsRequired(self.id + ' editOrder() requires an amount argument, a price argument or a triggerPrice parameter')
         response = None
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             request['symbol'] = market['id']
             response = self.privatePutSpotApiV4TradeOrders(self.extend(request, query))
         else:
@@ -2342,7 +2325,7 @@ class btse(Exchange, ImplicitAPI):
             request['orderId'] = id
         paramsOmitted = self.omit(params, 'clientOrderId') if (clientOrderId is not None) else params
         response = None
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             request['symbol'] = market['id']
             response = self.privateDeleteSpotApiV4TradeOrders(self.extend(request, paramsOmitted))
         else:
@@ -2389,15 +2372,17 @@ class btse(Exchange, ImplicitAPI):
         response = None
         if marketTypeOption == 'spot':
             # the literal ALL value cancels every open order across all pairs
-            request['symbol'] = market['id'] if (market is not None) else 'ALL'
+            request['symbol'] = 'ALL'
+            if symbol is not None:
+                request['symbol'] = self.safe_string(market, 'id')
             response = self.privateDeleteSpotApiV4TradeOrdersAll(self.extend(request, paramsMarketType))
         else:
-            if market is None:
+            if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument for contract markets')
             # the unified futures api has no cancel all endpoint, the legacy
             # endpoint cancels every order for the symbol when no order id is
             # sent, and it identifies contracts by the short symbol form
-            request['symbol'] = self.futures_request_id(market)
+            request['symbol'] = self.futures_request_id(self.market(symbol))
             response = self.privateDeleteFuturesApiV23Order(self.extend(request, paramsMarketType))
         return self.parse_orders(response, market)
 
@@ -2450,12 +2435,12 @@ class btse(Exchange, ImplicitAPI):
         marketTypeOption, paramsMarketType = self.handle_market_type_and_params('fetchOpenOrders', market, params, marketType)
         response = None
         if marketTypeOption == 'spot':
-            if market is not None:
-                request['symbol'] = market['id']
+            if symbol is not None:
+                request['symbol'] = self.safe_string(market, 'id')
             response = self.privateGetSpotApiV4TradeOrders(self.extend(request, paramsMarketType))
         else:
-            if market is not None:
-                request['symbol'] = self.futures_request_id(market)
+            if symbol is not None:
+                request['symbol'] = self.futures_request_id(self.market(symbol))
             response = self.privateGetFuturesApiV3TradeOrders(self.extend(request, paramsMarketType))
         # the endpoints have no server side time filters, accept a bare array
         # and a data envelope and filter client-side
@@ -2568,7 +2553,7 @@ class btse(Exchange, ImplicitAPI):
             'average': self.omit_zero(self.safe_string_2(order, 'avgFilledPrice', 'averageFillPrice')),
         }, marketResolved)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             '2': 'open',  # Order Inserted
             '3': 'closed',  # Order Transacted
@@ -2592,7 +2577,7 @@ class btse(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, type: Str):
+    def parse_order_type(self, type: Str) -> Str:
         types = {
             # the unified futures place order response reports a degenerate 0
             # in the type field regardless of the real order type, observed
@@ -2603,7 +2588,7 @@ class btse(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_time_in_force(self, timeInForce: Str):
+    def parse_time_in_force(self, timeInForce: Str) -> Str:
         values = {
             'GTC': 'GTC',
             'IOC': 'IOC',
@@ -2653,7 +2638,7 @@ class btse(Exchange, ImplicitAPI):
         responseList = self.array_concat([], rows)
         result = {}
         for i in range(0, len(responseList)):
-            feeInfo = responseList[i]
+            feeInfo = self.safe_dict(responseList, i, {})
             marketId = self.safe_string(feeInfo, 'symbol')
             market = self.safe_market(marketId)
             symbol = market['symbol']
@@ -2669,7 +2654,7 @@ class btse(Exchange, ImplicitAPI):
             }
         return result
 
-    def request_wallet_history_rows(self, methodName: str, historyTypes: list[str], code: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
+    def request_wallet_history_rows(self, methodName: str, historyTypes: list[str], code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         # the helper always receives a non empty history type list, the list is
         # rebuilt through safeList so the transpilers treat it as an array in
         # every runtime
@@ -2686,7 +2671,7 @@ class btse(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-            request['asset'] = currency['id']
+            request['asset'] = self.safe_string(currency, 'id')
         elif walletType == 'SPOT':
             # the exchange rejects spot wallet history queries without an asset,
             # verified live, and omitting walletType still defaults to spot
@@ -2731,16 +2716,16 @@ class btse(Exchange, ImplicitAPI):
         # filter and returned the whole mixed ledger
         allowed = {}
         for i in range(0, len(typesList)):
-            historyType = typesList[i]
+            historyType = self.safe_string(typesList, i, '')
             allowed[historyType] = True
             allowed[self.capitalize(historyType.lower())] = True
         rows = []
         for i in range(0, len(rawRows)):
-            entry = rawRows[i]
+            entry = self.safe_dict(rawRows, i, {})
             type = self.safe_string(entry, 'type', '')
             if type in allowed:
                 rows.append(entry)
-        return [rows, currency]
+        return self.parse_transactions(rows, currency, since, limit)
 
     def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
@@ -2756,8 +2741,7 @@ class btse(Exchange, ImplicitAPI):
         :param str [params.walletType]: wallet to query, SPOT by default, ISOLATED requires params.walletName
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
-        rows, currency = self.request_wallet_history_rows('fetchDepositsWithdrawals', ['DEPOSIT', 'WITHDRAW'], code, since, limit, params)
-        return self.parse_transactions(rows, currency, since, limit)
+        return self.request_wallet_history_rows('fetchDepositsWithdrawals', ['DEPOSIT', 'WITHDRAW'], code, since, limit, params)
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
@@ -2773,8 +2757,7 @@ class btse(Exchange, ImplicitAPI):
         :param str [params.walletType]: wallet to query, SPOT by default, ISOLATED requires params.walletName
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
-        rows, currency = self.request_wallet_history_rows('fetchDeposits', ['DEPOSIT'], code, since, limit, params)
-        return self.parse_transactions(rows, currency, since, limit)
+        return self.request_wallet_history_rows('fetchDeposits', ['DEPOSIT'], code, since, limit, params)
 
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
@@ -2790,8 +2773,7 @@ class btse(Exchange, ImplicitAPI):
         :param str [params.walletType]: wallet to query, SPOT by default, ISOLATED requires params.walletName
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
-        rows, currency = self.request_wallet_history_rows('fetchWithdrawals', ['WITHDRAW'], code, since, limit, params)
-        return self.parse_transactions(rows, currency, since, limit)
+        return self.request_wallet_history_rows('fetchWithdrawals', ['WITHDRAW'], code, since, limit, params)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
@@ -2889,7 +2871,7 @@ class btse(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-            request['asset'] = currency['id']
+            request['asset'] = self.safe_string(currency, 'id')
         elif walletType == 'SPOT':
             # the exchange rejects spot wallet history queries without an asset,
             # verified live, and omitting walletType still defaults to spot
@@ -3031,7 +3013,7 @@ class btse(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = None
-        if market['spot'] is True:
+        if self.safe_bool(market, 'spot', False):
             response = self.privateGetSpotApiV4TradeFees(self.extend(request, params))
         else:
             # the futures fees stay on the legacy endpoint, the unified futures
@@ -3066,9 +3048,7 @@ class btse(Exchange, ImplicitAPI):
         #
         # the response is a bare array of position rows
         #
-        rows = self.safe_list(response, 'data')
-        if rows is None:
-            rows = response
+        rows = self.safe_list(response, 'data', response)
         return self.parse_positions(rows, symbolsNormalized)
 
     def fetch_positions_for_symbol(self, symbol: str, params: dict = {}) -> list[Position]:
@@ -3177,7 +3157,7 @@ class btse(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def parse_margin_mode_type(self, marginMode: Str):
+    def parse_margin_mode_type(self, marginMode: Str) -> Str:
         marginModes = {
             '91': 'cross',
             '92': 'isolated',
@@ -3186,7 +3166,7 @@ class btse(Exchange, ImplicitAPI):
         }
         return self.safe_string(marginModes, marginMode, marginMode)
 
-    def parse_position_side(self, side: Str):
+    def parse_position_side(self, side: Str) -> Str:
         sides = {
             'buy': 'long',
             'sell': 'short',
@@ -3322,13 +3302,13 @@ class btse(Exchange, ImplicitAPI):
         positionMode = 'ONE_WAY'
         if (marginModeValue != 'cross') and (marginModeValue != 'isolated'):
             raise BadRequest(self.id + ' setMarginMode() marginMode argument should be either cross or isolated')
-        hedged = self.safe_bool(params, 'hedged')
+        hedged = self.safe_bool(params, 'hedged', False)
         if marginModeValue == 'cross':
             if not ('hedged' in params):
                 raise ArgumentsRequired(self.id + ' setMarginMode() requires a hedged parameter for cross margin mode')
-            elif hedged is True:
+            elif hedged:
                 positionMode = 'HEDGE'
-        elif ('hedged' in params) and (hedged is not True):
+        elif ('hedged' in params) and not hedged:
             raise BadRequest(self.id + ' setMarginMode() hedged parameter cannot be False for isolated margin mode')
         else:
             positionMode = 'ISOLATED'
@@ -3372,9 +3352,7 @@ class btse(Exchange, ImplicitAPI):
             request['orderPrice'] = self.price_to_precision(symbol, price)
         paramsOmitted = self.omit(paramsOrderType, 'price') if (typeUpper == 'LIMIT') else paramsOrderType
         response = self.privateDeleteFuturesApiV3TradePositions(self.extend(request, paramsOmitted))
-        order = self.safe_dict(response, 0)
-        if order is None:
-            order = response
+        order = self.safe_dict(response, 0, response)
         return self.parse_order(order, market)
 
     def fetch_leverage(self, symbol: str, params: dict = {}) -> Leverage:
@@ -3467,7 +3445,7 @@ class btse(Exchange, ImplicitAPI):
         response = self.privatePostFuturesApiV3TradeLeverage(self.extend(request, paramsMarginMode))
         return response
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if (response is None) or (response is None):
             return None  # fallback to default error handler
         #
@@ -3482,7 +3460,7 @@ class btse(Exchange, ImplicitAPI):
         #     {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
         #
         success = self.safe_bool(response, 'success', True)
-        if success is not True:
+        if not success:
             spotErrorCode = self.safe_string(response, 'code')
             spotMessage = self.safe_string(response, 'msg')
             feedback = self.id + ' ' + body
@@ -3534,26 +3512,26 @@ class btse(Exchange, ImplicitAPI):
                 self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
         return None
 
-    def sign(self, path: str, api: object = 'public', method='GET', params={}, headers: object = None, body: object = None):
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params={}):
+        apiName = api[0]
         requestBody = None
         requestHeaders = None
-        apiUrl = self.safe_string(self.urls['api'], api)
+        apiUrl = self.safe_string(self.urls['api'], apiName)
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        baseUrl = apiUrl
-        url = baseUrl + '/' + self.implode_params(path, params)
+        url = apiUrl + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         # the futures v3 trading api reads DELETE params from a signed json
         # body like its POST and PUT counterparts, while the spot v4 and the
         # legacy apis keep DELETE params in the query string, verified live
         # in both directions
-        isBodyDelete = (method == 'DELETE') and (path.startswith('futures/api/v3/') is True)
+        isBodyDelete = (method == 'DELETE') and (path.startswith('futures/api/v3/'))
         queryString = ''
         if ((method == 'GET') or (method == 'DELETE')) and not isBodyDelete:
             if len(query) > 0:
                 queryString = self.urlencode(query)
                 url += '?' + queryString
-        if api == 'private':
+        if apiName == 'private':
             self.check_required_credentials()
             nonce = self.nonce()
             bodyString = self.json(query)
@@ -3566,7 +3544,7 @@ class btse(Exchange, ImplicitAPI):
             # sign the /api/v... remainder, while the public-api wallet, otc and markets
             # endpoints mount on the bare host and sign the full path with the leading slash
             signPath = None
-            if path.startswith('public-api/') is True:
+            if path.startswith('public-api/'):
                 signPath = '/' + path
             else:
                 signPath = self.clean_path(path)
@@ -3574,26 +3552,25 @@ class btse(Exchange, ImplicitAPI):
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha384)
             requestHeaders = {
                 'request-api': self.apiKey,
-                'request-nonce': str(nonce),
+                'request-nonce': self.number_to_string(nonce),
                 'request-sign': signature,
                 'Content-Type': 'application/json',
                 'BROKER-ID': 'ccxt',
             }
-        bodyResolved = body if (requestBody is None) else requestBody
-        headersResolved = headers if (requestHeaders is None) else requestHeaders
-        return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
-    def futures_request_id(self, market: object):
+    def futures_request_id(self, market: dict):
         # the futures v3 trading api identifies contracts by the short trade-currency
         # form, for example RAVE-PERP instead of the RAVE-PERP-USDT market id, read
         # from the raw market info so that cached markets resolve it as well
-        return self.safe_string(market['info'], 'tradeCurrency', market['id'])
+        marketInfo = self.safe_dict(market, 'info', {})
+        return self.safe_string(marketInfo, 'tradeCurrency', self.safe_string(market, 'id'))
 
-    def clean_path(self, path: str):
+    def clean_path(self, path: str) -> str:
         result = path.replace('spot', '')
         result = result.replace('futures', '')
         result = result.replace('otc', '')
         return result
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds() - self.safe_integer(self.options, 'timeDifference', 0)

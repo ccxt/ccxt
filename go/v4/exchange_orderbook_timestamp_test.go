@@ -37,3 +37,48 @@ func TestAddElementToObjectOrderBookPointerFields(t *testing.T) {
 		t.Fatalf("typed-nil timestamp must be a no-op, got %v", ob.Timestamp)
 	}
 }
+
+func TestAddElementToObjectOrderBookUndefinedClears(t *testing.T) {
+	ob := NewWsOrderBook(snapshotFixture(), nil)
+	AddElementToObject(ob, "nonce", int64(601))
+	AddElementToObject(ob, "nonce", nil)
+	if ob.Nonce != nil {
+		t.Fatalf("undefined nonce must clear the field, got %v", ob.Nonce)
+	}
+}
+
+func TestOrderBookFieldSetters(t *testing.T) {
+	var ob OrderBookInterface = NewWsOrderBook(snapshotFixture(), nil)
+	ts := int64(1786541223727)
+	nonce := int64(7)
+	datetime := "2026-01-01T00:00:00.000Z"
+	symbol := "BTC/USDT"
+	ob.SetTimestamp(&ts)
+	ob.SetDatetime(&datetime)
+	ob.SetNonce(&nonce)
+	ob.SetSymbol(&symbol)
+	if got := ob.GetValue("timestamp", nil); got != ts {
+		t.Fatalf("timestamp: got %v want %d", got, ts)
+	}
+	if got := ob.GetValue("datetime", nil); got != datetime {
+		t.Fatalf("datetime: got %v want %s", got, datetime)
+	}
+	if got := ob.GetNonce(); got != nonce {
+		t.Fatalf("nonce: got %v want %d", got, nonce)
+	}
+	if got := ob.GetValue("symbol", nil); got != symbol {
+		t.Fatalf("symbol: got %v want %s", got, symbol)
+	}
+	var absentInt *int64
+	var absentStr *string
+	ob.SetTimestamp(absentInt)
+	ob.SetDatetime(absentStr)
+	ob.SetNonce(absentInt)
+	ob.SetSymbol(absentStr)
+	if got := ob.GetValue("timestamp", nil); got != ts {
+		t.Fatalf("typed-nil timestamp must be a no-op, got %v", got)
+	}
+	if got := ob.GetNonce(); got != nonce {
+		t.Fatalf("typed-nil nonce must be a no-op, got %v", got)
+	}
+}

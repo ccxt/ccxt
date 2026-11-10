@@ -5,8 +5,8 @@ import type { TransferEntry, Balances, Currency, CurrencyInterface, Int, Market,
  * @augments Exchange
  */
 export default class latoken extends Exchange {
-    describe(): any;
-    nonce(): number;
+    describe(): Dict;
+    nonce(): int;
     /**
      * @method
      * @name latoken#fetchTime
@@ -29,6 +29,8 @@ export default class latoken extends Exchange {
      * @method
      * @name latoken#fetchCurrencies
      * @description fetches all available currencies on an exchange
+     * @see https://api.latoken.com/doc/v2/#tag/Currency/operation/getActiveCurrencies
+     * @see https://api.latoken.com/doc/v2/#tag/Transaction/operation/getBindings
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -251,6 +253,6 @@ export default class latoken extends Exchange {
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: Dict): Promise<TransferEntry>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseTransferStatus(status: Str): Str;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

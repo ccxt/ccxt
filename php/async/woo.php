@@ -20,14 +20,14 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class woo extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'woo',
             'name' => 'WOO X',
             'countries' => array( 'KY' ), // Cayman Islands
             'rateLimit' => 100,
             'version' => 'v1',
-            'certified' => true,
+            'certified' => false,
             'pro' => true,
             'hostname' => 'woox.io',
             'has' => array(
@@ -351,7 +351,6 @@ class woo extends Exchange {
                 'sandboxMode' => false,
                 'createMarketBuyOrderRequiresPrice' => true,
                 'networks' => array(
-                    'TRX' => 'TRX', // WOO X renamed the network id from TRON to TRX
                     'TRC20' => 'TRX',
                     'ERC20' => 'ETH',
                     'BEP20' => 'BSC',
@@ -676,13 +675,12 @@ class woo extends Exchange {
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
-        $status = $this->safe_string($data, 'status');
-        if ($status === null) {
+        $statusCode = $this->safe_string($data, 'status');
+        $status = 'maintenance';
+        if ($statusCode === null) {
             $status = 'error';
-        } elseif ($status === '0') {
+        } elseif ($statusCode === '0') {
             $status = 'ok';
-        } else {
-            $status = 'maintenance';
         }
         return array(
             'status' => $status,
@@ -957,15 +955,11 @@ class woo extends Exchange {
         }
         $marketId = $this->safe_string($trade, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $price = $this->safe_string_2($trade, 'executed_price', 'executedPrice');
         $amount = $this->safe_string_2($trade, 'executed_quantity', 'executedQuantity');
         $order_id = $this->safe_string_2($trade, 'order_id', 'orderId');
         $fee = $this->parse_token_and_fee_temp($trade, array( 'fee_asset', 'feeAsset' ), array( 'fee' ));
-        $feeCost = $this->safe_string($fee, 'cost');
-        if (($fee !== null) && ($feeCost !== null)) {
-            $fee['cost'] = $feeCost;
-        }
         $cost = Precise::string_mul($price, $amount);
         $side = $this->safe_string_lower($trade, 'side');
         $id = $this->safe_string($trade, 'id');
@@ -1319,7 +1313,7 @@ class woo extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['spot'] !== true) {
+        if (!$this->safe_bool($market, 'spot', false)) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
         }
         return Async\await($this->create_order($symbol, 'market', 'buy', $cost, 1, $params));
@@ -1344,7 +1338,7 @@ class woo extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['spot'] !== true) {
+        if (!$this->safe_bool($market, 'spot', false)) {
             throw new NotSupported($this->id . ' createMarketSellOrderWithCost() supports spot orders only');
         }
         return Async\await($this->create_order($symbol, 'market', 'sell', $cost, 1, $params));
@@ -1471,7 +1465,7 @@ class woo extends Exchange {
         $isTrailingAmountOrder = $trailingAmount !== null;
         $isTrailingPercentOrder = $trailingPercent !== null;
         $isTrailing = $isTrailingAmountOrder || $isTrailingPercentOrder;
-        $isConditional = $isTrailing || $triggerPrice !== null || $hasStopLoss || $hasTakeProfit || ($this->safe_value($paramsMarginMode, 'childOrders') !== null);
+        $isConditional = $isTrailing || $triggerPrice !== null || $hasStopLoss || $hasTakeProfit || ($this->safe_list($paramsMarginMode, 'childOrders') !== null);
         $isMarket = $orderType === 'MARKET';
         $timeInForce = $this->safe_string_lower($paramsMarginMode, 'timeInForce');
         $postOnly = $this->is_post_only($isMarket, null, $paramsMarginMode);
@@ -1504,7 +1498,7 @@ class woo extends Exchange {
             // for market buy it requires the amount of quote currency to spend
             $cost = $this->safe_string_n($paramsMarginMode, array( 'cost', 'order_amount', 'orderAmount' ));
             $isPriceProvided = $price !== null;
-            if (($market['spot'] === true) && ($isPriceProvided || ($cost !== null))) {
+            if (($this->safe_bool($market, 'spot', false)) && ($isPriceProvided || ($cost !== null))) {
                 $quoteAmount = null;
                 if ($cost !== null) {
                     $quoteAmount = $this->cost_to_precision($symbol, $cost);
@@ -1544,13 +1538,7 @@ class woo extends Exchange {
             }
         } elseif ($hasStopLoss || $hasTakeProfit) {
             $request['algoType'] = 'BRACKET';
-            $outterOrder = array(
-                'symbol' => $market['id'],
-                'reduceOnly' => false,
-                'algoType' => 'POSITIONAL_TP_SL',
-                'childOrders' => array(),
-            );
-            $childOrders = $outterOrder['childOrders'];
+            $childOrders = array();
             $closeSide = 'BUY';
             if ($orderSide === 'BUY') {
                 $closeSide = 'SELL';
@@ -1577,6 +1565,12 @@ class woo extends Exchange {
                 );
                 $childOrders[] = $takeProfitOrder;
             }
+            $outterOrder = array(
+                'symbol' => $market['id'],
+                'reduceOnly' => false,
+                'algoType' => 'POSITIONAL_TP_SL',
+                'childOrders' => $childOrders,
+            );
             $request['childOrders'] = array( $outterOrder );
         }
         $paramsRequest = $this->omit($paramsCost, array( 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingPercent', 'trailingAmount', 'trailingTriggerPrice' ));
@@ -1619,8 +1613,7 @@ class woo extends Exchange {
         }
         $data = $this->safe_dict($response, 'data', array());
         $data = $this->safe_dict($this->safe_list($data, 'rows'), 0, $data);
-        $data['timestamp'] = $this->safe_string($response, 'timestamp');
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend($data, array( 'timestamp' => $this->safe_string($response, 'timestamp') )), $market);
     }
 
     public function encode_margin_mode(?string $mode): ?string {
@@ -1699,7 +1692,7 @@ class woo extends Exchange {
         }
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $paramsOmitted = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent', 'trigger', 'stop' ));
-        $isConditional = ($isTrigger === true) || $isTrailing || ($triggerPrice !== null) || ($this->safe_value($paramsOmitted, 'childOrders') !== null);
+        $isConditional = ($isTrigger) || $isTrailing || ($triggerPrice !== null) || ($this->safe_list($paramsOmitted, 'childOrders') !== null);
         $response = null;
         if ($isConditional) {
             if ($isByClientOrder) {
@@ -1754,7 +1747,7 @@ class woo extends Exchange {
          */
         $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
         $paramsOmitted = $this->omit($params, array( 'trigger', 'stop' ));
-        if (($isTrigger !== true) && ($symbol === null)) {
+        if ((!$isTrigger) && ($symbol === null)) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a symbol argument');
         }
         if ($this->markets === null) {
@@ -1770,7 +1763,7 @@ class woo extends Exchange {
         $paramsOmitted2 = $this->omit($paramsOmitted, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
         $isByClientOrder = $clientOrderIdExchangeSpecific !== null;
         $response = null;
-        if ($isTrigger === true) {
+        if ($isTrigger) {
             if ($isByClientOrder) {
                 $request['clientAlgoOrderId'] = $clientOrderIdExchangeSpecific;
             } else {
@@ -1868,8 +1861,12 @@ class woo extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
+        $triggerAfter = 0;
+        if (($timeout !== null) && ($timeout > 0)) {
+            $triggerAfter = ($timeout > 900000) ? 900000 : $timeout;
+        }
         $request = array(
-            'triggerAfter' => ($timeout > 0) ? min($timeout, 900000) : 0,
+            'triggerAfter' => $triggerAfter,
         );
         $response = Async\await($this->v3PrivatePostTradeCancelAllAfter($this->extend($request, $params)));
         //
@@ -2200,7 +2197,7 @@ class woo extends Exchange {
         return Async\await($this->fetch_orders($symbol, $since, $limit, $extendedParams));
     }
 
-    public function parse_time_in_force(?string $timeInForce) {
+    public function parse_time_in_force(?string $timeInForce): ?string {
         $timeInForces = array(
             'ioc' => 'IOC',
             'fok' => 'FOK',
@@ -2307,7 +2304,7 @@ class woo extends Exchange {
         $clientOrderId = $this->omit_zero($this->safe_string_2($order, 'clientOrderId', 'clientAlgoOrderId')); // Somehow, this always returns 0 for limit order
         $marketId = $this->safe_string($order, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
-        $symbol = $marketResolved['symbol'];
+        $symbol = $this->safe_string($marketResolved, 'symbol');
         $price = $this->safe_string($order, 'price');
         $amount = $this->safe_string($order, 'quantity'); // This is base amount
         $orderType = $this->safe_string_lower($order, 'type');
@@ -2365,7 +2362,7 @@ class woo extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         if ($status !== null) {
             $statuses = array(
                 'NEW' => 'open',
@@ -2501,7 +2498,7 @@ class woo extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new NotSupported($this->id . ' fetchTicker() supports swap markets only, there is no spot ticker endpoint');
         }
         $request = array(
@@ -2569,7 +2566,7 @@ class woo extends Exchange {
                 // type" apart from a malformed request, marketSymbols still enforces that the
                 // rest of the list matches
                 $firstMarket = $this->market($symbols[0]);
-                if ($firstMarket['swap'] !== true) {
+                if (!$this->safe_bool($firstMarket, 'swap', false)) {
                     throw new NotSupported($this->id . ' fetchTickers() supports swap markets only');
                 }
             }
@@ -2958,11 +2955,11 @@ class woo extends Exchange {
         //         "timestamp": 1673323746259
         //     }
         //
-        $data = $this->safe_dict($response, 'data');
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_balance($data);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $result = array(
             'info' => $response,
         );
@@ -3019,12 +3016,14 @@ class woo extends Exchange {
         return $this->parse_deposit_address($this->extend($data, array( 'network' => $this->safe_string($request, 'network') )), $currency);
     }
 
-    public function get_dedicated_network_id(mixed $currency, array $params): mixed {
+    public function get_dedicated_network_id(array $currency, array $params): array {
         list($networkCodeRaw, $paramsNetworkCode) = $this->handle_network_code_and_params($params);
-        $networkCode = $this->network_id_to_code($networkCodeRaw, $currency['code']);
-        $networkEntry = ($networkCode === null) ? null : $this->safe_dict($currency['networks'], $networkCode);
+        $networks = $this->safe_dict($currency, 'networks', array());
+        $currencyCode = $this->safe_string($currency, 'code', '');
+        $networkCode = $this->network_id_to_code($networkCodeRaw, $currencyCode);
+        $networkEntry = ($networkCode === null) ? null : $this->safe_dict($networks, $networkCode);
         if ($networkEntry === null) {
-            $supportedNetworks = is_array($currency['networks']) ? array_keys($currency['networks']) : array();
+            $supportedNetworks = is_array($networks) ? array_keys($networks) : array();
             throw new BadRequest($this->id . '  can not determine a network code, please provide unified "network" param, one from the following => ' . $this->json($supportedNetworks));
         }
         $currentyNetworkId = $this->safe_string($networkEntry, 'currencyNetworkId');
@@ -3196,7 +3195,7 @@ class woo extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function get_currency_from_chaincode(mixed $networkizedCode, mixed $currency) {
+    public function get_currency_from_chaincode(string $networkizedCode, ?array $currency = null): array {
         if ($currency !== null) {
             return $currency;
         } else {
@@ -3205,7 +3204,7 @@ class woo extends Exchange {
             $firstPart = $this->safe_string($parts, 0);
             $currencyId = $this->safe_string($parts, 1, $firstPart);
             if ($partsLength > 2) {
-                $currencyId .= '_' . $this->safe_string($parts, 2);
+                $currencyId .= '_' . $this->safe_string($parts, 2, '');
             }
             return $this->safe_currency($currencyId);
         }
@@ -3277,7 +3276,7 @@ class woo extends Exchange {
         $currencyRows = Async\await($this->get_asset_history_rows($code, $since, $limit, $this->extend($request, $params)));
         $currency = $this->safe_value($currencyRows, 0);
         $rows = $this->safe_list($currencyRows, 1, array());
-        return $this->parse_transactions($rows, $currency, $since, $limit, $params);
+        return $this->parse_transactions($rows, $currency, $since, $limit, $this->omit($params, 'tokenSide'));
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -3303,9 +3302,9 @@ class woo extends Exchange {
         //         "confirmedNumber": null
         //     }
         //
-        $networkizedCode = $this->safe_string($transaction, 'token');
+        $networkizedCode = $this->safe_string($transaction, 'token', '');
         $currencyDefined = $this->get_currency_from_chaincode($networkizedCode, $currency);
-        $code = $currencyDefined['code'];
+        $code = $this->safe_string($currencyDefined, 'code');
         $movementDirection = $this->safe_string_lower_n($transaction, array( 'token_side', 'tokenSide', 'type' ));
         if ($movementDirection === 'withdraw') {
             $movementDirection = 'withdrawal';
@@ -3394,7 +3393,7 @@ class woo extends Exchange {
         $transfer = $this->parse_transfer($data, $currency);
         $transferOptions = $this->safe_dict($this->options, 'transfer', array());
         $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
-        if ($fillResponseFromRequest === true) {
+        if ($fillResponseFromRequest) {
             $transfer['amount'] = $amount;
             $transfer['fromAccount'] = $fromAccount;
             $transfer['toAccount'] = $toAccount;
@@ -3532,11 +3531,11 @@ class woo extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $params);
     }
 
-    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+    private function do_withdraw(string $code, float $amount, string $address, $params = array()) {
         /**
          * make a withdrawal
          *
@@ -3545,15 +3544,15 @@ class woo extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
-         * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_withdraw_tag_and_params($tag, $params);
+        list($tagWithdrawTag, $paramsWithdrawTag) = $this->handle_param_string($params, 'tag');
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $this->check_address($address);
+        $this->check_address($address, $code, $tagWithdrawTag);
         $currency = $this->currency($code);
         $request = array(
             'amount' => $amount,
@@ -3584,7 +3583,7 @@ class woo extends Exchange {
             'amount' => $amount,
             'addressTo' => $address,
             'tag' => $tagWithdrawTag,
-            'network' => $network,
+            'network' => $this->safe_string($this->networkAliases, $network, $network),
             'type' => 'withdrawal',
             'status' => 'pending',
         ));
@@ -3646,38 +3645,39 @@ class woo extends Exchange {
         );
     }
 
-    public function nonce(): float {
+    public function nonce(): int {
         return $this->milliseconds() - $this->safe_integer($this->options, 'timeDifference', 0);
     }
 
-    public function sign(string $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $section = array('public'), string $method = 'GET', $params = array()): array {
         $requestHeaders = null;
         $requestBody = null;
-        $version = $this->safe_string($section, 0);
-        $access = $this->safe_string($section, 1);
+        $version = $section[0];
+        $access = $section[1];
         $pathWithParams = $this->implode_params($path, $params);
         $baseApiUrl = $this->safe_string($this->urls['api'], $access);
         if ($baseApiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
-        $url = $this->implode_hostname($baseApiUrl);
-        $url .= '/' . $version . '/';
+        $urlPrefix = $this->implode_hostname($baseApiUrl) . '/' . $version . '/';
         $paramsSorted = $this->keysort($this->omit($params, $this->extract_params($path)));
+        $url = $urlPrefix;
         if ($access === 'public') {
-            $url .= 'public/' . $pathWithParams;
+            $publicUrl = $urlPrefix . 'public/' . $pathWithParams;
+            $url = $publicUrl;
             if (count($paramsSorted) > 0) {
-                $url .= '?' . $this->urlencode($paramsSorted);
+                $url = $publicUrl . '?' . $this->urlencode($paramsSorted);
             }
         } elseif ($access === 'pub') {
-            $url .= $pathWithParams;
+            $url = $urlPrefix . $pathWithParams;
             if (count($paramsSorted) > 0) {
-                $url .= '?' . $this->urlencode($paramsSorted);
+                $url = $urlPrefix . $pathWithParams . '?' . $this->urlencode($paramsSorted);
             }
         } else {
             $this->check_required_credentials();
             if ($method === 'POST' && ($path === 'trade/algoOrder' || $path === 'trade/order')) {
                 $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
-                if ($isSandboxMode !== true) {
+                if (!$isSandboxMode) {
                     $applicationId = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
                     $brokerId = $this->safe_string($this->options, 'brokerId', $applicationId);
                     $isTrigger = mb_strpos($path, 'algo') > -1;
@@ -3691,44 +3691,46 @@ class woo extends Exchange {
             $paramsSigned = $this->keysort($paramsSorted);
             $auth = '';
             $ts = (string) $this->nonce();
-            $url .= $pathWithParams;
-            $requestHeaders = array(
+            $authBase = $ts . $method . '/' . $version . '/' . $pathWithParams;
+            $url = $urlPrefix . $pathWithParams;
+            $signedHeaders = array(
                 'x-api-key' => $this->apiKey,
                 'x-api-timestamp' => $ts,
             );
             if ($version === 'v3') {
-                $auth = $ts . $method . '/' . $version . '/' . $pathWithParams;
+                $auth = $authBase;
                 if ($method === 'POST' || $method === 'PUT') {
-                    $requestBody = $this->json($paramsSigned);
-                    $auth .= $requestBody;
-                    $requestHeaders['content-type'] = 'application/json';
+                    $jsonBody = $this->json($paramsSigned);
+                    $requestBody = $jsonBody;
+                    $auth = $authBase . $jsonBody;
+                    $signedHeaders['content-type'] = 'application/json';
                 } else {
                     if (count($paramsSigned) > 0) {
                         $query = $this->urlencode($paramsSigned);
-                        $url .= '?' . $query;
-                        $auth .= '?' . $query;
+                        $url = $urlPrefix . $pathWithParams . '?' . $query;
+                        $auth = $authBase . '?' . $query;
                     }
                 }
             } else {
-                $auth = $this->urlencode($paramsSigned);
+                $encodedParams = $this->urlencode($paramsSigned);
+                $auth = $encodedParams;
                 if ($method === 'POST' || $method === 'PUT' || $method === 'DELETE') {
-                    $requestBody = $auth;
+                    $requestBody = $encodedParams;
                 } else {
                     if (count($paramsSigned) > 0) {
-                        $url .= '?' . $auth;
+                        $url = $urlPrefix . $pathWithParams . '?' . $encodedParams;
                     }
                 }
-                $auth .= '|' . $ts;
-                $requestHeaders['content-type'] = 'application/x-www-form-urlencoded';
+                $auth = $encodedParams . '|' . $ts;
+                $signedHeaders['content-type'] = 'application/x-www-form-urlencoded';
             }
-            $requestHeaders['x-api-signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+            $signedHeaders['x-api-signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+            $requestHeaders = $signedHeaders;
         }
-        $headersResult = ($requestHeaders !== null) ? $requestHeaders : $headers;
-        $bodyResult = ($requestBody !== null) ? $requestBody : $body;
-        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -3736,9 +3738,9 @@ class woo extends Exchange {
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        $success = $this->safe_bool($response, 'success');
+        $success = $this->safe_bool($response, 'success', false);
         $errorCode = $this->safe_string($response, 'code');
-        if ($success !== true) {
+        if (!$success) {
             $feedback = $this->id . ' ' . $this->json($response);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
@@ -4047,7 +4049,7 @@ class woo extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol');
         $request = array(
             'symbol' => $market['id'],
         );
@@ -4153,7 +4155,7 @@ class woo extends Exchange {
         }
         $market = $this->market($symbol);
         $response = null;
-        if ($market['spot'] === true) {
+        if ($this->safe_bool($market, 'spot', false)) {
             $response = Async\await($this->v3PrivateGetAccountInfo($params));
             //
             //     {
@@ -4184,7 +4186,7 @@ class woo extends Exchange {
             //         "timestamp": 1752645129054
             //     }
             //
-        } elseif ($market['swap'] === true) {
+        } elseif ($this->safe_bool($market, 'swap', false)) {
             $request = array(
                 'symbol' => $market['id'],
             );
@@ -4232,7 +4234,8 @@ class woo extends Exchange {
             //     }
             //
         } else {
-            throw new NotSupported($this->id . ' fetchLeverage() is not supported for ' . $market['type'] . ' markets');
+            $marketType = $this->safe_string($market, 'type', '');
+            throw new NotSupported($this->id . ' fetchLeverage() is not supported for ' . $marketType . ' markets');
         }
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_leverage($data, $market);
@@ -4307,7 +4310,8 @@ class woo extends Exchange {
             $request['marginMode'] = $this->encode_margin_mode($marginMode);
             return Async\await($this->v3PrivatePutFuturesLeverage($this->extend($request, $paramsMarginMode)));
         } else {
-            throw new NotSupported($this->id . ' fetchLeverage() is not supported for ' . $this->safe_string($market, 'type') . ' markets');
+            $marketType = $this->safe_string($market, 'type', '');
+            throw new NotSupported($this->id . ' fetchLeverage() is not supported for ' . $marketType . ' markets');
         }
     }
 
@@ -4564,6 +4568,11 @@ class woo extends Exchange {
         $size = Precise::string_abs($size);
         $notional = Precise::string_mul($size, $markPrice);
         $positionSide = $this->safe_string($position, 'positionSide'); // 'SHORT' or 'LONG' for hedged, 'BOTH' for non-hedged
+        $marginMode = $this->safe_string_lower_2($position, 'marginMode', 'margin_mode');
+        $positionMargin = null;
+        if ($marginMode === 'isolated') {
+            $positionMargin = $this->safe_number_2($position, 'isolatedMarginAmount', 'isolated_margin_amount');
+        }
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -4585,8 +4594,9 @@ class woo extends Exchange {
             'liquidationPrice' => $this->safe_number_2($position, 'estLiqPrice', 'est_liq_price'),
             'markPrice' => $this->parse_number($markPrice),
             'lastPrice' => null,
+            'positionMargin' => $positionMargin,
             'collateral' => null,
-            'marginMode' => $this->safe_string_lower_2($position, 'marginMode', 'margin_mode'),
+            'marginMode' => $marginMode,
             'side' => $side,
             'percentage' => null,
             'hedged' => $positionSide !== 'BOTH',
@@ -4753,13 +4763,13 @@ class woo extends Exchange {
             Async\await($this->load_markets());
         }
         $request = array();
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $params);
         if ($since !== null) {
-            $requestUntil['startTime'] = $since;
+            $request['startTime'] = $since;
         }
         if ($limit !== null) {
-            $requestUntil['size'] = $limit;
+            $request['size'] = $limit;
         }
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('endTime', $request, $params);
         $response = Async\await($this->v3PrivateGetConvertTrades($this->extend($requestUntil, $paramsUntil)));
         //
         //     {
@@ -5019,7 +5029,7 @@ class woo extends Exchange {
         $networkKeys = is_array($networks) ? array_keys($networks) : array();
         for ($i = 0; $i < count($networkKeys); $i++) {
             $network = $networkKeys[$i];
-            if ($network === 'ETH') {
+            if ($network === 'ERC20') {
                 return $network;
             }
         }

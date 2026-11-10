@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.84'
+__version__ = '4.5.92'
 
 # -----------------------------------------------------------------------------
 
@@ -99,13 +99,11 @@ from ccxt.async_support.bullish import bullish                                  
 from ccxt.async_support.bybit import bybit                                      # noqa: F401
 from ccxt.async_support.bybiteu import bybiteu                                  # noqa: F401
 from ccxt.async_support.bybitid import bybitid                                  # noqa: F401
-from ccxt.async_support.bydfi import bydfi                                      # noqa: F401
 from ccxt.async_support.cex import cex                                          # noqa: F401
 from ccxt.async_support.coinbase import coinbase                                # noqa: F401
 from ccxt.async_support.coinbaseexchange import coinbaseexchange                # noqa: F401
 from ccxt.async_support.coinbaseinternational import coinbaseinternational      # noqa: F401
 from ccxt.async_support.coincheck import coincheck                              # noqa: F401
-from ccxt.async_support.coinex import coinex                                    # noqa: F401
 from ccxt.async_support.coinmate import coinmate                                # noqa: F401
 from ccxt.async_support.coinone import coinone                                  # noqa: F401
 from ccxt.async_support.coinsph import coinsph                                  # noqa: F401
@@ -157,6 +155,7 @@ from ccxt.async_support.paradex import paradex                                  
 from ccxt.async_support.paymium import paymium                                  # noqa: F401
 from ccxt.async_support.phemex import phemex                                    # noqa: F401
 from ccxt.async_support.poloniex import poloniex                                # noqa: F401
+from ccxt.async_support.polymarket import polymarket                            # noqa: F401
 from ccxt.async_support.revolutx import revolutx                                # noqa: F401
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
 from ccxt.async_support.toobit import toobit                                    # noqa: F401
@@ -205,13 +204,11 @@ exchanges = [
     'bybit',
     'bybiteu',
     'bybitid',
-    'bydfi',
     'cex',
     'coinbase',
     'coinbaseexchange',
     'coinbaseinternational',
     'coincheck',
-    'coinex',
     'coinmate',
     'coinone',
     'coinsph',
@@ -263,6 +260,7 @@ exchanges = [
     'paymium',
     'phemex',
     'poloniex',
+    'polymarket',
     'revolutx',
     'tokocrypto',
     'toobit',

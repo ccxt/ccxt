@@ -41,7 +41,7 @@ public partial class bittrade : ccxt.bittrade
         });
     }
 
-    public virtual object requestId()
+    public virtual string? requestId()
     {
         this.lockId();
         Int64 requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
@@ -66,15 +66,18 @@ public partial class bittrade : ccxt.bittrade
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
         // only supports a limit of 150 at this time
-        string messageHash = (("market." + ((market.ContainsKey("id") ? market["id"] : null))) + ".detail");
+        string? marketId = this.safeString(market, "id", "");
+        string messageHash = (("market." + marketId) + ".detail");
         string? api = this.safeString(this.options, "api", "api");
+        IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(apiUrls, "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> apiWsUrls = this.safeDict(wsUrls, api, new Dictionary<string, object>() {});
         Dictionary<string, object> hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },
         };
-        string? url = this.implodeParams(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), api), "public"), hostname);
-        string requestId = ((string)this.requestId());
+        string? url = this.implodeParams((apiWsUrls != null && apiWsUrls.ContainsKey("public") ? apiWsUrls["public"] : null), hostname);
+        string requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
             { "id", requestId },
@@ -82,7 +85,7 @@ public partial class bittrade : ccxt.bittrade
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "id", requestId },
             { "messageHash", messageHash },
-            { "symbol", symbolValue },
+            { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
             { "params", parameters },
         };
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription));
@@ -144,15 +147,19 @@ public partial class bittrade : ccxt.bittrade
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         // only supports a limit of 150 at this time
-        string messageHash = (("market." + ((market.ContainsKey("id") ? market["id"] : null))) + ".trade.detail");
+        string? marketId = this.safeString(market, "id", "");
+        string messageHash = (("market." + marketId) + ".trade.detail");
         string? api = this.safeString(this.options, "api", "api");
+        IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(apiUrls, "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> apiWsUrls = this.safeDict(wsUrls, api, new Dictionary<string, object>() {});
         Dictionary<string, object> hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },
         };
-        string? url = this.implodeParams(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), api), "public"), hostname);
-        string requestId = ((string)this.requestId());
+        string? url = this.implodeParams((apiWsUrls != null && apiWsUrls.ContainsKey("public") ? apiWsUrls["public"] : null), hostname);
+        string requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
             { "id", requestId },
@@ -242,15 +249,19 @@ public partial class bittrade : ccxt.bittrade
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        string messageHash = ((("market." + ((market.ContainsKey("id") ? market["id"] : null))) + ".kline.") + interval);
+        string? marketId = this.safeString(market, "id", "");
+        string messageHash = ((("market." + marketId) + ".kline.") + interval);
         string? api = this.safeString(this.options, "api", "api");
+        IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(apiUrls, "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> apiWsUrls = this.safeDict(wsUrls, api, new Dictionary<string, object>() {});
         Dictionary<string, object> hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },
         };
-        string? url = this.implodeParams(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), api), "public"), hostname);
-        string requestId = ((string)this.requestId());
+        string? url = this.implodeParams((apiWsUrls != null && apiWsUrls.ContainsKey("public") ? apiWsUrls["public"] : null), hostname);
+        string requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
             { "id", requestId },
@@ -335,16 +346,20 @@ public partial class bittrade : ccxt.bittrade
             await this.loadMarkets();
         }
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         // only supports a limit of 150 at this time
-        Int64? limitValue = ((limit == null)) ? 150 : limit;
-        string messageHash = ((("market." + ((market.ContainsKey("id") ? market["id"] : null))) + ".mbp.") + ((object)limitValue).ToString());
+        int limitValue = 150;
+        string? marketId = this.safeString(market, "id", "");
+        string messageHash = (("market." + marketId) + ".mbp.150");
         string? api = this.safeString(this.options, "api", "api");
+        IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(apiUrls, "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> apiWsUrls = this.safeDict(wsUrls, api, new Dictionary<string, object>() {});
         Dictionary<string, object> hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },
         };
-        string? url = this.implodeParams(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), api), "public"), hostname);
-        string requestId = ((string)this.requestId());
+        string? url = this.implodeParams((apiWsUrls != null && apiWsUrls.ContainsKey("public") ? apiWsUrls["public"] : null), hostname);
+        string requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
             { "id", requestId },
@@ -358,7 +373,7 @@ public partial class bittrade : ccxt.bittrade
             { "method", this.handleOrderBookSubscription },
         };
         ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription));
-        return ccxt.BaseExchange.ToOrderBookSnapshot((orderbook as IOrderBook).limit());
+        return (orderbook as IOrderBook).limit().Copy();
     }
 
     public virtual void handleOrderBookSnapshot(WebSocketClient client, Dictionary<string, object> message, object subscription)
@@ -387,7 +402,12 @@ public partial class bittrade : ccxt.bittrade
         string? symbol = this.safeString(subscription, "symbol");
         string? messageHash = this.safeString(subscription, "messageHash");
         Int64? timestamp = this.safeInteger(message, "ts");
-        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+        ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
+        if ((orderbook == null))
+        {
+            // the book was removed (unwatch/cleanCache) before the snapshot arrived
+            return;
+        }
         IDictionary<string, object> data = this.safeDict(message, "data");
         ccxt.OrderBook snapshot = this.parseOrderBook(data, symbol);
         snapshot.nonce = ccxt.BaseExchange.StructInt64(this.safeInteger(data, "seqNum"));
@@ -413,11 +433,14 @@ public partial class bittrade : ccxt.bittrade
             Int64? limit = this.safeInteger(subscription, "limit");
             IDictionary<string, object> parameters = this.safeDict(subscription, "params");
             string? api = this.safeString(this.options, "api", "api");
+            IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+            IDictionary<string, object> wsUrls = this.safeDict(apiUrls, "ws", new Dictionary<string, object>() {});
+            IDictionary<string, object> apiWsUrls = this.safeDict(wsUrls, api, new Dictionary<string, object>() {});
             Dictionary<string, object> hostname = new Dictionary<string, object>() {
                 { "hostname", this.hostname },
             };
-            string? url = this.implodeParams(getValue(getValue(getValue((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), "ws"), api), "public"), hostname);
-            string requestId = ((string)this.requestId());
+            string? url = this.implodeParams((apiWsUrls != null && apiWsUrls.ContainsKey("public") ? apiWsUrls["public"] : null), hostname);
+            string requestId = this.requestId();
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "req", messageHash },
                 { "id", requestId },
@@ -449,14 +472,6 @@ public partial class bittrade : ccxt.bittrade
         (bookside as IOrderBookSide).store(price, amount);
     }
 
-    public override void handleDeltas(object bookside, IList<object> deltas)
-    {
-        for (int i = 0; i < (deltas?.Count ?? 0); i++)
-        {
-            this.handleDelta(bookside, (deltas != null && i < deltas.Count ? deltas[i] : null));
-        }
-    }
-
     public virtual object handleOrderBookMessage(WebSocketClient client, object message, object orderbook)
     {
         //
@@ -486,7 +501,8 @@ public partial class bittrade : ccxt.bittrade
         {
             return orderbook;
         }
-        if ((isLessThanOrEqual(prevSeqNum, getValue(orderbook, "nonce"))) && (isGreaterThan(seqNum, getValue(orderbook, "nonce"))))
+        Int64? nonce = this.safeInteger(orderbook, "nonce");
+        if (((nonce != null)) && ((prevSeqNum == null || prevSeqNum <= nonce)) && ((seqNum != null && (nonce == null || seqNum > nonce))))
         {
             List<object> asks = this.safeList(tick, "asks", new List<object>() {});
             List<object> bids = this.safeList(tick, "bids", new List<object>() {});
@@ -525,12 +541,21 @@ public partial class bittrade : ccxt.bittrade
         //     }
         //
         string? messageHash = this.safeString(message, "ch");
-        object ch = this.safeValue(message, "ch");
-        List<object> parts = ((string)ch).Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
+        string? ch = this.safeString(message, "ch");
+        if ((ch == null))
+        {
+            return;
+        }
+        List<object> parts = ch.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parts, 1);
         string? symbol = this.safeSymbol(marketId);
-        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-        if (isEqual(getValue(orderbook, "nonce"), null))
+        ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
+        if ((orderbook == null))
+        {
+            // no active subscription holds a book for this symbol, drop the delta
+            return;
+        }
+        if ((this.safeInteger(orderbook, "nonce") == null))
         {
             (orderbook as ccxt.pro.OrderBook).cache.Add(message);
         } else
@@ -548,11 +573,13 @@ public partial class bittrade : ccxt.bittrade
             return;
         }
         Int64? limit = this.safeInteger(subscription, "limit");
-        if (((symbol != null) && ((IDictionary<string, object>)this.orderbooks).ContainsKey(symbol)))
+        if (!(((symbol != null) && (this.orderbooks != null && this.orderbooks.ContainsKey(symbol)))))
         {
-            ((IDictionary<string,object>)this.orderbooks).Remove(symbol);
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         }
-        ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
+        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
+        orderbook["nonce"] = null;
+        (orderbook as ccxt.pro.OrderBook).cache = new List<object>() {};
         // watch the snapshot in a separate async call
         this.spawn(this.watchOrderBookSnapshot, new object[] { client, message, subscription});
     }
@@ -582,7 +609,7 @@ public partial class bittrade : ccxt.bittrade
                 return DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
             }
             // clean up
-            if ((client.subscriptions != null && id != null && client.subscriptions.ContainsKey(id)))
+            if (((id != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(id))))
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(id);
             }
@@ -627,8 +654,12 @@ public partial class bittrade : ccxt.bittrade
         //         }
         //     }
         //
-        object ch = this.safeValue(message, "ch");
-        List<object> parts = ((string)ch).Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
+        string? ch = this.safeString(message, "ch");
+        if ((ch == null))
+        {
+            return;
+        }
+        List<object> parts = ch.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         string? type = this.safeString(parts, 0);
         if (type == "market")
         {
@@ -686,15 +717,19 @@ public partial class bittrade : ccxt.bittrade
             if ((subscription != null))
             {
                 string? errorCode = this.safeString(message, "err-code");
+                string? errorMessage = this.safeString(message, "err-msg");
+                string feedback = ((this.id + " ") + this.json(message));
                 try
                 {
-                    this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), errorCode, this.json(message));
+                    this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
+                    this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), errorCode, feedback);
+                    throw new ExchangeError (feedback) ;
                 } catch(Exception e)
                 {
                     string? messageHash = this.safeString(subscription, "messageHash");
                     client.reject(e, messageHash);
                     client.reject(e, id);
-                    if ((client.subscriptions != null && id != null && client.subscriptions.ContainsKey(id)))
+                    if (((id != null) && (client.subscriptions != null && client.subscriptions.ContainsKey(id))))
                     {
                         ((IDictionary<string,object>)client.subscriptions).Remove(id);
                     }
@@ -707,7 +742,7 @@ public partial class bittrade : ccxt.bittrade
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        if (isEqual(this.handleErrorMessage(client, message), true))
+        if ((this.handleErrorMessage(client, message) == true))
         {
             //
             //     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}

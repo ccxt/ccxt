@@ -133,8 +133,8 @@ fetch the trading fees for multiple markets, resolving the account's 30-day usd 
 
 **See**
 
-- https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules
-- https://docs.kraken.com/api/docs/futures-api/trading/get-fee-schedules-volumes
+- https://docs.kraken.com/api-reference/fee-schedules/get-fee-schedules
+- https://docs.kraken.com/api-reference/fee-schedules/get-fee-schedule-volumes
 
 
 | Param | Type | Required | Description |
@@ -155,7 +155,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://docs.kraken.com/api/docs/futures-api/charts/candles  
+**See**: https://docs.kraken.com/api-reference/candles/market-candles  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -183,8 +183,8 @@ Fetch a history of filled trades that this account has made
 
 **See**
 
-- https://docs.kraken.com/api/docs/futures-api/trading/get-history
-- https://docs.kraken.com/api/docs/futures-api/history/get-public-execution-events
+- https://docs.kraken.com/api-reference/market-data/get-trade-history
+- https://docs.kraken.com/api-reference/market-history/get-public-execution-events
 
 
 | Param | Type | Required | Description |
@@ -356,7 +356,7 @@ dead man's switch, cancel all orders after the given timeout
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
 **Returns**: <code>object</code> - the api result
 
-**See**: https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders-after  
+**See**: https://docs.kraken.com/api-reference/order-management/dead-mans-switch  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -473,7 +473,7 @@ Gets all canceled orders, including trigger orders, for an account from the exch
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
 **Returns**: An array of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.kraken.com/api/docs/futures-api/history/get-order-events  
+**See**: https://docs.kraken.com/api-reference/account-history/get-order-events  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -569,7 +569,7 @@ Fetch the balance for a sub-account, all sub-account balances are inside 'info' 
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
 **Returns**: A [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
-**See**: https://docs.kraken.com/api/docs/futures-api/trading/get-accounts  
+**See**: https://docs.kraken.com/api-reference/account-information/get-wallets  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

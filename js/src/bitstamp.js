@@ -672,8 +672,9 @@ export default class bitstamp extends Exchange {
         //
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const market = response[i];
-            const [baseId, quoteId] = [this.safeString(market, 'base_currency'), this.safeString(market, 'counter_currency')];
+            const market = this.safeDict(response, i);
+            const baseId = this.safeString(market, 'base_currency');
+            const quoteId = this.safeString(market, 'counter_currency');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
             if ((base === undefined) || (quote === undefined)) {
@@ -690,7 +691,7 @@ export default class bitstamp extends Exchange {
             else if (marketTypeRaw === 'PERPETUAL') {
                 type = 'swap';
                 settleId = quoteId;
-                symbol = base + '/' + quote + ':' + settleId;
+                symbol = base + '/' + quote + ':' + this.safeString(market, 'counter_currency', '');
                 const payoffType = this.safeString(market, 'payoff_type');
                 if (payoffType === 'Linear') {
                     subType = 'linear';
@@ -757,6 +758,9 @@ export default class bitstamp extends Exchange {
     constructCurrencyObject(id, code, name, precision, minCost, originalPayload) {
         let currencyType = 'crypto';
         const description = this.describe();
+        const fees = this.safeDict(description, 'fees', {});
+        const fundingFees = this.safeDict(fees, 'funding', {});
+        const withdrawFee = this.safeNumber(fundingFees, 'withdraw');
         if (this.isFiat(code)) {
             currencyType = 'fiat';
         }
@@ -770,7 +774,7 @@ export default class bitstamp extends Exchange {
             'active': true,
             'deposit': undefined,
             'withdraw': undefined,
-            'fee': this.safeNumber(description['fees']['funding']['withdraw'], code),
+            'fee': withdrawFee,
             'precision': tickSize,
             'limits': {
                 'amount': {
@@ -800,7 +804,7 @@ export default class bitstamp extends Exchange {
         const timestamp = this.safeInteger(options, 'timestamp');
         const expires = this.safeInteger(options, 'expires', 1000);
         const now = this.milliseconds();
-        if ((timestamp === undefined) || ((now - timestamp) > expires)) {
+        if ((timestamp === undefined) || ((expires !== undefined) && ((now - timestamp) > expires))) {
             const response = await this.publicGetMarkets(params);
             //
             //    [
@@ -824,7 +828,9 @@ export default class bitstamp extends Exchange {
                 'timestamp': now,
             });
         }
-        return this.safeValue(this.options['fetchMarkets'], 'response');
+        const cache = this.safeDict(this.options, 'fetchMarkets', {});
+        const markets = this.safeList(cache, 'response', []);
+        return markets;
     }
     /**
      * @method
@@ -860,21 +866,24 @@ export default class bitstamp extends Exchange {
         const result = {};
         const arr = this.toArray(rawCurrencies);
         for (let i = 0; i < arr.length; i++) {
-            const market = arr[i];
-            const [baseId, quoteId] = [this.safeString(market, 'base_currency'), this.safeString(market, 'counter_currency')];
+            const market = this.safeDict(arr, i, {});
+            const baseId = this.safeString(market, 'base_currency');
+            const quoteId = this.safeString(market, 'counter_currency');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
             const description = this.safeString(market, 'description');
             if (description === undefined) {
                 throw new ExchangeError(this.id + ' parseCurrencies() missing description');
             }
-            const [baseDescription, quoteDescription] = description.split(' / ');
+            const descriptionParts = description.split(' / ');
+            const baseDescription = this.safeString(descriptionParts, 0);
+            const quoteDescription = this.safeString(descriptionParts, 1);
             const minimumOrder = this.safeString(market, 'minimum_order_value');
             if (minimumOrder === undefined) {
                 throw new ExchangeError(this.id + ' parseCurrencies() missing minimumOrder');
             }
             const parts = minimumOrder.split(' ');
-            const cost = parts[0];
+            const cost = this.safeString(parts, 0);
             if ((base !== undefined) && !(base in result)) {
                 const baseDecimals = this.safeInteger(market, 'base_decimals');
                 result[base] = this.constructCurrencyObject(baseId, base, baseDescription, baseDecimals, undefined, market);
@@ -1098,11 +1107,13 @@ export default class bitstamp extends Exchange {
             throw new ExchangeError(this.id + ' getMarketFromTrade() too many keys: ' + this.json(currencyIds) + ' in the trade: ' + this.json(tradeOmitted));
         }
         if (numCurrencyIds === 2) {
-            let marketId = currencyIds[0] + currencyIds[1];
+            const firstCurrencyId = this.safeString(currencyIds, 0, '');
+            const secondCurrencyId = this.safeString(currencyIds, 1, '');
+            let marketId = firstCurrencyId + secondCurrencyId;
             if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
                 return this.safeMarket(marketId);
             }
-            marketId = currencyIds[1] + currencyIds[0];
+            marketId = secondCurrencyId + firstCurrencyId;
             if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
                 return this.safeMarket(marketId);
             }
@@ -1154,7 +1165,6 @@ export default class bitstamp extends Exchange {
         let side = undefined;
         let priceString = this.safeString(trade, 'price');
         let amountString = this.safeString(trade, 'amount');
-        const orderId = this.safeString(trade, 'order_id');
         const type = undefined;
         let costString = this.safeString(trade, 'cost');
         let rawMarketId = undefined;
@@ -1188,8 +1198,8 @@ export default class bitstamp extends Exchange {
         amountString = this.safeString(trade, this.safeString(marketResolved, 'baseId'), amountString);
         costString = this.safeString(trade, this.safeString(marketResolved, 'quoteId'), costString);
         // this endpoint is not aligned with "markets" endpoint
-        const baseIdLower = this.safeStringLower(marketResolved, 'baseId');
-        const quoteIdLower = this.safeStringLower(marketResolved, 'quoteId');
+        const baseIdLower = this.safeStringLower(marketResolved, 'baseId', '');
+        const quoteIdLower = this.safeStringLower(marketResolved, 'quoteId', '');
         const dashedIdLower = baseIdLower + '_' + quoteIdLower;
         if (priceString === undefined) {
             priceString = this.safeString(trade, dashedIdLower);
@@ -1210,8 +1220,8 @@ export default class bitstamp extends Exchange {
             }
             else {
                 // string unix epoch in seconds
-                timestamp = parseInt(datetimeString);
-                timestamp = timestamp * 1000;
+                const seconds = this.parseToInt(datetimeString);
+                timestamp = seconds * 1000;
             }
         }
         // if it is a private trade
@@ -1228,11 +1238,11 @@ export default class bitstamp extends Exchange {
             }
         }
         else {
-            side = this.safeString(trade, 'type');
-            if (side === '1') {
+            const sideRaw = this.safeString(trade, 'type');
+            if (sideRaw === '1') {
                 side = 'sell';
             }
-            else if (side === '0') {
+            else if (sideRaw === '0') {
                 side = 'buy';
             }
             else {
@@ -1255,7 +1265,7 @@ export default class bitstamp extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'symbol': symbol,
-            'order': orderId,
+            'order': this.safeString(trade, 'order_id'),
             'type': type,
             'side': side,
             'takerOrMaker': undefined,
@@ -1352,43 +1362,46 @@ export default class bitstamp extends Exchange {
         const until = this.safeInteger(params, 'until');
         const untilIsDefined = (until !== undefined);
         const limitResolved = (limit === undefined) ? 1000 : limit;
-        if (limit === undefined) {
-            if (since === undefined) {
-                request['limit'] = limitResolved;
+        if (limit !== undefined) {
+            if (since !== undefined) {
+                const start = this.parseToInt(since / 1000);
+                request['start'] = start;
                 if (untilIsDefined) {
-                    const end = this.parseToInt(until / 1000);
-                    request['start'] = end - (duration * limitResolved) - 1;
-                    request['end'] = end;
+                    // Math.min (start + duration * limit - 1, untilSeconds) on integers
+                    const untilSeconds = this.parseToInt(until / 1000);
+                    request['end'] = ((untilSeconds - start) < duration * limit - 1) ? untilSeconds : this.sum(start, duration * limit - 1);
+                }
+                else {
+                    request['end'] = this.sum(start, duration * limit - 1);
+                }
+            }
+            else if (untilIsDefined) {
+                const untilEnd = this.parseToInt(until / 1000);
+                request['end'] = untilEnd;
+                request['start'] = untilEnd - (duration * limit) - 1;
+            }
+            request['limit'] = Math.min(limit, 1000); // min 1, max 1000
+        }
+        else {
+            if (since === undefined) {
+                request['limit'] = 1000;
+                if (untilIsDefined) {
+                    const untilEndDefault = this.parseToInt(until / 1000);
+                    request['start'] = untilEndDefault - (duration * 1000) - 1;
+                    request['end'] = untilEndDefault;
                 }
             }
             else {
-                const start = this.parseToInt(since / 1000);
-                request['start'] = start;
+                const startDefault = this.parseToInt(since / 1000);
+                request['start'] = startDefault;
                 if (untilIsDefined) {
                     request['end'] = this.parseToInt(until / 1000);
                 }
                 else {
-                    request['end'] = this.sum(start, duration * limitResolved - 1);
+                    request['end'] = this.sum(startDefault, duration * 1000 - 1);
                 }
-                request['limit'] = limitResolved;
+                request['limit'] = 1000;
             }
-        }
-        else {
-            if (since !== undefined) {
-                const start = this.parseToInt(since / 1000);
-                request['start'] = start;
-                let end = this.sum(start, duration * limitResolved - 1);
-                if (untilIsDefined) {
-                    end = Math.min(end, this.parseToInt(until / 1000));
-                }
-                request['end'] = end;
-            }
-            else if (untilIsDefined) {
-                const end = this.parseToInt(until / 1000);
-                request['end'] = end;
-                request['start'] = end - (duration * limitResolved) - 1;
-            }
-            request['limit'] = Math.min(limitResolved, 1000); // min 1, max 1000
         }
         const paramsOmitted = this.omit(params, 'until');
         const response = await this.publicGetOhlcPair(this.extend(request, paramsOmitted));
@@ -1408,19 +1421,16 @@ export default class bitstamp extends Exchange {
         const ohlc = this.safeList(data, 'ohlc', []);
         return this.parseOHLCVs(ohlc, market, timeframe, since, limitResolved);
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const finalResponse = response; // java req
         const result = {
             'info': finalResponse,
             'timestamp': undefined,
             'datetime': undefined,
         };
-        let responseList = response;
-        if (response === undefined) {
-            responseList = [];
-        }
-        for (let i = 0; i < responseList.length; i++) {
-            const currencyBalance = this.safeDict(responseList, i);
+        const responseEntries = this.toArray(response);
+        for (let i = 0; i < responseEntries.length; i++) {
+            const currencyBalance = this.safeDict(responseEntries, i);
             const currencyId = this.safeString(currencyBalance, 'currency');
             const currencyCode = this.safeCurrencyCode(currencyId);
             const account = this.account();
@@ -1457,7 +1467,7 @@ export default class bitstamp extends Exchange {
         //         ...
         //     ]
         //
-        return this.parseBalance(response);
+        return this.parseBalanceList(response);
     }
     /**
      * @method
@@ -1512,8 +1522,9 @@ export default class bitstamp extends Exchange {
     }
     parseTradingFees(fees) {
         const result = { 'info': fees };
-        for (let i = 0; i < fees.length; i++) {
-            const fee = this.parseTradingFee(fees[i]);
+        const feesList = this.toArray(fees);
+        for (let i = 0; i < feesList.length; i++) {
+            const fee = this.parseTradingFee(feesList[i]);
             const symbol = fee['symbol'];
             if (symbol !== undefined) {
                 result[symbol] = fee;
@@ -1628,10 +1639,10 @@ export default class bitstamp extends Exchange {
     parseDepositWithdrawFee(fee, currency = undefined) {
         const result = this.depositWithdrawFee(fee);
         const code = this.safeString(currency, 'code');
-        for (let j = 0; j < fee.length; j++) {
-            const networkEntry = this.safeDict(fee, j);
-            const networkId = this.safeString(networkEntry, 'network');
-            const networkCode = this.networkIdToCode(networkId, code);
+        const feeEntries = this.toArray(fee);
+        for (let j = 0; j < feeEntries.length; j++) {
+            const networkEntry = this.safeDict(feeEntries, j);
+            const networkCode = this.networkIdToCode(this.safeString(networkEntry, 'network'), code);
             const withdrawFee = this.safeNumber(networkEntry, 'fee');
             result['withdraw'] = {
                 'fee': withdrawFee,
@@ -1993,10 +2004,10 @@ export default class bitstamp extends Exchange {
         //         "timestamp": "1644406050"
         //     }
         //
-        const timestamp = this.safeIntegerProduct(contract, 'timestamp', 0.001);
+        const timestamp = this.safeIntegerProduct(contract, 'timestamp', 1000);
         return {
             'info': contract,
-            'symbol': undefined,
+            'symbol': this.safeSymbol(undefined, market),
             'fundingRate': this.safeNumber(contract, 'funding_rate'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -2154,11 +2165,11 @@ export default class bitstamp extends Exchange {
             amount = this.safeString(transaction, 'amount');
         }
         else if (currency !== undefined) {
-            amount = this.safeString(transaction, currency['id'], amount);
+            amount = this.safeString(transaction, currency['id']);
             feeCurrency = currency['code'];
         }
         else if ((code !== undefined) && (currencyId !== undefined)) {
-            amount = this.safeString(transaction, currencyId, amount);
+            amount = this.safeString(transaction, currencyId);
             feeCurrency = code;
         }
         if (amount !== undefined) {
@@ -2185,14 +2196,14 @@ export default class bitstamp extends Exchange {
             type = 'withdrawal';
         }
         let tag = undefined;
-        let address = this.safeString(transaction, 'address');
-        if (address !== undefined) {
+        let address = undefined;
+        const addressRaw = this.safeString(transaction, 'address');
+        if (addressRaw !== undefined) {
             // dt (destination tag) is embedded into the address field
-            const addressParts = address.split('?dt=');
-            const numParts = addressParts.length;
-            if (numParts > 1) {
-                address = addressParts[0];
-                tag = addressParts[1];
+            const addressParts = addressRaw.split('?dt=');
+            address = this.safeString(addressParts, 0);
+            if (addressParts.length > 1) {
+                tag = this.safeString(addressParts, 1);
             }
         }
         let fee = {
@@ -2388,8 +2399,9 @@ export default class bitstamp extends Exchange {
             let market = undefined;
             const keys = Object.keys(item);
             for (let i = 0; i < keys.length; i++) {
-                if (keys[i].indexOf('_') >= 0) {
-                    const marketId = keys[i].replace('_', '');
+                const currentKey = keys[i];
+                if (currentKey.indexOf('_') >= 0) {
+                    const marketId = currentKey.replace('_', '');
                     market = this.safeMarket(marketId, market);
                 }
             }
@@ -2398,7 +2410,7 @@ export default class bitstamp extends Exchange {
             if (market === undefined) {
                 market = this.getMarketFromTrade(item);
             }
-            const direction = (parsedTrade['side'] === 'buy') ? 'in' : 'out';
+            const direction = (this.safeString(parsedTrade, 'side') === 'buy') ? 'in' : 'out';
             return this.safeLedgerEntry({
                 'info': item,
                 'id': parsedTrade['id'],
@@ -2420,7 +2432,8 @@ export default class bitstamp extends Exchange {
         else {
             const parsedTransaction = this.parseTransaction(item, currency);
             let direction = undefined;
-            const hasTransactionCurrency = !('amount' in item) && ('currency' in parsedTransaction) && (parsedTransaction['currency'] !== undefined);
+            const transactionCurrency = this.safeString(parsedTransaction, 'currency');
+            const hasTransactionCurrency = !('amount' in item) && (transactionCurrency !== undefined);
             let currencyResolved = currency;
             if (hasTransactionCurrency) {
                 currencyResolved = this.currency(this.safeString(parsedTransaction, 'currency'));
@@ -2429,7 +2442,7 @@ export default class bitstamp extends Exchange {
                 const amount = this.safeString(item, 'amount');
                 direction = Precise.stringGt(amount, '0') ? 'in' : 'out';
             }
-            else if (('currency' in parsedTransaction) && parsedTransaction['currency'] !== undefined) {
+            else if (transactionCurrency !== undefined) {
                 const amount = this.safeString(item, this.safeString(currencyResolved, 'id'));
                 direction = Precise.stringGt(amount, '0') ? 'in' : 'out';
             }
@@ -2605,10 +2618,9 @@ export default class bitstamp extends Exchange {
         if (this.isFiat(code)) {
             throw new NotSupported(this.id + ' fiat fetchDepositAddress() for ' + code + ' is not supported!');
         }
-        const name = this.getCurrencyName(code);
         // the per-currency implicit methods (privatePostBtcAddress etc.) all route
         // through request(), called here directly to avoid dynamic dispatch
-        const response = await this.request(name + '_address/', 'private', 'POST', params);
+        const response = await this.request(this.getCurrencyName(code) + '_address/', ['private'], 'POST', params);
         const address = this.safeString(response, 'address');
         const tag = this.safeString2(response, 'memo_id', 'destination_tag');
         this.checkAddress(address);
@@ -2629,25 +2641,24 @@ export default class bitstamp extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
         // For fiat withdrawals please provide all required additional parameters in the 'params'
         // Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagWithdrawTag);
         const request = {
             'amount': amount,
         };
         let currency = undefined;
         let response = undefined;
         if (!this.isFiat(code)) {
-            const name = this.getCurrencyName(code);
             if (code === 'XRP') {
                 if (tagWithdrawTag !== undefined) {
                     request['destination_tag'] = tagWithdrawTag;
@@ -2661,7 +2672,7 @@ export default class bitstamp extends Exchange {
             request['address'] = address;
             // the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
             // route through request(), called here directly to avoid dynamic dispatch
-            response = await this.request(name + '_withdrawal/', 'private', 'POST', this.extend(request, paramsWithdrawTag));
+            response = await this.request(this.getCurrencyName(code) + '_withdrawal/', ['private'], 'POST', this.extend(request, paramsWithdrawTag));
         }
         else {
             currency = this.currency(code);
@@ -2691,7 +2702,7 @@ export default class bitstamp extends Exchange {
         const currency = this.currency(code);
         const request = {
             'amount': this.parseToNumeric(this.currencyToPrecision(code, amount)),
-            'currency': currency['id'].toUpperCase(),
+            'currency': this.safeStringUpper(currency, 'id'),
         };
         let response = undefined;
         if (fromAccount === 'main') {
@@ -2745,8 +2756,9 @@ export default class bitstamp extends Exchange {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const apiUrl = this.safeString(this.urls['api'], api);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
@@ -2754,22 +2766,22 @@ export default class bitstamp extends Exchange {
         url += this.version + '/';
         url += this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        const isPrivatePost = (api !== 'public') && (method === 'POST');
+        const isPrivatePost = (apiName !== 'public') && (method === 'POST');
         // an empty POST triggers an API0020 error, so empty requests send a dummy object
         // https://github.com/ccxt/ccxt/issues/6846
-        const emptyPostBody = this.urlencode({ 'foo': 'bar' });
-        let postBody = emptyPostBody;
-        if (Object.keys(query).length > 0) {
-            postBody = this.urlencode(query);
+        const queryString = this.urlencode(query);
+        let postBody = this.urlencode({ 'foo': 'bar' });
+        if (queryString !== '') {
+            postBody = queryString;
         }
-        let requestBody = body;
+        let requestBody = undefined;
         if (isPrivatePost) {
             requestBody = postBody;
         }
-        let privateHeaders = undefined;
-        if (api === 'public') {
-            if (Object.keys(query).length > 0) {
-                url += '?' + this.urlencode(query);
+        let privateHeaders = {};
+        if (apiName === 'public') {
+            if (queryString !== '') {
+                url += '?' + queryString;
             }
         }
         else {
@@ -2790,17 +2802,17 @@ export default class bitstamp extends Exchange {
                 privateHeaders['Content-Type'] = contentType;
             }
             let authBody = '';
-            if (requestBody !== undefined && requestBody !== '') {
-                authBody = requestBody;
+            if (isPrivatePost && postBody !== '') {
+                authBody = postBody;
             }
             const auth = xAuth + method + url.replace('https://', '') + contentType + xAuthNonce + xAuthTimestamp + xAuthVersion + authBody;
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             privateHeaders['X-Auth-Signature'] = signature;
         }
-        const requestHeaders = (api === 'public') ? headers : privateHeaders;
+        const requestHeaders = (apiName === 'public') ? undefined : privateHeaders;
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }
@@ -2839,13 +2851,13 @@ export default class bitstamp extends Exchange {
                     errors.push(all[i]);
                 }
             }
-            const code = this.safeString(response, 'code');
-            if (code === 'API0005') {
+            const codeError = this.safeString(response, 'code');
+            if (codeError === 'API0005') {
                 throw new AuthenticationError(this.id + ' invalid signature, use the uid for the main account if you have subaccounts');
             }
             const feedback = this.id + ' ' + body;
             for (let i = 0; i < errors.length; i++) {
-                const value = errors[i];
+                const value = this.safeString(errors, i);
                 this.throwExactlyMatchedException(this.exceptions['exact'], value, feedback);
                 this.throwBroadlyMatchedException(this.exceptions['broad'], value, feedback);
             }

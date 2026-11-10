@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.84'
+__version__ = '4.5.92'
 
 # -----------------------------------------------------------------------------
 
@@ -434,7 +434,7 @@ class BaseExchange(SyncExchange):
         self.clients = self.clients or {}
         self.ws_dial_backoff = getattr(self, 'ws_dial_backoff', None) or {}
         if url not in self.clients:
-            on_message = self.handle_message
+            on_message = self.route_message
             on_error = self.on_error
             on_close = self.on_close
             on_connected = self.on_connected
@@ -462,6 +462,26 @@ class BaseExchange(SyncExchange):
 
     def handle_message(self, client, message):
         raise NotSupported(self.id + '.handle_message() not implemented yet')
+
+    # a venue overrides the handler that takes the frame shape it receives, see route_message
+    def handle_text_message(self, client, message):
+        pass
+
+    def handle_list_message(self, client, message):
+        pass
+
+    def handle_binary_message(self, client, message):
+        pass
+
+    def route_message(self, client, message):
+        # hands a parsed frame to the handler that takes its shape: text, json array, raw bytes or json object
+        if isinstance(message, str):
+            return self.handle_text_message(client, message)
+        if isinstance(message, list):
+            return self.handle_list_message(client, message)
+        if isinstance(message, (bytes, bytearray)):
+            return self.handle_binary_message(client, message)
+        return self.handle_message(client, message)
 
     def watch_multiple(self, url, message_hashes, message=None, subscribe_hashes=None, subscription=None):
         # base exchange self.open starts the aiohttp Session in an async context
@@ -640,10 +660,13 @@ class BaseExchange(SyncExchange):
         # same broken state - previously the except-branch invoked load_order_book
         # again, recursing endlessly when the snapshot request kept failing, see
         # https://github.com/ccxt/ccxt/pull/24224 and https://github.com/ccxt/ccxt/issues/14567
-        # instead, reject the watcher and drop the connection and the cached
+        # instead, reject the watcher, close and drop the connection and the cached
         # orderbook, so the next watch_order_book() call resubscribes cleanly
         client.reject(error, messageHash)
-        if client.url in self.clients:
+        if client.error is None:
+            client.error = error  # on_close must not treat this as a server disconnect
+        asyncio.ensure_future(client.close())
+        if self.clients.get(client.url) is client:
             del self.clients[client.url]
         self.orderbooks[symbol] = self.order_book()  # clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753
 
@@ -819,7 +842,7 @@ class BaseExchange(SyncExchange):
     async def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params: dict = {}):
         raise NotSupported(self.id + ' transfer() is not supported yet')
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}):
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}):
         raise NotSupported(self.id + ' withdraw() is not supported yet')
 
     async def create_deposit_address(self, code: str, params: dict = {}):
@@ -930,7 +953,6 @@ class BaseExchange(SyncExchange):
         raise NotSupported(self.id + ' watchOHLCV() is not supported yet')
 
     async def fetch_web_endpoint(self, method: str, endpointMethod: object, returnAsJson: object, startRegex: Str = None, endRegex: Str = None):
-        errorMessage = ''
         options = self.safe_value(self.options, method, {})
         muteOnFailure = self.safe_bool(options, 'webApiMuteFailure', True)
         try:
@@ -939,16 +961,14 @@ class BaseExchange(SyncExchange):
                 return None
             maxRetries = self.safe_integer(options, 'webApiRetries', 10)
             response = None
-            retry = 0
             shouldBreak = False
-            while(retry < maxRetries):
+            for retry in range(0, maxRetries):
                 try:
                     response = await getattr(self, endpointMethod)({})
                     shouldBreak = True
                     break
                 except Exception as e:
-                    retry = retry + 1
-                    if retry == maxRetries:
+                    if retry + 1 >= maxRetries:
                         raise e
                 if shouldBreak:
                     break  # this is needed because of GO
@@ -972,11 +992,9 @@ class BaseExchange(SyncExchange):
             else:
                 return content
         except Exception as e:
-            errorMessage = self.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.'
-        if muteOnFailure is True:
-            return None
-        else:
-            raise BadResponse(errorMessage)
+            if not muteOnFailure:
+                raise BadResponse(self.id + ' ' + method + '() failed to fetch correct data from website. Probably webpage markup has been changed, breaking the page custom parser.')
+        return None
 
     async def load_trading_limits(self, symbols: Strings = None, reload=False, params: dict = {}):
         if self.has['fetchTradingLimits'] is not None and self.has['fetchTradingLimits'] is not False:
@@ -992,7 +1010,7 @@ class BaseExchange(SyncExchange):
                 self.options['limitsLoaded'] = self.milliseconds()
         return self.markets
 
-    async def fetch2(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
+    async def fetch2(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, config: dict = {}):
         if self.enableRateLimit:
             cost = self.calculate_rate_limiter_cost(api, method, path, params, config)
             await self.throttle(cost)
@@ -1009,7 +1027,7 @@ class BaseExchange(SyncExchange):
                 fetchData = {'request': None, 'response': {'body': None}, 'error': None}
             try:
                 self.set_last_rest_request_timestamp()
-                request = self.sign(path, api, method, paramsMaxRetriesOnFailureDelay, headers, body)
+                request = self.sign(path, api, method, paramsMaxRetriesOnFailureDelay)
                 if fetchData is not None:
                     fetchData['request'] = request
                 self.set_last_request(request)
@@ -1035,8 +1053,8 @@ class BaseExchange(SyncExchange):
                     raise e
         return None  # this line is never reached, but exists for c# value return requirement
 
-    async def request(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
-        return await self.fetch2(path, api, method, params, headers, body, config)
+    async def request(self, path: str, api: list[str] = ['public'], method='GET', params: dict = {}, config: dict = {}):
+        return await self.fetch2(path, api, method, params, config)
 
     async def load_accounts(self, reload=False, params: dict = {}):
         if reload:
@@ -1067,7 +1085,7 @@ class BaseExchange(SyncExchange):
     async def watch_balance(self, params: dict = {}):
         raise NotSupported(self.id + ' watchBalance() is not supported yet')
 
-    async def fetch_partial_balance(self, part: object, params: dict = {}):
+    async def fetch_partial_balance(self, part: str, params: dict = {}):
         balance = await self.fetch_balance(params)
         return balance[part]
 
@@ -1098,7 +1116,7 @@ class BaseExchange(SyncExchange):
         if self.has['fetchDepositWithdrawFees'] is None or self.has['fetchDepositWithdrawFees'] is False:
             raise NotSupported(self.id + ' fetchDepositWithdrawFee() is not supported yet')
         fees = await self.fetch_deposit_withdraw_fees([code], params)
-        return self.safe_value(fees, code)
+        return self.safe_dict(fees, code)
 
     async def fetch_cross_borrow_rate(self, code: str, params={}):
         await self.load_markets()
@@ -1246,12 +1264,11 @@ class BaseExchange(SyncExchange):
 
     async def fetch_deposit_address(self, code: str, params: dict = {}):
         if self.has['fetchDepositAddresses'] is not None and self.has['fetchDepositAddresses'] is not False:
-            depositAddresses = await self.fetch_deposit_addresses([code], params)
-            depositAddress = self.safe_value(depositAddresses, code)
-            if depositAddress is None:
+            depositAddressesList = await self.fetch_deposit_addresses([code], params)
+            depositAddresses = self.index_by(depositAddressesList, 'currency')
+            if self.safe_dict(depositAddresses, code) is None:
                 raise InvalidAddress(self.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website')
-            else:
-                return depositAddress
+            return self.safe_dict(depositAddresses, code)
         elif self.has['fetchDepositAddressesByNetwork'] is not None and self.has['fetchDepositAddressesByNetwork'] is not False:
             network = self.safe_string(params, 'network')
             paramsOmitted = self.omit(params, 'network')
@@ -1274,15 +1291,16 @@ class BaseExchange(SyncExchange):
         if serverTime is None:
             raise ExchangeError(self.id + ' loadTimeDifference() missing serverTime')
         self.options['timeDifference'] = after - serverTime
-        return self.options['timeDifference']
+        return self.parse_to_int(self.options['timeDifference'])
 
     async def fetch_market_leverage_tiers(self, symbol: str, params: dict = {}):
         if self.has['fetchLeverageTiers'] is not None and self.has['fetchLeverageTiers'] is not False:
             market = self.market(symbol)
-            if market['contract'] is not True:
+            if not self.safe_bool(market, 'contract', False):
                 raise BadSymbol(self.id + ' fetchMarketLeverageTiers() supports contract markets only')
             tiers = await self.fetch_leverage_tiers([symbol])
-            return self.safe_value(tiers, symbol)
+            marketTiers = self.safe_list(tiers, symbol)
+            return marketTiers
         else:
             raise NotSupported(self.id + ' fetchMarketLeverageTiers() is not supported yet')
 
@@ -1306,7 +1324,7 @@ class BaseExchange(SyncExchange):
             await self.load_markets()
             market = self.market(symbol)
             symbolResolved = market['symbol']
-            if market['contract'] is not True:
+            if not self.safe_bool(market, 'contract', False):
                 raise BadSymbol(self.id + ' fetchFundingRate() supports contract markets only')
             rates = await self.fetch_funding_rates([symbolResolved], params)
             rate = self.safe_dict(rates, symbolResolved)
@@ -1322,7 +1340,7 @@ class BaseExchange(SyncExchange):
             await self.load_markets()
             market = self.market(symbol)
             symbolResolved = market['symbol']
-            if market['contract'] is not True:
+            if not self.safe_bool(market, 'contract', False):
                 raise BadSymbol(self.id + ' fetchFundingInterval() supports contract markets only')
             rates = await self.fetch_funding_intervals([symbolResolved], params)
             rate = self.safe_dict(rates, symbolResolved)
@@ -1403,24 +1421,21 @@ class BaseExchange(SyncExchange):
             raise NotSupported(self.id + ' fetchTransactions () is not supported yet')
 
     async def fetch_paginated_call_dynamic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}, maxEntriesPerRequest: Int = None, removeRepeated=True):
-        maxCalls = 10
-        maxCallsPaginationCalls, paramsPaginationCalls = self.handle_option_integer_and_params(params, method, 'paginationCalls', maxCalls)
-        maxRetries = 3
-        maxRetriesOption, paramsMaxRetries = self.handle_option_integer_and_params(paramsPaginationCalls, method, 'maxRetries', maxRetries)
-        paginationDirection, paramsPaginationDirection = self.handle_option_and_params(paramsMaxRetries, method, 'paginationDirection', 'backward')
+        maxCallsPaginationCalls, paramsPaginationCalls = self.handle_option_integer_and_params(params, method, 'paginationCalls', 10)
+        maxRetriesOption, paramsMaxRetries = self.handle_option_integer_and_params(paramsPaginationCalls, method, 'maxRetries', 3)
+        removeRepeatedOption, paramsRemoveRepeated = self.handle_option_and_params(paramsMaxRetries, method, 'removeRepeated', removeRepeated)
+        paginationDirection, paramsPaginationDirection = self.handle_option_string_and_params(paramsRemoveRepeated, method, 'paginationDirection', 'backward')
         paginationTimestamp = None
-        removeRepeatedOption, paramsRemoveRepeated = self.handle_option_and_params(paramsPaginationDirection, method, 'removeRepeated', removeRepeated)
-        calls = 0
         result = []
         errors = 0
-        until = self.safe_integer_n(paramsRemoveRepeated, ['until', 'untill', 'till'])  # do not omit it from params here
-        maxEntriesPerRequestOption, paramsMaxEntriesPerRequest = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, paramsRemoveRepeated)
+        until = self.safe_integer_n(paramsPaginationDirection, ['until', 'untill', 'till'])  # do not omit it from params here
+        maxEntriesPerRequestOption, paramsMaxEntriesPerRequest = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, paramsPaginationDirection)
         if (paginationDirection == 'forward'):
             if since is None:
                 raise ArgumentsRequired(self.id + ' pagination requires a since argument when paginationDirection set to forward')
             paginationTimestamp = since
-        while((calls < maxCallsPaginationCalls)):
-            calls += 1
+        shouldBreak = False
+        for i in range(0, maxCallsPaginationCalls):
             try:
                 if paginationDirection == 'backward':
                     # do it backwards, starting from the last
@@ -1430,45 +1445,53 @@ class BaseExchange(SyncExchange):
                     response = await getattr(self, method)(symbol, None, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
                     responseLength = len(response)
                     if self.verbose:
-                        backwardMessage = 'Dynamic pagination call ' + self.number_to_string(calls) + ' method ' + method + ' response length ' + self.number_to_string(responseLength)
+                        backwardMessage = 'Dynamic pagination call ' + self.number_to_string(i + 1) + ' method ' + method + ' response length ' + str(responseLength)
                         if paginationTimestamp is not None:
                             backwardMessage += ' timestamp ' + self.number_to_string(paginationTimestamp)
                         self.log(backwardMessage)
                     if responseLength == 0:
+                        shouldBreak = True
                         break
                     errors = 0
                     result = self.array_concat(result, response)
-                    firstElement = self.safe_value(response, 0)
+                    firstElement = self.safe_dict(response, 0)
                     paginationTimestamp = self.safe_integer_2(firstElement, 'timestamp', 0)
                     if paginationTimestamp is None:
+                        shouldBreak = True
                         break
                     if (since is not None) and (paginationTimestamp <= since):
+                        shouldBreak = True
                         break
                 else:
                     # do it forwards, starting from the since
                     response = await getattr(self, method)(symbol, paginationTimestamp, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
                     responseLength = len(response)
                     if self.verbose:
-                        forwardMessage = 'Dynamic pagination call ' + self.number_to_string(calls) + ' method ' + method + ' response length ' + self.number_to_string(responseLength)
+                        forwardMessage = 'Dynamic pagination call ' + self.number_to_string(i + 1) + ' method ' + method + ' response length ' + str(responseLength)
                         if paginationTimestamp is not None:
                             forwardMessage += ' timestamp ' + self.number_to_string(paginationTimestamp)
                         self.log(forwardMessage)
                     if responseLength == 0:
+                        shouldBreak = True
                         break
                     errors = 0
                     result = self.array_concat(result, response)
-                    last = self.safe_value(response, responseLength - 1)
+                    last = self.safe_dict(response, responseLength - 1)
                     lastTimestamp = self.safe_integer(last, 'timestamp', 0)
                     if lastTimestamp is None:
+                        shouldBreak = True
                         break
                     nextPaginationTimestamp = lastTimestamp + 1
                     paginationTimestamp = nextPaginationTimestamp
                     if (until is not None) and (nextPaginationTimestamp >= until):
+                        shouldBreak = True
                         break
             except Exception as e:
                 errors += 1
                 if errors > maxRetriesOption:
                     raise e
+            if shouldBreak:
+                break  # go turns a break inside try into a panic that only ends the iteration
         uniqueResults = result
         if removeRepeatedOption:
             uniqueResults = self.remove_repeated_elements_from_array(result)
@@ -1497,6 +1520,7 @@ class BaseExchange(SyncExchange):
     async def fetch_paginated_call_deterministic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params: dict = {}, maxEntriesPerRequest: Int = None):
         maxCalls = 10
         maxCallsPaginationCalls, paramsPaginationCalls = self.handle_option_integer_and_params(params, method, 'paginationCalls', maxCalls)
+        maxCallsLimit = self.parse_to_int(maxCallsPaginationCalls)
         maxEntriesPerRequestOption, paramsMaxEntriesPerRequest = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, paramsPaginationCalls)
         # paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
         # pagination always walks forward internally, so strip it here to avoid leaking an
@@ -1506,9 +1530,9 @@ class BaseExchange(SyncExchange):
         tasks = []
         time = self.parse_timeframe(timeframe) * 1000
         maxEntriesPerRequestValue = self.require_value(maxEntriesPerRequestOption, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required')
-        step = time * maxEntriesPerRequestValue
+        step = time * self.parse_to_int(maxEntriesPerRequestValue)
         until = self.safe_integer_2(paramsOmitted, 'until', 'till')  # do not omit it here
-        currentSince = current - (maxCallsPaginationCalls * step) - 1
+        currentSince = current - (maxCallsLimit * step) - 1
         if since is not None:
             if until is not None:
                 # the recent-window floor below would jump past a fully-historical [ since, until ]
@@ -1524,15 +1548,16 @@ class BaseExchange(SyncExchange):
             if since is None:
                 raise ArgumentsRequired(self.id + ' fetchPaginatedCallDeterministic() requires a since argument when until is set')
             requiredCalls = int(math.ceil((until - since)) / step)
-            if requiredCalls > maxCallsPaginationCalls:
-                raise BadRequest(self.id + ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' + str(maxCallsPaginationCalls) + ' required calls is ' + str(requiredCalls))
-        for i in range(0, maxCallsPaginationCalls):
+            if requiredCalls > maxCallsLimit:
+                raise BadRequest(self.id + ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' + str(maxCallsLimit) + ' required calls is ' + str(requiredCalls))
+        for i in range(0, maxCallsLimit):
             if (until is not None) and (currentSince >= until):
                 break
             if currentSince >= current:
                 break
             tasks.append(self.safe_deterministic_call(method, symbol, currentSince, maxEntriesPerRequestValue, timeframe, paramsOmitted))
-            currentSince = currentSince + step - 1
+            # this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
+            currentSince = self.sum(currentSince, step) - 1
         results = await asyncio.gather(*tasks)
         result = []
         for i in range(0, len(results)):
@@ -1548,16 +1573,16 @@ class BaseExchange(SyncExchange):
         maxRetriesOption, paramsMaxRetries = self.handle_option_integer_and_params(paramsPaginationCalls, method, 'maxRetries', maxRetries)
         maxEntriesPerRequestOption, paramsMaxEntriesPerRequest = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, paramsMaxRetries)
         cursorValue = None
-        i = 0
         errors = 0
         result = []
         timeframe = self.safe_string(paramsMaxEntriesPerRequest, 'timeframe')
         paramsOmitted = self.omit(paramsMaxEntriesPerRequest, 'timeframe')  # reading the timeframe from the method arguments to avoid changing the signature
-        while(i < maxCallsPaginationCalls):
+        shouldBreak = False
+        for i in range(0, maxCallsPaginationCalls):
             try:
                 if cursorValue is not None:
                     if cursorIncrement is not None:
-                        cursorValue = self.parse_to_int(cursorValue) + cursorIncrement
+                        cursorValue = self.sum(self.parse_to_int(cursorValue), cursorIncrement)
                     paramsOmitted[cursorSent] = cursorValue
                 response = None
                 if method == 'fetchAccounts':
@@ -1578,37 +1603,41 @@ class BaseExchange(SyncExchange):
                     raise NullResponse(self.id + ' fetchPaginatedCallCursor() returned empty response')
                 responseLength = len(response)
                 if self.verbose:
-                    cursorString = '' if (cursorValue is None) else cursorValue
-                    iteration = (i + 1)
-                    cursorMessage = 'Cursor pagination call ' + str(iteration) + ' method ' + method + ' response length ' + str(responseLength) + ' cursor ' + cursorString
+                    cursorString = ''
+                    if cursorValue is not None:
+                        cursorString = str(cursorValue)
+                    cursorMessage = 'Cursor pagination call ' + (i + str(1)) + ' method ' + method + ' response length ' + str(responseLength) + ' cursor ' + cursorString
                     self.log(cursorMessage)
                 if responseLength == 0:
+                    shouldBreak = True
                     break
-                if response is not None:
-                    result = self.array_concat(result, response)
+                result = self.array_concat(result, response)
                 last = self.safe_dict(response, responseLength - 1)
                 # cursorValue = this.safeValue (last['info'], cursorReceived);
                 cursorValue = None  # search for the cursor
+                # guard instead of break: inside a try block go turns break into a panic that ends the whole iteration
                 for j in range(0, responseLength):
-                    index = responseLength - j - 1
-                    entry = self.safe_dict(response, index)
-                    info = self.safe_dict(entry, 'info')
-                    cursor = None if (cursorReceived is None) else self.safe_value(info, cursorReceived)
-                    if cursor is not None:
-                        cursorValue = cursor
-                        break
+                    if cursorValue is None:
+                        index = responseLength - j - 1
+                        entry = self.safe_dict(response, index)
+                        info = self.safe_dict(entry, 'info')
+                        if cursorReceived is not None:
+                            cursorValue = self.safe_value(info, cursorReceived)
                 if cursorValue is None:
+                    shouldBreak = True
                     break
                 lastTimestamp = self.safe_integer(last, 'timestamp')
                 if since is None:
                     raise ArgumentsRequired(self.id + ' fetchPaginatedCallCursor() requires a since argument')
                 if lastTimestamp is not None and lastTimestamp < since:
+                    shouldBreak = True
                     break
             except Exception as e:
                 errors += 1
                 if errors > maxRetriesOption:
                     raise e
-            i += 1
+            if shouldBreak:
+                break  # go turns a break inside try into a panic that only ends the iteration
         sorted = self.sort_cursor_paginated_result(result)
         key = 0 if (method == 'fetchOHLCV') else 'timestamp'
         return self.filter_by_since_limit(sorted, since, limit, key)
@@ -1616,33 +1645,34 @@ class BaseExchange(SyncExchange):
     async def fetch_paginated_call_incremental(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}, pageKey: Str = None, maxEntriesPerRequest: Int = None):
         maxCalls = 10
         maxCallsPaginationCalls, paramsPaginationCalls = self.handle_option_integer_and_params(params, method, 'paginationCalls', maxCalls)
+        maxCallsLimit = self.parse_to_int(maxCallsPaginationCalls)
         maxRetries = 3
         maxRetriesOption, paramsMaxRetries = self.handle_option_integer_and_params(paramsPaginationCalls, method, 'maxRetries', maxRetries)
         maxEntriesPerRequestOption, paramsMaxEntriesPerRequest = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, paramsMaxRetries)
-        i = 0
         errors = 0
         result = []
-        while(i < maxCallsPaginationCalls):
+        shouldBreak = False
+        for i in range(0, maxCallsLimit):
             try:
                 paramsMaxEntriesPerRequest[pageKey] = i + 1
                 response = await getattr(self, method)(symbol, since, maxEntriesPerRequestOption, paramsMaxEntriesPerRequest)
                 errors = 0
                 responseLength = len(response)
                 if self.verbose:
-                    iteration = (i + str(1))
-                    incrementalMessage = 'Incremental pagination call ' + iteration + ' method ' + method + ' response length ' + str(responseLength)
+                    iteration = (i + 1)
+                    incrementalMessage = 'Incremental pagination call ' + str(iteration) + ' method ' + method + ' response length ' + str(responseLength)
                     self.log(incrementalMessage)
                 if responseLength == 0:
+                    shouldBreak = True
                     break
                 result = self.array_concat(result, response)
             except Exception as e:
                 errors += 1
                 if errors > maxRetriesOption:
                     raise e
-            i += 1
-        sorted = self.sort_cursor_paginated_result(result)
-        key = 0 if (method == 'fetchOHLCV') else 'timestamp'
-        return self.filter_by_since_limit(sorted, since, limit, key)
+            if shouldBreak:
+                break  # go turns a break inside try into a panic that only ends the iteration
+        return self.filter_by_since_limit(self.sort_cursor_paginated_result(result), since, limit, 0 if (method == 'fetchOHLCV') else 'timestamp')
 
     async def load_markets_and_sign_in(self):
         await asyncio.gather(*[self.load_markets(), self.sign_in()])
@@ -1678,14 +1708,14 @@ class BaseExchange(SyncExchange):
         """
         raise NotSupported(self.id + ' unWatchOHLCV () is not supported yet')
 
-    async def withdraw_ws(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}):
+    async def withdraw_ws(self, code: str, amount: float, address: str, params: dict = {}):
         """
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         raise NotSupported(self.id + ' withdrawWs () is not supported yet')
@@ -1746,8 +1776,7 @@ class Exchange(BaseExchange):
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
         if self.has['fetchPositionsHistory'] is not None and self.has['fetchPositionsHistory'] is not False:
-            positions = await self.fetchPositionsHistory([symbol], since, limit, params)
-            return positions
+            return await self.fetchPositionsHistory([symbol], since, limit, params)
         else:
             raise NotSupported(self.id + ' fetchPositionHistory () is not supported yet')
 
@@ -2215,10 +2244,10 @@ class Exchange(BaseExchange):
         # TODO: TypeScript: change method signature by replacing
         # Promise<string> with Promise<Order['status']>.
         order = await self.fetchOrder(id, symbol, params)
-        return order['status']
+        return self.safe_string(order, 'status')
 
     async def fetch_unified_order(self, order: object, params: dict = {}):
-        return await self.fetchOrder(self.safe_string(order, 'id'), self.safe_string(order, 'symbol'), params)
+        return await self.fetchOrder(self.safe_string(order, 'id', ''), self.safe_string(order, 'symbol'), params)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
@@ -2422,7 +2451,7 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' cancelAllOrders() is not supported yet')
 
     async def cancel_unified_order(self, order: Order, params: dict = {}):
-        return self.cancel_order(self.safe_string(order, 'id'), self.safe_string(order, 'symbol'), params)
+        return await self.cancel_order(self.safe_string(order, 'id'), self.safe_string(order, 'symbol'), params)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
         if (self.has['fetchOpenOrders'] is not None and self.has['fetchOpenOrders'] is not False) and (self.has['fetchClosedOrders'] is not None and self.has['fetchClosedOrders'] is not False):

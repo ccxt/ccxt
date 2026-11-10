@@ -279,12 +279,10 @@ export default class hollaex extends Exchange {
             },
             'options': {
                 // how many seconds before the authenticated request expires
-                'api-expires': this.parseToInt(this.timeout / 1000),
+                'api-expires': this.parseToInt(this.parseToInt(this.timeout) / 1000),
                 'networks': {
                     'BTC': 'btc',
-                    'ETH': 'eth',
                     'ERC20': 'eth',
-                    'TRX': 'trx',
                     'TRC20': 'trx',
                     'XRP': 'xrp',
                     'XLM': 'xlm',
@@ -364,13 +362,13 @@ export default class hollaex extends Exchange {
             const market = this.safeDict(pairs, key);
             const baseId = this.safeString(market, 'pair_base');
             const quoteId = this.safeString(market, 'pair_2');
-            const base = this.commonCurrencyCode(baseId.toUpperCase());
-            const quote = this.commonCurrencyCode(quoteId.toUpperCase());
+            const baseCode = this.commonCurrencyCode(baseId.toUpperCase());
+            const quoteCode = this.commonCurrencyCode(quoteId.toUpperCase());
             result.push({
                 'id': this.safeString(market, 'name'),
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
+                'symbol': baseCode + '/' + quoteCode,
+                'base': baseCode,
+                'quote': quoteCode,
                 'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
@@ -694,7 +692,7 @@ export default class hollaex extends Exchange {
         const keys = Object.keys(tickers);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const ticker = tickers[key];
+            const ticker = this.safeValue(tickers, key);
             const marketId = this.safeString(ticker, 'symbol', key);
             const market = this.safeMarket(marketId, undefined, '-');
             const symbol = market['symbol'];
@@ -896,8 +894,9 @@ export default class hollaex extends Exchange {
         const makerFees = this.safeDict(fees, 'maker', {});
         const takerFees = this.safeDict(fees, 'taker', {});
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             const market = this.market(symbol);
             const makerString = this.safeString(makerFees, market['id']);
             const takerString = this.safeString(takerFees, market['id']);
@@ -940,17 +939,16 @@ export default class hollaex extends Exchange {
         if (paginateOption) {
             return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
         }
-        let until = this.safeInteger(paramsPaginate, 'until');
-        const timeDelta = this.parseTimeframe(timeframe) * maxLimit * 1000;
-        let start = since;
         const now = this.milliseconds();
-        if (until === undefined) {
-            until = now; // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
+        // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
+        const until = this.safeInteger(paramsPaginate, 'until', now);
+        const timeDelta = this.parseTimeframe(timeframe) * maxLimit * 1000;
+        if (since === undefined) {
+            request['from'] = this.parseToInt((until - timeDelta) / 1000); // convert to seconds
         }
-        if (start === undefined) {
-            start = until - timeDelta;
+        else {
+            request['from'] = this.parseToInt(since / 1000); // convert to seconds
         }
-        request['from'] = this.parseToInt(start / 1000); // convert to seconds
         request['to'] = this.parseToInt(until / 1000); // convert to seconds
         const paramsOmitted = this.omit(paramsPaginate, 'until');
         const response = await this.publicGetChart(this.extend(request, paramsOmitted));
@@ -997,13 +995,13 @@ export default class hollaex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
         };
-        const currenciesById = this.currencies_by_id;
-        if (currenciesById === undefined) {
+        if (this.currencies_by_id === undefined) {
             throw new ExchangeError(this.id + ' currencies not loaded');
         }
+        const currenciesById = this.currencies_by_id;
         const currencyIds = Object.keys(currenciesById);
         for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
+            const currencyId = this.safeString(currencyIds, i, '');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
             account['free'] = this.safeString(response, currencyId + '_available');
@@ -1159,11 +1157,10 @@ export default class hollaex extends Exchange {
         //                     "exchange_id": 176
         //                 }
         //             }
-        const order = response;
-        if (order === undefined) {
+        if (response === undefined) {
             throw new OrderNotFound(this.id + ' fetchOrder() could not find order id ' + id);
         }
-        return this.parseOrder(order);
+        return this.parseOrder(response);
     }
     /**
      * @method
@@ -1525,11 +1522,11 @@ export default class hollaex extends Exchange {
         this.checkAddress(address);
         const currencyId = this.safeString(depositAddress, 'currency');
         const currencyResolved = this.safeCurrency(currencyId, currency);
-        const network = this.safeString(depositAddress, 'network');
+        const networkId = this.safeString(depositAddress, 'network');
         return {
             'info': depositAddress,
             'currency': currencyResolved['code'],
-            'network': network,
+            'network': this.networkIdToCode(networkId, currencyResolved['code']),
             'address': address,
             'tag': tag,
         };
@@ -1601,7 +1598,7 @@ export default class hollaex extends Exchange {
             addresses = wallet;
         }
         else {
-            addresses = this.filterBy(wallet, 'network', network);
+            addresses = this.filterBy(wallet, 'network', this.networkCodeToId(network));
         }
         return this.parseDepositAddresses(addresses, codes, false);
     }
@@ -1832,16 +1829,17 @@ export default class hollaex extends Exchange {
         }
         const currencyId = this.safeString(transaction, 'currency');
         const currencyResolved = this.safeCurrency(currencyId, currency);
-        let status = this.safeValue(transaction, 'status');
-        const dismissed = this.safeBool(transaction, 'dismissed');
-        const rejected = this.safeBool(transaction, 'rejected');
-        if (status === true) {
+        const completed = this.safeBool(transaction, 'status', false);
+        const dismissed = this.safeBool(transaction, 'dismissed', false);
+        const rejected = this.safeBool(transaction, 'rejected', false);
+        let status = undefined;
+        if (completed) {
             status = 'ok';
         }
-        else if (dismissed === true) {
+        else if (dismissed) {
             status = 'canceled';
         }
-        else if (rejected === true) {
+        else if (rejected) {
             status = 'failed';
         }
         else {
@@ -1888,13 +1886,13 @@ export default class hollaex extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        const [tagWithdrawTag, paramsWithdrawTag] = this.handleWithdrawTagAndParams(tag, params);
-        this.checkAddress(address);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -1907,14 +1905,13 @@ export default class hollaex extends Exchange {
         if (network === undefined) {
             throw new ArgumentsRequired(this.id + ' withdraw() requires a network parameter');
         }
-        const paramsOmitted = this.omit(paramsWithdrawTag, 'network');
         const request = {
             'currency': currency['id'],
             'amount': amount,
             'address': addressWithTag,
             'network': this.networkCodeToId(network, code),
         };
-        const response = await this.privatePostUserWithdrawal(this.extend(request, paramsOmitted));
+        const response = await this.privatePostUserWithdrawal(this.extend(request, this.omit(paramsWithdrawTag, 'network')));
         //
         //     {
         //         "message": "Withdrawal request is in the queue and will be processed.",
@@ -1968,10 +1965,10 @@ export default class hollaex extends Exchange {
                 'fee': undefined,
                 'percentage': undefined,
             },
-            'networks': {},
         };
-        const allowWithdrawal = this.safeBool(fee, 'allow_withdrawal');
-        if (allowWithdrawal === true) {
+        const networks = {};
+        const allowWithdrawal = this.safeBool(fee, 'allow_withdrawal', false);
+        if (allowWithdrawal) {
             result['withdraw'] = { 'fee': this.safeNumber(fee, 'withdrawal_fee'), 'percentage': false };
         }
         const withdrawalFees = this.safeDict(fee, 'withdrawal_fees');
@@ -1989,12 +1986,13 @@ export default class hollaex extends Exchange {
                 }
                 const networkCodeUpper = networkCode.toUpperCase(); // default to the upper case network code
                 const withdrawalFee = this.safeNumber(value, 'value');
-                result['networks'][networkCodeUpper] = {
+                networks[networkCodeUpper] = {
                     'deposit': undefined,
                     'withdraw': withdrawalFee,
                 };
             }
         }
+        result['networks'] = networks;
         return result;
     }
     /**
@@ -2046,7 +2044,7 @@ export default class hollaex extends Exchange {
         const coins = this.safeDict(response, 'coins', {});
         return this.parseDepositWithdrawFees(coins, codes, 'symbol');
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const query = this.omit(params, this.extractParams(path));
         let requestPath = '/' + this.version + '/' + this.implodeParams(path, params);
         if ((method === 'GET') || (method === 'DELETE')) {
@@ -2061,11 +2059,12 @@ export default class hollaex extends Exchange {
         const url = apiUrl + requestPath;
         let requestBody = undefined;
         let requestHeaders = undefined;
-        if (api === 'private') {
+        if (api[0] === 'private') {
             this.checkRequiredCredentials();
-            const defaultExpires = this.safeInteger2(this.options, 'api-expires', 'expires', this.parseToInt(this.timeout / 1000));
+            const timeoutMs = this.parseToInt(this.timeout);
+            const defaultExpires = this.safeInteger2(this.options, 'api-expires', 'expires', this.parseToInt(timeoutMs / 1000));
             const expires = this.sum(this.seconds(), defaultExpires);
-            const expiresString = expires.toString();
+            const expiresString = this.numberToString(expires);
             let auth = method + requestPath + expiresString;
             requestHeaders = {
                 'api-key': this.apiKey,
@@ -2081,8 +2080,8 @@ export default class hollaex extends Exchange {
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             requestHeaders['api-signature'] = signature;
         }
-        const bodyResult = (requestBody === undefined) ? body : requestBody;
-        const headersResult = (requestHeaders === undefined) ? headers : requestHeaders;
+        const bodyResult = requestBody;
+        const headersResult = requestHeaders;
         return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
@@ -2090,7 +2089,8 @@ export default class hollaex extends Exchange {
         if (response === undefined) {
             return undefined;
         }
-        if ((code >= 400) && (code <= 503)) {
+        const statusCode = this.parseToInt(code);
+        if ((statusCode >= 400) && (statusCode <= 503)) {
             //
             //  { "message": "Invalid token" }
             //

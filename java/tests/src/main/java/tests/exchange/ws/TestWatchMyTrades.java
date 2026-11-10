@@ -17,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestWatchMyTrades extends BaseTest {
-    public CompletableFuture<Object> testWatchMyTrades(Exchange exchange, Object skippedProperties, Object symbol)
+    public CompletableFuture<Object> testWatchMyTrades(Exchange exchange, Object skippedProperties, String symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -31,7 +31,7 @@ public class TestWatchMyTrades extends BaseTest {
             Object response = new ArrayList<Object>(Arrays.asList());
             try
             {
-                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchMyTrades", new Object[]{Helpers.toStringArg(symbol), (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
+                response = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "watchMyTrades", new Object[]{symbol, (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
             } catch(Exception e)
             {
                 if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
@@ -42,15 +42,15 @@ public class TestWatchMyTrades extends BaseTest {
                 // continue;
                 success = false;
             }
-            if (java.util.Objects.equals(success, true))
+            if (Boolean.TRUE.equals(success))
             {
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
                 now = exchange.milliseconds();
                 for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
-                    TestTrade.testTrade(exchange, skippedProperties, method, (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)), symbol, now, false);
+                    TestTrade.testTrade(exchange, skippedProperties, method, (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)), (String) (symbol), now, false);
                 }
-                TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, response);
+                TestSharedMethods.AssertTimestampOrder(exchange, method, (String) (symbol), response);
             }
         }
         return true;

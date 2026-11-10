@@ -13,7 +13,7 @@ from ccxt.base.errors import AuthenticationError
 
 class hashkey(ccxt.async_support.hashkey):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(hashkey, self).describe(), {
             'has': {
                 'ws': True,
@@ -63,7 +63,7 @@ class hashkey(ccxt.async_support.hashkey):
         url = self.urls['api']['ws']['public']
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
 
-    async def watch_private(self, messageHash: object):
+    async def watch_private(self, messageHash: str):
         listenKey = await self.authenticate()
         url = self.get_private_url(listenKey)
         return await self.watch(url, messageHash, None, messageHash)
@@ -91,7 +91,7 @@ class hashkey(ccxt.async_support.hashkey):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         topic = 'kline_' + interval
         messageHash = 'ohlcv:' + symbolValue + ':' + timeframe
@@ -130,12 +130,14 @@ class hashkey(ccxt.async_support.hashkey):
         #
         marketId = self.safe_string(message, 'symbol')
         market = self.safe_market(marketId)
-        symbol = self.safe_symbol(marketId, market)
-        if not (symbol in self.ohlcvs):
-            self.ohlcvs[symbol] = {}
+        symbol = self.safe_string(market, 'symbol', '')
         params = self.safe_dict(message, 'params')
         klineType = self.safe_string(params, 'klineType')
         timeframe = self.find_timeframe(klineType)
+        if timeframe is None:
+            return
+        if not (symbol in self.ohlcvs):
+            self.ohlcvs[symbol] = {}
         if not (timeframe in self.ohlcvs[symbol]):
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             self.ohlcvs[symbol][timeframe] = ArrayCacheByTimestamp(limit)
@@ -184,7 +186,7 @@ class hashkey(ccxt.async_support.hashkey):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         topic = 'realtimes'
         messageHash = 'ticker:' + symbolValue
         return await self.wath_public(market, topic, messageHash, params)
@@ -220,7 +222,7 @@ class hashkey(ccxt.async_support.hashkey):
         #
         data = self.safe_list(message, 'data', [])
         ticker = self.parse_ticker(self.safe_dict(data, 0, {}))
-        symbol = ticker['symbol']
+        symbol = self.safe_string(ticker, 'symbol', '')
         messageHash = 'ticker:' + symbol
         self.tickers[symbol] = ticker
         client.resolve(self.tickers[symbol], messageHash)
@@ -241,7 +243,7 @@ class hashkey(ccxt.async_support.hashkey):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         topic = 'trade'
         messageHash = 'trades:' + symbolValue
         trades = await self.wath_public(market, topic, messageHash, params)
@@ -277,7 +279,7 @@ class hashkey(ccxt.async_support.hashkey):
         #
         marketId = self.safe_string(message, 'symbol')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         if not (symbol in self.trades):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.trades[symbol] = ArrayCache(limit)
@@ -306,7 +308,7 @@ class hashkey(ccxt.async_support.hashkey):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         topic = 'depth'
         messageHash = 'orderbook:' + symbolValue
         orderbook = await self.wath_public(market, topic, messageHash, params)
@@ -374,7 +376,7 @@ class hashkey(ccxt.async_support.hashkey):
         messageHash = 'orders'
         symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
         if symbol is not None:
-            messageHash = messageHash + ':' + symbolResolved
+            messageHash = 'orders' + ':' + symbolResolved
         orders = await self.watch_private(messageHash)
         limitResolved = limit
         if self.newUpdates:
@@ -425,7 +427,7 @@ class hashkey(ccxt.async_support.hashkey):
         orders.append(parsed)
         messageHash = 'orders'
         client.resolve(orders, messageHash)
-        symbol = parsed['symbol']
+        symbol = self.safe_string(parsed, 'symbol', '')
         symbolSpecificMessageHash = messageHash + ':' + symbol
         client.resolve(orders, symbolSpecificMessageHash)
 
@@ -440,7 +442,7 @@ class hashkey(ccxt.async_support.hashkey):
         timeInForce = self.safe_string(order, 'f')
         postOnly = None
         type, timeInForce, postOnly = self.parseOrderTypeTimeInForceAndPostOnly(type, timeInForce)
-        if marketResolved['contract'] is True:  # swap orders are always have type 'LIMIT', thus we can not define the correct type
+        if self.safe_bool(marketResolved, 'contract', False):  # swap orders are always have type 'LIMIT', thus we can not define the correct type
             type = None
         return self.safe_order({
             'id': self.safe_string(order, 'i'),
@@ -491,7 +493,7 @@ class hashkey(ccxt.async_support.hashkey):
         messageHash = 'myTrades'
         symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
         if symbol is not None:
-            messageHash += ':' + symbolResolved
+            messageHash = 'myTrades' + ':' + symbolResolved
         trades = await self.watch_private(messageHash)
         limitResolved = limit
         if self.newUpdates:
@@ -524,7 +526,7 @@ class hashkey(ccxt.async_support.hashkey):
         self.myTrades = tradesArray
         messageHash = 'myTrades'
         client.resolve(tradesArray, messageHash)
-        symbol = parsed['symbol']
+        symbol = self.safe_string(parsed, 'symbol', '')
         symbolSpecificMessageHash = messageHash + ':' + symbol
         client.resolve(tradesArray, symbolSpecificMessageHash)
 
@@ -644,7 +646,7 @@ class hashkey(ccxt.async_support.hashkey):
         positions.append(parsed)
         messageHash = 'positions'
         client.resolve(parsed, messageHash)
-        symbol = parsed['symbol']
+        symbol = self.safe_string(parsed, 'symbol', '')
         client.resolve(parsed, messageHash + ':' + symbol)
 
     def parse_ws_position(self, position: dict, market: Market = None) -> Position:
@@ -712,7 +714,7 @@ class hashkey(ccxt.async_support.hashkey):
             return
         options = self.safe_dict(self.options, 'watchBalance')
         snapshot = self.safe_bool(options, 'fetchBalanceSnapshot', True)
-        if snapshot is True:
+        if snapshot:
             messageHash = type + ':' + 'fetchBalanceSnapshot'
             if not (messageHash in client.futures):
                 client.future(messageHash)
@@ -834,26 +836,29 @@ class hashkey(ccxt.async_support.hashkey):
             client = self.client(url)
             self.options['listenKey'] = None
             client.reject(error)
-            del self.clients[url]
+            del self.clients[client.url]
 
-    def handle_message(self, client: Client, message: object):
-        messageInner = message
-        if isinstance(message, list):
-            messageInner = self.safe_dict(message, 0, {})
-        topic = self.safe_string_2(messageInner, 'topic', 'e')
+    def handle_list_message(self, client: Client, message: list):
+        self.handle_stream_message(client, self.safe_dict(message, 0, {}))
+
+    def handle_message(self, client: Client, message: dict):
+        self.handle_stream_message(client, message)
+
+    def handle_stream_message(self, client: Client, message: dict):
+        topic = self.safe_string_2(message, 'topic', 'e')
         if topic == 'kline':
-            self.handle_ohlcv(client, messageInner)
+            self.handle_ohlcv(client, message)
         elif topic == 'realtimes':
-            self.handle_ticker(client, messageInner)
+            self.handle_ticker(client, message)
         elif topic == 'trade':
-            self.handle_trades(client, messageInner)
+            self.handle_trades(client, message)
         elif topic == 'depth':
-            self.handle_order_book(client, messageInner)
+            self.handle_order_book(client, message)
         elif (topic == 'contractExecutionReport') or (topic == 'executionReport'):
-            self.handle_order(client, messageInner)
+            self.handle_order(client, message)
         elif topic == 'ticketInfo':
-            self.handle_my_trade(client, messageInner)
+            self.handle_my_trade(client, message)
         elif topic == 'outboundContractPositionInfo':
-            self.handle_position(client, messageInner)
+            self.handle_position(client, message)
         elif (topic == 'outboundAccountInfo') or (topic == 'outboundContractAccountInfo'):
-            self.handle_balance(client, messageInner)
+            self.handle_balance(client, message)

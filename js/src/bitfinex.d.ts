@@ -5,9 +5,9 @@ import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, Fun
  * @augments Exchange
  */
 export default class bitfinex extends Exchange {
-    describe(): any;
+    describe(): Dict;
     isFiat(code: any): boolean;
-    getCurrencyName(code: string): any;
+    getCurrencyName(code: string): string;
     amountToPrecision(symbol: Str, amount: any): string;
     priceToPrecision(symbol: Str, price: any): string;
     /**
@@ -38,7 +38,7 @@ export default class bitfinex extends Exchange {
      */
     fetchCurrencies(params?: Dict): Promise<Currencies>;
     parseCurrenciesCustom(ids: any[], indexed: Dict, indexedNetworks: Dict): Dict;
-    parseCurrencyCustom(id: any, indexed: Dict, indexedNetworks: Dict): Currency;
+    parseCurrencyCustom(id: string, indexed: Dict, indexedNetworks: Dict): Currency;
     /**
      * @method
      * @name bitfinex#fetchBalance
@@ -127,8 +127,8 @@ export default class bitfinex extends Exchange {
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
-    parseOrderStatus(status: Str): string | undefined;
-    parseOrderFlags(flags: Str): any[] | undefined;
+    parseOrderStatus(status: Str): Str;
+    parseOrderFlags(flags: Str): string[];
     parseTimeInForce(orderType: Str): string;
     parseOrder(order: Dict, market?: Market): Order;
     createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Dict;
@@ -327,11 +327,11 @@ export default class bitfinex extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name bitfinex#fetchPositions
@@ -343,10 +343,10 @@ export default class bitfinex extends Exchange {
      */
     fetchPositions(symbols?: Strings, params?: Dict): Promise<Position[]>;
     parsePosition(position: Dict, market?: Market): Position;
-    nonce(): number;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
-    handleErrors(statusCode: int, statusText: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
-    parseLedgerEntryType(type: Str): string | undefined;
+    nonce(): int;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): any;
+    parseLedgerEntryType(type: Str): Str;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     /**
      * @method
@@ -387,25 +387,7 @@ export default class bitfinex extends Exchange {
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
     parseFundingRate(contract: any, market?: Market): FundingRate;
-    parseFundingRateHistory(contract: any, market?: Market): {
-        info: any;
-        symbol: string;
-        markPrice: Num;
-        indexPrice: Num;
-        interestRate: undefined;
-        estimatedSettlePrice: undefined;
-        timestamp: Int;
-        datetime: string | undefined;
-        fundingRate: Num;
-        fundingTimestamp: undefined;
-        fundingDatetime: undefined;
-        nextFundingRate: Num;
-        nextFundingTimestamp: Int;
-        nextFundingDatetime: string | undefined;
-        previousFundingRate: undefined;
-        previousFundingTimestamp: undefined;
-        previousFundingDatetime: undefined;
-    };
+    parseFundingRateHistory(contract: any, market?: Market): FundingRateHistory;
     /**
      * @method
      * @name bitfinex#fetchOpenInterests

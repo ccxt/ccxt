@@ -98,12 +98,12 @@ class deepcoin extends deepcoin$1["default"] {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
-                'fetchPosition': true,
+                'fetchPosition': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
                 'fetchPositionsForSymbol': true,
-                'fetchPositionsHistory': true,
+                'fetchPositionsHistory': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
                 'fetchTicker': false,
@@ -326,7 +326,7 @@ class deepcoin extends deepcoin$1["default"] {
                     'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
                     'ARBITRUM': 'ARBITRUM',
-                    'BSC': 'BSC(BEP20)',
+                    'BEP20': 'BSC(BEP20)',
                     'SOL': 'SOL',
                     'BTC': 'Bitcoin',
                     'ADA': 'Cardano',
@@ -411,14 +411,14 @@ class deepcoin extends deepcoin$1["default"] {
         else {
             types = this.safeList(this.options, 'fetchMarkets', types); // backward-support
         }
-        let promises = [];
+        const promises = [];
         let result = [];
         for (let i = 0; i < types.length; i++) {
-            promises.push(this.fetchMarketsByType(types[i], params));
+            promises.push(this.fetchMarketsByType(this.safeString(types, i), params));
         }
-        promises = await Promise.all(promises);
-        for (let i = 0; i < promises.length; i++) {
-            result = this.arrayConcat(result, promises[i]);
+        const responses = await Promise.all(promises);
+        for (let i = 0; i < responses.length; i++) {
+            result = this.arrayConcat(result, responses[i]);
         }
         return result;
     }
@@ -524,7 +524,10 @@ class deepcoin extends deepcoin$1["default"] {
             isLinear = (quoteId !== 'USD');
             settleId = isLinear ? quoteId : baseId;
             settle = this.safeCurrencyCode(settleId);
-            symbol = symbol + ':' + settle;
+            if (settle === undefined) {
+                return undefined;
+            }
+            symbol = base + '/' + quote + ':' + settle;
         }
         const fees = this.safeDict2(this.fees, type, 'trading', {});
         let maxLeverage = this.safeString(market, 'lever', '1');
@@ -590,8 +593,9 @@ class deepcoin extends deepcoin$1["default"] {
         const symbols = Object.keys(result);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            const market = result[symbol];
-            if ((market !== undefined) && (market['swap'] === true)) {
+            const market = this.safeDict(result, symbol, {});
+            const isSwap = this.safeBool(market, 'swap', false);
+            if (isSwap) {
                 const additionalId = this.safeString(market, 'baseId', '') + this.safeString(market, 'quoteId', '');
                 if (this.markets_by_id !== undefined) {
                     this.markets_by_id[additionalId] = [market]; // some endpoints return swap market id as base+quote
@@ -661,36 +665,39 @@ class deepcoin extends deepcoin$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const maxLimit = 300;
+        const market = this.market(symbol);
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
+        const price = this.safeString(paramsPaginate, 'price');
+        let maxLimit = 300;
+        if (this.safeBool(market, 'swap', false) && price === undefined) {
+            maxLimit = 1000;
+        }
         if (paginate) {
             const paramsExtended = this.extend(paramsPaginate, { 'calculateUntil': true });
             return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsExtended, maxLimit);
         }
-        const market = this.market(symbol);
-        const price = this.safeString(paramsPaginate, 'price');
         const bar = this.safeString(this.timeframes, timeframe, timeframe);
         const request = {
             'instId': market['id'],
             'bar': bar,
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, maxLimit);
         }
         const until = this.safeInteger(paramsPaginate, 'until');
         if (until !== undefined) {
             request['after'] = until;
         }
         const calculateUntil = this.safeBool(paramsPaginate, 'calculateUntil', false);
-        const keysToOmit = (calculateUntil === true) ? ['price', 'until', 'calculateUntil'] : ['price', 'until'];
+        const keysToOmit = (calculateUntil) ? ['price', 'until', 'calculateUntil'] : ['price', 'until'];
         const paramsOmitted = this.omit(paramsPaginate, keysToOmit);
-        if (calculateUntil === true) {
+        if (calculateUntil) {
             if (since !== undefined) {
                 // the exchange do not have a since param for this endpoint
                 // we calculate until (after) for correct pagination
                 const duration = this.parseTimeframe(timeframe);
                 const numberOfCandles = (limit === undefined) ? maxLimit : limit;
-                let endTime = since + (duration * numberOfCandles) * 1000;
+                let endTime = this.parseToInt(since + (duration * numberOfCandles) * 1000);
                 if (until !== undefined) {
                     endTime = Math.min(endTime, until);
                 }
@@ -789,7 +796,7 @@ class deepcoin extends deepcoin$1["default"] {
         const open = this.safeString(ticker, 'open24h');
         let quoteVolume = this.safeString(ticker, 'volCcy24h');
         let baseVolume = this.safeString(ticker, 'vol24h');
-        if ((marketResolved['swap'] === true) && (marketResolved['inverse'] === true)) {
+        if ((this.safeBool(marketResolved, 'swap', false)) && (this.safeBool(marketResolved, 'inverse', false))) {
             const temp = baseVolume;
             baseVolume = quoteVolume;
             quoteVolume = temp;
@@ -1210,19 +1217,23 @@ class deepcoin extends deepcoin$1["default"] {
         if ((network === undefined) || (network === '')) {
             network = defaultNetwork;
         }
+        if (network !== undefined) {
+            network = this.safeString(this.networkAliases, network, network);
+        }
         const paramsOmitted = (network !== undefined) ? this.omit(params, 'network') : params;
         const addressess = await this.fetchDepositAddresses([code], paramsOmitted);
         const length = addressess.length;
-        let address = this.safeDict(addressess, 0, {});
+        let index = 0;
         if ((network !== undefined) && (length > 1)) {
+            // the last entry on the requested network wins
             for (let i = 0; i < length; i++) {
-                const entry = addressess[i];
-                if (entry['network'] === network) {
-                    address = entry;
+                const entryNetwork = this.safeString(this.safeDict(addressess, i, {}), 'network');
+                if (entryNetwork === network) {
+                    index = i;
                 }
             }
         }
-        return address;
+        return this.safeDict(addressess, index, {});
     }
     parseDepositAddress(response, currency = undefined) {
         //
@@ -1427,7 +1438,7 @@ class deepcoin extends deepcoin$1["default"] {
         const transfer = this.parseTransfer(data, currency);
         const transferOptions = this.safeDict(this.options, 'transfer', {});
         const fillResponseFromRequest = this.safeBool(transferOptions, 'fillResponseFromRequest', true);
-        if (fillResponseFromRequest === true) {
+        if (fillResponseFromRequest) {
             transfer['fromAccount'] = fromAccount;
             transfer['toAccount'] = toAccount;
             transfer['amount'] = amount;
@@ -1537,7 +1548,7 @@ class deepcoin extends deepcoin$1["default"] {
         const isTriggerOrder = (triggerPrice !== undefined);
         const cost = this.safeString(params, 'cost');
         if (cost !== undefined) {
-            if ((market['spot'] !== true) || (triggerPrice !== undefined)) {
+            if ((!this.safeBool(market, 'spot', false)) || (triggerPrice !== undefined)) {
                 throw new errors.BadRequest(this.id + ' createOrder() accepts a cost parameter for spot non-trigger market orders only');
             }
         }
@@ -1624,7 +1635,7 @@ class deepcoin extends deepcoin$1["default"] {
             throw new errors.BadRequest(this.id + ' createOrder() requires a price argument for limit orders');
         }
         let paramsRequest = undefined;
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             const cost = this.safeString(paramsOrderType, 'cost');
             if (cost !== undefined) {
                 if (!isMarketOrder) {
@@ -1652,7 +1663,7 @@ class deepcoin extends deepcoin$1["default"] {
             request['mrgPosition'] = mrgPosition;
             let posSide = undefined;
             const reduceOnly = this.safeBool(paramsMrgPosition, 'reduceOnly', false);
-            if (reduceOnly === true) {
+            if (reduceOnly) {
                 if (side === 'buy') {
                     posSide = 'short';
                 }
@@ -1736,8 +1747,8 @@ class deepcoin extends deepcoin$1["default"] {
         const paramsOmitted = this.omit(paramsMarginMode, 'reduceOnly');
         request['isCrossMargin'] = isCrossMargin;
         request['tdMode'] = marginModeOption;
-        if (market['swap'] === true) {
-            if (reduceOnly === true) {
+        if (this.safeBool(market, 'swap', false)) {
+            if (reduceOnly) {
                 if (side === 'buy') {
                     request['posSide'] = 'short';
                 }
@@ -1768,7 +1779,7 @@ class deepcoin extends deepcoin$1["default"] {
         const timeInForce = this.handleTimeInForce(paramsPostOnly);
         const paramsOmitted = this.omit(paramsPostOnly, 'timeInForce');
         let typeValue = typePostOnly;
-        if ((timeInForce !== undefined) && (timeInForce === 'IOC')) {
+        if (timeInForce === 'IOC') {
             typeValue = 'ioc';
         }
         return [typeValue, paramsOmitted];
@@ -1943,7 +1954,8 @@ class deepcoin extends deepcoin$1["default"] {
             return await this.fetchPaginatedCallDynamic('fetchCanceledAndClosedOrders', symbol, since, limit, paramsPaginate);
         }
         const trigger = this.safeBool(paramsPaginate, 'trigger', false);
-        const [methodName, paramsMethodName] = this.handleParamString(paramsPaginate, 'methodName', 'fetchCanceledAndClosedOrders');
+        const methodName = this.safeString(paramsPaginate, 'methodName', 'fetchCanceledAndClosedOrders');
+        const paramsMethodName = this.omit(paramsPaginate, 'methodName');
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -1956,7 +1968,7 @@ class deepcoin extends deepcoin$1["default"] {
             request['limit'] = limit; // default 100
         }
         let response = undefined;
-        if (trigger === true) {
+        if (trigger) {
             if (methodName !== 'fetchCanceledAndClosedOrders') {
                 throw new errors.BadRequest(this.id + ' ' + methodName + '() does not support trigger orders');
             }
@@ -2115,7 +2127,7 @@ class deepcoin extends deepcoin$1["default"] {
         const trigger = this.safeBool(params, 'trigger', false);
         const paramsOmitted = this.omit(params, 'trigger');
         let response = undefined;
-        if (trigger === true) {
+        if (trigger) {
             request['instType'] = this.convertToInstrumentType(market['type']);
             //
             //     {
@@ -2228,7 +2240,7 @@ class deepcoin extends deepcoin$1["default"] {
         };
         let response = undefined;
         const trigger = this.safeBool(params, 'trigger', false);
-        if (trigger === true) {
+        if (trigger) {
             const paramsOmitted = this.omit(params, 'trigger');
             response = await this.privatePostDeepcoinTradeCancelTriggerOrder(this.extend(request, paramsOmitted));
         }
@@ -2257,7 +2269,7 @@ class deepcoin extends deepcoin$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument');
         }
         const market = this.market(symbol);
-        if (market['spot'] === true) {
+        if (this.safeBool(market, 'spot', false)) {
             throw new errors.NotSupported(this.id + ' cancelAllOrders() is not supported for spot markets');
         }
         const productGroup = this.getProductGroupFromMarket(market);
@@ -2304,7 +2316,7 @@ class deepcoin extends deepcoin$1["default"] {
         let symbolResolved = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 throw new errors.NotSupported(this.id + ' editOrder() is not supported for spot markets');
             }
             symbolResolved = market['symbol'];
@@ -2364,7 +2376,7 @@ class deepcoin extends deepcoin$1["default"] {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
-            if (market['spot'] === true) {
+            if (this.safeBool(market, 'spot', false)) {
                 throw new errors.NotSupported(this.id + ' cancelOrders() is not supported for spot markets');
             }
         }
@@ -2619,6 +2631,13 @@ class deepcoin extends deepcoin$1["default"] {
         const marketId = this.safeString(position, 'instId');
         const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(position, 'cTime');
+        const marginMode = this.safeString(position, 'mgnMode');
+        const useMargin = this.safeNumber(position, 'useMargin');
+        // useMargin is the margin held in the position (excludes unrealized pnl)
+        let positionMargin = undefined;
+        if (marginMode === 'isolated') {
+            positionMargin = useMargin;
+        }
         return this.safePosition({
             'symbol': marketResolved['symbol'],
             'id': this.safeString(position, 'posId'),
@@ -2629,17 +2648,18 @@ class deepcoin extends deepcoin$1["default"] {
             'side': this.safeString(position, 'posSide'),
             'notional': undefined,
             'leverage': this.parseNumber(this.omitZero(this.safeString(position, 'lever'))),
-            'unrealizedPnl': undefined,
+            'unrealizedPnl': this.safeNumber(position, 'unrealizedProfit'),
             'realizedPnl': undefined,
+            'positionMargin': positionMargin,
             'collateral': undefined,
             'entryPrice': this.safeNumber(position, 'avgPx'),
             'markPrice': undefined,
             'liquidationPrice': this.safeNumber(position, 'liqPx'),
-            'marginMode': this.safeString(position, 'mgnMode'),
+            'marginMode': marginMode,
             'hedged': true,
-            'maintenanceMargin': this.safeNumber(position, 'useMargin'),
+            'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
-            'initialMargin': undefined,
+            'initialMargin': useMargin,
             'initialMarginPercentage': undefined,
             'marginRatio': undefined,
             'lastUpdateTimestamp': this.safeInteger(position, 'uTime'),
@@ -2777,7 +2797,7 @@ class deepcoin extends deepcoin$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['swap'] !== true) {
+        if (!this.safeBool(market, 'swap', false)) {
             throw new errors.ExchangeError(this.id + ' fetchFundingRate() is only valid for swap markets');
         }
         const request = {
@@ -3043,20 +3063,21 @@ class deepcoin extends deepcoin$1["default"] {
         const data = this.safeList(response, 'data', []);
         return this.parseOrder(data, market);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         let requestPath = path;
         if (method === 'GET') {
             const query = this.urlencode(params);
             if (query.length > 0) {
-                requestPath += '?' + query;
+                requestPath = path + '?' + query;
             }
         }
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         const url = apiUrl + '/' + requestPath;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             const timestamp = this.milliseconds();
             const dateTime = this.iso8601(timestamp);
@@ -3067,8 +3088,9 @@ class deepcoin extends deepcoin$1["default"] {
                 'DC-ACCESS-PASSPHRASE': this.password,
                 'appid': '200103',
             };
-            const requestBody = (method !== 'GET') ? this.json(params) : body;
+            let requestBody = undefined;
             if (method !== 'GET') {
+                requestBody = this.json(params);
                 privateHeaders['Content-Type'] = 'application/json';
                 payload += requestBody;
             }
@@ -3076,7 +3098,7 @@ class deepcoin extends deepcoin$1["default"] {
             privateHeaders['DC-ACCESS-SIGN'] = signature;
             return { 'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const data = this.safeDict(response, 'data', {});

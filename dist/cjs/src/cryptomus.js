@@ -333,8 +333,8 @@ class cryptomus extends cryptomus$1["default"] {
             throw new errors.ExchangeError(this.id + ' parseMarket() missing marketId');
         }
         const parts = marketId.split('_');
-        const baseId = parts[0];
-        const quoteId = parts[1];
+        const baseId = this.safeString(parts, 0);
+        const quoteId = this.safeString(parts, 1);
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         if ((base === undefined) || (quote === undefined)) {
@@ -515,10 +515,9 @@ class cryptomus extends cryptomus$1["default"] {
         //
         const marketId = this.safeString(ticker, 'currency_pair');
         const marketResolved = this.safeMarket(marketId, market);
-        const symbol = marketResolved['symbol'];
         const last = this.safeString(ticker, 'last_price');
         return this.safeTicker({
-            'symbol': symbol,
+            'symbol': marketResolved['symbol'],
             'timestamp': undefined,
             'datetime': undefined,
             'high': undefined,
@@ -684,9 +683,9 @@ class cryptomus extends cryptomus$1["default"] {
         //     }
         //
         const result = this.safeList(response, 'result', []);
-        return this.parseBalance(result);
+        return this.parseBalanceList(result);
     }
-    parseBalance(balance) {
+    parseBalanceList(balance) {
         //
         //     {
         //         "ticker": "AVAX",
@@ -744,7 +743,8 @@ class cryptomus extends cryptomus$1["default"] {
         const sideBuy = side === 'buy';
         const amountToString = this.numberToString(amount);
         const priceToString = this.numberToString(price);
-        const [costParam, paramsCost] = this.handleParamString(paramsOmitted, 'cost');
+        const paramsCost = this.omit(paramsOmitted, 'cost');
+        const costParam = this.safeString(paramsOmitted, 'cost');
         let cost = costParam;
         let response;
         if (type === 'market') {
@@ -756,15 +756,15 @@ class cryptomus extends cryptomus$1["default"] {
             if (sideBuy) {
                 const createMarketBuyOrderRequiresPrice = requiresPriceAndParams[0];
                 if (createMarketBuyOrderRequiresPrice) {
-                    if ((price === undefined) && (cost === undefined)) {
+                    if ((price === undefined) && (costParam === undefined)) {
                         throw new errors.InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument');
                     }
-                    else if (cost === undefined) {
+                    else if (costParam === undefined) {
                         cost = Precise["default"].stringMul(amountToString, priceToString);
                     }
                 }
                 else {
-                    cost = (cost !== undefined && cost !== '') ? cost : amountToString;
+                    cost = (costParam !== undefined && costParam !== '') ? costParam : amountToString;
                 }
                 request['value'] = cost;
             }
@@ -887,8 +887,7 @@ class cryptomus extends cryptomus$1["default"] {
         const result = this.safeList(response, 'result', []);
         const orders = [];
         for (let i = 0; i < result.length; i++) {
-            const order = result[i];
-            orders.push(this.parseOrder(order, market));
+            orders.push(this.parseOrder(result[i], market));
         }
         return orders;
     }
@@ -1166,15 +1165,16 @@ class cryptomus extends cryptomus$1["default"] {
             'taker': takerFees,
         };
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
         const endpoint = this.implodeParams(path, params);
         const paramsOmitted = this.omit(params, this.extractParams(path));
-        const apiUrl = this.safeString(this.urls['api'], api);
+        const apiName = api[0];
+        const apiUrl = this.safeString(this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/' + endpoint;
-        if (api === 'private') {
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
             let jsonParams = '';
             const privateHeaders = {
@@ -1194,7 +1194,7 @@ class cryptomus extends cryptomus$1["default"] {
             const stringToSign = jsonParamsBase64 + this.secret;
             const signature = this.hash(this.encode(stringToSign), legacy_js.md5);
             privateHeaders['sign'] = signature;
-            const privateBody = (method !== 'GET') ? jsonParams : body;
+            const privateBody = (method !== 'GET') ? jsonParams : undefined;
             return { 'url': url, 'method': method, 'body': privateBody, 'headers': privateHeaders };
         }
         else {
@@ -1203,23 +1203,23 @@ class cryptomus extends cryptomus$1["default"] {
                 url += '?' + query;
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }
-        if ('code' in response) {
-            const code = this.safeString(response, 'code');
+        const codeError = this.safeString(response, 'code');
+        const message = this.safeString(response, 'message');
+        if (codeError !== undefined) {
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
             throw new errors.ExchangeError(feedback);
         }
-        else if ('message' in response) {
+        else if (message !== undefined) {
             //
             //      {"message":"Minimum amount 15 USDT","state":1}
             //
-            const message = this.safeString(response, 'message');
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);

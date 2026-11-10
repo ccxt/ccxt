@@ -12,7 +12,7 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
                 { "options", new Dictionary<string, object>() {
-                    { "defaultType", "valueFromOptions" },
+                    { "defaultType", "option" },
                     { "fetchX", new Dictionary<string, object>() {
                         { "defaultType", "valueFromMethodOptions" },
                     } },
@@ -61,7 +61,7 @@ public partial class BaseTest
             var marketType5params5Variable = exchange.handleMarketTypeAndParams("fetchY", null, new Dictionary<string, object>() {}, null);
             var marketType5 = ((IList<object>) marketType5params5Variable)[0];
             var params5 = ((IList<object>) marketType5params5Variable)[1];
-            Assert(isEqual(marketType5, "valueFromOptions"));
+            Assert(isEqual(marketType5, "option"));
             //
             // case #6, should prevail: spot (because hardcoded in base)
             //
@@ -73,28 +73,6 @@ public partial class BaseTest
             // fake Assertion to avoid unused vars
             Assert((params1 != null) || (params2 != null) || (params3 != null) || (params4 != null) || (params5 != null) || (params6 != null));
         }
-        public void helperTestHandleNetworkRequest()
-        {
-            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
-                { "id", "sampleexchange" },
-                { "options", new Dictionary<string, object>() {
-                    { "networks", new Dictionary<string, object>() {
-                        { "XYZ", "Xyz" },
-                    } },
-                } },
-            });
-            exchange.currencies = exchange.createSafeDictionary(); // todo: initialize in C# base files
-            string currencyCode = "ETH"; // todo: in future with complex cases
-            // no-case
-            var request1params1Variable = exchange.handleRequestNetwork(new Dictionary<string, object>() {
-            { "network", "XYZ" },
-        }, new Dictionary<string, object>() {}, "chain_id", currencyCode, false);
-            var request1 = ((IList<object>) request1params1Variable)[0];
-            var params1 = ((IList<object>) request1params1Variable)[1];
-            Assert(!(inOp(params1, "network")));
-            Assert(inOp(request1, "chain_id"));
-            Assert(isEqual(getValue(request1, "chain_id"), "Xyz"));
-        }
         public void helperTestHandleTypedOptions()
         {
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
@@ -103,6 +81,8 @@ public partial class BaseTest
                     { "marginMode", "isolated" },
                     { "fetchX", new Dictionary<string, object>() {
                         { "uta", true },
+                        { "boolString", "false" },
+                        { "boolNumber", 1 },
                     } },
                 } },
             });
@@ -113,7 +93,7 @@ public partial class BaseTest
             (bool?, object) utaparams2Variable = exchange.handleOptionBoolAndParams(new Dictionary<string, object>() {}, "fetchX", "uta", false);
             object uta = utaparams2Variable.Item1;
             object params2 = utaparams2Variable.Item2;
-            Assert(isEqual(uta, true));
+            Assert(uta);
             (string?, object) absentparams3Variable = exchange.handleOptionStringAndParams(new Dictionary<string, object>() {}, "fetchX", "absentKey", "fallback");
             object absent = absentparams3Variable.Item1;
             object params3 = absentparams3Variable.Item2;
@@ -125,13 +105,33 @@ public partial class BaseTest
             object params4 = fromParamsparams4Variable.Item2;
             Assert(isEqual(fromParams, "p"));
             Assert(!(inOp(params4, "absentKey")));
-            // a wrong-typed option is covered per language in language_specific (it throws only in C#, Java and Go)
+            // "true"/"false" strings and 1/0 numbers read as booleans; any other present non-boolean throws
+            (bool?, object) boolStringparams5Variable = exchange.handleOptionBoolAndParams(new Dictionary<string, object>() {}, "fetchX", "boolString", true);
+            object boolString = boolStringparams5Variable.Item1;
+            object params5 = boolStringparams5Variable.Item2;
+            Assert(isEqual(boolString, false));
+            (bool?, object) boolNumberparams6Variable = exchange.handleOptionBoolAndParams(new Dictionary<string, object>() {
+            { "boolNumber", 1 },
+        }, "fetchX", "boolNumber", false);
+            object boolNumber = boolNumberparams6Variable.Item1;
+            object params6 = boolNumberparams6Variable.Item2;
+            Assert(isEqual(boolNumber, true));
+            Assert(!(inOp(params6, "boolNumber")));
+            bool caught = false;
+            try
+            {
+                exchange.checkOptionBool("fetchX", "wrongBool", "yes");
+            } catch(Exception error)
+            {
+                caught = true;
+            }
+            Assert(caught, "a non-boolean option should have thrown");
+            Assert((params5 != null));
             Assert((params1 != null) || (params2 != null) || (params3 != null));
         }
         public void testHandleMethods()
         {
             helperTestHandleMarketTypeAndParams();
-            helperTestHandleNetworkRequest();
             helperTestHandleTypedOptions();
         }
 }

@@ -1,12 +1,12 @@
 import Exchange from '../abstract/prediction/myriad.js';
-import type { OrderSide, OrderType, Int, Str, Num, Dict, int, Strings, PredictionOrderRequest, Market, PredictionOrderBook, OHLCV, PredictionTradingFee, PredictionEvent, Balances, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition } from '../base/types.js';
+import type { OrderSide, OrderType, Int, Str, Num, Dict, int, Strings, PredictionOrderRequest, Market, PredictionOrderBook, OHLCV, PredictionTradingFee, PredictionEvent, Balances, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, NullableDict } from '../base/types.js';
 import type Client from '../base/ws/Client.js';
 /**
  * @class myriad
  * @augments Exchange
  */
 export default class myriad extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name myriad#fetchMarkets
@@ -32,7 +32,7 @@ export default class myriad extends Exchange {
      * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to options.defaultMarketStatus
      * @returns {object[]} an array of raw myriad market objects
      */
-    fetchRawMarketsBySearch(queries: any[], params?: Dict): Promise<any[]>;
+    fetchRawMarketsBySearch(queries: string[], params?: Dict): Promise<Dict[]>;
     /**
      * @ignore
      * @method
@@ -43,7 +43,7 @@ export default class myriad extends Exchange {
      * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to options.defaultMarketStatus
      * @returns {object[]} an array of raw myriad market objects
      */
-    fetchRawMarketsList(params?: Dict): Promise<any[]>;
+    fetchRawMarketsList(params?: Dict): Promise<Dict[]>;
     /**
      * @method
      * @name myriad#fetchEvent
@@ -63,7 +63,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the raw myriad market object
      */
-    fetchRawMarketById(id: string, params?: Dict): Promise<any>;
+    fetchRawMarketById(id: string, params?: Dict): Promise<Dict>;
     /**
      * @ignore
      * @method
@@ -73,7 +73,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the raw question object
      */
-    fetchRawQuestionById(id: string, params?: Dict): Promise<any>;
+    fetchRawQuestionById(id: string, params?: Dict): Promise<Dict>;
     /**
      * @ignore
      * @method
@@ -83,7 +83,7 @@ export default class myriad extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of raw myriad question objects
      */
-    fetchRawQuestionsBySearch(queries: string[], params?: Dict): Promise<any[]>;
+    fetchRawQuestionsBySearch(queries: string[], params?: Dict): Promise<Dict[]>;
     /**
      * @ignore
      * @method
@@ -93,7 +93,7 @@ export default class myriad extends Exchange {
      * @param {string} [params.state] optional question state filter when supported by the backend
      * @returns {object[]} an array of raw myriad question objects
      */
-    fetchRawQuestionsList(params?: Dict): Promise<any[]>;
+    fetchRawQuestionsList(params?: Dict): Promise<Dict[]>;
     /**
      * @method
      * @name myriad#fetchPositions
@@ -127,7 +127,7 @@ export default class myriad extends Exchange {
      * @param {float} [params.slippage] maximum slippage tolerance (default 0.005)
      * @returns {object} a quote object with price, shares, fees and the on-chain calldata
      */
-    fetchTradeQuote(outcome: Str, side: Str, amount: Num, params?: Dict): Promise<Dict>;
+    fetchTradeQuote(outcome: string, side: string, amount: Num, params?: Dict): Promise<Dict>;
     /**
      * @ignore
      * @method
@@ -137,7 +137,7 @@ export default class myriad extends Exchange {
      * @param {object} [market] the outcome the quote belongs to
      * @returns {object} a quote object
      */
-    parseTradeQuote(quote: Dict, market?: any): Dict;
+    parseTradeQuote(quote: Dict, market?: NullableDict): Dict;
     signEvmTransaction(tx: Dict, privateKey: string): string;
     ethRpc(rpcUrl: Str, method: string, rpcParams: any[]): Promise<any>;
     ensureErc20Allowance(rpcUrl: Str, networkId: Str, token: Str, owner: Str, spender: Str): Promise<any>;
@@ -221,7 +221,7 @@ export default class myriad extends Exchange {
      * @param {boolean} [params.skipWaitForReceipt] optional override to skip the post-send receipt wait; implied true when params.transactionHash is provided
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    createAmmOrder(outcome: string, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Promise<PredictionOrder>;
+    createAmmOrder(outcome: string, type: Str, side: string, amount: Num, price?: Num, params?: Dict): Promise<PredictionOrder>;
     /**
      * @method
      * @name myriad#createMarketBuyOrderWithCost
@@ -272,7 +272,7 @@ export default class myriad extends Exchange {
      * @description extracts an optional pre-fetched order response from params for static tests and higher-level callers that already resolved the original order
      * @returns {object} the fetchOrder-style response wrapper or a raw-order wrapper
      */
-    getOrderResponseFromParams(id: Str, params?: Dict): any;
+    getOrderResponseFromParams(id: Str, params?: Dict): NullableDict;
     /**
      * @ignore
      * @method
@@ -433,7 +433,7 @@ export default class myriad extends Exchange {
     fetchBalance(params?: Dict): Promise<Balances>;
     hexToDecimalString(hexValue: string): Str;
     fromWeiWithDecimals(hexValue: string, decimals: Int): Str;
-    parseTradeTx(txHash: Str, quote: Dict, market: any, side: Str): PredictionOrder;
+    parseTradeTx(txHash: Str, quote: Dict, market: Dict, side: string): PredictionOrder;
     /**
      * @ignore
      * @method
@@ -443,7 +443,7 @@ export default class myriad extends Exchange {
      * @param {object} market the parsed ccxt market
      * @returns {object} an event structure
      */
-    parseMarketToEvent(raw: Dict, market: any): any;
+    parseMarketToEvent(raw: Dict, market: any): PredictionEvent;
     /**
      * @ignore
      * @method
@@ -583,15 +583,16 @@ export default class myriad extends Exchange {
      * @param {object} rawEvent the raw myriad question object
      * @returns {object} an event structure
      */
-    parseEvent(rawEvent: Dict): any;
+    parseEvent(rawEvent: Dict): PredictionEvent;
     requestId(url: Str): number;
     fromWei(wei: Str): Num;
     marketOutcomeToSymbol(networkId: Str, marketId: Str, outcomeId: Str): Str;
     connectCentrifugo(url: Str): Promise<any>;
-    pong(client: Client, message?: any): Promise<void>;
+    pong(client: Client, message?: NullableDict): Promise<void>;
     subscribeMyriadChannel(messageHash: string, channel: string, params?: Dict): Promise<any>;
-    handleMessage(client: any, message: any): void;
-    handleCentrifugoFrame(client: Client, msg: any): void;
+    handleTextMessage(client: Client, message: string): void;
+    handleMessage(client: Client, message: Dict): void;
+    handleCentrifugoFrame(client: Client, msg: Dict): void;
     /**
      * @method
      * @name myriad#watchOrderBook
@@ -604,7 +605,7 @@ export default class myriad extends Exchange {
      */
     watchOrderBook(outcome: string, limit?: Int, params?: Dict): Promise<PredictionOrderBook>;
     seedOrderBook(outcome: string, sym: Str, limit?: Int): Promise<void>;
-    handleOrderBook(client: any, data: Dict): void;
+    handleOrderBook(client: Client, data: Dict): void;
     /**
      * @method
      * @name myriad#watchTrades
@@ -631,7 +632,7 @@ export default class myriad extends Exchange {
      */
     watchMyTrades(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionTrade[]>;
     walletAddressOrUndefined(): Str;
-    handleTrades(client: any, data: Dict): void;
+    handleTrades(client: Client, data: Dict): void;
     /**
      * @method
      * @name myriad#watchTicker
@@ -665,7 +666,7 @@ export default class myriad extends Exchange {
      * @returns {int[][]} a list of [timestamp, open, high, low, close, volume] candles
      */
     watchOHLCV(outcome: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
-    handleTicker(client: any, data: Dict): void;
+    handleTicker(client: Client, data: Dict): void;
     /**
      * @method
      * @name myriad#watchOrders
@@ -678,7 +679,7 @@ export default class myriad extends Exchange {
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     watchOrders(outcome?: Str, since?: Int, limit?: Int, params?: Dict): Promise<PredictionOrder[]>;
-    handleOrder(client: any, data: Dict): void;
+    handleOrder(client: Client, data: Dict): void;
     /**
      * @method
      * @name myriad#watchPositions
@@ -692,9 +693,9 @@ export default class myriad extends Exchange {
      */
     watchPositions(outcomes?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<PredictionPosition[]>;
     seedPositionBalances(trader: string): Promise<void>;
-    handlePosition(client: any, data: Dict): void;
+    handlePosition(client: Client, data: Dict): void;
     walletAddressFromKeys(): string;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
     /**
      * @ignore
      * @method
@@ -704,14 +705,12 @@ export default class myriad extends Exchange {
      * @param {string|string[]} api the api group and access level
      * @param {string} method the http method
      * @param {object} params the request parameters
-     * @param {object} [headers] request headers
-     * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    sign(path: string, api?: any, method?: string, params?: Dict, headers?: any, body?: any): {
+    sign(path: string, api?: string[], method?: string, params?: Dict): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: Str;
+        headers: Dict;
     };
 }

@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, BadReque
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { eddsa } from './base/functions/crypto.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, Num, Bool, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, Leverage, MarginMode, Tickers, Ticker, FundingHistory, Endpoint, List, OpenInterest } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, NullableDict, Num, Bool, int, Transaction, Currency, TradingFeeInterface, TradingFees, LedgerEntry, FundingRates, FundingRate, OpenInterests, Leverage, MarginMode, Tickers, Ticker, FundingHistory, Endpoint, List, OpenInterest } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, Fundi
  * @augments Exchange
  */
 export default class pacifica extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'pacifica',
             'name': 'Pacifica',
@@ -66,7 +66,7 @@ export default class pacifica extends Exchange {
                 'fetchCurrencies': false,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
@@ -106,11 +106,11 @@ export default class pacifica extends Exchange {
                 'fetchTime': undefined,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
-                'fetchTradingFees': false,
+                'fetchTradingFees': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
@@ -576,11 +576,11 @@ export default class pacifica extends Exchange {
             return false;
         }
         const buildFee = this.safeBool (this.options, 'builderFee', true);
-        if (buildFee !== true) {
+        if (!buildFee) {
             return false; // skip if builder fee is not enabled
         }
         const approvedBuilderFee = this.safeBool (this.options, 'approvedBuilderFee', false);
-        if (approvedBuilderFee === true) {
+        if (approvedBuilderFee) {
             return true; // skip if builder fee is already approved
         }
         try {
@@ -724,7 +724,7 @@ export default class pacifica extends Exchange {
             contractSize = this.parseNumber ('1');
             minLeverage = 1;
             maxLeverage = this.safeInteger (market, 'max_leverage');
-            crossMargin = isolatedOnly !== true;
+            crossMargin = !isolatedOnly;
             isolatedMargin = true;
         }
         const base = this.safeCurrencyCode (baseId);
@@ -735,7 +735,7 @@ export default class pacifica extends Exchange {
         const settle = this.safeCurrencyCode (settleId);
         let symbol = base + '/' + quote;
         if (isSwap) {
-            symbol = symbol + ':' + settle;
+            symbol = base + '/' + quote + ':' + quote;
         }
         const fees = this.safeDict (this.fees, type, {});
         const taker = this.safeNumber (fees, 'taker');
@@ -895,9 +895,8 @@ export default class pacifica extends Exchange {
         }
         const market = this.market (symbol);
         const [ userAccount, paramsOriginAndSingleAddress ] = this.handleOriginAndSingleAddress ('fetchLeverage', params);
-        const cacheAddress = this.walletAddress;
         let settings: NullableDict = undefined;
-        if (userAccount === cacheAddress) {
+        if (userAccount === this.walletAddress) {
             settings = this.handleOption ('fetchLeverage', 'settings');
         } else {
             const request: Dict = {
@@ -928,7 +927,7 @@ export default class pacifica extends Exchange {
         const isIsolated = this.safeBool (setting, 'isolated', false);
         const leverage = this.safeInteger (setting, 'leverage');
         let marginMode: Str = 'cross';
-        if (isIsolated === true) {
+        if (isIsolated) {
             marginMode = 'isolated';
         }
         return {
@@ -986,7 +985,7 @@ export default class pacifica extends Exchange {
 
     async loadAccountSettings (refresh: boolean = false, params: Dict = {}) {
         let settings = this.handleOption ('loadAccountSettings', 'settings');
-        if ((settings === undefined) || (refresh === true)) {
+        if ((settings === undefined) || (refresh)) {
             this.options['settings'] = this.createSafeDictionary ();
             settings = await this.fetchAccountSettings (params);
             this.options['settings'] = settings;
@@ -999,11 +998,12 @@ export default class pacifica extends Exchange {
             return {};
         }
         const settingsBySymbol: Dict = {};
-        for (let i = 0; i < settings.length; i++) {
-            const marketId = settings[i]['symbol'];
+        for (let i = 0; i < settingsLen; i++) {
+            const setting = settings[i];
+            const marketId = this.safeString (setting, 'symbol');
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
-            settingsBySymbol[symbol] = settings[i];
+            settingsBySymbol[symbol] = setting;
         }
         return settingsBySymbol;
     }
@@ -1021,9 +1021,8 @@ export default class pacifica extends Exchange {
     override async fetchMarginMode (symbol: string, params: Dict = {}): Promise<MarginMode> {
         await this.loadAccountSettings ();
         const [ userAccount, paramsOriginAndSingleAddress ] = this.handleOriginAndSingleAddress ('fetchMarginMode', params);
-        const cacheAddress = this.walletAddress;
         let settings: NullableDict = undefined;
-        if (userAccount === cacheAddress) {
+        if (userAccount === this.walletAddress) {
             settings = this.handleOption ('fetchMarginMode', 'settings');
         } else {
             const request: Dict = {
@@ -1064,7 +1063,7 @@ export default class pacifica extends Exchange {
         // }
         const isIsolated = this.safeBool (setting, 'isolated', false);
         let marginMode: Str = 'cross';
-        if (isIsolated === true) {
+        if (isIsolated) {
             marginMode = 'isolated';
         }
         return {
@@ -1200,7 +1199,8 @@ export default class pacifica extends Exchange {
         const oraclePx = this.safeNumber (info, 'oracle');
         const nextFundingRate = this.safeNumber (info, 'next_funding');
         const timestamp = this.safeInteger (info, 'timestamp');
-        const fundingTimestamp = (Math.floor (this.milliseconds () / 60 / 60 / 1000) + 1) * 60 * 60 * 1000;
+        const currentHour = this.parseToInt (this.milliseconds () / 60 / 60 / 1000);
+        const fundingTimestamp = (currentHour + 1) * 60 * 60 * 1000;
         return {
             'info': info,
             'symbol': symbol,
@@ -1238,12 +1238,6 @@ export default class pacifica extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
-        if (since === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a "since" argument');
-        }
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a "symbol" argument');
-        }
         const defaultMaxLimit = 3950; // 4000 by docs, but in fact >~3960 returns error
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1253,27 +1247,29 @@ export default class pacifica extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, defaultMaxLimit) as OHLCV[];
         }
+        const limitValue: Int = (limit === undefined) ? defaultMaxLimit : limit;
         const tf = this.safeString (this.timeframes, timeframe, timeframe);
+        const nowMs = this.milliseconds ();
+        const duration = this.parseTimeframe (tf) * 1000;
         const request: Dict = {
             'symbol': market['id'],
             'interval': tf,
-            'start_time': since,
         };
+        let sinceValue: Int = since;
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_time', request, paramsPaginate);
-        const nowMillis = this.milliseconds ();
-        let until = this.safeInteger (requestUntil, 'end_time');
-        if (until === undefined) {
-            if (limit !== undefined) {
-                until = since + (limit * (this.parseTimeframe (tf) * 1000)) - 1;
+        if (this.safeInteger (requestUntil, 'end_time') === undefined) {
+            if (sinceValue === undefined) {
+                sinceValue = nowMs - limitValue * duration;
             }
-            if (until === undefined) {
-                until = since + (defaultMaxLimit * (this.parseTimeframe (tf) * 1000)) - 1;
-            }
-            if (until > nowMillis) {
-                until = nowMillis;
-            }
+            const windowEnd: int = this.parseToInt (this.sum (sinceValue - 1, limitValue * duration));
+            const until: int = (windowEnd > nowMs) ? nowMs : windowEnd;
             requestUntil['end_time'] = until;
+        } else {
+            if (sinceValue === undefined) {
+                sinceValue = requestUntil['end_time'] - limitValue * duration;
+            }
         }
+        requestUntil['start_time'] = sinceValue;
         const response = await this.publicGetKline (this.extend (requestUntil, paramsUntil));
         //
         // {
@@ -1570,7 +1566,7 @@ export default class pacifica extends Exchange {
         //
         const success = this.safeBool (response, 'success', false);
         let status: Str = undefined;
-        if (success !== true) {
+        if (!success) {
             status = 'rejected';
         } else {
             status = 'open';
@@ -1617,7 +1613,7 @@ export default class pacifica extends Exchange {
             'symbol': market['id'],
             'side': this.mapSide (side),
         };
-        let operationType: Str = undefined;
+        let operationType = 'create_order';
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only', false);
         const orderType = type.toUpperCase ();
         const triggerPrice = this.safeString (params, 'triggerPrice');
@@ -1690,7 +1686,7 @@ export default class pacifica extends Exchange {
         return [ request, operationType ];
     }
 
-    batchOrdersRequest (actions: any[]) {
+    batchOrdersRequest (actions: any[]): Dict {
         //
         // [
         //     {
@@ -1726,8 +1722,9 @@ export default class pacifica extends Exchange {
         //  Cancel (Only common (limit) orders)
         //
         const lenActions = actions.length;
-        const maxLen: Int = this.handleOption ('batchOrdersRequest', 'batchOrdersMax');
-        if (maxLen !== undefined) {
+        const maxLenOption = this.handleOption ('batchOrdersRequest', 'batchOrdersMax');
+        if (maxLenOption !== undefined) {
+            const maxLen = this.parseToInt (maxLenOption);
             if (lenActions > maxLen) {
                 throw new ExchangeError (this.id + ' batchOrdersRequest() too many orders to create/cancel. Limit is ' + this.numberToString (maxLen));
             }
@@ -1806,7 +1803,7 @@ export default class pacifica extends Exchange {
             const error = this.safeString (order, 'error');
             const success = this.safeBool (order, 'success', false);
             let status: Str = undefined;
-            if ((error !== undefined) || (success !== true)) {
+            if ((error !== undefined) || (!success)) {
                 status = 'rejected';
             } else {
                 status = 'open';
@@ -1867,7 +1864,7 @@ export default class pacifica extends Exchange {
             const error = this.safeString (order, 'error');
             const success = this.safeBool (order, 'success', false);
             let status: Str = undefined;
-            if ((error !== undefined) || (success !== true)) {
+            if ((error !== undefined) || (!success)) {
                 status = 'closed';
             } else {
                 status = 'canceled';
@@ -1880,7 +1877,7 @@ export default class pacifica extends Exchange {
     cancelOrdersRequest (ids: Str[], symbol: Str = undefined, params: Dict = {}): Dict {
         const actions: Dict[] = [];
         for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
+            const id = this.safeString (ids, i);
             const request = this.cancelOrderRequest (id, symbol, params);
             const action: Dict = {
                 'type': 'Cancel',
@@ -1983,7 +1980,7 @@ export default class pacifica extends Exchange {
         const isStopOrder = this.safeBool2 (params, 'trigger', 'stop', false);
         const paramsOmitted: Dict = this.omit (params, [ 'expiryWindow', 'trigger', 'stop', 'clientOrderId' ]);
         let response: NullableDict = undefined;
-        if (isStopOrder === true) {
+        if (isStopOrder) {
             response = await this.privatePostOrdersStopCancel (this.extend (request, paramsOmitted));
         } else {
             response = await this.privatePostOrdersCancel (this.extend (request, paramsOmitted));
@@ -1997,7 +1994,7 @@ export default class pacifica extends Exchange {
         //
         const success = this.safeBool (response, 'success', false);
         let status: Str = 'closed';
-        if (success === true) {
+        if (success) {
             status = 'canceled';
         }
         return this.safeOrder ({ 'id': id, 'status': status, 'info': response, 'symbol': symbol });
@@ -2006,11 +2003,9 @@ export default class pacifica extends Exchange {
     cancelOrderRequest (id: any, symbol: Str = undefined, params: Dict = {}): Dict {
         const market = this.market (symbol);
         const isStopOrder = this.safeBool2 (params, 'trigger', 'stop', false);
-        let operationType: Str = undefined;
-        if (isStopOrder === true) {
+        let operationType = 'cancel_order';
+        if (isStopOrder) {
             operationType = 'cancel_stop_order';
-        } else {
-            operationType = 'cancel_order';
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
         const sigPayload: Dict = {
@@ -2424,8 +2419,7 @@ export default class pacifica extends Exchange {
         // }
         //
         const data = this.addPaginationCursorToResult (response);
-        const orders = this.parseOrders (data, market, since, limit);
-        return orders as Order[];
+        return this.parseOrders (data, market, since, limit);
     }
 
     addPaginationCursorToResult (response: Dict): Dict[] {
@@ -2433,7 +2427,7 @@ export default class pacifica extends Exchange {
         const paginationCursor = this.safeString (response, 'next_cursor');
         const hasMore = this.safeBool (response, 'has_more', false);
         const dataLength = data.length;
-        if (hasMore === true) {
+        if (hasMore) {
             if ((paginationCursor !== undefined) && (dataLength > 0)) {
                 const first = data[0];
                 first['next_cursor'] = paginationCursor;
@@ -2522,7 +2516,7 @@ export default class pacifica extends Exchange {
         return this.parseOrder (lastInfo, market);
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'open': 'open',
             'partially_filled': 'open',
@@ -2543,14 +2537,14 @@ export default class pacifica extends Exchange {
             'TOB': 'TOB',
             'ALO': 'ALO',
         };
-        let tif: Str = undefined;
-        if (tifRaw !== undefined) {
-            tif = tifRaw.toUpperCase ();
+        if (tifRaw === undefined) {
+            return 'GTC';
         }
+        const tif: string = tifRaw.toUpperCase ();
         return this.safeString (tifMap, tif, 'GTC');
     }
 
-    mapSide (sideRaw: Str) {
+    mapSide (sideRaw: Str): Str {
         const sideMap: Dict = {
             'sell': 'ask',
             'buy': 'bid',
@@ -2558,7 +2552,7 @@ export default class pacifica extends Exchange {
         return this.safeString (sideMap, sideRaw, sideRaw);
     }
 
-    parseOrderType (status: Str) {
+    parseOrderType (status: Str): Str {
         const statuses: Dict = {
             'stop_limit': 'limit',
             'stop_market': 'market',
@@ -2782,8 +2776,12 @@ export default class pacifica extends Exchange {
         const marketResolved: Market = this.safeMarket (marketId, market);
         const symbol = marketResolved['symbol'];
         const margin = this.safeString (position, 'margin');
-        const marginMode = (margin !== undefined && margin !== '0') ? 'isolated' : 'cross';
-        const isIsolated = (marginMode === 'isolated');
+        const rawIsolated = this.safeBool (position, 'isolated');
+        let isIsolated: boolean = (margin !== undefined) && (margin !== '0');
+        if (rawIsolated !== undefined) {
+            isIsolated = (rawIsolated === true);
+        }
+        const marginMode = isIsolated ? 'isolated' : 'cross';
         let side = this.safeString (position, 'side');
         if (side !== undefined) {
             side = (side === 'bid') ? 'long' : 'short';
@@ -2804,13 +2802,13 @@ export default class pacifica extends Exchange {
             'markPrice': undefined,
             'notional': undefined,
             'leverage': undefined,
-            'collateral': margin,
+            'collateral': this.safeNumber (position, 'margin'),
             'initialMargin': undefined,
             'maintenanceMargin': undefined,
             'initialMarginPercentage': undefined,
             'maintenanceMarginPercentage': undefined,
             'unrealizedPnl': undefined,
-            'liquidationPrice': undefined,
+            'liquidationPrice': this.safeNumber (position, 'liquidation_price'),
             'marginMode': marginMode,
             'percentage': undefined,
         });
@@ -2889,12 +2887,12 @@ export default class pacifica extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address validated but not sent, funds go to the account wallet
-     * @param {string} tag not used by withdraw ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
         const operationType = 'withdraw';
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -2953,6 +2951,34 @@ export default class pacifica extends Exchange {
         // }
         const data = this.safeDict (response, 'data', {});
         return this.parseTradingFee (data, market);
+    }
+
+    /**
+     * @method
+     * @name pacifica#fetchTradingFees
+     * @description fetch the trading fees for multiple markets, the account fee level applies to every market
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-info
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
+     */
+    override async fetchTradingFees (params: Dict = {}): Promise<TradingFees> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const [ userAddress, paramsOriginAndSingleAddress ] = this.handleOriginAndSingleAddress ('fetchTradingFees', params);
+        const request: Dict = {
+            'account': userAddress,
+        };
+        const response = await this.publicGetAccount (this.extend (request, paramsOriginAndSingleAddress));
+        const data = this.safeDict (response, 'data', {});
+        const result: Dict = {};
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            result[symbol] = this.parseTradingFee (data, this.market (symbol));
+        }
+        return result;
     }
 
     parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
@@ -3028,7 +3054,7 @@ export default class pacifica extends Exchange {
         return oi as OpenInterest;
     }
 
-    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
         //
         //     {
         //       "funding": "0.00010529",
@@ -3128,25 +3154,34 @@ export default class pacifica extends Exchange {
         //
         const timestamp = this.safeInteger (item, 'created_at');
         const type = this.safeString (item, 'event_type');
-        const amount = this.safeString (item, 'amount');
+        const change = this.safeString (item, 'amount');
         const balance = this.safeString (item, 'balance');
+        const currencyResolved: Currency = this.safeCurrency ('USDC', currency);
+        let direction: Str = undefined;
+        let amount = change;
+        if (Precise.stringLt (amount, '0')) {
+            direction = 'out';
+            amount = Precise.stringAbs (amount);
+        } else {
+            direction = 'in';
+        }
         return this.safeLedgerEntry ({
             'info': item,
             'id': undefined,
-            'direction': undefined,
+            'direction': direction,
             'account': undefined,
             'referenceAccount': undefined,
             'referenceId': undefined,
             'type': this.parseLedgerEntryType (type),
-            'currency': undefined,
+            'currency': currencyResolved['code'],
             'amount': this.parseNumber (amount),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'before': undefined,
+            'before': this.parseNumber (Precise.stringSub (balance, change)),
             'after': this.parseNumber (balance),
             'status': undefined,
             'fee': undefined,
-        }, currency) as LedgerEntry;
+        }, currencyResolved) as LedgerEntry;
     }
 
     parseLedgerEntryType (type: Str): Str {
@@ -3168,6 +3203,101 @@ export default class pacifica extends Exchange {
             'payout': 'payout',
         };
         return this.safeString (ledgerType, (type as string), type);
+    }
+
+    /**
+     * @method
+     * @name pacifica#fetchDeposits
+     * @description fetch all USDC deposits made to an account, spot asset deposits are not included
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const [ userAddress, paramsAddress ] = this.handleOriginAndSingleAddress ('fetchDeposits', params);
+        const request: Dict = {
+            'account': userAddress,
+        };
+        const response = await this.publicGetAccountBalanceHistory (this.extend (request, paramsAddress));
+        const data = this.safeList (response, 'data', []);
+        const transactions = this.parseTransactions (data, this.safeCurrency (code));
+        const deposits = this.filterBy (transactions, 'type', 'deposit');
+        return this.filterBySinceLimit (deposits, since, limit, 'timestamp') as Transaction[];
+    }
+
+    /**
+     * @method
+     * @name pacifica#fetchWithdrawals
+     * @description fetch all USDC withdrawals made from an account, spot asset withdrawals are not included
+     * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-balance-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.account] will default to walletAddress if not provided
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const [ userAddress, paramsAddress ] = this.handleOriginAndSingleAddress ('fetchWithdrawals', params);
+        const request: Dict = {
+            'account': userAddress,
+        };
+        const response = await this.publicGetAccountBalanceHistory (this.extend (request, paramsAddress));
+        const data = this.safeList (response, 'data', []);
+        const transactions = this.parseTransactions (data, this.safeCurrency (code));
+        const withdrawals = this.filterBy (transactions, 'type', 'withdrawal');
+        return this.filterBySinceLimit (withdrawals, since, limit, 'timestamp') as Transaction[];
+    }
+
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        //
+        //     {
+        //         "amount": "5000",
+        //         "balance": "5000",
+        //         "pending_balance": "0",
+        //         "event_type": "deposit",
+        //         "created_at": 1789199771373
+        //     }
+        //
+        const timestamp = this.safeInteger (transaction, 'created_at');
+        const types: Dict = {
+            'deposit': 'deposit',
+            'withdraw': 'withdrawal',
+        };
+        const eventType = this.safeString (transaction, 'event_type');
+        const amount = this.safeString (transaction, 'amount');
+        return {
+            'info': transaction,
+            'id': undefined,
+            'txid': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'addressFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': this.safeString (types, eventType),
+            'amount': this.parseNumber (Precise.stringAbs (amount)),
+            'currency': this.safeCurrencyCode ('USDC', currency),
+            'status': undefined,
+            'updated': undefined,
+            'comment': undefined,
+            'internal': undefined,
+            'fee': undefined,
+        } as Transaction;
     }
 
     /**
@@ -3243,7 +3373,7 @@ export default class pacifica extends Exchange {
         const marketId = this.safeString (income, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market);
         const symbol = marketResolved['symbol'];
-        const amount = this.safeString (income, 'amount');
+        const amount = this.safeString (income, 'payout');
         const code = this.safeCurrencyCode ('USDC');
         const rate = this.safeNumber (income, 'rate');
         return {
@@ -3265,8 +3395,8 @@ export default class pacifica extends Exchange {
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/subaccount-fund-transfer
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
-     * @param {string} fromAccount account to transfer from *spot, swap*
-     * @param {string} toAccount account to transfer to *swap, spot or address*
+     * @param {string} fromAccount not used, funds are always sent from the account wallet, the origin address
+     * @param {string} toAccount the address of the subaccount or main account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
@@ -3318,7 +3448,7 @@ export default class pacifica extends Exchange {
         const success = this.safeBool (transfer, 'success');
         let status: Str = undefined;
         if (success !== undefined) {
-            status = (success === true) ? 'ok' : 'failed';
+            status = (success) ? 'ok' : 'failed';
         }
         return {
             'info': transfer,
@@ -3336,7 +3466,7 @@ export default class pacifica extends Exchange {
     /**
      * @method
      * @name pacifica#createSubAccount
-     * @description creates a sub-account under the main account
+     * @description creates a sub-account under the main account, privateKey must be the main account key, the exchange rejects agent-signed requests (an agent_wallet header with a main-key signature is accepted)
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/create-subaccount
      * @param {string} name unused argument
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3402,6 +3532,15 @@ export default class pacifica extends Exchange {
         return response;
     }
 
+    /**
+     * @method
+     * @name pacifica#bindAgentWallet
+     * @description binds an agent wallet that can sign trading actions for the account
+     * @see https://docs.pacifica.fi/api-documentation/api/signing/api-agent-keys
+     * @param {string} agentAddress the public key of the agent wallet
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the api result
+     */
     async bindAgentWallet (agentAddress: string, params: Dict = {}): Promise<Dict> {
         const operationType = 'bind_agent_wallet';
         const sigPayload: Dict = {
@@ -3411,6 +3550,13 @@ export default class pacifica extends Exchange {
         return await this.privatePostAgentBind (this.extend (request, params));
     }
 
+    /**
+     * @method
+     * @name pacifica#createApiKey
+     * @description creates an api key for the account
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the api result
+     */
     async createApiKey (params: Dict = {}): Promise<Dict> {
         const operationType = 'create_api_key';
         const sigPayload: Dict = {};
@@ -3418,6 +3564,14 @@ export default class pacifica extends Exchange {
         return await this.privatePostAccountApiKeysCreate (this.extend (request, params));
     }
 
+    /**
+     * @method
+     * @name pacifica#revokeApiKey
+     * @description revokes an api key of the account
+     * @param {string} apiKey the api key to revoke
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the api result
+     */
     async revokeApiKey (apiKey: string, params: Dict = {}): Promise<Dict> {
         const operationType = 'revoke_api_key';
         const sigPayload: Dict = {
@@ -3427,6 +3581,13 @@ export default class pacifica extends Exchange {
         return await this.privatePostAccountApiKeysRevoke (this.extend (request, params));
     }
 
+    /**
+     * @method
+     * @name pacifica#fetchApiKeys
+     * @description fetches the api keys of the account
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the api result
+     */
     async fetchApiKeys (params: Dict = {}): Promise<Dict> {
         const operationType = 'list_api_keys';
         const sigPayload: Dict = {};
@@ -3434,6 +3595,16 @@ export default class pacifica extends Exchange {
         return await this.privatePostAccountApiKeys (this.extend (request, params));
     }
 
+    /**
+     * @method
+     * @name pacifica#approveBuilderCode
+     * @description approves a builder code to charge fees on the account orders
+     * @see https://docs.pacifica.fi/programs/builder-program
+     * @param {string} builderCode the builder code to approve
+     * @param {string} maxFeeRate the maximum fee rate the builder may charge
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the api result
+     */
     async approveBuilderCode (builderCode: string, maxFeeRate: string, params: Dict = {}): Promise<Dict> {
         const operationType = 'approve_builder_code';
         const sigPayload: Dict = {
@@ -3444,6 +3615,14 @@ export default class pacifica extends Exchange {
         return await this.privatePostAccountBuilderCodesApprove (this.extend (request, params));
     }
 
+    /**
+     * @method
+     * @name pacifica#fetchBuilderApprovals
+     * @description fetches the builder codes approved by an account
+     * @see https://docs.pacifica.fi/programs/builder-program
+     * @param {string} address the account address
+     * @returns {object[]} the api result
+     */
     async fetchBuilderApprovals (address: string): Promise<Dict[]> {
         const request: Dict = {
             'account': address,
@@ -3451,6 +3630,15 @@ export default class pacifica extends Exchange {
         return await this.publicGetAccountBuilderCodesApprovals (this.extend (request));
     }
 
+    /**
+     * @method
+     * @name pacifica#revokeBuilderCode
+     * @description revokes a previously approved builder code
+     * @see https://docs.pacifica.fi/programs/builder-program
+     * @param {string} builderCode the builder code to revoke
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the api result
+     */
     async revokeBuilderCode (builderCode: string, params: Dict = {}): Promise<Dict> {
         const operationType = 'revoke_builder_code';
         const sigPayload: Dict = {
@@ -3472,7 +3660,7 @@ export default class pacifica extends Exchange {
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires address either as "exchange.walletAddress = ..." or as parameter or "address" in params');
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -3501,33 +3689,34 @@ export default class pacifica extends Exchange {
             this.throwExactlyMatchedException (this.exceptions['exact'], errorId, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback); // documented message prefixes are more specific than the http-status echo
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            const statusCode = this.parseToInt (code);
             const codeAsString = code.toString ();
-            if ((code < 400) || !(codeAsString in this.httpExceptions)) {
+            if ((statusCode < 400) || !(codeAsString in this.httpExceptions)) {
                 throw new ExchangeError (feedback); // unknown message
             }
         }
         return undefined;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        let requestBody: Str = body;
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        let requestBody: Str = undefined;
         const isTestnet = this.isSandboxModeEnabled;
         let urlKey: Str = 'api';
         if (isTestnet) {
             urlKey = 'test';
         }
-        const baseApiUrl = this.safeString (this.urls[urlKey], api);
+        const apiName = api[0];
+        const baseApiUrl = this.safeString (this.urls[urlKey], apiName);
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         const host = this.implodeHostname (baseApiUrl);
         let url = host + '/api/' + this.version + '/' + this.implodeParams (path, params);
         const paramsOmitted: Dict = this.omit (params, this.extractParams (path));
-        const paramsLen = Object.keys (paramsOmitted).length;
         const headersValue: NullableDict = {
             'Content-Type': 'application/json',
         };
-        if ((method === 'GET') && (paramsLen > 0)) {
+        if ((method === 'GET') && (Object.keys (paramsOmitted).length > 0)) {
             url += '?' + this.urlencode (paramsOmitted);
             headersValue['Accept'] = '*/*';
         }
@@ -3540,7 +3729,7 @@ export default class pacifica extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': headersValue };
     }
 
-    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config: Dict = {}) {
+    override calculateRateLimiterCost (api: string[], method: string, path: string, params: any, config: Dict = {}) {
         const cost = this.safeString (config, 'cost', '1');
         const costNumber = this.parseNumber (cost);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
@@ -3563,23 +3752,26 @@ export default class pacifica extends Exchange {
             const keys = Object.keys (value);
             const sortedKeys: string[] = this.sort (keys);
             for (let i = 0; i < sortedKeys.length; i++) {
-                const key = sortedKeys[i];
+                const key = this.safeString (sortedKeys, i, '');
                 result[key] = this.sortJsonKeys (value[key]);
             }
             return result;
         } else if (Array.isArray (value)) {
-            const result: Dict[] = [];
+            const sortedList: Dict[] = [];
             for (let i = 0; i < value.length; i++) {
-                result.push (this.sortJsonKeys (value[i]));
+                sortedList.push (this.sortJsonKeys (value[i]));
             }
-            return result;
+            return sortedList;
         } else {
             return value;
         }
     }
 
     prepareMessage (header: Dict, payload: Dict): string {
-        if (header['type'] === undefined || header['timestamp'] === undefined || header['expiry_window'] === undefined) {
+        const headerType = this.safeString (header, 'type');
+        const headerTimestamp = this.safeInteger (header, 'timestamp');
+        const headerExpiryWindow = this.safeInteger (header, 'expiry_window');
+        if (headerType === undefined || headerTimestamp === undefined || headerExpiryWindow === undefined) {
             throw new ArgumentsRequired (this.id + ' prepareMessage() requires type, timestamp, expiry_window in header');
         }
         const data = this.extend (header, { 'data': payload });
@@ -3598,7 +3790,7 @@ export default class pacifica extends Exchange {
         return signatureBase58;
     }
 
-    postActionRequest (operationType: Str, sigPayload: Dict, params: Dict): Dict {
+    postActionRequest (operationType: string, sigPayload: Dict, params: Dict): Dict {
         this.checkRequiredCredentials (); // check credentials every post action
         if (operationType === 'undefined') {
             throw new ArgumentsRequired (this.id + ' action: ' + operationType + ' postActionRequest() requires "operationType"');
@@ -3611,7 +3803,7 @@ export default class pacifica extends Exchange {
             }
             if (builderCode !== undefined) {
                 const isOperationSupportBuilder = this.safeBool (this.options['builderSupportOperations'], operationType, false);
-                if (isOperationSupportBuilder === true) {
+                if (isOperationSupportBuilder) {
                     sigPayload['builder_code'] = builderCode;
                 }
             }

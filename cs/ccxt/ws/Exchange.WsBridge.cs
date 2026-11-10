@@ -8,11 +8,28 @@ public partial class BaseExchange
 {
 
     private Dictionary<string, long[]> wsBackoffState = new Dictionary<string, long[]>();
-    private readonly object wsBackoffStateSync = new object();
+
+    // a store of a fresh dictionary into a ws cache keeps the cache concurrent
+    private IDictionary<string, object> wrapWsCache(IDictionary<string, object> value)
+    {
+        if (value == null || value is ConcurrentDictionary<string, object>)
+        {
+            return value;
+        }
+        return new ConcurrentDictionary<string, object>(value);
+    }
 
     // exponential reconnect backoff with rng-free jitter, mirrors ts/src/base/Exchange.ts
     // calculateWsBackoffDelay, see https://github.com/ccxt/ccxt/issues/23525
     public int calculateWsBackoffDelay(string url)
+    {
+        lock (this.wsBackoffState)
+        {
+            return this.calculateWsBackoffDelayOwned(url);
+        }
+    }
+
+    private int calculateWsBackoffDelayOwned(string url)
     {
         var wsOptions = this.safeDict(this.options, "ws", new Dictionary<string, object>());
         var backoff = this.safeDict(wsOptions, "backoff", new Dictionary<string, object>());
@@ -21,34 +38,32 @@ public partial class BaseExchange
         var maxDelay = this.safeInteger(backoff, "max", 60000) ?? 60000;
         var stableAfter = this.safeInteger(backoff, "stableAfter", 30000) ?? 30000;
         var now = this.milliseconds();
-        lock (wsBackoffStateSync)
+        // the caller holds the wsBackoffState lock
+        long attempts = 0;
+        long lastAttempt = 0;
+        if (this.wsBackoffState.TryGetValue(url, out var history))
         {
-            long attempts = 0;
-            long lastAttempt = 0;
-            if (this.wsBackoffState.TryGetValue(url, out var history))
-            {
-                attempts = history[0];
-                lastAttempt = history[1];
-            }
-            if ((lastAttempt > 0) && ((now - lastAttempt) > stableAfter))
-            {
-                attempts = 0; // the previous connection was healthy long enough, start fresh
-            }
-            this.wsBackoffState[url] = new long[] { attempts + 1, now };
-            if (attempts == 0)
-            {
-                return 0; // first dial or recovered, connect immediately
-            }
-            var delay = baseDelay;
-            var capped = Math.Min(attempts, 20); // overflow guard
-            for (long i = 1; i < capped; i++)
-            {
-                delay = delay * factor;
-            }
-            var jitterMillis = now % 1000; // rng-free jitter
-            var jittered = (long)(delay * (0.8 + (jitterMillis / 2500.0))); // 0.8x .. 1.2x
-            return (int)Math.Min(jittered, maxDelay); // the ceiling holds regardless of jitter
+            attempts = history[0];
+            lastAttempt = history[1];
         }
+        if ((lastAttempt > 0) && ((now - lastAttempt) > stableAfter))
+        {
+            attempts = 0; // the previous connection was healthy long enough, start fresh
+        }
+        this.wsBackoffState[url] = new long[] { attempts + 1, now };
+        if (attempts == 0)
+        {
+            return 0; // first dial or recovered, connect immediately
+        }
+        var delay = baseDelay;
+        var capped = Math.Min(attempts, 20); // overflow guard
+        for (long i = 1; i < capped; i++)
+        {
+            delay = delay * factor;
+        }
+        var jitterMillis = now % 1000; // rng-free jitter
+        var jittered = (long)(delay * (0.8 + (jitterMillis / 2500.0))); // 0.8x .. 1.2x
+        return (int)Math.Min(jittered, maxDelay); // the ceiling holds regardless of jitter
     }
 
     public ConcurrentDictionary<string, WebSocketClient> clients = new ConcurrentDictionary<string, WebSocketClient>();
@@ -56,17 +71,20 @@ public partial class BaseExchange
 
     public ccxt.pro.OrderBook orderBook(object snapshot = null, object depth = null)
     {
-        return new ccxt.pro.OrderBook(snapshot, depth);
+        var book = new ccxt.pro.OrderBook(snapshot, depth);
+        return book;
     }
 
     public ccxt.pro.IndexedOrderBook indexedOrderBook(object snapshot = null, object depth = null)
     {
-        return new ccxt.pro.IndexedOrderBook(snapshot, depth);
+        var book = new ccxt.pro.IndexedOrderBook(snapshot, depth);
+        return book;
     }
 
     public ccxt.pro.CountedOrderBook countedOrderBook(object snapshot = null, object depth = null)
     {
-        return new ccxt.pro.CountedOrderBook(snapshot, depth);
+        var book = new ccxt.pro.CountedOrderBook(snapshot, depth);
+        return book;
     }
 
     // Typed reads of this.orderbooks. Every value stored into the map is constructed by
@@ -115,6 +133,40 @@ public partial class BaseExchange
         // Console.WriteLine(messageContent);
     }
 
+    // a venue overrides the handler that takes the frame shape it receives, see routeMessage
+    public virtual void handleTextMessage(WebSocketClient client, object messageContent)
+    {
+    }
+
+    public virtual void handleListMessage(WebSocketClient client, object messageContent)
+    {
+    }
+
+    public virtual void handleBinaryMessage(WebSocketClient client, object messageContent)
+    {
+    }
+
+    // hands a parsed frame to the handler that takes its shape: text, json array, raw bytes or json object
+    public void routeMessage(WebSocketClient client, object messageContent)
+    {
+        if (messageContent is string)
+        {
+            handleTextMessage(client, messageContent);
+        }
+        else if (messageContent is IList<object>)
+        {
+            handleListMessage(client, messageContent);
+        }
+        else if (messageContent is byte[])
+        {
+            handleBinaryMessage(client, messageContent);
+        }
+        else
+        {
+            handleMessage(client, messageContent);
+        }
+    }
+
     public virtual object ping(WebSocketClient client)
     {
         // Console.WriteLine("ping");
@@ -156,7 +208,12 @@ public partial class BaseExchange
             var keepAliveValue = this.safeInteger(wsOptions, "keepAlive", 30000) ?? 30000;
             var keepAlive = keepAliveValue;
             var decompressBinary = this.safeBool(this.options, "decompressBinary", true) as bool? ?? true;
-            var client = new WebSocketClient(url, proxy, handleMessage, ping, onClose, onError, this.verbose, keepAlive, decompressBinary);
+            var client = new WebSocketClient(url, proxy,
+                (c, message) => routeMessage(c, message),
+                (c) => ping(c),
+                (c, error) => onClose(c, error),
+                (c, error) => onError(c, error),
+                this.verbose, keepAlive, decompressBinary);
 
             var wsHeaders = this.safeValue(wsOptions, "headers", new Dictionary<string, object>() { });
             // iterate through headers
@@ -189,7 +246,13 @@ public partial class BaseExchange
         var backoffDelay = 0;
 
         Future existingFuture = null;
-        if (subscribeHash == null && (client.futures as ConcurrentDictionary<string, Future>).TryGetValue(messageHash, out existingFuture))
+        // one hand-off: an already pending future is answered without touching the
+        // client's table, a missing one is attached below
+        if (subscribeHash == null)
+        {
+            existingFuture = client.getFuture(messageHash);
+        }
+        if (existingFuture != null)
         {
             return await existingFuture;
         }
@@ -201,7 +264,9 @@ public partial class BaseExchange
         // like watchMultiple already does and send only when this call won the claim,
         // js stores null subscribe hashes under a literal undefined key, mirror that
         var subscriptionClaimKey = subscribeHash ?? "undefined";
-        bool subscriptionClaimed = (client.subscriptions as ConcurrentDictionary<string, object>).TryAdd(subscriptionClaimKey, subscription ?? true);
+        // the client owns the claim table: it answers which keys this call won, and
+        // the release below hands the same key back
+        bool subscriptionClaimed = client.claimSubscriptions(new List<string> { subscriptionClaimKey }, subscription).Count > 0;
         if (!client.startedConnecting)
         {
             // count real dials only, see https://github.com/ccxt/ccxt/pull/29627
@@ -219,7 +284,7 @@ public partial class BaseExchange
                 }
                 catch (Exception ex)
                 {
-                    client.subscriptions.Remove(subscriptionClaimKey);
+                    client.releaseSubscriptions(new List<string> { subscriptionClaimKey });
                     future.reject(ex);
                     // future.SetException(ex); check this out
                 }
@@ -243,15 +308,9 @@ public partial class BaseExchange
 
         if (subscribeHashes != null)
         {
-            foreach (var subscribeHash in subscribeHashes)
-            {
-                if (subscribeHash == null) continue;
-
-                if ((client.subscriptions as ConcurrentDictionary<string, object>).TryAdd(subscribeHash, subscription ?? true))
-                {
-                    missingSubscriptions.Add(subscribeHash);
-                }
-            }
+            // one hand-off for the whole batch: the client answers the keys this
+            // call won, so a second watch on an already-claimed hash sends nothing
+            missingSubscriptions = client.claimSubscriptions(subscribeHashes, subscription);
         }
 
         var backoffDelay2 = 0;
@@ -273,10 +332,7 @@ public partial class BaseExchange
                 }
                 catch (Exception ex)
                 {
-                    foreach (var subscribeHash in missingSubscriptions)
-                    {
-                        client.subscriptions.Remove(subscribeHash);
-                    }
+                    client.releaseSubscriptions(missingSubscriptions);
                     future.reject(ex); // check this out
                 }
             }
@@ -297,7 +353,7 @@ public partial class Exchange
             return;
         }
         object maxRetries = this.handleOption("watchOrderBook", "snapshotMaxRetries", 3);
-        object tries = 0;
+        int tries = 0;
         Exception error = null;
         try
         {
@@ -310,12 +366,12 @@ public partial class Exchange
                 if (isTrue(isGreaterThanOrEqual(index, 0)))
                 {
                     stored.reset(orderBook);
-                    this.handleBookDeltas(stored, arraySlice(cache, index));
+                    this.handleBookDeltas(stored, (IList<object>)arraySlice(cache, index));
                     stored.cache.Clear();
                     client.resolve(stored, messageHash);
                     return;
                 }
-                postFixIncrement(ref tries);
+                tries++;
             }
             error = new ExchangeError(add(add(add(this.id, " nonce is behind the cache after "), ((object)maxRetries).ToString()), " tries."));
         }
@@ -324,7 +380,10 @@ public partial class Exchange
             error = e;
         }
         (client).reject(error, messageHash);
-        this.clients.TryRemove(client.url, out _);
+        // close the dropped connection, otherwise its receive and ping loops keep running
+        // (Close() sets client.error itself, so onClose skips it)
+        _ = client.Close();
+        this.CleanupClients(client, error);
         ((System.Collections.Generic.IDictionary<string, object>)this.orderbooks)[(string)symbol] = this.orderBook();
     }
 }

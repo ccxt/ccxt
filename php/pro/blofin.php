@@ -17,7 +17,7 @@ use ccxt\pro\ArrayCacheBySymbolBySide;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class blofin extends \ccxt\async\blofin {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -35,6 +35,10 @@ class blofin extends \ccxt\async\blofin {
                 'watchOrders' => true,
                 'watchOrdersForSymbols' => true,
                 'watchPositions' => true,
+                'unWatchTrades' => true,
+                'unWatchTradesForSymbols' => true,
+                'unWatchOHLCV' => true,
+                'unWatchOHLCVForSymbols' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -76,13 +80,6 @@ class blofin extends \ccxt\async\blofin {
 
     public function ping(Client $client) {
         return 'ping';
-    }
-
-    public function handle_pong(Client $client, mixed $message) {
-        //
-        //   'pong'
-        //
-        $client->lastPong = $this->milliseconds();
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -135,6 +132,41 @@ class blofin extends \ccxt\async\blofin {
         return $this->sort_by($result, 'timestamp'); // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599430/job/59597237029?pr=27624#step:11:611
     }
 
+    public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades(...))($symbol, $params);
+    }
+
+    private function do_un_watch_trades(string $symbol, $params = array()) {
+        /**
+         * unWatches the list of most recent trades for a particular $symbol
+         *
+         * @see https://docs.blofin.com/index.html#ws-trades-channel
+         *
+         * @param {string} $symbol unified $symbol of the market to unwatch trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch request
+         */
+        $params['callerMethodName'] = 'unWatchTrades';
+        return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $params));
+    }
+
+    public function un_watch_trades_for_symbols(array $symbols, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades_for_symbols(...))($symbols, $params);
+    }
+
+    private function do_un_watch_trades_for_symbols(array $symbols, $params = array()) {
+        /**
+         * unWatches the list of most recent trades for a list of $symbols
+         *
+         * @see https://docs.blofin.com/index.html#ws-trades-channel
+         *
+         * @param {string[]} $symbols unified $symbols of the markets to unwatch trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch request
+         */
+        return Async\await($this->unsubscribe_multiple_wrapper('trades', 'unWatchTradesForSymbols', $symbols, $params));
+    }
+
     public function handle_trades(Client $client, array $message) {
         //
         //     {
@@ -155,9 +187,9 @@ class blofin extends \ccxt\async\blofin {
             return;
         }
         for ($i = 0; $i < count($data); $i++) {
-            $rawTrade = $data[$i];
+            $rawTrade = $this->safe_value($data, $i);
             $trade = $this->parse_ws_trade($rawTrade);
-            $symbol = $trade['symbol'];
+            $symbol = $this->safe_string($trade, 'symbol', '');
             $stored = $this->safe_value($this->trades, $symbol);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -288,9 +320,9 @@ class blofin extends \ccxt\async\blofin {
          */
         $params['callerMethodName'] = 'watchTicker';
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $result = Async\await($this->watch_tickers(array( $symbolValue ), $params));
-        return $result[$symbolValue];
+        return $this->safe_value($result, $symbolValue);
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -341,8 +373,8 @@ class blofin extends \ccxt\async\blofin {
         $channelName = $this->safe_string($arg, 'channel');
         $data = $this->safe_list($message, 'data');
         for ($i = 0; $i < count($data); $i++) {
-            $ticker = $this->parse_ws_ticker($data[$i]);
-            $symbol = $ticker['symbol'];
+            $ticker = $this->parse_ws_ticker($this->safe_value($data, $i));
+            $symbol = $this->safe_string($ticker, 'symbol', '');
             $this->tickers[$symbol] = $ticker;
             if ($channelName !== null) {
                 $messageHash = $channelName . ':' . $symbol;
@@ -377,7 +409,8 @@ class blofin extends \ccxt\async\blofin {
         $firstMarket = $this->market($symbolsList[0]);
         $channel = 'tickers';
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('watchBidsAsks', $firstMarket, $params);
-        $url = ($this->urls['api'])['ws'][$marketType]['public'];
+        $typeUrls = $this->safe_dict($this->urls['api']['ws'], $marketType, array());
+        $url = $this->safe_string($typeUrls, 'public');
         $messageHashes = array();
         $args = array();
         for ($i = 0; $i < count($symbolsList); $i++) {
@@ -404,8 +437,8 @@ class blofin extends \ccxt\async\blofin {
     public function handle_bid_ask(Client $client, array $message) {
         $data = $this->safe_list($message, 'data');
         for ($i = 0; $i < count($data); $i++) {
-            $ticker = $this->parse_ws_bid_ask($data[$i]);
-            $symbol = $ticker['symbol'];
+            $ticker = $this->parse_ws_bid_ask($this->safe_value($data, $i));
+            $symbol = $this->safe_string($ticker, 'symbol', '');
             $messageHash = 'bidask:' . $symbol;
             $this->bidsasks[$symbol] = $ticker;
             $client->resolve($ticker, $messageHash);
@@ -445,7 +478,8 @@ class blofin extends \ccxt\async\blofin {
          */
         $params['callerMethodName'] = 'watchOHLCV';
         $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
-        return $result[$symbol][$timeframe];
+        $symbolResult = $this->safe_dict($result, $symbol, array());
+        return $this->safe_list($symbolResult, $timeframe, array());
     }
 
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
@@ -465,19 +499,62 @@ class blofin extends \ccxt\async\blofin {
          * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         $symbolsLength = count($symbolsAndTimeframes);
-        if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
+        if ($symbolsLength === 0 || $this->safe_list($symbolsAndTimeframes, 0) === null) {
             throw new ArgumentsRequired($this->id . " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
         }
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        list($symbol, $timeframe, $candles) = Async\await($this->watch_multiple_wrapper(true, 'candle', 'watchOHLCVForSymbols', $symbolsAndTimeframes, $params));
+        $result = Async\await($this->watch_multiple_wrapper(true, 'candle', 'watchOHLCVForSymbols', $symbolsAndTimeframes, $params));
+        $symbol = $this->safe_string($result, 0, '');
+        $timeframe = $this->safe_string($result, 1, '');
+        $candles = $this->safe_value($result, 2);
         $limitResolved = $limit;
         if ($this->newUpdates) {
             $limitResolved = $candles->getLimit($symbol, $limit);
         }
         $filtered = $this->filter_by_since_limit($candles, $since, $limitResolved, 0, true);
         return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
+    }
+
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_ohlcv(...))($symbol, $timeframe, $params);
+    }
+
+    private function do_un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()) {
+        /**
+         * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         *
+         * @see https://docs.blofin.com/index.html#ws-candlesticks-channel
+         *
+         * @param {string} $symbol unified $symbol of the market to unwatch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch request
+         */
+        $params['callerMethodName'] = 'unWatchOHLCV';
+        return Async\await($this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params));
+    }
+
+    public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_ohlcv_for_symbols(...))($symbolsAndTimeframes, $params);
+    }
+
+    private function do_un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array()) {
+        /**
+         * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         *
+         * @see https://docs.blofin.com/index.html#ws-candlesticks-channel
+         *
+         * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to unwatch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {any} status of the unwatch request
+         */
+        $symbolsLength = count($symbolsAndTimeframes);
+        if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
+            throw new ArgumentsRequired($this->id . " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
+        }
+        return Async\await($this->unsubscribe_multiple_wrapper('candle', 'unWatchOHLCVForSymbols', $symbolsAndTimeframes, $params));
     }
 
     public function handle_ohlcv(Client $client, array $message) {
@@ -510,7 +587,7 @@ class blofin extends \ccxt\async\blofin {
             $this->ohlcvs[$symbol][$unifiedTimeframe] = $stored;
         }
         for ($i = 0; $i < count($data); $i++) {
-            $candle = $data[$i];
+            $candle = $this->safe_value($data, $i);
             $parsed = $this->parse_ohlcv($candle, $market);
             $stored->append($parsed);
         }
@@ -545,7 +622,8 @@ class blofin extends \ccxt\async\blofin {
             'channel' => 'account',
         );
         $request = $this->get_subscription_request(array( $sub ));
-        $url = ($this->urls['api'])['ws'][$marketType]['private'];
+        $typeUrls = $this->safe_dict($this->urls['api']['ws'], $marketType, array());
+        $url = $this->safe_string($typeUrls, 'private');
         return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $paramsMarketType), $messageHash));
     }
 
@@ -559,10 +637,25 @@ class blofin extends \ccxt\async\blofin {
         //     }
         //
         $marketType = 'swap'; // for now
-        if (!(is_array($this->balance) && array_key_exists($marketType ?? '', $this->balance))) {
-            $this->balance[$marketType] = array();
+        // merge the parsed update into the existing balance object instead of
+        // replacing it: a consumer awakened by an earlier message holds a
+        // reference to this.balance[marketType], and Client.resolve is a no-op
+        // while nobody is awaiting, so a replaced object would make updates
+        // landing in that window invisible to the consumer forever (same class
+        // as issue #26773); the free/used/total aggregates are rebuilt from
+        // the merged currencies by safeBalance
+        $this->balance[$marketType] = $this->safe_dict($this->balance, $marketType, array());
+        $parsed = $this->parse_ws_balance($message);
+        $reserved = array( 'free', 'used', 'total' );
+        $keys = is_array($parsed) ? array_keys($parsed) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if ($this->in_array($key, $reserved)) {
+                continue;
+            }
+            $this->balance[$marketType][$key] = $parsed[$key];
         }
-        $this->balance[$marketType] = $this->parse_ws_balance($message);
+        $this->balance[$marketType] = $this->safe_balance($this->balance[$marketType]);
         $messageHash = $marketType . ':balance';
         $client->resolve($this->balance[$marketType], $messageHash);
     }
@@ -651,12 +744,10 @@ class blofin extends \ccxt\async\blofin {
         $channelName = $this->safe_string($arg, 'channel');
         $data = $this->safe_list($message, 'data');
         for ($i = 0; $i < count($data); $i++) {
-            $order = $this->parse_ws_order($data[$i]);
-            $symbol = $order['symbol'];
+            $order = $this->parse_ws_order($this->safe_value($data, $i));
             $orders->append($order);
             if ($channelName !== null) {
-                $messageHash = $channelName . ':' . $symbol;
-                $client->resolve($orders, $messageHash);
+                $client->resolve($orders, $channelName . ':' . $this->safe_string($order, 'symbol', ''));
             }
             $client->resolve($orders, $channelName);
         }
@@ -711,12 +802,11 @@ class blofin extends \ccxt\async\blofin {
         $data = $this->safe_list($message, 'data');
         $newPositions = array();
         for ($i = 0; $i < count($data); $i++) {
-            $position = $this->parse_ws_position($data[$i]);
+            $position = $this->parse_ws_position($this->safe_value($data, $i));
             $newPositions[] = $position;
             $cache->append($position);
             if ($channelName !== null) {
-                $messageHash = $channelName . ':' . $position['symbol'];
-                $client->resolve($position, $messageHash);
+                $client->resolve($position, $channelName . ':' . $this->safe_string($position, 'symbol', ''));
             }
         }
     }
@@ -750,7 +840,8 @@ class blofin extends \ccxt\async\blofin {
             'instId' => $market['id'],
         );
         $request = $this->get_subscription_request(array( $requestParams ));
-        $url = ($this->urls['api'])['ws'][$marketType]['public'];
+        $typeUrls = $this->safe_dict($this->urls['api']['ws'], $marketType, array());
+        $url = $this->safe_string($typeUrls, 'public');
         return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $paramsMarketType), $messageHash));
     }
 
@@ -773,7 +864,7 @@ class blofin extends \ccxt\async\blofin {
         $data = $this->safe_list($message, 'data', array());
         $first = $this->safe_dict($data, 0, array());
         $fundingRate = $this->parse_funding_rate($first);
-        $symbol = $fundingRate['symbol'];
+        $symbol = $this->safe_string($fundingRate, 'symbol', '');
         $this->fundingRates[$symbol] = $fundingRate;
         $messageHash = 'fundingRate:' . $symbol;
         $client->resolve($fundingRate, $messageHash);
@@ -791,8 +882,8 @@ class blofin extends \ccxt\async\blofin {
         list($callerMethodNameOption, $paramsCallerMethodName) = $this->handle_param_string($params, 'callerMethodName', $callerMethodName);
         // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
         $isOHLCV = ($channelName === 'candle');
-        $symbols = $isOHLCV ? $this->get_list_from_object_values($symbolsArray, 0) : $symbolsArray;
-        $symbols = $this->market_symbols($symbols, null, true, true);
+        $symbolsRaw = $isOHLCV ? $this->get_list_from_object_values($symbolsArray, 0) : $symbolsArray;
+        $symbols = $this->market_symbols($symbolsRaw, null, true, true);
         $firstMarket = null;
         $firstSymbol = $this->safe_string($symbols, 0);
         if ($firstSymbol !== null) {
@@ -804,21 +895,16 @@ class blofin extends \ccxt\async\blofin {
         }
         $rawSubscriptions = array();
         $messageHashes = array();
-        if ($symbols === null) {
-            $symbols = array();
-        }
-        $symbolsLength = count($symbols);
-        if ($symbolsLength > 0) {
+        if (($symbols !== null) && (strlen($symbols) > 0)) {
             for ($i = 0; $i < count($symbols); $i++) {
                 $current = $symbols[$i];
                 $market = null;
                 $channel = $channelName;
                 if ($isOHLCV) {
                     $market = $this->market($current);
-                    $tfArray = $symbolsArray[$i];
-                    $tf = $tfArray[1];
+                    $tf = $this->safe_string($this->safe_value($symbolsArray, $i), 1);
                     $interval = $this->safe_string($this->timeframes, $tf, $tf);
-                    $channel .= $interval;
+                    $channel = $channel . $interval;
                 } else {
                     $market = $this->market($current);
                 }
@@ -827,7 +913,7 @@ class blofin extends \ccxt\async\blofin {
                     'instId' => $market['id'],
                 );
                 $rawSubscriptions[] = $topic;
-                $messageHashes[] = $channel . ':' . $market['symbol'];
+                $messageHashes[] = $channel . ':' . $this->safe_string($market, 'symbol', '');
             }
         } else {
             $rawSubscriptions[] = array( 'channel' => $channelName );
@@ -839,21 +925,104 @@ class blofin extends \ccxt\async\blofin {
         }
         $request = $this->get_subscription_request($rawSubscriptions);
         $privateOrPublic = 'private';
-        if ($isPublic) {
+        if ($isPublic === true) {
             $privateOrPublic = 'public';
         }
-        $url = ($this->urls['api'])['ws'][$marketType][$privateOrPublic];
+        $typeUrls = $this->safe_dict($this->urls['api']['ws'], $marketType, array());
+        $url = $this->safe_string($typeUrls, $privateOrPublic);
         return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $paramsMarketType), $messageHashes));
     }
 
-    public function get_subscription_request(mixed $args) {
+    public function unsubscribe_multiple_wrapper(string $channelName, string $callerMethodName, mixed $symbolsArray, $params = array()): PromiseInterface {
+        return Async\async(self::do_unsubscribe_multiple_wrapper(...))($channelName, $callerMethodName, $symbolsArray, $params);
+    }
+
+    private function do_unsubscribe_multiple_wrapper(string $channelName, string $callerMethodName, mixed $symbolsArray, $params = array()) {
+        // underlier method for the public unWatch* methods, sends the same topics as watchMultipleWrapper
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        list($callerMethodNameOption, $paramsCallerMethodName) = $this->handle_param_string($params, 'callerMethodName', $callerMethodName);
+        $isOHLCV = ($channelName === 'candle');
+        $symbols = array();
+        if ($isOHLCV) {
+            $symbols = $this->market_symbols($this->get_list_from_object_values($symbolsArray, 0), null, false, true);
+        } else {
+            $symbols = $this->market_symbols($symbolsArray, null, false, true);
+        }
+        $firstMarket = $this->market($this->safe_string($symbols, 0));
+        list($marketType, $paramsMarketType) = $this->handle_market_type_and_params($callerMethodNameOption, $firstMarket, $paramsCallerMethodName);
+        if ($marketType !== 'swap') {
+            throw new NotSupported($this->id . ' ' . $callerMethodNameOption . '() does not support ' . $marketType . ' markets yet');
+        }
+        $topics = array();
+        $messageHashes = array();
+        for ($i = 0; $i < count($symbols); $i++) {
+            $market = $this->market($this->safe_string($symbols, $i));
+            $channel = $channelName;
+            if ($isOHLCV) {
+                $tfArray = $symbolsArray[$i];
+                $tf = $tfArray[1];
+                $interval = $this->safe_string($this->timeframes, $tf, $tf);
+                $channel .= $interval;
+            }
+            $topic = array(
+                'channel' => $channel,
+                'instId' => $market['id'],
+            );
+            $topics[] = $topic;
+            $messageHashes[] = 'unsubscribe:' . $channel . ':' . $market['symbol'];
+        }
+        $request = array(
+            'op' => 'unsubscribe',
+            'args' => $topics,
+        );
+        $url = ($this->urls['api'])['ws'][$marketType]['public'];
+        return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $paramsMarketType), $messageHashes));
+    }
+
+    public function handle_unsubscription(Client $client, array $message) {
+        //
+        //     {
+        //         "event": "unsubscribe",
+        //         "arg": {
+        //             "channel": "candle1m",
+        //             "instId": "BTC-USDT"
+        //         }
+        //     }
+        //
+        $arg = $this->safe_dict($message, 'arg', array());
+        $channel = $this->safe_string($arg, 'channel', '');
+        $marketId = $this->safe_string($arg, 'instId');
+        $market = $this->safe_market($marketId);
+        $symbol = $market['symbol'];
+        $subMessageHash = $channel . ':' . $symbol;
+        if ($channel === 'trades') {
+            $this->clean_cache(array( 'topic' => 'trades', 'symbols' => array( $symbol ) ));
+            $this->clean_unsubscription($client, $subMessageHash, 'unsubscribe:' . $subMessageHash);
+        } elseif (str_starts_with($channel, 'candle')) {
+            $timeframe = $this->find_timeframe(str_replace('candle', '', $channel));
+            if ($timeframe !== null) {
+                $this->clean_cache(array( 'topic' => 'ohlcv', 'symbolsAndTimeframes' => array( array( $symbol, $timeframe ) ) ));
+            }
+            $this->clean_unsubscription($client, $subMessageHash, 'unsubscribe:' . $subMessageHash);
+        }
+    }
+
+    public function get_subscription_request(array $args): array {
         return array(
             'op' => 'subscribe',
             'args' => $args,
         );
     }
 
-    public function handle_message(Client $client, mixed $message) {
+    public function handle_text_message(Client $client, string $message) {
+        if ($message === 'pong') {
+            $client->lastPong = $this->milliseconds();
+        }
+    }
+
+    public function handle_message(Client $client, array $message) {
         //
         // message examples
         //
@@ -869,7 +1038,6 @@ class blofin extends \ccxt\async\blofin {
         //
         $methods = array(
             // public
-            'pong' => array($this, 'handle_pong'),
             'trades' => array($this, 'handle_trades'),
             'books' => array($this, 'handle_order_book'),
             'tickers' => array($this, 'handle_ticker'),
@@ -882,25 +1050,24 @@ class blofin extends \ccxt\async\blofin {
             'funding-rate' => array($this, 'handle_funding_rate'),
         );
         $method = null;
-        if ($message === 'pong') {
-            $method = $this->safe_value($methods, 'pong');
-        } else {
-            $event = $this->safe_string($message, 'event');
-            if ($event === 'subscribe') {
-                return;
-            } elseif ($event === 'login') {
-                $future = $this->safe_value($client->futures, 'authenticate_hash');
-                $future->resolve(true);
-                return;
-            } elseif ($event === 'error') {
-                throw new ExchangeError($this->id . ' error => ' . $this->json($message));
-            }
-            $arg = $this->safe_dict($message, 'arg');
-            $channelName = $this->safe_string($arg, 'channel');
-            $method = $this->safe_value($methods, $channelName);
-            if (($method === null) && (mb_strpos($channelName, 'candle') !== false)) {
-                $method = $methods['candle'];
-            }
+        $event = $this->safe_string($message, 'event');
+        if ($event === 'subscribe') {
+            return;
+        } elseif ($event === 'unsubscribe') {
+            $this->handle_unsubscription($client, $message);
+            return;
+        } elseif ($event === 'login') {
+            $future = $this->safe_value($client->futures, 'authenticate_hash');
+            $future->resolve(true);
+            return;
+        } elseif ($event === 'error') {
+            throw new ExchangeError($this->id . ' error => ' . $this->json($message));
+        }
+        $arg = $this->safe_dict($message, 'arg');
+        $channelName = $this->safe_string($arg, 'channel');
+        $method = $this->safe_value($methods, $channelName);
+        if (($method === null) && (mb_strpos($channelName, 'candle') !== false)) {
+            $method = $methods['candle'];
         }
         if ($method !== null) {
             $method($client, $message);
@@ -932,7 +1099,8 @@ class blofin extends \ccxt\async\blofin {
             ),
         );
         $marketType = 'swap'; // for now
-        $url = ($this->urls['api'])['ws'][$marketType]['private'];
+        $typeUrls = $this->safe_dict($this->urls['api']['ws'], $marketType, array());
+        $url = $this->safe_string($typeUrls, 'private');
         Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
     }
 }

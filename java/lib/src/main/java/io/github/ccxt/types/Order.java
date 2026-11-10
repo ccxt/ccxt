@@ -31,7 +31,11 @@ public final class Order extends TypedMap {
     public String status;
     public Boolean reduceOnly;
     public Boolean postOnly;
+    public String marginMode;
+    public Double leverage;
+    public Boolean hedged;
     public Fee fee;
+    public List<Fee> fees;
     public List<Trade> trades;
     public Map<String, Object> info;
 
@@ -62,8 +66,15 @@ public final class Order extends TypedMap {
         this.status = TypeHelper.safeString(data, "status");
         this.reduceOnly = TypeHelper.safeBool(data, "reduceOnly");
         this.postOnly = TypeHelper.safeBool(data, "postOnly");
+        this.marginMode = TypeHelper.safeString(data, "marginMode");
+        this.leverage = TypeHelper.safeFloat(data, "leverage");
+        this.hedged = TypeHelper.safeBool(data, "hedged");
         Object feeRaw = TypeHelper.safeValue(data, "fee");
         this.fee = feeRaw != null ? new Fee(feeRaw) : null;
+        Object feesRaw = TypeHelper.safeValue(data, "fees");
+        if (feesRaw instanceof List<?> feesList) {
+            this.fees = ((List<Object>) feesList).stream().map(Fee::new).collect(Collectors.toList());
+        }
         Object tradesRaw = TypeHelper.safeValue(data, "trades");
         if (tradesRaw instanceof List<?> tradesList) {
             this.trades = ((List<Object>) tradesList).stream().map(Trade::new).collect(Collectors.toList());

@@ -14,7 +14,7 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestWatchPosition extends BaseTest {
-    public CompletableFuture<Object> testWatchPosition(Exchange exchange, Object skippedProperties, Object symbol)
+    public CompletableFuture<Object> testWatchPosition(Exchange exchange, Object skippedProperties, String symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -28,7 +28,7 @@ public class TestWatchPosition extends BaseTest {
             Boolean success = true;
             try
             {
-                response = (exchange.watchPosition(Helpers.toStringArg(symbol), new HashMap<String, Object>() {{}})).join();
+                response = (exchange.watchPosition(symbol, new HashMap<String, Object>() {{}})).join();
             } catch(Exception e)
             {
                 if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
@@ -39,11 +39,11 @@ public class TestWatchPosition extends BaseTest {
                 // continue;
                 success = false;
             }
-            if ((java.util.Objects.equals(success, true)) && (!java.util.Objects.equals(response, null)))
+            if (Boolean.TRUE.equals(success) && (!java.util.Objects.equals(response, null)))
             {
                 Assert(exchange.isDictionary(response), ((((((exchange.id + " ") + method) + " ") + symbol) + " must return a dictionary. ") + exchange.json(response)));
                 now = exchange.milliseconds();
-                TestPosition.testPosition(exchange, skippedProperties, method, response, symbol, now);
+                TestPosition.testPosition(exchange, skippedProperties, method, response, (String) (symbol), now);
             }
         }
         return true;

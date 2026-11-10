@@ -14,7 +14,7 @@ public partial class testMainClass : BaseTest
             // there are cases when exchange is undefined (eg. base tests)
             object id = ((exchange != null)) ? exchange.id : "undefined";
             object methodString = ((method != null)) ? method : "undefined";
-            string? entryString = ((exchange != null) && (entry != null)) ? exchange.json(entry) : "";
+            string entryString = ((exchange != null) && (entry != null)) ? exchange.json(entry) : "";
             return ((((((" <<< " + (id)) + " ") + (methodString)) + " ::: ") + entryString) + " >>> ");
         }
         public object isTemporaryFailure(object e)
@@ -150,7 +150,7 @@ public partial class testMainClass : BaseTest
             } else
             {
                 // if index was provided (mostly from fetchOHLCV) then we check if it exists, as mandatory
-                assert(!(isEqual(getValue(entry, keyNameOrIndex), null)), ((("timestamp index " + (stringValue(keyNameOrIndex))) + " is undefined") + (logText)));
+                assert(!((getValue(entry, keyNameOrIndex) == null)), ((("timestamp index " + (stringValue(keyNameOrIndex))) + " is undefined") + (logText)));
             }
             object ts = getValue(entry, keyNameOrIndex);
             assert((ts != null) || isTrue(allowNull), ("timestamp is null" + (logText)));
@@ -246,10 +246,10 @@ public partial class testMainClass : BaseTest
             {
                 // check by code
                 Dictionary<string, object> currencyByCode = exchange.currency(((string)currencyCode));
-                assert(isEqual((currencyByCode != null && ((IDictionary<string, object>)currencyByCode).ContainsKey("id") ? ((IDictionary<string, object>)currencyByCode)["id"] : null), currencyId), ((((("currencyId \"" + (stringValue(currencyId))) + "\" does not match currency id from instance: \"") + (stringValue((currencyByCode != null && ((IDictionary<string, object>)currencyByCode).ContainsKey("id") ? ((IDictionary<string, object>)currencyByCode)["id"] : null)))) + "\"") + (logText)));
+                assert(isEqual((currencyByCode != null && currencyByCode.ContainsKey("id") ? currencyByCode["id"] : null), currencyId), ((((("currencyId \"" + (stringValue(currencyId))) + "\" does not match currency id from instance: \"") + (stringValue((currencyByCode != null && currencyByCode.ContainsKey("id") ? currencyByCode["id"] : null)))) + "\"") + (logText)));
                 // check by id
                 Dictionary<string, object> currencyById = toDict(exchange.safeCurrency(currencyId));
-                assert(isEqual((currencyById != null && ((IDictionary<string, object>)currencyById).ContainsKey("code") ? ((IDictionary<string, object>)currencyById)["code"] : null), currencyCode), (((("currencyCode " + (stringValue(currencyCode))) + " does not match currency of id: ") + (stringValue(currencyId))) + (logText)));
+                assert(isEqual((currencyById != null && currencyById.ContainsKey("code") ? currencyById["code"] : null), currencyCode), (((("currencyCode " + (stringValue(currencyCode))) + " does not match currency of id: ") + (stringValue(currencyId))) + (logText)));
             }
         }
         public void assertSymbol(BaseExchange exchange, object skippedProperties, object method, object entry, object key, object expectedSymbol = null, object allowNull = null)
@@ -352,6 +352,17 @@ public partial class testMainClass : BaseTest
                 assert(Precise.stringEq(value, compareTo), add(add(add(add(add(stringValue(key), " key (with a value of "), stringValue(value)), ") was expected to be equal to "), stringValue(compareTo)), logText));
             }
         }
+        public void assertUnifiedNetworkCode(BaseExchange exchange, object skippedProperties, object method, object entry, object networkCode)
+        {
+            // returned network codes must be the unified code, never one of its aliases (e.g. ERC20, not ETH)
+            if ((inOp(skippedProperties, "network")) || ((networkCode == null)))
+            {
+                return;
+            }
+            object logText = logTemplate(exchange, method, entry);
+            string? unifiedCode = exchange.safeString(exchange.networkAliases, networkCode, networkCode);
+            assert(isEqual(unifiedCode, networkCode), (((("network code " + (networkCode)) + " is an alias, expected the unified code ") + unifiedCode) + (logText)));
+        }
         public void assertNonEqual(BaseExchange exchange, object skippedProperties, object method, object entry, object key, object compareTo, object allowNull = null)
         {
             allowNull ??= true;
@@ -380,7 +391,7 @@ public partial class testMainClass : BaseTest
             // todo: remove undefined check
             if ((value != null))
             {
-                string? stingifiedArrayValue = exchange.json(expectedArray); // don't use expectedArray.join (','), as it bugs in other languages, if values are bool, undefined or etc..
+                string stingifiedArrayValue = exchange.json(expectedArray); // don't use expectedArray.join (','), as it bugs in other languages, if values are bool, undefined or etc..
                 assert(exchange.inArray(value, expectedArray), ((((((("\"" + (stringValue(key))) + "\" key (value \"") + (stringValue(value))) + "\") is not from the expected list : [") + stingifiedArrayValue) + "]") + (logText)));
             }
         }
@@ -403,12 +414,12 @@ public partial class testMainClass : BaseTest
             // todo: remove undefined check to make stricter
             if ((feeObject != null))
             {
-                assert(inOp(feeObject, "cost"), add(add(keyString, " fee object should contain \"cost\" key"), logText));
-                if (isEqual(getValue(feeObject, "cost"), null))
+                assert(inOp(feeObject, "cost"), ((object)(keyString == null ? null : keyString + " fee object should contain \"cost\" key" + (string)(object)(logText))));
+                if ((getValue(feeObject, "cost") == null))
                 {
                     return;  // todo: remove undefined check to make stricter
                 }
-                assert((getValue(feeObject, "cost") is Int64 || getValue(feeObject, "cost") is int || getValue(feeObject, "cost") is float || getValue(feeObject, "cost") is double), add(add(keyString, " \"cost\" must be numeric type"), logText));
+                assert((getValue(feeObject, "cost") is Int64 || getValue(feeObject, "cost") is int || getValue(feeObject, "cost") is float || getValue(feeObject, "cost") is double), ((object)(keyString == null ? null : keyString + " \"cost\" must be numeric type" + (string)(object)(logText))));
                 // assertGreaterOrEqual (exchange, skippedProperties, method, feeObject, 'cost', '0'); // fee might be negative in the case of a rebate or reward
                 assert(inOp(feeObject, "currency"), ((("\"" + (keyString)) + "\" fee object should contain \"currency\" key") + (logText)));
                 assertCurrencyCode(exchange, skippedProperties, method, entry, getValue(feeObject, "currency"));
@@ -488,7 +499,7 @@ public partial class testMainClass : BaseTest
             object bestBid = null;
             object bestAsk = null;
             string? usedMethod = null;
-            if ((!isEqual(getValue(exchange.has, "fetchOrderBook"), null)) && (!isEqual(getValue(exchange.has, "fetchOrderBook"), false)))
+            if ((!(getValue(exchange.has, "fetchOrderBook") == null)) && (!(getValue(exchange.has, "fetchOrderBook") is false)))
             {
                 usedMethod = "fetchOrderBook";
                 object orderbook = await invokeExchangeDynamically(exchange, "fetchOrderBook", symbol);
@@ -498,20 +509,20 @@ public partial class testMainClass : BaseTest
                 object bestAskArray = exchange.safeList(asks, 0);
                 bestBid = exchange.safeNumber(bestBidArray, 0);
                 bestAsk = exchange.safeNumber(bestAskArray, 0);
-            } else if ((!isEqual(getValue(exchange.has, "fetchBidsAsks"), null)) && (!isEqual(getValue(exchange.has, "fetchBidsAsks"), false)))
+            } else if ((!(getValue(exchange.has, "fetchBidsAsks") == null)) && (!(getValue(exchange.has, "fetchBidsAsks") is false)))
             {
                 usedMethod = "fetchBidsAsks";
                 object tickers = await invokeExchangeDynamically(exchange, "fetchBidsAsks", new List<object>() {symbol});
                 object ticker = exchange.safeDict(tickers, symbol);
                 bestBid = exchange.safeNumber(ticker, "bid");
                 bestAsk = exchange.safeNumber(ticker, "ask");
-            } else if ((!isEqual(getValue(exchange.has, "fetchTicker"), null)) && (!isEqual(getValue(exchange.has, "fetchTicker"), false)))
+            } else if ((!(getValue(exchange.has, "fetchTicker") == null)) && (!(getValue(exchange.has, "fetchTicker") is false)))
             {
                 usedMethod = "fetchTicker";
                 object ticker = await invokeExchangeDynamically(exchange, "fetchTicker", symbol);
                 bestBid = exchange.safeNumber(ticker, "bid");
                 bestAsk = exchange.safeNumber(ticker, "ask");
-            } else if ((!isEqual(getValue(exchange.has, "fetchTickers"), null)) && (!isEqual(getValue(exchange.has, "fetchTickers"), false)))
+            } else if ((!(getValue(exchange.has, "fetchTickers") == null)) && (!(getValue(exchange.has, "fetchTickers") is false)))
             {
                 usedMethod = "fetchTickers";
                 object tickers = await invokeExchangeDynamically(exchange, "fetchTickers", new List<object>() {symbol});
@@ -520,7 +531,7 @@ public partial class testMainClass : BaseTest
                 bestAsk = exchange.safeNumber(ticker, "ask");
             }
             //
-            assert(!(bestBid == null) && !(bestAsk == null), add(add(add(add(add(add(add(add(logText, " "), exchange.id), " could not get best bid/ask for "), symbol), " using "), usedMethod), " while testing "), method));
+            assert(!(bestBid == null) && !(bestAsk == null), ((object)(logText == null ? null : logText + " " + (string)(object)(exchange.id) + " could not get best bid/ask for " + (string)(object)(symbol) + " using " + usedMethod + " while testing " + (string)(object)(method))));
             return new List<object>() {bestBid, bestAsk};
         }
         async public Task<object> fetchOrder(BaseExchange exchange, object symbol, object orderId, object skippedProperties)
@@ -534,7 +545,7 @@ public partial class testMainClass : BaseTest
             for (int i = 0; i < (methods_singular?.Count ?? 0); i++)
             {
                 string? singularFetchName = ((string)methods_singular[i]);
-                if ((!isEqual(getValue(exchange.has, singularFetchName), null)) && (!isEqual(getValue(exchange.has, singularFetchName), false)))
+                if ((!(getValue(exchange.has, singularFetchName) == null)) && (!(getValue(exchange.has, singularFetchName) is false)))
                 {
                     object currentOrder = await ((Task<object>)callDynamically(exchange, singularFetchName, new object[] { originalId, symbol }));
                     // if there is an id inside the order, it means the order was fetched successfully
@@ -553,7 +564,7 @@ public partial class testMainClass : BaseTest
                 for (int i = 0; i < (methods_plural?.Count ?? 0); i++)
                 {
                     string? pluralFetchName = ((string)methods_plural[i]);
-                    if ((!isEqual(getValue(exchange.has, pluralFetchName), null)) && (!isEqual(getValue(exchange.has, pluralFetchName), false)))
+                    if ((!(getValue(exchange.has, pluralFetchName) == null)) && (!(getValue(exchange.has, pluralFetchName) is false)))
                     {
                         object orders = await ((Task<object>)callDynamically(exchange, pluralFetchName, new object[] { symbol, sinceTime }));
                         bool found = false;
@@ -584,10 +595,10 @@ public partial class testMainClass : BaseTest
             object filled = exchange.safeString(order, "filled");
             object amount = exchange.safeString(order, "amount");
             // shorthand variables
-            bool statusUndefined = (isEqual(getValue(order, "status"), null));
-            bool statusOpen = (isEqual(getValue(order, "status"), "open"));
-            bool statusClosed = (isEqual(getValue(order, "status"), "closed"));
-            bool statusClanceled = (isEqual(getValue(order, "status"), "canceled"));
+            bool statusUndefined = ((getValue(order, "status") == null));
+            bool statusOpen = ((getValue(order, "status") is "open"));
+            bool statusClosed = ((getValue(order, "status") is "closed"));
+            bool statusClanceled = ((getValue(order, "status") is "canceled"));
             bool filledDefined = ((filled != null));
             bool amountDefined = ((amount != null));
             bool? condition = null;
@@ -725,7 +736,7 @@ public partial class testMainClass : BaseTest
             object logText = logTemplate(exchange, method, entry);
             if ((hint != null))
             {
-                logText = add(add(logText, " "), hint);
+                logText = ((object)(logText == null ? null : logText + " " + (string)(object)(hint)));
             }
             assert(((entry is IList<object>) || (entry.GetType().IsGenericType && entry.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), ("response is expected to be an array" + (logText)));
             if (!(inOp(skippedProperties, "emptyResponse")))

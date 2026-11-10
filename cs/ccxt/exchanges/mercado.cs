@@ -354,8 +354,8 @@ public partial class mercado : Exchange
         IList<object> coins = this.toArray(response);
         for (int i = 0; i < (coins?.Count ?? 0); i++)
         {
-            object coin = coins[i];
-            object baseId = coin;
+            string? coin = this.safeString(coins, i, "");
+            string? baseId = coin;
             string quoteId = "BRL";
             string? bs = this.safeCurrencyCode(baseId);
             string? quote = this.safeCurrencyCode(quoteId);
@@ -525,7 +525,7 @@ public partial class mercado : Exchange
         Int64? timestamp = this.safeTimestamp2(trade, "date", "executed_timestamp");
         Dictionary<string, object> marketResolved = this.safeMarket(null, market);
         string? id = this.safeString2(trade, "tid", "operation_id");
-        object type = null;
+        string? type = null;
         string? side = this.safeString(trade, "type");
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString2(trade, "amount", "quantity");
@@ -695,7 +695,7 @@ public partial class mercado : Exchange
             }
         }
         // TODO: replace this with a call to parseOrder for unification
-        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", getValue(getValue(GetValue(response, "response_data"), "order"), "order_id").ToString() },         }, market);
+        return this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", this.safeString(this.safeValue(this.safeValue(response, "response_data"), "order"), "order_id") },         }, market);
     }
 
     /**
@@ -792,7 +792,7 @@ public partial class mercado : Exchange
         string? id = this.safeString(order, "order_id");
         string? order_type = this.safeString(order, "order_type");
         string? side = null;
-        if ((order != null && ((IDictionary<string, object>)order).ContainsKey("order_type")))
+        if ((order_type != null))
         {
             side = (order_type == "1") ? "buy" : "sell";
         }
@@ -860,7 +860,7 @@ public partial class mercado : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "coin_pair", (market.ContainsKey("id") ? market["id"] : null) },
-            { "order_id", parseInt(id) },
+            { "order_id", this.parseToInt(id) },
         };
         Dictionary<string, object> response = await this.privatePostGetOrder(this.extend(request, parameters));
         IDictionary<string, object> responseData = this.safeDict(response, "response_data", new Dictionary<string, object>() {});
@@ -875,17 +875,17 @@ public partial class mercado : Exchange
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleWithdrawTagAndParams(tag, parameters);
-        var tagWithdrawTag = tagWithdrawTagparamsWithdrawTagVariable[0];
+        IList<object> tagWithdrawTagparamsWithdrawTagVariable = (IList<object>)this.handleParamString(parameters, "tag");
+        string? tagWithdrawTag = (string)tagWithdrawTagparamsWithdrawTagVariable[0];
         IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
-        this.checkAddress(address);
+        this.checkAddress(address, code, tagWithdrawTag);
         if ((this.markets == null))
         {
             await this.loadMarkets();
@@ -916,7 +916,7 @@ public partial class mercado : Exchange
                 {
                     if (!((paramsWithdrawTag != null && paramsWithdrawTag.ContainsKey("destination_tag"))))
                     {
-                        throw new ArgumentsRequired (((this.id + " withdraw() requires a tag argument or destination_tag parameter to withdraw ") + code)) ;
+                        throw new ArgumentsRequired (((this.id + " withdraw() requires a tag or destination_tag parameter to withdraw ") + code)) ;
                     }
                 } else
                 {
@@ -1017,7 +1017,7 @@ public partial class mercado : Exchange
         Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "resolution", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
-            { "symbol", add(add((market.ContainsKey("base") ? market["base"] : null), "-"), (market.ContainsKey("quote") ? market["quote"] : null)) },
+            { "symbol", ((this.safeString(market, "base", "") + "-") + this.safeString(market, "quote", "")) },
         };
         // set some default limit, as it's required if user doesn't provide it
         Int64? limitResolved = ((limit == null)) ? 100 : limit;
@@ -1029,7 +1029,7 @@ public partial class mercado : Exchange
         {
             Int64 to = this.seconds();
             request["to"] = to;
-            request["from"] = subtract(to, ((limitResolved * this.parseTimeframe(timeframeVar))));
+            request["from"] = (to - ((limitResolved * this.parseTimeframe(timeframeVar))));
         }
         Dictionary<string, object> response = await this.v4PublicNetGetCandles(this.extend(request, parameters));
         // parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
@@ -1139,7 +1139,7 @@ public partial class mercado : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
-            List<object> trades = this.safeList((orders != null && i < orders.Count ? orders[i] : null), "trades", new List<object>() {});
+            List<object> trades = this.safeList(this.safeValue(orders, i), "trades", new List<object>() {});
             for (int y = 0; y < trades.Count; y++)
             {
                 result.Add(trades[y]);
@@ -1154,20 +1154,21 @@ public partial class mercado : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
         }
         string url = (apiUrl + "/");
         object query = this.omit(parameters, this.extractParams(path));
-        bool isPublic = ((api is "public")) || (isEqual(api, "v4Public")) || (isEqual(api, "v4PublicNet"));
-        string? privateBody = null;
+        bool isPublic = (apiName == "public") || (apiName == "v4Public") || (apiName == "v4PublicNet");
+        string privateBody = "";
         Dictionary<string, object> privateHeaders = null;
         if (isPublic)
         {
@@ -1193,15 +1194,15 @@ public partial class mercado : Exchange
                 { "TAPI-MAC", this.hmac(this.encode(auth), this.encode(this.secret), sha512) },
             };
         }
-        object requestBody = privateBody;
+        string? requestBody = privateBody;
         if (isPublic)
         {
-            requestBody = body;
+            requestBody = null;
         }
-        object requestHeaders = privateHeaders;
+        Dictionary<string, object> requestHeaders = privateHeaders;
         if (isPublic)
         {
-            requestHeaders = headers;
+            requestHeaders = null;
         }
         return new Dictionary<string, object>() {
             { "url", url },
@@ -1211,7 +1212,7 @@ public partial class mercado : Exchange
         };
     }
 
-    public override object handleErrors(object httpCode, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         if ((response == null))
         {

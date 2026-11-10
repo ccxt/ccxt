@@ -1,15 +1,15 @@
 import deepcoinRest from '../deepcoin.js';
 import type { Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import type { OrderBook as Ob } from '../base/ws/OrderBook.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class deepcoin extends deepcoinRest {
-    describe(): any;
+    describe(): Dict;
     ping(client: Client): Str;
-    handlePong(client: Client, message: any): any;
+    handlePong(client: Client, message: string): string;
     requestId(): number;
-    createPublicRequest(market: any, requestId: number, topicID: string, suffix?: string, unWatch?: boolean): Dict;
-    watchPublic(market: any, messageHash: string, topicID: string, params?: Dict, suffix?: string): Promise<any>;
-    unWatchPublic(market: any, messageHash: string, topicID: string, params?: Dict, subscription?: Dict, suffix?: string): Promise<any>;
+    createPublicRequest(market: Dict, requestId: number, topicID: string, suffix?: string, unWatch?: boolean): Dict;
+    watchPublic(market: Dict, messageHash: string, topicID: string, params?: Dict, suffix?: string): Promise<any>;
+    unWatchPublic(market: Dict, messageHash: string, topicID: string, params?: Dict, subscription?: Dict, suffix?: string): Promise<any>;
     watchPrivate(messageHash: string, params?: Dict): Promise<any>;
     authenticate(params?: Dict): Promise<Str>;
     /**
@@ -112,8 +112,8 @@ export default class deepcoin extends deepcoinRest {
     orderBookSuffix(market: Market, methodName: string, params?: Dict): [Str, Dict];
     handleOrderBook(client: Client, message: Dict): void;
     handleOrderBookSnapshot(client: Client, message: Dict): void;
-    handleOrderBookMessage(client: Client, message: Dict, orderbook: Ob): void;
-    handleBookDelta(orderbook: Ob, entry: any): void;
+    handleOrderBookMessage(client: Client, message: Dict, orderbook: WsOrderBook): void;
+    handleBookDelta(orderbook: WsOrderBook, entry: any): void;
     /**
      * @method
      * @name deepcoin#watchMyTrades
@@ -158,7 +158,8 @@ export default class deepcoin extends deepcoinRest {
     parseWsPosition(position: Dict, market?: Market): Position;
     parsePositionSide(direction: Str): Str;
     parseWsMarginMode(marginMode: Str): Str;
-    handleMessage(client: Client, message: any): void;
+    handleTextMessage(client: Client, message: string): void;
+    handleMessage(client: Client, message: Dict): void;
     handleSubscriptionStatus(client: Client, message: Dict): void;
     handleUnSubscription(client: Client, subscription: Dict): void;
     handleErrorMessage(client: Client, message: Dict): void;

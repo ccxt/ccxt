@@ -25,7 +25,7 @@ from ccxt.base.precise import Precise
 
 class foxbit(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(foxbit, self).describe(), {
             'id': 'foxbit',
             'name': 'Foxbit',
@@ -219,7 +219,7 @@ class foxbit(Exchange, ImplicitAPI):
                     'cardano': 'ADA',
                     'cosmos': 'ATOM',
                     'dogecoin': 'DOGE',
-                    'erc20': 'ETH',
+                    'erc20': 'ERC20',
                     'hedera': 'HBAR',
                     'litecoin': 'LTC',
                     'near': 'NEAR',
@@ -243,7 +243,7 @@ class foxbit(Exchange, ImplicitAPI):
                     'ADA': 'cardano',
                     'ATOM': 'cosmos',
                     'DOGE': 'dogecoin',
-                    'ETH': 'erc20',
+                    'ERC20': 'erc20',
                     'HBAR': 'hedera',
                     'LTC': 'litecoin',
                     'NEAR': 'near',
@@ -945,7 +945,7 @@ class foxbit(Exchange, ImplicitAPI):
                 request['post_only'] = True
             else:
                 request['time_in_force'] = timeInForce
-        if postOnly is True:
+        if postOnly:
             request['post_only'] = True
         if triggerPrice is not None:
             request['stop_price'] = self.price_to_precision(symbol, triggerPrice)
@@ -984,7 +984,7 @@ class foxbit(Exchange, ImplicitAPI):
             order = self.safe_dict(orders, i)
             symbol = self.safe_string(order, 'symbol')
             market = self.market(symbol)
-            type = self.safe_string_upper(order, 'type')
+            type = self.safe_string_upper(order, 'type', '')
             orderParams = self.safe_dict(order, 'params', {})
             if type != 'LIMIT' and type != 'MARKET' and type != 'STOP_MARKET' and type != 'STOP_LIMIT' and type != 'INSTANT':
                 raise InvalidOrder('Invalid order type: ' + type + '. Must be one of: limit, market, stop_market, stop_limit, instant.')
@@ -1005,7 +1005,7 @@ class foxbit(Exchange, ImplicitAPI):
                 else:
                     request['time_in_force'] = timeInForce
                 del orderParams['timeInForce']
-            if postOnly is True:
+            if postOnly:
                 request['post_only'] = True
                 del orderParams['postOnly']
             if triggerPrice is not None:
@@ -1453,27 +1453,28 @@ class foxbit(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         self.check_required_argument('editOrder', side, 'side')
+        createRequest = {
+            'type': typeValue,
+            'side': side.upper(),
+            'market_symbol': market['id'],
+        }
+        if typeValue == 'LIMIT' or typeValue == 'MARKET':
+            createRequest['quantity'] = self.amount_to_precision(symbol, amount)
+            if typeValue == 'LIMIT':
+                createRequest['price'] = self.price_to_precision(symbol, price)
+        if typeValue == 'STOP_MARKET':
+            createRequest['stop_price'] = self.price_to_precision(symbol, price)
+            createRequest['quantity'] = self.amount_to_precision(symbol, amount)
+        if typeValue == 'INSTANT':
+            createRequest['amount'] = self.price_to_precision(symbol, amount)
         request = {
             'mode': 'ALLOW_FAILURE',
             'cancel': {
                 'type': 'ID',
                 'id': self.parse_number(id),
             },
-            'create': {
-                'type': typeValue,
-                'side': side.upper(),
-                'market_symbol': market['id'],
-            },
+            'create': createRequest,
         }
-        if typeValue == 'LIMIT' or typeValue == 'MARKET':
-            request['create']['quantity'] = self.amount_to_precision(symbol, amount)
-            if typeValue == 'LIMIT':
-                request['create']['price'] = self.price_to_precision(symbol, price)
-        if typeValue == 'STOP_MARKET':
-            request['create']['stop_price'] = self.price_to_precision(symbol, price)
-            request['create']['quantity'] = self.amount_to_precision(symbol, amount)
-        if typeValue == 'INSTANT':
-            request['create']['amount'] = self.price_to_precision(symbol, amount)
         response = self.v3PrivatePostOrdersCancelReplace(self.extend(request, params))
         # {
         #     "cancel": {
@@ -1487,7 +1488,7 @@ class foxbit(Exchange, ImplicitAPI):
         created = self.safe_dict(response, 'create', {})
         return self.parse_order(created, market)
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         Make a withdrawal.
 
@@ -1496,11 +1497,12 @@ class foxbit(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
@@ -1638,6 +1640,13 @@ class foxbit(Exchange, ImplicitAPI):
         bestBid = self.safe_dict(best, 'bid')
         lastTrade = self.safe_dict(ticker, 'last_trade')
         lastPrice = self.safe_string(lastTrade, 'price')
+        change = self.safe_string(rolling_24h, 'price_change')
+        percentage = self.safe_string(rolling_24h, 'price_change_percent')
+        # never-traded markets report all-zero placeholders instead of omitting the values
+        if Precise.string_eq(lastPrice, '0'):
+            lastPrice = None
+            change = None
+            percentage = None
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': self.parse_date(self.safe_string(lastTrade, 'date')),
@@ -1653,8 +1662,8 @@ class foxbit(Exchange, ImplicitAPI):
             'close': lastPrice,
             'last': lastPrice,
             'previousClose': None,
-            'change': self.safe_string(rolling_24h, 'price_change'),
-            'percentage': self.safe_string(rolling_24h, 'price_change_percent'),
+            'change': change,
+            'percentage': percentage,
             'average': None,
             'baseVolume': self.safe_string(rolling_24h, 'volume'),
             'quoteVolume': self.safe_string(rolling_24h, 'quote_volume'),
@@ -1699,7 +1708,7 @@ class foxbit(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'PARTIALLY_CANCELED': 'open',
             'ACTIVE': 'open',
@@ -1713,9 +1722,10 @@ class foxbit(Exchange, ImplicitAPI):
     def parse_order(self, order: dict, market: Market = None) -> Order:
         symbol = self.safe_string(order, 'market_symbol')
         marketResolved = market
-        if (market is None) and (symbol is not None):
+        if market is not None:
+            symbol = self.safe_string(market, 'symbol')
+        elif symbol is not None:
             marketResolved = self.market(symbol)
-        if marketResolved is not None:
             symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.parse_date(self.safe_string(order, 'created_at'))
         price = self.safe_string(order, 'price')
@@ -1777,7 +1787,7 @@ class foxbit(Exchange, ImplicitAPI):
             'info': depositAddress,
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             # BOTH
             'SUBMITTING': 'pending',
@@ -1802,7 +1812,7 @@ class foxbit(Exchange, ImplicitAPI):
         address = self.safe_string_2(cryptoDetails, 'receiving_address', 'destination_address')
         sn = self.safe_string(transaction, 'sn')
         type = 'withdrawal'
-        if sn is not None and sn[0] == 'D':
+        if sn is not None and sn.startswith('D'):
             type = 'deposit'
         fee = self.safe_string(transaction, 'fee', '0')
         amount = self.safe_string(transaction, 'amount')
@@ -1828,7 +1838,7 @@ class foxbit(Exchange, ImplicitAPI):
             'txid': self.safe_string(cryptoDetails, 'transaction_id'),
             'timestamp': timestamp,
             'datetime': datetime,
-            'network': self.safe_string(transaction, 'network_code'),
+            'network': self.network_id_to_code(self.safe_string(transaction, 'network_code'), currencyCode),
             'address': address,
             'addressTo': address,
             'addressFrom': None,
@@ -1884,15 +1894,14 @@ class foxbit(Exchange, ImplicitAPI):
         }
         if amount is None:
             raise ArgumentsRequired(self.id + ' parseLedgerEntry() requires a amount argument')
-        if amount < 0:
-            direction = 'out'
-            if amount is None:
-                raise ArgumentsRequired(self.id + ' parseLedgerEntry() requires a amount argument')
-            realAmount = amount * -1
         if balance is None:
             raise ExchangeError(self.id + ' parseLedgerEntry() missing balance')
-        if amount is None:
-            raise ArgumentsRequired(self.id + ' parseLedgerEntry() requires a amount argument')
+        before = None
+        if amount is not None and balance is not None:
+            before = balance - amount
+            if 0 > amount:
+                direction = 'out'
+                realAmount = -amount
         return {
             'id': id,
             'info': item,
@@ -1905,13 +1914,13 @@ class foxbit(Exchange, ImplicitAPI):
             'type': type,
             'currency': currencySymbol,
             'amount': realAmount,
-            'before': balance - amount,
+            'before': before,
             'after': balance,
             'status': 'ok',
             'fee': fee,
         }
 
-    def sign(self, path: str, api: object = [], method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = [], method: str = 'GET', params: dict = {}) -> dict:
         version = api[0]
         urlPath = api[1]
         fullPath = '/rest/' + version + '/' + self.implode_params(path, params)
@@ -1929,6 +1938,7 @@ class foxbit(Exchange, ImplicitAPI):
         if method == 'GET':
             paramKeys = list(paramsOmitted.keys())
             paramKeysLength = len(paramKeys)
+            lastKeyIndex = paramKeysLength - 1
             if paramKeysLength > 0:
                 query = self.urlencode(paramsOmitted)
                 url += '?' + query
@@ -1937,9 +1947,9 @@ class foxbit(Exchange, ImplicitAPI):
                 value = self.safe_string(paramsOmitted, key)
                 if value is not None:
                     signatureQuery += key + '=' + value
-                if i < paramKeysLength - 1:
+                if i < lastKeyIndex:
                     signatureQuery += '&'
-        requestBody = body
+        requestBody = None
         if method == 'POST' or method == 'PUT':
             requestBody = self.json(paramsOmitted)
         bodyToSignature = ''
@@ -1952,28 +1962,28 @@ class foxbit(Exchange, ImplicitAPI):
         }
         if urlPath == 'private':
             self.check_required_credentials()
-            preHash = self.number_to_string(timestamp) + method + fullPath + signatureQuery + bodyToSignature
+            preHash = str(timestamp) + method + fullPath + signatureQuery + bodyToSignature
             signature = self.hmac(self.encode(preHash), self.encode(self.secret), hashlib.sha256, 'hex')
             headersValue['X-FB-ACCESS-KEY'] = self.apiKey
-            headersValue['X-FB-ACCESS-TIMESTAMP'] = self.number_to_string(timestamp)
+            headersValue['X-FB-ACCESS-TIMESTAMP'] = str(timestamp)
             headersValue['X-FB-ACCESS-SIGNATURE'] = signature
         return {'url': url, 'method': method, 'body': requestBody, 'headers': headersValue}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None
         error = self.safe_dict(response, 'error')
-        code = self.safe_string(error, 'code')
+        codeError = self.safe_string(error, 'code')
         details = self.safe_list(error, 'details')
-        message = self.safe_string(error, 'message')
+        message = self.safe_string(error, 'message', '')
         detailsString = ''
         if details is not None:
             for i in range(0, len(details)):
-                detailsString = detailsString + details[i] + ' '
+                detailsString = detailsString + self.safe_string(details, i, '') + ' '
         if error is not None:
             feedback = self.id + ' ' + message + ' details: ' + detailsString
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], detailsString, feedback)
-            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], codeError, feedback)
             raise ExchangeError(feedback)
         return None

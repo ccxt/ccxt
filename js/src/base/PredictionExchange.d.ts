@@ -12,7 +12,7 @@ export default class PredictionExchange extends BaseExchange {
     outcomes_by_id: Dictionary<any> | undefined;
     events: Dictionary<any> | undefined;
     events_by_slug: Dictionary<any> | undefined;
-    describe(): any;
+    describe(): Dict;
     isPrediction(): boolean;
     parseSearchQueries(params?: Dict): string[];
     requireEventQuery(params?: Dict): undefined;
@@ -35,7 +35,7 @@ export default class PredictionExchange extends BaseExchange {
     shortenSlug(slug: Str): string;
     slugToMarketSymbol(eventSlug: Str, marketSlug: Str): string;
     slugToOutcomeSymbol(eventSlug: Str, marketSlug: Str, outcome: Str): string;
-    setMarkets(markets: any, currencies?: undefined): Dictionary<Market>;
+    setMarkets(markets: any, currencies?: undefined): Dict;
     indexMarketOutcomes(market: any): void;
     populateOutcomes(): void;
     indexEventOutcomes(event: any): void;

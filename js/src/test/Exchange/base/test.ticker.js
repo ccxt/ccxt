@@ -112,7 +112,7 @@ function testTicker(exchange, skippedProperties, method, entry, symbol) {
         // far above baseVolume * high), so the spot-derived invariant does not hold there,
         // see https://github.com/ccxt/ccxt/pull/29563
         const isInverse = exchange.safeBool(market, 'inverse', false);
-        if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (high !== undefined) && (low !== undefined) && (isInverse !== true)) {
+        if ((baseVolume !== undefined) && (quoteVolume !== undefined) && (high !== undefined) && (low !== undefined) && (!isInverse)) {
             let baseLow = Precise.stringMul(baseVolume, low);
             let baseHigh = Precise.stringMul(baseVolume, high);
             // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
@@ -229,7 +229,8 @@ function testTicker(exchange, skippedProperties, method, entry, symbol) {
         const medianPrice = Precise.stringDiv(Precise.stringAdd(bidString, askString), '2');
         const medianLow = Precise.stringMul(medianPrice, Precise.stringSub('1', allowedPercentageVariation));
         const medianHigh = Precise.stringMul(medianPrice, Precise.stringAdd('1', allowedPercentageVariation));
-        assert(Precise.stringGe(lastString, medianLow) && Precise.stringLe(lastString, medianHigh), 'last price should be within 1% of the bid/ask median price' + logText);
+        const lastPriceIsBetween = Precise.stringGe(lastString, medianLow) && Precise.stringLe(lastString, medianHigh);
+        assert(lastPriceIsBetween, 'last price should be within 1% of the bid/ask median price' + logText);
     }
     const percentage = exchange.safeString(entry, 'percentage');
     const change = exchange.safeString(entry, 'change');
@@ -248,7 +249,7 @@ function testTicker(exchange, skippedProperties, method, entry, symbol) {
         if (percentage !== undefined) {
             // - should be above -100 and (for non-options) below MAX
             assert(Precise.stringGe(percentage, '-100'), 'percentage should be above -100% ' + logText);
-            if (isOptionMarket !== true) {
+            if (!isOptionMarket) {
                 assert(Precise.stringLe(percentage, Precise.stringMul('+100', maxIncrease)), 'percentage should be below ' + maxIncrease + '00% ' + logText);
             }
         }
@@ -259,7 +260,7 @@ function testTicker(exchange, skippedProperties, method, entry, symbol) {
         if (change !== undefined) {
             // - should be above -price and (for non-options) below +price*maxIncrease
             assert(Precise.stringGe(change, Precise.stringNeg(approxValue)), 'change should be above -price ' + logText);
-            if (isOptionMarket !== true) {
+            if (!isOptionMarket) {
                 assert(Precise.stringLe(change, Precise.stringMul(approxValue, maxIncrease)), 'change should be below ' + maxIncrease + 'x price ' + logText);
             }
         }

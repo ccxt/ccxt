@@ -1,11 +1,11 @@
 import Exchange from './abstract/nado.js';
-import type { Balances, Currencies, Currency, Dict, NullableDict, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, Status, OpenInterest, OpenInterests } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, NullableDict, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, Status, OpenInterest, OpenInterests, int } from './base/types.js';
 /**
  * @class nado
  * @augments Exchange
  */
 export default class nado extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name nado#createOrder
@@ -457,31 +457,31 @@ export default class nado extends Exchange {
         timestamp: Int;
         datetime: string | undefined;
         id: Str;
-        amount: number | undefined;
+        amount: Num;
     };
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     parseCurrency(rawCurrency: Dict): Currency;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parsePosition(position: Dict, market?: Market): Position;
     isArchiveOrderClosed(order: Dict): boolean;
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderTimeInForce(timeInForce: Str): Str;
-    convertToX18(value: Str): string | undefined;
-    parseX18(value: Str): number | undefined;
+    convertToX18(value: Str): Str;
+    parseX18(value: Str): Num;
     createOrderNonce(recvWindow: Int): Str;
     createOrderAppendix(isTriggerOrder: boolean, params?: Dict): Str;
     createSubaccount(walletAddress: Str, subaccount?: Str): string;
     queryContracts(params?: Dict): Promise<Dict>;
     orderVerifyingContract(productId: Int): string;
-    padHex(value: string, length: Int, left?: boolean): string;
+    padHex(value: string, length: number, left?: boolean): string;
     signOrder(order: Dict, productId: Int, chainId: Str): string;
     signCancellation(cancellation: Dict, chainId: Str, endpointAddress: Str): string;
     signCancellationProducts(cancellation: Dict, chainId: Str, endpointAddress: Str): string;
     signFetchTriggerOrders(tx: Dict, chainId: Str, endpointAddress: Str): string;
     signHash(hash: string, privateKey: Str): string;
-    removeMarketSuffix(marketId: Str): string | undefined;
-    sign(path: string, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
-    handleErrors(httpCode: Int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    removeMarketSuffix(marketId: Str): Str;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

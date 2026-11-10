@@ -5,7 +5,7 @@ import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, Mark
  * @augments Exchange
  */
 export default class hollaex extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name hollaex#fetchMarkets
@@ -106,7 +106,7 @@ export default class hollaex extends Exchange {
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
-    parseBalance(response: any): Balances;
+    parseBalance(response: Dict): Balances;
     /**
      * @method
      * @name hollaex#fetchBalance
@@ -126,7 +126,7 @@ export default class hollaex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchOpenOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    fetchOpenOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name hollaex#fetchOpenOrders
@@ -258,7 +258,7 @@ export default class hollaex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchWithdrawal(id: string, code?: Str, params?: {}): Promise<Transaction>;
+    fetchWithdrawal(id: string, code?: Str, params?: Dict): Promise<Transaction>;
     /**
      * @method
      * @name hollaex#fetchWithdrawals
@@ -280,12 +280,12 @@ export default class hollaex extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    withdraw(code: string, amount: number, address: string, tag?: Str, params?: Dict): Promise<Transaction>;
-    parseDepositWithdrawFee(fee: any, currency?: Currency): any;
+    withdraw(code: string, amount: number, address: string, params?: Dict): Promise<Transaction>;
+    parseDepositWithdrawFee(fee: NullableDict, currency?: Currency): any;
     /**
      * @method
      * @name hollaex#fetchDepositWithdrawFees
@@ -296,6 +296,6 @@ export default class hollaex extends Exchange {
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchDepositWithdrawFees(codes?: Strings, params?: Dict): Promise<DepositWithdrawFees>;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

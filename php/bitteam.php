@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\abstract\bitteam as Exchange;
 
 class bitteam extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitteam',
             'name' => 'BIT.TEAM',
@@ -227,10 +227,10 @@ class bitteam extends Exchange {
                     'ethereum' => 'ERC20',
                     'Tron' => 'TRC20',
                     'tron' => 'TRC20',
-                    'Binance' => 'BSC',
-                    'binance' => 'BSC',
-                    'Binance Smart Chain' => 'BSC',
-                    'bscscan' => 'BSC',
+                    'Binance' => 'BEP20',
+                    'binance' => 'BEP20',
+                    'Binance Smart Chain' => 'BEP20',
+                    'bscscan' => 'BEP20',
                     'Bitcoin' => 'BTC',
                     'bitcoin' => 'BTC',
                     'Litecoin' => 'LTC',
@@ -470,7 +470,7 @@ class bitteam extends Exchange {
         $minCost = null;
         $currenciesValuedInUsd = $this->handle_option('fetchMarkets', 'currenciesValuedInUsd', array());
         $quoteInUsd = $this->safe_bool($currenciesValuedInUsd, $quote, false);
-        if ($quoteInUsd === true) {
+        if ($quoteInUsd) {
             $settings = $this->safe_dict($market, 'settings', array());
             $minCost = $this->safe_number($settings, 'limit_usd');
         }
@@ -677,7 +677,7 @@ class bitteam extends Exchange {
             $fee = $this->parse_number($withdrawCommissionFixed);
             $feesByNetworkId[$blockChain] = $fee;
         } else {
-            $feesByNetworkId = $withdrawCommissionFixed;
+            $feesByNetworkId = $this->extend($withdrawCommissionFixed, array());
         }
         $statuses = $this->safe_dict($statusesResponse, $numericId, array());
         $deposit = $this->safe_bool($statuses, 'depositStatus');
@@ -1379,7 +1379,7 @@ class bitteam extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_order_status(?string $status) {
+    public function parse_order_status(?string $status): ?string {
         $statuses = array(
             'accepted' => 'open',
             'executed' => 'closed',
@@ -1401,7 +1401,7 @@ class bitteam extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_value_to_pricision(array $valueObject, string $valueKey, ?array $preciseObject, string $precisionKey) {
+    public function parse_value_to_pricision(array $valueObject, string $valueKey, ?array $preciseObject, string $precisionKey): ?string {
         $valueRawString = $this->safe_string($valueObject, $valueKey);
         $precisionRawString = $this->safe_string($preciseObject, $precisionKey);
         if ($valueRawString === null || $precisionRawString === null) {
@@ -1763,7 +1763,7 @@ class bitteam extends Exchange {
         $bestAskVolume = null;
         $bids = $this->safe_list($ticker, 'bids');
         $asks = $this->safe_list($ticker, 'asks');
-        if (($bids !== null) && ((gettype($bids) === 'array' && array_keys($bids) === array_keys(array_keys($bids)))) && ($asks !== null) && ((gettype($asks) === 'array' && array_keys($asks) === array_keys(array_keys($asks))))) {
+        if (($bids !== null) && ($asks !== null)) {
             $bestBid = $this->safe_dict($bids, 0, array());
             $bestBidPrice = $this->safe_string($bestBid, 'price');
             $bestBidVolume = $this->safe_string($bestBid, 'quantity');
@@ -2133,7 +2133,7 @@ class bitteam extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         //
         //     {
         //         "ok": true,
@@ -2418,7 +2418,7 @@ class bitteam extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'approving' => 'pending',
             'success' => 'ok',
@@ -2426,10 +2426,11 @@ class bitteam extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign(string $path, $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null): array {
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $apiName = $api[0];
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);
-        $apiUrl = $this->safe_string($this->urls['api'], $api);
+        $apiUrl = $this->safe_string($this->urls['api'], $apiName);
         if ($apiUrl === null) {
             throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
         }
@@ -2437,7 +2438,7 @@ class bitteam extends Exchange {
         $query = $this->urlencode($request);
         $requestBody = null;
         $requestHeaders = null;
-        if ($api === 'private') {
+        if ($apiName === 'private') {
             $this->check_required_credentials();
             if ($method === 'POST') {
                 $requestBody = $this->json($request);
@@ -2454,12 +2455,12 @@ class bitteam extends Exchange {
         } elseif (strlen($query) !== 0) {
             $url .= '?' . $query;
         }
-        $bodyResolved = ($requestBody === null) ? $body : $requestBody;
-        $headersResolved = ($requestHeaders === null) ? $headers : $requestHeaders;
+        $bodyResolved = $requestBody;
+        $headersResolved = $requestHeaders;
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null;
         }
@@ -2467,12 +2468,12 @@ class bitteam extends Exchange {
             if ($code === 404) {
                 if ((mb_strpos($url, '/ccxt/order/') !== false) && ($method === 'GET')) {
                     $parts = explode('/order/', $url);
-                    $orderId = $this->safe_string($parts, 1);
+                    $orderId = $this->safe_string($parts, 1, '');
                     throw new OrderNotFound($this->id . ' order ' . $orderId . ' not found');
                 }
                 if (mb_strpos($url, '/cmc/orderbook/') !== false) {
                     $parts = explode('/cmc/orderbook/', $url);
-                    $symbolId = $this->safe_string($parts, 1);
+                    $symbolId = $this->safe_string($parts, 1, '');
                     throw new BadSymbol($this->id . ' symbolId ' . $symbolId . ' not found');
                 }
             }

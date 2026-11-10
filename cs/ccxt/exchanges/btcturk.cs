@@ -359,7 +359,7 @@ public partial class btcturk : Exchange
         string? quote = this.safeCurrencyCode(quoteId);
         if (((bs == null)) || ((quote == null)))
         {
-            return ccxt.BaseExchange.ToDict(null);
+            return null;
         }
         List<object> filters = this.safeList(entry, "filters", new List<object>() {});
         double? minPrice = null;
@@ -611,7 +611,7 @@ public partial class btcturk : Exchange
         }
         Dictionary<string, object> response = await this.publicGetTicker(parameters);
         List<object> tickers = this.safeList(response, "data");
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, this.toArray(symbols)));
     }
 
     /**
@@ -797,32 +797,44 @@ public partial class btcturk : Exchange
             { "resolution", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         Int64? until = this.safeInteger(parameters, "until", this.milliseconds());
-        request["to"] = this.parseToInt((((double?)until / 1000)));
+        Int64? untilSeconds = this.parseToInt((((double?)until / 1000)));
+        request["to"] = untilSeconds;
         if ((since != null))
         {
             request["from"] = this.parseToInt(((double?)since / 1000));
         }
-        Int64? limitDefaulted = limit;
-        if (((since == null)) && ((limit == null)))
+        object limitResolved = null;
+        if ((limit != null))
         {
-            limitDefaulted = ((Int64?)100); // default value
+            limitResolved = limit;
+            if ((limit > 11000))
+            {
+                limitResolved = 11000; // max 11000 candles diapason can be covered
+            }
+        } else if ((since == null))
+        {
+            limitResolved = 100; // default value
         }
-        object limitResolved = (!(limitDefaulted == null)) ? mathMin(limitDefaulted, 11000) : null; // max 11000 candles diapason can be covered
-        if (!(limitResolved == null))
+        if (((limit != null)) || ((since == null)))
         {
             if ((timeframeVar == "1y"))
             {
                 throw new BadRequest ((this.id + " fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\"")) ;
             }
             int seconds = this.parseTimeframe(timeframeVar);
-            object limitSeconds = multiply(seconds, (subtract(limitResolved, 1)));
+            object limitCount = ((limit == null)) ? 100 : Math.Min(limit.Value, 11000);
+            Int64? limitSeconds = this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(seconds, (((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(limitCount, 1))));
             if ((since != null))
             {
-                object to = add(this.parseToInt(((double?)since / 1000)), limitSeconds);
-                request["to"] = mathMin((request != null && request.ContainsKey("to") ? request["to"] : null), to);
+                Int64? sinceSeconds = this.parseToInt(((double?)since / 1000));
+                object to = add(sinceSeconds, limitSeconds);
+                if (isLessThan(to, untilSeconds))
+                {
+                    request["to"] = to;
+                }
             } else
             {
-                request["from"] = subtract(this.parseToInt(((double)0 / 1000)), limitSeconds);
+                request["from"] = (0 - limitSeconds);
             }
         }
         Dictionary<string, object> response = await this.graphGetKlinesHistory(this.extend(request, parameters));
@@ -1188,16 +1200,17 @@ public partial class btcturk : Exchange
         return this.milliseconds();
     }
 
-    public override Dictionary<string, object> sign(string path, object api = null, string method = null, object parameters = null, object headers = null, object body = null)
+    public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
     {
-        api ??= "public";
+        api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        if (isEqual(this.id, "btctrader"))
+        string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
+        if ((this.id == "btctrader"))
         {
             throw new ExchangeError ((this.id + " is an abstract base API for BTCExchange, BTCTurk")) ;
         }
-        string? apiUrl = this.safeString((this.urls != null && ((IDictionary<string, object>)this.urls).ContainsKey("api") ? ((IDictionary<string, object>)this.urls)["api"] : null), api);
+        string? apiUrl = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), apiName);
         if ((apiUrl == null))
         {
             throw new ExchangeError ((this.id + " sign() has no API URL for this endpoint")) ;
@@ -1206,21 +1219,22 @@ public partial class btcturk : Exchange
         bool isQueryMethod = ((method == "GET")) || ((method == "DELETE"));
         if (isQueryMethod)
         {
-            if ((new List<object>(((IDictionary<string,object>)parameters).Keys)).Count > 0)
+            string query = this.urlencode(parameters);
+            if (query.Length > 0)
             {
-                url = url + ("?" + this.urlencode(parameters));
+                url = url + ("?" + query);
             }
         }
-        object requestBody = null;
+        string? requestBody = null;
         if (isQueryMethod)
         {
-            requestBody = body;
+            requestBody = null;
         } else
         {
             requestBody = this.json(parameters);
         }
         Dictionary<string, object> privateHeaders = null;
-        if ((api is "private"))
+        if (apiName == "private")
         {
             this.checkRequiredCredentials();
             string nonce = this.nonce().ToString();
@@ -1233,28 +1247,27 @@ public partial class btcturk : Exchange
                 { "Content-Type", "application/json" },
             };
         }
-        object requestHeaders = ((privateHeaders != null)) ? privateHeaders : headers;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
             { "body", requestBody },
-            { "headers", requestHeaders },
+            { "headers", privateHeaders },
         };
     }
 
-    public override object handleErrors(object code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
+    public override object handleErrors(Int64? code, string reason, string url, string method, object headers, object body, object response, Dictionary<string, object> requestHeaders, object requestBody)
     {
         string? errorCode = this.safeString(response, "code", "0");
         string? message = this.safeString(response, "message");
-        object output = message;
-        if ((message == null))
+        string feedback = ((this.id + " ") + (body));
+        if ((message != null))
         {
-            output = body;
+            feedback = ((this.id + " ") + message);
         }
-        this.throwExactlyMatchedException((this.exceptions != null && ((IDictionary<string, object>)this.exceptions).ContainsKey("exact") ? ((IDictionary<string, object>)this.exceptions)["exact"] : null), message, ((this.id + " ") + (output)));
+        this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), message, feedback);
         if ((errorCode != "0") && (errorCode != "SUCCESS"))
         {
-            throw new ExchangeError ((string)((this.id + " ") + (output))) ;
+            throw new ExchangeError (feedback) ;
         }
         return null;
     }

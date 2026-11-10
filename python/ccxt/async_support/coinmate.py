@@ -20,7 +20,7 @@ from ccxt.base.precise import Precise
 
 class coinmate(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(coinmate, self).describe(), {
             'id': 'coinmate',
             'name': 'CoinMate',
@@ -451,7 +451,7 @@ class coinmate(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         balances = self.safe_dict(response, 'data', {})
         result = {'info': response}
         currencyIds = list(balances.keys())
@@ -609,12 +609,12 @@ class coinmate(Exchange, ImplicitAPI):
             'ask': self.safe_number(ticker, 'ask'),
             'vwap': None,
             'askVolume': None,
-            'open': None,
+            'open': self.safe_number(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': None,
+            'percentage': self.safe_number(ticker, 'change'),
             'average': None,
             'baseVolume': self.safe_number(ticker, 'amount'),
             'quoteVolume': None,
@@ -649,7 +649,7 @@ class coinmate(Exchange, ImplicitAPI):
         items = self.safe_list(response, 'data', [])
         return self.parse_transactions(items, None, since, limit)
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'COMPLETED': 'ok',
             'WAITING': 'pending',
@@ -711,7 +711,7 @@ class coinmate(Exchange, ImplicitAPI):
             'txid': self.safe_string(transaction, 'txid'),
             'type': self.safe_string_lower(transaction, 'transferType'),
             'currency': code,
-            'network': self.safe_string(transaction, 'walletType'),
+            'network': self.network_id_to_code(self.safe_string(transaction, 'walletType'), code),
             'amount': self.safe_number(transaction, 'amount'),
             'status': self.parse_transaction_status(self.safe_string(transaction, 'transferStatus')),
             'timestamp': timestamp,
@@ -732,7 +732,7 @@ class coinmate(Exchange, ImplicitAPI):
             },
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -746,12 +746,12 @@ class coinmate(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
@@ -801,7 +801,7 @@ class coinmate(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         transaction = self.parse_transaction(data, currency)
         fillResponseFromRequest = self.safe_bool(withdrawOptions, 'fillResponseFromRequest', True)
-        if fillResponseFromRequest is True:
+        if fillResponseFromRequest:
             transaction['amount'] = amount
             transaction['currency'] = code
             transaction['address'] = address
@@ -1020,7 +1020,7 @@ class coinmate(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'FILLED': 'closed',
             'CANCELLED': 'canceled',
@@ -1029,7 +1029,7 @@ class coinmate(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, type: Str):
+    def parse_order_type(self, type: Str) -> Str:
         types = {
             'LIMIT': 'limit',
             'MARKET': 'market',
@@ -1225,19 +1225,21 @@ class coinmate(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_order(data)
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         return self.milliseconds()
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
         bodySigned = None
         headersSigned = None
         apiUrl = self.safe_string(self.urls['api'], 'rest')
         if apiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = apiUrl + '/' + path
-        if api == 'public':
-            if len(params) > 0:
-                url += '?' + self.urlencode(params)
+        if apiName == 'public':
+            publicQuery = self.extend({}, params)
+            if len(publicQuery) > 0:
+                url += '?' + self.urlencode(publicQuery)
         else:
             self.check_required_credentials()
             # coinmate requires each nonce to be greater than the previous one for the key
@@ -1253,11 +1255,11 @@ class coinmate(Exchange, ImplicitAPI):
             headersSigned = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
-        headersResolved = headers if (headersSigned is None) else headersSigned
-        bodyResolved = body if (bodySigned is None) else bodySigned
+        headersResolved = headersSigned
+        bodyResolved = bodySigned
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
         #

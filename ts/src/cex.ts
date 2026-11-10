@@ -15,7 +15,7 @@ import type { Bool, Currency, CurrencyInterface, Currencies, Dict, Int, Market, 
  * @augments Exchange
  */
 export default class cex extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'cex',
             'name': 'CEX.IO',
@@ -264,7 +264,7 @@ export default class cex extends Exchange {
                 'networks': {
                     'BTC': 'bitcoin',
                     'ERC20': 'ERC20',
-                    'BSC20': 'binancesmartchain',
+                    'BEP20': 'binancesmartchain',
                     'DOGE': 'dogecoin',
                     'ALGO': 'algorand',
                     'XLM': 'stellar',
@@ -276,7 +276,7 @@ export default class cex extends Exchange {
                     'THETA': 'theta',
                     'XTZ': 'tezos',
                     'TIA': 'celestia',
-                    'CRONOS': 'cronos', // CRC20
+                    'CRC20': 'cronos',
                     'MATIC': 'polygon',
                     'TON': 'ton',
                     'TRC20': 'tron',
@@ -1007,7 +1007,7 @@ export default class cex extends Exchange {
         return this.parseBalance (accountBalance);
     }
 
-    override parseBalance (response: any): Balances {
+    override parseBalance (response: Dict): Balances {
         const result: Dict = {
             'info': response,
         };
@@ -1157,10 +1157,11 @@ export default class cex extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {
-            'orderId': parseInt (id),
+            'orderId': this.parseToInt (id),
         };
         const result = await this.fetchOpenOrders (symbol, undefined, undefined, this.extend (request, params));
-        return result[0];
+        const order = this.safeDict (result, 0);
+        return order as Order;
     }
 
     /**
@@ -1178,13 +1179,14 @@ export default class cex extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {
-            'orderId': parseInt (id),
+            'orderId': this.parseToInt (id),
         };
         const result = await this.fetchClosedOrders (symbol, undefined, undefined, this.extend (request, params));
-        return result[0];
+        const order = this.safeDict (result, 0);
+        return order as Order;
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             'PENDING_NEW': 'open',
             'NEW': 'open',
@@ -1392,7 +1394,7 @@ export default class cex extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {
-            'orderId': parseInt (id),
+            'orderId': this.parseToInt (id),
             'cancelRequestId': 'c_' + (this.milliseconds ()).toString (),
             'timestamp': this.milliseconds (),
         };
@@ -1623,7 +1625,7 @@ export default class cex extends Exchange {
         };
     }
 
-    parseTransactionStatus (status: Str) {
+    parseTransactionStatus (status: Str): Str {
         const statuses: Dict = {
             'rejected': 'rejected',
             'pending': 'pending',
@@ -1817,14 +1819,15 @@ export default class cex extends Exchange {
         } as DepositAddress;
     }
 
-    override sign (path: string, api = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
-        const apiUrl = this.safeString (this.urls['api'], api);
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        const apiUrl = this.safeString (this.urls['api'], apiName);
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
         let url = apiUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
+        if (apiName === 'public') {
             if (method === 'GET') {
                 if (Object.keys (query).length > 0) {
                     url += '?' + this.urlencode (query);
@@ -1850,10 +1853,10 @@ export default class cex extends Exchange {
             };
             return { 'url': url, 'method': method, 'body': bodySigned, 'headers': headersSigned };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         // in some cases, like from createOrder, exchange returns nested escaped JSON string:
         //      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"} }
         // and because of `.parseJson` bug, we need extra fix
@@ -1861,7 +1864,7 @@ export default class cex extends Exchange {
         if (response === undefined) {
             if (body === undefined) {
                 throw new NullResponse (this.id + ' returned empty response');
-            } else if (body[0] === '{') {
+            } else if (body.startsWith ('{')) {
                 const fixed = this.fixStringifiedJsonMembers (body);
                 responseFixed = this.parseJson (fixed);
             } else {

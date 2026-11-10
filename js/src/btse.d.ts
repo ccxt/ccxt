@@ -1,11 +1,11 @@
 import Exchange from './abstract/btse.js';
-import type { Balances, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, LeverageTier, LeverageTiers, MarginMode, Market, Num, OHLCV, OpenInterests, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, Transaction, Currency, LedgerEntry, OpenInterest } from './base/types.js';
+import type { NullableDict, Balances, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, LeverageTier, LeverageTiers, MarginMode, Market, Num, OHLCV, OpenInterests, Order, OrderBook, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, Transaction, Currency, LedgerEntry, OpenInterest } from './base/types.js';
 /**
  * @class btse
  * @augments Exchange
  */
 export default class btse extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name btse#fetchTime
@@ -79,7 +79,7 @@ export default class btse extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    parseBalance(response: any): Balances;
+    parseBalanceList(response: Dict[]): Balances;
     /**
      * @method
      * @name btse#fetchLeverageTiers
@@ -141,7 +141,7 @@ export default class btse extends Exchange {
      * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     fetchOpenInterests(symbols?: Strings, params?: Dict): Promise<OpenInterests>;
-    parseOpenInterest(interest: any, market?: Market): OpenInterest;
+    parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
      * @name btse#fetchFundingRate
@@ -411,7 +411,7 @@ export default class btse extends Exchange {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     fetchTradingFees(params?: Dict): Promise<TradingFees>;
-    requestWalletHistoryRows(methodName: string, historyTypes: string[], code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<any>;
+    requestWalletHistoryRows(methodName: string, historyTypes: string[], code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     /**
      * @method
      * @name btse#fetchDepositsWithdrawals
@@ -592,14 +592,20 @@ export default class btse extends Exchange {
      * @returns {object} response from the exchange
      */
     setLeverage(leverage: int, symbol?: Str, params?: Dict): Promise<Dict>;
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
-    sign(path: string, api?: any, method?: string, params?: {}, headers?: any, body?: any): {
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
+    sign(path: string, api?: string[], method?: string, params?: {}): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: Str;
+        headers: {
+            'request-api': string;
+            'request-nonce': string;
+            'request-sign': string;
+            'Content-Type': string;
+            'BROKER-ID': string;
+        } | undefined;
     };
-    futuresRequestId(market: any): string;
+    futuresRequestId(market: Dict): Str;
     cleanPath(path: string): string;
-    nonce(): number;
+    nonce(): int;
 }

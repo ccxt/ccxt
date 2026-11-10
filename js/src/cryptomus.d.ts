@@ -1,11 +1,11 @@
 import Exchange from './abstract/cryptomus.js';
-import type { Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, TradingFees, CurrencyInterface, NullableDict } from './base/types.js';
+import type { Balances, Currencies, Dict, int, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade, TradingFees, CurrencyInterface, List, NullableDict } from './base/types.js';
 /**
  * @class cryptomus
  * @augments Exchange
  */
 export default class cryptomus extends Exchange {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name cryptomus#fetchMarkets
@@ -25,7 +25,7 @@ export default class cryptomus extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: Dict): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict): CurrencyInterface;
+    parseCurrency(rawCurrency: List): CurrencyInterface;
     /**
      * @method
      * @name cryptomus#fetchTickers
@@ -71,7 +71,7 @@ export default class cryptomus extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: Dict): Promise<Balances>;
-    parseBalance(balance: any): Balances;
+    parseBalanceList(balance: Dict[]): Balances;
     /**
      * @method
      * @name cryptomus#createOrder
@@ -146,6 +146,6 @@ export default class cryptomus extends Exchange {
      */
     fetchTradingFees(params?: Dict): Promise<TradingFees>;
     parseFeeTiers(feeTiers: any[], market?: Market): Dict;
-    sign(path: string, api?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): Dict;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
+    sign(path: string, api?: string[], method?: string, params?: Dict): Dict;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str): undefined;
 }

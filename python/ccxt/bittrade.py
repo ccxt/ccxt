@@ -28,7 +28,7 @@ from ccxt.base.precise import Precise
 
 class bittrade(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(bittrade, self).describe(), {
             'id': 'bittrade',
             'name': 'BitTrade',
@@ -350,6 +350,7 @@ class bittrade(Exchange, ImplicitAPI):
                 'broad': {
                     'contract is restricted of closing positions on API.  Please contact customer service': OnMaintenance,
                     'maintain': OnMaintenance,
+                    'trade not open now': BadSymbol,  # {"status":"error","err-code":"bad-request","err-msg":"symbol:maticjpy trade not open now "}
                 },
                 'exact': {
                     # err-code
@@ -388,8 +389,8 @@ class bittrade(Exchange, ImplicitAPI):
             'options': {
                 'defaultNetwork': 'ERC20',
                 'networks': {
-                    'ETH': 'erc20',
-                    'TRX': 'trc20',
+                    'ERC20': 'erc20',
+                    'TRC20': 'trc20',
                     'HRC20': 'hrc20',
                     'HECO': 'hrc20',
                     'HT': 'hrc20',
@@ -397,7 +398,7 @@ class bittrade(Exchange, ImplicitAPI):
                 },
                 # https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStates': {
-                    'method': 'private_get_order_orders',  # 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
+                    'method': 'privateGetOrderOrders',  # 'privateGetOrderHistory' // https://github.com/ccxt/ccxt/pull/5392
                 },
                 'fetchOpenOrders': {
                     'method': 'fetch_open_orders_v1',  # 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
@@ -461,7 +462,7 @@ class bittrade(Exchange, ImplicitAPI):
             result[symbol] = self.fetch_trading_limits_by_id(self.market_id(symbol), params)
         return result
 
-    def fetch_trading_limits_by_id(self, id: Str, params: dict = {}):
+    def fetch_trading_limits_by_id(self, id: Str, params: dict = {}) -> dict:
         request = {
             'symbol': id,
         }
@@ -484,7 +485,7 @@ class bittrade(Exchange, ImplicitAPI):
         #
         return self.parse_trading_limits(self.safe_dict(response, 'data', {}))
 
-    def parse_trading_limits(self, limits: dict, symbol: Str = None, params: dict = {}):
+    def parse_trading_limits(self, limits: dict, symbol: Str = None, params: dict = {}) -> dict:
         #
         #   {                                  symbol: "aidocbtc",
         #                  "buy-limit-must-less-than":  1.1,
@@ -511,7 +512,8 @@ class bittrade(Exchange, ImplicitAPI):
         }
 
     def cost_to_precision(self, symbol: Str, cost: object) -> Str:
-        return self.decimal_to_precision(cost, TRUNCATE, self.market(symbol)['precision']['cost'], self.precisionMode)
+        precision = self.safe_dict(self.market(symbol), 'precision', {})
+        return self.decimal_to_precision(cost, TRUNCATE, precision['cost'], self.precisionMode)
 
     def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
@@ -519,7 +521,7 @@ class bittrade(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        method = self.handle_option('fetchMarkets', 'method', 'publicGetCommonSymbols')
+        method = self.safe_string(self.options['fetchMarkets'], 'method', 'publicGetCommonSymbols')
         response = None
         if method == 'publicGetCommonSymbols':
             response = self.publicGetCommonSymbols(params)
@@ -674,19 +676,21 @@ class bittrade(Exchange, ImplicitAPI):
         bidVolume = None
         ask = None
         askVolume = None
-        if 'bid' in ticker:
-            if isinstance(ticker['bid'], list):
-                bid = self.safe_string(ticker['bid'], 0)
-                bidVolume = self.safe_string(ticker['bid'], 1)
-            else:
-                bid = self.safe_string(ticker, 'bid')
+        bidList = self.safe_list(ticker, 'bid')
+        if bidList is not None:
+            bid = self.safe_string(bidList, 0)
+            bidVolume = self.safe_string(bidList, 1)
+        else:
+            bid = self.safe_string(ticker, 'bid')
+            if bid is not None:
                 bidVolume = self.safe_string(ticker, 'bidSize')
-        if 'ask' in ticker:
-            if isinstance(ticker['ask'], list):
-                ask = self.safe_string(ticker['ask'], 0)
-                askVolume = self.safe_string(ticker['ask'], 1)
-            else:
-                ask = self.safe_string(ticker, 'ask')
+        askList = self.safe_list(ticker, 'ask')
+        if askList is not None:
+            ask = self.safe_string(askList, 0)
+            askVolume = self.safe_string(askList, 1)
+        else:
+            ask = self.safe_string(ticker, 'ask')
+            if ask is not None:
                 askVolume = self.safe_string(ticker, 'askSize')
         open = self.safe_string(ticker, 'open')
         close = self.safe_string(ticker, 'close')
@@ -753,9 +757,9 @@ class bittrade(Exchange, ImplicitAPI):
         #     }
         #
         if 'tick' in response:
-            if (response['tick'] is None) or (response['tick'] is None):
-                raise BadSymbol(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
             tick = self.safe_dict(response, 'tick')
+            if tick is None:
+                raise BadSymbol(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
             timestamp = self.safe_integer(tick, 'ts', self.safe_integer(response, 'ts'))
             result = self.parse_order_book(tick, symbol, timestamp)
             result['nonce'] = self.safe_integer(tick, 'version')
@@ -865,11 +869,12 @@ class bittrade(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_2(trade, 'ts', 'created-at')
         order = self.safe_string(trade, 'order-id')
         side = self.safe_string(trade, 'direction')
-        type = self.safe_string(trade, 'type')
-        if type is not None:
-            typeParts = type.split('-')
-            side = typeParts[0]
-            type = typeParts[1]
+        type = None
+        typeRaw = self.safe_string(trade, 'type')
+        if typeRaw is not None:
+            typeParts = typeRaw.split('-')
+            side = self.safe_string(typeParts, 0)
+            type = self.safe_string(typeParts, 1)
         takerOrMaker = self.safe_string(trade, 'role')
         price = self.safe_string(trade, 'price')
         amount = self.safe_string_2(trade, 'filled-amount', 'amount')
@@ -1067,7 +1072,7 @@ class bittrade(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         response = self.privateGetAccountAccounts(params)
-        return self.safe_list(response, 'data', [])
+        return self.to_array(self.safe_list(response, 'data', []))
 
     def fetch_currencies(self, params: dict = {}) -> Currencies:
         """
@@ -1127,10 +1132,10 @@ class bittrade(Exchange, ImplicitAPI):
         code = self.safe_currency_code(id)
         depositEnabled = self.safe_bool(currency, 'deposit-enabled')
         withdrawEnabled = self.safe_bool(currency, 'withdraw-enabled')
-        countryDisabled = self.safe_bool(currency, 'country-disabled')
+        countryDisabled = self.safe_bool(currency, 'country-disabled', False)
         visible = self.safe_bool(currency, 'visible', False)
         state = self.safe_string(currency, 'state')
-        active = (visible is True) and (depositEnabled is True) and (withdrawEnabled is True) and (state == 'online') and (countryDisabled is not True)
+        active = (visible) and (depositEnabled is True) and (withdrawEnabled is True) and (state == 'online') and (countryDisabled is not True)
         name = self.safe_string(currency, 'display-name')
         precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'withdraw-precision')))
         return self.safe_currency_structure({
@@ -1164,24 +1169,17 @@ class bittrade(Exchange, ImplicitAPI):
             'info': currency,
         })
 
-    def parse_balance(self, response: object) -> Balances:
-        balances = self.safe_list(response['data'], 'list', [])
+    def parse_balance(self, response: dict) -> Balances:
+        data = self.safe_dict(response, 'data', {})
+        balances = self.safe_list(data, 'list', [])
         result = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
-            account = None
-            if (code is not None) and (code in result):
-                account = result[code]
-            else:
-                account = self.account()
-            if account is None:
-                raise ExchangeError(self.id + ' parseBalance() could not resolve account')
+            account = self.safe_dict(result, code, self.account())
             if self.safe_string(balance, 'type') == 'trade':
                 account['free'] = self.safe_string(balance, 'balance')
-            if account is None:
-                raise ExchangeError(self.id + ' parseBalance() could not resolve account')
             if self.safe_string(balance, 'type') == 'frozen':
                 account['used'] = self.safe_string(balance, 'balance')
             if code is not None:
@@ -1197,9 +1195,10 @@ class bittrade(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         self.load_accounts()
-        method = self.handle_option('fetchBalance', 'method', 'privateGetAccountAccountsIdBalance')
+        method = self.safe_string(self.options['fetchBalance'], 'method', 'privateGetAccountAccountsIdBalance')
+        account = self.safe_dict(self.accounts, 0, {})
         request = {
-            'id': self.accounts[0]['id'],
+            'id': account['id'],
         }
         response = None
         if method == 'privateGetAccountAccountsIdBalance':
@@ -1218,7 +1217,7 @@ class bittrade(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        method = self.handle_option('fetchOrdersByStates', 'method', 'private_get_order_orders')
+        method = self.safe_string(self.options['fetchOrdersByStates'], 'method', 'privateGetOrderOrders')
         response = None
         if (method == 'private_get_order_history') or (method == 'privateGetOrderHistory'):
             response = self.privateGetOrderHistory(self.extend(request, params))
@@ -1241,7 +1240,7 @@ class bittrade(Exchange, ImplicitAPI):
         #                                 "state": "filled",
         #                         "canceled-at":  0                      }  ] }
         #
-        return self.parse_orders(response['data'], market, since, limit)
+        return self.parse_orders(self.safe_list(response, 'data', []), market, since, limit)
 
     def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -1280,7 +1279,7 @@ class bittrade(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        method = self.handle_option('fetchOpenOrders', 'method', 'fetch_open_orders_v1')
+        method = self.safe_string(self.options['fetchOpenOrders'], 'method', 'fetch_open_orders_v1')
         if (method == 'fetch_open_orders_v2') or (method == 'fetchOpenOrdersV2'):
             return self.fetch_open_orders_v2(symbol, since, limit, params)
         return self.fetch_open_orders_v1(symbol, since, limit, params)
@@ -1315,7 +1314,7 @@ class bittrade(Exchange, ImplicitAPI):
             self.load_accounts()
             for i in range(0, len(self.accounts)):
                 account = self.accounts[i]
-                if account['type'] == 'spot':
+                if self.safe_string(account, 'type') == 'spot':
                     accountId = self.safe_string(account, 'id')
                     if accountId is not None:
                         break
@@ -1348,7 +1347,7 @@ class bittrade(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'partial-filled': 'open',
             'partial-canceled': 'canceled',
@@ -1394,10 +1393,11 @@ class bittrade(Exchange, ImplicitAPI):
         side = None
         type = None
         status = None
-        if 'type' in order:
-            orderType = order['type'].split('-')
-            side = orderType[0]
-            type = orderType[1]
+        orderTypeRaw = self.safe_string(order, 'type')
+        if orderTypeRaw is not None:
+            orderType = orderTypeRaw.split('-')
+            side = self.safe_string(orderType, 0)
+            type = self.safe_string(orderType, 1)
             status = self.parse_order_status(self.safe_string(order, 'state'))
         marketId = self.safe_string(order, 'symbol')
         marketResolved = self.safe_market(marketId, market)
@@ -1454,7 +1454,7 @@ class bittrade(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is not True:
+        if not self.safe_bool(market, 'spot', False):
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         params['createMarketBuyOrderRequiresPrice'] = False
         return self.create_order(symbol, 'market', 'buy', cost, None, params)
@@ -1474,15 +1474,15 @@ class bittrade(Exchange, ImplicitAPI):
             self.load_markets()
         self.load_accounts()
         market = self.market(symbol)
+        account = self.safe_dict(self.accounts, 0, {})
         request = {
-            'account-id': self.accounts[0]['id'],
+            'account-id': account['id'],
             'symbol': market['id'],
             'type': side + '-' + type,
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client-order-id')  # must be 64 chars max and unique within 24 hours
         if clientOrderId is None:
-            broker = self.safe_dict(self.options, 'broker', {})
-            brokerId = self.safe_string(broker, 'id')
+            brokerId = self.safe_string(self.options['broker'], 'id', '')
             request['client-order-id'] = brokerId + self.uuid()
         else:
             request['client-order-id'] = clientOrderId
@@ -1515,7 +1515,7 @@ class bittrade(Exchange, ImplicitAPI):
             request['amount'] = self.amount_to_precision(symbol, amount)
         if type == 'limit' or type == 'ioc' or type == 'limit-maker' or type == 'stop-limit' or type == 'stop-limit-fok':
             request['price'] = self.price_to_precision(symbol, price)
-        method = self.handle_option('createOrder', 'method', 'privatePostOrderOrdersPlace')
+        method = self.safe_string(self.options['createOrder'], 'method', 'privatePostOrderOrdersPlace')
         response = None
         if method == 'privatePostOrderOrdersPlace':
             response = self.privatePostOrderOrdersPlace(self.extend(request, paramsOrder))
@@ -1653,7 +1653,7 @@ class bittrade(Exchange, ImplicitAPI):
         failed = self.safe_list_2(orders, 'errors', 'failed', [])
         result = []
         for i in range(0, len(success)):
-            order = success[i]
+            order = self.safe_string(success, i)
             result.append(self.safe_order({
                 'info': order,
                 'id': order,
@@ -1724,8 +1724,8 @@ class bittrade(Exchange, ImplicitAPI):
         networkId = self.safe_string(depositAddress, 'chain')
         networks = self.safe_dict(currencyResolved, 'networks', {})
         networksById = self.index_by(networks, 'id')
-        networkValue = self.safe_value(networksById, networkId, networkId)
-        network = self.safe_string(networkValue, 'network')
+        networkEntry = self.safe_dict(networksById, networkId)
+        network = self.safe_string(networkEntry, 'network')
         self.check_address(address)
         return {
             'currency': code,
@@ -1744,9 +1744,7 @@ class bittrade(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        limitResolved = limit
-        if limit is None or limit > 100:
-            limitResolved = 100
+        limitResolved = 100 if ((limit is None) or (limit > 100)) else limit
         if self.markets is None:
             self.load_markets()
         currency = None
@@ -1758,8 +1756,7 @@ class bittrade(Exchange, ImplicitAPI):
         }
         if currency is not None:
             request['currency'] = currency['id']
-        if limitResolved is not None:
-            request['size'] = limitResolved  # max 100
+        request['size'] = limitResolved  # max 100
         response = self.privateGetQueryDepositWithdraw(self.extend(request, params))
         # return response
         data = self.safe_list(response, 'data', [])
@@ -1774,9 +1771,7 @@ class bittrade(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        limitResolved = limit
-        if limit is None or limit > 100:
-            limitResolved = 100
+        limitResolved = 100 if ((limit is None) or (limit > 100)) else limit
         if self.markets is None:
             self.load_markets()
         currency = None
@@ -1788,8 +1783,7 @@ class bittrade(Exchange, ImplicitAPI):
         }
         if currency is not None:
             request['currency'] = currency['id']
-        if limitResolved is not None:
-            request['size'] = limitResolved  # max 100
+        request['size'] = limitResolved  # max 100
         response = self.privateGetQueryDepositWithdraw(self.extend(request, params))
         # return response
         data = self.safe_list(response, 'data', [])
@@ -1852,7 +1846,7 @@ class bittrade(Exchange, ImplicitAPI):
             'txid': self.safe_string(transaction, 'tx-hash'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': self.safe_string_upper(transaction, 'chain'),
+            'network': self.network_id_to_code(self.safe_string_upper(transaction, 'chain'), code),
             'address': self.safe_string(transaction, 'address'),
             'addressTo': None,
             'addressFrom': None,
@@ -1873,7 +1867,7 @@ class bittrade(Exchange, ImplicitAPI):
             },
         }
 
-    def parse_transaction_status(self, status: Str):
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             # deposit statuses
             'unknown': 'failed',
@@ -1896,31 +1890,32 @@ class bittrade(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
         if self.markets is None:
             self.load_markets()
-        self.check_address(address)
+        self.check_address(address, code, tagWithdrawTag)
         currency = self.currency(code)
         request = {
             'address': address,  # only supports existing addresses in your withdraw address list
             'amount': amount,
-            'currency': currency['id'].lower(),
+            'currency': self.safe_string_lower(currency, 'id'),
         }
         if tagWithdrawTag is not None:
             request['addr-tag'] = tagWithdrawTag  # only for XRP?
-        networks = self.safe_dict(self.options, 'networks', {})
-        network = self.safe_string_upper(paramsWithdrawTag, 'network')  # this line allows the user to specify either ERC20 or ETH
-        network = self.safe_string_lower(networks, network, network)  # handle ETH>ERC20 alias
+        network = self.safe_string_upper(paramsWithdrawTag, 'network')
+        if network is not None:
+            network = self.safe_string(self.networkAliases, network, network)  # accepts aliases like ETH for ERC20
+        network = self.safe_string_lower(self.options['networks'], network, network)  # handle ETH>ERC20 alias
         if network is not None:
             # possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
             if network == 'erc20':
@@ -1937,19 +1932,20 @@ class bittrade(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def sign(self, path: str, api='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
         requestHeaders = None
         requestBody = None
         url = '/'
-        if api == 'market':
+        if apiName == 'market':
             url += 'market'
-        elif (api == 'public') or (api == 'private'):
+        elif (apiName == 'public') or (apiName == 'private'):
             url += self.version
-        elif (api == 'v2Public') or (api == 'v2Private'):
+        elif (apiName == 'v2Public') or (apiName == 'v2Private'):
             url += 'v2'
         url += '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        if api == 'private' or api == 'v2Private':
+        if apiName == 'private' or apiName == 'v2Private':
             self.check_required_credentials()
             timestamp = self.ymdhms(self.milliseconds(), 'T')
             request = {
@@ -1963,9 +1959,8 @@ class bittrade(Exchange, ImplicitAPI):
             requestSorted = self.keysort(request)
             auth = self.urlencode(requestSorted)
             # unfortunately, PHP demands double quotes for the escaped newline symbol
-            content = [method, self.hostname, url, auth]
             # eslint-disable-next-line quotes
-            payload = "\n".join(content)
+            payload = method + "\n" + self.hostname + "\n" + url + "\n" + auth
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             auth += '&' + self.urlencode({'Signature': signature})
             url += '?' + auth
@@ -1981,29 +1976,29 @@ class bittrade(Exchange, ImplicitAPI):
         else:
             if len(params) > 0:
                 url += '?' + self.urlencode(params)
-        baseApiUrl = self.safe_string(self.urls['api'], api)
+        baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = self.implode_params(baseApiUrl, {
             'hostname': self.hostname,
         }) + url
-        headersResult = requestHeaders if (requestHeaders is not None) else headers
-        bodyResult = requestBody if (requestBody is not None) else body
+        headersResult = requestHeaders
+        bodyResult = requestBody
         return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
-        if 'status' in response:
+        if self.safe_string(response, 'status') is not None:
             #
             #     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
             #
             status = self.safe_string(response, 'status')
             if status == 'error':
-                code = self.safe_string(response, 'err-code')
+                codeError = self.safe_string(response, 'err-code')
                 feedback = self.id + ' ' + body
                 self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
-                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+                self.throw_exactly_matched_exception(self.exceptions['exact'], codeError, feedback)
                 message = self.safe_string(response, 'err-msg')
                 self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
                 raise ExchangeError(feedback)

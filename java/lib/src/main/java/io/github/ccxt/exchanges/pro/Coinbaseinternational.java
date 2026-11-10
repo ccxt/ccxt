@@ -8,10 +8,14 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.ws.*;
 import io.github.ccxt.Client;
+import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.FundingRate;
 import io.github.ccxt.types.FundingRates;
 import io.github.ccxt.types.OHLCV;
+import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
+import io.github.ccxt.types.Position;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
@@ -33,7 +37,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "has", new HashMap<String, Object>() {{
@@ -43,121 +47,193 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 put( "watchOrderBook", true );
                 put( "watchOrderBookForSymbols", true );
                 put( "watchTicker", true );
-                put( "watchBalance", false );
-                put( "watchMyTrades", false );
+                put( "watchBidsAsks", true );
+                put( "watchBalance", true );
+                put( "watchFundingRate", true );
+                put( "watchFundingRates", true );
+                put( "watchMyTrades", true );
                 put( "watchOHLCV", true );
-                put( "watchOHLCVForSymbols", false );
-                put( "watchOrders", false );
-                put( "watchOrdersForSymbols", false );
-                put( "watchPositions", false );
+                put( "watchOHLCVForSymbols", true );
+                put( "watchOrders", true );
+                put( "watchOrdersForSymbols", true );
+                put( "watchPositions", true );
                 put( "watchTickers", true );
-                put( "createOrderWs", false );
-                put( "editOrderWs", false );
-                put( "cancelOrderWs", false );
+                put( "watchMarkPrice", true );
+                put( "watchMarkPrices", true );
+                put( "unWatchMarkPrice", true );
+                put( "unWatchMarkPrices", true );
+                put( "unWatchTrades", true );
+                put( "unWatchTradesForSymbols", true );
+                put( "unWatchOHLCV", true );
+                put( "unWatchOHLCVForSymbols", true );
+                put( "unWatchOrderBook", true );
+                put( "unWatchOrderBookForSymbols", true );
+                put( "unWatchPositions", true );
+                put( "unWatchTickers", true );
+                put( "unWatchBidsAsks", true );
+                put( "unWatchFundingRate", true );
+                put( "unWatchFundingRates", true );
+                put( "unWatchMyTrades", true );
+                put( "unWatchTicker", true );
+                put( "createOrderWs", true );
+                put( "editOrderWs", true );
+                put( "cancelOrderWs", true );
                 put( "cancelOrdersWs", false );
-                put( "cancelAllOrdersWs", false );
-                put( "fetchOrderWs", false );
-                put( "fetchOrdersWs", false );
-                put( "fetchBalanceWs", false );
-                put( "fetchMyTradesWs", false );
+                put( "cancelAllOrdersWs", true );
+                put( "fetchOrderWs", true );
+                put( "fetchOpenOrdersWs", true );
+                put( "fetchOrdersWs", true );
+                put( "fetchBalanceWs", true );
+                put( "fetchMyTradesWs", true );
+                put( "fetchPositionsWs", true );
             }} );
             put( "urls", new HashMap<String, Object>() {{
                 put( "api", new HashMap<String, Object>() {{
-                    put( "ws", "wss://ws-md.international.coinbase.com" );
-                }} );
-                put( "test", new HashMap<String, Object>() {{
-                    put( "ws", "wss://ws-md.n5e2.coinbase.com" );
+                    put( "ws", "wss://streams.drb.coinbase.com/ws/api/v2" );
+                    put( "wsPrivate", "wss://drb.coinbase.com/ws/api/v2" );
                 }} );
             }} );
+            put( "streaming", new HashMap<String, Object>() {{
+                put( "keepAlive", 15000 );
+            }} );
             put( "options", new HashMap<String, Object>() {{
-                put( "watchTicker", new HashMap<String, Object>() {{
-                    put( "channel", "LEVEL1" );
+                put( "wsAuthRefreshRatio", 0.8 );
+                put( "ws", new HashMap<String, Object>() {{
+                    put( "timeframes", new HashMap<String, Object>() {{
+                        put( "1m", "1" );
+                        put( "5m", "5" );
+                        put( "15m", "15" );
+                        put( "30m", "30" );
+                        put( "1h", "60" );
+                        put( "2h", "120" );
+                        put( "6h", "360" );
+                        put( "1d", "1D" );
+                    }} );
+                    put( "watchTradesForSymbols", new HashMap<String, Object>() {{
+                        put( "interval", "100ms" );
+                    }} );
+                    put( "watchOrderBookForSymbols", new HashMap<String, Object>() {{
+                        put( "interval", "100ms" );
+                        put( "useDepthEndpoint", false );
+                        put( "depth", "20" );
+                        put( "group", "none" );
+                    }} );
                 }} );
+                put( "currencies", new ArrayList<Object>(Arrays.asList("BTC", "ETH", "SOL", "USDC", "USDT")) );
                 put( "tradesLimit", 1000 );
                 put( "ordersLimit", 1000 );
                 put( "myTradesLimit", 1000 );
-                put( "timeframes", new HashMap<String, Object>() {{
-                    put( "1m", "CANDLES_ONE_MINUTE" );
-                    put( "5m", "CANDLES_FIVE_MINUTES" );
-                    put( "30m", "CANDLES_THIRTY_MINUTES" );
-                    put( "1h", "CANDLES_ONE_HOUR" );
-                    put( "2h", "CANDLES_TWO_HOURS" );
-                    put( "1d", "CANDLES_ONE_DAY" );
-                }} );
-            }} );
-            put( "exceptions", new HashMap<String, Object>() {{
-                put( "exact", new HashMap<String, Object>() {{
-                    put( "Unable to authenticate", AuthenticationError.class );
-                }} );
             }} );
         }});
     }
 
+    public Object requestId()
+    {
+        Object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
+        this.options.put("requestId", requestId);
+        return requestId;
+    }
+
+    public String getWsUrl(Object isPrivate)
+    {
+        if (java.util.Objects.equals(this.isNativeDeribitCredentials(), true))
+        {
+            return "wss://www.deribit.com/ws/api/v2";
+        }
+        if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(isPrivate, false)))
+        {
+            return (String) (((Map<String, Object>)this.urls.get("api")).get("wsPrivate"));
+        }
+        return (String) (((Map<String, Object>)this.urls.get("api")).get("ws"));
+    }
+
+    public Object ping(Client client)
+    {
+        Long refreshAt = this.safeInteger(this.options, "wsAuthRefreshAt");
+        Boolean isPrivateClient = (java.util.Objects.equals(client.url, this.getWsUrl(true)));
+        if (Boolean.TRUE.equals(isPrivateClient) && (!java.util.Objects.equals(refreshAt, null)) && ((refreshAt == null || (this.milliseconds()) >= refreshAt)))
+        {
+            // re-authenticate in-band before the session expires, also while no watch call is pending
+            // retry in 60s if this attempt fails; a successful reply reschedules via handleAuthenticationMessage
+            this.options.put("wsAuthRefreshAt", this.sum(this.milliseconds(), 60000));
+            Object requestId = this.requestId();
+            this.options.put("wsAuthRequestId", requestId);
+            Map<String, Object> parameters = new HashMap<String, Object>() {{
+                put( "grant_type", "client_credentials" );
+                put( "client_id", Coinbaseinternational.this.apiKey );
+                put( "client_secret", Coinbaseinternational.this.secret );
+            }};
+            if (java.util.Objects.equals(this.isNativeDeribitCredentials(), false))
+            {
+                parameters = new HashMap<String, Object>() {{
+                    put( "grant_type", "coinbase_cdp" );
+                    put( "token", Coinbaseinternational.this.createAuthToken(Coinbaseinternational.this.seconds(), (String) null, (String) null, Coinbaseinternational.this.isEddsaSecret()) );
+                }};
+            }
+            {
+                HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
+                h2kMap0.put("jsonrpc", "2.0");
+                h2kMap0.put("id", requestId);
+                h2kMap0.put("method", "public/auth");
+                h2kMap0.put("params", parameters);
+                return h2kMap0;
+            }
+        }
+        // the gateway closes a socket after ~30s without client messages; protocol-level pings do not count
+        return new HashMap<String, Object>() {{
+            put( "jsonrpc", "2.0" );
+            put( "id", Coinbaseinternational.this.requestId() );
+            put( "method", "public/test" );
+            put( "params", new HashMap<String, Object>() {{}} );
+        }};
+    }
+
     /**
      * @ignore
      * @method
-     * @description subscribes to a websocket channel
-     * @see https://docs.cloud.coinbase.com/intx/docs/websocket-overview#subscribe
-     * @param {string} name the name of the channel
-     * @param {string[]} [symbols] unified market symbol
+     * @name coinbaseinternational#subscribe
+     * @description subscribes to websocket channels
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-subscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/private-subscribe
+     * @param {string[]} channels exchange channel names
+     * @param {string[]} messageHashes message hashes to resolve
+     * @param {boolean} [isPrivate] whether to authenticate and subscribe privately
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} subscription to a websocket channel
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the subscription result
      */
-    public CompletableFuture<Object> subscribe(Object name, List<String> symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribe(Object channels, Object messageHashes, Object isPrivate, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(this.markets, null))
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("subscribe", parameters);
+            String url = this.getWsUrl(false);
+            String method = "public/subscribe";
+            if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(isPrivate, false)))
             {
-                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                url = this.getWsUrl(true);
+                method = "private/subscribe";
+                (this.authenticate(new HashMap<String, Object>() {{}})).join();
             }
-            this.checkRequiredCredentials(true);
-            Map<String, Object> market = null;
-            Object messageHash = name;
-            List<String> productIds = null;
-            Object symbolsResolved = (((java.util.Objects.equals(symbols, null)))) ? this.getActiveSymbols() : symbols;
-            Integer symbolsLength = ((List<?>)symbolsResolved).size();
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            if ((symbolsLength != null && symbolsLength > 1))
-            {
-                List<String> parsedSymbols = this.marketSymbols(symbolsResolved, (Object) null, true, false, false);
-                List<String> marketIds = this.marketIds(parsedSymbols);
-                productIds = marketIds;
-                for (var i = 0; i < ((List<?>)parsedSymbols).size(); i++)
-                {
-                    ((List<Object>)messageHashes).add(((name + "::") + (parsedSymbols == null || i < 0 || i >= parsedSymbols.size() ? null : parsedSymbols.get(i))));
-                }
-            } else if (java.util.Objects.equals(symbolsLength, 1))
-            {
-                market = this.market((symbolsResolved == null || 0 >= ((List<?>)symbolsResolved).size() ? null : ((List<?>)symbolsResolved).get(0)));
-                messageHash = ((name + "::") + market.get("symbol"));
-                productIds = new ArrayList<String>(Arrays.asList(((String)market.get("id"))));
-            }
-            String url = this.safeString(this.urls.get("api"), "ws");
             if (java.util.Objects.equals(url, null))
             {
-                throw new NotSupported((this.id + " is not supported in sandbox environment")) ;
+                throw new NotSupported((this.id + " websocket is not supported")) ;
             }
-            String timestamp = String.valueOf(this.nonce());
-            String auth = (((timestamp + this.apiKey) + "CBINTLMD") + this.password);
-            String signature = (String) this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256(), "base64");
-            Map<String, Object> subscribe = new HashMap<String, Object>();
-            subscribe.put("type", "SUBSCRIBE");
-            subscribe.put("channels", new ArrayList<Object>(Arrays.asList(name)));
-            subscribe.put("time", timestamp);
-            subscribe.put("key", this.apiKey);
-            subscribe.put("passphrase", this.password);
-            subscribe.put("signature", signature);
-            if (!java.util.Objects.equals(productIds, null))
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("jsonrpc", "2.0");
+            request.put("method", method);
+            request.put("params", new HashMap<String, Object>() {{
+                    put( "channels", channels );
+                }});
+            request.put("id", this.requestId());
+            Map<String,Object> extendedRequest = this.deepExtend(request, paramsResolved);
+            Integer channelsLength = ((List<?>)channels).size();
+            if (java.util.Objects.equals(channelsLength, 1))
             {
-                subscribe.put("product_ids", productIds);
+                return (this.watch(url, this.safeString(messageHashes, 0, ""), extendedRequest, this.safeString(channels, 0, ""), extendedRequest)).join();
             }
-            if ((symbolsLength != null && symbolsLength > 1))
-            {
-                return (this.watchMultiple((String) (url), messageHashes, this.extend(subscribe, parameters), messageHashes, null)).join();
-            }
-            return (this.watch(url, messageHash, this.extend(subscribe, parameters), messageHash, null)).join();
+            return (this.watchMultiple((String) (url), messageHashes, extendedRequest, channels, extendedRequest)).join();
         });
 
     }
@@ -165,68 +241,462 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
     /**
      * @ignore
      * @method
-     * @description subscribes to a websocket channel using watchMultiple
-     * @see https://docs.cloud.coinbase.com/intx/docs/websocket-overview#subscribe
-     * @param {string} name the name of the channel
-     * @param {string|string[]} [symbols] unified market symbol
+     * @name coinbaseinternational#unSubscribe
+     * @description unsubscribes from websocket channels
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe
+     * @param {string[]} channels exchange channel names
+     * @param {boolean} [isPrivate] whether to authenticate and unsubscribe privately
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} subscription to a websocket channel
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {boolean} true when unsubscription has been requested
      */
-    public CompletableFuture<Object> subscribeMultiple(Object name, List<String> symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unSubscribe(Object channels, Object isPrivate, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("unSubscribe", parameters);
+            String url = this.getWsUrl(false);
+            String method = "public/unsubscribe";
+            if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(isPrivate, false)))
+            {
+                url = this.getWsUrl(true);
+                method = "private/unsubscribe";
+                (this.authenticate(new HashMap<String, Object>() {{}})).join();
+            }
+            List<String> unWatchMessageHashes = new ArrayList<String>(Arrays.asList());
+            Integer channelsLength = ((List<?>)channels).size();
+            for (var i = 0; (channelsLength != null && i < channelsLength); i++)
+            {
+                unWatchMessageHashes.add(("unsubscribe:" + this.safeString(channels, i, "")));
+            }
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("jsonrpc", "2.0");
+            request.put("method", method);
+            request.put("params", new HashMap<String, Object>() {{
+                    put( "channels", channels );
+                }});
+            request.put("id", this.requestId());
+            Client client = this.client(url);
+            this.watchMultiple((String) (url), unWatchMessageHashes, this.deepExtend(request, paramsResolved), unWatchMessageHashes, null);
+            for (var i = 0; (channelsLength != null && i < channelsLength); i++)
+            {
+                this.cleanUnsubscription(client, this.safeString(channels, i, ""), this.safeString(unWatchMessageHashes, i, ""), false);
+            }
+            return true;
+        });
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/user/userportfoliocurrency
+     * @see https://docs.deribit.com/subscriptions/user/userportfoliocurrency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.currency] currency code to watch, default is any
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    public CompletableFuture<Balances> watchBalance(Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("watchBalance", parameters);
+            Pair<String, Map<String, Object>> currencyparamsCurrencyVariable = this.handleOptionStringAndParams(paramsResolved, "watchBalance", "currency", "any");
+            String currency = currencyparamsCurrencyVariable.first();
+            Map<String, Object> paramsCurrency = currencyparamsCurrencyVariable.second();
+            String channel = ("user.portfolio." + currency);
+            return (this.subscribe(new ArrayList<Object>(Arrays.asList(channel)), new ArrayList<Object>(Arrays.asList("balance")), true, paramsCurrency)).join();
+        }).thenApply(Balances::new);
+
+    }
+
+    public void handleBalance(Client client, Map<String, Object> message)
+    {
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> parsed = (Map<String, Object>) this.parseBalanceList(data);
+        this.balance = this.deepExtend(this.balance, parsed);
+        client.resolve(this.balance, "balance");
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#watchMyTrades
+     * @description watches trades associated with the user
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/user/usertradesinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.interval] notification interval, default raw
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    public CompletableFuture<List<Trade>> watchMyTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("watchMyTrades", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            this.checkRequiredCredentials(true);
-            Object symbolsResolved = null;
-            if (this.isEmpty(symbols))
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchMyTrades", "interval", "raw");
+            String interval = intervalparamsIntervalVariable.first();
+            Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
+            String channel = ("user.trades.any.any." + interval);
+            Object symbolResolved = null;
+            if (!java.util.Objects.equals(symbol, null))
             {
-                symbolsResolved = this.symbols;
-            } else
-            {
-                symbolsResolved = this.marketSymbols(symbols, (Object) null, true, false, false);
+                Map<String, Object> market = this.market(symbol);
+                symbolResolved = market.get("symbol");
+                channel = ((("user.trades." + this.safeString(market, "id", "")) + ".") + interval);
             }
-            List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            List<String> productIds = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)(List<String>)(symbolsResolved)).size(); i++)
+            List<Object> trades = (List<Object>) (this.subscribe(new ArrayList<Object>(Arrays.asList(channel)), new ArrayList<Object>(Arrays.asList(channel)), true, paramsInterval)).join();
+            return this.filterBySymbolSinceLimit(trades, java.util.Objects.toString(symbolResolved, null), since, limit, true);
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchMyTrades
+     * @description stops watching user trades
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/private-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchMyTrades(String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("unWatchMyTrades", parameters);
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchMyTrades", "interval", "raw");
+            String interval = intervalparamsIntervalVariable.first();
+            Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
+            String channel = ("user.trades.any.any." + interval);
+            if (!java.util.Objects.equals(symbol, null))
             {
-                String marketId = this.marketId((String) (Helpers.GetValue((List<String>)(symbolsResolved), i)));
-                String symbol = this.symbol(marketId);
-                productIds.add(marketId);
-                ((List<Object>)messageHashes).add(((name + "::") + symbol));
+                if (java.util.Objects.equals(this.markets, null))
+                {
+                    (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                }
+                channel = ((("user.trades." + this.safeString(this.market(symbol), "id", "")) + ".") + interval);
             }
-            String url = this.safeString(this.urls.get("api"), "ws");
-            if (java.util.Objects.equals(url, null))
-            {
-                throw new NotSupported((this.id + " is not supported in sandbox environment")) ;
-            }
-            String timestamp = this.numberToString(this.seconds());
-            String auth = (((timestamp + this.apiKey) + "CBINTLMD") + this.password);
-            String signature = (String) this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256(), "base64");
-            Map<String, Object> subscribe = new HashMap<String, Object>();
-            subscribe.put("type", "SUBSCRIBE");
-            subscribe.put("time", timestamp);
-            subscribe.put("product_ids", productIds);
-            subscribe.put("channels", new ArrayList<Object>(Arrays.asList(name)));
-            subscribe.put("key", this.apiKey);
-            subscribe.put("passphrase", this.password);
-            subscribe.put("signature", signature);
-            return (this.watchMultiple((String) (url), messageHashes, this.extend(subscribe, parameters), messageHashes, null)).join();
+            return (this.unSubscribe(new ArrayList<Object>(Arrays.asList(channel)), true, paramsInterval)).join();
         });
 
+    }
+
+    public void handleMyTrades(Client client, Map<String, Object> message)
+    {
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        String channel = this.safeString(parameters, "channel");
+        List<Object> data = (List<Object>) this.safeList(parameters, "data", new ArrayList<Object>(Arrays.asList()));
+        if (java.util.Objects.equals(this.myTrades, null))
+        {
+            Long limit = this.safeInteger(this.options, "myTradesLimit", 1000);
+            this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
+        }
+        List<Object> trades = this.parseTrades(data, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        Integer tradesLength = ((List<?>)trades).size();
+        for (var i = 0; (tradesLength != null && i < tradesLength); i++)
+        {
+            ((io.github.ccxt.ws.ArrayCache) this.myTrades).append((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)));
+        }
+        client.resolve(this.myTrades, channel);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#watchOrders
+     * @description watches information on orders made by the user
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/user/userordersinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/user/userordersinstrument_nameinterval
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.interval] notification interval, default raw
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> watchOrders(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("watchOrders", parameters);
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchOrders", "interval", "raw");
+            String interval = intervalparamsIntervalVariable.first();
+            Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
+            String channel = ("user.orders.any.any." + interval);
+            Object symbolResolved = null;
+            if (!java.util.Objects.equals(symbol, null))
+            {
+                Map<String, Object> market = this.market(symbol);
+                symbolResolved = market.get("symbol");
+                channel = ((("user.orders." + this.safeString(market, "id", "")) + ".") + interval);
+            }
+            List<Object> orders = (List<Object>) (this.subscribe(new ArrayList<Object>(Arrays.asList(channel)), new ArrayList<Object>(Arrays.asList(channel)), true, paramsInterval)).join();
+            Long limitResolved = limit;
+            if (this.newUpdates)
+            {
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
+            }
+            return this.filterBySymbolSinceLimit(orders, java.util.Objects.toString(symbolResolved, null), since, limitResolved, true);
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#watchOrdersForSymbols
+     * @description watches information on orders made by the user for multiple symbols
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/user/userordersinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/user/userordersinstrument_nameinterval
+     * @param {string[]} symbols unified market symbols
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> watchOrdersForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("watchOrdersForSymbols", parameters);
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, false, false, false);
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchOrders", "interval", "raw");
+            String interval = intervalparamsIntervalVariable.first();
+            Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
+            List<String> channels = new ArrayList<String>(Arrays.asList());
+            Integer symbolsLength = ((List<?>)symbolsResolved).size();
+            for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
+            {
+                channels.add(((("user.orders." + this.safeString(this.market(this.safeString(symbolsResolved, i, "")), "id", "")) + ".") + interval));
+            }
+            List<Object> orders = (List<Object>) (this.subscribe(channels, channels, true, paramsInterval)).join();
+            Long limitResolved = limit;
+            if (this.newUpdates)
+            {
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, null, limit);
+            }
+            List<Object> ordersForSymbols = (List<Object>) this.filterByArray(orders, "symbol", symbolsResolved, false);
+            return this.filterBySinceLimit(ordersForSymbols, since, limitResolved, "timestamp", true);
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchOrders
+     * @description stops watching user orders
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/private-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchOrders(String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("unWatchOrders", parameters);
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchOrders", "interval", "raw");
+            String interval = intervalparamsIntervalVariable.first();
+            Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
+            String channel = ("user.orders.any.any." + interval);
+            if (!java.util.Objects.equals(symbol, null))
+            {
+                if (java.util.Objects.equals(this.markets, null))
+                {
+                    (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                }
+                channel = ((("user.orders." + this.safeString(this.market(symbol), "id", "")) + ".") + interval);
+            }
+            return (this.unSubscribe(new ArrayList<Object>(Arrays.asList(channel)), true, paramsInterval)).join();
+        });
+
+    }
+
+    public void handleOrders(Client client, Map<String, Object> message)
+    {
+        if (java.util.Objects.equals(this.orders, null))
+        {
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
+        }
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        String channel = this.safeString(parameters, "channel");
+        Object data = this.safeValue(parameters, "data", new HashMap<String, Object>() {{}});
+        List<Object> orders = new ArrayList<Object>(Arrays.asList());
+        if ((data instanceof List))
+        {
+            orders = this.parseOrders(data, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
+        } else
+        {
+            orders = new ArrayList<Object>(Arrays.asList(this.parseOrder(data, (Map<String, Object>) null)));
+        }
+        Integer ordersLength = ((List<?>)orders).size();
+        for (var i = 0; (ordersLength != null && i < ordersLength); i++)
+        {
+            ((io.github.ccxt.ws.ArrayCache) this.orders).append((orders == null || i < 0 || i >= orders.size() ? null : orders.get(i)));
+        }
+        client.resolve(this.orders, channel);
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#watchPositions
+     * @description watches all open positions
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/user/userchangesinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/user/userchangesinstrument_nameinterval
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum number of positions to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.interval] notification interval, default raw
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    public CompletableFuture<List<Position>> watchPositions(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("watchPositions", parameters);
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, true, false, false);
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchPositions", "interval", "raw");
+            String interval = intervalparamsIntervalVariable.first();
+            Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
+            List<String> channels = new ArrayList<String>(Arrays.asList());
+            Integer symbolsLength = 0;
+            if (!java.util.Objects.equals(symbolsResolved, null))
+            {
+                symbolsLength = ((List<?>)symbolsResolved).size();
+            }
+            if ((!java.util.Objects.equals(symbolsResolved, null)) && ((symbolsLength != null && symbolsLength > 0)))
+            {
+                for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
+                {
+                    channels.add(((("user.changes." + this.safeString(this.market(this.safeString(symbolsResolved, i, "")), "id", "")) + ".") + interval));
+                }
+            } else
+            {
+                channels.add(("user.changes.any.any." + interval));
+            }
+            Object positions = (this.subscribe(channels, channels, true, paramsInterval)).join();
+            if (this.newUpdates)
+            {
+                return positions;
+            }
+            return this.filterBySymbolsSinceLimit(this.positions, symbolsResolved, since, limit, true);
+        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchPositions
+     * @description stops watching open positions
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/private-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe
+     * @param {string[]} [symbols] unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchPositions(List<String> symbols, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("unWatchPositions", parameters);
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, true, false, false);
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchPositions", "interval", "raw");
+            String interval = intervalparamsIntervalVariable.first();
+            Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
+            List<String> channels = new ArrayList<String>(Arrays.asList());
+            Integer symbolsLength = 0;
+            if (!java.util.Objects.equals(symbolsResolved, null))
+            {
+                symbolsLength = ((List<?>)symbolsResolved).size();
+            }
+            if ((!java.util.Objects.equals(symbolsResolved, null)) && ((symbolsLength != null && symbolsLength > 0)))
+            {
+                for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
+                {
+                    channels.add(((("user.changes." + this.safeString(this.market(this.safeString(symbolsResolved, i, "")), "id", "")) + ".") + interval));
+                }
+            } else
+            {
+                channels.add(("user.changes.any.any." + interval));
+            }
+            return (this.unSubscribe(channels, true, paramsInterval)).join();
+        });
+
+    }
+
+    public void handlePositions(Client client, Map<String, Object> message)
+    {
+        if (java.util.Objects.equals(this.positions, null))
+        {
+            this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
+        }
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        String channel = this.safeString(parameters, "channel");
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        List<Object> rawPositions = (List<Object>) this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
+        Object positions = this.parsePositions(rawPositions, (List<String>) null, new HashMap<String, Object>() {{}});
+        Integer positionsLength = ((List<?>)positions).size();
+        for (var i = 0; (positionsLength != null && i < positionsLength); i++)
+        {
+            ((io.github.ccxt.ws.ArrayCache) this.positions).append((positions == null || i < 0 || i >= ((List<?>)positions).size() ? null : ((List<?>)positions).get(i)));
+        }
+        client.resolve(this.positions, channel);
     }
 
     /**
      * @method
      * @name coinbaseinternational#watchFundingRate
      * @description watch the current funding rate
-     * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     public CompletableFuture<FundingRate> watchFundingRate(String symbol, Map<String, Object> parameters)
@@ -234,7 +704,9 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.subscribe("RISK", new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("watchFundingRate", parameters);
+            Ticker ticker = (this.watchTicker(symbol, paramsResolved)).join();
+            return this.parseFundingRate(((Map<String, Object>)ticker).get("info"), this.market(symbol));
         }).thenApply(FundingRate::new);
 
     }
@@ -243,9 +715,11 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
      * @method
      * @name coinbaseinternational#watchFundingRates
      * @description watch the funding rate for multiple markets
-     * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
      * @param {string[]} symbols a list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
      */
     public CompletableFuture<FundingRates> watchFundingRates(List<String> symbols, Map<String, Object> parameters)
@@ -253,6 +727,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("watchFundingRates", parameters);
             if (java.util.Objects.equals(symbols, null))
             {
                 throw new ArgumentsRequired((this.id + " watchFundingRates() requires an array of symbols")) ;
@@ -261,16 +736,62 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object fundingRate = (this.subscribeMultiple("RISK", symbols, parameters)).join();
-            String symbol = this.safeString(fundingRate, "symbol");
-            if (this.newUpdates)
+            Tickers tickers = (this.watchTickers(symbols, paramsResolved)).join();
+            Map<String, Object> result = new HashMap<String, Object>() {{}};
+            List<String> tickerSymbols = new ArrayList<String>(((Map<String, Object>)tickers).keySet());
+            Integer tickerSymbolsLength = ((List<?>)tickerSymbols).size();
+            for (var i = 0; (tickerSymbolsLength != null && i < tickerSymbolsLength); i++)
             {
-                Map<String, Object> result = new HashMap<String, Object>() {{}};
-                result.put((String)symbol, fundingRate);
-                return result;
+                String symbol = (tickerSymbols == null || i < 0 || i >= tickerSymbols.size() ? null : tickerSymbols.get(i));
+                Object ticker = (tickers == null || symbol == null ? null : tickers.get(symbol));
+                result.put(symbol, this.parseFundingRate(((Map<String, Object>)ticker).get("info"), this.market(symbol)));
             }
-            return this.filterByArray(this.fundingRates, "symbol", symbols, true);
+            return result;
         }).thenApply(FundingRates::new);
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchFundingRate
+     * @description stops watching the funding rate for a symbol
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchFundingRate(String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("unWatchFundingRate", parameters);
+            return (this.unWatchTicker(symbol, paramsResolved)).join();
+        });
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchFundingRates
+     * @description stops watching funding rates for multiple symbols
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string[]} [symbols] unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchFundingRates(List<String> symbols, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("unWatchFundingRates", parameters);
+            return (this.unWatchTickers(symbols, paramsResolved)).join();
+        });
 
     }
 
@@ -278,10 +799,12 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
      * @method
      * @name coinbaseinternational#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#instruments-channel
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
      * @param {string} [symbol] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.channel] the channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'LEVEL1'
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.interval] notification interval, default 100ms
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public CompletableFuture<Ticker> watchTicker(String symbol, Map<String, Object> parameters)
@@ -289,42 +812,54 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("watchTicker", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTicker", "channel", "LEVEL1");
-            String channel = channelparamsChannelVariable.first();
-            Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
-            return (this.subscribe(((String)channel), new ArrayList<String>(Arrays.asList(symbol)), paramsChannel)).join();
+            Map<String, Object> market = this.market(symbol);
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTicker", "interval", "100ms");
+            String interval = intervalparamsIntervalVariable.first();
+            Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
+            Boolean isPrivate = java.util.Objects.equals(interval, "raw");
+            String channel = ((("ticker." + this.safeString(market, "id", "")) + ".") + interval);
+            return (this.subscribe(new ArrayList<Object>(Arrays.asList(channel)), new ArrayList<Object>(Arrays.asList(channel)), isPrivate, paramsInterval)).join();
         }).thenApply(Ticker::new);
 
     }
 
-    public Object getActiveSymbols()
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchTicker
+     * @description stops watching a ticker
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchTicker(String symbol, Map<String, Object> parameters)
     {
-        List<String> symbols = this.symbols;
-        List<Object> output = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)symbols).size(); i++)
-        {
-            String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
-            Map<String, Object> market = this.market(symbol);
-            if (java.util.Objects.equals(market.get("active"), true))
-            {
-                ((List<Object>)output).add(symbol);
-            }
-        }
-        return output;
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("unWatchTicker", parameters);
+            return (this.unWatchTickers(new ArrayList<String>(Arrays.asList(symbol)), paramsResolved)).join();
+        });
+
     }
 
     /**
      * @method
      * @name coinbaseinternational#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#instruments-channel
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.channel] the channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'INSTLEVEL1UMENTS'
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.interval] notification interval, default 100ms
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public CompletableFuture<Tickers> watchTickers(List<String> symbols, Map<String, Object> parameters)
@@ -332,14 +867,24 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("watchTickers", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            io.github.ccxt.base.Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTickers", "channel", "LEVEL1");
-            var channel = ((List<Object>) channelparamsChannelVariable).get(0);
-            Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
-            Object ticker = (this.subscribe(channel, symbols, paramsChannel)).join();
+            List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, false, false, false);
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTickers", "interval", "100ms");
+            String interval = intervalparamsIntervalVariable.first();
+            Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
+            Boolean isPrivate = java.util.Objects.equals(interval, "raw");
+            List<String> channels = new ArrayList<String>(Arrays.asList());
+            Integer symbolsLength = ((List<?>)symbolsResolved).size();
+            for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
+            {
+                Map<String, Object> market = this.market(this.safeString(symbolsResolved, i, ""));
+                channels.add(((("ticker." + this.safeString(market, "id", "")) + ".") + interval));
+            }
+            Object ticker = (this.subscribe(channels, channels, isPrivate, paramsInterval)).join();
             if (this.newUpdates)
             {
                 Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -350,214 +895,262 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 }
                 return result;
             }
-            return this.filterByArray(this.tickers, "symbol", symbols, true);
+            return this.filterByArray(this.tickers, "symbol", symbolsResolved, true);
         }).thenApply(Tickers::new);
 
     }
 
-    public void handleInstrument(Client client, Map<String, Object> message)
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchTickers
+     * @description stops watching tickers
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string[]} [symbols] unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchTickers(List<String> symbols, Map<String, Object> parameters)
     {
-        //
-        //    {
-        //        "sequence": 1,
-        //        "product_id": "ETH-PERP",
-        //        "instrument_type": "PERP",
-        //        "base_asset_name": "ETH",
-        //        "quote_asset_name": "USDC",
-        //        "base_increment": "0.0001",
-        //        "quote_increment": "0.01",
-        //        "avg_daily_quantity": "43.0",
-        //        "avg_daily_volume": "80245.2",
-        //        "total_30_day_quantity":"1443.0",
-        //        "total_30_day_volume":"3040449.0",
-        //        "total_24_hour_quantity":"48.1",
-        //        "total_24_hour_volume":"101348.3",
-        //        "base_imf": "0.2",
-        //        "min_quantity": "0.0001",
-        //        "position_size_limit": "500",
-        //        "funding_interval": "60000000000",
-        //        "trading_state": "trading",
-        //        "last_update_time": "2023-05-04T11:16:33.016Z",
-        //        "time": "2023-05-10T14:58:47.000Z",
-        //        "channel":"INSTRUMENTS",
-        //        "type":"SNAPSHOT"
-        //    }
-        Object ticker = this.parseWsInstrument((Map<String, Object>) (message), (Map<String, Object>) null);
-        String channel = this.safeString(message, "channel");
-        client.resolve(ticker, channel);
-        if (!java.util.Objects.equals(channel, null))
-        {
-            client.resolve(ticker, ((channel + "::") + ((Map<String, Object>)ticker).get("symbol")));
-        }
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("unWatchTickers", parameters);
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, false, false, false);
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTickers", "interval", "100ms");
+            String interval = intervalparamsIntervalVariable.first();
+            Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
+            List<String> channels = new ArrayList<String>(Arrays.asList());
+            Integer symbolsLength = ((List<?>)symbolsResolved).size();
+            for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
+            {
+                channels.add(((("ticker." + this.safeString(this.market(this.safeString(symbolsResolved, i, "")), "id", "")) + ".") + interval));
+            }
+            return (this.unSubscribe(channels, java.util.Objects.equals(interval, "raw"), paramsInterval)).join();
+        });
+
     }
 
-    public Object parseWsInstrument(Map<String, Object> ticker, Map<String, Object> market)
+    /**
+     * @method
+     * @name coinbaseinternational#watchMarkPrice
+     * @description watches a mark price for a specific market
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.interval] notification interval, default 100ms
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public CompletableFuture<Ticker> watchMarkPrice(String symbol, Map<String, Object> parameters)
     {
-        //
-        //    {
-        //        "sequence": 1,
-        //        "product_id": "ETH-PERP",
-        //        "instrument_type": "PERP",
-        //        "base_asset_name": "ETH",
-        //        "quote_asset_name": "USDC",
-        //        "base_increment": "0.0001",
-        //        "quote_increment": "0.01",
-        //        "avg_daily_quantity": "43.0",
-        //        "avg_daily_volume": "80245.2",
-        //        "total_30_day_quantity":"1443.0",
-        //        "total_30_day_volume":"3040449.0",
-        //        "total_24_hour_quantity":"48.1",
-        //        "total_24_hour_volume":"101348.3",
-        //        "base_imf": "0.2",
-        //        "min_quantity": "0.0001",
-        //        "position_size_limit": "500",
-        //        "funding_interval": "60000000000",
-        //        "trading_state": "trading",
-        //        "last_update_time": "2023-05-04T11:16:33.016Z",
-        //        "time": "2023-05-10T14:58:47.000Z",
-        //        "channel":"INSTRUMENTS",
-        //        "type":"SNAPSHOT"
-        //    }
-        // instruments
-        //   {
-        //       sequence: 0,
-        //       instrument_type: 'PERP',
-        //       instrument_mode: 'standard',
-        //       base_asset_name: 'BTC',
-        //       quote_asset_name: 'USDC',
-        //       base_increment: '0.0001',
-        //       quote_increment: '0.1',
-        //       avg_daily_quantity: '502.8845',
-        //       avg_daily_volume: '3.1495242961566668E7',
-        //       total30_day_quantity: '15086.535',
-        //       total30_day_volume: '9.44857288847E8',
-        //       total24_hour_quantity: '5.0',
-        //       total24_hour_volume: '337016.5',
-        //       base_imf: '0.1',
-        //       min_quantity: '0.0001',
-        //       position_size_limit: '800',
-        //       funding_interval: '3600000000000',
-        //       trading_state: 'trading',
-        //       last_updated_time: '2024-07-30T15:00:00Z',
-        //       default_initial_margin: '0.2',
-        //       base_asset_multiplier: '1.0',
-        //       channel: 'INSTRUMENTS',
-        //       type: 'SNAPSHOT',
-        //       time: '2024-07-30T15:26:56.766Z',
-        //   }
-        //
-        String marketId = this.safeString(ticker, "product_id");
-        String datetime = this.safeString(ticker, "time");
-        return this.safeTicker(new HashMap<String, Object>() {{
-            put( "info", ticker );
-            put( "symbol", Coinbaseinternational.this.safeSymbol(marketId, market, "-", (String) null) );
-            put( "timestamp", Coinbaseinternational.this.parse8601(datetime) );
-            put( "datetime", datetime );
-            put( "high", null );
-            put( "low", null );
-            put( "bid", null );
-            put( "bidVolume", null );
-            put( "ask", null );
-            put( "askVolume", null );
-            put( "vwap", null );
-            put( "open", null );
-            put( "close", null );
-            put( "last", null );
-            put( "previousClose", null );
-            put( "change", null );
-            put( "percentage", null );
-            put( "average", null );
-            put( "baseVolume", Coinbaseinternational.this.safeString2(ticker, "total_24_hour_quantity", "total24_hour_quantity") );
-            put( "quoteVolume", Coinbaseinternational.this.safeString2(ticker, "total_24_hour_volume", "total24_hour_volume") );
-        }}, (Map<String, Object>) null);
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("watchMarkPrice", parameters);
+            return (this.watchTicker(symbol, paramsResolved)).join();
+        }).thenApply(Ticker::new);
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#watchMarkPrices
+     * @description watches the mark price for multiple markets
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/tickerinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/market-data/tickerinstrument_nameinterval
+     * @param {string[]} symbols unified symbols of the markets to watch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.interval] notification interval, default 100ms
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> watchMarkPrices(List<String> symbols, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("watchMarkPrices", parameters);
+            return (this.watchTickers(symbols, paramsResolved)).join();
+        }).thenApply(Tickers::new);
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchMarkPrice
+     * @description stops watching the mark price for a symbol
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchMarkPrice(String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("unWatchMarkPrice", parameters);
+            return (this.unWatchTicker(symbol, paramsResolved)).join();
+        });
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchMarkPrices
+     * @description stops watching mark prices for multiple symbols
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string[]} [symbols] unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchMarkPrices(List<String> symbols, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("unWatchMarkPrices", parameters);
+            return (this.unWatchTickers(symbols, paramsResolved)).join();
+        });
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#watchBidsAsks
+     * @description watches best bid & ask for symbols
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/quoteinstrument_name
+     * @see https://docs.deribit.com/subscriptions/market-data/quoteinstrument_name
+     * @param {string[]} [symbols] unified symbols of the markets to watch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     */
+    public CompletableFuture<Tickers> watchBidsAsks(List<String> symbols, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("watchBidsAsks", parameters);
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, false, false, false);
+            List<String> channels = new ArrayList<String>(Arrays.asList());
+            Integer symbolsLength = ((List<?>)symbolsResolved).size();
+            for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
+            {
+                Map<String, Object> market = this.market(this.safeString(symbolsResolved, i, ""));
+                channels.add(("quote." + this.safeString(market, "id", "")));
+            }
+            Object ticker = (this.subscribe(channels, channels, false, paramsResolved)).join();
+            if (this.newUpdates)
+            {
+                Map<String, Object> result = new HashMap<String, Object>() {{}};
+                Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
+                return result;
+            }
+            return this.filterByArray(this.bidsasks, "symbol", symbolsResolved, true);
+        }).thenApply(Tickers::new);
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchBidsAsks
+     * @description stops watching best bid & ask for symbols
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string[]} [symbols] unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchBidsAsks(List<String> symbols, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("unWatchBidsAsks", parameters);
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, false, false, false);
+            List<String> channels = new ArrayList<String>(Arrays.asList());
+            Integer symbolsLength = ((List<?>)symbolsResolved).size();
+            for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
+            {
+                channels.add(("quote." + this.safeString(this.market(this.safeString(symbolsResolved, i, "")), "id", "")));
+            }
+            return (this.unSubscribe(channels, false, paramsResolved)).join();
+        });
+
     }
 
     public void handleTicker(Client client, Map<String, Object> message)
     {
-        //
-        // snapshot
-        //    {
-        //        "sequence": 0,
-        //        "product_id": "BTC-PERP",
-        //        "time": "2023-05-10T14:58:47.000Z",
-        //        "bid_price": "28787.8",
-        //        "bid_qty": "0.466", // One side book
-        //        "channel": "LEVEL1",
-        //        "type": "SNAPSHOT"
-        //    }
-        // update
-        //    {
-        //       "sequence": 1,
-        //       "product_id": "BTC-PERP",
-        //       "time": "2023-05-10T14:58:47.547Z",
-        //       "bid_price": "28787.8",
-        //       "bid_qty": "0.466",
-        //       "ask_price": "28788.8",
-        //       "ask_qty": "1.566",
-        //       "channel": "LEVEL1",
-        //       "type": "UPDATE"
-        //    }
-        //
-        Map<String, Object> ticker = (Map<String, Object>) this.parseWsTicker(message, (Map<String, Object>) null);
-        String channel = this.safeString(message, "channel");
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, (Map<String, Object>) null);
+        String channel = this.safeString(parameters, "channel");
+        Object symbol = ticker.get("symbol");
+        Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
         client.resolve(ticker, channel);
-        if (!java.util.Objects.equals(channel, null))
-        {
-            client.resolve(ticker, ((channel + "::") + ticker.get("symbol")));
-        }
     }
 
-    public Ticker parseWsTicker(Object ticker, Map<String, Object> market)
+    public void handleBidAsk(Client client, Map<String, Object> message)
     {
-        //
-        //    {
-        //       "sequence": 1,
-        //       "product_id": "BTC-PERP",
-        //       "time": "2023-05-10T14:58:47.547Z",
-        //       "bid_price": "28787.8",
-        //       "bid_qty": "0.466",
-        //       "ask_price": "28788.8",
-        //       "ask_qty": "1.566",
-        //       "channel": "LEVEL1",
-        //       "type": "UPDATE"
-        //    }
-        //
-        String datetime = this.safeString(ticker, "time");
-        String marketId = this.safeString(ticker, "product_id");
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk(data, (Map<String, Object>) null);
+        String symbol = this.safeString(ticker, "symbol");
+        this.bidsasks.put(symbol, ticker);
+        String channel = this.safeString(parameters, "channel");
+        client.resolve(ticker, channel);
+    }
+
+    public Object parseWsBidAsk(Object ticker, Map<String, Object> market)
+    {
+        String marketId = this.safeString(ticker, "instrument_name");
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
+        Long timestamp = this.safeInteger(ticker, "timestamp");
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "info", ticker );
-            put( "symbol", Coinbaseinternational.this.safeSymbol(marketId, market, (String) null, (String) null) );
-            put( "timestamp", Coinbaseinternational.this.parse8601(datetime) );
-            put( "datetime", datetime );
-            put( "bid", Coinbaseinternational.this.safeNumber(ticker, "bid_price", (Object) null) );
-            put( "bidVolume", Coinbaseinternational.this.safeNumber(ticker, "bid_qty", (Object) null) );
-            put( "ask", Coinbaseinternational.this.safeNumber(ticker, "ask_price", (Object) null) );
-            put( "askVolume", Coinbaseinternational.this.safeNumber(ticker, "ask_qty", (Object) null) );
-            put( "high", null );
-            put( "low", null );
-            put( "open", null );
-            put( "close", null );
-            put( "last", null );
-            put( "change", null );
-            put( "percentage", null );
-            put( "average", null );
-            put( "vwap", null );
-            put( "baseVolume", null );
-            put( "quoteVolume", null );
-            put( "previousClose", null );
-        }}, (Map<String, Object>) null);
+            put( "symbol", marketResolved.get("symbol") );
+            put( "timestamp", timestamp );
+            put( "datetime", Coinbaseinternational.this.iso8601(timestamp) );
+            put( "bid", Coinbaseinternational.this.safeString(ticker, "best_bid_price") );
+            put( "bidVolume", Coinbaseinternational.this.safeString(ticker, "best_bid_amount") );
+            put( "ask", Coinbaseinternational.this.safeString(ticker, "best_ask_price") );
+            put( "askVolume", Coinbaseinternational.this.safeString(ticker, "best_ask_amount") );
+        }}, marketResolved);
     }
 
     /**
      * @method
      * @name coinbaseinternational#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, close price, and the volume of a market
-     * @see https://docs.cdp.coinbase.com/intx/docs/websocket-channels#candles-channel
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/charttradesinstrument_nameresolution
+     * @see https://docs.deribit.com/subscriptions/market-data/charttradesinstrument_nameresolution
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public CompletableFuture<List<OHLCV>> watchOHLCV(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
@@ -565,87 +1158,180 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("watchOHLCV", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Map<String, Object> market = this.market(symbol);
-            String symbolValue = (String) market.get("symbol");
-            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
-            String interval = this.safeString(options, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            List<Object> ohlcv = (List<Object>) (this.subscribe(interval, new ArrayList<String>(Arrays.asList(symbolValue)), parameters)).join();
+            String symbolResolved = this.symbol(symbol);
+            Map<String, Object> ohlcvs = (Map<String, Object>) (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbolResolved, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, paramsResolved)).join();
+            return Helpers.GetValue((ohlcvs == null || symbolResolved == null ? null : ohlcvs.get(symbolResolved)), java.util.Objects.requireNonNullElse(timeframe, "1m"));
+        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#watchOHLCVForSymbols
+     * @description watches historical candlestick data for multiple markets and timeframes
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/market-data/charttradesinstrument_nameresolution
+     * @see https://docs.deribit.com/subscriptions/market-data/charttradesinstrument_nameresolution
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} a dictionary of OHLCV arrays indexed by symbol and timeframe
+     */
+    public CompletableFuture<Object> watchOHLCVForSymbols(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("watchOHLCVForSymbols", parameters);
+            Integer symbolsAndTimeframesLength = ((List<?>)symbolsAndTimeframes).size();
+            if (java.util.Objects.equals(symbolsAndTimeframesLength, 0) || !((symbolsAndTimeframes == null || 0 >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(0)) instanceof List))
+            {
+                throw new ArgumentsRequired((this.id + " watchOHLCVForSymbols() requires an array of symbols and timeframes, like [['BTC/USDC', '1m']]")) ;
+            }
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            List<String> channels = new ArrayList<String>(Arrays.asList());
+            for (var i = 0; (symbolsAndTimeframesLength != null && i < symbolsAndTimeframesLength); i++)
+            {
+                Object current = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
+                String currentTimeframe = this.safeString(current, 1);
+                String resolution = this.safeString(this.timeframes, currentTimeframe, currentTimeframe);
+                Map<String, Object> market = this.market(this.safeString(current, 0));
+                channels.add(((("chart.trades." + this.safeString(market, "id", "")) + ".") + resolution));
+            }
+            Object resolved = (this.subscribe(channels, channels, false, paramsResolved)).join();
+            String symbol = this.safeString(resolved, 0);
+            String timeframe = this.safeString(resolved, 1);
+            Object ohlcv = this.safeValue(resolved, 2);
             Long limitResolved = limit;
             if (this.newUpdates)
             {
-                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbolValue, limit);
+                limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(ohlcv, symbol, limit);
             }
-            return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
-        }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
+            List<Object> filtered = this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
+            return this.createOHLCVObject(((String)symbol), ((String)timeframe), filtered);
+        });
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchOHLCV
+     * @description stops watching OHLCV data for a symbol
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string} symbol unified market symbol
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchOHLCV(String symbol, String timeframe, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("unWatchOHLCV", parameters);
+            return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), paramsResolved)).join();
+        });
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchOHLCVForSymbols
+     * @description stops watching OHLCV data for multiple symbols and timeframes
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchOHLCVForSymbols(Object symbolsAndTimeframes, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("unWatchOHLCVForSymbols", parameters);
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            List<String> channels = new ArrayList<String>(Arrays.asList());
+            Integer symbolsAndTimeframesLength = ((List<?>)symbolsAndTimeframes).size();
+            for (var i = 0; (symbolsAndTimeframesLength != null && i < symbolsAndTimeframesLength); i++)
+            {
+                Object current = (symbolsAndTimeframes == null || i < 0 || i >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(i));
+                String timeframe = this.safeString(current, 1);
+                String resolution = this.safeString(this.timeframes, timeframe, timeframe);
+                Map<String, Object> market = this.market(this.safeString(current, 0));
+                channels.add(((("chart.trades." + this.safeString(market, "id", "")) + ".") + resolution));
+            }
+            return (this.unSubscribe(channels, false, paramsResolved)).join();
+        });
 
     }
 
     public void handleOHLCV(Client client, Map<String, Object> message)
     {
-        //
-        // {
-        //     "sequence": 0,
-        //     "product_id": "BTC-PERP",
-        //     "channel": "CANDLES_ONE_MINUTE",
-        //     "type": "SNAPSHOT",
-        //     "candles": [
-        //       {
-        //           "time": "2023-05-10T14:58:47.000Z",
-        //           "low": "28787.8",
-        //           "high": "28788.8",
-        //           "open": "28788.8",
-        //           "close": "28787.8",
-        //           "volume": "0.466"
-        //        },
-        //     ]
-        //  }
-        //
-        String messageHash = this.safeString(message, "channel");
-        String marketId = this.safeString(message, "product_id");
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        String messageHash = this.safeString(parameters, "channel", "");
+        List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("."))));
+        String marketId = this.safeString(parts, 2);
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String symbol = (String) market.get("symbol");
-        Object timeframe = this.findTimeframe(messageHash, (Object) null);
-        Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
-        if (java.util.Objects.equals(this.safeDict(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, (Object) null), null))
+        String symbol = this.safeString(market, "symbol", "");
+        String resolution = this.safeString(parts, 3);
+        Map<String, Object> wsOptions = (Map<String, Object>) this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(wsOptions, "timeframes", new HashMap<String, Object>() {{}});
+        String timeframe = this.findTimeframe(resolution, timeframes);
+        this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        if (java.util.Objects.equals(this.safeValue(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe), null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(((Map<?, ?>)this.ohlcvs).get(symbol), ((String)timeframe));
-        List<Object> data = (List<Object>) this.safeList(message, "candles", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)data).size(); i++)
-        {
-            Map<String, Object> tick = (Map<String, Object>) this.safeDict(data, i, (Object) null);
-            List<Object> parsed = (List<Object>) this.parseOHLCV(tick, market);
-            stored.append(parsed);
-        }
-        if (!java.util.Objects.equals(messageHash, null))
-        {
-            client.resolve(stored, ((messageHash + "::") + symbol));
-        }
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) ((Map<?, ?>)this.ohlcvs.get(symbol)).get(timeframe);
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        List<Object> parsed = (List<Object>) this.parseWsOHLCV(data, market);
+        stored.append(parsed);
+        List<Object> resolved = new ArrayList<Object>(Arrays.asList(symbol, timeframe, stored));
+        client.resolve(resolved, messageHash);
+    }
+
+    public Object parseWsOHLCV(Object ohlcv, Map<String, Object> market)
+    {
+        return new ArrayList<Object>(Arrays.asList(this.safeInteger(ohlcv, "tick"), this.safeNumber(ohlcv, "open", (Object) null), this.safeNumber(ohlcv, "high", (Object) null), this.safeNumber(ohlcv, "low", (Object) null), this.safeNumber(ohlcv, "close", (Object) null), this.safeNumber(ohlcv, "volume", (Object) null)));
     }
 
     /**
      * @method
      * @name coinbaseinternational#watchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#match-channel
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/trades/tradesinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     public CompletableFuture<List<Trade>> watchTrades(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.watchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, parameters)).join();
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("watchTrades", parameters);
+            return (this.watchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), since, limit, paramsResolved)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }
@@ -654,23 +1340,38 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
      * @method
      * @name coinbaseinternational#watchTradesForSymbols
      * @description get the list of most recent trades for a list of symbols
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/trades/tradesinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/trades/tradesinstrument_nameinterval
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     public CompletableFuture<List<Trade>> watchTradesForSymbols(Object symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("watchTradesForSymbols", parameters);
             if (java.util.Objects.equals(this.markets, null))
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, true);
-            List<Object> trades = (List<Object>) (this.subscribeMultiple("MATCH", symbolsNormalized, parameters)).join();
+            List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, false, false, false);
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTradesForSymbols", "interval", "100ms");
+            String interval = intervalparamsIntervalVariable.first();
+            Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
+            Boolean isPrivate = java.util.Objects.equals(interval, "raw");
+            List<String> channels = new ArrayList<String>(Arrays.asList());
+            Integer symbolsLength = ((List<?>)symbolsResolved).size();
+            for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
+            {
+                Map<String, Object> market = this.market(this.safeString(symbolsResolved, i, ""));
+                channels.add(((("trades." + this.safeString(market, "id", "")) + ".") + interval));
+            }
+            List<Object> trades = (List<Object>) (this.subscribe(channels, channels, isPrivate, paramsInterval)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -683,82 +1384,102 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
     }
 
-    public Map<String, Object> handleTrade(Client client, Map<String, Object> message)
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchTrades
+     * @description stops watching trades for a symbol
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
     {
-        //
-        //    {
-        //       "sequence": 0,
-        //       "product_id": "BTC-PERP",
-        //       "time": "2023-05-10T14:58:47.002Z",
-        //       "match_id": "177101110052388865",
-        //       "trade_qty": "0.006",
-        //       "aggressor_side": "BUY",
-        //       "trade_price": "28833.1",
-        //       "channel": "MATCH",
-        //       "type": "UPDATE"
-        //    }
-        //
-        Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (message), (Map<String, Object>) null);
-        Object symbol = trade.get("symbol");
-        String channel = this.safeString(message, "channel");
-        if (!(((Map<?, ?>)this.trades).containsKey(((String)symbol))))
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("unWatchTrades", parameters);
+            return (this.unWatchTradesForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), paramsResolved)).join();
+        });
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchTradesForSymbols
+     * @description stops watching trades for multiple symbols
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string[]} symbols unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchTradesForSymbols(Object symbols, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("unWatchTradesForSymbols", parameters);
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, false, false, false);
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchTradesForSymbols", "interval", "100ms");
+            String interval = intervalparamsIntervalVariable.first();
+            Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
+            List<String> channels = new ArrayList<String>(Arrays.asList());
+            Integer symbolsLength = ((List<?>)symbolsResolved).size();
+            for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
+            {
+                channels.add(((("trades." + this.safeString(this.market(this.safeString(symbolsResolved, i, "")), "id", "")) + ".") + interval));
+            }
+            return (this.unSubscribe(channels, java.util.Objects.equals(interval, "raw"), paramsInterval)).join();
+        });
+
+    }
+
+    public Object handleTrades(Client client, Map<String, Object> message)
+    {
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        String channel = this.safeString(parameters, "channel", "");
+        List<Object> data = (List<Object>) this.safeList(parameters, "data", new ArrayList<Object>(Arrays.asList()));
+        List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
+        String marketId = this.safeString(parts, 1);
+        Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
+        String symbol = this.safeString(market, "symbol", "");
+        if (!java.util.Objects.equals(symbol, null) && !(((Map<?, ?>)this.trades).containsKey(symbol)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var tradesArrayCache = new ArrayCache(((Number)limit).intValue());
-            Helpers.addElementToObject(this.trades, ((String)symbol), tradesArrayCache);
+            this.trades.put(symbol, tradesArrayCache);
         }
-        io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, ((String)symbol));
-        tradesArray.append(trade);
-        Helpers.addElementToObject(this.trades, ((String)symbol), tradesArray);
-        client.resolve(tradesArray, channel);
-        if (!java.util.Objects.equals(channel, null))
+        io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
+        Integer dataLength = ((List<?>)data).size();
+        for (var i = 0; (dataLength != null && i < dataLength); i++)
         {
-            client.resolve(tradesArray, ((channel + "::") + trade.get("symbol")));
+            Map<String, Object> trade = (Map<String, Object>) this.parseTrade((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
+            tradesArray.append(trade);
         }
+        this.trades.put(symbol, tradesArray);
+        client.resolve(tradesArray, channel);
         return message;
-    }
-
-    public Trade parseWsTrade(Map<String, Object> trade, Map<String, Object> market)
-    {
-        //
-        //    {
-        //       "sequence": 0,
-        //       "product_id": "BTC-PERP",
-        //       "time": "2023-05-10T14:58:47.002Z",
-        //       "match_id": "177101110052388865",
-        //       "trade_qty": "0.006",
-        //       "aggressor_side": "BUY",
-        //       "trade_price": "28833.1",
-        //       "channel": "MATCH",
-        //       "type": "UPDATE"
-        //    }
-        String marketId = this.safeString2(trade, "symbol", "product_id");
-        String datetime = this.safeString(trade, "time");
-        return this.safeTrade(new HashMap<String, Object>() {{
-            put( "info", trade );
-            put( "id", Coinbaseinternational.this.safeString(trade, "match_id") );
-            put( "order", null );
-            put( "timestamp", Coinbaseinternational.this.parse8601(datetime) );
-            put( "datetime", datetime );
-            put( "symbol", Coinbaseinternational.this.safeSymbol(marketId, market, (String) null, (String) null) );
-            put( "type", null );
-            put( "side", Coinbaseinternational.this.safeStringLower(trade, "agressor_side") );
-            put( "takerOrMaker", null );
-            put( "price", Coinbaseinternational.this.safeString(trade, "trade_price") );
-            put( "amount", Coinbaseinternational.this.safeString(trade, "trade_qty") );
-            put( "cost", null );
-            put( "fee", null );
-        }}, (Map<String, Object>) null);
     }
 
     /**
      * @method
      * @name coinbaseinternational#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#level2-channel
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/orderbook/bookinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/orderbook/bookinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/orderbook/bookinstrument_namegroupdepthinterval
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public CompletableFuture<OrderBook> watchOrderBook(String symbol, Long limit, Map<String, Object> parameters)
@@ -766,19 +1487,23 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.watchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), limit, parameters)).join();
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("watchOrderBook", parameters);
+            return (this.watchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), limit, paramsResolved)).join();
         }).thenApply(OrderBook::new);
 
     }
 
     /**
      * @method
-     * @name coinbaseinternational#watchOrderBook
+     * @name coinbaseinternational#watchOrderBookForSymbols
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#level2-channel
+     * @see https://docs.cdp.coinbase.com/api-reference/coinbase-deribit-app-api/websocket/orderbook/bookinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/orderbook/bookinstrument_nameinterval
+     * @see https://docs.deribit.com/subscriptions/orderbook/bookinstrument_namegroupdepthinterval
      * @param {string[]} symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public CompletableFuture<OrderBook> watchOrderBookForSymbols(Object symbols, Long limit, Map<String, Object> parameters)
@@ -786,223 +1511,1059 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         return BaseExchange.supplyAsync(() -> {
 
-            return (this.subscribeMultiple("LEVEL2", Helpers.toStringListArg(symbols), parameters)).join();
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("watchOrderBookForSymbols", parameters);
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchOrderBookForSymbols", "interval", "100ms");
+            String interval = intervalparamsIntervalVariable.first();
+            Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
+            Boolean isPrivate = java.util.Objects.equals(interval, "raw");
+            Pair<Boolean, Map<String, Object>> useDepthEndpointparamsDepthEndpointVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsInterval), "watchOrderBookForSymbols", "useDepthEndpoint", false);
+            Boolean useDepthEndpoint = useDepthEndpointparamsDepthEndpointVariable.first();
+            Map<String, Object> paramsDepthEndpoint = useDepthEndpointparamsDepthEndpointVariable.second();
+            Map<String, Object> paramsChannel = paramsDepthEndpoint;
+            String descriptor = ("." + interval);
+            if (Boolean.TRUE.equals(useDepthEndpoint))
+            {
+                Pair<String, Map<String, Object>> depthparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsDepthEndpoint), "watchOrderBookForSymbols", "depth", "20");
+                String depth = depthparamsDepthVariable.first();
+                Map<String, Object> paramsDepth = depthparamsDepthVariable.second();
+                Pair<String, Map<String, Object>> groupKeyparamsGroupVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsDepth), "watchOrderBookForSymbols", "group", "none");
+                String groupKey = groupKeyparamsGroupVariable.first();
+                Map<String, Object> paramsGroup = groupKeyparamsGroupVariable.second();
+                paramsChannel = paramsGroup;
+                descriptor = ((((("." + groupKey) + ".") + depth) + ".") + interval);
+            }
+            List<String> channels = new ArrayList<String>(Arrays.asList());
+            Integer symbolsLength = ((List<?>)symbols).size();
+            for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
+            {
+                Map<String, Object> market = this.market(this.safeString(symbols, i, ""));
+                channels.add((("book." + this.safeString(market, "id", "")) + descriptor));
+            }
+            Object orderbook = (this.subscribe(channels, channels, isPrivate, paramsChannel)).join();
+            return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         }).thenApply(OrderBook::new);
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchOrderBook
+     * @description stops watching an order book
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchOrderBook(Object symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("unWatchOrderBook", parameters);
+            return (this.unWatchOrderBookForSymbols(new ArrayList<Object>(Arrays.asList(symbol)), paramsResolved)).join();
+        });
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#unWatchOrderBookForSymbols
+     * @description stops watching order books for multiple symbols
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe
+     * @param {string[]} symbols unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unWatchOrderBookForSymbols(Object symbols, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("unWatchOrderBookForSymbols", parameters);
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(paramsResolved, "watchOrderBookForSymbols", "interval", "100ms");
+            String interval = intervalparamsIntervalVariable.first();
+            Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
+            Pair<Boolean, Map<String, Object>> useDepthEndpointparamsDepthEndpointVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsInterval), "watchOrderBookForSymbols", "useDepthEndpoint", false);
+            Boolean useDepthEndpoint = useDepthEndpointparamsDepthEndpointVariable.first();
+            Map<String, Object> paramsDepthEndpoint = useDepthEndpointparamsDepthEndpointVariable.second();
+            Map<String, Object> paramsChannel = paramsDepthEndpoint;
+            String descriptor = ("." + interval);
+            if (Boolean.TRUE.equals(useDepthEndpoint))
+            {
+                Pair<String, Map<String, Object>> depthparamsDepthVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsDepthEndpoint), "watchOrderBookForSymbols", "depth", "20");
+                String depth = depthparamsDepthVariable.first();
+                Map<String, Object> paramsDepth = depthparamsDepthVariable.second();
+                Pair<String, Map<String, Object>> groupKeyparamsGroupVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsDepth), "watchOrderBookForSymbols", "group", "none");
+                String groupKey = groupKeyparamsGroupVariable.first();
+                Map<String, Object> paramsGroup = groupKeyparamsGroupVariable.second();
+                paramsChannel = paramsGroup;
+                descriptor = ((((("." + groupKey) + ".") + depth) + ".") + interval);
+            }
+            List<String> channels = new ArrayList<String>(Arrays.asList());
+            Integer symbolsLength = ((List<?>)symbols).size();
+            for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
+            {
+                channels.add((("book." + this.safeString(this.market(this.safeString(symbols, i, "")), "id", "")) + descriptor));
+            }
+            return (this.unSubscribe(channels, java.util.Objects.equals(interval, "raw"), paramsChannel)).join();
+        });
 
     }
 
     public void handleOrderBook(Client client, Map<String, Object> message)
     {
-        //
-        // snapshot
-        //    {
-        //       "sequence": 0,
-        //       "product_id": "BTC-PERP",
-        //       "time": "2023-05-10T14:58:47.000Z",
-        //       "bids": [
-        //           ["29100", "0.02"],
-        //           ["28950", "0.01"],
-        //           ["28900", "0.01"]
-        //       ],
-        //       "asks": [
-        //           ["29267.8", "18"],
-        //           ["29747.6", "18"],
-        //           ["30227.4", "9"]
-        //       ],
-        //       "channel": "LEVEL2",
-        //       "type": "SNAPSHOT",
-        //    }
-        // update
-        //    {
-        //       "sequence": 1,
-        //       "product_id": "BTC-PERP",
-        //       "time": "2023-05-10T14:58:47.375Z",
-        //       "changes": [
-        //           [
-        //               "BUY",
-        //               "28787.7",
-        //               "6"
-        //           ]
-        //       ],
-        //       "channel": "LEVEL2",
-        //       "type": "UPDATE"
-        //    }
-        //
-        String type = this.safeString(message, "type");
-        String marketId = this.safeString(message, "product_id");
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
+        String type = this.safeString(data, "type", "snapshot");
+        String marketId = this.safeString(data, "instrument_name");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        String datetime = this.safeString(message, "time");
-        String channel = this.safeString(message, "channel");
+        Long timestamp = this.safeInteger(data, "timestamp");
+        String channel = this.safeString(parameters, "channel");
+        List<Object> channelParts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
+        Integer channelPartsLength = ((List<?>)channelParts).size();
+        Boolean isGrouped = java.util.Objects.equals(channelPartsLength, 5);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
             Long limit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
+            this.orderbooks.put(symbol, ((Boolean.TRUE.equals(isGrouped))) ? this.orderBook(new HashMap<String, Object>() {{}}, limit) : this.countedOrderBook(new HashMap<String, Object>() {{}}, limit));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-        if (java.util.Objects.equals(type, "SNAPSHOT"))
+        Long nonce = this.safeInteger(orderbook, "nonce");
+        if (!Boolean.TRUE.equals(isGrouped) && (!java.util.Objects.equals(type, "snapshot")) && (java.util.Objects.equals(nonce, null)))
         {
-            Map<String, Object> parsedSnapshot = (Map<String, Object>) this.parseOrderBook(message, symbol, (Long) null, "bids", "asks", 0, 1, 2);
-            orderbook.reset(parsedSnapshot);
-            orderbook.put("symbol", symbol);
+            return;
+        }
+        if (Boolean.TRUE.equals(isGrouped))
+        {
+            orderbook.reset(this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1, 2));
         } else
         {
-            List<Object> changes = (List<Object>) this.safeList(message, "changes", new ArrayList<Object>(Arrays.asList()));
-            this.handleBookDeltas(orderbook, changes);
+            Long previousChangeId = this.safeInteger(data, "prev_change_id");
+            if ((!java.util.Objects.equals(type, "snapshot")) && (!java.util.Objects.equals(nonce, null)) && (!java.util.Objects.equals(previousChangeId, nonce)))
+            {
+                // drop the stale book and reject only this channels future
+                ((Map<String,Object>)this.orderbooks).remove((String)symbol);
+                if (client.subscriptions.containsKey(channel))
+                {
+                    client.subscriptions.remove((String)((String)channel));
+                }
+                client.reject(new ExchangeError((this.id + " order book update has a nonce mismatch")), channel);
+                this.spawn(() -> { try { this.resubscribeOrderBook((String) (channel)); } catch(Exception _e) { throw new RuntimeException(_e); } });
+                return;
+            }
+            this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList())));
+            this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList())));
         }
-        orderbook.put("nonce", this.safeInteger(message, "sequence"));
-        orderbook.put("datetime", datetime);
-        orderbook.put("timestamp", this.parse8601(datetime));
-        Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
+        orderbook.put("symbol", symbol);
+        orderbook.put("nonce", this.safeInteger(data, "change_id"));
+        orderbook.put("timestamp", timestamp);
+        orderbook.put("datetime", this.iso8601(timestamp));
+        this.orderbooks.put(symbol, orderbook);
         if (!java.util.Objects.equals(channel, null))
         {
-            client.resolve(orderbook, ((channel + "::") + symbol));
+            client.resolve(orderbook, channel);
         }
     }
 
-    public void handleBookDelta(Object orderbook, Object delta)
+    public CompletableFuture<Object> resubscribeOrderBook(String channel)
     {
-        String rawSide = this.safeStringLower(delta, 0);
-        String side = "asks";
-        if (java.util.Objects.equals(rawSide, "buy"))
+
+        return BaseExchange.supplyAsync(() -> {
+
+            List<Object> channelParts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
+            Integer channelPartsLength = ((List<?>)channelParts).size();
+            Boolean isPrivate = java.util.Objects.equals(this.safeString(channelParts, (((long) channelPartsLength) - 1L)), "raw");
+            String url = this.getWsUrl(isPrivate);
+            if (Boolean.TRUE.equals(isPrivate))
+            {
+                (this.authenticate(new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("jsonrpc", "2.0");
+            request.put("method", ((Boolean.TRUE.equals(isPrivate))) ? "private/unsubscribe" : "public/unsubscribe");
+            HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+            mapLiteral1.put("channels", new ArrayList<Object>(Arrays.asList(channel)));
+            request.put("params", mapLiteral1);
+            request.put("id", this.requestId());
+            Client client = this.client(url);
+            (client.send(request)).join();
+            if (client.subscriptions.containsKey(channel))
+            {
+                client.subscriptions.remove((String)channel);
+            }
+            (this.subscribe(new ArrayList<Object>(Arrays.asList(channel)), new ArrayList<Object>(Arrays.asList(channel)), isPrivate, new HashMap<String, Object>() {{}})).join();
+            return null;
+        });
+
+    }
+
+    public void handleDelta(Object bookside, Object delta)
+    {
+        String action = this.safeString(delta, 0);
+        Double price = this.safeNumber(delta, 1, (Object) null);
+        Double amount = this.safeNumber(delta, 2, (Object) null);
+        if ((java.util.Objects.equals(action, "new")) || (java.util.Objects.equals(action, "change")))
         {
-            side = "bids";
+            ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(new ArrayList<Object>(Arrays.asList(price, amount, 1)));
+        } else if (java.util.Objects.equals(action, "delete"))
+        {
+            ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(new ArrayList<Object>(Arrays.asList(price, amount, 0)));
         }
-        Double price = this.safeFloat(delta, 1);
-        Double amount = this.safeFloat(delta, 2);
-        io.github.ccxt.ws.OrderBookSide bookside = (io.github.ccxt.ws.OrderBookSide) Helpers.GetValue(orderbook, side);
-        bookside.store(price, amount);
     }
 
-    public void handleBookDeltas(Object orderbook, Object deltas)
+    public void handleDeltas(Object bookside, Object deltas)
     {
-        for (var i = 0; i < Helpers.getArrayLength(deltas); i++)
+        Integer deltasLength = ((List<?>)deltas).size();
+        for (var i = 0; (deltasLength != null && i < deltasLength); i++)
         {
-            this.handleBookDelta(orderbook, Helpers.GetValue(deltas, i));
-        }
-    }
-
-    public Map<String, Object> handleSubscriptionStatus(Client client, Map<String, Object> message)
-    {
-        //
-        //    {
-        //       "channels": [
-        //           {
-        //               "name": "MATCH",
-        //               "product_ids": [
-        //                   "BTC-PERP",
-        //                   "ETH-PERP"
-        //               ]
-        //           },
-        //           {
-        //               "name": "INSTRUMENTS",
-        //               "product_ids": [
-        //                   "BTC-PERP",
-        //                   "ETH-PERP"
-        //               ]
-        //           }
-        //       ],
-        //       "authenticated": true,
-        //       "channel": "SUBSCRIPTIONS",
-        //       "type": "SNAPSHOT",
-        //       "time": "2023-05-30T16:53:46.847Z"
-        //    }
-        //
-        return message;
-    }
-
-    public void handleFundingRate(Client client, Map<String, Object> message)
-    {
-        //
-        // snapshot
-        //    {
-        //       "sequence": 0,
-        //       "product_id": "BTC-PERP",
-        //       "time": "2023-05-10T14:58:47.000Z",
-        //       "funding_rate": "0.001387",
-        //       "is_final": true,
-        //       "channel": "FUNDING",
-        //       "type": "SNAPSHOT"
-        //    }
-        // update
-        //    {
-        //       "sequence": 1,
-        //       "product_id": "BTC-PERP",
-        //       "time": "2023-05-10T15:00:00.000Z",
-        //       "funding_rate": "0.001487",
-        //       "is_final": false,
-        //       "channel": "FUNDING",
-        //       "type": "UPDATE"
-        //    }
-        //
-        String channel = this.safeString(message, "channel");
-        Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(message, (Map<String, Object>) null);
-        Helpers.addElementToObject(this.fundingRates, fundingRate.get("symbol"), fundingRate);
-        if (!java.util.Objects.equals(channel, null))
-        {
-            client.resolve(fundingRate, ((channel + "::") + fundingRate.get("symbol")));
+            this.handleDelta(bookside, this.safeValue(deltas, i));
         }
     }
 
     public Boolean handleErrorMessage(Client client, Object message)
     {
-        //
-        //    {
-        //        message: 'Failed to subscribe',
-        //        reason: 'Unable to authenticate',
-        //        channel: 'SUBSCRIPTIONS',
-        //        type: 'REJECT'
-        //    }
-        //
-        String type = this.safeString(message, "type");
-        if (!java.util.Objects.equals(type, "REJECT"))
+        Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error", (Object) null);
+        if (java.util.Objects.equals(error, null))
         {
             return false;
         }
-        String reason = this.safeString(message, "reason");
-        String errMsg = this.safeString(message, "message");
+        String errorCode = this.safeString(error, "code");
+        String errorMessage = this.safeString(error, "message");
+        String feedback = ((this.id + " ") + this.json(message));
         try
         {
-            String feedback = (((this.id + " ") + errMsg) + reason);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), reason, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), reason, feedback);
-            throw new ExchangeError((String)feedback) ;
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorCode), feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (errorMessage), feedback);
+            throw new ExchangeError(feedback) ;
         } catch(Exception e)
         {
-            client.reject(e);
+            String requestId = this.safeString(message, "id");
+            String authRequestId = this.safeString(this.options, "wsAuthRequestId");
+            String messageHash = (((java.util.Objects.equals(requestId, authRequestId)))) ? "authenticated" : requestId;
+            if ((java.util.Objects.equals(messageHash, "authenticated")) && (client.subscriptions.containsKey(messageHash)))
+            {
+                // allow the next authenticate () call to retry
+                client.subscriptions.remove((String)messageHash);
+            }
+            client.reject(e, messageHash);
         }
         return true;
     }
 
-    public void handleMessage(Client client, Object message)
+    public CompletableFuture<Object> handleHeartbeat(Client client, Map<String, Object> message)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
+            String data = this.safeString(parameters, "data");
+            if (java.util.Objects.equals(data, "test_request"))
+            {
+                (client.send(new HashMap<String, Object>() {{
+                    put( "jsonrpc", "2.0" );
+                    put( "id", Coinbaseinternational.this.requestId() );
+                    put( "method", "public/test" );
+                    put( "params", new HashMap<String, Object>() {{}} );
+                }})).join();
+            }
+            return null;
+        });
+
+    }
+
+    public void handleMessage(Client client, Map<String, Object> message)
     {
         if (java.util.Objects.equals(this.handleErrorMessage(client, message), true))
         {
             return;
         }
-        String channel = this.safeString(message, "channel", "");
-        Map<String, Object> methods = new HashMap<String, Object>() {{
-            put( "SUBSCRIPTIONS", "handleSubscriptionStatus");
-            put( "INSTRUMENTS", "handleInstrument");
-            put( "LEVEL1", "handleTicker");
-            put( "MATCH", "handleTrade");
-            put( "LEVEL2", "handleOrderBook");
-            put( "FUNDING", "handleFundingRate");
-            put( "RISK", "handleTicker");
-        }};
-        String type = this.safeString(message, "type");
-        if (java.util.Objects.equals(type, "error"))
+        String method = this.safeString(message, "method");
+        if (java.util.Objects.equals(method, "heartbeat"))
         {
-            String errorMessage = this.safeString(message, "message");
-            throw new ExchangeError((String)((String)errorMessage)) ;
+            this.spawn(() -> { try { this.handleHeartbeat(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
+            return;
         }
-        if (((String)channel).indexOf("CANDLES") > -1)
+        Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", (Object) null);
+        String channel = this.safeString(parameters, "channel");
+        if (!java.util.Objects.equals(channel, null))
         {
-            this.handleOHLCV(client, (Map<String, Object>) (message));
+            List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
+            String channelId = this.safeString(parts, 0);
+            String userChannel = this.safeString(parts, 1);
+            Map<String, Object> userHandlers = new HashMap<String, Object>() {{
+                put( "portfolio", "handleBalance");
+                put( "trades", "handleMyTrades");
+                put( "orders", "handleOrders");
+                put( "changes", "handlePositions");
+            }};
+            Map<String, Object> handlers = new HashMap<String, Object>() {{
+                put( "ticker", "handleTicker");
+                put( "incremental_ticker", "handleTicker");
+                put( "quote", "handleBidAsk");
+                put( "book", "handleOrderBook");
+                put( "trades", "handleTrades");
+                put( "chart", "handleOHLCV");
+                put( "user", Coinbaseinternational.this.safeValue(userHandlers, userChannel) );
+            }};
+            Object handler = this.safeValue(handlers, channelId);
+            if (java.util.Objects.equals(handler, null))
+            {
+                throw new NotSupported(((this.id + " no handler found for websocket channel ") + channel)) ;
+            }
+            Helpers.callDynamically(this, handler, new Object[] {client, message});
+            return;
         }
-        Object method = this.safeValue(methods, channel);
-        if (!java.util.Objects.equals(method, null))
+        String requestId = this.safeString(message, "id");
+        if (!java.util.Objects.equals(requestId, null))
         {
-            Helpers.callDynamically(this, method, new Object[] {client, message});
+            Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", (Object) null);
+            if (!java.util.Objects.equals(this.safeString(result, "version"), null))
+            {
+                client.lastPong = ((Number)this.milliseconds()).longValue();
+            }
+            String authRequestId = this.safeString(this.options, "wsAuthRequestId");
+            if (java.util.Objects.equals(requestId, authRequestId))
+            {
+                this.handleAuthenticationMessage(client, message);
+                return;
+            }
+            client.resolve(this.safeValue(message, "result", message), requestId);
         }
+    }
+
+    public void handleAuthenticationMessage(Client client, Map<String, Object> message)
+    {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 1,
+        //         "result": {
+        //             "expires_in": 3000,
+        //             "scope": "...",
+        //             "sid": "...",
+        //             "token_type": "bearer"
+        //         }
+        //     }
+        //
+        Map<String, Object> result = (Map<String, Object>) this.safeDict(message, "result", new HashMap<String, Object>() {{}});
+        Long expiresIn = this.safeInteger(result, "expires_in", 900);
+        Double ratio = this.safeNumber(this.options, "wsAuthRefreshRatio", (Object) null);
+        Object refreshRatio = (((java.util.Objects.equals(ratio, null)))) ? 0.8 : ratio;
+        Long now = this.milliseconds();
+        this.options.put("wsAuthRefreshAt", this.sum(now, this.parseToInt(Helpers.multiply((expiresIn * 1000L), refreshRatio))));
+        client.lastPong = ((Number)now).longValue();
+        client.resolve(result, "authenticated");
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#authenticate
+     * @description authenticates the private websocket session
+     * @see https://docs.cdp.coinbase.com/api-reference/authentication/public-auth
+     * @see https://docs.deribit.com/api-reference/authentication/public-auth
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the authentication response
+     */
+    public CompletableFuture<Object> authenticate(Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("authenticate", parameters);
+            String url = this.getWsUrl(true);
+            Client client = this.client(url);
+            String messageHash = "authenticated";
+            Object future = this.safeValue(client.subscriptions, messageHash);
+            if (!java.util.Objects.equals(future, null))
+            {
+                Long refreshAt = this.safeInteger(this.options, "wsAuthRefreshAt");
+                if ((!java.util.Objects.equals(refreshAt, null)) && ((refreshAt == null || (this.milliseconds()) >= refreshAt)) && !(client.futures.containsKey(messageHash)))
+                {
+                    client.subscriptions.remove(messageHash);
+                    future = null;
+                }
+            }
+            if (java.util.Objects.equals(future, null))
+            {
+                this.checkRequiredCredentials(true);
+                Object requestId = this.requestId();
+                this.options.put("wsAuthRequestId", requestId);
+                Map<String, Object> paramsAuth = new HashMap<String, Object>() {{
+                    put( "grant_type", "client_credentials" );
+                    put( "client_id", Coinbaseinternational.this.apiKey );
+                    put( "client_secret", Coinbaseinternational.this.secret );
+                }};
+                if (java.util.Objects.equals(this.isNativeDeribitCredentials(), false))
+                {
+                    paramsAuth = new HashMap<String, Object>() {{
+                        put( "grant_type", "coinbase_cdp" );
+                        put( "token", Coinbaseinternational.this.createAuthToken(Coinbaseinternational.this.seconds(), (String) null, (String) null, Coinbaseinternational.this.isEddsaSecret()) );
+                    }};
+                }
+                Map<String, Object> request = new HashMap<String, Object>();
+                request.put("jsonrpc", "2.0");
+                request.put("id", requestId);
+                request.put("method", "public/auth");
+                request.put("params", paramsAuth);
+                future = client.reusableFuture(messageHash);
+                this.watch(url, messageHash, this.extend(request, paramsResolved), messageHash, null);
+                client.subscriptions.put(messageHash, future);
+            }
+            return ((io.github.ccxt.ws.Future)future).getFuture().join();
+        });
+
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#requestWs
+     * @description sends a websocket JSON-RPC request
+     * @param {string} method exchange JSON-RPC method name
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {boolean} [isPrivate] whether to authenticate before sending the request
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> requestWs(String method, Map<String, Object> parameters, Object isPrivate)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("requestWs", parameters);
+            String url = this.getWsUrl(true);
+            if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(isPrivate, false)))
+            {
+                (this.authenticate(new HashMap<String, Object>() {{}})).join();
+            }
+            Object requestId = this.requestId();
+            String messageHash = String.valueOf(requestId);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "jsonrpc", "2.0" );
+                put( "id", requestId );
+                put( "method", method );
+                put( "params", paramsResolved );
+            }};
+            return (this.watch(url, messageHash, request, messageHash, null)).join();
+        });
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#createOrderWs
+     * @description create a trade order over websocket
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-buy
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-sell
+     * @see https://docs.deribit.com/api-reference/trading/private-buy
+     * @see https://docs.deribit.com/api-reference/trading/private-sell
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount number of contracts for native Deribit derivatives, otherwise the exchange order amount (base currency for spot)
+     * @param {float} [price] the price at which the order is to be fulfilled
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public CompletableFuture<Order> createOrderWs(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("createOrderWs", parameters);
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>();
+            request.put("instrument_name", market.get("id"));
+            request.put("amount", this.parseNumber(this.getOrderAmount(market, amount)));
+            request.put("type", type);
+            Double triggerPrice = this.safeNumberN(paramsResolved, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop_price")), (Object) null);
+            if (!java.util.Objects.equals(triggerPrice, null))
+            {
+                request.put("type", (((java.util.Objects.equals(type, "limit")))) ? "stop_limit" : "stop_market");
+                request.put("trigger_price", triggerPrice);
+            }
+            if (java.util.Objects.equals(type, "limit"))
+            {
+                if (java.util.Objects.equals(price, null))
+                {
+                    throw new ArgumentsRequired((this.id + " createOrderWs() requires a price argument for limit orders")) ;
+                }
+                request.put("price", this.parseNumber(this.priceToPrecision(symbol, price)));
+            }
+            Boolean postOnly = (Boolean) this.safeBool2(paramsResolved, "postOnly", "post_only", (Object) null);
+            if (java.util.Objects.equals(this.isNativeDeribitCredentials(), true))
+            {
+                Boolean reduceOnly = (Boolean) this.safeBool2(paramsResolved, "reduceOnly", "reduce_only", (Object) null);
+                if (!java.util.Objects.equals(reduceOnly, null))
+                {
+                    request.put("reduce_only", reduceOnly);
+                }
+            }
+            if (!java.util.Objects.equals(postOnly, null))
+            {
+                request.put("post_only", postOnly);
+                request.put("reject_post_only", postOnly);
+            }
+            String timeInForce = this.safeString2(paramsResolved, "timeInForce", "tif");
+            if (!java.util.Objects.equals(timeInForce, null))
+            {
+                Map<String, Object> timeInForces = new HashMap<String, Object>() {{
+                    put( "GTC", "good_til_cancelled" );
+                    put( "IOC", "immediate_or_cancel" );
+                    put( "FOK", "fill_or_kill" );
+                    put( "GTD", "good_til_day" );
+                }};
+                request.put("time_in_force", this.safeString(timeInForces, timeInForce, timeInForce));
+            }
+            String clientOrderId = this.safeString2(paramsResolved, "clientOrderId", "client_order_id");
+            if (!java.util.Objects.equals(clientOrderId, null))
+            {
+                request.put("label", clientOrderId);
+            } else
+            {
+                String brokerId = this.safeString(this.options, "brokerId");
+                if (!java.util.Objects.equals(brokerId, null))
+                {
+                    request.put("label", ((brokerId + "-") + this.uuid22()));
+                }
+            }
+            Map<String, Object> paramsRequest = this.omit(paramsResolved, new ArrayList<Object>(Arrays.asList("clientOrderId", "client_order_id", "postOnly", "post_only", "timeInForce", "tif", "triggerPrice", "stopPrice", "stop_price")));
+            if (java.util.Objects.equals(this.isNativeDeribitCredentials(), true))
+            {
+                paramsRequest = this.omit(paramsRequest, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only")));
+            }
+            Object result = (this.requestWs(("private/" + side), this.extend(request, paramsRequest), true)).join();
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(result, "order", new HashMap<String, Object>() {{}});
+            order.put("trades", this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList())));
+            return this.parseOrder(order, market);
+        }).thenApply(Order::new);
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#editOrderWs
+     * @description edit a trade order over websocket
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-edit
+     * @see https://docs.deribit.com/api-reference/trading/private-edit
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {string} type not used by coinbaseinternational editOrderWs
+     * @param {string} side not used by coinbaseinternational editOrderWs
+     * @param {float} [amount] new order amount, in contracts for native Deribit derivatives
+     * @param {float} [price] new order price
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public CompletableFuture<Order> editOrderWs(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("editOrderWs", parameters);
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "order_id", id );
+            }};
+            if (!java.util.Objects.equals(amount, null))
+            {
+                request.put("amount", this.parseNumber(this.getOrderAmount(market, amount)));
+            }
+            if (!java.util.Objects.equals(price, null))
+            {
+                request.put("price", this.parseNumber(this.priceToPrecision(symbol, price)));
+            }
+            Double triggerPrice = this.safeNumberN(paramsResolved, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop_price")), (Object) null);
+            if (!java.util.Objects.equals(triggerPrice, null))
+            {
+                request.put("trigger_price", triggerPrice);
+            }
+            Map<String, Object> paramsRequest = this.omit(paramsResolved, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop_price")));
+            Object result = (this.requestWs("private/edit", this.extend(request, paramsRequest), true)).join();
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(result, "order", new HashMap<String, Object>() {{}});
+            order.put("trades", this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList())));
+            return this.parseOrder(order, market);
+        }).thenApply(Order::new);
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#cancelOrderWs
+     * @description cancels an open order over websocket
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-cancel
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel
+     * @param {string} id order id
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public CompletableFuture<Order> cancelOrderWs(String id, String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("cancelOrderWs", parameters);
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = null;
+            if (!java.util.Objects.equals(symbol, null))
+            {
+                market = this.market(symbol);
+            }
+            Object result = (this.requestWs("private/cancel", this.extend(new HashMap<String, Object>() {{
+                put( "order_id", id );
+            }}, paramsResolved), true)).join();
+            return this.parseOrder(result, market);
+        }).thenApply(Order::new);
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#cancelAllOrdersWs
+     * @description cancels all open orders over websocket
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-cancel_all
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-cancel_all_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel_all
+     * @see https://docs.deribit.com/api-reference/trading/private-cancel_all_by_instrument
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> cancelAllOrdersWs(String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("cancelAllOrdersWs", parameters);
+            String method = "private/cancel_all";
+            Map<String, Object> paramsRequest = paramsResolved;
+            if (!java.util.Objects.equals(symbol, null))
+            {
+                if (java.util.Objects.equals(this.markets, null))
+                {
+                    (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                }
+                Map<String, Object> market = this.market(symbol);
+                paramsRequest = this.extend(new HashMap<String, Object>() {{
+                    put( "instrument_name", market.get("id") );
+                }}, paramsResolved);
+                method = "private/cancel_all_by_instrument";
+            }
+            Object result = (this.requestWs(method, paramsRequest, true)).join();
+            return new ArrayList<Object>(Arrays.asList(this.safeOrder(new HashMap<String, Object>() {{
+        put( "info", result );
+    }}, (Map<String, Object>) null)));
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchOrderWs
+     * @description fetches an order over websocket
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_order_state
+     * @see https://docs.deribit.com/api-reference/trading/private-get_order_state
+     * @param {string} id order id
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public CompletableFuture<Order> fetchOrderWs(String id, String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchOrderWs", parameters);
+            Map<String, Object> market = null;
+            if (!java.util.Objects.equals(symbol, null))
+            {
+                if (java.util.Objects.equals(this.markets, null))
+                {
+                    (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+                }
+                market = this.market(symbol);
+            }
+            Object result = (this.requestWs("private/get_order_state", this.extend(new HashMap<String, Object>() {{
+                put( "order_id", id );
+            }}, paramsResolved), true)).join();
+            return this.parseOrder(result, market);
+        }).thenApply(Order::new);
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchOpenOrdersWs
+     * @description fetches open orders over websocket
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_open_orders_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_open_orders_by_instrument
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchOpenOrdersWs(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchOpenOrdersWs", parameters);
+            if (java.util.Objects.equals(symbol, null))
+            {
+                throw new ArgumentsRequired((this.id + " fetchOpenOrdersWs() requires a symbol argument")) ;
+            }
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "instrument_name", market.get("id") );
+            }};
+            if (!java.util.Objects.equals(limit, null))
+            {
+                request.put("count", limit);
+            }
+            Object result = (this.requestWs("private/get_open_orders_by_instrument", this.extend(request, paramsResolved), true)).join();
+            return this.parseOrders(result, market, since, limit, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchOrdersWs
+     * @description fetches order history over websocket
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_order_history_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_order_history_by_instrument
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] timestamp in ms of the earliest order
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public CompletableFuture<List<Order>> fetchOrdersWs(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchOrdersWs", parameters);
+            if (java.util.Objects.equals(symbol, null))
+            {
+                throw new ArgumentsRequired((this.id + " fetchOrdersWs() requires a symbol argument")) ;
+            }
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "instrument_name", market.get("id") );
+            }};
+            if (!java.util.Objects.equals(limit, null))
+            {
+                request.put("count", limit);
+            }
+            Object result = (this.requestWs("private/get_order_history_by_instrument", this.extend(request, paramsResolved), true)).join();
+            Object orders = this.safeList(result, "orders", result);
+            return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchBalanceWs
+     * @description fetches the balance over websocket
+     * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_account_summaries
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summaries
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_account_summary
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     */
+    public CompletableFuture<Balances> fetchBalanceWs(Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchBalanceWs", parameters);
+            Object result = (this.requestWs("private/get_account_summaries", paramsResolved, true)).join();
+            List<Object> summaries = (List<Object>) this.safeList(result, "summaries", new ArrayList<Object>(Arrays.asList()));
+            Object balance = new HashMap<String, Object>() {{
+                put( "info", result );
+            }};
+            Integer summariesLength = ((List<?>)summaries).size();
+            for (var i = 0; (summariesLength != null && i < summariesLength); i++)
+            {
+                balance = this.deepExtend(balance, this.parseBalanceList((summaries == null || i < 0 || i >= summaries.size() ? null : summaries.get(i))));
+            }
+            return this.safeBalance(balance);
+        }).thenApply(Balances::new);
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchMyTradesWs
+     * @description fetches user trades over websocket
+     * @see https://docs.cdp.coinbase.com/api-reference/trading/private-get_user_trades_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument
+     * @see https://docs.deribit.com/api-reference/trading/private-get_user_trades_by_instrument_and_time
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] timestamp in ms of the earliest trade
+     * @param {int} [limit] the maximum number of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     */
+    public CompletableFuture<List<Trade>> fetchMyTradesWs(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchMyTradesWs", parameters);
+            if (java.util.Objects.equals(symbol, null))
+            {
+                throw new ArgumentsRequired((this.id + " fetchMyTradesWs() requires a symbol argument")) ;
+            }
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "instrument_name", market.get("id") );
+                put( "include_old", true );
+            }};
+            if (!java.util.Objects.equals(limit, null))
+            {
+                request.put("count", limit);
+            }
+            Object result = (this.requestWs("private/get_user_trades_by_instrument", this.extend(request, paramsResolved), true)).join();
+            List<Object> trades = (List<Object>) this.safeList(result, "trades", new ArrayList<Object>(Arrays.asList()));
+            return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
+        }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
+
+    }
+
+    /**
+     * @method
+     * @name coinbaseinternational#fetchPositionsWs
+     * @description fetches open positions over websocket
+     * @see https://docs.cdp.coinbase.com/api-reference/account-management/private-get_positions
+     * @see https://docs.deribit.com/api-reference/account-management/private-get_positions
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     */
+    public CompletableFuture<List<Position>> fetchPositionsWs(List<String> symbols, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("fetchPositionsWs", parameters);
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, true, false, false);
+            Object result = (this.requestWs("private/get_positions", paramsResolved, true)).join();
+            Object positions = this.parsePositions(result, (List<String>) null, new HashMap<String, Object>() {{}});
+            return this.filterByArrayPositions(positions, "symbol", symbolsResolved);
+        }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
+
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#setHeartbeat
+     * @description enables heartbeat messages for the private websocket connection
+     * @see https://docs.cdp.coinbase.com/api-reference/session-management/public-set_heartbeat
+     * @see https://docs.deribit.com/api-reference/session-management/public-set_heartbeat
+     * @param {int} [interval] heartbeat interval in seconds, minimum 10
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> setHeartbeat(Long interval, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("setHeartbeat", parameters);
+            Map<String, Object> request = this.extend(new HashMap<String, Object>() {{
+                put( "interval", java.util.Objects.requireNonNullElse(interval, 30L) );
+            }}, paramsResolved);
+            return (this.requestWs("public/set_heartbeat", request, false)).join();
+        });
+
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#disableHeartbeat
+     * @description disables heartbeat messages for the private websocket connection
+     * @see https://docs.cdp.coinbase.com/api-reference/session-management/public-disable_heartbeat
+     * @see https://docs.deribit.com/api-reference/session-management/public-disable_heartbeat
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> disableHeartbeat(Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("disableHeartbeat", parameters);
+            return (this.requestWs("public/disable_heartbeat", paramsResolved, false)).join();
+        });
+
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#setCancelOnDisconnect
+     * @description enables or disables cancel on disconnect
+     * @see https://docs.cdp.coinbase.com/api-reference/session-management/private-enable_cancel_on_disconnect
+     * @see https://docs.cdp.coinbase.com/api-reference/session-management/private-disable_cancel_on_disconnect
+     * @see https://docs.deribit.com/api-reference/session-management/private-enable_cancel_on_disconnect
+     * @see https://docs.deribit.com/api-reference/session-management/private-disable_cancel_on_disconnect
+     * @param {bool} enabled whether cancel on disconnect should be enabled
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.scope] connection or account, default connection
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> setCancelOnDisconnect(Boolean enabled, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("setCancelOnDisconnect", parameters);
+            String method = (((java.util.Objects.equals(enabled, true)))) ? "private/enable_cancel_on_disconnect" : "private/disable_cancel_on_disconnect";
+            return (this.requestWs(method, paramsResolved, true)).join();
+        });
+
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#getCancelOnDisconnect
+     * @description gets the cancel on disconnect configuration
+     * @see https://docs.cdp.coinbase.com/api-reference/session-management/private-get_cancel_on_disconnect
+     * @see https://docs.deribit.com/api-reference/session-management/private-get_cancel_on_disconnect
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {string} [params.scope] connection or account, default connection
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> getCancelOnDisconnect(Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("getCancelOnDisconnect", parameters);
+            return (this.requestWs("private/get_cancel_on_disconnect", paramsResolved, true)).join();
+        });
+
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#unsubscribeAllWs
+     * @description unsubscribes from all websocket channels
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/public-unsubscribe_all
+     * @see https://docs.cdp.coinbase.com/api-reference/subscription-management/private-unsubscribe_all
+     * @see https://docs.deribit.com/api-reference/subscription-management/private-unsubscribe_all
+     * @see https://docs.deribit.com/api-reference/subscription-management/public-unsubscribe_all
+     * @param {bool} [isPrivate] whether to unsubscribe from private channels
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> unsubscribeAllWs(Object isPrivate, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("unsubscribeAllWs", parameters);
+            String method = ((Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(isPrivate, false)))) ? "private/unsubscribe_all" : "public/unsubscribe_all";
+            return (this.requestWs(method, paramsResolved, java.util.Objects.requireNonNullElse(isPrivate, false))).join();
+        });
+
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name coinbaseinternational#logoutWs
+     * @description gracefully logs out of the private websocket session
+     * @see https://docs.cdp.coinbase.com/api-reference/authentication/private-logout
+     * @see https://docs.deribit.com/api-reference/authentication/private-logout
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
+     * @param {bool} [params.invalidate_token] whether to invalidate session tokens, default true
+     * @returns {object} the exchange response
+     */
+    public CompletableFuture<Object> logoutWs(Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            Map<String, Object> paramsResolved = this.handleRouteAndParams("logoutWs", parameters);
+            (this.authenticate(new HashMap<String, Object>() {{}})).join();
+            String url = this.getWsUrl(true);
+            Client client = this.client(url);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "jsonrpc", "2.0" );
+                put( "id", Coinbaseinternational.this.requestId() );
+                put( "method", "private/logout" );
+                put( "params", paramsResolved );
+            }};
+            (client.send(request)).join();
+            return null;
+        });
+
     }
 }

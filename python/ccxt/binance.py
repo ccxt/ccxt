@@ -39,7 +39,7 @@ from ccxt.base.precise import Precise
 
 class binance(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(binance, self).describe(), {
             'id': 'binance',
             'name': 'Binance',
@@ -793,7 +793,7 @@ class binance(Exchange, ImplicitAPI):
                         'exchangeInfo': {'cost': 1},
                         'depth': {'cost': 2, 'byLimit': [[50, 2], [100, 5], [500, 10], [1000, 20]]},
                         'trades': {'cost': 5},
-                        'historicalTrades': {'cost': 20},
+                        'historicalTrades': {'cost': 200},  # per the 2026-07-29 changelog
                         'aggTrades': {'cost': 20},
                         'premiumIndex': {'cost': 10},
                         'fundingRate': {'cost': 1},
@@ -829,6 +829,9 @@ class binance(Exchange, ImplicitAPI):
                         'openOrder': {'cost': 1},
                         'openOrders': {'cost': 1, 'noSymbol': 5},
                         'openAlgoOrders': {'cost': 1, 'noSymbol': 40},
+                        # algoOrder and allAlgoOrders exist on dapi like on fapi, verified live incl. the weights, they are missing from the documentation
+                        'algoOrder': {'cost': 1},
+                        'allAlgoOrders': {'cost': 5},
                         'allOrders': {'cost': 5},
                         'balance': {'cost': 1},
                         'account': {'cost': 5},
@@ -868,6 +871,8 @@ class binance(Exchange, ImplicitAPI):
                     'delete': {
                         'order': {'cost': 1},
                         'algoOrder': {'cost': 1},
+                        # algoOpenOrders exists on dapi like on fapi, verified live incl. the weight, it is missing from the documentation
+                        'algoOpenOrders': {'cost': 1},
                         'allOpenOrders': {'cost': 1},
                         'batchOrders': {'cost': 5},
                         'listenKey': {'cost': 1},
@@ -875,7 +880,7 @@ class binance(Exchange, ImplicitAPI):
                 },
                 'dapiPrivateV2': {
                     'get': {
-                        'leverageBracket': {'cost': 1},
+                        'leverageBracket': {'cost': 1, 'noSymbol': 2},  # per the coin-m migration changelog
                     },
                 },
                 'fapiPublic': {
@@ -886,7 +891,7 @@ class binance(Exchange, ImplicitAPI):
                         'depth': {'cost': 2, 'byLimit': [[50, 2], [100, 5], [500, 10], [1000, 20]]},
                         'rpiDepth': {'cost': 20},
                         'trades': {'cost': 5},
-                        'historicalTrades': {'cost': 20},
+                        'historicalTrades': {'cost': 200},  # per the 2026-07-29 changelog
                         'aggTrades': {'cost': 20},
                         'klines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
                         'continuousKlines': {'cost': 1, 'byLimit': [[99, 1], [499, 2], [1000, 5], [10000, 10]]},
@@ -1396,7 +1401,7 @@ class binance(Exchange, ImplicitAPI):
                     'warnOnSTPForInverse': True,
                     'quoteOrderQty': True,  # whether market orders support amounts in quote currency
                 },
-                'defaultType': 'spot',  # 'spot', 'future', 'margin', 'delivery', 'option'
+                'defaultType': 'spot',  # 'spot', 'margin', 'swap', 'future', 'option'
                 'defaultSubType': None,  # 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'fetchOpenOrders': {
@@ -1425,7 +1430,6 @@ class binance(Exchange, ImplicitAPI):
                     'spot': 'x-TKT5PX2F',
                     'margin': 'x-TKT5PX2F',
                     'future': 'x-cvBPrNm9',
-                    'delivery': 'x-xcKtGhcu',
                     'swap': 'x-cvBPrNm9',
                     'option': 'x-xcKtGhcu',
                     'inverse': 'x-xcKtGhcu',
@@ -1436,8 +1440,6 @@ class binance(Exchange, ImplicitAPI):
                     'funding': 'FUNDING',
                     'margin': 'MARGIN',
                     'cross': 'MARGIN',
-                    'future': 'UMFUTURE',  # backwards compatibility
-                    'delivery': 'CMFUTURE',  # backwards compatibility
                     'linear': 'UMFUTURE',
                     'swap': 'UMFUTURE',
                     'inverse': 'CMFUTURE',
@@ -1456,11 +1458,8 @@ class binance(Exchange, ImplicitAPI):
                     'BTCSEGWIT': 'SEGWITBTC',
                     'BTCLIGHTNING': 'LIGHTNING',
                     'ERC20': 'ETH',
-                    'ETH': 'ETH',
                     'TRC20': 'TRX',
-                    'TRX': 'TRX',
                     'BEP2': 'BNB',
-                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'CHZ2': 'CHZ2',  # Chiliz chain new
                     'XRP': 'XRP',
@@ -1730,14 +1729,14 @@ class binance(Exchange, ImplicitAPI):
                     },
                     'fetchOrder': {
                         'marginMode': False,
-                        'trigger': False,
+                        'trigger': True,
                         'trailing': False,
                         'symbolRequired': True,
                     },
                     'fetchOpenOrders': {
                         'marginMode': True,
                         'limit': 500,
-                        'trigger': False,
+                        'trigger': True,
                         'trailing': False,
                         'symbolRequired': False,
                     },
@@ -1746,7 +1745,7 @@ class binance(Exchange, ImplicitAPI):
                         'limit': 1000,
                         'daysBack': 90,
                         'untilDays': 7,
-                        'trigger': False,
+                        'trigger': True,
                         'trailing': False,
                         'symbolRequired': True,
                     },
@@ -1756,7 +1755,7 @@ class binance(Exchange, ImplicitAPI):
                         'daysBack': 90,
                         'daysBackCanceled': 3,
                         'untilDays': 7,
-                        'trigger': False,
+                        'trigger': True,
                         'trailing': False,
                         'symbolRequired': True,
                     },
@@ -1767,6 +1766,9 @@ class binance(Exchange, ImplicitAPI):
                 'swap': {
                     'linear': {
                         'extends': 'forDerivatives',
+                        'fetchOrders': {
+                            'symbolRequired': False,  # the linear allOrders endpoint accepts requests without a symbol since 2026-08-25
+                        },
                     },
                     'inverse': {
                         'extends': 'forDerivatives',
@@ -1775,6 +1777,9 @@ class binance(Exchange, ImplicitAPI):
                 'future': {
                     'linear': {
                         'extends': 'forDerivatives',
+                        'fetchOrders': {
+                            'symbolRequired': False,  # the linear allOrders endpoint accepts requests without a symbol since 2026-08-25
+                        },
                     },
                     'inverse': {
                         'extends': 'forDerivatives',
@@ -2179,6 +2184,7 @@ class binance(Exchange, ImplicitAPI):
                         '-4116': InvalidOrder,  # DUPLICATED_CLIENT_ORDER_ID
                         '-4117': OperationRejected,  # STOP_ORDER_TRIGGERING
                         '-4118': OperationRejected,  # REDUCE_ONLY_MARGIN_CHECK_FAILED
+                        '-4120': InvalidOrder,  # {"code":-4120,"msg":"Order type not supported for this endpoint. Please use the Algo Order API endpoints instead."}
                         '-4131': OperationRejected,  # The counterparty's best price does not meet the PERCENT_PRICE filter limit
                         '-4140': BadRequest,  # Invalid symbol status for opening position
                         '-4141': OperationRejected,  # Symbol is closed
@@ -2220,8 +2226,10 @@ class binance(Exchange, ImplicitAPI):
                         '-5037': BadRequest,  # Invalid price match
                         '-5038': BadRequest,  # Price match only supports order type: LIMIT, STOP AND TAKE_PROFIT
                         '-5039': BadRequest,  # Invalid self trade prevention mode
+                        '-4531': OperationRejected,  # {"code":-4531,"msg":"Position mode change requires syncing UM and CM. Please close any open positions or orders in CM and try again."}
                         '-5040': BadRequest,  # The goodTillDate timestamp must be greater than the current time plus 600 seconds and smaller than 253402300799000
                         '-5041': OperationFailed,  # No depth matches this BBO order
+                        '-5047': InvalidOrder,  # {"code":-5047,"msg":"The original order is not a reduce-only order."}
                     },
                 },
                 'inverse': {
@@ -2274,10 +2282,12 @@ class binance(Exchange, ImplicitAPI):
                         '-4192': PermissionDenied,  # Trade forbidden due to Cooling-off Period.
                         '-4194': PermissionDenied,  # Intermediate Personal Verification is required for adjusting leverage over 20x.
                         '-4195': PermissionDenied,  # More than 20x leverage is available one month after account registration.
+                        '-4120': InvalidOrder,  # {"code":-4120,"msg":"Order type not supported for this endpoint. Please use the Algo Order API endpoints instead."}
                         '-4196': BadRequest,  # Only limit order is supported.
                         '-4197': OperationRejected,  # No need to modify the order.
                         '-4198': OperationRejected,  # Exceed maximum modify order limit.
                         '-4199': BadRequest,  # Symbol is not in trading status. Order amendment is not permitted.
+                        '-4531': OperationRejected,  # {"code":-4531,"msg":"Position mode change requires syncing UM and CM. Please close any open positions or orders in CM and try again."}
                         '-4200': PermissionDenied,  # More than 20x leverage is available %s days after Futures account registration.
                         '-4201': PermissionDenied,  # Users in your location/country can only access a maximum leverage of %s
                         '-4202': OperationRejected,  # Current symbol leverage cannot exceed 20 when using position limit adjustment service.
@@ -2538,8 +2548,8 @@ class binance(Exchange, ImplicitAPI):
                         '-2010': InvalidOrder,  # NEW_ORDER_REJECTED
                         '-2011': OperationRejected,  # CANCEL_REJECTED
                         '-2013': OrderNotFound,  # Order does not exist.
-                        '-2014': OperationRejected,  # API-key format invalid.
-                        '-2015': OperationRejected,  # Invalid API-key, IP, or permissions for action.
+                        '-2014': AuthenticationError,  # API-key format invalid.
+                        '-2015': AuthenticationError,  # Invalid API-key, IP, or permissions for action.
                         '-2016': OperationFailed,  # No trading window could be found for the symbol. Try ticker/24hrs instead.
                         '-2018': OperationFailed,  # Balance is insufficient.
                         '-2019': OperationFailed,  # Margin is insufficient.
@@ -2826,10 +2836,7 @@ class binance(Exchange, ImplicitAPI):
         })
 
     def is_inverse(self, type: str, subType: Str = None) -> bool:
-        if subType is None:
-            return(type == 'delivery')
-        else:
-            return subType == 'inverse'
+        return subType == 'inverse'
 
     def is_linear(self, type: str, subType: Str = None) -> bool:
         if subType is None:
@@ -2846,15 +2853,12 @@ class binance(Exchange, ImplicitAPI):
         settle = 'USDT'
         optionParts = symbol.split('-')
         symbolBase = symbol.split('/')
-        base = None
-        if symbol.find('/') > -1:
-            base = self.safe_string(symbolBase, 0)
-        else:
-            base = self.safe_string(optionParts, 0)
-        expiry = self.safe_string(optionParts, 1)
+        baseParts = symbolBase if (symbol.find('/') > -1) else optionParts
+        base = self.safe_string(baseParts, 0, '')
+        expiry = self.safe_string(optionParts, 1, '')
         strike = self.safe_integer(optionParts, 2)
-        strikeAsString = self.safe_string(optionParts, 2)
-        optionType = self.safe_string(optionParts, 3)
+        strikeAsString = self.safe_string(optionParts, 2, '')
+        optionType = self.safe_string(optionParts, 3, '')
         datetime = self.convert_expire_date(expiry)
         timestamp = self.parse8601(datetime)
         return {
@@ -2907,31 +2911,32 @@ class binance(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' market() requires a symbol argument')
         if self.markets is None:
             raise ExchangeError(self.id + ' markets not loaded')
-        # defaultType has legacy support on binance
+        # defaultType 'swap' resolves spot-style symbols to the perpetual of defaultSubType
         defaultType = self.safe_string(self.options, 'defaultType')
         defaultSubType = self.safe_string(self.options, 'defaultSubType')
-        isLegacyLinear = defaultType == 'future'
-        isLegacyInverse = defaultType == 'delivery'
-        isLegacy = isLegacyLinear or isLegacyInverse
+        isLegacy = defaultType == 'swap'
+        isDerivative = isLegacy or (defaultType == 'future')
+        isLegacyInverse = isLegacy and (defaultSubType == 'inverse')
+        isLegacyLinear = isLegacy and not isLegacyInverse
         if isinstance(symbol, str):
             if (self.markets is not None) and (symbol in self.markets):
                 market = self.markets[symbol]
                 # begin diff
                 if isLegacy and (self.safe_bool(market, 'spot', False)):
-                    settle = market['quote'] if isLegacyLinear else market['base']
-                    futuresSymbol = symbol + ':' + settle
-                    if (self.markets is not None) and (futuresSymbol in self.markets):
-                        return self.markets[futuresSymbol]
+                    settle = self.safe_string(market, 'base', '')
+                    if isLegacyLinear:
+                        settle = self.safe_string(market, 'quote', '')
+                    legacySymbol = self.safe_string(market, 'symbol', '') + ':' + settle
+                    if (self.markets is not None) and (legacySymbol in self.markets):
+                        return self.markets[legacySymbol]
                 else:
                     return market
                 # end diff
             elif (self.markets_by_id is not None) and (symbol in self.markets_by_id):
-                markets = self.markets_by_id[symbol]
+                markets = self.safe_list(self.markets_by_id, symbol, [])
                 # begin diff
-                if isLegacyLinear:
-                    defaultType = 'linear'
-                elif isLegacyInverse:
-                    defaultType = 'inverse'
+                if isDerivative:
+                    defaultType = 'inverse' if (defaultSubType == 'inverse') else 'linear'
                 elif defaultType is None:
                     defaultType = defaultSubType
                 # end diff
@@ -2941,9 +2946,11 @@ class binance(Exchange, ImplicitAPI):
                         return market
                 return markets[0]
             elif (symbol.find('/') > -1) and (symbol.find(':') < 0):
-                if (defaultType is not None) and (defaultType != 'spot'):
+                if isLegacy:
                     # support legacy symbols
-                    base, quote = symbol.split('/')
+                    basequote = symbol.split('/')
+                    base = basequote[0]
+                    quote = basequote[1]
                     settle = quote
                     if quote == 'USD':
                         settle = base
@@ -2961,7 +2968,7 @@ class binance(Exchange, ImplicitAPI):
             return self.create_expired_option_market(marketId)
         return super(binance, self).safe_market(marketId, market, delimiter, marketType)
 
-    def nonce(self) -> float:
+    def nonce(self) -> int:
         timeDifference = self.safe_integer(self.options, 'timeDifference')
         if timeDifference is None:
             raise ExchangeError(self.id + ' nonce() requires a numeric options["timeDifference"]')
@@ -3152,13 +3159,13 @@ class binance(Exchange, ImplicitAPI):
         fetches all available currencies on an exchange
 
         https://developers.binance.com/docs/wallet/capital/all-coins-info
-        https://developers.binance.com/docs/margin_trading/market-data/Get-All-Margin-Assets
+        https://developers.binance.com/en/docs/catalog/core-trading-margin-trading/api/rest-api/market-data#get-all-cross-margin-pairs
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
-        fetchCurrenciesEnabled = self.safe_bool(self.options, 'fetchCurrencies')
-        if fetchCurrenciesEnabled is not True:
+        fetchCurrenciesEnabled = self.safe_bool(self.options, 'fetchCurrencies', False)
+        if not fetchCurrenciesEnabled:
             return {}
         # this endpoint requires authentication
         # while fetchCurrencies is a public API method by design
@@ -3175,17 +3182,17 @@ class binance(Exchange, ImplicitAPI):
             return {}
         promises = [self.sapiGetCapitalConfigGetall(params)]
         fetchMargins = self.safe_bool(self.options, 'fetchMargins', False)
-        if fetchMargins is True:
+        if fetchMargins:
             promises.append(self.sapiGetMarginAllPairs(params))
         results = promises
-        responseCurrencies = results[0]
+        responseCurrencies = self.safe_value(results, 0)
         marginablesById = None
-        if fetchMargins is True:
-            responseMarginables = results[1]
+        if fetchMargins:
+            responseMarginables = self.safe_value(results, 1)
             marginablesById = self.index_by(responseMarginables, 'assetName')
         return self.parse_currencies_custom(responseCurrencies, marginablesById)
 
-    def parse_currencies_custom(self, responseCurrencies: object, marginablesById: dict) -> Currencies:
+    def parse_currencies_custom(self, responseCurrencies: list[dict], marginablesById: dict) -> Currencies:
         result = {}
         for i in range(0, len(responseCurrencies)):
             parsed = self.parse_currency(responseCurrencies[i])
@@ -3326,8 +3333,8 @@ class binance(Exchange, ImplicitAPI):
             withdrawEnable = self.safe_bool(networkItem, 'withdrawEnable')
             if networkCode is not None:
                 fees[networkCode] = withdrawFee
-            isDefault = self.safe_bool(networkItem, 'isDefault')
-            if (isDefault is True) or (fee is None):
+            isDefault = self.safe_bool(networkItem, 'isDefault', False)
+            if isDefault or (fee is None):
                 fee = withdrawFee
             # todo: default networks in "setMarkets" overload
             # if (isDefault) {
@@ -3389,7 +3396,7 @@ class binance(Exchange, ImplicitAPI):
         https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#exchange-information               # spot
         https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information         # swap
         https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Exchange-Information         # future
-        https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                                 # option
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#exchange-information  # option
         https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                               # cross margin
         https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                           # isolated margin
         https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/market-data#exchange-info   # tokenized stocks
@@ -3412,19 +3419,19 @@ class binance(Exchange, ImplicitAPI):
                 rawFetchMarkets.append('option')
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         demoMode = self.safe_bool(self.options, 'enableDemoTrading', False)
-        isDemoEnv = (demoMode is True) or (sandboxMode is True)
+        isDemoEnv = (demoMode) or (sandboxMode)
         fetchMarkets = []
         for i in range(0, len(rawFetchMarkets)):
-            type = rawFetchMarkets[i]
-            if type == 'option' and (isDemoEnv is True):
+            type = self.safe_string(rawFetchMarkets, i)
+            if type == 'option' and (isDemoEnv):
                 continue
             fetchMarkets.append(type)
         fetchMargins = self.safe_bool(self.options, 'fetchMargins', False)
         for i in range(0, len(fetchMarkets)):
-            marketType = fetchMarkets[i]
+            marketType = self.safe_string(fetchMarkets, i)
             if marketType == 'spot':
                 promisesRaw.append(self.publicGetExchangeInfo(params))
-                if (fetchMargins is True) and self.check_required_credentials(False) and (isDemoEnv is not True):
+                if (fetchMargins) and self.check_required_credentials(False) and (not isDemoEnv):
                     promisesRaw.append(self.sapiGetMarginAllPairs(params))
                     promisesRaw.append(self.sapiGetMarginIsolatedAllPairs(params))
             elif marketType == 'linear':
@@ -3434,7 +3441,7 @@ class binance(Exchange, ImplicitAPI):
             elif marketType == 'option':
                 promisesRaw.append(self.eapiPublicGetExchangeInfo(params))
             elif marketType == 'stock':
-                if (isDemoEnv is not True) and (self.apiKey is not None and self.apiKey != ''):
+                if (not isDemoEnv) and (self.apiKey is not None and self.apiKey != ''):
                     promisesRaw.append(self.sapiGetEquityMarketExchangeInfo(params))
             else:
                 raise ExchangeError(self.id + ' fetchMarkets() self.options fetchMarkets "' + marketType + '" is not a supported market type')
@@ -3444,7 +3451,7 @@ class binance(Exchange, ImplicitAPI):
         self.options['isolatedMarginPairsData'] = []
         for i in range(0, len(results)):
             res = self.safe_value(results, i)
-            if (fetchMargins is True) and isinstance(res, list):
+            if (fetchMargins) and isinstance(res, list):
                 keysList = list(self.index_by(res, 'symbol').keys())
                 length = len(self.options['crossMarginPairsData'])
                 # first one is the cross-margin promise
@@ -3754,18 +3761,18 @@ class binance(Exchange, ImplicitAPI):
         strike = None
         if contract:
             if swap:
-                symbol = symbol + ':' + settle
+                symbol = base + '/' + quote + ':' + settle
             elif future:
-                symbol = symbol + ':' + settle + '-' + self.yymmdd(expiry)
+                symbol = base + '/' + quote + ':' + settle + '-' + self.yymmdd(expiry)
             elif option:
                 strike = self.number_to_string(self.parse_to_numeric(self.safe_string(market, 'strikePrice')))
-                symbol = symbol + ':' + settle + '-' + self.yymmdd(expiry) + '-' + strike + '-' + self.safe_string(optionParts, 3)
+                symbol = base + '/' + quote + ':' + settle + '-' + self.yymmdd(expiry) + '-' + strike + '-' + self.safe_string(optionParts, 3)
             contractSize = self.safe_number_2(market, 'contractSize', 'unit', self.parse_number('1'))
             linear = settle == quote
             inverse = settle == base
-            if linear is True:
+            if linear:
                 subType = 'linear'
-            elif inverse is True:
+            elif inverse:
                 subType = 'inverse'
             feesType = 'inverse'
             if linear:
@@ -3775,7 +3782,7 @@ class binance(Exchange, ImplicitAPI):
         if spot:
             permissions = self.safe_list(market, 'permissions', [])
             for j in range(0, len(permissions)):
-                if permissions[j] == 'TRD_GRP_003':
+                if self.safe_string(permissions, j) == 'TRD_GRP_003':
                     active = False
                     break
         isMarginTradingAllowed = self.safe_bool(market, 'isMarginTradingAllowed', False)
@@ -3809,6 +3816,7 @@ class binance(Exchange, ImplicitAPI):
         if tradability is not None:
             if tradability != 'NONE':
                 active = True
+        feesTrading = self.safe_dict(fees, 'trading', {})
         entry = {
             'id': id,
             'lowercaseId': lowercaseId,
@@ -3832,8 +3840,8 @@ class binance(Exchange, ImplicitAPI):
             'linear': linear,
             'inverse': inverse,
             'subType': subType,
-            'taker': fees['trading']['taker'],
-            'maker': fees['trading']['maker'],
+            'taker': feesTrading['taker'],
+            'maker': feesTrading['maker'],
             'contractSize': contractSize,
             'expiry': expiry,
             'expiryDatetime': self.iso8601(expiry),
@@ -3899,7 +3907,7 @@ class binance(Exchange, ImplicitAPI):
             entry['limits']['cost']['max'] = self.safe_number(filter, 'maxNotional')
         return self.safe_market_structure(entry)
 
-    def parse_balance_helper(self, entry: dict):
+    def parse_balance_helper(self, entry: dict) -> dict:
         account = self.account()
         account['used'] = self.safe_string(entry, 'locked')
         account['free'] = self.safe_string(entry, 'free')
@@ -3918,30 +3926,30 @@ class binance(Exchange, ImplicitAPI):
         if isPortfolioMargin:
             for i in range(0, len(response)):
                 entry = self.safe_dict(response, i)
-                account = self.account()
+                accountPapi = self.account()
                 currencyId = self.safe_string(entry, 'asset')
                 code = self.safe_currency_code(currencyId)
                 if type == 'linear':
-                    account['free'] = self.safe_string(entry, 'umWalletBalance')
-                    account['used'] = self.safe_string(entry, 'umUnrealizedPNL')
+                    accountPapi['free'] = self.safe_string(entry, 'umWalletBalance')
+                    accountPapi['used'] = self.safe_string(entry, 'umUnrealizedPNL')
                 elif type == 'inverse':
-                    account['free'] = self.safe_string(entry, 'cmWalletBalance')
-                    account['used'] = self.safe_string(entry, 'cmUnrealizedPNL')
+                    accountPapi['free'] = self.safe_string(entry, 'cmWalletBalance')
+                    accountPapi['used'] = self.safe_string(entry, 'cmUnrealizedPNL')
                 elif cross:
                     borrowed = self.safe_string(entry, 'crossMarginBorrowed')
                     interest = self.safe_string(entry, 'crossMarginInterest')
-                    account['debt'] = Precise.string_add(borrowed, interest)
-                    account['free'] = self.safe_string(entry, 'crossMarginFree')
-                    account['used'] = self.safe_string(entry, 'crossMarginLocked')
-                    account['total'] = self.safe_string(entry, 'crossMarginAsset')
+                    accountPapi['debt'] = Precise.string_add(borrowed, interest)
+                    accountPapi['free'] = self.safe_string(entry, 'crossMarginFree')
+                    accountPapi['used'] = self.safe_string(entry, 'crossMarginLocked')
+                    accountPapi['total'] = self.safe_string(entry, 'crossMarginAsset')
                 else:
                     usedLinear = self.safe_string(entry, 'umUnrealizedPNL')
                     usedInverse = self.safe_string(entry, 'cmUnrealizedPNL')
                     totalUsed = Precise.string_add(usedLinear, usedInverse)
                     totalWalletBalance = self.safe_string(entry, 'totalWalletBalance')
-                    account['total'] = Precise.string_add(totalUsed, totalWalletBalance)
+                    accountPapi['total'] = Precise.string_add(totalUsed, totalWalletBalance)
                 if code is not None:
-                    result[code] = account
+                    result[code] = accountPapi
         elif not isolated and ((type == 'spot') or cross):
             timestamp = self.safe_integer(response, 'updateTime')
             balances = self.safe_list_2(response, 'balances', 'userAssets', [])
@@ -3949,15 +3957,15 @@ class binance(Exchange, ImplicitAPI):
                 balance = self.safe_dict(balances, i)
                 currencyId = self.safe_string(balance, 'asset')
                 code = self.safe_currency_code(currencyId)
-                account = self.account()
-                account['free'] = self.safe_string(balance, 'free')
-                account['used'] = self.safe_string(balance, 'locked')
+                accountSpot = self.account()
+                accountSpot['free'] = self.safe_string(balance, 'free')
+                accountSpot['used'] = self.safe_string(balance, 'locked')
                 if cross:
                     debt = self.safe_string(balance, 'borrowed')
                     interest = self.safe_string(balance, 'interest')
-                    account['debt'] = Precise.string_add(debt, interest)
+                    accountSpot['debt'] = Precise.string_add(debt, interest)
                 if code is not None:
-                    result[code] = account
+                    result[code] = accountSpot
         elif isolated:
             assets = self.safe_list(response, 'assets', [])
             for i in range(0, len(assets)):
@@ -3976,25 +3984,25 @@ class binance(Exchange, ImplicitAPI):
                 entry = self.safe_dict(positionAmountVos, i)
                 currencyId = self.safe_string(entry, 'asset')
                 code = self.safe_currency_code(currencyId)
-                account = self.account()
+                accountSavings = self.account()
                 usedAndTotal = self.safe_string(entry, 'amount')
-                account['total'] = usedAndTotal
-                account['used'] = usedAndTotal
+                accountSavings['total'] = usedAndTotal
+                accountSavings['used'] = usedAndTotal
                 if code is not None:
-                    result[code] = account
+                    result[code] = accountSavings
         elif type == 'funding':
             for i in range(0, len(response)):
                 entry = self.safe_dict(response, i)
-                account = self.account()
+                accountFunding = self.account()
                 currencyId = self.safe_string(entry, 'asset')
                 code = self.safe_currency_code(currencyId)
-                account['free'] = self.safe_string(entry, 'free')
+                accountFunding['free'] = self.safe_string(entry, 'free')
                 frozen = self.safe_string(entry, 'freeze')
                 withdrawing = self.safe_string(entry, 'withdrawing')
                 locked = self.safe_string(entry, 'locked')
-                account['used'] = Precise.string_add(frozen, Precise.string_add(locked, withdrawing))
+                accountFunding['used'] = Precise.string_add(frozen, Precise.string_add(locked, withdrawing))
                 if code is not None:
-                    result[code] = account
+                    result[code] = accountFunding
         else:
             balances = response
             if not isinstance(response, list):
@@ -4007,12 +4015,12 @@ class binance(Exchange, ImplicitAPI):
                     continue
                 currencyId = self.safe_string(balance, 'asset')
                 code = self.safe_currency_code(currencyId)
-                account = self.account()
-                account['free'] = self.safe_string(balance, 'availableBalance')
-                account['used'] = self.safe_string(balance, 'initialMargin')
-                account['total'] = self.safe_string_2(balance, 'marginBalance', 'balance')
+                accountFutures = self.account()
+                accountFutures['free'] = self.safe_string(balance, 'availableBalance')
+                accountFutures['used'] = self.safe_string(balance, 'initialMargin')
+                accountFutures['total'] = self.safe_string_2(balance, 'marginBalance', 'balance')
                 if code is not None:
-                    result[code] = account
+                    result[code] = accountFutures
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
         return self.safe_balance(result)
@@ -4021,17 +4029,17 @@ class binance(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
-        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-information-user_data  # spot
+        https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#get-account           # spot
         https://developers.binance.com/docs/margin_trading/account/Query-Cross-Margin-Account-Details                       # cross margin
         https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Account-Info                       # isolated margin
         https://developers.binance.com/docs/wallet/asset/funding-wallet                                                     # funding
         https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Futures-Account-Balance-V2   # swap
         https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Futures-Account-Balance      # future
-        https://developers.binance.com/docs/derivatives/option/account/Option-Account-Information                           # option
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/account#option-margin-account-information  # option
         https://developers.binance.com/docs/derivatives/portfolio-margin/account/Account-Balance                            # portfolio margin
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.type]: 'future', 'delivery', 'savings', 'funding', or 'spot' or 'papi'
+        :param str [params.type]: 'spot', 'margin', 'swap', 'future', 'option', 'savings', 'funding' or 'papi', use params.subType 'inverse' for COIN-M
         :param str [params.marginMode]: 'cross' or 'isolated', for margin trading, uses self.options.defaultMarginMode if not passed, defaults to None/None/None
         :param str[]|None [params.symbols]: unified market symbols, only used in isolated margin mode
         :param boolean [params.portfolioMargin]: set to True if you would like to fetch the balance for a portfolio margin account
@@ -4078,12 +4086,11 @@ class binance(Exchange, ImplicitAPI):
             if paramSymbols is not None:
                 symbols = ''
                 if isinstance(paramSymbols, list):
-                    mid = self.market_id(paramSymbols[0])
+                    mid = self.market_id(self.safe_string(paramSymbols, 0))
                     if mid is not None:
                         symbols = mid
                     for i in range(1, len(paramSymbols)):
-                        symbol = paramSymbols[i]
-                        id = self.market_id(symbol)
+                        id = self.market_id(self.safe_string(paramSymbols, i))
                         if id is not None:
                             symbols += ',' + id
                 else:
@@ -4284,11 +4291,11 @@ class binance(Exchange, ImplicitAPI):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#order-book       # spot
+        https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#depth        # spot
         https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book     # swap
         https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book-RPI  # swap rpi
         https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Order-Book     # future
-        https://developers.binance.com/docs/derivatives/option/market-data/Order-Book                             # option
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#order-book  # option
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -4305,18 +4312,18 @@ class binance(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit  # default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         response = None
-        if market['option'] is True:
+        if self.safe_bool(market, 'option', False):
             response = self.eapiPublicGetDepth(self.extend(request, params))
-        elif market['linear'] is True:
+        elif self.safe_bool(market, 'linear', False):
             rpi = self.safe_bool(params, 'rpi', False)
             paramsOmitted = self.omit(params, 'rpi')
-            if rpi is True:
+            if rpi:
                 # rpi limit only supports 1000
                 request['limit'] = 1000
                 response = self.fapiPublicGetRpiDepth(self.extend(request, paramsOmitted))
             else:
                 response = self.fapiPublicGetDepth(self.extend(request, paramsOmitted))
-        elif market['inverse'] is True:
+        elif self.safe_bool(market, 'inverse', False):
             response = self.dapiPublicGetDepth(self.extend(request, params))
         else:
             response = self.publicGetDepth(self.extend(request, params))
@@ -4588,7 +4595,7 @@ class binance(Exchange, ImplicitAPI):
         https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#rolling-window-price-change-statistics  # spot
         https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   # swap
         https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   # future
-        https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                           # option
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#ticker24hr-price-change-statistics  # option
         https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/market-data#latest-quote             # stock
 
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -4603,20 +4610,20 @@ class binance(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = None
-        if market['option'] is True:
+        if self.safe_bool(market, 'option', False):
             response = self.eapiPublicGetTicker(self.extend(request, params))
-        elif market['linear'] is True:
+        elif self.safe_bool(market, 'linear', False):
             response = self.fapiPublicGetTicker24hr(self.extend(request, params))
-        elif market['inverse'] is True:
+        elif self.safe_bool(market, 'inverse', False):
             response = self.dapiPublicGetTicker24hr(self.extend(request, params))
         else:
             stock = self.safe_bool(market, 'stock', False)
-            if stock is True:
+            if stock:
                 response = self.sapiGetEquityMarketQuote(self.extend(request, params))
             else:
                 rolling = self.safe_bool(params, 'rolling', False)
                 paramsOmitted = self.omit(params, 'rolling')
-                if rolling is True:
+                if rolling:
                     response = self.publicGetTicker(self.extend(request, paramsOmitted))
                 else:
                     response = self.publicGetTicker24hr(self.extend(request, paramsOmitted))
@@ -4627,23 +4634,22 @@ class binance(Exchange, ImplicitAPI):
             raise NullResponse(self.id + ' fetchTicker() returned empty response')
         return self.parse_ticker(response, market)
 
-    def check_no_stock_symbols(self, symbols: Strings, methodName: str):
-        if symbols is None:
-            return
+    def check_no_stock_symbols(self, symbols: list[str], methodName: str):
+        # a nil slice runs zero iterations, so the absent case needs no early return
         for i in range(0, len(symbols)):
             symbolMarket = self.market(symbols[i])
             stock = self.safe_bool(symbolMarket, 'stock', False)
-            if stock is True:
+            if stock:
                 raise NotSupported(self.id + ' ' + methodName + '() does not support tokenized stock symbols (' + symbols[i] + '), the equity quote endpoint accepts a single symbol per request, use fetchTicker() instead')
 
     def fetch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches the bid and ask price and volume for multiple markets
 
-        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-order-book-ticker   # spot
+        https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#ticker-book-ticker     # spot
         https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker  # swap
         https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker  # future
-        https://developers.binance.com/docs/derivatives/options-trading/market-data/24hr-Ticker-Price-Change-Statistics      # option
+        https://developers.binance.com/docs/derivatives/options-trading/market-data/24hr-Ticker-Price-Change-Statistics     # option
 
         :param str[]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4653,7 +4659,8 @@ class binance(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, True, True, True)
-        self.check_no_stock_symbols(symbolsNormalized, 'fetchBidsAsks')
+        if symbolsNormalized is not None:
+            self.check_no_stock_symbols(symbolsNormalized, 'fetchBidsAsks')
         market = self.get_market_from_symbols(symbolsNormalized)
         type, paramsMarketType = self.handle_market_type_and_params('fetchBidsAsks', market, params)
         subType, paramsSubType = self.handle_sub_type_and_params('fetchBidsAsks', market, paramsMarketType)
@@ -4683,7 +4690,7 @@ class binance(Exchange, ImplicitAPI):
         """
         fetches the last price for multiple markets
 
-        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-price-ticker    # spot
+        https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#ticker-price       # spot
         https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Price-Ticker  # swap
         https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Price-Ticker  # future
 
@@ -4784,10 +4791,10 @@ class binance(Exchange, ImplicitAPI):
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
-        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#24hr-ticker-price-change-statistics    # spot
+        https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#ticker24hr                         # spot
         https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics  # swap
         https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics  # future
-        https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                          # option
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#ticker24hr-price-change-statistics  # option
 
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4798,7 +4805,8 @@ class binance(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, True, True, True)
-        self.check_no_stock_symbols(symbolsNormalized, 'fetchTickers')
+        if symbolsNormalized is not None:
+            self.check_no_stock_symbols(symbolsNormalized, 'fetchTickers')
         market = self.get_market_from_symbols(symbolsNormalized)
         type = None
         paramsMarketType = None
@@ -4813,7 +4821,7 @@ class binance(Exchange, ImplicitAPI):
         elif type == 'spot':
             rolling = self.safe_bool(paramsMarketType, 'rolling', False)
             paramsMarketType = self.omit(paramsMarketType, 'rolling')
-            if rolling is True:
+            if rolling:
                 symbolsNormalized = self.market_symbols(symbolsNormalized)
                 request = {
                     'symbols': self.json(self.market_ids(symbolsNormalized)),
@@ -4832,15 +4840,15 @@ class binance(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchTickers() does not support ' + type + ' markets yet')
         return self.parse_tickers(response, symbolsNormalized)
 
-    def parse_tickers_for_rolling(self, response: object, symbols: object):
+    def parse_tickers_for_rolling(self, response: object, symbols: Strings) -> Tickers:
         results = []
         for i in range(0, len(response)):
-            marketId = self.safe_string(response[i], 'symbol')
+            marketId = self.safe_string(self.safe_value(response, i), 'symbol')
             tickerMarket = self.safe_market(marketId, None, None, 'spot')
-            parsedTicker = self.parse_ticker(response[i])
+            parsedTicker = self.parse_ticker(self.safe_value(response, i))
             parsedTicker['symbol'] = tickerMarket['symbol']
             results.append(parsedTicker)
-        return self.filter_by_array(results, 'symbol', symbols)
+        return self.filter_by_array_tickers(results, 'symbol', symbols)
 
     def fetch_mark_price(self, symbol: str, params: dict = {}) -> Ticker:
         """
@@ -4864,7 +4872,7 @@ class binance(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = None
-        if market['option'] is True:
+        if self.safe_bool(market, 'option', False):
             response = self.eapiPublicGetMark(self.extend(request, paramsSubType))
         elif self.is_linear(type, subType):
             response = self.fapiPublicGetPremiumIndex(self.extend(request, paramsSubType))
@@ -4960,8 +4968,8 @@ class binance(Exchange, ImplicitAPI):
         #         "closeTime": 1677097200000
         #     }
         #
-        inverse = self.safe_bool(market, 'inverse')
-        volumeIndex = 7 if (inverse is True) else 5
+        inverse = self.safe_bool(market, 'inverse', False)
+        volumeIndex = 7 if inverse else 5
         return [
             self.safe_integer_2(ohlcv, 0, 'openTime'),
             self.safe_number_2(ohlcv, 1, 'open'),
@@ -4975,16 +4983,16 @@ class binance(Exchange, ImplicitAPI):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#klinecandlestick-data
-        https://developers.binance.com/docs/derivatives/option/market-data/Kline-Candlestick-Data
-        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Kline-Candlestick-Data
-        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
-        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
-        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
-        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Kline-Candlestick-Data
-        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
-        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
-        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
+        https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#klines  # spot
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#kline-candlestick-data  # option
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/rest-api/market-data#kline-candlestick-data  # swap
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data  # swap index
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data  # swap mark
+        https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Premium-Index-Kline-Data  # swap premium
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/market-data#kline-candlestick-data  # future
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data  # future index
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data  # future mark
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Premium-Index-Kline-Data  # future premium
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -5033,7 +5041,7 @@ class binance(Exchange, ImplicitAPI):
             # It didn't work before without the endTime
             # https://github.com/ccxt/ccxt/issues/8454
             #
-            if market['inverse'] is True:
+            if self.safe_bool(market, 'inverse', False):
                 if since > 0:
                     duration = self.parse_timeframe(timeframe)
                     endTime = self.sum(since, limitValue * duration * 1000 - 1)
@@ -5042,26 +5050,26 @@ class binance(Exchange, ImplicitAPI):
         if until is not None:
             request['endTime'] = until
         response = None
-        if market['option'] is True:
+        if self.safe_bool(market, 'option', False):
             response = self.eapiPublicGetKlines(self.extend(request, paramsOmitted))
         elif price == 'mark':
-            if market['inverse'] is True:
+            if self.safe_bool(market, 'inverse', False):
                 response = self.dapiPublicGetMarkPriceKlines(self.extend(request, paramsOmitted))
             else:
                 response = self.fapiPublicGetMarkPriceKlines(self.extend(request, paramsOmitted))
         elif price == 'index':
-            if market['inverse'] is True:
+            if self.safe_bool(market, 'inverse', False):
                 response = self.dapiPublicGetIndexPriceKlines(self.extend(request, paramsOmitted))
             else:
                 response = self.fapiPublicGetIndexPriceKlines(self.extend(request, paramsOmitted))
         elif price == 'premiumIndex':
-            if market['inverse'] is True:
+            if self.safe_bool(market, 'inverse', False):
                 response = self.dapiPublicGetPremiumIndexKlines(self.extend(request, paramsOmitted))
             else:
                 response = self.fapiPublicGetPremiumIndexKlines(self.extend(request, paramsOmitted))
-        elif market['linear'] is True:
+        elif self.safe_bool(market, 'linear', False):
             response = self.fapiPublicGetKlines(self.extend(request, paramsOmitted))
-        elif market['inverse'] is True:
+        elif self.safe_bool(market, 'inverse', False):
             response = self.dapiPublicGetKlines(self.extend(request, paramsOmitted))
         else:
             response = self.publicGetKlines(self.extend(request, paramsOmitted))
@@ -5091,8 +5099,7 @@ class binance(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        candles = self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limitValue)
-        return candles
+        return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limitValue)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         if 'isDustTrade' in trade:
@@ -5339,7 +5346,7 @@ class binance(Exchange, ImplicitAPI):
             takerOrMaker = 'maker' if (self.safe_bool(trade, 'isMaker', False)) else 'taker'
         if 'maker' in trade:
             takerOrMaker = 'maker' if (self.safe_bool(trade, 'maker', False)) else 'taker'
-        if ('optionSide' in trade) or (marketResolved['option'] is True):
+        if ('optionSide' in trade) or (self.safe_bool(marketResolved, 'option', False)):
             settle = self.safe_currency_code(self.safe_string(trade, 'quoteAsset', 'USDT'))
             takerOrMaker = self.safe_string_lower(trade, 'liquidity')
             if 'fee' in trade:
@@ -5352,6 +5359,10 @@ class binance(Exchange, ImplicitAPI):
             if 'optionSide' in trade:
                 if side != 'buy':
                     amount = Precise.string_mul('-1', amount)
+        # linear and spot trades carry the cost in quoteQty, inverse trades in baseQty, the futures endpoints return both fields with the unused one as "0" (see the note in parseOrder)
+        cost = self.safe_string_n(trade, ['quoteQty', 'baseQty', 'total'])
+        if self.safe_bool(marketResolved, 'inverse', False):
+            cost = self.safe_string(trade, 'baseQty', cost)
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
@@ -5364,7 +5375,7 @@ class binance(Exchange, ImplicitAPI):
             'takerOrMaker': takerOrMaker,
             'price': self.safe_string_2(trade, 'p', 'price'),
             'amount': amount,
-            'cost': self.safe_string_n(trade, ['quoteQty', 'baseQty', 'total']),
+            'cost': cost,
             'fee': fee,
         }, marketResolved)
 
@@ -5376,24 +5387,23 @@ class binance(Exchange, ImplicitAPI):
         https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#compressedaggregate-trades-list    # publicGetAggTrades (spot)
         https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List  # fapiPublicGetAggTrades (swap)
         https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List  # dapiPublicGetAggTrades (future)
-        https://developers.binance.com/docs/derivatives/option/market-data/Recent-Trades-List                                       # eapiPublicGetTrades (option)
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#recent-trades-list  # eapiPublicGetTrades (option)
 
  Other fetchTradesMethod
 
-        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#recent-trades-list                 # publicGetTrades (spot)
+        https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#get-trades                     # publicGetTrades (spot)
         https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Recent-Trades-List               # fapiPublicGetTrades (swap)
         https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Recent-Trades-List               # dapiPublicGetTrades (future)
-        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#old-trade-lookup                   # publicGetHistoricalTrades (spot)
+        https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/market#historical-trades              # publicGetHistoricalTrades (spot)
         https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Old-Trades-Lookup                # fapiPublicGetHistoricalTrades (swap)
         https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Old-Trades-Lookup                # dapiPublicGetHistoricalTrades (future)
-        https://developers.binance.com/docs/derivatives/option/market-data/Old-Trades-Lookup                                        # eapiPublicGetHistoricalTrades (option)
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
         :param int [limit]: default 500, max 1000
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
-        :param int [params.fetchTradesMethod]: 'publicGetAggTrades'(spot default), 'fapiPublicGetAggTrades'(swap default), 'dapiPublicGetAggTrades'(future default), 'eapiPublicGetTrades'(option default), 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', 'publicGetHistoricalTrades', 'fapiPublicGetHistoricalTrades', 'dapiPublicGetHistoricalTrades', 'eapiPublicGetHistoricalTrades'
+        :param int [params.fetchTradesMethod]: 'publicGetAggTrades'(spot default), 'fapiPublicGetAggTrades'(swap default), 'dapiPublicGetAggTrades'(future default), 'eapiPublicGetTrades'(option default), 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', 'publicGetHistoricalTrades', 'fapiPublicGetHistoricalTrades', 'dapiPublicGetHistoricalTrades'
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
 
  EXCHANGE SPECIFIC PARAMETERS
@@ -5413,7 +5423,7 @@ class binance(Exchange, ImplicitAPI):
             # 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
             # 'limit': 500,     // default = 500, maximum = 1000
         }
-        if market['option'] is not True:
+        if not self.safe_bool(market, 'option', False):
             if since is not None:
                 request['startTime'] = since
                 # https://github.com/ccxt/ccxt/issues/6400
@@ -5428,14 +5438,14 @@ class binance(Exchange, ImplicitAPI):
             isFutureOrSwap = (market['swap'] is True) or (market['future'] is True)
             isHistoricalEndpoint = (method is not None) and (method.find('GetHistoricalTrades') >= 0)
             maxLimitForContractHistorical = 500 if isHistoricalEndpoint else 1000
-            request['limit'] = min(limit, maxLimitForContractHistorical) if (isFutureOrSwap is True) else limit  # default = 500, maximum = 1000
+            request['limit'] = min(limit, maxLimitForContractHistorical) if (isFutureOrSwap) else limit  # default = 500, maximum = 1000
         paramsOmitted = self.omit(paramsPaginate, ['until', 'fetchTradesMethod'])
         if method is None:
-            if market['option'] is True:
+            if self.safe_bool(market, 'option', False):
                 method = 'eapiPublicGetTrades'
-            elif market['linear'] is True:
+            elif self.safe_bool(market, 'linear', False):
                 method = 'fapiPublicGetAggTrades'
-            elif market['inverse'] is True:
+            elif self.safe_bool(market, 'inverse', False):
                 method = 'dapiPublicGetAggTrades'
             else:
                 method = 'publicGetAggTrades'
@@ -5460,8 +5470,6 @@ class binance(Exchange, ImplicitAPI):
             response = self.dapiPublicGetHistoricalTrades(self.extend(request, paramsOmitted))
         elif method == 'eapiPublicGetTrades':
             response = self.eapiPublicGetTrades(self.extend(request, paramsOmitted))
-        elif method == 'eapiPublicGetHistoricalTrades':
-            response = self.eapiPublicGetHistoricalTrades(self.extend(request, paramsOmitted))
         else:
             raise NotSupported(self.id + ' fetchTrades() does not support self method')
         #
@@ -5540,7 +5548,7 @@ class binance(Exchange, ImplicitAPI):
  @ignore
         edit a trade order
 
-        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-an-existing-order-and-send-a-new-order-trade
+        https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#order-cancel-replace
 
         :param str id: cancel order id
         :param str symbol: unified symbol of the market to create an order in
@@ -5555,8 +5563,8 @@ class binance(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is not True:
-            raise NotSupported(self.id + ' editSpotOrder() does not support ' + market['type'] + ' orders')
+        if not self.safe_bool(market, 'spot', False):
+            raise NotSupported(self.id + ' editSpotOrder() does not support ' + self.safe_string(market, 'type', '') + ' orders')
         payload = self.edit_spot_order_request(id, symbol, type, side, amount, price, params)
         response = self.privatePostOrderCancelReplace(payload)
         #
@@ -5642,15 +5650,11 @@ class binance(Exchange, ImplicitAPI):
         validOrderTypes = self.safe_list(market['info'], 'orderTypes', [])
         if not self.in_array(uppercaseType, validOrderTypes):
             if initialUppercaseType != uppercaseType:
-                raise InvalidOrder(self.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders')
+                raise InvalidOrder(self.id + ' triggerPrice parameter is not allowed for ' + self.safe_string(market, 'symbol', '') + ' ' + type + ' orders')
             else:
-                raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
+                raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + self.safe_string(market, 'symbol', '') + ' market')
         if clientOrderId is None:
-            broker = self.safe_dict(self.options, 'broker')
-            if broker is not None:
-                brokerId = self.safe_string(broker, 'spot')
-                if brokerId is not None:
-                    request['newClientOrderId'] = brokerId + self.uuid22()
+            request['newClientOrderId'] = self.generate_client_order_id(market)
         else:
             request['newClientOrderId'] = clientOrderId
         request['newOrderRespType'] = self.safe_string(self.options['newOrderRespType'], type, 'RESULT')  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
@@ -5662,7 +5666,7 @@ class binance(Exchange, ImplicitAPI):
             quoteOrderQty = self.handle_option('createOrder', 'quoteOrderQty', True)
             if quoteOrderQty is True:
                 quoteOrderQtyNew = self.safe_value_2(params, 'quoteOrderQty', 'cost')
-                precision = market['precision']['price']
+                precision = self.safe_value(market['precision'], 'price')
                 if quoteOrderQtyNew is not None:
                     request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQtyNew, TRUNCATE, precision, self.precisionMode)
                 elif price is not None:
@@ -5722,8 +5726,8 @@ class binance(Exchange, ImplicitAPI):
             # moved here from editContractOrder for warning in case of calling editOrderWs() without price argument for swap orders
             raise ArgumentsRequired(self.id + ' editOrder() and editOrderWs() require a price argument for swap orders')
         market = self.market(symbol)
-        if market['contract'] is not True:
-            raise NotSupported(self.id + ' editContractOrder() does not support ' + market['type'] + ' orders')
+        if not self.safe_bool(market, 'contract', False):
+            raise NotSupported(self.id + ' editContractOrder() does not support ' + self.safe_string(market, 'type', '') + ' orders')
         if side is None:
             raise ArgumentsRequired(self.id + ' editContractOrder() requires a side argument')
         request = {
@@ -5764,12 +5768,12 @@ class binance(Exchange, ImplicitAPI):
         isPortfolioMargin, paramsPapi = self.handle_option_bool_and_params_2(params, 'editContractOrder', 'papi', 'portfolioMargin', False)
         request = self.edit_contract_order_request(id, symbol, type, side, amount, price, paramsPapi)
         response = None
-        if market['linear'] is True:
+        if self.safe_bool(market, 'linear', False):
             if isPortfolioMargin:
                 response = self.papiPutUmOrder(self.extend(request, paramsPapi))
             else:
                 response = self.fapiPrivatePutOrder(self.extend(request, paramsPapi))
-        elif market['inverse'] is True:
+        elif self.safe_bool(market, 'inverse', False):
             if isPortfolioMargin:
                 response = self.papiPutCmOrder(self.extend(request, paramsPapi))
             else:
@@ -5809,7 +5813,7 @@ class binance(Exchange, ImplicitAPI):
         """
         edit a trade order
 
-        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-an-existing-order-and-send-a-new-order-trade
+        https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#order-cancel-replace
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
         https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Modify-Order
 
@@ -5825,9 +5829,9 @@ class binance(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['option'] is True:
-            raise NotSupported(self.id + ' editOrder() does not support ' + market['type'] + ' orders')
-        if market['spot'] is True:
+        if self.safe_bool(market, 'option', False):
+            raise NotSupported(self.id + ' editOrder() does not support ' + self.safe_string(market, 'type', '') + ' orders')
+        if self.safe_bool(market, 'spot', False):
             return self.edit_spot_order(id, symbol, type, side, amount, price, params)
         else:
             return self.edit_contract_order(id, symbol, type, side, amount, price, params)
@@ -5863,18 +5867,18 @@ class binance(Exchange, ImplicitAPI):
                 raise NotSupported(self.id + ' editOrders() does not support portfolio margin orders')
             orderRequest = self.edit_contract_order_request(id, marketId, type, side, amount, price, orderParams)
             ordersRequests.append(orderRequest)
-        orderSymbols = self.market_symbols(orderSymbols, None, False, True, True)
-        market = self.market(orderSymbols[0])
-        if (market['spot'] is True) or (market['option'] is True):
-            raise NotSupported(self.id + ' editOrders() does not support ' + market['type'] + ' orders')
+        symbols = self.market_symbols(orderSymbols, None, False, True, True)
+        market = self.market(symbols[0])
+        if (self.safe_bool(market, 'spot', False)) or (self.safe_bool(market, 'option', False)):
+            raise NotSupported(self.id + ' editOrders() does not support ' + self.safe_string(market, 'type', '') + ' orders')
         response = None
         request = {
             'batchOrders': ordersRequests,
         }
         request = self.extend(request, params)
-        if market['linear'] is True:
+        if self.safe_bool(market, 'linear', False):
             response = self.fapiPrivatePutBatchOrders(request)
-        elif market['inverse'] is True:
+        elif self.safe_bool(market, 'inverse', False):
             response = self.dapiPrivatePutBatchOrders(request)
         #
         #   [
@@ -5912,7 +5916,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -5932,9 +5936,9 @@ class binance(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type_by_market(self, type: Str, marketType: Str):
+    def parse_order_type_by_market(self, type: Str, marketType: Str) -> Str:
         types = {}
-        if (marketType is not None) and marketType == 'spot':
+        if marketType == 'spot':
             types = {
                 'limit_maker': 'limit',
                 'stop_loss_limit': 'limit',
@@ -6559,8 +6563,9 @@ class binance(Exchange, ImplicitAPI):
         marketType = 'spot'
         if isContract:
             marketType = 'contract'
-        symbol = self.safe_symbol(marketId, market, None, marketType)
-        filled = self.safe_string_2(order, 'executedQty', 'filledQty', '0')
+        marketResolved = self.safe_market(marketId, market, None, marketType)
+        symbol = marketResolved['symbol']
+        filled = self.safe_string_n(order, ['executedQty', 'filledQty', 'actualQty'], '0')  # actualQty: algo orders
         timestamp = self.safe_integer_n(order, ['time', 'createTime', 'workingTime', 'transactTime', 'updateTime', 'createdAt'])  # order of the keys matters here
         lastTradeTimestamp = None
         if ('transactTime' in order) or ('updateTime' in order) or ('updatedAt' in order):
@@ -6575,10 +6580,13 @@ class binance(Exchange, ImplicitAPI):
         price = self.safe_string_2(order, 'price', 'limitPrice')
         amount = self.safe_string_n(order, ['origQty', 'quantity', 'qty'])
         # - Spot/Margin market: cummulativeQuoteQty
-        # - Futures market: cumQuote.
+        # - Linear futures: cumQuote, inverse futures: cumBase.
+        #   Since 2026-08-05 both endpoints return both fields, the unused one as "0",
+        #   so the field must be picked by the market side, see the coin-m migration changelog.
         #   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
         cost = self.safe_string_2(order, 'cummulativeQuoteQty', 'cumQuote')
-        cost = self.safe_string(order, 'cumBase', cost)
+        if self.safe_bool(marketResolved, 'inverse', False):
+            cost = self.safe_string(order, 'cumBase', cost)
         type = self.safe_string_lower_2(order, 'type', 'orderType')
         side = self.safe_string_lower(order, 'side')
         fills = self.safe_list_2(order, 'fills', 'trades', [])
@@ -6625,7 +6633,7 @@ class binance(Exchange, ImplicitAPI):
             'status': status,
             'fee': fee,
             'trades': fills,
-        }, market)
+        }, marketResolved)
 
     def create_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """
@@ -6633,7 +6641,7 @@ class binance(Exchange, ImplicitAPI):
 
         https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Place-Multiple-Orders
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Place-Multiple-Orders
-        https://developers.binance.com/docs/derivatives/option/trade/Place-Multiple-Orders
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#place-multiple-orders
 
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -6653,7 +6661,7 @@ class binance(Exchange, ImplicitAPI):
             price = self.safe_value(rawOrder, 'price')
             orderParams = self.safe_dict(rawOrder, 'params', {})
             orderMarket = self.market(marketId)
-            if (orderMarket['linear'] is True) and (orderMarket['option'] is not True) and self.is_conditional_order(orderParams):
+            if (self.safe_bool(orderMarket, 'linear', False)) and (not self.safe_bool(orderMarket, 'option', False)) and self.is_conditional_order(orderParams):
                 # linear conditional order types are only accepted by the algo order endpoints, which have no batch variant
                 # https://developers.binance.com/docs/derivatives/change-log (2025-11-06)
                 raise NotSupported(self.id + ' createOrders() does not support conditional order types for linear markets, use createOrder() instead')
@@ -6662,18 +6670,18 @@ class binance(Exchange, ImplicitAPI):
             # https://developers.binance.com/docs/derivatives/coin-margined-futures/Important-CM-UM-Integration-Notice
             orderRequest = self.create_order_request(marketId, type, side, amount, price, self.extend(orderParams, {'isAlgoOrder': False}))
             ordersRequests.append(orderRequest)
-        orderSymbols = self.market_symbols(orderSymbols, None, False, True, True)
-        market = self.market(orderSymbols[0])
-        if market['spot'] is True:
-            raise NotSupported(self.id + ' createOrders() does not support ' + market['type'] + ' orders')
+        symbols = self.market_symbols(orderSymbols, None, False, True, True)
+        market = self.market(symbols[0])
+        if self.safe_bool(market, 'spot', False):
+            raise NotSupported(self.id + ' createOrders() does not support ' + self.safe_string(market, 'type', '') + ' orders')
         response = None
         request = {
             'batchOrders': ordersRequests,
         }
         request = self.extend(request, params)
-        if market['linear'] is True:
+        if self.safe_bool(market, 'linear', False):
             response = self.fapiPrivatePostBatchOrders(request)
-        elif market['option'] is True:
+        elif self.safe_bool(market, 'option', False):
             response = self.eapiPrivatePostBatchOrders(request)
         else:
             response = self.dapiPrivatePostBatchOrders(request)
@@ -6717,17 +6725,17 @@ class binance(Exchange, ImplicitAPI):
         """
         create a trade order
 
-        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+        https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#new-order
         https://developers.binance.com/docs/binance-spot-api-docs/testnet/rest-api/trading-endpoints#test-new-order-trade
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order
-        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api
-        https://developers.binance.com/docs/derivatives/option/trade/New-Order
-        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#sor
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/trade#new-order
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#new-order
+        https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#sor-order
         https://developers.binance.com/docs/binance-spot-api-docs/testnet/rest-api/trading-endpoints#sor
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Order
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Order
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-Margin-Order
-        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Conditional-Order
+        https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#new-um-algo-order
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Conditional-Order
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Algo-Order
         https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#place-equity-order
@@ -6766,7 +6774,14 @@ class binance(Exchange, ImplicitAPI):
         porfolioOptionsValue = self.safe_bool_2(self.options, 'papi', 'portfolioMargin', False)
         isPortfolioMargin = self.safe_bool_2(params, 'papi', 'portfolioMargin', porfolioOptionsValue)
         isConditional = self.is_conditional_order(params)
-        isAlgoOrder = ((market['swap'] is True) or (market['future'] is True)) and isConditional and not isPortfolioMargin
+        # algo and conditional endpoints use different arguments
+        # conditional swap and future orders go through the algo api
+        # except for portfolio margin inverse (cm) orders, which still use the conditional endpoints
+        isSwapOrFuture = (market['swap'] is True) or (market['future'] is True)
+        isLinear = market['linear'] is True
+        isInverse = market['inverse'] is True
+        isPortfolioMarginInverse = isPortfolioMargin and isInverse
+        isAlgoOrder = isSwapOrFuture and isConditional and (not isPortfolioMarginInverse)
         sor = self.safe_bool_2(params, 'sor', 'SOR', False)
         test = self.safe_bool(params, 'test', False)
         stock = self.safe_bool(market, 'stock', False)
@@ -6776,17 +6791,18 @@ class binance(Exchange, ImplicitAPI):
         # }
         request = self.create_order_request(symbol, type, side, amount, price, self.extend(paramsOmitted, {'isAlgoOrder': isAlgoOrder}))
         response = None
-        if market['option'] is True:
+        if self.safe_bool(market, 'option', False):
             response = self.eapiPrivatePostOrder(request)
-        elif sor is True:
-            if test is True:
+        elif sor:
+            if test:
                 response = self.privatePostSorOrderTest(request)
             else:
                 response = self.privatePostSorOrder(request)
-        elif market['linear'] is True:
-            if isPortfolioMargin is True:
+        elif isLinear:
+            if isPortfolioMargin:
                 if isConditional:
-                    response = self.papiPostUmConditionalOrder(request)
+                    request['algoType'] = 'CONDITIONAL'
+                    response = self.papiPostUmAlgoOrder(request)
                 else:
                     response = self.papiPostUmOrder(request)
             else:
@@ -6795,8 +6811,8 @@ class binance(Exchange, ImplicitAPI):
                     response = self.fapiPrivatePostAlgoOrder(request)
                 else:
                     response = self.fapiPrivatePostOrder(request)
-        elif market['inverse'] is True:
-            if isPortfolioMargin is True:
+        elif isInverse:
+            if isPortfolioMargin:
                 if isConditional:
                     response = self.papiPostCmConditionalOrder(request)
                 else:
@@ -6807,21 +6823,135 @@ class binance(Exchange, ImplicitAPI):
                     response = self.dapiPrivatePostAlgoOrder(request)
                 else:
                     response = self.dapiPrivatePostOrder(request)
-        elif marketType == 'margin' or marginMode is not None or (isPortfolioMargin is True):
-            if isPortfolioMargin is True:
+        elif marketType == 'margin' or marginMode is not None or (isPortfolioMargin):
+            if isPortfolioMargin:
                 response = self.papiPostMarginOrder(request)
             else:
                 response = self.sapiPostMarginOrder(request)
         else:
-            if stock is True:
+            if stock:
                 response = self.sapiPostEquityOrderPlace(request)
-            elif test is True:
+            elif test:
                 response = self.privatePostOrderTest(request)
             else:
                 response = self.privatePostOrder(request)
         if response is None:
             raise NullResponse(self.id + ' parseOrder() returned empty response')
         return self.parse_order(response, market)
+
+    def generate_client_order_id(self, market: Market = None, api: Str = None, path: Str = None) -> str:
+        """
+ @ignore
+        builds a fresh client order id
+        :param dict [market]: the market of the order, takes precedence over the other arguments
+        :param str [api]: the implicit api section the order is sent to(private, sapi, fapiPrivate, dapiPrivate, eapiPrivate, ...)
+        :param str [path]: the implicit api path the order is sent to, resolves the market type from the um/, cm/, margin/ and equity/ path prefixes whose api section is ambiguous, takes precedence over the api argument
+        :returns str: the broker prefix followed by 22 random characters
+        """
+        idMarketType = None
+        if market is not None:
+            if self.safe_bool(market, 'option', False):
+                idMarketType = 'option'
+            elif self.safe_bool(market, 'linear', False):
+                idMarketType = 'swap' if (self.safe_bool(market, 'swap', False)) else 'future'
+            elif self.safe_bool(market, 'inverse', False):
+                idMarketType = 'inverse'
+            else:
+                idMarketType = 'spot'
+        if (idMarketType is None) and (path is not None):
+            if path.find('um/') == 0:
+                idMarketType = 'swap'
+            elif path.find('cm/') == 0:
+                idMarketType = 'inverse'
+            elif path.find('margin/') == 0:
+                idMarketType = 'margin'
+            elif path.find('equity/') == 0:
+                idMarketType = 'spot'
+        if (idMarketType is None) and (api is not None):
+            isSpotOrMargin = (api.find('sapi') > -1 or api == 'private')
+            if isSpotOrMargin:
+                idMarketType = 'spot'
+            elif api.find('dapi') > -1:
+                idMarketType = 'inverse'
+            elif api.find('eapi') > -1:
+                idMarketType = 'option'
+            else:
+                idMarketType = 'future'
+        if idMarketType is None:
+            defaultType = self.safe_string(self.options, 'defaultType', 'spot')
+            defaultSubType = self.safe_string(self.options, 'defaultSubType')
+            idMarketType = defaultType
+            if (defaultSubType == 'inverse') and ((defaultType == 'swap') or (defaultType == 'future')):
+                idMarketType = 'inverse'
+        defaultId = 'x-xcKtGhcu'  # inverse, option
+        if (idMarketType == 'spot') or (idMarketType == 'margin'):
+            defaultId = 'x-TKT5PX2F'
+        elif (idMarketType == 'future') or (idMarketType == 'swap'):
+            defaultId = 'x-cvBPrNm9'
+        broker = self.safe_dict(self.options, 'broker', {})
+        brokerId = self.safe_string(broker, idMarketType, defaultId)
+        return brokerId + self.uuid22()
+
+    def handle_client_order_id(self, params: dict, api: str, path: str, method: str) -> dict:
+        """
+ @ignore
+        :param dict params: request params
+        :param str api: the implicit api section the request is sent to
+        :param str path: the implicit api path the request is sent to
+        :param str method: HTTP method
+        :returns dict: params with the injected client order id
+        """
+        if method != 'POST':
+            return params
+        if (path == 'order') or (path == 'sor/order') or (path == 'order/cancelReplace') or (path == 'um/order') or (path == 'cm/order') or (path == 'margin/order'):
+            # the eapi order endpoint takes clientOrderId instead of newClientOrderId
+            clientOrderIdKey = 'clientOrderId' if (api == 'eapiPrivate') else 'newClientOrderId'
+            clientOrderId = self.safe_string_2(params, 'clientOrderId', 'newClientOrderId')
+            if clientOrderId is None:
+                params[clientOrderIdKey] = self.generate_client_order_id(None, api, path)
+        elif (path == 'algoOrder') or (path == 'um/algo/order'):
+            # the fapi/dapi/papi algo order endpoints take clientAlgoId instead of newClientOrderId
+            clientAlgoId = self.safe_string(params, 'clientAlgoId')
+            if clientAlgoId is None:
+                params['clientAlgoId'] = self.generate_client_order_id(None, api, path)
+        elif (path == 'cm/conditional/order') or (path == 'um/conditional/order'):
+            # the papi conditional order endpoints take newClientStrategyId instead of newClientOrderId
+            newClientStrategyId = self.safe_string(params, 'newClientStrategyId')
+            if newClientStrategyId is None:
+                params['newClientStrategyId'] = self.generate_client_order_id(None, api, path)
+        elif path == 'equity/order/place':
+            # the equity order endpoint takes clientOrderId instead of newClientOrderId
+            equityClientOrderId = self.safe_string(params, 'clientOrderId')
+            if equityClientOrderId is None:
+                params['clientOrderId'] = self.generate_client_order_id(None, api, path)
+        elif (path == 'order/oco') or (path == 'margin/order/oco') or (path == 'orderList/oco') or (path == 'orderList/oto') or (path == 'orderList/otoco') or (path == 'orderList/opo') or (path == 'orderList/opoco'):
+            # the order list endpoints take a listClientOrderId and one client order id per leg
+            clientOrderIdKeys = ['listClientOrderId', 'limitClientOrderId', 'stopClientOrderId']
+            if path == 'orderList/oco':
+                clientOrderIdKeys = ['listClientOrderId', 'aboveClientOrderId', 'belowClientOrderId']
+            elif (path == 'orderList/oto') or (path == 'orderList/opo'):
+                clientOrderIdKeys = ['listClientOrderId', 'workingClientOrderId', 'pendingClientOrderId']
+            elif (path == 'orderList/otoco') or (path == 'orderList/opoco'):
+                clientOrderIdKeys = ['listClientOrderId', 'workingClientOrderId', 'pendingAboveClientOrderId', 'pendingBelowClientOrderId']
+            for i in range(0, len(clientOrderIdKeys)):
+                currentClientOrderIdKey = clientOrderIdKeys[i]
+                currentClientOrderId = self.safe_string(params, currentClientOrderIdKey)
+                if currentClientOrderId is None:
+                    params[currentClientOrderIdKey] = self.generate_client_order_id(None, api, path)
+        elif path == 'batchOrders':
+            # the batch legs take the same client order id fields as the single order endpoints
+            if (api == 'fapiPrivate') or (api == 'dapiPrivate') or (api == 'eapiPrivate'):
+                batchClientOrderIdKey = 'clientOrderId' if (api == 'eapiPrivate') else 'newClientOrderId'
+                batchOrders = self.safe_list(params, 'batchOrders', [])
+                checkedBatchOrders = []
+                for i in range(0, len(batchOrders)):
+                    batchOrder = batchOrders[i]
+                    batchClientOrderId = self.safe_string(batchOrder, batchClientOrderIdKey)
+                    if batchClientOrderId is None:
+                        batchOrder[batchClientOrderIdKey] = self.generate_client_order_id(None, api, path)
+                    checkedBatchOrders.append(batchOrder)
+                params['batchOrders'] = checkedBatchOrders
+        return params
 
     def is_conditional_order(self, params: dict = {}) -> bool:
         """
@@ -6869,8 +6999,8 @@ class binance(Exchange, ImplicitAPI):
         # keys dropped from the request params, extended below as the order shape is resolved
         omitKeys = ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'activationPrice', 'trailingPercent', 'quoteOrderQty', 'cost', 'test', 'hedged', 'icebergAmount']
         reduceOnly = self.safe_bool(paramsPapi, 'reduceOnly', False)
-        if reduceOnly is True:
-            if marketType == 'margin' or ((market['contract'] is not True) and (marginMode is not None)):
+        if reduceOnly:
+            if marketType == 'margin' or ((not self.safe_bool(market, 'contract', False)) and (marginMode is not None)):
                 omitKeys.append('reduceOnly')
                 request['sideEffectType'] = 'AUTO_REPAY'
         triggerPrice = self.safe_string_2(paramsPapi, 'triggerPrice', 'stopPrice')
@@ -6891,7 +7021,7 @@ class binance(Exchange, ImplicitAPI):
         uppercaseType = type.upper()
         stopPrice = None
         if isTrailingPercentOrder:
-            if market['swap'] is True:
+            if (self.safe_bool(market, 'swap', False)) or (self.safe_bool(market, 'future', False)):
                 uppercaseType = 'TRAILING_STOP_MARKET'
                 request['callbackRate'] = trailingPercent
                 if trailingTriggerPrice is not None:
@@ -6902,7 +7032,7 @@ class binance(Exchange, ImplicitAPI):
                     stopLossOrTakeProfit = self.safe_string(paramsPapi, 'stopLossOrTakeProfit')
                     omitKeys.append('stopLossOrTakeProfit')
                     if (stopLossOrTakeProfit != 'stopLoss') and (stopLossOrTakeProfit != 'takeProfit'):
-                        raise InvalidOrder(self.id + symbol + ' trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit')
+                        raise InvalidOrder(self.id + self.safe_string(market, 'symbol', '') + ' trailingPercent orders require a stopLossOrTakeProfit parameter of either stopLoss or takeProfit')
                     if isMarketOrder:
                         if stopLossOrTakeProfit == 'stopLoss':
                             uppercaseType = 'STOP_LOSS'
@@ -6923,52 +7053,46 @@ class binance(Exchange, ImplicitAPI):
             stopPrice = stopLossPrice
             if isMarketOrder:
                 # spot STOP_LOSS market orders are not a valid order type
-                uppercaseType = 'STOP_MARKET' if (market['contract'] is True) else 'STOP_LOSS'
+                uppercaseType = 'STOP_MARKET' if (self.safe_bool(market, 'contract', False)) else 'STOP_LOSS'
             elif isLimitOrder:
-                uppercaseType = 'STOP' if (market['contract'] is True) else 'STOP_LOSS_LIMIT'
+                uppercaseType = 'STOP' if (self.safe_bool(market, 'contract', False)) else 'STOP_LOSS_LIMIT'
         elif isTakeProfit:
             stopPrice = takeProfitPrice
             if isMarketOrder:
                 # spot TAKE_PROFIT market orders are not a valid order type
-                uppercaseType = 'TAKE_PROFIT_MARKET' if (market['contract'] is True) else 'TAKE_PROFIT'
+                uppercaseType = 'TAKE_PROFIT_MARKET' if (self.safe_bool(market, 'contract', False)) else 'TAKE_PROFIT'
             elif isLimitOrder:
-                uppercaseType = 'TAKE_PROFIT' if (market['contract'] is True) else 'TAKE_PROFIT_LIMIT'
-        if market['option'] is True:
+                uppercaseType = 'TAKE_PROFIT' if (self.safe_bool(market, 'contract', False)) else 'TAKE_PROFIT_LIMIT'
+        if self.safe_bool(market, 'option', False):
             if type == 'market':
-                raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
+                raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + self.safe_string(market, 'symbol', '') + ' market')
         else:
             validOrderTypes = self.safe_list(market['info'], 'orderTypes', [])
-            if stock is True:
+            if stock:
                 validOrderTypes = ['LIMIT', 'MARKET']
             if not self.in_array(uppercaseType, validOrderTypes):
                 if initialUppercaseType != uppercaseType:
-                    raise InvalidOrder(self.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders')
+                    raise InvalidOrder(self.id + ' triggerPrice parameter is not allowed for ' + self.safe_string(market, 'symbol', '') + ' ' + type + ' orders')
                 else:
-                    raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
+                    raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + self.safe_string(market, 'symbol', '') + ' market')
         clientOrderIdRequest = 'newClientOrderId'
         if isPortfolioMarginConditional:
             clientOrderIdRequest = 'newClientStrategyId'
         if isAlgoOrder:
             clientOrderIdRequest = 'clientAlgoId'
-        elif stock is True:
+        elif stock:
+            clientOrderIdRequest = 'clientOrderId'
+        elif self.safe_bool(market, 'option', False):
+            # the option api takes clientOrderId instead of newClientOrderId
             clientOrderIdRequest = 'clientOrderId'
         if clientOrderId is None:
-            broker = self.safe_dict(self.options, 'broker', {})
-            defaultId = 'x-TKT5PX2F'
-            if market['contract'] is True:
-                defaultId = 'x-xcKtGhcu'
-            idMarketType = 'spot'
-            if market['contract'] is True:
-                isLinearSwap = (market['swap'] is True) and (market['linear'] is True)
-                idMarketType = 'swap' if isLinearSwap else 'inverse'
-            brokerId = self.safe_string(broker, idMarketType, defaultId)
-            request[clientOrderIdRequest] = brokerId + self.uuid22()
+            request[clientOrderIdRequest] = self.generate_client_order_id(market)
         else:
             request[clientOrderIdRequest] = clientOrderId
         postOnly = None
         if not isPortfolioMargin:
             postOnly = self.is_post_only(isMarketOrder, initialUppercaseType == 'LIMIT_MAKER', paramsPapi)
-            if (market['spot'] is True) or marketType == 'margin':
+            if (self.safe_bool(market, 'spot', False)) or marketType == 'margin':
                 # only supported for spot/margin api (all margin markets are spot markets)
                 if postOnly:
                     uppercaseType = 'LIMIT_MAKER'
@@ -6977,20 +7101,20 @@ class binance(Exchange, ImplicitAPI):
         else:
             postOnly = self.is_post_only(isMarketOrder, initialUppercaseType == 'LIMIT_MAKER', paramsPapi)
             if postOnly:
-                if market['contract'] is not True:
+                if not self.safe_bool(market, 'contract', False):
                     uppercaseType = 'LIMIT_MAKER'
                 else:
                     request['timeInForce'] = 'GTX'
         # handle newOrderRespType response type
-        if ((marketType == 'spot') or (marketType == 'margin')) and not isPortfolioMargin and (stock is not True):
+        if ((marketType == 'spot') or (marketType == 'margin')) and not isPortfolioMargin and (not stock):
             request['newOrderRespType'] = self.safe_string(self.options['newOrderRespType'], type, 'FULL')  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-        elif stock is not True:
+        elif not stock:
             # swap, futures and options
             request['newOrderRespType'] = 'RESULT'  # "ACK", "RESULT", default "ACK"
         typeRequest = 'type'
-        if isPortfolioMarginConditional:
+        if isPortfolioMarginConditional and not isAlgoOrder:
             typeRequest = 'strategyType'
-        if stock is True:
+        if stock:
             typeRequest = 'orderType'
         request[typeRequest] = uppercaseType
         # additional required fields depending on the order type
@@ -7020,7 +7144,7 @@ class binance(Exchange, ImplicitAPI):
         #     TRAILING_STOP_MARKET callbackRate
         #
         if uppercaseType == 'MARKET':
-            if stock is True:
+            if stock:
                 if upperCaseSide == 'BUY':
                     precision = self.safe_number(market['precision'], 'price')
                     quoteOrderQtyNew = self.safe_string_2(paramsPapi, 'quoteOrderQty', 'cost')
@@ -7046,7 +7170,7 @@ class binance(Exchange, ImplicitAPI):
                         request['quantity'] = self.amount_to_precision(symbol, amount)
                     else:
                         request['quantity'] = self.parse_to_numeric(amount)
-            elif market['spot'] is True:
+            elif self.safe_bool(market, 'spot', False):
                 quoteOrderQty = self.handle_option('createOrder', 'quoteOrderQty', True)
                 if quoteOrderQty is True:
                     quoteOrderQtyNew = self.safe_string_2(paramsPapi, 'quoteOrderQty', 'cost')
@@ -7065,7 +7189,7 @@ class binance(Exchange, ImplicitAPI):
             else:
                 quantityIsRequired = True
         elif uppercaseType == 'LIMIT':
-            if stock is True:
+            if stock:
                 tradingSession = self.safe_string(paramsPapi, 'tradingSession', '24H')
                 request['tradingSession'] = tradingSession
             priceIsRequired = True
@@ -7074,7 +7198,7 @@ class binance(Exchange, ImplicitAPI):
         elif (uppercaseType == 'STOP_LOSS') or (uppercaseType == 'TAKE_PROFIT'):
             triggerPriceIsRequired = True
             quantityIsRequired = True
-            if ((market['linear'] is True) or (market['inverse'] is True)) and priceRequiredForTrailing:
+            if ((self.safe_bool(market, 'linear', False)) or (self.safe_bool(market, 'inverse', False))) and priceRequiredForTrailing:
                 priceIsRequired = True
         elif (uppercaseType == 'STOP_LOSS_LIMIT') or (uppercaseType == 'TAKE_PROFIT_LIMIT'):
             quantityIsRequired = True
@@ -7089,11 +7213,11 @@ class binance(Exchange, ImplicitAPI):
             triggerPriceIsRequired = True
             priceIsRequired = True
         elif (uppercaseType == 'STOP_MARKET') or (uppercaseType == 'TAKE_PROFIT_MARKET'):
-            if closePosition is not True:
+            if not closePosition:
                 quantityIsRequired = True
             triggerPriceIsRequired = True
         elif uppercaseType == 'TRAILING_STOP_MARKET':
-            if closePosition is not True:
+            if not closePosition:
                 quantityIsRequired = True
             if trailingPercent is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a trailingPercent param for a ' + type + ' order')
@@ -7114,7 +7238,7 @@ class binance(Exchange, ImplicitAPI):
             else:
                 request['price'] = self.parse_to_numeric(price)  # some options don't have the precision available
         if triggerPriceIsRequired:
-            if market['contract'] is True:
+            if self.safe_bool(market, 'contract', False):
                 if stopPrice is None:
                     raise InvalidOrder(self.id + ' createOrder() requires a triggerPrice extra param for a ' + type + ' order')
             else:
@@ -7128,15 +7252,15 @@ class binance(Exchange, ImplicitAPI):
                     request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
         if timeInForceIsRequired and (self.safe_string(paramsPapi, 'timeInForce') is None) and (self.safe_string(request, 'timeInForce') is None):
             request['timeInForce'] = self.handle_option('createOrder', 'timeInForce')  # 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-        if not isPortfolioMargin and (market['contract'] is True) and postOnly:
+        if not isPortfolioMargin and (self.safe_bool(market, 'contract', False)) and postOnly:
             request['timeInForce'] = 'GTX'
         # remove timeInForce from params because PO is only used by this.isPostOnly and it's not a valid value for Binance
         if self.safe_string(paramsPapi, 'timeInForce') == 'PO':
             omitKeys.append('timeInForce')
         hedged = self.safe_bool(paramsPapi, 'hedged', False)
-        if (market['spot'] is not True) and (market['option'] is not True) and (hedged is True):
+        if (not self.safe_bool(market, 'spot', False)) and (not self.safe_bool(market, 'option', False)) and (hedged):
             positionSide = side
-            if reduceOnly is True:
+            if reduceOnly:
                 omitKeys.append('reduceOnly')
                 positionSide = 'sell' if (side == 'buy') else 'buy'
             request['positionSide'] = 'LONG' if (positionSide == 'buy') else 'SHORT'
@@ -7144,13 +7268,13 @@ class binance(Exchange, ImplicitAPI):
         selfTradePrevention, paramsStp = self.handle_option_string_and_params(paramsPapi, 'createOrder', 'selfTradePrevention')
         if selfTradePrevention is not None:
             warnOnStpForInverse = self.handle_option('createOrder', 'warnOnSTPForInverse')
-            if (market['inverse'] is True) and (warnOnStpForInverse is True):
+            if (self.safe_bool(market, 'inverse', False)) and (warnOnStpForInverse is True):
                 raise NotSupported(self.id + ' createOrder() selfTradePrevention is not supported for inverse markets. selfTradePrevention for inverse markets is taken from linear market. To disable self warning set the .options["createOrder"]["warnOnSTPForInverse"] to False.')
             request['selfTradePreventionMode'] = selfTradePrevention.upper()  # binance enums exactly match the unified ccxt enums (but needs uppercase)
         # unified iceberg
         icebergAmount = self.safe_number(paramsPapi, 'icebergAmount')
         if icebergAmount is not None:
-            if market['spot'] is True:
+            if self.safe_bool(market, 'spot', False):
                 request['icebergQty'] = self.amount_to_precision(symbol, icebergAmount)
         requestParams = self.omit(paramsStp, omitKeys)
         return self.extend(request, requestParams)
@@ -7159,7 +7283,7 @@ class binance(Exchange, ImplicitAPI):
         """
         create a market order by providing the symbol, side and cost
 
-        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+        https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#new-order
 
         :param str symbol: unified symbol of the market to create an order in
         :param str side: 'buy' or 'sell'
@@ -7170,7 +7294,7 @@ class binance(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is not True:
+        if not self.safe_bool(market, 'spot', False):
             raise NotSupported(self.id + ' createMarketOrderWithCost() supports spot orders only')
         req = {
             'cost': cost,
@@ -7181,7 +7305,7 @@ class binance(Exchange, ImplicitAPI):
         """
         create a market buy order by providing the symbol and cost
 
-        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+        https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#new-order
 
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
@@ -7191,7 +7315,7 @@ class binance(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is not True:
+        if not self.safe_bool(market, 'spot', False):
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
         req = {
             'cost': cost,
@@ -7202,7 +7326,7 @@ class binance(Exchange, ImplicitAPI):
         """
         create a market sell order by providing the symbol and cost
 
-        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#new-order-trade
+        https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#new-order
 
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
@@ -7212,7 +7336,7 @@ class binance(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['spot'] is not True:
+        if not self.safe_bool(market, 'spot', False):
             raise NotSupported(self.id + ' createMarketSellOrderWithCost() supports spot orders only')
         params['quoteOrderQty'] = cost
         return self.create_order(symbol, 'market', 'sell', cost, None, params)
@@ -7221,10 +7345,10 @@ class binance(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
 
-        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#query-order-user_data
+        https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#get-order
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Order
         https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Query-Order
-        https://developers.binance.com/docs/derivatives/option/trade/Query-Single-Order
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-single-order
         https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Order
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-UM-Order
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-CM-Order
@@ -7244,13 +7368,15 @@ class binance(Exchange, ImplicitAPI):
             self.load_markets()
         request = {}
         market = None
-        stock = None
+        stock = False
         paramsStock = None
         stock, paramsStock = self.handle_option_bool_and_params(params, 'fetchOrder', 'stock', False)
         if symbol is not None:
             market = self.market(symbol)
-            stock = self.safe_bool(market, 'stock', False)
-            if stock is not True:
+            stock = False
+            if self.safe_bool(market, 'stock', False):
+                stock = True
+            if not stock:
                 request['symbol'] = market['id']
         else:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
@@ -7266,16 +7392,16 @@ class binance(Exchange, ImplicitAPI):
         isOptionType = type == 'option'
         isLinearType = self.is_linear(type, subType)
         isInverseType = self.is_inverse(type, subType)
-        isLinearSwapConditional = isLinearType and (market is not None) and (market['swap'] is True) and (isConditional is True) and (isPortfolioMargin is not True)
+        isContractConditional = (isLinearType or isInverseType) and (isConditional is True) and (not isPortfolioMargin)
         clientOrderId = self.safe_string_n(paramsStock, ['origClientOrderId', 'clientOrderId', 'clientAlgoId'])
         if clientOrderId is not None:
             if isOptionType:
                 request['clientOrderId'] = clientOrderId
-            elif isLinearSwapConditional is True:
+            elif isContractConditional:
                 request['clientAlgoId'] = clientOrderId
             else:
                 request['origClientOrderId'] = clientOrderId
-        elif isLinearSwapConditional is True:
+        elif isContractConditional:
             request['algoId'] = id
         else:
             request['orderId'] = id
@@ -7295,7 +7421,10 @@ class binance(Exchange, ImplicitAPI):
             if isPortfolioMargin:
                 response = self.papiGetCmOrder(self.extend(request, paramsStock))
             else:
-                response = self.dapiPrivateGetOrder(self.extend(request, paramsStock))
+                if isConditional is True:
+                    response = self.dapiPrivateGetAlgoOrder(self.extend(request, paramsStock))
+                else:
+                    response = self.dapiPrivateGetOrder(self.extend(request, paramsStock))
         elif (type == 'margin') or (marginMode is not None) or isPortfolioMargin:
             if isPortfolioMargin:
                 response = self.papiGetMarginOrder(self.extend(request, paramsStock))
@@ -7303,7 +7432,7 @@ class binance(Exchange, ImplicitAPI):
                 if marginMode == 'isolated':
                     request['isIsolated'] = True
                 response = self.sapiGetMarginOrder(self.extend(request, paramsStock))
-        elif stock is True:
+        elif stock:
             response = self.sapiGetEquityOrderDetail(self.extend(request, paramsStock))
         else:
             response = self.privateGetOrder(self.extend(request, paramsStock))
@@ -7315,14 +7444,14 @@ class binance(Exchange, ImplicitAPI):
         """
         fetches information on multiple orders made by the user
 
-        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
+        https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#all-orders
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
         https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
-        https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-option-order-history
         https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
-        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+        https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#query-um-algo-order-history
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-All-Algo-Orders
         https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-history
@@ -7348,14 +7477,14 @@ class binance(Exchange, ImplicitAPI):
             return self.fetch_paginated_call_dynamic('fetchOrders', symbol, since, limit, paramsPaginate)
         request = {}
         market = None
-        stock = None
+        stock = False
         stock, paramsPaginate = self.handle_option_bool_and_params(paramsPaginate, 'fetchOrders', 'stock', False)
         if symbol is not None:
             market = self.market(symbol)
-            stock = self.safe_bool(market, 'stock', False)
+            stock = False
+            if self.safe_bool(market, 'stock', False):
+                stock = True
             request['symbol'] = market['id']
-        elif not stock:
-            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         type = None
         type, paramsPaginate = self.handle_market_type_and_params('fetchOrders', market, paramsPaginate, 'spot')
         subType = None
@@ -7368,35 +7497,41 @@ class binance(Exchange, ImplicitAPI):
         isOptionType = type == 'option'
         isLinearType = self.is_linear(type, subType)
         isInverseType = self.is_inverse(type, subType)
+        if symbol is None:
+            # the linear allOrders endpoint accepts requests without a symbol since 2026-08-25 and also returns the inverse orders then
+            canOmitSymbol = (stock) or (isLinearType and (isConditional is not True) and (not isPortfolioMargin))
+            if not canOmitSymbol:
+                raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         until = self.safe_integer_n(paramsPaginate, ['until', 'till', 'endTime'])
         paramsPaginate = self.omit(paramsPaginate, ['stop', 'trigger', 'conditional', 'until', 'till', 'endTime'])
         if since is not None:
             request['startTime'] = since
         # max 100
         limitResolved = limit
-        if limit is not None and stock is True:
+        if limit is not None and stock:
             limitResolved = min(limit, 100)
-        if limitResolved is not None:
-            if stock is True:
+        if limit is not None:
+            if stock:
                 request['size'] = limitResolved
             else:
                 request['limit'] = limitResolved
         if until is not None:
             request['endTime'] = until
-        if stock is True:
+        if stock:
+            nowMs = self.milliseconds()
+            untilResolved = until if (until is not None) else nowMs
             if until is None:
-                until = self.milliseconds()
-                request['endTime'] = until
+                request['endTime'] = untilResolved
             if since is None:
-                oneWeek = 7 * 24 * 60 * 60 * 1000
-                request['startTime'] = until - oneWeek
+                oneWeek = 604800000  # 7 * 24 * 60 * 60 * 1000
+                request['startTime'] = untilResolved - oneWeek
         response = None
         if isOptionType:
             response = self.eapiPrivateGetHistoryOrders(self.extend(request, paramsPaginate))
         elif isLinearType:
             if isPortfolioMargin:
                 if isConditional is True:
-                    response = self.papiGetUmConditionalAllOrders(self.extend(request, paramsPaginate))
+                    response = self.papiGetUmAlgoAllAlgoOrders(self.extend(request, paramsPaginate))
                 else:
                     response = self.papiGetUmAllOrders(self.extend(request, paramsPaginate))
             else:
@@ -7411,7 +7546,10 @@ class binance(Exchange, ImplicitAPI):
                 else:
                     response = self.papiGetCmAllOrders(self.extend(request, paramsPaginate))
             else:
-                response = self.dapiPrivateGetAllOrders(self.extend(request, paramsPaginate))
+                if isConditional is True:
+                    response = self.dapiPrivateGetAllAlgoOrders(self.extend(request, paramsPaginate))
+                else:
+                    response = self.dapiPrivateGetAllOrders(self.extend(request, paramsPaginate))
         else:
             if isPortfolioMargin:
                 response = self.papiGetMarginAllOrders(self.extend(request, paramsPaginate))
@@ -7419,7 +7557,7 @@ class binance(Exchange, ImplicitAPI):
                 if marginMode == 'isolated':
                     request['isIsolated'] = True
                 response = self.sapiGetMarginAllOrders(self.extend(request, paramsPaginate))
-            elif stock is True:
+            elif stock:
                 response = self.sapiGetEquityOrderHistory(self.extend(request, paramsPaginate))
             else:
                 response = self.privateGetAllOrders(self.extend(request, paramsPaginate))
@@ -7629,7 +7767,7 @@ class binance(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        if stock is True:
+        if stock:
             result = self.safe_list(response, 'rows', [])
             return self.parse_orders(result, market, since, limitResolved)
         return self.parse_orders(response, market, since, limitResolved)
@@ -7638,13 +7776,13 @@ class binance(Exchange, ImplicitAPI):
         """
         fetch all unfilled currently open orders
 
-        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#current-open-orders-user_data
+        https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#get-open-orders
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Open-Orders
         https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Current-All-Open-Orders
-        https://developers.binance.com/docs/derivatives/option/trade/Query-Current-Open-Option-Orders
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-current-open-option-orders
         https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Open-Orders
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Orders
-        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-UM-Open-Conditional-Orders
+        https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#query-all-current-um-open-algo-orders
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Orders
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Conditional-Orders
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Algo-Open-Orders
@@ -7672,12 +7810,14 @@ class binance(Exchange, ImplicitAPI):
         isPortfolioMargin = None
         isPortfolioMargin, paramsMarginMode = self.handle_option_bool_and_params_2(paramsMarginMode, 'fetchOpenOrders', 'papi', 'portfolioMargin', False)
         isConditional = self.safe_bool_n(paramsMarginMode, ['stop', 'trigger', 'conditional'])
-        stock = None
+        stock = False
         stock, paramsMarginMode = self.handle_option_bool_and_params(paramsMarginMode, 'fetchOpenOrders', 'stock', False)
         if symbol is not None:
             market = self.market(symbol)
-            stock = self.safe_bool(market, 'stock', False)
-            if stock is not True:
+            stock = False
+            if self.safe_bool(market, 'stock', False):
+                stock = True
+            if not stock:
                 request['symbol'] = market['id']
         elif not stock:
             warnWithoutSymbol = self.safe_bool(self.options['fetchOpenOrders'], 'warnWithoutSymbol')
@@ -7698,7 +7838,7 @@ class binance(Exchange, ImplicitAPI):
         elif self.is_linear(type, subType):
             if isPortfolioMargin:
                 if isConditional is True:
-                    response = self.papiGetUmConditionalOpenOrders(self.extend(request, paramsMarginMode))
+                    response = self.papiGetUmAlgoOpenAlgoOrders(self.extend(request, paramsMarginMode))
                 else:
                     response = self.papiGetUmOpenOrders(self.extend(request, paramsMarginMode))
             else:
@@ -7726,7 +7866,7 @@ class binance(Exchange, ImplicitAPI):
                     if symbol is None:
                         raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument for isolated markets')
                 response = self.sapiGetMarginOpenOrders(self.extend(request, paramsMarginMode))
-        elif stock is True:
+        elif stock:
             response = self.sapiGetEquityOrderOpenOrders(self.extend(request, paramsMarginMode))
         else:
             response = self.privateGetOpenOrders(self.extend(request, paramsMarginMode))
@@ -7739,7 +7879,7 @@ class binance(Exchange, ImplicitAPI):
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Current-Open-Order
         https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Query-Current-Open-Order
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Order
-        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-UM-Open-Conditional-Order
+        https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#query-current-um-open-algo-order
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Order
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Current-CM-Open-Conditional-Order
 
@@ -7762,20 +7902,23 @@ class binance(Exchange, ImplicitAPI):
         isConditional = self.safe_bool_n(paramsPapi, ['stop', 'trigger', 'conditional'])
         paramsOmitted = self.omit(paramsPapi, ['stop', 'trigger', 'conditional'])
         isPortfolioMarginConditional = (isPortfolioMargin and isConditional)
+        if (isConditional is True) and not isPortfolioMargin and ((self.safe_bool(market, 'swap', False)) or (self.safe_bool(market, 'future', False))):
+            # the algo order endpoints have no open-order-scoped single order query
+            raise NotSupported(self.id + ' fetchOpenOrder() does not support conditional orders, use fetchOrder() or fetchOpenOrders() with the trigger param instead')
         orderIdRequest = 'orderId'
         if isPortfolioMarginConditional is True:
-            orderIdRequest = 'strategyId'
+            orderIdRequest = 'algoId' if (self.safe_bool(market, 'linear', False)) else 'strategyId'
         request[orderIdRequest] = id
         response = None
-        if market['linear'] is True:
+        if self.safe_bool(market, 'linear', False):
             if isPortfolioMargin:
                 if isConditional is True:
-                    response = self.papiGetUmConditionalOpenOrder(self.extend(request, paramsOmitted))
+                    response = self.papiGetUmAlgoAlgoOrder(self.extend(request, paramsOmitted))
                 else:
                     response = self.papiGetUmOpenOrder(self.extend(request, paramsOmitted))
             else:
                 response = self.fapiPrivateGetOpenOrder(self.extend(request, paramsOmitted))
-        elif market['inverse'] is True:
+        elif self.safe_bool(market, 'inverse', False):
             if isPortfolioMargin:
                 if isConditional is True:
                     response = self.papiGetCmConditionalOpenOrder(self.extend(request, paramsOmitted))
@@ -7784,9 +7927,9 @@ class binance(Exchange, ImplicitAPI):
             else:
                 response = self.dapiPrivateGetOpenOrder(self.extend(request, paramsOmitted))
         else:
-            if market['option'] is True:
+            if self.safe_bool(market, 'option', False):
                 raise NotSupported(self.id + ' fetchOpenOrder() does not support option markets')
-            elif market['spot'] is True:
+            elif self.safe_bool(market, 'spot', False):
                 raise NotSupported(self.id + ' fetchOpenOrder() does not support spot markets')
         #
         # linear swap
@@ -7944,14 +8087,14 @@ class binance(Exchange, ImplicitAPI):
         """
         fetches information on multiple closed orders made by the user
 
-        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
+        https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#all-orders
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
         https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
-        https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-option-order-history
         https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
-        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
+        https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#query-um-algo-order-history
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
         https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-history
 
@@ -7966,15 +8109,17 @@ class binance(Exchange, ImplicitAPI):
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         market = None
-        stock = None
+        stock = False
         paramsStock = None
         stock, paramsStock = self.handle_option_bool_and_params(params, 'fetchClosedOrders', 'stock', False)
         if symbol is not None:
             market = self.market(symbol)
-            stock = self.safe_bool(market, 'stock', False)
+            stock = False
+            if self.safe_bool(market, 'stock', False):
+                stock = True
         elif not stock:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
-        if stock is True:
+        if stock:
             paramsStock['stock'] = True
             paramsStock['orderStatus'] = 'FILLED'
         orders = self.fetch_orders(symbol, since, None, paramsStock)
@@ -7985,10 +8130,10 @@ class binance(Exchange, ImplicitAPI):
         """
         fetches information on multiple canceled orders made by the user
 
-        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
+        https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#all-orders
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
         https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
-        https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-option-order-history
         https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
@@ -8007,15 +8152,17 @@ class binance(Exchange, ImplicitAPI):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         market = None
-        stock = None
+        stock = False
         paramsStock = None
         stock, paramsStock = self.handle_option_bool_and_params(params, 'fetchCanceledOrders', 'stock', False)
         if symbol is not None:
             market = self.market(symbol)
-            stock = self.safe_bool(market, 'stock', False)
+            stock = False
+            if self.safe_bool(market, 'stock', False):
+                stock = True
         elif not stock:
             raise ArgumentsRequired(self.id + ' fetchCanceledOrders() requires a symbol argument')
-        if stock is True:
+        if stock:
             paramsStock['stock'] = True
             paramsStock['orderStatus'] = 'CANCELED'
         orders = self.fetch_orders(symbol, since, None, paramsStock)
@@ -8029,7 +8176,7 @@ class binance(Exchange, ImplicitAPI):
         https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#all-orders-user_data
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/All-Orders
         https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/All-Orders
-        https://developers.binance.com/docs/derivatives/option/trade/Query-Option-Order-History
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#query-option-order-history
         https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-All-Orders
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Orders
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
@@ -8048,15 +8195,17 @@ class binance(Exchange, ImplicitAPI):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         market = None
-        stock = None
+        stock = False
         paramsStock = None
         stock, paramsStock = self.handle_option_bool_and_params(params, 'fetchCanceledAndClosedOrders', 'stock', False)
         if symbol is not None:
             market = self.market(symbol)
-            stock = self.safe_bool(market, 'stock', False)
+            stock = False
+            if self.safe_bool(market, 'stock', False):
+                stock = True
         elif not stock:
             raise ArgumentsRequired(self.id + ' fetchCanceledAndClosedOrders() requires a symbol argument')
-        if stock is True:
+        if stock:
             paramsStock['stock'] = True
             paramsStock['orderStatus'] = 'FILLED,CANCELED'
         orders = self.fetch_orders(symbol, since, None, paramsStock)
@@ -8070,14 +8219,14 @@ class binance(Exchange, ImplicitAPI):
         """
         cancels an open order
 
-        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-order-trade
+        https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#delete-order
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Order
         https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-Order
-        https://developers.binance.com/docs/derivatives/option/trade/Cancel-Option-Order
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#cancel-option-order
         https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-Order
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Order
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Order
-        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-UM-Conditional-Order
+        https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#cancel-um-algo-order
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Conditional-Order
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-Order
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Algo-Order
@@ -8095,13 +8244,15 @@ class binance(Exchange, ImplicitAPI):
             self.load_markets()
         request = {}
         market = None
-        stock = None
+        stock = False
         paramsStock = None
         stock, paramsStock = self.handle_option_bool_and_params(params, 'cancelOrder', 'stock', False)
         if symbol is not None:
             market = self.market(symbol)
-            stock = self.safe_bool(market, 'stock', False)
-            if stock is not True:
+            stock = False
+            if self.safe_bool(market, 'stock', False):
+                stock = True
+            if not stock:
                 request['symbol'] = market['id']
         else:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
@@ -8117,12 +8268,17 @@ class binance(Exchange, ImplicitAPI):
         isOptionType = type == 'option'
         isLinearType = self.is_linear(type, subType)
         isInverseType = self.is_inverse(type, subType)
-        isSwapConditional = (market is not None) and (market['swap'] is True) and (isConditional is True) and (isPortfolioMargin is not True)
+        # algo and conditional endpoints use different arguments
+        # conditional swap and future orders go through the algo api
+        # except for portfolio margin inverse (cm) orders, which still use the conditional endpoints
+        isSwapOrFuture = (market is not None) and ((market['swap'] is True) or (market['future'] is True))
+        isPortfolioMarginInverse = (isPortfolioMargin) and (isInverseType)
+        isAlgoOrder = isSwapOrFuture and (isConditional is True) and (not isPortfolioMarginInverse)
         clientOrderId = self.safe_string_n(paramsStock, ['origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'clientAlgoId'])
         if clientOrderId is not None:
             if isOptionType:
                 request['clientOrderId'] = clientOrderId
-            elif isSwapConditional is True:
+            elif isAlgoOrder:
                 request['clientAlgoId'] = clientOrderId
             else:
                 if isPortfolioMargin and (isConditional is True):
@@ -8130,10 +8286,10 @@ class binance(Exchange, ImplicitAPI):
                 else:
                     request['origClientOrderId'] = clientOrderId
         else:
-            if isPortfolioMargin and (isConditional is True):
-                request['strategyId'] = id
-            elif isSwapConditional is True:
+            if isAlgoOrder:
                 request['algoId'] = id
+            elif isPortfolioMargin and (isConditional is True):
+                request['strategyId'] = id
             else:
                 request['orderId'] = id
         paramsStock = self.omit(paramsStock, ['origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'stop', 'trigger', 'conditional', 'clientAlgoId'])
@@ -8143,7 +8299,7 @@ class binance(Exchange, ImplicitAPI):
         elif isLinearType:
             if isPortfolioMargin:
                 if isConditional is True:
-                    response = self.papiDeleteUmConditionalOrder(self.extend(request, paramsStock))
+                    response = self.papiDeleteUmAlgoOrder(self.extend(request, paramsStock))
                 else:
                     response = self.papiDeleteUmOrder(self.extend(request, paramsStock))
             else:
@@ -8169,7 +8325,7 @@ class binance(Exchange, ImplicitAPI):
                 if marginMode == 'isolated':
                     request['isIsolated'] = True
                 response = self.sapiDeleteMarginOrder(self.extend(request, paramsStock))
-        elif stock is True:
+        elif stock:
             response = self.sapiPostEquityOrderCancel(self.extend(request, paramsStock))
         else:
             response = self.privateDeleteOrder(self.extend(request, paramsStock))
@@ -8181,13 +8337,13 @@ class binance(Exchange, ImplicitAPI):
         """
         cancel all open orders in a market
 
-        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints#cancel-all-open-orders-on-a-symbol-trade
-        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Open-Orders
-        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Cancel-All-Open-Orders
-        https://developers.binance.com/docs/derivatives/option/trade/Cancel-all-Option-orders-on-specific-symbol
+        https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/trade#delete-open-orders
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/rest-api/trade#cancel-all-open-orders
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/trade#cancel-all-open-orders
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#cancel-all-option-orders-on-specific-symbol
         https://developers.binance.com/docs/margin_trading/trade/Margin-Account-Cancel-All-Open-Orders
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Orders
-        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-UM-Open-Conditional-Orders
+        https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/trade#cancel-all-um-algo-open-orders
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Orders
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Conditional-Orders
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-All-Open-Orders-on-a-Symbol
@@ -8206,13 +8362,15 @@ class binance(Exchange, ImplicitAPI):
             self.load_markets()
         request = {}
         market = None
-        stock = None
+        stock = False
         paramsStock = None
         stock, paramsStock = self.handle_option_bool_and_params(params, 'cancelAllOrders', 'stock', False)
         if symbol is not None:
             market = self.market(symbol)
-            stock = self.safe_bool(market, 'stock', False)
-            if stock is not True:
+            stock = False
+            if self.safe_bool(market, 'stock', False):
+                stock = True
+            if not stock:
                 request['symbol'] = market['id']
         else:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
@@ -8241,7 +8399,7 @@ class binance(Exchange, ImplicitAPI):
         elif isLinearType:
             if isPortfolioMargin:
                 if isConditional is True:
-                    response = self.papiDeleteUmConditionalAllOpenOrders(self.extend(request, paramsStock))
+                    response = self.papiDeleteUmAlgoAllOpenOrders(self.extend(request, paramsStock))
                     #
                     #    {
                     #        "code": "200",
@@ -8292,7 +8450,10 @@ class binance(Exchange, ImplicitAPI):
                     #    }
                     #
             else:
-                response = self.dapiPrivateDeleteAllOpenOrders(self.extend(request, paramsStock))
+                if isConditional is True:
+                    response = self.dapiPrivateDeleteAlgoOpenOrders(self.extend(request, paramsStock))
+                else:
+                    response = self.dapiPrivateDeleteAllOpenOrders(self.extend(request, paramsStock))
                 #
                 #    {
                 #        "code": 200,
@@ -8328,7 +8489,7 @@ class binance(Exchange, ImplicitAPI):
                 #        ...
                 #    ]
                 #
-        elif stock is True:
+        elif stock:
             response = self.sapiPostEquityOrderCancelAll(self.extend(request, paramsStock))
             #
             #     {
@@ -8388,7 +8549,7 @@ class binance(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['contract'] is not True:
+        if not self.safe_bool(market, 'contract', False):
             raise BadRequest(self.id + ' cancelOrders is only supported for swap markets.')
         request = {
             'symbol': market['id'],
@@ -8401,9 +8562,9 @@ class binance(Exchange, ImplicitAPI):
         else:
             request['orderidlist'] = ids
         response = None
-        if market['linear'] is True:
+        if self.safe_bool(market, 'linear', False):
             response = self.fapiPrivateDeleteBatchOrders(self.extend(request, paramsOmitted))
-        elif market['inverse'] is True:
+        elif self.safe_bool(market, 'inverse', False):
             response = self.dapiPrivateDeleteBatchOrders(self.extend(request, paramsOmitted))
         #
         #    [
@@ -8446,7 +8607,7 @@ class binance(Exchange, ImplicitAPI):
         """
         fetch all the trades made from a single order
 
-        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-trade-list-user_data
+        https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#my-trades
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
         https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Account-Trade-List
         https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
@@ -8476,13 +8637,14 @@ class binance(Exchange, ImplicitAPI):
         """
         fetch all trades made by the user
 
-        https://developers.binance.com/docs/binance-spot-api-docs/rest-api/account-endpoints#account-trade-list-user_data
+        https://developers.binance.com/en/docs/catalog/core-trading-spot-trading/api/rest-api/account#my-trades
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Account-Trade-List
         https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Account-Trade-List
         https://developers.binance.com/docs/margin_trading/trade/Query-Margin-Account-Trade-List
-        https://developers.binance.com/docs/derivatives/option/trade/Account-Trade-List
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#account-trade-list
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Account-Trade-List
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Account-Trade-List
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Margin-Account-Trade-List
         https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-trade-history
 
         :param str [symbol]: unified market symbol
@@ -8506,14 +8668,16 @@ class binance(Exchange, ImplicitAPI):
         market = None
         type = None
         marginMode = None
-        stock = None
+        stock = False
         stock, paramsPaginate = self.handle_option_bool_and_params(paramsPaginate, 'fetchMyTrades', 'stock', False)
         if symbol is not None:
             market = self.market(symbol)
-            stock = self.safe_bool(market, 'stock', False)
+            stock = False
+            if self.safe_bool(market, 'stock', False):
+                stock = True
             request['symbol'] = market['id']
         type, paramsPaginate = self.handle_market_type_and_params('fetchMyTrades', market, paramsPaginate)
-        if (stock is not True) and (type != 'option') and (symbol is None):
+        if (not stock) and (type != 'option') and (symbol is None):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         endTime = self.safe_integer_2(paramsPaginate, 'until', 'endTime')
         if since is not None:
@@ -8523,8 +8687,8 @@ class binance(Exchange, ImplicitAPI):
             # The time between startTime and endTime cannot be longer than 7 days.
             # The parameter fromId cannot be sent with startTime or endTime.
             currentTimestamp = self.milliseconds()
-            oneWeek = 7 * 24 * 60 * 60 * 1000
-            if (currentTimestamp - startTime) >= oneWeek:
+            oneWeek = 604800000  # 7 * 24 * 60 * 60 * 1000
+            if (currentTimestamp - since) >= oneWeek:
                 if (endTime is None) and (self.safe_bool(market, 'linear', False)):
                     endTime = self.sum(startTime, oneWeek)
                     endTimeValue = 0 if (endTime is None) else endTime
@@ -8538,10 +8702,10 @@ class binance(Exchange, ImplicitAPI):
         if limit is not None and isContractLimit:
             limitContract = min(limit, 1000)
         limitResolved = limitContract
-        if limitContract is not None and stock is True:
-            limitResolved = min(limitContract, 100)
-        if limitResolved is not None:
-            if stock is True:
+        if limit is not None and stock:
+            limitResolved = min(limit, 100)
+        if limit is not None:
+            if stock:
                 request['size'] = limitResolved
             else:
                 request['limit'] = limitResolved
@@ -8552,13 +8716,14 @@ class binance(Exchange, ImplicitAPI):
             marginMode, paramsPaginate = self.handle_margin_mode_and_params('fetchMyTrades', paramsPaginate)
             isPortfolioMargin = None
             isPortfolioMargin, paramsPaginate = self.handle_option_bool_and_params_2(paramsPaginate, 'fetchMyTrades', 'papi', 'portfolioMargin', False)
-            if stock is True:
+            if stock:
+                # request['endTime'] holds endTime whenever endTime is defined
+                endTimeResolved = self.safe_integer(request, 'endTime', self.milliseconds())
                 if endTime is None:
-                    endTime = self.milliseconds()
-                    request['endTime'] = endTime
+                    request['endTime'] = endTimeResolved
                 if since is None:
-                    oneWeek = 7 * 24 * 60 * 60 * 1000
-                    request['startTime'] = endTime - oneWeek
+                    oneWeek = 604800000  # 7 * 24 * 60 * 60 * 1000
+                    request['startTime'] = endTimeResolved - oneWeek
                 response = self.sapiGetEquityTradeHistory(self.extend(request, paramsPaginate))
             elif type == 'spot' or type == 'margin':
                 if isPortfolioMargin:
@@ -8732,7 +8897,7 @@ class binance(Exchange, ImplicitAPI):
         #     }
         responseList = []
         if response is not None:
-            if stock is True:
+            if stock:
                 rows = self.safe_list(response, 'rows', [])
                 responseList = rows
             else:
@@ -8809,7 +8974,7 @@ class binance(Exchange, ImplicitAPI):
         trades = self.parse_trades(data, None, since, limit)
         return self.filter_by_since_limit(trades, since, limit)
 
-    def parse_dust_trade(self, trade: dict, market: Market = None):
+    def parse_dust_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #     {
         #       "fromAsset": "USDT",
@@ -8905,7 +9070,7 @@ class binance(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(paramsPaginate, 'fiatOnly')
         until = self.safe_integer(paramsOmitted, 'until')
         paramsOmitted2 = self.omit(paramsOmitted, 'until')
-        if (fiatOnly is True) or ((code is not None) and (code in legalMoney)):
+        if (fiatOnly) or ((code is not None) and (code in legalMoney)):
             if code is not None:
                 currency = self.currency(code)
             request['transactionType'] = 0
@@ -9016,7 +9181,7 @@ class binance(Exchange, ImplicitAPI):
             request['endTime'] = until
         response = None
         currency = None
-        if (fiatOnly is True) or ((code is not None) and (code in legalMoney)):
+        if (fiatOnly) or ((code is not None) and (code in legalMoney)):
             if code is not None:
                 currency = self.currency(code)
             request['transactionType'] = 1
@@ -9115,7 +9280,7 @@ class binance(Exchange, ImplicitAPI):
             responseList[i]['type'] = 'withdrawal'
         return self.parse_transactions(responseList, currency, since, limit)
 
-    def parse_transaction_status_by_type(self, status: Str, type: Str = None):
+    def parse_transaction_status_by_type(self, status: Str, type: Str = None) -> Str:
         if type is None:
             return status
         statusesByType = {
@@ -9413,7 +9578,7 @@ class binance(Exchange, ImplicitAPI):
         """
         transfer currency internally between wallets on the same account
 
-        https://developers.binance.com/docs/wallet/asset/user-universal-transfer
+        https://developers.binance.com/en/docs/catalog/core-trading-wallet/api/rest-api/asset#user-universal-transfer
 
         :param str code: unified currency code
         :param float amount: amount to transfer
@@ -9431,9 +9596,10 @@ class binance(Exchange, ImplicitAPI):
             'asset': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
-        request['type'] = self.safe_string(params, 'type')
+        requestType = self.safe_string(params, 'type')
+        request['type'] = requestType
         paramsOmitted = self.omit(params, 'type')
-        if request['type'] is None:
+        if requestType is None:
             symbol = self.safe_string(paramsOmitted, 'symbol')
             market = None
             if symbol is not None:
@@ -9502,6 +9668,7 @@ class binance(Exchange, ImplicitAPI):
         fetch a history of internal transfers made on an account
 
         https://developers.binance.com/docs/wallet/asset/query-user-universal-transfer
+        https://developers.binance.com/docs/pay/rest-api/Get-Pay-Trade-History
 
         :param str code: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for
@@ -9514,22 +9681,22 @@ class binance(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        internal = self.safe_bool(params, 'internal')
+        internal = self.safe_bool(params, 'internal', False)
         paramsOmitted = self.omit(params, 'internal')
         paginate = False
         paginate, paramsOmitted = self.handle_option_bool_and_params(paramsOmitted, 'fetchTransfers', 'paginate', False)
-        if paginate and (internal is not True):
+        if paginate and not internal:
             return self.fetch_paginated_call_dynamic('fetchTransfers', code, since, limit, paramsOmitted)
         currency = None
         if code is not None:
             currency = self.currency(code)
         request = {}
         limitKey = 'limit'
-        if internal is not True:
+        if not internal:
             defaultType = self.safe_string_2(self.options, 'fetchTransfers', 'defaultType', 'spot')
             fromAccount = self.safe_string(paramsOmitted, 'fromAccount', defaultType)
-            defaultTo = 'future'
-            if fromAccount == 'future':
+            defaultTo = 'swap'
+            if (fromAccount == 'swap') or (fromAccount == 'linear'):
                 defaultTo = 'spot'
             toAccount = self.safe_string(paramsOmitted, 'toAccount', defaultTo)
             type = self.safe_string(paramsOmitted, 'type')
@@ -9555,7 +9722,7 @@ class binance(Exchange, ImplicitAPI):
             paramsOmitted = self.omit(paramsOmitted, 'until')
             request['endTime'] = until
         response = None
-        if internal is True:
+        if internal:
             response = self.sapiGetPayTransactions(self.extend(request, paramsOmitted))
             #
             # {
@@ -9807,7 +9974,7 @@ class binance(Exchange, ImplicitAPI):
             for j in range(0, len(networkList)):
                 networkEntry = self.safe_dict(networkList, j)
                 networkId = self.safe_string(networkEntry, 'network')
-                networkCode = self.safe_currency_code(networkId)
+                networkCode = self.network_id_to_code(networkId, code)
                 fee = self.safe_number(networkEntry, 'withdrawFee')
                 if (code is not None) and (networkCode is not None):
                     withdrawFees[code][networkCode] = fee
@@ -9874,7 +10041,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_withdraw_fees(response, codes, 'coin')
 
-    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
+    def parse_deposit_withdraw_fee(self, fee: dict, currency: Currency = None) -> object:
         #
         #    {
         #        "coin": "BAT",
@@ -9923,8 +10090,8 @@ class binance(Exchange, ImplicitAPI):
             networkId = self.safe_string(networkEntry, 'network')
             networkCode = self.network_id_to_code(networkId, code)
             withdrawFee = self.safe_number(networkEntry, 'withdrawFee')
-            isDefault = self.safe_bool(networkEntry, 'isDefault')
-            if isDefault is True:
+            isDefault = self.safe_bool(networkEntry, 'isDefault', False)
+            if isDefault:
                 result['withdraw'] = {
                     'fee': withdrawFee,
                     'percentage': None,
@@ -9942,7 +10109,7 @@ class binance(Exchange, ImplicitAPI):
                 }
         return result
 
-    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params: dict = {}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """
         make a withdrawal
 
@@ -9951,12 +10118,12 @@ class binance(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
-        :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.tag]: memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        tagWithdrawTag, paramsWithdrawTag = self.handle_withdraw_tag_and_params(tag, params)
-        self.check_address(address)
+        tagWithdrawTag, paramsWithdrawTag = self.handle_param_string(params, 'tag')
+        self.check_address(address, code, tagWithdrawTag)
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
@@ -10076,8 +10243,7 @@ class binance(Exchange, ImplicitAPI):
         fetch the trading fees for multiple markets
 
         https://developers.binance.com/docs/wallet/asset/trade-fee
-        https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
-        https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
         https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Config
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -10161,7 +10327,7 @@ class binance(Exchange, ImplicitAPI):
             #       },
             #    ]
             #
-            result = {}
+            spotFees = {}
             if response is None:
                 raise NullResponse(self.id + ' method() returned empty response')
             fees = self.to_array(response)
@@ -10169,8 +10335,8 @@ class binance(Exchange, ImplicitAPI):
                 fee = self.parse_trading_fee(fees[i])
                 symbol = fee['symbol']
                 if symbol is not None:
-                    result[symbol] = fee
-            return result
+                    spotFees[symbol] = fee
+            return spotFees
         elif isLinear:
             #
             #     {
@@ -10197,16 +10363,16 @@ class binance(Exchange, ImplicitAPI):
             if markets is None:
                 raise ExchangeError(self.id + ' markets not loaded')
             symbols = list(markets.keys())
-            result = {}
+            linearFees = {}
             feeTier = self.safe_integer(response, 'feeTier')
-            feeTiers = (self.fees)['linear']['trading']['tiers']
-            maker = feeTiers['maker'][feeTier][1]
-            taker = feeTiers['taker'][feeTier][1]
+            feeTiers = self.safe_value(self.safe_value(self.safe_value(self.fees, 'linear'), 'trading'), 'tiers')
+            maker = self.safe_value(self.safe_value(self.safe_value(feeTiers, 'maker'), feeTier), 1)
+            taker = self.safe_value(self.safe_value(self.safe_value(feeTiers, 'taker'), feeTier), 1)
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
                 market = markets[symbol]
                 if self.safe_bool(market, 'linear', False):
-                    result[symbol] = {
+                    linearFees[symbol] = {
                         'info': {
                             'feeTier': feeTier,
                         },
@@ -10214,7 +10380,7 @@ class binance(Exchange, ImplicitAPI):
                         'maker': maker,
                         'taker': taker,
                     }
-            return result
+            return linearFees
         elif isInverse:
             #
             #     {
@@ -10229,16 +10395,16 @@ class binance(Exchange, ImplicitAPI):
             if markets is None:
                 raise ExchangeError(self.id + ' markets not loaded')
             symbols = list(markets.keys())
-            result = {}
+            inverseFees = {}
             feeTier = self.safe_integer(response, 'feeTier')
-            feeTiers = (self.fees)['inverse']['trading']['tiers']
-            maker = feeTiers['maker'][feeTier][1]
-            taker = feeTiers['taker'][feeTier][1]
+            feeTiers = self.safe_value(self.safe_value(self.safe_value(self.fees, 'inverse'), 'trading'), 'tiers')
+            maker = self.safe_value(self.safe_value(self.safe_value(feeTiers, 'maker'), feeTier), 1)
+            taker = self.safe_value(self.safe_value(self.safe_value(feeTiers, 'taker'), feeTier), 1)
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
                 market = markets[symbol]
                 if self.safe_bool(market, 'inverse', False):
-                    result[symbol] = {
+                    inverseFees[symbol] = {
                         'info': {
                             'feeTier': feeTier,
                         },
@@ -10246,16 +10412,13 @@ class binance(Exchange, ImplicitAPI):
                         'maker': maker,
                         'taker': taker,
                     }
-            return result
+            return inverseFees
         raise NotSupported(self.id + ' fetchTradingFees() is not supported for ' + type + ' markets')
 
-    def futures_transfer(self, code: str, amount: object, type: float, params: dict = {}) -> TransferEntry:
+    def futures_transfer(self, code: str, amount: float, type: float, params: dict = {}) -> TransferEntry:
         """
  @ignore
         transfer between futures account
-
-        https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/New-Future-Account-Transfer
-
         :param str code: unified currency code
         :param float amount: the amount to transfer
         :param str type: 1 - transfer from spot account to USDT-Ⓜ futures account, 2 - transfer from USDT-Ⓜ futures account to spot account, 3 - transfer from spot account to COIN-Ⓜ futures account, 4 - transfer from COIN-Ⓜ futures account to spot account
@@ -10299,16 +10462,16 @@ class binance(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = None
-        if market['linear'] is True:
+        if self.safe_bool(market, 'linear', False):
             response = self.fapiPublicGetPremiumIndex(self.extend(request, params))
-        elif market['inverse'] is True:
+        elif self.safe_bool(market, 'inverse', False):
             response = self.dapiPublicGetPremiumIndex(self.extend(request, params))
         else:
             raise NotSupported(self.id + ' fetchFundingRate() supports linear and inverse contracts only')
         if response is None:
             raise NullResponse(self.id + ' fetchFundingRate() returned empty response')
-        if market['inverse'] is True:
-            response = response[0]
+        if self.safe_bool(market, 'inverse', False):
+            response = self.safe_value(response, 0)
         #
         #     {
         #         "symbol": "BTCUSDT",
@@ -10345,7 +10508,7 @@ class binance(Exchange, ImplicitAPI):
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate)
-        defaultType = self.safe_string_2(self.options, 'fetchFundingRateHistory', 'defaultType', 'future')
+        defaultType = self.safe_string_2(self.options, 'fetchFundingRateHistory', 'defaultType', 'swap')
         type = self.safe_string(paramsPaginate, 'type', defaultType)
         market = None
         if symbol is not None:
@@ -10410,7 +10573,7 @@ class binance(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         symbolsNormalized = self.market_symbols(symbols)
-        defaultType = self.safe_string_2(self.options, 'fetchFundingRates', 'defaultType', 'future')
+        defaultType = self.safe_string_2(self.options, 'fetchFundingRates', 'defaultType', 'swap')
         type = self.safe_string(params, 'type', defaultType)
         subType, paramsSubType = self.handle_sub_type_and_params('fetchFundingRates', None, params, 'linear')
         query = self.omit(paramsSubType, 'type')
@@ -10503,7 +10666,7 @@ class binance(Exchange, ImplicitAPI):
             position = positions[i]
             marketId = self.safe_string(position, 'symbol')
             market = self.safe_market(marketId, None, None, 'contract')
-            code = market['quote'] if (market['linear'] is True) else market['base']
+            code = market['quote'] if (self.safe_bool(market, 'linear', False)) else market['base']
             maintenanceMargin = self.safe_string(position, 'maintMargin')
             # check for maintenance margin so empty positions are not returned
             isPositionOpen = (maintenanceMargin != '0') and (maintenanceMargin != '0.00000000')
@@ -10511,13 +10674,13 @@ class binance(Exchange, ImplicitAPI):
                 # sometimes not all the codes are correctly returned...
                 if code in balances:
                     parsed = self.parse_account_position(self.extend(position, {
-                        'crossMargin': balances[code]['crossMargin'],
-                        'crossWalletBalance': balances[code]['crossWalletBalance'],
+                        'crossMargin': self.safe_value(balances[code], 'crossMargin'),
+                        'crossWalletBalance': self.safe_value(balances[code], 'crossWalletBalance'),
                     }), market)
                     result.append(parsed)
         return result
 
-    def parse_account_position(self, position: dict, market: Market = None):
+    def parse_account_position(self, position: dict, market: Market = None) -> Position:
         #
         # usdm
         #
@@ -10609,14 +10772,12 @@ class binance(Exchange, ImplicitAPI):
         marketResolved = self.safe_market(marketId, market, None, 'contract')
         symbol = self.safe_string(marketResolved, 'symbol')
         leverageString = self.omit_zero(self.safe_string(position, 'leverage'))  # portfolio-margin accounts may return leverage "0", see #29244
-        leverage = int(leverageString) if (leverageString is not None) else None
         initialMarginString = self.safe_string(position, 'initialMargin')
         initialMargin = self.parse_number(initialMarginString)
         initialMarginPercentageString = None
         if leverageString is not None:
             initialMarginPercentageString = Precise.string_div('1', leverageString, 8)
-            if leverage is None:
-                raise ExchangeError(self.id + ' method() missing leverage')
+            leverage = self.parse_to_int(leverageString)
             rational = self.is_round_number(1000 % leverage)
             if not rational:
                 initialMarginPercentageString = Precise.string_div(Precise.string_add(initialMarginPercentageString, '1e-8'), '1', 8)
@@ -10642,7 +10803,7 @@ class binance(Exchange, ImplicitAPI):
         maintenanceMarginPercentageString = None
         for i in range(0, len(leverageBracket)):
             bracket = leverageBracket[i]
-            if Precise.string_lt(notionalStringAbs, bracket[0]):
+            if Precise.string_lt(notionalStringAbs, self.safe_value(bracket, 0)):
                 break
             maintenanceMarginPercentageString = self.safe_string(bracket, 1)
         maintenanceMarginPercentage = self.parse_number(maintenanceMarginPercentageString)
@@ -10722,13 +10883,16 @@ class binance(Exchange, ImplicitAPI):
             rounderString = str(rounder)
             liquidationPriceRoundedString = Precise.string_add(rounderString, liquidationPriceStringRaw)
             truncatedLiquidationPrice = Precise.string_div(liquidationPriceRoundedString, '1', pricePrecision)
-            if truncatedLiquidationPrice is not None and truncatedLiquidationPrice[0] == '-':
+            if truncatedLiquidationPrice is not None and self.safe_value(truncatedLiquidationPrice, 0) == '-':
                 # user cannot be liquidated
                 # since he has more collateral than the size of the position
                 truncatedLiquidationPrice = None
             liquidationPrice = self.parse_number(truncatedLiquidationPrice)
         positionSide = self.safe_string(position, 'positionSide')
         hedged = positionSide != 'BOTH'
+        isolatedWalletString = None
+        if marginMode == 'isolated':
+            isolatedWalletString = self.safe_string(position, 'isolatedWallet')
         return {
             'info': position,
             'id': None,
@@ -10748,6 +10912,7 @@ class binance(Exchange, ImplicitAPI):
             'marginRatio': marginRatio,
             'liquidationPrice': liquidationPrice,
             'markPrice': None,
+            'positionMargin': self.parse_number(isolatedWalletString),
             'collateral': collateral,
             'marginMode': marginMode,
             'side': side,
@@ -10755,7 +10920,7 @@ class binance(Exchange, ImplicitAPI):
             'percentage': percentage,
         }
 
-    def parse_position_risk(self, position: dict, market: Market = None):
+    def parse_position_risk(self, position: dict, market: Market = None) -> Position:
         #
         # usdm
         #
@@ -10852,7 +11017,7 @@ class binance(Exchange, ImplicitAPI):
         maintenanceMarginPercentageString = None
         for i in range(0, len(leverageBracket)):
             bracket = leverageBracket[i]
-            if Precise.string_lt(notionalStringAbs, bracket[0]):
+            if Precise.string_lt(notionalStringAbs, self.safe_value(bracket, 0)):
                 break
             maintenanceMarginPercentageString = self.safe_string(bracket, 1)
         notional = self.parse_number(notionalStringAbs)
@@ -10928,7 +11093,7 @@ class binance(Exchange, ImplicitAPI):
         initialMarginPercentageString = None
         leverageString = self.omit_zero(self.safe_string(position, 'leverage'))  # portfolio-margin accounts may return leverage "0", see #29244
         if leverageString is not None:
-            leverage = int(leverageString)
+            leverage = self.parse_to_int(leverageString)
             rational = self.is_round_number(1000 % leverage)
             initialMarginPercentageString = Precise.string_div('1', leverageString, 8)
             if not rational:
@@ -10946,6 +11111,9 @@ class binance(Exchange, ImplicitAPI):
             percentage = self.parse_number(Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMarginString, 4), '100'))
         positionSide = self.safe_string(position, 'positionSide')
         hedged = positionSide != 'BOTH'
+        isolatedWalletString = None
+        if marginMode == 'isolated':
+            isolatedWalletString = self.safe_string(position, 'isolatedWallet')
         return self.safe_position({
             'info': position,
             'id': None,
@@ -10955,6 +11123,7 @@ class binance(Exchange, ImplicitAPI):
             'unrealizedPnl': unrealizedPnl,
             'leverage': self.parse_number(leverageString),
             'liquidationPrice': liquidationPrice,
+            'positionMargin': self.parse_number(isolatedWalletString),
             'collateral': collateral,
             'notional': notional,
             'markPrice': markPrice,
@@ -10967,7 +11136,6 @@ class binance(Exchange, ImplicitAPI):
             'marginRatio': marginRatio,
             'datetime': self.iso8601(timestamp),
             'marginMode': marginMode,
-            'marginType': marginMode,  # deprecated
             'side': side,
             'hedged': hedged,
             'percentage': percentage,
@@ -10982,7 +11150,7 @@ class binance(Exchange, ImplicitAPI):
         # it contains useful stuff like the maintenance margin and initial margin for positions
         leverageBrackets = self.safe_dict(self.options, 'leverageBrackets')
         if (leverageBrackets is None) or (reload):
-            defaultType = self.safe_string(self.options, 'defaultType', 'future')
+            defaultType = self.safe_string(self.options, 'defaultType', 'swap')
             type = self.safe_string(params, 'type', defaultType)
             query = self.omit(params, 'type')
             subType = None
@@ -11026,7 +11194,7 @@ class binance(Exchange, ImplicitAPI):
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
 
         https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Notional-and-Leverage-Brackets
-        https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Notional-Bracket-for-Pair
+        https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Notional-Bracket-for-Symbol
         https://developers.binance.com/docs/derivatives/portfolio-margin/account/UM-Notional-and-Leverage-Brackets
         https://developers.binance.com/docs/derivatives/portfolio-margin/account/CM-Notional-and-Leverage-Brackets
 
@@ -11138,7 +11306,7 @@ class binance(Exchange, ImplicitAPI):
         """
         fetch data on an open position
 
-        https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#option-position-information
 
         :param str symbol: unified market symbol of the market the position is held in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -11147,7 +11315,7 @@ class binance(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['option'] is not True:
+        if not self.safe_bool(market, 'option', False):
             raise NotSupported(self.id + ' fetchPosition() supports option markets only')
         request = {
             'symbol': market['id'],
@@ -11182,7 +11350,7 @@ class binance(Exchange, ImplicitAPI):
         """
         fetch data on open options positions
 
-        https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#option-position-information
 
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -11234,7 +11402,7 @@ class binance(Exchange, ImplicitAPI):
             result.append(self.parse_option_position(positions[i], market))
         return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 
-    def parse_option_position(self, position: dict, market: Market = None):
+    def parse_option_position(self, position: dict, market: Market = None) -> Position:
         #
         #     {
         #         "entryPrice": "27.70000000",
@@ -11295,10 +11463,10 @@ class binance(Exchange, ImplicitAPI):
         fetch all open positions
 
         https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
-        https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
         https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information
-        https://developers.binance.com/docs/derivatives/option/trade/Option-Position-Information
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#option-position-information
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -11334,10 +11502,10 @@ class binance(Exchange, ImplicitAPI):
         fetch account positions
 
         https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
-        https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
-        https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
-        https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-Information
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
         https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V3
+        https://developers.binance.com/en/docs/catalog/advanced-trading-derivatives-trading-portfolio-margin/api/rest-api/account#get-um-account-detail-v2
+        https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Account-Detail
 
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -11353,7 +11521,7 @@ class binance(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         self.load_leverage_brackets(False, params)
-        defaultType = self.safe_string(self.options, 'defaultType', 'future')
+        defaultType = self.safe_string(self.options, 'defaultType', 'swap')
         type = self.safe_string(params, 'type', defaultType)
         paramsOmitted = self.omit(params, 'type')
         subType, paramsSubType = self.handle_sub_type_and_params('fetchAccountPositions', None, paramsOmitted, 'linear')
@@ -11471,7 +11639,7 @@ class binance(Exchange, ImplicitAPI):
             self.load_markets()
         self.load_leverage_brackets(False, params)
         request = {}
-        defaultType = 'future'
+        defaultType = 'swap'
         defaultType = self.safe_string(self.options, 'defaultType', defaultType)
         type = self.safe_string(params, 'type', defaultType)
         subType = None
@@ -11634,6 +11802,7 @@ class binance(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest funding history entry
         :param boolean [params.portfolioMargin]: set to True if you would like to fetch the funding history for a portfolio margin account
         :param str [params.subType]: "linear" or "inverse"
+        :param str [params.incomeType]: the income type to request, defaults to FUNDING_FEE, set to SPECIAL_FUNDING_FEE for the additional funding fees generated by tokenized-stock dividends
         :returns dict: a `funding history structure <https://docs.ccxt.com/?id=funding-history-structure>`
         """
         if self.markets is None:
@@ -11645,7 +11814,7 @@ class binance(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-            if market['swap'] is not True:
+            if not self.safe_bool(market, 'swap', False):
                 raise NotSupported(self.id + ' fetchFundingHistory() supports swap contracts only')
         subType, paramsSubType = self.handle_sub_type_and_params('fetchFundingHistory', market, params, 'linear')
         isPortfolioMargin, paramsPapi = self.handle_option_bool_and_params_2(paramsSubType, 'fetchFundingHistory', 'papi', 'portfolioMargin', False)
@@ -11654,7 +11823,7 @@ class binance(Exchange, ImplicitAPI):
             requestUntil['startTime'] = since
         if limit is not None:
             requestUntil['limit'] = limit
-        defaultType = self.safe_string_2(self.options, 'fetchFundingHistory', 'defaultType', 'future')
+        defaultType = self.safe_string_2(self.options, 'fetchFundingHistory', 'defaultType', 'swap')
         type = self.safe_string(paramsUntil, 'type', defaultType)
         paramsOmitted = self.omit(paramsUntil, 'type')
         response = None
@@ -11702,12 +11871,12 @@ class binance(Exchange, ImplicitAPI):
         }
         isPortfolioMargin, paramsPapi = self.handle_option_bool_and_params_2(params, 'setLeverage', 'papi', 'portfolioMargin', False)
         response = None
-        if market['linear'] is True:
+        if self.safe_bool(market, 'linear', False):
             if isPortfolioMargin:
                 response = self.papiPostUmLeverage(self.extend(request, paramsPapi))
             else:
                 response = self.fapiPrivatePostLeverage(self.extend(request, paramsPapi))
-        elif market['inverse'] is True:
+        elif self.safe_bool(market, 'inverse', False):
             if isPortfolioMargin:
                 response = self.papiPostCmLeverage(self.extend(request, paramsPapi))
             else:
@@ -11753,9 +11922,9 @@ class binance(Exchange, ImplicitAPI):
         }
         response = None
         try:
-            if market['linear'] is True:
+            if self.safe_bool(market, 'linear', False):
                 response = self.fapiPrivatePostMarginType(self.extend(request, params))
-            elif market['inverse'] is True:
+            elif self.safe_bool(market, 'inverse', False):
                 response = self.dapiPrivatePostMarginType(self.extend(request, params))
             else:
                 raise NotSupported(self.id + ' setMarginMode() supports linear and inverse contracts only')
@@ -11783,8 +11952,8 @@ class binance(Exchange, ImplicitAPI):
 
         https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Change-Position-Mode
         https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Change-Position-Mode
-        https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Current-Position-Mode
-        https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Current-Position-Mode
+        https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-UM-Position-Mode
+        https://developers.binance.com/docs/derivatives/portfolio-margin/account/Change-CM-Position-Mode
 
         :param bool hedged: set to True to use dualSidePosition
         :param str symbol: not used by setPositionMode()
@@ -11834,8 +12003,7 @@ class binance(Exchange, ImplicitAPI):
         """
         fetch the set leverage for all markets
 
-        https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
-        https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
         https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Account-Detail
         https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Account-Detail
         https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
@@ -11901,7 +12069,7 @@ class binance(Exchange, ImplicitAPI):
         """
         fetches historical settlement records
 
-        https://developers.binance.com/docs/derivatives/option/market-data/Historical-Exercise-Records
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#historical-exercise-records
 
         :param str symbol: unified market symbol of the settlement history
         :param int [since]: timestamp in ms
@@ -11943,7 +12111,7 @@ class binance(Exchange, ImplicitAPI):
         """
         fetches historical settlement records of the user
 
-        https://developers.binance.com/docs/derivatives/option/trade/User-Exercise-Record
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/trade#user-exercise-record
 
         :param str symbol: unified market symbol of the settlement history
         :param int [since]: timestamp in ms
@@ -11990,7 +12158,7 @@ class binance(Exchange, ImplicitAPI):
         sorted = self.sort_by(settlements, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbolResolved, since, limit)
 
-    def parse_settlement(self, settlement: dict, market: Market):
+    def parse_settlement(self, settlement: dict, market: Market) -> dict:
         #
         # fetchSettlementHistory
         #
@@ -12031,7 +12199,7 @@ class binance(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def parse_settlements(self, settlements: list[object], market: Market):
+    def parse_settlements(self, settlements: list[dict], market: Market) -> list:
         #
         # fetchSettlementHistory
         #
@@ -12068,14 +12236,14 @@ class binance(Exchange, ImplicitAPI):
         #
         result = []
         for i in range(0, len(settlements)):
-            result.append(self.parse_settlement(settlements[i], market))
+            result.append(self.parse_settlement(self.safe_value(settlements, i), market))
         return result
 
     def fetch_ledger_entry(self, id: str, code: Str = None, params: dict = {}) -> LedgerEntry:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
-        https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/account#account-funding-flow
 
         :param str id: the identification number of the ledger entry
         :param str code: unified currency code
@@ -12112,7 +12280,7 @@ class binance(Exchange, ImplicitAPI):
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
-        https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/account#account-funding-flow
         https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Get-Income-History
         https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Get-Income-History
         https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Income-History
@@ -12257,25 +12425,31 @@ class binance(Exchange, ImplicitAPI):
             'fee': None,
         }, currencyResolved)
 
-    def parse_ledger_entry_type(self, type: Str):
+    def parse_ledger_entry_type(self, type: Str) -> Str:
         ledgerType = {
             'FEE': 'fee',
             'FUNDING_FEE': 'fee',
+            'SPECIAL_FUNDING_FEE': 'fee',  # the additional funding fee generated by stock dividends
             'OPTIONS_PREMIUM_FEE': 'fee',
             'POSITION_LIMIT_INCREASE_FEE': 'fee',
             'CONTRACT': 'trade',
             'REALIZED_PNL': 'trade',
+            'AUTO_EXCHANGE': 'trade',
             'TRANSFER': 'transfer',
             'CROSS_COLLATERAL_TRANSFER': 'transfer',
             'INTERNAL_TRANSFER': 'transfer',
+            'STRATEGY_UMFUTURES_TRANSFER': 'transfer',
             'COIN_SWAP_DEPOSIT': 'deposit',
             'COIN_SWAP_WITHDRAW': 'withdrawal',
             'OPTIONS_SETTLE_PROFIT': 'settlement',
             'DELIVERED_SETTELMENT': 'settlement',
+            'INSURANCE_CLEAR': 'settlement',
             'WELCOME_BONUS': 'cashback',
             'CONTEST_REWARD': 'cashback',
+            'BFUSD_REWARD': 'cashback',
             'COMMISSION_REBATE': 'rebate',
             'API_REBATE': 'rebate',
+            'FEE_RETURN': 'rebate',
             'REFERRAL_KICKBACK': 'referral',
             'COMMISSION': 'commission',
         }
@@ -12311,15 +12485,15 @@ class binance(Exchange, ImplicitAPI):
             return None
         return scheme + '//' + domain + '/'
 
-    def sign(self, path: str, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None) -> dict:
-        urls = self.urls
-        if not (api in urls['api']):
-            raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')
-        baseApiUrl = self.safe_string(self.urls['api'], api)
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
+        apiUrls = self.safe_dict(self.urls, 'api', {})
+        if not (apiName in apiUrls):
+            raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + apiName + ' endpoints')
+        baseApiUrl = self.safe_string(self.urls['api'], apiName)
         if baseApiUrl is None:
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
-        url = baseApiUrl
-        url += '/' + path
+        url = baseApiUrl + '/' + path
         signedHeaders = None
         signedBody = None
         if path == 'historicalTrades':
@@ -12341,54 +12515,27 @@ class binance(Exchange, ImplicitAPI):
                     signedBody = self.urlencode(params)
             else:
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
-        elif (api == 'private') or (api == 'eapiPrivate') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV2') or (api == 'sapiV3') or (api == 'sapiV4') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2') or (api == 'fapiPrivateV3') or (api == 'papiV2' or api == 'papi' and path != 'ping'):
+        elif (apiName == 'private') or (apiName == 'eapiPrivate') or (apiName == 'sapi' and path != 'system/status') or (apiName == 'sapiV2') or (apiName == 'sapiV3') or (apiName == 'sapiV4') or (apiName == 'dapiPrivate') or (apiName == 'dapiPrivateV2') or (apiName == 'fapiPrivate') or (apiName == 'fapiPrivateV2') or (apiName == 'fapiPrivateV3') or (apiName == 'papiV2' or apiName == 'papi' and path != 'ping'):
             self.check_required_credentials()
             if (url.find('testnet.binancefuture.com') > -1) and self.isSandboxModeEnabled and (not self.safe_bool(self.options, 'disableFuturesSandboxWarning', False)):
                 raise NotSupported(self.id + ' testnet/sandbox mode is not supported for futures anymore, please check the deprecation announcement https://t.me/ccxt_announcements/92 and consider using the demo trading instead.')
-            if method == 'POST' and ((path == 'order') or (path == 'sor/order')):
-                # inject in implicit API calls
-                newClientOrderId = self.safe_string(params, 'newClientOrderId')
-                if newClientOrderId is None:
-                    isSpotOrMargin = (api.find('sapi') > -1 or api == 'private')
-                    marketType = 'future'
-                    if isSpotOrMargin:
-                        marketType = 'spot'
-                    defaultId = 'x-TKT5PX2F'
-                    if not isSpotOrMargin:
-                        defaultId = 'x-xcKtGhcu'
-                    broker = self.safe_dict(self.options, 'broker', {})
-                    brokerId = self.safe_string(broker, marketType, defaultId)
-                    params['newClientOrderId'] = brokerId + self.uuid22()
-            query = None
+            requestParams = self.handle_client_order_id(params, apiName, path, method)
+            query = ''
             # handle batchOrders
             if (path == 'batchOrders') and ((method == 'POST') or (method == 'PUT')):
-                batchOrders = self.safe_list(params, 'batchOrders', [])
-                checkedBatchOrders = batchOrders
-                if method == 'POST' and api == 'fapiPrivate':
-                    # check broker id if batchOrders are called with fapiPrivatePostBatchOrders
-                    checkedBatchOrders = []
-                    for i in range(0, len(batchOrders)):
-                        batchOrder = batchOrders[i]
-                        newClientOrderId = self.safe_string(batchOrder, 'newClientOrderId')
-                        if newClientOrderId is None:
-                            defaultId = 'x-xcKtGhcu'  # batchOrders can not be spot or margin
-                            broker = self.safe_dict(self.options, 'broker', {})
-                            brokerId = self.safe_string(broker, 'future', defaultId)
-                            newClientOrderId = brokerId + self.uuid22()
-                            batchOrder['newClientOrderId'] = newClientOrderId
-                        checkedBatchOrders.append(batchOrder)
-                queryBatch = (self.json(checkedBatchOrders))
-                params['batchOrders'] = queryBatch
+                batchOrders = self.safe_list(requestParams, 'batchOrders', [])
+                queryBatch = (self.json(batchOrders))
+                requestParams['batchOrders'] = queryBatch
             defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
             extendedParams = self.extend({
                 'timestamp': self.nonce(),
-            }, params)
+            }, requestParams)
             if defaultRecvWindow is not None:
                 extendedParams['recvWindow'] = defaultRecvWindow
-            recvWindow = self.safe_integer(params, 'recvWindow')
+            recvWindow = self.safe_integer(requestParams, 'recvWindow')
             if recvWindow is not None:
                 extendedParams['recvWindow'] = recvWindow
-            if (api == 'sapi') and (path == 'asset/dust'):
+            if (apiName == 'sapi') and (path == 'asset/dust'):
                 query = self.urlencode_with_array_repeat(extendedParams)
             elif (path == 'batchOrders') or (path.find('sub-account') >= 0) or (path == 'capital/withdraw/apply') or (path.find('staking') >= 0) or (path.find('simple-earn') >= 0):
                 if (method == 'DELETE') and (path == 'batchOrders'):
@@ -12396,7 +12543,7 @@ class binance(Exchange, ImplicitAPI):
                     origclientorderidlist = self.safe_list_2(extendedParams, 'origclientorderidlist', 'origClientOrderIdList', [])
                     extendedParams = self.omit(extendedParams, ['orderidlist', 'origclientorderidlist', 'origClientOrderIdList'])
                     if 'symbol' in extendedParams:
-                        extendedParams['symbol'] = self.encode_uri_component(extendedParams['symbol'])
+                        extendedParams['symbol'] = self.encode_uri_component(self.safe_string(extendedParams, 'symbol', ''))
                     query = self.rawencode(extendedParams)
                     orderidlistLength = len(orderidlist)
                     origclientorderidlistLength = len(origclientorderidlist)
@@ -12406,7 +12553,7 @@ class binance(Exchange, ImplicitAPI):
                         # wrap clientOrderids around ""
                         newClientOrderIds = []
                         for i in range(0, origclientorderidlistLength):
-                            newClientOrderIds.append('%22' + origclientorderidlist[i] + '%22')
+                            newClientOrderIds.append('%22' + self.safe_string(origclientorderidlist, i, '') + '%22')
                         query = query + '&' + 'origclientorderidlist=%5B' + '%2C'.join(newClientOrderIds) + '%5D'
                 else:
                     query = self.rawencode(extendedParams)
@@ -12425,22 +12572,23 @@ class binance(Exchange, ImplicitAPI):
                 'X-MBX-APIKEY': self.apiKey,
             }
             if (method == 'GET') or (method == 'DELETE'):
-                url += '?' + query
+                url = url + '?' + query
             else:
                 signedBody = query
                 signedHeaders['Content-Type'] = 'application/x-www-form-urlencoded'
         else:
             if len(params) > 0:
-                url += '?' + self.urlencode(params)
-        headersResolved = signedHeaders if (signedHeaders is not None) else headers
-        bodyResolved = signedBody if (signedBody is not None) else body
+                url = url + '?' + self.urlencode(params)
+        headersResolved = signedHeaders
+        bodyResolved = signedBody
         return {'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved}
 
-    def get_exceptions_by_url(self, url: Str, exactOrBroad: str):
-        if url is None:
-            return {}
+    def get_exceptions_by_url(self, url: str, exactOrBroad: str) -> dict:
+        # the only callers pass handleErrors' url, which is a non-nullable string everywhere
         marketType = None
-        hostname = self.hostname if (self.hostname is not None) else 'binance.com'
+        hostname = 'binance.com'
+        if self.hostname is not None:
+            hostname = self.hostname
         if url.startswith('https://api.' + hostname + '/') or url.startswith('https://demo-api') or url.startswith('https://testnet.binance.vision'):
             marketType = 'spot'
         elif url.startswith('https://dapi.' + hostname + '/') or url.startswith('https://demo-dapi') or url.startswith('https://testnet.binancefuture.com/dapi'):
@@ -12456,7 +12604,7 @@ class binance(Exchange, ImplicitAPI):
             return self.safe_dict(exceptionsForMarketType, exactOrBroad, {})
         return {}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if (code == 418) or (code == 429):
             raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
         # error response in a form: { "code": -1013, "msg": "Invalid quantity." }
@@ -12474,7 +12622,7 @@ class binance(Exchange, ImplicitAPI):
         # response in format {'msg': 'The coin does not exist.', 'success': true/false}
         success = self.safe_bool(response, 'success', True)
         parsedMessage = None
-        if success is not True:
+        if not success:
             messageNew = self.safe_string(response, 'msg')
             if messageNew is not None:
                 try:
@@ -12512,7 +12660,7 @@ class binance(Exchange, ImplicitAPI):
             self.throw_exactly_matched_exception(self.get_exceptions_by_url(url, 'exact'), error, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)
             raise ExchangeError(feedback)
-        if success is not True:
+        if not success:
             raise ExchangeError(self.id + ' ' + body)
         if isinstance(responseParsed, list):
             # cancelOrders returns an array like this: [{"code":-2011,"msg":"Unknown order sent."}]
@@ -12525,7 +12673,7 @@ class binance(Exchange, ImplicitAPI):
                     self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, self.id + ' ' + body)
         return None
 
-    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config: dict = {}):
+    def calculate_rate_limiter_cost(self, api: object, method: str, path: str, params: object, config: dict = {}):
         if ('noCoin' in config) and not ('coin' in params):
             return config['noCoin']
         elif ('noSymbol' in config) and not ('symbol' in params):
@@ -12534,29 +12682,29 @@ class binance(Exchange, ImplicitAPI):
             return config['noPoolId']
         elif ('byLimit' in config) and ('limit' in params):
             limit = params['limit']
-            # safeValue keeps runtime identical to the prior bare index (no empty-array default)
-            byLimit = self.safe_value(config, 'byLimit')
+            # every 'byLimit' entry in describe() is a non-empty array literal, so the [] default is unreachable
+            byLimit = self.safe_list(config, 'byLimit', [])
             for i in range(0, len(byLimit)):
                 entry = byLimit[i]
                 if limit <= entry[0]:
                     return entry[1]
         return self.safe_value(config, 'cost', 1)
 
-    def request(self, path: str, api='public', method: object = 'GET', params: dict = {}, headers: object = None, body: object = None, config: dict = {}):
-        response = self.fetch2(path, api, method, params, headers, body, config)
+    def request(self, path: str, api: list[str] = ['public'], method: object = 'GET', params: dict = {}, config: dict = {}):
+        response = self.fetch2(path, api, method, params, config)
         # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-        if api == 'private':
+        if api[0] == 'private':
             self.options['hasAlreadyAuthenticatedSuccessfully'] = True
         return response
 
-    def modify_margin_helper(self, symbol: str, amount: object, addOrReduce: object, params: dict = {}) -> MarginModification:
+    def modify_margin_helper(self, symbol: str, amount: float, addOrReduce: float, params: dict = {}) -> MarginModification:
         # used to modify isolated positions
-        defaultType = self.safe_string(self.options, 'defaultType', 'future')
+        defaultType = self.safe_string(self.options, 'defaultType', 'swap')
         if defaultType == 'spot':
-            defaultType = 'future'
+            defaultType = 'swap'
         type = self.safe_string(params, 'type', defaultType)
         if (type == 'margin') or (type == 'spot'):
-            raise NotSupported(self.id + ' add / reduce margin only supported with type future or delivery')
+            raise NotSupported(self.id + ' add / reduce margin only supported with linear or inverse swap/future markets')
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
@@ -12568,7 +12716,7 @@ class binance(Exchange, ImplicitAPI):
         }
         response = None
         code = None
-        if market['linear'] is True:
+        if self.safe_bool(market, 'linear', False):
             code = self.safe_string(market, 'quote')
             response = self.fapiPrivatePostPositionMargin(self.extend(request, params))
         else:
@@ -12854,7 +13002,7 @@ class binance(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    def create_gift_code(self, code: str, amount: object, params: dict = {}) -> dict:
+    def create_gift_code(self, code: str, amount: Num, params: dict = {}) -> dict:
         """
         create gift code
 
@@ -12893,7 +13041,7 @@ class binance(Exchange, ImplicitAPI):
             'amount': amount,
         }
 
-    def redeem_gift_code(self, giftcardCode: object, params: dict = {}):
+    def redeem_gift_code(self, giftcardCode: str, params: dict = {}) -> dict:
         """
         redeem gift code
 
@@ -12920,7 +13068,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return response
 
-    def verify_gift_code(self, id: str, params: dict = {}):
+    def verify_gift_code(self, id: str, params: dict = {}) -> dict:
         """
         verify gift code
 
@@ -13257,12 +13405,14 @@ class binance(Exchange, ImplicitAPI):
         }
         if limit is not None:
             request['limit'] = limit
-        symbolKey = 'pair'
-        if market['linear'] is True:
-            symbolKey = 'symbol'
-        request[symbolKey] = market['id']
-        if market['inverse'] is True:
-            request['contractType'] = self.safe_string(paramsPaginate, 'contractType', 'CURRENT_QUARTER')
+        if self.safe_bool(market, 'linear', False):
+            request['symbol'] = market['id']
+        elif self.safe_bool(market, 'inverse', False):
+            # dapi expects the underlying pair (BTCUSD) and a contract type, not the market id (BTCUSD_PERP)
+            request['pair'] = self.safe_string(market['info'], 'pair')
+            request['contractType'] = 'PERPETUAL' if (self.safe_bool(market, 'swap', False)) else self.safe_string(market['info'], 'contractType')
+        else:
+            raise NotSupported(self.id + ' fetchOpenInterestHistory() supports linear and inverse contracts only')
         if since is not None:
             request['startTime'] = since
         until = self.safe_integer(paramsPaginate, 'until')  # unified in milliseconds
@@ -13276,7 +13426,7 @@ class binance(Exchange, ImplicitAPI):
             duration = self.parse_timeframe(timeframe)
             request['endTime'] = self.sum(since, duration * limitDefault * 1000)
         response = None
-        if market['inverse'] is True:
+        if self.safe_bool(market, 'inverse', False):
             response = self.dapiDataGetOpenInterestHist(self.extend(request, paramsOmitted))
         else:
             response = self.fapiDataGetOpenInterestHist(self.extend(request, paramsOmitted))
@@ -13291,6 +13441,19 @@ class binance(Exchange, ImplicitAPI):
         #      ...
         #  ]
         #
+        # inverse
+        #
+        #  [
+        #      {
+        #          "contractType":"PERPETUAL",
+        #          "sumOpenInterest":"13069401.00000000",
+        #          "sumOpenInterestValue":"15796.96988405",
+        #          "pair":"BTCUSD",
+        #          "timestamp":1791835200000
+        #      },
+        #      ...
+        #  ]
+        #
         return self.parse_open_interests_history(response, market, since, limit)
 
     def fetch_open_interest(self, symbol: str, params: dict = {}) -> OpenInterest:
@@ -13299,7 +13462,7 @@ class binance(Exchange, ImplicitAPI):
 
         https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Open-Interest
         https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Open-Interest
-        https://developers.binance.com/docs/derivatives/option/market-data/Open-Interest
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#open-interest
 
         :param str symbol: unified CCXT market symbol
         :param dict [params]: exchange specific parameters
@@ -13309,17 +13472,17 @@ class binance(Exchange, ImplicitAPI):
             self.load_markets()
         market = self.market(symbol)
         request = {}
-        if market['option'] is True:
+        if self.safe_bool(market, 'option', False):
             request['underlyingAsset'] = market['baseId']
-            if market['expiry'] is None:
+            if self.safe_integer(market, 'expiry') is None:
                 raise NotSupported(self.id + ' fetchOpenInterest does not support ' + symbol)
             request['expiration'] = self.yymmdd(market['expiry'])
         else:
             request['symbol'] = market['id']
         response = None
-        if market['option'] is True:
+        if self.safe_bool(market, 'option', False):
             response = self.eapiPublicGetOpenInterest(self.extend(request, params))
-        elif market['inverse'] is True:
+        elif self.safe_bool(market, 'inverse', False):
             response = self.dapiPublicGetOpenInterest(self.extend(request, params))
         else:
             response = self.fapiPublicGetOpenInterest(self.extend(request, params))
@@ -13353,7 +13516,7 @@ class binance(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        if market['option'] is True:
+        if self.safe_bool(market, 'option', False):
             symbolValue = market['symbol']
             result = self.parse_open_interests_history(response, market)
             for i in range(0, len(result)):
@@ -13364,7 +13527,7 @@ class binance(Exchange, ImplicitAPI):
         else:
             return self.parse_open_interest(response, market)
 
-    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         timestamp = self.safe_integer_2(interest, 'timestamp', 'time')
         id = self.safe_string(interest, 'symbol')
         amount = self.safe_number_2(interest, 'sumOpenInterest', 'openInterest')
@@ -13393,6 +13556,7 @@ class binance(Exchange, ImplicitAPI):
         https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Users-Force-Orders
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-UM-Force-Orders
         https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-CM-Force-Orders
+        https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-Users-Margin-Force-Orders
 
         :param str [symbol]: unified CCXT market symbol
         :param int [since]: the earliest time in ms to fetch liquidations for
@@ -13421,7 +13585,7 @@ class binance(Exchange, ImplicitAPI):
             request['autoCloseType'] = 'LIQUIDATION'
         if market is not None:
             symbolKey = 'symbol'
-            if market['spot'] is True:
+            if self.safe_bool(market, 'spot', False):
                 symbolKey = 'isolatedSymbol'
             if not isPortfolioMargin:
                 request[symbolKey] = market['id']
@@ -13450,7 +13614,7 @@ class binance(Exchange, ImplicitAPI):
             else:
                 response = self.dapiPrivateGetForceOrders(self.extend(requestUntil, paramsUntil))
         else:
-            raise NotSupported(self.id + ' fetchMyLiquidations() does not support ' + self.safe_string(market, 'type') + ' markets')
+            raise NotSupported(self.id + ' fetchMyLiquidations() does not support ' + self.safe_string(market, 'type', '') + ' markets')
         #
         # margin
         #
@@ -13625,7 +13789,7 @@ class binance(Exchange, ImplicitAPI):
         """
         fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
-        https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#option-mark-price
 
         :param str symbol: unified symbol of the market to fetch greeks for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -13661,7 +13825,7 @@ class binance(Exchange, ImplicitAPI):
         """
         fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
-        https://developers.binance.com/docs/derivatives/option/market-data/Option-Mark-Price
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#option-mark-price
 
         :param str[] [symbols]: unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -13742,7 +13906,7 @@ class binance(Exchange, ImplicitAPI):
         markets = self.fetch_markets()
         tradingLimits = {}
         for i in range(0, len(markets)):
-            market = markets[i]
+            market = self.safe_value(markets, i)
             symbol = self.safe_string(market, 'symbol')
             if market is None:
                 raise ExchangeError(self.id + ' fetchTradingLimits() could not resolve market')
@@ -13789,8 +13953,7 @@ class binance(Exchange, ImplicitAPI):
         """
         fetches margin modes("isolated" or "cross") that the market for the symbol in in, with symbol=None all markets for a subType(linear/inverse) are returned
 
-        https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
-        https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
         https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
 
         :param str[] symbols: unified market symbols
@@ -13881,7 +14044,7 @@ class binance(Exchange, ImplicitAPI):
         fetches the margin mode of a specific symbol
 
         https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
-        https://developers.binance.com/docs/derivatives/coin-margined-futures/account/rest-api/Account-Information
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-coin-m-futures/api/rest-api/account#account-information
 
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -13917,7 +14080,7 @@ class binance(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' fetchMarginMode () supports linear and inverse subTypes only')
         if response is None:
             raise NullResponse(self.id + ' fetchMarginMode() returned empty response')
-        return self.parse_margin_mode(response[0], market)
+        return self.parse_margin_mode(self.safe_value(response, 0), market)
 
     def parse_margin_mode(self, marginMode: dict, market: Market = None) -> MarginMode:
         marketId = self.safe_string(marginMode, 'symbol')
@@ -13939,7 +14102,7 @@ class binance(Exchange, ImplicitAPI):
         """
         fetches option data that is commonly found in an option chain
 
-        https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics
+        https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-options/api/rest-api/market-data#ticker24hr-price-change-statistics
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -14058,9 +14221,9 @@ class binance(Exchange, ImplicitAPI):
         if until is not None:
             request['endTime'] = until
         response = None
-        if market['linear'] is True:
+        if self.safe_bool(market, 'linear', False):
             response = self.fapiPrivateGetPositionMarginHistory(self.extend(request, paramsOmitted))
-        elif market['inverse'] is True:
+        elif self.safe_bool(market, 'inverse', False):
             response = self.dapiPrivateGetPositionMarginHistory(self.extend(request, paramsOmitted))
         else:
             raise BadRequest(self.id + ' fetchMarginAdjustmentHistory () is not supported for markets of type ' + market['type'])
@@ -14320,15 +14483,11 @@ class binance(Exchange, ImplicitAPI):
         request = {}
         msInThirtyDays = 2592000000
         now = self.milliseconds()
-        if since is not None:
-            request['startTime'] = since
-        else:
-            request['startTime'] = now - msInThirtyDays
+        startTime = since if (since is not None) else (now - msInThirtyDays)
+        request['startTime'] = startTime
         endTime = self.safe_integer_2(params, 'endTime', 'until')
-        if endTime is not None:
-            request['endTime'] = endTime
-        else:
-            request['endTime'] = now
+        endTimeResolved = endTime if (endTime is not None) else now
+        request['endTime'] = endTimeResolved
         paramsOmitted = self.omit(params, 'until')
         response = None
         responseQuery = None
@@ -14362,7 +14521,7 @@ class binance(Exchange, ImplicitAPI):
             #     }
             #
         else:
-            if (request['endTime'] - request['startTime']) > msInThirtyDays:
+            if (endTimeResolved - startTime) > msInThirtyDays:
                 raise BadRequest(self.id + ' fetchConvertTradeHistory () the max interval between startTime and endTime is 30 days.')
             if limit is not None:
                 request['limit'] = limit

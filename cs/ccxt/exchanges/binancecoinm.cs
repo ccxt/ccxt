@@ -40,7 +40,7 @@ public partial class binancecoinm : binance
         return ccxt.BaseExchange.ToTransferEntry(await this.futuresTransfer(code, amount, 3, parameters));
     }
 
-    public async virtual Task<ccxt.TransferEntry> TransferOut(string code, object amount, IDictionary<string, object>? parameters = null)
+    public async virtual Task<ccxt.TransferEntry> TransferOut(string code, double amount, IDictionary<string, object>? parameters = null)
     {
         // transfer from coinm futures wallet to spot wallet
         parameters ??= new Dictionary<string, object>();

@@ -92,6 +92,7 @@ type Cancel struct {
 type CancelMessage struct {
 	Type    string   `json:"type" msgpack:"type"`
 	Cancels []Cancel `json:"cancels" msgpack:"cancels"`
+	F       *bool    `json:"f,omitempty" msgpack:"f,omitempty"` // optional fast flag, must be absent when false
 }
 
 // Transfer
@@ -249,6 +250,7 @@ type CancelByCloidItem struct {
 type CancelByCloidMessage struct {
 	Type    string              `json:"type" msgpack:"type"`
 	Cancels []CancelByCloidItem `json:"cancels" msgpack:"cancels"`
+	F       *bool               `json:"f,omitempty" msgpack:"f,omitempty"` // optional fast flag, must be absent when false
 }
 
 // =====================================  Hyperliquid Structs ===================================== //
@@ -853,7 +855,7 @@ func (this *BaseExchange) LighterCreateClient(signer any, chainId any, privateKe
 }
 
 func (this *BaseExchange) lighterCreateClient(signer any, chainId uint32, privateKey string, apiKeyIndex uint8, accountIndex int64) any {
-	url := this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), "public"))
+	url := this.ImplodeHostname(this.UrlsApi["public"])
 
 	httpClient := http.NewClient(url)
 
