@@ -181,6 +181,9 @@ export default class vexora extends Exchange {
                 'cost': { 'min': undefined, 'max': undefined },
             },
             'created': undefined,
+            'takerOrMaker': 'taker',
+            'maker': this.parseNumber ('0.001'),
+            'taker': this.parseNumber ('0.002'),
             'info': product,
         });
     }
