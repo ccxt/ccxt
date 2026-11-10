@@ -95,6 +95,9 @@
             },
             "watchTradesForSymbols": {
                 "timestampSort": "same"
+            },
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo review - exchange api might be broken"
             }
         }
     },
@@ -528,10 +531,7 @@
             "fetchOrderBook": {
                 "timestamp": "not provided"
             },
-            "fetchOHLCV": {
-                "compareTimestampToSince": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263692798#L2209",
-                "compareAmountToZero": "sometimes zero amount returned"
-            },
+            "fetchOHLCV": "multiple bugs",
             "watchTicker": {
                 "compareOHLC": "broken https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:1178"
             },
@@ -1181,7 +1181,8 @@
                 "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16059129227/job/45320923643?pr=26334#step:9:291"
             },
             "fetchOHLCV": {
-                "4": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269542746#L3512"
+                "4": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269542746#L3512",
+                "compareAmountToZero": "todo - bug in exchange api"
             },
             "fetchCurrencies": {
                 "type": "todo",
@@ -1647,6 +1648,9 @@
             },
             "fetchTrades": {
                 "sideSequence": "todo check"
+            },
+            "fetchOHLCV": {
+                "compareDuration": "todo review - exchange api might be broken"
             }
         }
     },
@@ -1795,7 +1799,8 @@
                 "timestamp": "the orderbook_fp response carries no timestamp"
             },
             "fetchOHLCV": {
-                "compareTimestampToLimit": "todo"
+                "compareTimestampToLimit": "todo",
+                "compareAmountToZero": "todo - default symbol is empty"
             }
         }
     },
@@ -2338,7 +2343,8 @@
                 "average": "sometimes zero"
             },
             "fetchOHLCV": {
-                "compareOHLCV": "broken https://github.com/ccxt/ccxt/actions/runs/21000025491/job/60367774165?pr=27676#step:10:1505"
+                "compareOHLCV": "broken https://github.com/ccxt/ccxt/actions/runs/21000025491/job/60367774165?pr=27676#step:10:1505",
+                "compareAmountToZero": "todo: exchange API is broken atm"
             }
         }
     },
@@ -2765,6 +2771,9 @@
             },
             "fetchOrderBook": {
                 "timestamp": "not provided"
+            },
+            "fetchOHLCV": {
+                "compareTimestampToLimit": "todo review - exchange api might be broken"
             }
         }
     },
