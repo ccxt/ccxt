@@ -446,7 +446,7 @@ impl Bullish {
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut messageHash: String = format!("{}{}", Value::Str("trades::".into()), self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]));
@@ -546,7 +546,7 @@ impl Bullish {
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut symbolValue: String = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -656,7 +656,7 @@ impl Bullish {
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut url: String = "/trading-api/v1/market-data/orderbook".to_string();
@@ -719,10 +719,10 @@ impl Bullish {
             m
         });
         let mut parsed: Value = self.parse_order_book(Value::Map(snapshot), symbol.clone(), &[Value::from(timestamp)]);
-        let mut sequenceNumberRange: Value = self.safe_list_k(data, "sequenceNumberRange", &[Value::from(vec![])]);
+        let mut sequenceNumberRange: Vec<Value> = self.safe_list_k(data, "sequenceNumberRange", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         if ((sequenceNumberRange.len() as i64) as f64) > ((0i64) as f64) {
             let mut lastIndex: Value = (match (&(Value::Int(sequenceNumberRange.len() as i64)), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-            parsed.set_book_meta("nonce", self.safe_integer(sequenceNumberRange, lastIndex, &[]));
+            parsed.set_book_meta("nonce", self.safe_integer(sequenceNumberRange.clone().into(), lastIndex, &[]));
         }
         orderbook.reset(parsed);
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), orderbook.clone()); }
@@ -778,7 +778,7 @@ impl Bullish {
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut subscribeHash: String = "orders".to_string();
         let mut messageHash: Value = Value::from(subscribeHash.clone());
@@ -929,7 +929,7 @@ impl Bullish {
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut subscribeHash: String = "myTrades".to_string();
         let mut messageHash: Value = Value::from(subscribeHash.clone());
@@ -1067,7 +1067,7 @@ impl Bullish {
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1205,7 +1205,7 @@ impl Bullish {
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut subscribeHash: String = "positions".to_string();
         let mut messageHash: Value = Value::from(subscribeHash.clone());

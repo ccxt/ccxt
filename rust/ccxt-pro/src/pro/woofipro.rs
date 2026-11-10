@@ -432,7 +432,7 @@ impl Woofipro {
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut name: String = "orderbook".to_string();
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
@@ -514,7 +514,7 @@ impl Woofipro {
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut name: String = "ticker".to_string();
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
@@ -621,7 +621,7 @@ impl Woofipro {
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut name: String = "tickers".to_string();
@@ -705,7 +705,7 @@ impl Woofipro {
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut name: String = "bbos".to_string();
@@ -814,7 +814,7 @@ impl Woofipro {
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (timeframe.as_str() != Some("1m")) && (timeframe.as_str() != Some("5m")) && (timeframe.as_str() != Some("15m")) && (timeframe.as_str() != Some("30m")) && (timeframe.as_str() != Some("1h")) && (timeframe.as_str() != Some("1d")) && (timeframe.as_str() != Some("1w")) && (timeframe.as_str() != Some("1M")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M".into()))));
@@ -914,7 +914,7 @@ impl Woofipro {
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: Value = Value::from((market).symbol.clone());
@@ -1212,7 +1212,7 @@ impl Woofipro {
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut trigger: bool = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut topic: String = "executionreport".to_string();
@@ -1221,11 +1221,11 @@ impl Woofipro {
         }
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[]);
         let mut messageHash: Value = Value::from(topic.clone());
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut symbolResolved: Value = (if (market != Value::Null) { self.safe_string_k(market.clone(), "symbol", &[]) } else { Value::Null });
+        let mut symbolResolved: Value = (if (market.is_some()) { self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]) } else { Value::Null });
         if (symbol != Value::Null) {
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())), Value::Str("symbol".into()), &[Value::Str("".into())])).into())).into());
         }
@@ -1273,7 +1273,7 @@ impl Woofipro {
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut trigger: bool = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut topic: String = "executionreport".to_string();
@@ -1282,11 +1282,11 @@ impl Woofipro {
         }
         let mut paramsOmitted: Value = self.omit(params, Value::Str("stop".into()), &[]);
         let mut messageHash: Value = Value::Str("myTrades".into());
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut symbolResolved: Value = (if (market != Value::Null) { self.safe_string_k(market.clone(), "symbol", &[]) } else { Value::Null });
+        let mut symbolResolved: Value = (if (market.is_some()) { self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "symbol", &[]) } else { Value::Null });
         if (symbol != Value::Null) {
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())), Value::Str("symbol".into()), &[Value::Str("".into())])).into())).into());
         }
@@ -1596,7 +1596,7 @@ impl Woofipro {
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
@@ -1851,7 +1851,7 @@ impl Woofipro {
     m
 }));
         if (self.markets.clone() == Value::Null) {
-            crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+            if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut topic: String = "balance".to_string();
         let mut messageHash: Value = Value::from(topic.clone());

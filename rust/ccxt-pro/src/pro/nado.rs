@@ -443,7 +443,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut messageHash: String = format!("{}{}", Value::Str("trade:".into()), Value::from((market).symbol.clone()));
         let mut trades: Value = self.watch_public(Value::Str("trade".into()), (market).raw.clone(), Value::from(messageHash), &[params]).await;
@@ -476,7 +476,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         return crate::types::IntoRaw::into_raw(self.un_watch_trades_for_symbols((Value::from(vec![symbol])).to_str_vec(), params).await);
         Value::Null
         }).await?))
@@ -506,7 +506,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
         if (symbolsLength == 0.0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchTradesForSymbols() requires a non-empty array of symbols".into()))));
@@ -555,7 +555,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
         if (symbolsLength == 0.0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" unWatchTradesForSymbols() requires a non-empty array of symbols".into()))));
@@ -599,12 +599,12 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut messageHash: String = format!("{}{}", Value::Str("orderbook:".into()), Value::from((market).symbol.clone()));
         if !(self.orderbooks.as_map().is_some_and(|__m| Value::from((market).symbol.clone()).as_str().is_some_and(|__k| __m.contains_key(__k)))) {
-            let mut snapshot: Value = crate::types::IntoRaw::into_raw(self.fetch_order_book(symbol.as_str().unwrap_or_default(), limit.as_i64(), Value::Null).await);
-            { let __be_tmp = self.order_book(&[snapshot, limit.clone()]); add_element_to_object(&mut self.orderbooks, &Value::from((market).symbol.clone()), __be_tmp); };
+            let mut snapshot: crate::types::OrderBook = (match self.fetch_order_book(symbol.as_str().unwrap_or_default(), limit.as_i64(), Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            { let __be_tmp = self.order_book(&[crate::types::IntoRaw::into_raw(snapshot), limit.clone()]); add_element_to_object(&mut self.orderbooks, &Value::from((market).symbol.clone()), __be_tmp); };
         }
         let mut orderbook: Value = self.watch_public(Value::Str("book_depth".into()), (market).raw.clone(), Value::from(messageHash), &[params]).await;
         return orderbook.limit();
@@ -632,7 +632,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         return crate::types::IntoRaw::into_raw(self.un_watch_order_book_for_symbols((Value::from(vec![symbol])).to_str_vec(), params).await);
         Value::Null
         }).await?))
@@ -660,7 +660,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
         if (symbolsLength == 0.0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOrderBookForSymbols() requires a non-empty array of symbols".into()))));
@@ -678,8 +678,8 @@ impl Nado {
             markets.push((market).raw.clone());
             messageHashes.push(messageHash);
             if !(self.orderbooks.as_map().is_some_and(|__m| Value::from((market).symbol.clone()).as_str().is_some_and(|__k| __m.contains_key(__k)))) {
-                let mut snapshot: Value = crate::types::IntoRaw::into_raw(self.fetch_order_book(symbol.as_str().unwrap_or_default(), limit.as_i64(), Value::Null).await);
-                { let __be_tmp = self.order_book(&[snapshot, limit.clone()]); add_element_to_object(&mut self.orderbooks, &Value::from((market).symbol.clone()), __be_tmp); };
+                let mut snapshot: crate::types::OrderBook = (match self.fetch_order_book(symbol.as_str().unwrap_or_default(), limit.as_i64(), Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                { let __be_tmp = self.order_book(&[crate::types::IntoRaw::into_raw(snapshot), limit.clone()]); add_element_to_object(&mut self.orderbooks, &Value::from((market).symbol.clone()), __be_tmp); };
             }
         }
         }
@@ -709,7 +709,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
         if (symbolsLength == 0.0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" unWatchOrderBookForSymbols() requires a non-empty array of symbols".into()))));
@@ -757,7 +757,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), timeframe).into()), Value::Str(":".into())).into()), Value::from((market).symbol.clone()));
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -805,7 +805,7 @@ impl Nado {
         if (symbolsLength == 0.0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]".into()))));
         }
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut markets: Vec<Value> = Vec::new();
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut subscriptionParams: Vec<Value> = Vec::new();
@@ -863,7 +863,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         return crate::types::IntoRaw::into_raw(self.un_watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbol, timeframe])])).to_str_vec_vec(), params).await);
         Value::Null
         }).await?))
@@ -893,7 +893,7 @@ impl Nado {
         if (symbolsLength == 0.0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]".into()))));
         }
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut markets: Vec<Value> = Vec::new();
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut subscriptionParams: Vec<Value> = Vec::new();
@@ -940,7 +940,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolValue: Value = self.symbol(symbol.clone());
         let mut tickers: Value = crate::types::IntoRaw::into_raw(self.watch_tickers((Value::from(vec![symbolValue.clone()])).to_opt_str_vec(), params).await);
         return (if let (Some(__m), Some(__k)) = (tickers.as_map(), symbolValue.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
@@ -968,7 +968,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         return crate::types::IntoRaw::into_raw(self.un_watch_tickers((Value::from(vec![symbol])).to_opt_str_vec(), params).await);
         Value::Null
         }).await?))
@@ -994,7 +994,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
         let mut market: Value = Value::Null;
         let mut messageHash: String = "ticker".to_string();
@@ -1048,7 +1048,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
         let mut market: Value = Value::Null;
         let mut messageHash: String = "ticker".to_string();
@@ -1087,7 +1087,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
         let mut market: Value = Value::Null;
         let mut messageHash: String = "bidask".to_string();
@@ -1141,7 +1141,7 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true), Value::Bool(true), Value::Bool(true)]);
         let mut market: Value = Value::Null;
         let mut messageHash: String = "bidask".to_string();
@@ -1187,7 +1187,7 @@ impl Nado {
     m
 }));
         self.check_required_credentials(&[]);
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let __ws_arg_3 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1249,7 +1249,7 @@ impl Nado {
     m
 }));
         self.check_required_credentials(&[]);
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let __ws_arg_4 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1309,7 +1309,7 @@ impl Nado {
     m
 }));
         self.check_required_credentials(&[]);
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let __ws_arg_5 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1371,7 +1371,7 @@ impl Nado {
     m
 }));
         self.check_required_credentials(&[]);
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let __ws_arg_6 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1431,7 +1431,7 @@ impl Nado {
     m
 }));
         self.check_required_credentials(&[]);
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let __ws_arg_7 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1493,7 +1493,7 @@ impl Nado {
     m
 }));
         self.check_required_credentials(&[]);
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let __ws_arg_8 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1567,7 +1567,7 @@ impl Nado {
     m
 }));
         self.check_required_credentials(&[]);
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let __ws_arg_9 = self.request_id();
         let mut paramsExtended: Value = self.extend(Value::Map({
@@ -1640,7 +1640,7 @@ impl Nado {
     m
 }));
         self.check_required_credentials(&[]);
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         // for cancel_and_place the request id is echoed from the nested place_order object
         let __ws_arg_11 = self.request_id();
@@ -1710,8 +1710,8 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut orders: Value = crate::types::IntoRaw::into_raw(self.cancel_orders_ws((Value::from(vec![id])).to_str_vec(), symbol.as_str(), params).await);
-        return self.safe_dict(orders, Value::Int(0), &[]);
+        let mut orders: Vec<crate::types::Order> = (match self.cancel_orders_ws((Value::from(vec![id])).to_str_vec(), symbol.as_str(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        return self.safe_dict(crate::types::IntoRaw::into_raw(orders), Value::Int(0), &[]);
         Value::Null
         }).await?))
     }
@@ -1746,7 +1746,7 @@ impl Nado {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrdersWs() requires a symbol argument".into()))));
         }
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut trigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         if (trigger == Some(true)) {
@@ -1822,10 +1822,10 @@ impl Nado {
     m
 }));
         self.check_required_credentials(&[]);
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
-        let mut market: Value = Value::Null;
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
+        let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut trigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         if (trigger == Some(true)) {
@@ -1858,7 +1858,7 @@ impl Nado {
                     m.insert("status".to_string(), Value::Str("canceled".into()));
                 m
             }), &[cancelledOrders.get(i as usize).cloned().unwrap_or(Value::Null)]);
-            result.push(self.parse_order(__ws_arg_16, &[market.clone()]));
+            result.push(self.parse_order(__ws_arg_16, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]));
         }
         }
         return Value::from(result);

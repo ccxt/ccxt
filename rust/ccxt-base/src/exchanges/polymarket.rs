@@ -973,17 +973,17 @@ impl Polymarket {
         let mut settleId: Option<String> = self.safe_string_k(market.clone(), "quote_asset", &[]).as_str().map(str::to_owned);
         let mut parts: Value = Value::Array(if let Some(__s) = venueSymbol.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
         let mut quoteId: String = self.safe_string(parts, Value::Int(1), &[Value::Str("USD".into())]).as_str().unwrap_or("USD").to_string();
-        let mut base: Value = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut quote: Value = self.safe_currency_code(Value::from(quoteId.clone()), &[]);
-        let mut settle: Value = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut quote: Option<String> = self.safe_currency_code(Value::from(quoteId.clone()), &[]).as_str().map(str::to_owned);
+        let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut crossAllowed: Value = Value::Bool(!(self.safe_bool_k(market.clone(), "isolated_only", &[Value::Bool(false)]).as_bool() == Some(true)));
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), numericId.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into()));
-        m.insert("base".to_string(), base);
-        m.insert("quote".to_string(), quote);
-        m.insert("settle".to_string(), settle);
+        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), settle.clone().map(Value::from).unwrap_or(Value::Null)).into()));
+        m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("settle".to_string(), settle.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("baseId".to_string(), baseId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteId".to_string(), Value::from(quoteId));
         m.insert("settleId".to_string(), settleId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1072,14 +1072,14 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolResolved: Value = Value::from((market).symbol.clone());
         // the tickers and statistics endpoints ignore the documented
         // instrument_id filter and always answer with every instrument, so
         // the single-market call reuses the bulk fetch and selects one row
-        let mut tickers: Value = crate::types::IntoRaw::into_raw(self.fetch_tickers((Value::from(vec![symbolResolved.clone()])).to_opt_str_vec(), params).await);
-        let mut ticker: Value = self.safe_dict(tickers, symbolResolved.clone(), &[]);
+        let mut tickers: crate::types::Tickers = (match self.fetch_tickers((Value::from(vec![symbolResolved.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut ticker: Value = self.safe_dict(crate::types::IntoRaw::into_raw(tickers), symbolResolved.clone(), &[]);
         if (ticker == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTicker() could not find a ticker for ".into())).into()), symbolResolved)));
         }
@@ -1108,7 +1108,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut promises: Value = Value::from(vec![self.public_get_info_tickers(&[params.clone()]).await, self.public_get_info_statistics(&[params.clone()]).await, self.public_get_info_bbo(&[params]).await]);
         let mut responses: Value = promise_all(&promises).await;
@@ -1282,7 +1282,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut response: Value = self.public_get_info_bbo(&[params]).await;
         return self.parse_tickers(response, &[symbolsNormalized]);
@@ -1312,7 +1312,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1366,7 +1366,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1493,7 +1493,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut paginate: Value = Value::Bool(false);
         let mut paramsOmitted: Value = params;
         { let __destr_tmp: Vec<Value> = self.handle_option_and_params(paramsOmitted.clone(), Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
@@ -1568,14 +1568,14 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolResolved: Value = Value::from((market).symbol.clone());
         // the tickers endpoint ignores the documented instrument_id filter
         // and always answers with every instrument, so the single-market call
         // reuses the bulk fetch and selects the requested row
-        let mut fundingRates: Value = crate::types::IntoRaw::into_raw(self.fetch_funding_rates((Value::from(vec![symbolResolved.clone()])).to_opt_str_vec(), params).await);
-        let mut fundingRate: Value = self.safe_dict(fundingRates, symbolResolved.clone(), &[]);
+        let mut fundingRates: crate::types::FundingRates = (match self.fetch_funding_rates((Value::from(vec![symbolResolved.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut fundingRate: Value = self.safe_dict(crate::types::IntoRaw::into_raw(fundingRates), symbolResolved.clone(), &[]);
         if (fundingRate == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() could not find the funding rate for ".into())).into()), symbolResolved)));
         }
@@ -1604,7 +1604,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut response: Value = self.public_get_info_tickers(&[params]).await;
         let mut result: Value = self.parse_funding_rates(response, &[]);
@@ -1689,7 +1689,7 @@ impl Polymarket {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a symbol argument".into()))));
         }
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut paginate: Value = Value::Bool(false);
         let mut paramsOmitted: Value = params;
         { let __destr_tmp: Vec<Value> = self.handle_option_and_params(paramsOmitted.clone(), Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
@@ -1765,14 +1765,14 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolResolved: Value = Value::from((market).symbol.clone());
         // the tickers endpoint ignores the documented instrument_id filter
         // and always answers with every instrument, so the single-market call
         // reuses the bulk fetch and selects the requested row
-        let mut openInterests: Value = crate::types::IntoRaw::into_raw(self.fetch_open_interests((Value::from(vec![symbolResolved.clone()])).to_opt_str_vec(), params).await);
-        let mut openInterest: Value = self.safe_dict(openInterests, symbolResolved.clone(), &[]);
+        let mut openInterests: crate::types::OpenInterests = (match self.fetch_open_interests((Value::from(vec![symbolResolved.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut openInterest: Value = self.safe_dict(crate::types::IntoRaw::into_raw(openInterests), symbolResolved.clone(), &[]);
         if (openInterest == Value::Null) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenInterest() could not find the open interest for ".into())).into()), symbolResolved)));
         }
@@ -1801,7 +1801,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut response: Value = self.public_get_info_tickers(&[params]).await;
         let mut result: Value = self.parse_open_interests(response, &[]);
@@ -1861,7 +1861,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut response: Value = self.public_get_info_fees(&[params]).await;
         //
         //     {
@@ -1876,7 +1876,7 @@ impl Polymarket {
         //         ]
         //     }
         //
-        let mut schedule: Value = self.safe_list_k(response, "fee_schedule", &[Value::from(vec![])]);
+        let mut schedule: Vec<Value> = self.safe_list_k(response, "fee_schedule", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut byCategory: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1885,12 +1885,12 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1104: bool = true;
             while { if !__for_first_1104 { i += 1; } __for_first_1104 = false; i < (schedule.len() as i64) } {
-            let mut entry: Value = schedule.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut entry: Value = schedule.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut category: Option<String> = self.safe_string_k_opt(entry.clone(), "category", &[]);
             byCategory.insert(category.as_deref().unwrap_or("null").to_string(), entry.clone());
         }
         }
-        let mut fallback: Value = self.safe_dict(schedule, Value::Int(0), &[Value::Map({
+        let mut fallback: Value = self.safe_dict(schedule.clone().into(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1947,7 +1947,7 @@ impl Polymarket {
         if (triggerPrice.is_some()) || (attached != Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support trigger or attached stop orders yet".into()))));
         }
-        let mut symbol: Value = self.safe_symbol(Value::Null, &[market.clone()]);
+        let mut symbol: Option<String> = self.safe_symbol(Value::Null, &[market.clone()]).as_str().map(str::to_owned);
         let mut isMarketOrder: Value = (Value::Bool(type_var.as_str() == Some("market")));
         let mut timeInForce: Value = self.safe_string_upper_k(params.clone(), "timeInForce", &[]);
         let mut isPostOnlyTimeInForce: Value = (Value::Bool(timeInForce.as_str() == Some("PO")));
@@ -1975,10 +1975,10 @@ impl Polymarket {
         paramsOmitted = self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("timeInForce".into()), Value::Str("reduceOnly".into()), Value::Str("clientOrderId".into())]), &[]);
         let mut instrumentId: Value = self.parse_to_int(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         let mut isBuy: Value = (Value::Bool(side.as_str() == Some("buy")));
-        let mut quantity: Value = self.amount_to_precision(symbol.clone(), amount);
+        let mut quantity: Value = self.amount_to_precision(symbol.clone().map(Value::from).unwrap_or(Value::Null), amount);
         let mut priceString: Value = Value::Null;
         if (price != Value::Null) {
-            priceString = self.price_to_precision(symbol, price);
+            priceString = self.price_to_precision(symbol.clone().map(Value::from).unwrap_or(Value::Null), price);
         }
         let mut reduceOnlyValue: Value = (if reduceOnly { Value::Bool(true) } else { Value::Null });
         // the signable row is positional - iid, buy, p, qty, tif, po, ro, c,
@@ -2048,7 +2048,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut order: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), symbol);
@@ -2059,8 +2059,8 @@ impl Polymarket {
                 m.insert("params".to_string(), params.clone());
             m
         });
-        let mut orders: Value = crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(Value::from(vec![order])), params).await);
-        let mut first: Value = self.safe_dict(orders.clone(), Value::Int(0), &[Value::Map({
+        let mut orders: Vec<crate::types::Order> = (match self.create_orders(crate::types::FromRaw::from_raw(Value::from(vec![order])), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut first: Value = self.safe_dict(crate::types::IntoRaw::into_raw(orders.clone()), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2076,7 +2076,7 @@ impl Polymarket {
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorId.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
             panic!("{}", crate::exchange_errors::invalid_order(feedback));
         }
-        let mut created: Value = self.safe_dict(orders, Value::Int(0), &[]);
+        let mut created: Value = self.safe_dict(crate::types::IntoRaw::into_raw(orders), Value::Int(0), &[]);
         return created;
         Value::Null
         }).await?))
@@ -2105,7 +2105,7 @@ impl Polymarket {
 }));
         let __orders_empty = Vec::new();
         let orders = orders.as_array().unwrap_or(&__orders_empty);
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut rows: Vec<Value> = vec![];
         let mut entries: Vec<Value> = Vec::new();
         let mut ordersMarkets: Vec<Value> = Vec::new();
@@ -2207,8 +2207,8 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut orders: Value = crate::types::IntoRaw::into_raw(self.cancel_orders((Value::from(vec![id])).to_str_vec(), symbol.as_str(), params).await);
-        let mut canceled: Value = self.safe_dict(orders, Value::Int(0), &[]);
+        let mut orders: Vec<crate::types::Order> = (match self.cancel_orders((Value::from(vec![id])).to_str_vec(), symbol.as_str(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut canceled: Value = self.safe_dict(crate::types::IntoRaw::into_raw(orders), Value::Int(0), &[]);
         return canceled;
         Value::Null
         }).await?))
@@ -2237,7 +2237,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut clientOrderIds: Value = self.safe_list2(params.clone(), Value::Str("clientOrderIds".into()), Value::Str("clientOrderId".into()), &[]);
         if (clientOrderIds == Value::Null) {
             let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
@@ -2332,7 +2332,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut args: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2376,7 +2376,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut deadline: Value = Value::Int(0);
         if (timeout != Value::Null) && (timeout.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
             deadline = self.sum(&[self.milliseconds(), timeout]);
@@ -2429,7 +2429,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if (amount == Value::Null) || (price == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires both the amount and the price arguments".into()))));
@@ -2637,7 +2637,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         self.load_proxy_credentials(&[]).await;
         let mut response: Value = self.private_get_account_portfolio(&[params]).await;
         //
@@ -2698,7 +2698,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         self.load_proxy_credentials(&[]).await;
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut response: Value = self.private_get_account_portfolio(&[params]).await;
@@ -2743,8 +2743,8 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut positions: Value = crate::types::IntoRaw::into_raw(self.fetch_positions((Value::from(vec![symbol])).to_opt_str_vec(), params).await);
-        let mut position: Value = self.safe_dict(positions, Value::Int(0), &[]);
+        let mut positions: Vec<crate::types::Position> = (match self.fetch_positions((Value::from(vec![symbol])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut position: Value = self.safe_dict(crate::types::IntoRaw::into_raw(positions), Value::Int(0), &[]);
         return position;
         Value::Null
         }).await?))
@@ -2849,7 +2849,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         self.load_proxy_credentials(&[]).await;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2893,7 +2893,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         self.load_proxy_credentials(&[]).await;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2947,11 +2947,11 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         self.load_proxy_credentials(&[]).await;
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2970,7 +2970,7 @@ impl Polymarket {
 })]);
             let mut rowId: Option<String> = self.safe_string_k_opt(row.clone(), "order_id", &[]);
             if (rowId.as_deref() == id.as_str()) {
-                return self.parse_order(row, &[market.clone()]);
+                return self.parse_order(row, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
             }
         }
         }
@@ -3005,11 +3005,11 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         self.load_proxy_credentials(&[]).await;
-        let mut market: Value = Value::Null;
+        let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
-            market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+            market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3053,7 +3053,7 @@ impl Polymarket {
         //     }
         //
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(data, &[market, since, limit]);
+        return self.parse_trades(data, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3083,7 +3083,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         self.load_proxy_credentials(&[]).await;
         let mut market: Value = Value::Null;
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3197,7 +3197,7 @@ impl Polymarket {
         let mut withdrawId: Option<String> = self.safe_string_k(transaction.clone(), "withdraw_id", &[]).as_str().map(str::to_owned);
         let mut type_var: Value = (if (withdrawId.is_some()) { Value::Str("withdrawal".into()) } else { Value::Str("deposit".into()) });
         let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "asset", &[]).as_str().map(str::to_owned);
-        let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]);
+        let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(transaction.clone(), "created_timestamp", &[]).as_i64();
         let mut rawHash: Option<String> = self.safe_string_k(transaction.clone(), "hash", &[]).as_str().map(str::to_owned);
         // the venue reports the literal 0x prefix while the transaction is unmined
@@ -3208,7 +3208,7 @@ impl Polymarket {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), self.parse_number(feeCost.map(Value::from).unwrap_or(Value::Null), &[]));
-                    m.insert("currency".to_string(), code.clone());
+                    m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             });
         }
@@ -3228,7 +3228,7 @@ impl Polymarket {
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("type".to_string(), type_var);
         m.insert("amount".to_string(), self.safe_number_k(transaction.clone(), "amount", &[]));
-        m.insert("currency".to_string(), code);
+        m.insert("currency".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), self.safe_integer_k(transaction, "confirmed_timestamp", &[]));
         m.insert("comment".to_string(), Value::Null);
@@ -3265,7 +3265,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         self.load_proxy_credentials(&[]).await;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3317,7 +3317,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         self.load_proxy_credentials(&[]).await;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3369,7 +3369,7 @@ impl Polymarket {
     m
 }));
         self.check_required_credentials(&[]);
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut currency: Value = self.currency(code);
         let mut owner: Value = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]);
         let mut collateral: Value = self.safe_dict_k(self.options.clone(), "collateral", &[Value::Map({
@@ -3382,7 +3382,7 @@ impl Polymarket {
         // the signed amount is denominated using raw base units of the token
         let mut precised: Value = self.decimal_to_precision(self.number_to_string(amount), Value::Int(crate::runtime::TRUNCATE), self.parse_number(precision.clone(), &[]), &[Value::Int(crate::runtime::TICK_SIZE)]);
         let mut baseUnits: Value = crate::precise::Precise::stringDiv(&precised, &precision);
-        let mut ts: Value = self.seconds();
+        let mut ts: Option<i64> = self.seconds().as_i64();
         let mut salt: Value = self.rand_number(Value::Int(9));
         let mut chainId: i64 = self.safe_integer_k(self.options.clone(), "chainId", &[Value::Int(137)]).as_i64().unwrap_or(137);
         let mut contract: String = self.safe_string_k(self.options.clone(), "depositContract", &[Value::Str("0xDCa4af75705dbB50f62437045afF9921947917d2".into())]).as_str().unwrap_or("0xDCa4af75705dbB50f62437045afF9921947917d2").to_string();
@@ -3442,7 +3442,7 @@ impl Polymarket {
                 m.insert("fee".to_string(), Value::Int(0));
                 m.insert("to".to_string(), address.clone());
                 m.insert("salt".to_string(), salt.clone());
-                m.insert("ts".to_string(), ts.clone());
+                m.insert("ts".to_string(), Value::from(ts));
             m
         });
         let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(message));
@@ -3464,7 +3464,7 @@ impl Polymarket {
 }));
                 m.insert("salt".to_string(), salt);
                 m.insert("sig".to_string(), signature);
-                m.insert("ts".to_string(), ts);
+                m.insert("ts".to_string(), Value::from(ts));
             m
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
@@ -3502,7 +3502,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         self.load_proxy_credentials(&[]).await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3574,12 +3574,12 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut leverage: Value = crate::types::IntoRaw::into_raw(self.fetch_leverage(symbol.as_str().unwrap_or_default(), params).await);
+        let mut leverage: crate::types::Leverage = (match self.fetch_leverage(symbol.as_str().unwrap_or_default(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), self.safe_dict_k(leverage.clone(), "info", &[]));
-        m.insert("symbol".to_string(), self.safe_string_k(leverage.clone(), "symbol", &[]));
-        m.insert("marginMode".to_string(), self.safe_string_k(leverage, "marginMode", &[]));
+        m.insert("info".to_string(), self.safe_dict(crate::types::IntoRaw::into_raw(leverage.clone()), Value::Str("info".into()), &[]));
+        m.insert("symbol".to_string(), self.safe_string(crate::types::IntoRaw::into_raw(leverage.clone()), Value::Str("symbol".into()), &[]));
+        m.insert("marginMode".to_string(), self.safe_string(crate::types::IntoRaw::into_raw(leverage), Value::Str("marginMode".into()), &[]));
     m
 });
         Value::Null
@@ -3612,7 +3612,7 @@ impl Polymarket {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a symbol argument".into()))));
         }
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marginMode: Value = Value::Null;
         let mut paramsOmitted: Value = params;
@@ -3699,7 +3699,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
+        if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut instrumentId: Value = self.parse_to_int(Value::from((market).id.clone()));
         let mut collateral: Value = self.safe_dict_k(self.options.clone(), "collateral", &[Value::Map({
@@ -3734,7 +3734,7 @@ impl Polymarket {
         m.insert("marginMode".to_string(), Value::Str("isolated".into()));
         m.insert("amount".to_string(), self.parse_number(amountString, &[]));
         m.insert("total".to_string(), Value::Null);
-        m.insert("code".to_string(), (market).raw.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null));
+        m.insert("code".to_string(), Value::from((market).settle.as_deref()));
         m.insert("status".to_string(), Value::Str("ok".into()));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
@@ -3849,9 +3849,9 @@ impl Polymarket {
         let mut proxyPrivateKey: Value = self.hash(self.encode(seedSignature), Value::Str("keccak".into()), &[Value::Str("hex".into())]);
         let mut proxyAddress: Value = self.eth_get_address_from_private_key(proxyPrivateKey.clone(), &[]);
         let mut owner: Value = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]);
-        let mut ts: Value = self.milliseconds();
+        let mut ts: Option<i64> = self.milliseconds().as_i64();
         let mut lifetime: i64 = self.safe_integer_k(self.options.clone(), "proxyExpiry", &[Value::Int(604800000)]).as_i64().unwrap_or(604800000);
-        let mut expiry: Value = self.sum(&[ts.clone(), Value::from(lifetime)]);
+        let mut expiry: Value = self.sum(&[Value::from(ts), Value::from(lifetime)]);
         let mut salt: Value = self.rand_number(Value::Int(9));
         let mut chainId: i64 = self.safe_integer_k(self.options.clone(), "chainId", &[Value::Int(137)]).as_i64().unwrap_or(137);
         let mut domain: indexmap::IndexMap<String, Value> = ({
@@ -3891,7 +3891,7 @@ impl Polymarket {
                 m.insert("addr".to_string(), proxyAddress.clone());
                 m.insert("exp".to_string(), expiry.clone());
                 m.insert("salt".to_string(), salt.clone());
-                m.insert("ts".to_string(), ts.clone());
+                m.insert("ts".to_string(), Value::from(ts));
             m
         });
         let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(message));
@@ -3912,7 +3912,7 @@ impl Polymarket {
 }));
                 m.insert("salt".to_string(), salt);
                 m.insert("sig".to_string(), signature);
-                m.insert("ts".to_string(), ts);
+                m.insert("ts".to_string(), Value::from(ts));
             m
         });
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
@@ -3983,7 +3983,7 @@ impl Polymarket {
         let mut credentials: Value = self.load_proxy_credentials(&[]).await;
         let mut packed: Value = self.packb(signable, &[]);
         let mut dataHash: Value = self.hash_message(packed);
-        let mut ts: Value = self.milliseconds();
+        let mut ts: Option<i64> = self.milliseconds().as_i64();
         let mut salt: Value = self.rand_number(Value::Int(9));
         let mut chainId: i64 = self.safe_integer_k(self.options.clone(), "chainId", &[Value::Int(137)]).as_i64().unwrap_or(137);
         let mut domain: indexmap::IndexMap<String, Value> = ({
@@ -4017,7 +4017,7 @@ impl Polymarket {
             let mut m = indexmap::IndexMap::new();
                 m.insert("data".to_string(), dataHash);
                 m.insert("salt".to_string(), salt.clone());
-                m.insert("ts".to_string(), ts.clone());
+                m.insert("ts".to_string(), Value::from(ts));
             m
         });
         let mut encoded: Value = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(message));
@@ -4028,7 +4028,7 @@ impl Polymarket {
                 m.insert("op".to_string(), bodyOp);
                 m.insert("sig".to_string(), signature);
                 m.insert("salt".to_string(), salt);
-                m.insert("ts".to_string(), ts);
+                m.insert("ts".to_string(), Value::from(ts));
             m
         });
         // the optional command expiry travels next to the signature and is

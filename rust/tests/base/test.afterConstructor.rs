@@ -74,7 +74,7 @@ fn helperTestInitSandbox() {
     //
     let mut exchange3 = crate::tests_support::make_exchange(opts.clone());
     helperTestSandboxState(exchange3.clone_self(), Value::Bool(false));
-    ccxt::types::IntoRaw::into_raw(exchange3.set_sandbox_mode(true));
+    if let Err(__e) = exchange3.set_sandbox_mode(true) { panic!("{}", __e) }
     helperTestSandboxState(exchange3.clone_self(), Value::Bool(true));
     //
     // CASE B: when sandbox is enabled
@@ -82,7 +82,7 @@ fn helperTestInitSandbox() {
     add_element_to_object(get_value_mut(&mut opts, &Value::Str("options".into())), &Value::Str("sandbox".into()), Value::Bool(true));
     let mut exchange4 = crate::tests_support::make_exchange(opts.clone());
     helperTestSandboxState(exchange4.clone_self(), Value::Bool(true));
-    ccxt::types::IntoRaw::into_raw(exchange4.set_sandbox_mode(false));
+    if let Err(__e) = exchange4.set_sandbox_mode(false) { panic!("{}", __e) }
     helperTestSandboxState(exchange4.clone_self(), Value::Bool(false));
     //
     // CASE C: passed 'sandbox' within userConfig
@@ -92,7 +92,7 @@ fn helperTestInitSandbox() {
     if let Value::Dict(__d) = &mut opts { std::sync::Arc::make_mut(__d).insert("sandbox".into(), Value::Bool(true)); }
     let mut exchange5 = crate::tests_support::make_exchange(opts.clone());
     helperTestSandboxState(exchange5.clone_self(), Value::Bool(true));
-    ccxt::types::IntoRaw::into_raw(exchange5.set_sandbox_mode(false));
+    if let Err(__e) = exchange5.set_sandbox_mode(false) { panic!("{}", __e) }
     helperTestSandboxState(exchange5.clone_self(), Value::Bool(false));
 }
 fn helperTestInitMarket() {

@@ -1695,13 +1695,13 @@ impl Limitless {
                 }
             }
         }
-        let mut prices: Value = self.safe_list_k(raw.clone(), "prices", &[Value::from(vec![])]);
+        let mut prices: Vec<Value> = self.safe_list_k(raw.clone(), "prices", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut pricesLength: f64 = ((prices.len() as i64) as f64);
         if (lastStr == Value::Null) && (pricesLength > ((0i64) as f64)) {
             if isYes {
-                lastStr = self.safe_string(prices.clone(), Value::Int(0), &[]);
+                lastStr = self.safe_string(prices.clone().into(), Value::Int(0), &[]);
             }  else {
-                lastStr = self.safe_string(prices, Value::Int(1), &[]);
+                lastStr = self.safe_string(prices.clone().into(), Value::Int(1), &[]);
             }
         }
         // volume and book sizes are in USDC micro-units (6 decimals)
@@ -2509,13 +2509,13 @@ impl Limitless {
         //         ]
         //     }
         //
-        let mut results: Value = self.safe_list_k(response, "results", &[Value::from(vec![])]);
+        let mut results: Vec<Value> = self.safe_list_k(response, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut found: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1322: bool = true;
             while { if !__for_first_1322 { i += 1; } __for_first_1322 = false; i < (results.len() as i64) } {
-            let mut item: Value = self.safe_dict(results.clone(), Value::Int(i), &[Value::Map({
+            let mut item: Value = self.safe_dict(results.clone().into(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2833,11 +2833,11 @@ impl Limitless {
     pub fn apply_scale(&self, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut multiply = get_arg(optional_args, 0, Value::Bool(false));
         let mut decimals: Value = self.safe_integer_k(self.options.clone(), "usdcDecimals", &[Value::Int(6)]);
-        let mut scale: Value = self.number_to_string(crate::runtime::Math::pow(&Value::Int(10), &decimals));
+        let mut scale: Option<String> = self.number_to_string(crate::runtime::Math::pow(&Value::Int(10), &decimals)).as_str().map(str::to_owned);
         if multiply.as_bool() == Some(true) {
-            return crate::precise::Precise::stringMul(&amount, &scale);
+            return crate::precise::Precise::stringMul(&amount, &scale.clone().map(Value::from).unwrap_or(Value::Null));
         }  else {
-            return crate::precise::Precise::stringDiv(&amount, &scale);
+            return crate::precise::Precise::stringDiv(&amount, &scale.clone().map(Value::from).unwrap_or(Value::Null));
         }
 
     Value::Null
@@ -2996,8 +2996,8 @@ if _try_result.is_err() {
         }  else {
             signRequest.insert("expiration".into(), Value::Str("0".into()));
         }
-        let mut amountString: Value = self.number_to_string(amount.clone());
-        let mut priceString: Value = self.number_to_string(price.clone());
+        let mut amountString: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
+        let mut priceString: Option<String> = self.number_to_string(price.clone()).as_str().map(str::to_owned);
         let mut makerAmount: Value = Value::Null;
         let mut takerAmount: Value = Value::Null;
         let mut isMarket: bool = type_var.as_str() == Some("market");
@@ -3019,7 +3019,7 @@ if _try_result.is_err() {
                 if (price == Value::Null) && (cost.is_none()) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument".into()))));
                 }  else {
-                    let mut quoteAmount: Value = self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString, &priceString));
+                    let mut quoteAmount: Value = self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &priceString.clone().map(Value::from).unwrap_or(Value::Null)));
                     let mut costRequest: Value = (if (cost.is_some()) { Value::from(cost) } else { quoteAmount });
                     makerAmount = self.cost_to_prediction_precision(outcome.clone(), costRequest);
                 }
@@ -3029,7 +3029,7 @@ if _try_result.is_err() {
         }  else if isMarket {
             makerAmount = self.amount_to_prediction_precision(outcome.clone(), amount.clone());
         }  else {
-            let mut calculatedCost: Value = crate::precise::Precise::stringMul(&amountString, &priceString);
+            let mut calculatedCost: Value = crate::precise::Precise::stringMul(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &priceString.clone().map(Value::from).unwrap_or(Value::Null));
             if (side.as_str() == Some("buy")) {
                 makerAmount = self.cost_to_prediction_precision(outcome.clone(), calculatedCost.clone());
                 takerAmount = self.amount_to_prediction_precision(outcome.clone(), amount.clone());
@@ -3045,7 +3045,7 @@ if _try_result.is_err() {
         signRequest.insert("signature".into(), signature);
         // price is an unsigned hint required by the API for GTC/FAK orders (not part of the EIP-712 struct)
         if !(isMarket) && (price != Value::Null) {
-            signRequest.insert("price".into(), self.parse_number(priceString, &[]));
+            signRequest.insert("price".into(), self.parse_number(priceString.clone().map(Value::from).unwrap_or(Value::Null), &[]));
         }
         let mut slug: Option<String> = self.safe_string(outcomeObj.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("slug".into()), &[]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3562,7 +3562,7 @@ if _try_result.is_err() {
         //         "nextCursor": null
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
+        let mut data: Vec<Value> = self.safe_list_k(response, "data", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         // response contains both trade, settlement, split and merge history
         // we filter out the settlements here and only return the trades
         let mut trades: Vec<Value> = Vec::new();
@@ -3570,7 +3570,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_1324: bool = true;
             while { if !__for_first_1324 { i += 1; } __for_first_1324 = false; i < (data.len() as i64) } {
-            let mut item: Value = self.safe_dict(data.clone(), Value::Int(i), &[]);
+            let mut item: Value = self.safe_dict(data.clone().into(), Value::Int(i), &[]);
             let mut strategy: Option<String> = self.safe_string_lower_k_opt(item.clone(), "strategy", &[]);
             if (strategy.is_some()) {
                 let mut buyIndex: i64 = strategy.as_deref().and_then(|__s| __s.find("buy")).map(|__i| __i as i64).unwrap_or(-1);
@@ -3736,12 +3736,12 @@ if _try_result.is_err() {
     pub fn get_outcome_by_slug_and_label(&self, mut slug: Value, mut label: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
         let mut mkt: Value = self.safe_market(&[slug, market]);
-        let mut outcomes: Value = self.safe_list_k(mkt, "outcomes", &[Value::from(vec![])]);
+        let mut outcomes: Vec<Value> = self.safe_list_k(mkt, "outcomes", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1325: bool = true;
             while { if !__for_first_1325 { i += 1; } __for_first_1325 = false; i < (outcomes.len() as i64) } {
-            let mut outcome: Value = self.safe_dict(outcomes.clone(), Value::Int(i), &[]);
+            let mut outcome: Value = self.safe_dict(outcomes.clone().into(), Value::Int(i), &[]);
             let mut outcomeLabel: Option<String> = self.safe_string_k_opt(outcome.clone(), "label", &[]);
             if (outcomeLabel.as_deref() == label.as_str()) {
                 return outcome;
@@ -3863,14 +3863,14 @@ if _try_result.is_err() {
         //         ]
         //     }
         //
-        let mut clob: Value = self.safe_list_k(response, "clob", &[Value::from(vec![])]);
+        let mut clob: Vec<Value> = self.safe_list_k(response, "clob", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         let mut labels: Value = Value::from(vec![Value::Str("yes".into()), Value::Str("no".into())]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_1327: bool = true;
             while { if !__for_first_1327 { i += 1; } __for_first_1327 = false; i < (clob.len() as i64) } {
-            let mut entry: Value = self.safe_dict(clob.clone(), Value::Int(i), &[]);
+            let mut entry: Value = self.safe_dict(clob.clone().into(), Value::Int(i), &[]);
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_1326: bool = true;
@@ -4381,13 +4381,13 @@ if _try_result.is_err() {
                 }), &[headersValue.clone()]);
             }
             self.check_required_credentials(&[]);
-            let mut timestamp: Value = self.iso8601(self.milliseconds());
+            let mut timestamp: Option<String> = self.iso8601(self.milliseconds()).as_str().map(str::to_owned);
             let mut newline: String = "\n".to_string(); // eslint-disable-line quotes
-            let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, newline).into()), method).into()), newline).into()), url).into()), newline).into()), bodyString);
+            let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp.clone().map(Value::from).unwrap_or(Value::Null), newline).into()), method).into()), newline).into()), url).into()), newline).into()), bodyString);
             let mut signature: Value = self.hmac(self.encode(Value::from(payload)), self.base64_to_binary(self.secret.clone(), &[]), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             headersValue = self.extend(headersValue.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("lmts-timestamp".to_string(), timestamp);
+                    m.insert("lmts-timestamp".to_string(), timestamp.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("lmts-signature".to_string(), signature);
                 m
             })]);

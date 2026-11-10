@@ -1425,8 +1425,8 @@ impl Sxbet {
         // 'sell' bets the complementary outcome, mirroring the requested outcome's own probability -
         // matches the normalize-to-one-book convention used by other prediction venues
         let mut isMakerBettingOutcomeOne: Value = (if (isBuy) { isOutcomeOne.clone() } else { Value::Bool(!(matches!(&isOutcomeOne, Value::Bool(true)))) });
-        let mut priceStr: Value = self.number_to_string(price);
-        let mut probability: Value = (if (isBuy) { priceStr.clone() } else { crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr) });
+        let mut priceStr: Option<String> = self.number_to_string(price).as_str().map(str::to_owned);
+        let mut probability: Value = (if (isBuy) { priceStr.clone().map(Value::from).unwrap_or(Value::Null) } else { crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr.clone().map(Value::from).unwrap_or(Value::Null)) });
         let mut obv3: Value = self.load_sx_obv3_metadata().await;
         let mut domain: Value = self.safe_dict_k(obv3.clone(), "domain", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1437,11 +1437,11 @@ impl Sxbet {
     m
 })]);
         let mut baseToken: Option<String> = self.safe_string_k(activeAsset, "baseToken", &[]).as_str().map(str::to_owned);
-        let mut oddsLadderStepSize: Value = self.number_to_string(self.safe_integer_k(obv3, "oddsLadderStepSize", &[Value::Int(125)]));
-        let mut roundedProbability: Value = self.round_odds_to_ladder(probability, oddsLadderStepSize).map(Value::from).unwrap_or(Value::Null);
+        let mut oddsLadderStepSize: Option<String> = self.number_to_string(self.safe_integer_k(obv3, "oddsLadderStepSize", &[Value::Int(125)])).as_str().map(str::to_owned);
+        let mut roundedProbability: Value = self.round_odds_to_ladder(probability, oddsLadderStepSize.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
         let mut percentageOdds: Value = self.decimal_to_precision(crate::precise::Precise::stringMul(&roundedProbability, &Value::Str("100000000000000000000".into())), Value::Int(crate::runtime::ROUND), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
-        let mut amountStr: Value = self.number_to_string(amount.clone());
-        let mut totalBetSize: Value = self.decimal_to_precision(crate::precise::Precise::stringMul(&amountStr, &Value::Str("1000000".into())), Value::Int(crate::runtime::ROUND), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
+        let mut amountStr: Option<String> = self.number_to_string(amount.clone()).as_str().map(str::to_owned);
+        let mut totalBetSize: Value = self.decimal_to_precision(crate::precise::Precise::stringMul(&amountStr.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000".into())), Value::Int(crate::runtime::ROUND), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
         let mut saltNumber: Value = self.safe_string_k(params.clone(), "salt", &[self.number_to_string(self.milliseconds())]);
         // the request body carries the salt in 32-byte-hex form; the signed struct carries the
         // same value in uint256 form - both parse to one number server-side. assign to bare locals
@@ -1611,14 +1611,14 @@ impl Sxbet {
                 orderStatus = (if (reason.as_str() == Some("EXPIRED")) { Value::Str("expired".into()) } else { Value::Str("canceled".into()) });
             }
         }
-        let mut now: Value = self.milliseconds();
+        let mut now: Option<i64> = self.milliseconds().as_i64();
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string2(first.clone(), Value::Str("orderId".into()), Value::Str("orderHash".into()), &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(first, "clientOrderId", &[clientOrderId.clone().map(Value::from).unwrap_or(Value::Null)]));
         m.insert("info".to_string(), response);
-        m.insert("timestamp".to_string(), now.clone());
-        m.insert("datetime".to_string(), self.iso8601(now));
+        m.insert("timestamp".to_string(), Value::from(now));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(now)));
         m.insert("status".to_string(), orderStatus);
         m.insert("filled".to_string(), filled.clone());
         m.insert("remaining".to_string(), remaining);
@@ -2377,7 +2377,7 @@ impl Sxbet {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut balances: Value = self.safe_list_k(data, "balances", &[Value::from(vec![])]);
+        let mut balances: Vec<Value> = self.safe_list_k(data, "balances", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -2389,7 +2389,7 @@ impl Sxbet {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1512: bool = true;
             while { if !__for_first_1512 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1512 = false; i.as_f64().unwrap_or(f64::NAN) < balancesLength } {
-            let mut row: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
+            let mut row: Value = self.safe_dict(balances.clone().into(), i.clone(), &[]);
             let mut tokenAddress: Value = self.safe_string_lower_k(row.clone(), "tokenAddress", &[Value::Str("".into())]);
             // every sxbet market is denominated in the active base token, surfaced under 'USDC';
             // rows of any other token keep their contract address for the code
@@ -3027,8 +3027,8 @@ impl Sxbet {
         let mut bid: Value = (if (ownPercentage.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&ownPercentage.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom.clone())), &[]) } else { Value::Null });
         let mut ask: Value = (if (oppositePercentage.is_some()) { self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &crate::precise::Precise::stringDiv(&oppositePercentage.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom))), &[]) } else { Value::Null });
         let mut updatedAt: Option<i64> = self.safe_integer_k(ownOdds, "updatedAt", &[]).as_i64();
-        let mut now: Value = self.milliseconds();
-        let mut timestamp: Value = (if (updatedAt.is_some()) { Value::from(updatedAt) } else { now });
+        let mut now: Option<i64> = self.milliseconds().as_i64();
+        let mut timestamp: Value = (if (updatedAt.is_some()) { Value::from(updatedAt) } else { Value::from(now) });
         let mut average: Value = Value::Null;
         if (bid != Value::Null) && (ask != Value::Null) {
             average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&self.number_to_string(bid.clone()), &self.number_to_string(ask.clone())), &Value::Str("2".into())), &[]);
@@ -3113,14 +3113,14 @@ impl Sxbet {
                 sortedAsks = self.array_slice(sortedAsks.clone(), Value::Int(0), &[limit]);
             }
         }
-        let mut timestamp: Value = self.milliseconds();
+        let mut timestamp: Option<i64> = self.milliseconds().as_i64();
         return self.safe_prediction_order_book(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("outcome".to_string(), self.safe_string_k(outcomeObj.clone(), "outcome", &[outcome]));
         m.insert("bids".to_string(), sortedBids);
         m.insert("asks".to_string(), sortedAsks);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("nonce".to_string(), Value::Null);
     m
 }), &[outcomeObj]);
@@ -3225,8 +3225,8 @@ impl Sxbet {
  * @param {string} subscription the subscription hash registered by watch() ('connect' or the channel name)
  */
     pub fn register_sxbet_ws_request(&self, mut requestId: Value, mut messageHash: Value, mut subscription: Value) {
-        let mut requestIdString: Value = self.number_to_string(requestId);
-        self.set_ws_option(Value::Str("wsPendingRequests".into()), requestIdString, Value::Map({
+        let mut requestIdString: Option<String> = self.number_to_string(requestId).as_str().map(str::to_owned);
+        self.set_ws_option(Value::Str("wsPendingRequests".into()), requestIdString.clone().map(Value::from).unwrap_or(Value::Null), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("messageHash".to_string(), messageHash);
                 m.insert("subscription".to_string(), subscription);
@@ -3530,7 +3530,7 @@ impl Sxbet {
     m
 })]);
         let mut watchedSyms: Vec<Value> = Value::Array(watchedBooks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-        let mut timestamp: Value = self.milliseconds();
+        let mut timestamp: Option<i64> = self.milliseconds().as_i64();
         let mut watchedSymsLength: f64 = ((watchedSyms.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
@@ -3556,8 +3556,8 @@ impl Sxbet {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("bids".to_string(), self.safe_list_k(sides.clone(), "bids", &[Value::from(vec![])]));
                     m.insert("asks".to_string(), self.safe_list_k(sides, "asks", &[Value::from(vec![])]));
-                    m.insert("timestamp".to_string(), timestamp.clone());
-                    m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
+                    m.insert("timestamp".to_string(), Value::from(timestamp));
+                    m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
                     m.insert("nonce".to_string(), Value::Null);
                 m
             });

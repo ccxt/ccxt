@@ -532,8 +532,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if !(reload.as_bool() == Some(true)) && ((self.pred().events.clone() != Value::Null) && (self.pred().events.clone() != Value::Null)) {
             return self.pred().events.clone();
         }
-        let mut events: Value = crate::types::IntoRaw::into_raw(self.fetch_events(params).await);
-        return self.set_events(events);
+        let mut events: Vec<crate::types::PredictionEvent> = (match self.fetch_events(params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        return self.set_events(crate::types::IntoRaw::into_raw(events));
 
     Value::Null
 } }
@@ -991,7 +991,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if !(reload.as_bool() == Some(true)) && (self.pred().outcomes.clone() != Value::Null) && !(self.is_empty(self.pred().outcomes.clone()).as_bool() == Some(true)) {
             return self.pred().outcomes.clone();
         }
-        crate::types::IntoRaw::into_raw(self.load_markets(reload.as_bool().unwrap_or_default(), params).await);
+        if let Err(__e) = self.load_markets(reload.as_bool().unwrap_or_default(), params).await { panic!("{}", __e) }
         self.populate_outcomes();
         return self.pred().outcomes.clone();
 
@@ -1151,12 +1151,12 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         if (searchQuery != Value::Null) && matches!(self.safe_bool_k(self.has.clone(), "fetchEvents", &[Value::Bool(false)]), Value::Bool(true)) {
             let mut searchLimit: i64 = self.safe_integer_k(self.options.clone(), "fetchOutcomeSearchLimit", &[Value::Int(10)]).as_i64().unwrap_or(10);
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                crate::types::IntoRaw::into_raw(self.fetch_events(Value::Map({
+                if let Err(__e) = self.fetch_events(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("query".to_string(), searchQuery);
         m.insert("limit".to_string(), Value::from(searchLimit));
     m
-})).await);
+})).await { panic!("{}", __e) }
              #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // a query with zero matches surfaces as BadSymbol on some venues — treat it as a
@@ -2096,16 +2096,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             derivedPostOnly = (Value::Bool(timeInForce.as_deref() == Some("PO")));
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(outcomeOrder.clone(), "timestamp", &[]).as_i64();
-        let mut datetime: Value = self.safe_string_k(outcomeOrder.clone(), "datetime", &[]);
-        if (datetime == Value::Null) {
-            datetime = self.iso8601(Value::from(timestamp));
+        let mut datetime: Option<String> = self.safe_string_k(outcomeOrder.clone(), "datetime", &[]).as_str().map(str::to_owned);
+        if (datetime.is_none()) {
+            datetime = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
         }
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), self.safe_string_k(outcomeOrder.clone(), "id", &[]));
                 m.insert("clientOrderId".to_string(), self.safe_string_k(outcomeOrder.clone(), "clientOrderId", &[]));
                 m.insert("timestamp".to_string(), Value::from(timestamp));
-                m.insert("datetime".to_string(), datetime);
+                m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("lastTradeTimestamp".to_string(), lastTradeTimestamp);
                 m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(outcomeOrder.clone(), "lastUpdateTimestamp", &[]));
                 m.insert("status".to_string(), status.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2145,16 +2145,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             cost = crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
-        let mut datetime: Value = self.safe_string_k(trade.clone(), "datetime", &[]);
-        if (datetime == Value::Null) {
-            datetime = self.iso8601(Value::from(timestamp));
+        let mut datetime: Option<String> = self.safe_string_k(trade.clone(), "datetime", &[]).as_str().map(str::to_owned);
+        if (datetime.is_none()) {
+            datetime = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
         }
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), self.safe_string_k(trade.clone(), "id", &[]));
                 m.insert("order".to_string(), self.safe_string_k(trade.clone(), "order", &[]));
                 m.insert("timestamp".to_string(), Value::from(timestamp));
-                m.insert("datetime".to_string(), datetime);
+                m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("type".to_string(), self.safe_string_k(trade.clone(), "type", &[]));
                 m.insert("side".to_string(), self.safe_string_k(trade.clone(), "side", &[]));
                 m.insert("takerOrMaker".to_string(), self.safe_string_k(trade.clone(), "takerOrMaker", &[]));
@@ -2196,14 +2196,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             average = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&open, &close), &Value::Str("2".into()));
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "timestamp", &[]).as_i64();
-        let mut datetime: Value = self.safe_string_k(ticker.clone(), "datetime", &[]);
-        if (datetime == Value::Null) {
-            datetime = self.iso8601(Value::from(timestamp));
+        let mut datetime: Option<String> = self.safe_string_k(ticker.clone(), "datetime", &[]).as_str().map(str::to_owned);
+        if (datetime.is_none()) {
+            datetime = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
         }
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("timestamp".to_string(), Value::from(timestamp));
-                m.insert("datetime".to_string(), datetime);
+                m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("high".to_string(), self.safe_number_k(ticker.clone(), "high", &[]));
                 m.insert("low".to_string(), self.safe_number_k(ticker.clone(), "low", &[]));
                 m.insert("bid".to_string(), self.parse_number(self.omit_zero(self.safe_string_k(ticker.clone(), "bid", &[])), &[]));
@@ -2236,15 +2236,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // build the prediction position directly (no crypto safePosition, which carries the whole
         // leverage/marginMode/liquidation block the prediction type omits)
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "timestamp", &[]).as_i64();
-        let mut datetime: Value = self.safe_string_k(position.clone(), "datetime", &[]);
-        if (datetime == Value::Null) {
-            datetime = self.iso8601(Value::from(timestamp));
+        let mut datetime: Option<String> = self.safe_string_k(position.clone(), "datetime", &[]).as_str().map(str::to_owned);
+        if (datetime.is_none()) {
+            datetime = self.iso8601(Value::from(timestamp)).as_str().map(str::to_owned);
         }
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), self.safe_string_k(position.clone(), "id", &[]));
                 m.insert("timestamp".to_string(), Value::from(timestamp));
-                m.insert("datetime".to_string(), datetime);
+                m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("contracts".to_string(), self.safe_number_k(position.clone(), "contracts", &[]));
                 m.insert("contractSize".to_string(), self.safe_number_k(position.clone(), "contractSize", &[]));
                 m.insert("side".to_string(), self.safe_string_k(position.clone(), "side", &[]));

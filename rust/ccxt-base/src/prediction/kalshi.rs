@@ -913,11 +913,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut seriesTicker: Option<String> = self.safe_string(parts, Value::Int(0), &[]).as_str().map(str::to_owned);
             if (seriesTicker.is_some()) && (seriesTicker.as_deref() != Some("")) {
                 let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                    crate::types::IntoRaw::into_raw(self.fetch_events(Value::Map({
+                    if let Err(__e) = self.fetch_events(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("series_ticker".to_string(), seriesTicker.clone().map(Value::from).unwrap_or(Value::Null));
     m
-})).await);
+})).await { panic!("{}", __e) }
                  #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     // an unknown series is a plain miss — the free-text fallback below still runs;
@@ -1060,11 +1060,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // kalshi's trading fee is NOT a flat 7% — it is 0.07 * contracts * price * (1 - price), which
         // peaks at price 0.5 and vanishes near 0 or 1. the describe() `taker: 0.07` is only the
         // coefficient; compute the real per-contract formula here so fee estimates are accurate
-        let mut priceStr: Value = self.number_to_string(price);
-        let mut amountStr: Value = self.number_to_string(amount);
-        let mut oneMinusP: Value = crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr);
-        let mut feeCost: Value = crate::precise::Precise::stringMul(&Value::Str("0.07".into()), &amountStr);
-        feeCost = crate::precise::Precise::stringMul(&feeCost, &priceStr);
+        let mut priceStr: Option<String> = self.number_to_string(price).as_str().map(str::to_owned);
+        let mut amountStr: Option<String> = self.number_to_string(amount).as_str().map(str::to_owned);
+        let mut oneMinusP: Value = crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut feeCost: Value = crate::precise::Precise::stringMul(&Value::Str("0.07".into()), &amountStr.clone().map(Value::from).unwrap_or(Value::Null));
+        feeCost = crate::precise::Precise::stringMul(&feeCost, &priceStr.clone().map(Value::from).unwrap_or(Value::Null));
         feeCost = crate::precise::Precise::stringMul(&feeCost, &oneMinusP);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3140,7 +3140,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires an amount".into()))));
         }
         self.load_outcome(outcome.clone(), &[]).await;
-        crate::types::IntoRaw::into_raw(self.cancel_order(id.as_str().unwrap_or_default(), outcome.as_str(), Value::Null).await);
+        if let Err(__e) = self.cancel_order(id.as_str().unwrap_or_default(), outcome.as_str(), Value::Null).await { panic!("{}", __e) }
         return crate::types::IntoRaw::into_raw(self.create_order(outcome.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), params).await);
         Value::Null
         }).await?))
@@ -3771,7 +3771,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         "sub_title": "During Trump's term",
         //         "title": "Will Trump balance the budget?"
         // }
-        let mut rawMarkets: Value = self.safe_list_k(rawEvent.clone(), "markets", &[Value::from(vec![])]);
+        let mut rawMarkets: Vec<Value> = self.safe_list_k(rawEvent.clone(), "markets", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut marketsList: Vec<Value> = Vec::new();
         // aggregate volume/liquidity from the markets and derive the creation time so sort works;
         // kalshi event payloads carry no status/end_date_iso/resolved of their own, so active,
@@ -3779,7 +3779,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut totalVolume: Value = Value::Int(0);
         let mut totalLiquidity: Value = Value::Int(0);
         // seeded from the first market, which the loop re-reads, so the min/max stays the same
-        let mut firstMarket: Value = self.safe_dict(rawMarkets.clone(), Value::Int(0), &[Value::Map({
+        let mut firstMarket: Value = self.safe_dict(rawMarkets.clone().into(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -3791,7 +3791,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_1298: bool = true;
             while { if !__for_first_1298 { i += 1; } __for_first_1298 = false; i < (rawMarkets.len() as i64) } {
-            let mut rawMarket: Value = rawMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut rawMarket: Value = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut parsed: Value = self.parse_market(rawMarket.clone());
             marketsList.push(parsed);
             totalVolume = self.sum(&[totalVolume.clone(), self.safe_number2(rawMarket.clone(), Value::Str("volume_fp".into()), Value::Str("volume".into()), &[Value::Int(0)])]);

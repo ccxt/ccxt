@@ -1374,14 +1374,14 @@ impl Opinion {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut history: Value = self.safe_list_k(result, "history", &[Value::from(vec![])]);
+        let mut history: Vec<Value> = self.safe_list_k(result, "history", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut candles: Vec<Value> = Vec::new();
         let mut historyLength: f64 = ((history.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1395: bool = true;
             while { if !__for_first_1395 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1395 = false; i.as_f64().unwrap_or(f64::NAN) < historyLength } {
-            let mut point: Value = self.safe_dict(history.clone(), i.clone(), &[]);
+            let mut point: Value = self.safe_dict(history.clone().into(), i.clone(), &[]);
             let mut price: Option<f64> = self.safe_number_k(point.clone(), "p", &[]).as_f64();
             let mut timestamp: Option<i64> = self.safe_timestamp_k(point, "t", &[]).as_i64();
             if (price.is_some()) && (timestamp.is_some()) {
@@ -1696,7 +1696,7 @@ impl Opinion {
         let mut makerAmount: Option<String> = self.safe_string_k(amounts.clone(), "makerAmount", &[]).as_str().map(str::to_owned);
         let mut takerAmount: Option<String> = self.safe_string_k(amounts, "takerAmount", &[]).as_str().map(str::to_owned);
         let mut sideInt: Value = (if (sideStr.as_str() == Some("BUY")) { Value::Int(0) } else { Value::Int(1) });
-        let mut salt: Value = self.number_to_string(self.milliseconds());
+        let mut salt: Option<String> = self.number_to_string(self.milliseconds()).as_str().map(str::to_owned);
         let mut postOnly: bool = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut rest: Value = self.omit(params, Value::from(vec![Value::Str("postOnly".into())]), &[]);
         let mut maker: Value = self.load_multi_sign_address().await;
@@ -1708,7 +1708,7 @@ impl Opinion {
         let mut signatureType: Value = (if (makerLower.as_str() == walletAddressLower.as_str()) { Value::Int(0) } else { Value::Int(2) });
         let mut order: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("salt".to_string(), salt.clone());
+                m.insert("salt".to_string(), salt.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("maker".to_string(), maker.clone());
                 m.insert("signer".to_string(), self.walletAddress.clone());
                 m.insert("taker".to_string(), Value::Str("0x0000000000000000000000000000000000000000".into()));
@@ -1728,7 +1728,7 @@ impl Opinion {
         let __ws_arg_18 = self.seconds();
         let mut orderBody: Value = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("salt".to_string(), salt);
+                m.insert("salt".to_string(), salt.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("maker".to_string(), maker);
                 m.insert("signer".to_string(), self.walletAddress.clone());
                 m.insert("taker".to_string(), Value::Str("0x0000000000000000000000000000000000000000".into()));
@@ -2119,13 +2119,13 @@ impl Opinion {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut trades: Value = self.safe_list_k(result, "list", &[Value::from(vec![])]);
+        let mut trades: Vec<Value> = self.safe_list_k(result, "list", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut tradesLength: f64 = ((trades.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1398: bool = true;
             while { if !__for_first_1398 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1398 = false; i.as_f64().unwrap_or(f64::NAN) < tradesLength } {
-            let mut trade: Value = trades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            let mut trade: Value = trades.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut tokenId: Option<String> = self.safe_string_k(trade.clone(), "tokenId", &[]).as_str().map(str::to_owned);
             let mut marketId: Option<i64> = self.safe_integer_k(trade.clone(), "marketId", &[]).as_i64();
             if (tokenId.is_none()) && (marketId.is_some()) {
@@ -2139,7 +2139,7 @@ impl Opinion {
             }
         }
         }
-        return self.parse_prediction_trades(trades, &[outcomeObj, since, limit]);
+        return self.parse_prediction_trades(trades.clone().into(), &[outcomeObj, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2297,13 +2297,13 @@ impl Opinion {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut balances: Value = self.safe_list_k(data, "balances", &[Value::from(vec![])]);
+        let mut balances: Vec<Value> = self.safe_list_k(data, "balances", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut balancesLength: f64 = ((balances.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1400: bool = true;
             while { if !__for_first_1400 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1400 = false; i.as_f64().unwrap_or(f64::NAN) < balancesLength } {
-            let mut balance: Value = self.safe_dict(balances.clone(), i.clone(), &[]);
+            let mut balance: Value = self.safe_dict(balances.clone().into(), i.clone(), &[]);
             let mut code: Value = self.safe_string_k(balance.clone(), "symbol", &[Value::Str("USDT".into())]);
             result.insert(crate::runtime::stringify_param(&code), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2805,12 +2805,12 @@ if _try_result.is_err() {
     pub async fn seed_order_book(&mut self, mut outcome: Value, mut sym: Value, optional_args: &[Value]) -> Value {
         let mut limit = get_arg(optional_args, 0, Value::Null);
         // the depth channel streams single-level deltas only, so seed the live book from the REST snapshot
-        let mut snapshot: Value = crate::types::IntoRaw::into_raw(self.fetch_order_book(outcome.as_str().unwrap_or_default(), limit.as_i64(), Value::Null).await);
+        let mut snapshot: crate::types::OrderBook = (match self.fetch_order_book(outcome.as_str().unwrap_or_default(), limit.as_i64(), Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut orderbook: Value = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        orderbook.reset(snapshot);
+        orderbook.reset(crate::types::IntoRaw::into_raw(snapshot));
         if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&sym), orderbook); }
 
     Value::Null
@@ -3334,10 +3334,10 @@ if _try_result.is_err() {
                         m.insert("DELETE".to_string(), Value::Str("delete".into()));
                     m
                 });
-                let mut timestamp: Value = self.number_to_string(self.seconds());
+                let mut timestamp: Option<String> = self.number_to_string(self.seconds()).as_str().map(str::to_owned);
                 add_element_to_object(&mut headersExtended, &Value::Str("OPINION_ADDRESS".into()), self.walletAddress.clone());
-                add_element_to_object(&mut headersExtended, &Value::Str("OPINION_SIGNATURE".into()), self.sign_api_key_auth(self.walletAddress.clone(), self.safe_string(Value::Map(actionByMethod), method.clone(), &[Value::Str("get".into())]), timestamp.clone()).map(Value::from).unwrap_or(Value::Null));
-                add_element_to_object(&mut headersExtended, &Value::Str("OPINION_TIMESTAMP".into()), timestamp);
+                add_element_to_object(&mut headersExtended, &Value::Str("OPINION_SIGNATURE".into()), self.sign_api_key_auth(self.walletAddress.clone(), self.safe_string(Value::Map(actionByMethod), method.clone(), &[Value::Str("get".into())]), timestamp.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
+                add_element_to_object(&mut headersExtended, &Value::Str("OPINION_TIMESTAMP".into()), timestamp.clone().map(Value::from).unwrap_or(Value::Null));
             }  else {
                 // an empty this.apiKey counts as absent - deleteApiKey clears it to '' (the
                 // strict base types the credential as string, undefined can not be assigned)
