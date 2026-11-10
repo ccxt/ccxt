@@ -3024,6 +3024,445 @@
                         }
                     }
                 ]
+            },
+            {
+                "description": "types can be a single type as a string",
+                "method": "fetchMarkets",
+                "input": [
+                    {
+                        "types": "swap"
+                    }
+                ],
+                "httpResponse": {
+                    "results": [
+                        {
+                            "symbol": "BTC-USD-PERP",
+                            "base_currency": "BTC",
+                            "quote_currency": "USD",
+                            "settlement_currency": "USDC",
+                            "order_size_increment": "0.00001",
+                            "price_tick_size": "0.1",
+                            "min_notional": "10",
+                            "open_at": 1696431006398,
+                            "expiry_at": 0,
+                            "asset_kind": "PERP",
+                            "market_kind": "cross",
+                            "max_order_size": "100",
+                            "funding_period_hours": 8,
+                            "fee_config": {
+                                "api_fee": {
+                                    "maker_fee": {
+                                        "fee": "0"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.0002"
+                                    }
+                                }
+                            },
+                            "trading_mode": "STANDARD"
+                        },
+                        {
+                            "symbol": "DIME-USD",
+                            "base_currency": "DIME",
+                            "quote_currency": "USD",
+                            "settlement_currency": "USDC",
+                            "order_size_increment": "1",
+                            "price_tick_size": "0.00001",
+                            "min_notional": "10",
+                            "open_at": 1772715600000,
+                            "expiry_at": 0,
+                            "asset_kind": "SPOT",
+                            "market_kind": "cross",
+                            "max_order_size": "100000",
+                            "funding_period_hours": 0,
+                            "fee_config": {
+                                "api_fee": {
+                                    "maker_fee": {
+                                        "fee": "0"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.0002"
+                                    }
+                                }
+                            },
+                            "trading_mode": "STANDARD"
+                        },
+                        {
+                            "symbol": "NEAR-USD-26MAR99-8_8-C",
+                            "base_currency": "NEAR",
+                            "quote_currency": "USD",
+                            "settlement_currency": "USDC",
+                            "order_size_increment": "10",
+                            "price_tick_size": "0.0001",
+                            "min_notional": "20",
+                            "open_at": 1791441599262,
+                            "expiry_at": 4078195200000,
+                            "asset_kind": "OPTION",
+                            "market_kind": "cross",
+                            "max_order_size": "50000",
+                            "option_type": "CALL",
+                            "strike_price": "8.8",
+                            "funding_period_hours": 0,
+                            "fee_config": {
+                                "api_fee": {
+                                    "maker_fee": {
+                                        "fee": "0.0001"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.0001"
+                                    }
+                                }
+                            },
+                            "trading_mode": "STANDARD"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "BTC-USD-PERP",
+                        "lowercaseId": null,
+                        "symbol": "BTC/USD:USDC",
+                        "base": "BTC",
+                        "quote": "USD",
+                        "settle": "USDC",
+                        "baseId": "BTC",
+                        "quoteId": "USD",
+                        "settleId": "USDC",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": null,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": null,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": null,
+                        "taker": 0.0002,
+                        "maker": 0,
+                        "contractSize": 1,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.00001,
+                            "price": 0.1
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": 100
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 10,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": 1696431006398,
+                        "info": {
+                            "symbol": "BTC-USD-PERP",
+                            "base_currency": "BTC",
+                            "quote_currency": "USD",
+                            "settlement_currency": "USDC",
+                            "order_size_increment": "0.00001",
+                            "price_tick_size": "0.1",
+                            "min_notional": "10",
+                            "open_at": 1696431006398,
+                            "expiry_at": 0,
+                            "asset_kind": "PERP",
+                            "market_kind": "cross",
+                            "max_order_size": "100",
+                            "funding_period_hours": 8,
+                            "fee_config": {
+                                "api_fee": {
+                                    "maker_fee": {
+                                        "fee": "0"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.0002"
+                                    }
+                                }
+                            },
+                            "trading_mode": "STANDARD"
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "types can be a comma separated string",
+                "method": "fetchMarkets",
+                "input": [
+                    {
+                        "types": "swap,spot"
+                    }
+                ],
+                "httpResponse": {
+                    "results": [
+                        {
+                            "symbol": "BTC-USD-PERP",
+                            "base_currency": "BTC",
+                            "quote_currency": "USD",
+                            "settlement_currency": "USDC",
+                            "order_size_increment": "0.00001",
+                            "price_tick_size": "0.1",
+                            "min_notional": "10",
+                            "open_at": 1696431006398,
+                            "expiry_at": 0,
+                            "asset_kind": "PERP",
+                            "market_kind": "cross",
+                            "max_order_size": "100",
+                            "funding_period_hours": 8,
+                            "fee_config": {
+                                "api_fee": {
+                                    "maker_fee": {
+                                        "fee": "0"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.0002"
+                                    }
+                                }
+                            },
+                            "trading_mode": "STANDARD"
+                        },
+                        {
+                            "symbol": "DIME-USD",
+                            "base_currency": "DIME",
+                            "quote_currency": "USD",
+                            "settlement_currency": "USDC",
+                            "order_size_increment": "1",
+                            "price_tick_size": "0.00001",
+                            "min_notional": "10",
+                            "open_at": 1772715600000,
+                            "expiry_at": 0,
+                            "asset_kind": "SPOT",
+                            "market_kind": "cross",
+                            "max_order_size": "100000",
+                            "funding_period_hours": 0,
+                            "fee_config": {
+                                "api_fee": {
+                                    "maker_fee": {
+                                        "fee": "0"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.0002"
+                                    }
+                                }
+                            },
+                            "trading_mode": "STANDARD"
+                        },
+                        {
+                            "symbol": "NEAR-USD-26MAR99-8_8-C",
+                            "base_currency": "NEAR",
+                            "quote_currency": "USD",
+                            "settlement_currency": "USDC",
+                            "order_size_increment": "10",
+                            "price_tick_size": "0.0001",
+                            "min_notional": "20",
+                            "open_at": 1791441599262,
+                            "expiry_at": 4078195200000,
+                            "asset_kind": "OPTION",
+                            "market_kind": "cross",
+                            "max_order_size": "50000",
+                            "option_type": "CALL",
+                            "strike_price": "8.8",
+                            "funding_period_hours": 0,
+                            "fee_config": {
+                                "api_fee": {
+                                    "maker_fee": {
+                                        "fee": "0.0001"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.0001"
+                                    }
+                                }
+                            },
+                            "trading_mode": "STANDARD"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "BTC-USD-PERP",
+                        "lowercaseId": null,
+                        "symbol": "BTC/USD:USDC",
+                        "base": "BTC",
+                        "quote": "USD",
+                        "settle": "USDC",
+                        "baseId": "BTC",
+                        "quoteId": "USD",
+                        "settleId": "USDC",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": null,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": null,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": null,
+                        "taker": 0.0002,
+                        "maker": 0,
+                        "contractSize": 1,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.00001,
+                            "price": 0.1
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": 100
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 10,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": 1696431006398,
+                        "info": {
+                            "symbol": "BTC-USD-PERP",
+                            "base_currency": "BTC",
+                            "quote_currency": "USD",
+                            "settlement_currency": "USDC",
+                            "order_size_increment": "0.00001",
+                            "price_tick_size": "0.1",
+                            "min_notional": "10",
+                            "open_at": 1696431006398,
+                            "expiry_at": 0,
+                            "asset_kind": "PERP",
+                            "market_kind": "cross",
+                            "max_order_size": "100",
+                            "funding_period_hours": 8,
+                            "fee_config": {
+                                "api_fee": {
+                                    "maker_fee": {
+                                        "fee": "0"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.0002"
+                                    }
+                                }
+                            },
+                            "trading_mode": "STANDARD"
+                        }
+                    },
+                    {
+                        "id": "DIME-USD",
+                        "lowercaseId": null,
+                        "symbol": "DIME/USDC",
+                        "base": "DIME",
+                        "quote": "USDC",
+                        "settle": null,
+                        "baseId": "DIME",
+                        "quoteId": "USDC",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "margin": null,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "index": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "subType": null,
+                        "taker": 0.0002,
+                        "maker": 0,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 1,
+                            "price": 0.00001
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": 100000
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 10,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": 1772715600000,
+                        "info": {
+                            "symbol": "DIME-USD",
+                            "base_currency": "DIME",
+                            "quote_currency": "USD",
+                            "settlement_currency": "USDC",
+                            "order_size_increment": "1",
+                            "price_tick_size": "0.00001",
+                            "min_notional": "10",
+                            "open_at": 1772715600000,
+                            "expiry_at": 0,
+                            "asset_kind": "SPOT",
+                            "market_kind": "cross",
+                            "max_order_size": "100000",
+                            "funding_period_hours": 0,
+                            "fee_config": {
+                                "api_fee": {
+                                    "maker_fee": {
+                                        "fee": "0"
+                                    },
+                                    "taker_fee": {
+                                        "fee": "0.0002"
+                                    }
+                                }
+                            },
+                            "trading_mode": "STANDARD"
+                        }
+                    }
+                ]
             }
         ],
         "fetchTradingFee": [

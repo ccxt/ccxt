@@ -560,13 +560,18 @@ export default class paradex extends Exchange {
      * @description retrieves data on all markets for paradex
      * @see https://docs.paradex.trade/api/prod/markets/get-markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string[]} [params.types] the market types to load, any of 'swap', 'spot' and 'option', default is options.fetchMarkets.types, which loads all of them
+     * @param {string[]|string} [params.types] the market types to load, any of 'swap', 'spot' and 'option' as a list or a comma separated string, default is options.fetchMarkets.types, which loads all of them
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets', {});
-        const defaultTypes = this.safeList (fetchMarketsOptions, 'types', [ 'swap', 'spot', 'option' ]);
-        const types = this.safeList (params, 'types', defaultTypes);
+        // the types come from params or the option, as a list or a comma separated string such as 'swap,spot'
+        const typesSource = ('types' in params) ? params : fetchMarketsOptions;
+        let types = this.safeList (typesSource, 'types');
+        if (types === undefined) {
+            const typesString = this.safeString (typesSource, 'types', 'swap,spot,option') as string;
+            types = typesString.split (',');
+        }
         const request = this.omit (params, 'types');
         const response = await this.publicGetMarkets (request);
         //
