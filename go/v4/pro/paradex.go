@@ -23,19 +23,24 @@ func newParadex() *Paradex {
 func (this *Paradex) Describe() map[string]any {
 	return this.DeepExtend(this.base.Describe(), map[string]any{
 		"has": map[string]any{
-			"ws":                    true,
-			"watchFundingRate":      true,
-			"watchFundingRates":     true,
-			"watchTicker":           true,
-			"watchTickers":          true,
-			"watchOrderBook":        true,
-			"watchOrders":           true,
-			"watchMyTrades":         true,
-			"watchPositions":        true,
-			"watchTrades":           true,
-			"watchTradesForSymbols": false,
-			"watchBalance":          true,
-			"watchOHLCV":            false,
+			"ws":                       true,
+			"watchBidsAsks":            true,
+			"watchFundingRate":         true,
+			"watchFundingRates":        true,
+			"watchLiquidations":        true,
+			"watchMarkPrice":           true,
+			"watchMarkPrices":          true,
+			"watchTicker":              true,
+			"watchTickers":             true,
+			"watchOrderBook":           true,
+			"watchOrderBookForSymbols": true,
+			"watchOrders":              true,
+			"watchMyTrades":            true,
+			"watchPositions":           true,
+			"watchTrades":              true,
+			"watchTradesForSymbols":    true,
+			"watchBalance":             true,
+			"watchOHLCV":               false,
 		},
 		"urls": map[string]any{
 			"logo": "https://x.com/tradeparadex/photo",
@@ -54,6 +59,12 @@ func (this *Paradex) Describe() map[string]any {
 			"sbe":              true,
 			"sbeSchemaVersion": "3",
 			"decompressBinary": false,
+			"watchOrderBook": map[string]any{
+				"deltas": false,
+			},
+			"ws": map[string]any{
+				"cost": 2,
+			},
 		},
 		"streaming": map[string]any{},
 	})
@@ -66,7 +77,16 @@ func (this *Paradex) GetWsUrl() any {
 	var schemaVersion string = *this.SafeString(this.Options, "sbeSchemaVersion", "3")
 	return ccxt.Add(ccxt.Add(url, "?sbeSchemaId=1&sbeSchemaVersion="), schemaVersion)
 }
-func (this *Paradex) GetOrderBookChannel(marketId any) any {
+func (this *Paradex) GetOrderBookChannel(marketId any, optionalArgs ...any) any {
+	// the docs list the channel as order_book.{market_symbol}.{feed_type}@15@{refresh_rate}, but the deltas feed
+	// takes none of those parameters: it sends one full-depth snapshot on subscribe, then incremental updates
+	// see the order book channel description in https://docs.paradex.trade/ws/web-socket-channels/order-book-market-symbol-feed-type-15-refresh-rate-price-tick/order-book-market-symbol-feed-type-15-refresh-rate-price-tick
+	// do not add @15@{refresh_rate} here, that is the 15-level snapshot form
+	var deltas bool = ccxt.GetArgBool(optionalArgs, 0, false)
+	_ = deltas
+	if deltas == true {
+		return ccxt.Add(ccxt.Add("order_book.", marketId), ".deltas")
+	}
 	return ccxt.Add(ccxt.Add("order_book.", marketId), ".snapshot@15@100ms")
 }
 func (this *Paradex) RequestId() int64 {
@@ -92,6 +112,142 @@ func (this *Paradex) SubscribeRequest(channel any) map[string]any {
 			"channel": channel,
 		},
 	}
+}
+
+/**
+ * @ignore
+ * @method
+ * @name paradex#unsubscribeRequest
+ * @description builds a json-rpc unsubscribe request
+ * @param {string} channel the channel to unsubscribe from
+ * @returns {object} the unsubscribe request
+ */
+func (this *Paradex) UnsubscribeRequest(channel any) map[string]any {
+	return map[string]any{
+		"jsonrpc": "2.0",
+		"id":      this.RequestId(),
+		"method":  "unsubscribe",
+		"params": map[string]any{
+			"channel": channel,
+		},
+	}
+}
+
+/**
+ * @ignore
+ * @method
+ * @name paradex#sendRequest
+ * @description sends a json-rpc request and waits for its reply, the reply or an error with its id settles it
+ * @param {string} url the websocket url
+ * @param {object} request the json-rpc request
+ * @param {string} [subscribeHash] the subscription the request opens, the request id when undefined
+ * @returns {object} the reply
+ */
+func (this *Paradex) SendRequestAsync(url any, request map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
+	go this.sendRequestBody(ch, url, request, optionalArgs...)
+	return ch
+}
+func (this *Paradex) sendRequestBody(ch chan ccxt.AsyncResult[any], url any, request map[string]any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var subscribeHash *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
+	_ = subscribeHash
+	var requestHash any = ccxt.Add("request:", this.SafeString(request, "id"))
+	var subscription map[string]any = map[string]any{
+		"id":            request["id"],
+		"messageHashes": []any{requestHash},
+	}
+	var hash any = func() any {
+		if subscribeHash == nil {
+			return requestHash
+		}
+		return subscribeHash
+	}()
+
+	r := <-this.Watch(url, requestHash, request, hash, subscription)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r.Value}
+	return nil
+}
+
+/**
+ * @ignore
+ * @method
+ * @name paradex#subscribeChannels
+ * @description subscribes to the channels not subscribed yet on the connection, one request per channel as the server takes one channel per request, and waits for an update on any of the message hashes
+ * @param {string} url the websocket url
+ * @param {string[]} messageHashes the message hashes to wait on
+ * @param {string[]} channels the channels to subscribe to
+ * @param {object} [params] extra parameters merged into each subscribe request
+ * @returns {object} the first update
+ */
+func (this *Paradex) SubscribeChannelsAsync(url any, messageHashes any, channels any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
+	go this.subscribeChannelsBody(ch, url, messageHashes, channels, optionalArgs...)
+	return ch
+}
+func (this *Paradex) subscribeChannelsBody(ch chan ccxt.AsyncResult[any], url any, messageHashes any, channels any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	// messageHashes[i] is the hash the updates of channels[i] resolve. The channels still to subscribe are
+	// looked up again after each await: another watch may have subscribed one meanwhile, and a reconnect
+	// starts a client without any. Each but the last is sent once the previous one is acknowledged
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var channelsLength int = ccxt.GetArrayLength(channels)
+	for attempt := 0; attempt < channelsLength; attempt++ {
+		var pending any = this.UnsubscribedChannels(url, channels)
+		var pendingLength int = ccxt.GetArrayLength(pending)
+		if pendingLength < 2 {
+			break
+		}
+		var channel *string = ccxt.SafeStringPtr(ccxt.GetValue(channels, ccxt.GetValue(pending, 0)))
+		var pendingRequest map[string]any = this.SubscribeRequest(channel)
+
+		r := <-this.SendRequestAsync(url, this.DeepExtend(pendingRequest, params), channel)
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	// the last one goes with the watch, so that an update sent right after it is not missed
+	var missing any = this.UnsubscribedChannels(url, channels)
+	var missingLength int = ccxt.GetArrayLength(missing)
+	if missingLength == 0 {
+
+		r1 := <-this.WatchMultiple(url, messageHashes, nil, channels)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+		return nil
+	}
+	var index any = ccxt.GetValue(missing, 0)
+	var request map[string]any = this.SubscribeRequest(ccxt.GetValue(channels, index))
+	// a failed subscribe rejects the watchers of its own channel only
+	var subscription map[string]any = map[string]any{
+		"id":            request["id"],
+		"messageHashes": []any{ccxt.GetValue(messageHashes, index)},
+	}
+
+	r2 := <-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), []any{ccxt.GetValue(channels, index)}, subscription)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r2.Value}
+	return nil
+}
+func (this *Paradex) UnsubscribedChannels(url any, channels any) any {
+	var client ccxt.ClientInterface = this.Client(url)
+	var result []any = []any{}
+	for i := 0; i < ccxt.GetArrayLength(channels); i++ {
+		if !(client.(ccxt.ClientInterface).SubscriptionHas(ccxt.GetValue(channels, i))) {
+			result = append(result, i)
+		}
+	}
+	return result
 }
 func (this *Paradex) AuthenticateAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[*string] {
 	ch := make(chan ccxt.AsyncResult[*string], 1)
@@ -187,6 +343,14 @@ func (this *Paradex) HandleRequestReply(client any, message any) {
 	if isAuth {
 		this.HandleAuthenticationMessage(client, message)
 	}
+	if requestId != nil {
+		// sendRequest waits on the request id, a request without a subscription of its own is kept under it
+		var requestHash string = "request:" + *requestId
+		if client.(ccxt.ClientInterface).SubscriptionHas(requestHash) {
+			client.(ccxt.ClientInterface).SubscriptionDel(requestHash)
+		}
+		client.(ccxt.ClientInterface).Resolve(message, requestHash)
+	}
 }
 
 /**
@@ -246,6 +410,150 @@ func (this *Paradex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
+
+/**
+ * @method
+ * @name paradex#watchTradesForSymbols
+ * @description get the list of most recent trades for a list of symbols
+ * @see https://docs.paradex.trade/ws/web-socket-channels/trades-market-symbol/trades-market-symbol
+ * @param {string[]} symbols unified symbols of the markets to fetch trades for
+ * @param {int} [since] timestamp in ms of the earliest trade to fetch
+ * @param {int} [limit] the maximum amount of trades to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+ */
+func (this *Paradex) WatchTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
+	go this.watchTradesForSymbolsBody(ch, symbols, optionalArgs...)
+	return ch
+}
+func (this *Paradex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbols any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
+	_ = since
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
+	_ = limit
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
+	var symbolsLength int = len(symbolsNormalized)
+	if symbolsLength == 0 {
+		panic(ccxt.ArgumentsRequired(this.Id + " watchTradesForSymbols() requires a non-empty array of symbols"))
+	}
+	var channels []any = []any{}
+	for i := 0; i < symbolsLength; i++ {
+		var market map[string]any = this.Market(symbolsNormalized[i])
+		channels = append(channels, ccxt.Add("trades.", market["id"]))
+	}
+	var url any = this.GetWsUrl()
+	// handleTrade resolves the channel of each market
+
+	r1 := <-this.SubscribeChannelsAsync(url, channels, channels, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
+	var first map[string]any = ccxt.SafeMapTyped(trades, 0)
+	var tradeSymbol *string = this.SafeString(first, "symbol")
+	var limitResolved *int64 = limit
+	if this.NewUpdates {
+		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
+	}
+
+	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
+	return nil
+}
+
+/**
+ * @method
+ * @name paradex#watchLiquidations
+ * @description watch the public liquidations of a trading pair, from the liquidation trades of the trades channel
+ * @see https://docs.paradex.trade/ws/web-socket-channels/trades-market-symbol/trades-market-symbol
+ * @param {string} symbol unified CCXT market symbol
+ * @param {int} [since] the earliest time in ms to fetch liquidations for
+ * @param {int} [limit] the maximum number of liquidation structures to retrieve
+ * @param {object} [params] exchange specific parameters
+ * @returns {object[]} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+ */
+func (this *Paradex) WatchLiquidationsAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Liquidation] {
+	ch := make(chan ccxt.AsyncResult[[]ccxt.Liquidation], 1)
+	go this.watchLiquidationsBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Paradex) watchLiquidationsBody(ch chan ccxt.AsyncResult[[]ccxt.Liquidation], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
+	_ = since
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 1, nil)
+	_ = limit
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var market map[string]any = this.Market(symbol)
+	var channel *string = ccxt.SafeStringPtr(ccxt.Add("trades.", market["id"]))
+	var messageHash *string = ccxt.SafeStringPtr("liquidations:" + market["symbol"].(string))
+	var url any = this.GetWsUrl()
+
+	r1 := <-this.SubscribeChannelsAsync(url, []any{messageHash}, []any{channel}, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var liquidations ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r1.Value)
+	var limitResolved *int64 = limit
+	if this.NewUpdates {
+		limitResolved = ccxt.ToGetsLimit(liquidations).GetLimit(market["symbol"], limit)
+	}
+
+	ch <- ccxt.AsyncResult[[]ccxt.Liquidation]{Value: ccxt.LiquidationsFromList(this.FilterBySinceLimit(liquidations, since, limitResolved, "timestamp", true))}
+	return nil
+}
+func (this *Paradex) ParseWsLiquidation(liquidation map[string]any, optionalArgs ...any) any {
+	//
+	//     {
+	//         "id": "1718179273230201709233240002",
+	//         "market": "XRP-USD-PERP",
+	//         "side": "SELL",
+	//         "size": "120",
+	//         "price": "1.2854",
+	//         "created_at": 1718179273230,
+	//         "trade_type": "LIQUIDATION"
+	//     }
+	//
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
+	_ = market
+	var marketId *string = this.SafeString(liquidation, "market")
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
+	var timestamp *int64 = this.SafeInteger(liquidation, "created_at")
+	var contracts *string = this.SafeString(liquidation, "size")
+	var price *string = this.SafeString(liquidation, "price")
+	return this.SafeLiquidation(map[string]any{
+		"info":         liquidation,
+		"symbol":       marketResolved["symbol"],
+		"contracts":    this.ParseNumber(contracts),
+		"contractSize": nil,
+		"price":        this.ParseNumber(price),
+		"side":         this.SafeStringLower(liquidation, "side"),
+		"baseValue":    this.ParseNumber(contracts),
+		"quoteValue":   this.ParseNumber(ccxt.Precise.StringMul(contracts, price)),
+		"timestamp":    timestamp,
+		"datetime":     this.Iso8601(timestamp),
+	}, marketResolved)
+}
 func (this *Paradex) HandleTrade(client any, message map[string]any) any {
 	//
 	//     {
@@ -279,6 +587,20 @@ func (this *Paradex) HandleTrade(client any, message map[string]any) any {
 	}
 	stored.Append(parsedTrade)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+	if this.SafeString(data, "trade_type") != nil && *this.SafeString(data, "trade_type") == "LIQUIDATION" {
+		// one cache per market, kept in the options next to the request id counter: this.liquidations
+		// is typed as a single cache in some languages and initialized as a map in others
+		var liquidation any = this.ParseWsLiquidation(data)
+		var caches map[string]any = this.SafeDictMap(this.Options, "liquidationsBySymbol", map[string]any{})
+		var liquidations any = this.SafeValue(caches, symbol)
+		if liquidations == nil {
+			liquidations = ccxt.NewArrayCache(this.SafeInteger(this.Options, "liquidationsLimit", 1000))
+			ccxt.AddElementToObject(caches, symbol, liquidations)
+			this.Options["liquidationsBySymbol"] = caches
+		}
+		liquidations.(ccxt.Appender).Append(liquidation)
+		client.(ccxt.ClientInterface).Resolve(liquidations, ccxt.Add("liquidations:", symbol))
+	}
 	// an SBE frame names its market but not the subscription it was sent for,
 	// so the trades.ALL subscription is resolved from the per-market channel too
 	var isSbe *bool = this.SafeBool(message, "sbe", false)
@@ -294,8 +616,9 @@ func (this *Paradex) HandleTrade(client any, message map[string]any) any {
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @see https://docs.paradex.trade/ws/web-socket-channels/order-book-market-symbol-feed-type-15-refresh-rate-price-tick/order-book-market-symbol-feed-type-15-refresh-rate-price-tick
  * @param {string} symbol unified symbol of the market to fetch the order book for
- * @param {int} [limit] the maximum amount of order book entries to return
+ * @param {int} [limit] above 15 the full-depth deltas feed is used and the whole book is returned, otherwise the 15-level snapshots
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.deltas] true for the full-depth deltas feed, default false (the 15-level snapshots)
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Paradex) WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
@@ -310,6 +633,38 @@ func (this *Paradex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	_ = limit
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
+
+	r := <-this.WatchOrderBookForSymbolsAsync([]any{symbol}, limit, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: r.Value}
+	return nil
+}
+
+/**
+ * @method
+ * @name paradex#watchOrderBookForSymbols
+ * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+ * @see https://docs.paradex.trade/ws/web-socket-channels/order-book-market-symbol-feed-type-15-refresh-rate-price-tick/order-book-market-symbol-feed-type-15-refresh-rate-price-tick
+ * @param {string[]} symbols unified array of symbols
+ * @param {int} [limit] above 15 the full-depth deltas feed is used and the whole book is returned, otherwise the 15-level snapshots
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.deltas] true for the full-depth deltas feed, default false (the 15-level snapshots)
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+ */
+func (this *Paradex) WatchOrderBookForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
+	ch := make(chan ccxt.AsyncResult[ccxt.OrderBookInterface], 1)
+	go this.watchOrderBookForSymbolsBody(ch, symbols, optionalArgs...)
+	return ch
+}
+func (this *Paradex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], symbols any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var limit *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
+	_ = limit
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -317,25 +672,66 @@ func (this *Paradex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 			panic(r.Err)
 		}
 	}
-	var market map[string]any = this.Market(symbol)
-	var messageHash any = this.GetOrderBookChannel(market["id"])
+	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
+	var symbolsLength int = len(symbolsNormalized)
+	if symbolsLength == 0 {
+		panic(ccxt.ArgumentsRequired(this.Id + " watchOrderBookForSymbols() requires a non-empty array of symbols"))
+	}
+	var deltasOptionparamsDeltasVariable []any = this.HandleOptionAndParams(params, "watchOrderBook", "deltas", false)
+	deltasOption := ccxt.GetValue(deltasOptionparamsDeltasVariable, 0)
+	var paramsDeltas map[string]any = ccxt.MapTyped(deltasOptionparamsDeltasVariable[1])
+	var deltas bool = (deltasOption == true) || ((limit != nil) && (*limit > 15))
 	var url any = this.GetWsUrl()
-	var request map[string]any = this.SubscribeRequest(messageHash)
-	var subscription map[string]any = map[string]any{
-		"id":            request["id"],
-		"messageHashes": []any{messageHash},
+	var client ccxt.ClientInterface = this.Client(url)
+	var channels []any = []any{}
+	var messageHashes []any = []any{}
+	for i := 0; i < symbolsLength; i++ {
+		var market map[string]any = this.Market(symbolsNormalized[i])
+		var deltasChannel any = this.GetOrderBookChannel(market["id"], true)
+		var snapshotChannel any = this.GetOrderBookChannel(market["id"], false)
+		// one feed per market on a connection: both send BookEvent frames, which do not name their channel,
+		// and the 15-level snapshots would cut a full-depth book down. The deltas feed is a superset, it stays
+		// the market stays on the deltas feed from the first call that asks for it, a call made while the
+		// snapshot feed is being unsubscribed included
+		var deltasHash any = ccxt.Add(deltasChannel, ":requested")
+		var isDeltas bool = deltas || (client.(ccxt.ClientInterface).SubscriptionHas(deltasHash))
+		if isDeltas {
+			client.(ccxt.ClientInterface).SubscriptionSet(deltasHash, true)
+		}
+		if isDeltas && (client.(ccxt.ClientInterface).SubscriptionHas(snapshotChannel)) {
+			// the snapshot feed is unsubscribed before the deltas one is subscribed, no snapshot of it
+			// arrives once the reply is in
+			var unsubscribe map[string]any = this.UnsubscribeRequest(snapshotChannel)
+			client.(ccxt.ClientInterface).SubscriptionDel(snapshotChannel)
+
+			r1 := <-this.SendRequestAsync(url, unsubscribe)
+			if r1.Err != nil {
+				panic(r1.Err)
+			}
+		}
+		var channel any = func() any {
+			if isDeltas {
+				return deltasChannel
+			}
+			return snapshotChannel
+		}()
+		channels = append(channels, channel)
+		messageHashes = append(messageHashes, "orderbook:"+market["symbol"].(string))
 	}
 
-	r1 := <-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash, subscription)
-	if r1.Err != nil {
-		panic(r1.Err)
+	r2 := <-this.SubscribeChannelsAsync(url, messageHashes, channels, paramsDeltas)
+	if r2.Err != nil {
+		panic(r2.Err)
 	}
-	var orderbook ccxt.OrderBookInterface = r1.Value.(ccxt.OrderBookInterface)
+	var orderbook ccxt.OrderBookInterface = r2.Value.(ccxt.OrderBookInterface)
 
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
 func (this *Paradex) HandleOrderBook(client any, message map[string]any) {
+	//
+	// a snapshot, the 15-level feed sends one every 100ms, the deltas feed sends a full-depth one on
+	// subscribe and on a resync
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -365,29 +761,87 @@ func (this *Paradex) HandleOrderBook(client any, message map[string]any) {
 	//         }
 	//     }
 	//
+	// a delta, the levels added or changed, and the levels removed
+	//
+	//     {
+	//         "jsonrpc": "2.0",
+	//         "method": "subscription",
+	//         "params": {
+	//             "channel": "order_book.XRP-USD-PERP.deltas",
+	//             "data": {
+	//                 "seq_no": 1669897428,
+	//                 "market": "XRP-USD-PERP",
+	//                 "last_updated_at": 1792183966700,
+	//                 "update_type": "d",
+	//                 "inserts": [],
+	//                 "updates": [ { "side": "SELL", "price": "1.3908", "size": "6600" } ],
+	//                 "deletes": [ { "side": "SELL", "price": "1.4737", "size": "0" } ]
+	//             }
+	//         }
+	//     }
+	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data map[string]any = ccxt.SafeMapTyped(params, "data")
 	var marketId *string = this.SafeString(data, "market")
 	var market map[string]any = this.SafeMarket(marketId)
-	var timestamp *int64 = this.SafeInteger(data, "last_updated_at")
 	var symbol *string = this.SafeString(market, "symbol", "")
-	if !(this.Orderbooks[*symbol] != nil) {
-		this.Orderbooks[*symbol] = this.OrderBook()
-	}
+	var timestamp *int64 = this.SafeInteger(data, "last_updated_at")
+	var nonce *int64 = this.SafeInteger(data, "seq_no")
+	var messageHash string = "orderbook:" + *symbol
 	// levels go into local arrays first: pushing into orderbookData['bids'] appends to a copy in go
 	var bids []any = []any{}
 	var asks []any = []any{}
-	var inserts any = this.SafeList(data, "inserts")
-	for i := 0; i < ccxt.GetArrayLength(inserts); i++ {
-		var insert map[string]any = ccxt.SafeMapTyped(inserts, i)
-		var side *string = this.SafeString(insert, "side")
-		var price *string = this.SafeString(insert, "price")
-		var size *string = this.SafeString(insert, "size")
-		if side != nil && *side == "BUY" {
-			bids = append(bids, []any{price, size})
-		} else {
-			asks = append(asks, []any{price, size})
+	// a level of the deletes is removed whatever size it carries, an SBE delta removes one by a size of 0
+	var levelKeys []string = []string{"inserts", "updates", "deletes"}
+	for k := 0; k < len(levelKeys); k++ {
+		var isDelete bool = (levelKeys[k] == "deletes")
+		var levels []any = ccxt.SafeListTyped(data, levelKeys[k])
+		for i := 0; i < len(levels); i++ {
+			var level map[string]any = ccxt.SafeMapTyped(levels, i)
+			var price *string = this.SafeString(level, "price")
+			var size *string = func() *string {
+				if isDelete {
+					return ccxt.SafeStringPtr("0")
+				}
+				return this.SafeString(level, "size")
+			}()
+			if this.SafeString(level, "side") != nil && *this.SafeString(level, "side") == "BUY" {
+				bids = append(bids, []any{price, size})
+			} else {
+				asks = append(asks, []any{price, size})
+			}
 		}
+	}
+	if this.SafeString(data, "update_type") != nil && *this.SafeString(data, "update_type") == "d" {
+		var deltasChannel any = this.GetOrderBookChannel(marketId, true)
+		var stored ccxt.OrderBookInterface = this.Orderbooks[*symbol]
+		// a delta applies only to the book of the deltas feed
+		if (stored == nil) || !(client.(ccxt.ClientInterface).SubscriptionHas(deltasChannel)) {
+			return
+		}
+		var storedNonce any = ccxt.GetValue(stored, "nonce")
+		// no book to apply it to: before the first snapshot, and between a resync and its snapshot
+		if (storedNonce == nil) || (nonce == nil) || (ccxt.IsLessThanOrEqual(nonce, storedNonce)) {
+			return
+		}
+		if !ccxt.IsEqual(nonce, this.Sum(storedNonce, 1)) {
+			// a skipped delta leaves the book wrong, the feed is subscribed again for a fresh snapshot
+			ccxt.AddElementToObject(stored, "nonce", nil)
+			this.Spawn(this.ResubscribeOrderBookAsync, client, deltasChannel, messageHash)
+			return
+		}
+		var storedBids ccxt.IOrderBookSide = stored.GetBids()
+		var storedAsks ccxt.IOrderBookSide = stored.GetAsks()
+		this.HandleBookSideDeltas(storedBids, bids)
+		this.HandleBookSideDeltas(storedAsks, asks)
+		stored.SetNonce(nonce)
+		stored.SetTimestamp(timestamp)
+		stored.SetDatetime(this.Iso8601(timestamp))
+		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
+		return
+	}
+	if !(this.Orderbooks[*symbol] != nil) {
+		this.Orderbooks[*symbol] = this.OrderBook()
 	}
 	var orderbookData map[string]any = map[string]any{
 		"bids": bids,
@@ -395,10 +849,64 @@ func (this *Paradex) HandleOrderBook(client any, message map[string]any) {
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol]
 	var snapshot map[string]any = this.ParseOrderBook(orderbookData, symbol, timestamp, "bids", "asks")
-	snapshot["nonce"] = this.SafeInteger(data, "seq_no")
+	snapshot["nonce"] = nonce
 	orderbook.Reset(snapshot)
-	var messageHash *string = this.SafeString(params, "channel")
+	// a channel override in params still resolves, frames are routed by market and package type
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+}
+func (this *Paradex) HandleBookSideDeltas(bookside any, deltas []any) {
+	// a size of 0 removes the price level
+	for i := 0; i < len(deltas); i++ {
+		var bidAsk []any = this.ParseOrderBookBidAsk(ccxt.DerefScalar(deltas[i]), 0, 1)
+		bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
+	}
+}
+
+/**
+ * @ignore
+ * @method
+ * @name paradex#resubscribeOrderBook
+ * @description subscribes to an order book deltas feed again, the server sends a fresh full-depth snapshot on subscribe
+ * @param {object} client the websocket client
+ * @param {string} channel the deltas channel
+ * @param {string} messageHash the message hash the book watchers wait on
+ * @returns {boolean} true once both requests are sent
+ */
+func (this *Paradex) ResubscribeOrderBookAsync(client any, channel any, messageHash string) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
+	go this.resubscribeOrderBookBody(ch, client, channel, messageHash)
+	return ch
+}
+func (this *Paradex) resubscribeOrderBookBody(ch chan ccxt.AsyncResult[any], client any, channel any, messageHash string) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	// a subscribe alone is acknowledged without a snapshot, the feed is unsubscribed first. Both requests
+	// keep their ids in the subscriptions, so that an error reply reaches neither an unrelated watcher nor
+	// the whole connection
+	var unsubscribe map[string]any = this.UnsubscribeRequest(channel)
+	var subscribe map[string]any = this.SubscribeRequest(channel)
+	var unsubscribeHash any = ccxt.Add("request:", this.SafeString(unsubscribe, "id"))
+	client.(ccxt.ClientInterface).SubscriptionSet(unsubscribeHash, map[string]any{
+		"id":            unsubscribe["id"],
+		"messageHashes": []any{},
+	})
+	client.(ccxt.ClientInterface).SubscriptionSet(channel, map[string]any{
+		"id":            subscribe["id"],
+		"messageHashes": []any{messageHash},
+	})
+
+	r := <-client.(ccxt.ClientInterface).SendAsync(unsubscribe)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+
+	r1 := <-client.(ccxt.ClientInterface).SendAsync(subscribe)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+
+	ch <- ccxt.AsyncResult[any]{Value: true}
+	return nil
 }
 
 /**
@@ -428,18 +936,9 @@ func (this *Paradex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	// the per-market channel: the all-markets one carries a summary for every listed
-	// option too, thousands of messages a second, all decoded only to be filtered out
-	var channel *string = ccxt.SafeStringPtr(ccxt.Add("markets_summary.", market["id"]))
-	var url any = this.GetWsUrl()
 	var messageHash *string = ccxt.SafeStringPtr("markets_summary." + market["symbol"].(string))
-	var request map[string]any = this.SubscribeRequest(channel)
-	var subscription map[string]any = map[string]any{
-		"id":            request["id"],
-		"messageHashes": []any{messageHash},
-	}
 
-	r1 := <-this.Watch(url, messageHash, this.DeepExtend(request, params), channel, subscription)
+	r1 := <-this.SubscribeMarketsSummaryAsync([]any{market["symbol"]}, []any{messageHash}, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -452,7 +951,7 @@ func (this *Paradex) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
  * @name paradex#watchTickers
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
  * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
- * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the tickers for, all markets when undefined, which is thousands of updates a second
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
@@ -476,27 +975,55 @@ func (this *Paradex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
+	var symbolsLength int = 0
+	if symbolsNormalized != nil {
+		symbolsLength = len(symbolsNormalized)
+	}
 	var channel string = "markets_summary"
-	var url any = this.GetWsUrl()
 	var messageHashes []any = []any{}
-	if (symbolsNormalized != nil) && true {
-		for i := 0; i < len(symbolsNormalized); i++ {
-			var messageHash string = channel + "." + symbolsNormalized[i]
-			messageHashes = append(messageHashes, messageHash)
+	var newTicker any = nil
+	if symbolsLength > 0 {
+		for i := 0; i < symbolsLength; i++ {
+			messageHashes = append(messageHashes, ccxt.Add(channel+".", ccxt.GetValue(symbolsNormalized, i)))
 		}
-	} else {
-		messageHashes = append(messageHashes, channel)
-	}
-	var request map[string]any = this.SubscribeRequest(channel)
-	var subscription map[string]any = map[string]any{
-		"id": request["id"],
-	}
 
-	r1 := <-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes, subscription)
-	if r1.Err != nil {
-		panic(r1.Err)
+		r1 := <-this.SubscribeMarketsSummaryAsync(symbolsNormalized, messageHashes, params)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		newTicker = r1.Value
+	} else {
+		// every listed market, options included
+		var url any = this.GetWsUrl()
+		var client ccxt.ClientInterface = this.Client(url)
+		var scopedHash string = channel + ":scoped"
+		if client.(ccxt.ClientInterface).SubscriptionHas(scopedHash) {
+			// a scoped subscription keeps its filter through a plain subscribe, it is unsubscribed first
+			var subscribeHashes []string = client.(ccxt.ClientInterface).SubscriptionKeys()
+			for i := 0; i < len(subscribeHashes); i++ {
+				if (subscribeHashes[i] == scopedHash) || (strings.Index(subscribeHashes[i], channel+".") == 0) {
+					client.(ccxt.ClientInterface).SubscriptionDel(subscribeHashes[i])
+				}
+			}
+			var unsubscribe map[string]any = this.UnsubscribeRequest(channel)
+
+			r2 := <-this.SendRequestAsync(url, unsubscribe)
+			if r2.Err != nil {
+				panic(r2.Err)
+			}
+		}
+		var request map[string]any = this.SubscribeRequest(channel)
+		var subscription map[string]any = map[string]any{
+			"id":            request["id"],
+			"messageHashes": []any{channel},
+		}
+
+		r3 := <-this.Watch(url, channel, this.DeepExtend(request, params), channel, subscription)
+		if r3.Err != nil {
+			panic(r3.Err)
+		}
+		newTicker = r3.Value
 	}
-	newTicker := r1.Value
 	if this.NewUpdates {
 		var result map[string]any = map[string]any{}
 		var newTickerSymbol *string = this.SafeString(newTicker, "symbol")
@@ -510,6 +1037,271 @@ func (this *Paradex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Tickers, symbolsNormalized)}
 	return nil
+}
+
+/**
+ * @ignore
+ * @method
+ * @name paradex#subscribeMarketsSummary
+ * @description watches the market summaries of a list of markets over one scoped subscription, the markets not in it yet are added in place
+ * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
+ * @param {string[]} symbols unified symbols of the markets
+ * @param {string[]} messageHashes the message hashes to wait on
+ * @param {object} [params] extra parameters merged into the request
+ * @returns {object} the first [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure} updated
+ */
+func (this *Paradex) SubscribeMarketsSummaryAsync(symbols any, messageHashes any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+	ch := make(chan ccxt.AsyncResult[any], 1)
+	go this.subscribeMarketsSummaryBody(ch, symbols, messageHashes, optionalArgs...)
+	return ch
+}
+func (this *Paradex) subscribeMarketsSummaryBody(ch chan ccxt.AsyncResult[any], symbols any, messageHashes any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	var url any = this.GetWsUrl()
+	var client ccxt.ClientInterface = this.Client(url)
+	var channel string = "markets_summary"
+	if client.(ccxt.ClientInterface).SubscriptionHas(channel) {
+
+		// the all-markets subscription carries these markets already
+		r := <-this.WatchMultiple(url, messageHashes, nil, []any{channel})
+		if r.Err != nil {
+			panic(r.Err)
+		}
+		ch <- ccxt.AsyncResult[any]{Value: r.Value}
+		return nil
+	}
+	// one subscription with a market filter: a subscription per market is a request per market, and
+	// the all-markets one is thousands of frames a second, mostly options, decoded to be dropped
+	var scopedHash string = channel + ":scoped"
+	var subscribeHashes []any = []any{}
+	var missing []any = []any{}
+	var missingHashes []any = []any{}
+	// messageHashes[i] is the hash the summaries of symbols[i] resolve
+	for i := 0; i < ccxt.GetArrayLength(symbols); i++ {
+		var marketId *string = ccxt.SafeStringPtr(this.Market(ccxt.GetValue(symbols, i))["id"])
+		var subscribeHash string = channel + "." + *marketId
+		subscribeHashes = append(subscribeHashes, subscribeHash)
+		if !(client.(ccxt.ClientInterface).SubscriptionHas(subscribeHash)) {
+			missing = append(missing, marketId)
+			missingHashes = append(missingHashes, ccxt.GetValue(messageHashes, i))
+		}
+	}
+	var missingLength int = len(missing)
+	if missingLength == 0 {
+
+		r1 := <-this.WatchMultiple(url, messageHashes, nil, subscribeHashes)
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		ch <- ccxt.AsyncResult[any]{Value: r1.Value}
+		return nil
+	}
+	var request map[string]any = nil
+	if client.(ccxt.ClientInterface).SubscriptionHas(scopedHash) {
+		request = map[string]any{
+			"jsonrpc": "2.0",
+			"id":      this.RequestId(),
+			"method":  "modify_subscription",
+			"params": map[string]any{
+				"channel": channel,
+				"add":     missing,
+			},
+		}
+	} else {
+		request = this.SubscribeRequest(channel)
+		ccxt.AddElementToObject(ccxt.GetValue(request, "params"), "markets", missing)
+		subscribeHashes = append(subscribeHashes, scopedHash)
+	}
+	// a failed request is forgotten with every market it carried, the next watch sends them again, and
+	// it rejects the watchers of those markets only
+	var subscription map[string]any = map[string]any{
+		"id":            ccxt.GetValue(request, "id"),
+		"messageHashes": missingHashes,
+	}
+
+	r2 := <-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), subscribeHashes, subscription)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	ch <- ccxt.AsyncResult[any]{Value: r2.Value}
+	return nil
+}
+
+/**
+ * @method
+ * @name paradex#watchMarkPrice
+ * @description watches a mark price for a specific market
+ * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
+ * @param {string} symbol unified symbol of the market to fetch the ticker for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Paradex) WatchMarkPriceAsync(symbol string, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.Ticker] {
+	ch := make(chan ccxt.AsyncResult[ccxt.Ticker], 1)
+	go this.watchMarkPriceBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Paradex) watchMarkPriceBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	r := <-this.WatchTickerAsync(symbol, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: r.Value}
+	return nil
+}
+
+/**
+ * @method
+ * @name paradex#watchMarkPrices
+ * @description watches the mark prices for all markets of a list
+ * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the tickers for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Paradex) WatchMarkPricesAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]ccxt.Ticker] {
+	ch := make(chan ccxt.AsyncResult[map[string]ccxt.Ticker], 1)
+	go this.watchMarkPricesBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Paradex) watchMarkPricesBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticker], optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
+	_ = symbols
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	r := <-this.WatchTickersAsync(symbols, params)
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: r.Value}
+	return nil
+}
+
+/**
+ * @method
+ * @name paradex#watchBidsAsks
+ * @description watches best bid & ask for symbols
+ * @see https://docs.paradex.trade/ws/web-socket-channels/bbo-market-symbol/bbo-market-symbol
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the best bid and ask for, all markets when undefined
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Paradex) WatchBidsAsksAsync(optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]ccxt.Ticker] {
+	ch := make(chan ccxt.AsyncResult[map[string]ccxt.Ticker], 1)
+	go this.watchBidsAsksBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Paradex) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticker], optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
+	_ = symbols
+	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var symbolsNormalized []string = this.MarketSymbols(symbols)
+	var symbolsLength int = 0
+	if symbolsNormalized != nil {
+		symbolsLength = len(symbolsNormalized)
+	}
+	var url any = this.GetWsUrl()
+	var channels []any = []any{}
+	var messageHashes []any = []any{}
+	if symbolsLength > 0 {
+		for i := 0; i < symbolsLength; i++ {
+			var market map[string]any = this.Market(func() any {
+				if i >= 0 && i < len(symbolsNormalized) {
+					return symbolsNormalized[i]
+				}
+				return nil
+			}())
+			channels = append(channels, ccxt.Add("bbo.", market["id"]))
+			messageHashes = append(messageHashes, ccxt.Add("bidask:", market["symbol"]))
+		}
+	} else {
+		channels = append(channels, "bbo.ALL")
+		messageHashes = append(messageHashes, "bidask")
+	}
+
+	r1 := <-this.SubscribeChannelsAsync(url, messageHashes, channels, params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var newBidAsk map[string]any = ccxt.MapTyped(r1.Value)
+	if this.NewUpdates {
+		var result map[string]any = map[string]any{}
+		ccxt.AddElementToObject(result, newBidAsk["symbol"], newBidAsk)
+
+		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(result)}
+		return nil
+	}
+
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Bidsasks, symbolsNormalized)}
+	return nil
+}
+func (this *Paradex) HandleBidAsk(client any, message map[string]any) {
+	//
+	//     {
+	//         "jsonrpc": "2.0",
+	//         "method": "subscription",
+	//         "params": {
+	//             "channel": "bbo.XRP-USD-PERP",
+	//             "data": {
+	//                 "market": "XRP-USD-PERP",
+	//                 "seq_no": 1669897465,
+	//                 "bid": "1.2782",
+	//                 "bid_size": "267.7",
+	//                 "ask": "1.318",
+	//                 "ask_size": "259.6",
+	//                 "last_updated_at": 1792183969812
+	//             }
+	//         }
+	//     }
+	//
+	var params map[string]any = ccxt.SafeMapTyped(message, "params")
+	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
+	var bidAsk any = this.ParseWsBidAsk(data)
+	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(bidAsk, "symbol"))
+	if symbol != nil {
+		this.Bidsasks[*symbol] = ccxt.TickerFromMap(bidAsk)
+	}
+	client.(ccxt.ClientInterface).Resolve(bidAsk, ccxt.Add("bidask:", symbol))
+	// an SBE frame does not tell bbo.ALL from the per-market channel
+	client.(ccxt.ClientInterface).Resolve(bidAsk, "bidask")
+}
+func (this *Paradex) ParseWsBidAsk(data map[string]any, optionalArgs ...any) any {
+	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
+	_ = market
+	var marketId *string = this.SafeString(data, "market")
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
+	var timestamp *int64 = this.SafeInteger(data, "last_updated_at")
+	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
+		"symbol":    marketResolved["symbol"],
+		"timestamp": timestamp,
+		"datetime":  this.Iso8601(timestamp),
+		"ask":       this.SafeString(data, "ask"),
+		"askVolume": this.SafeString(data, "ask_size"),
+		"bid":       this.SafeString(data, "bid"),
+		"bidVolume": this.SafeString(data, "bid_size"),
+		"info":      data,
+	}, marketResolved))
 }
 
 /**
@@ -1073,17 +1865,13 @@ func (this *Paradex) watchFundingRateBody(ch chan ccxt.AsyncResult[ccxt.FundingR
 			panic(r.Err)
 		}
 	}
-	var symbolValue any = this.Symbol(symbol)
-	var channel string = "funding_data"
+	var market map[string]any = this.Market(symbol)
+	// the per-market channel, the all-markets one sends every perpetual's funding
+	var channel *string = ccxt.SafeStringPtr(ccxt.Add("funding_data.", market["id"]))
 	var url any = this.GetWsUrl()
-	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(channel+".", symbolValue))
-	var request map[string]any = this.SubscribeRequest(channel)
-	var subscription map[string]any = map[string]any{
-		"id":            request["id"],
-		"messageHashes": []any{messageHash},
-	}
+	var messageHash *string = ccxt.SafeStringPtr("funding_data." + market["symbol"].(string))
 
-	r1 := <-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash, subscription)
+	r1 := <-this.SubscribeChannelsAsync(url, []any{messageHash}, []any{channel}, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1184,13 +1972,10 @@ func (this *Paradex) HandleFundingRate(client any, message map[string]any) {
 	var fundingRate any = this.ParseFundingRateWs(data)
 	var symbol *string = this.SafeString(fundingRate, "symbol")
 	ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
-	var channel *string = this.SafeString(params, "channel")
-	// watchFundingRates without symbols waits on the bare channel
-	client.(ccxt.ClientInterface).Resolve(fundingRate, channel)
-	if channel != nil {
-		var messageHash *string = ccxt.SafeStringPtr(ccxt.Add(*channel+".", symbol))
-		client.(ccxt.ClientInterface).Resolve(fundingRate, messageHash)
-	}
+	// watchFundingRates without symbols waits on the bare channel, the per-market and all-markets
+	// channels carry the same frame
+	client.(ccxt.ClientInterface).Resolve(fundingRate, "funding_data")
+	client.(ccxt.ClientInterface).Resolve(fundingRate, ccxt.Add("funding_data.", symbol))
 }
 func (this *Paradex) ParseFundingRateWs(contract map[string]any, optionalArgs ...any) any {
 	//
@@ -1235,7 +2020,7 @@ func (this *Paradex) ParseFundingRateWs(contract map[string]any, optionalArgs ..
 		"interval":                 interval,
 	}
 }
-func (this *Paradex) ParseSbeMessage(message any) any {
+func (this *Paradex) ParseSbeMessage(client any, message any) any {
 	//
 	// Paradex SBE schema 1:3 (https://docs.paradex.trade), little-endian. Every frame is an 8-byte
 	// header (blockLength, templateId, schemaId, version as uint16) followed by a fixed block of
@@ -1257,40 +2042,46 @@ func (this *Paradex) ParseSbeMessage(message any) any {
 	if (schemaId != 1) || (frameLength < (blockLength + 8)) {
 		return nil
 	}
-	var channel any = nil
+	var channel *string = nil
 	var data any = nil
 	if templateId == 1 {
 		data = this.ParseSbeTrade(frameHex, blockLength, frameLength)
 		if !ccxt.IsEqual(data, nil) {
-			channel = "trades." + *this.SafeString(data, "market", "")
+			channel = ccxt.SafeStringPtr("trades." + *this.SafeString(data, "market", ""))
+		}
+	} else if templateId == 2 {
+		data = this.ParseSbeBbo(frameHex, blockLength, frameLength)
+		if !ccxt.IsEqual(data, nil) {
+			channel = ccxt.SafeStringPtr("bbo." + *this.SafeString(data, "market", ""))
 		}
 	} else if templateId == 3 {
+		// the snapshot and deltas feeds send the same frame, handleOrderBook tells them apart by package type
 		data = this.ParseSbeOrderBook(frameHex, blockLength, frameLength)
 		if !ccxt.IsEqual(data, nil) {
-			channel = this.GetOrderBookChannel(this.SafeString(data, "market"))
+			channel = ccxt.SafeStringPtr("order_book." + *this.SafeString(data, "market", ""))
 		}
 	} else if templateId == 4 {
-		data = this.ParseSbeMarketSummary(frameHex, blockLength, frameLength)
-		channel = "markets_summary"
+		data = this.ParseSbeMarketSummary(client, frameHex, blockLength, frameLength)
+		channel = ccxt.SafeStringPtr("markets_summary")
 	} else if templateId == 5 {
 		data = this.ParseSbeFundingData(frameHex, blockLength, frameLength)
-		channel = "funding_data"
+		channel = ccxt.SafeStringPtr("funding_data")
 	} else if templateId == 20 {
 		data = this.ParseSbeOrder(frameHex, blockLength, frameLength)
 		if !ccxt.IsEqual(data, nil) {
-			channel = "orders." + *this.SafeString(data, "market", "")
+			channel = ccxt.SafeStringPtr("orders." + *this.SafeString(data, "market", ""))
 		}
 	} else if templateId == 21 {
 		data = this.ParseSbeFill(frameHex, blockLength, frameLength)
 		if !ccxt.IsEqual(data, nil) {
-			channel = "fills." + *this.SafeString(data, "market", "")
+			channel = ccxt.SafeStringPtr("fills." + *this.SafeString(data, "market", ""))
 		}
 	} else if templateId == 22 {
 		data = this.ParseSbePosition(frameHex, blockLength, frameLength)
-		channel = "positions"
+		channel = ccxt.SafeStringPtr("positions")
 	} else if templateId == 23 {
 		data = this.ParseSbeAccount(frameHex, blockLength, frameLength)
-		channel = "account"
+		channel = ccxt.SafeStringPtr("account")
 	}
 	if ccxt.IsEqual(data, nil) {
 		return nil
@@ -1445,23 +2236,49 @@ func (this *Paradex) ParseSbeTrade(frameHex string, blockLength int64, frameLeng
 		"trade_type": this.SbeReadEnum(frameHex, 57, tradeTypes),
 	}
 }
+func (this *Paradex) ParseSbeBbo(frameHex string, blockLength int64, frameLength int64) any {
+	var blockSize int64 = this.ParseToInt(blockLength)
+	//
+	// BboEvent (templateId 2), 48-byte block
+	//
+	//     ts int64, seq int64, bidPrice int64, bidSize int64, askPrice int64, askSize int64 (each price
+	//     and size null on an empty side), then the market string
+	//
+	if blockSize < 48 {
+		return nil
+	}
+	var strings []any = this.SbeReadVarStrings(frameHex, this.Sum(blockLength, 8), 1, frameLength)
+	var stringsLength int = len(strings)
+	if stringsLength < 1 {
+		return nil
+	}
+	return map[string]any{
+		"market":          this.SafeString(strings, 0),
+		"seq_no":          this.SbeReadInt64(frameHex, 16),
+		"bid":             this.SbeReadDecimal(frameHex, 24),
+		"bid_size":        this.SbeReadDecimal(frameHex, 32),
+		"ask":             this.SbeReadDecimal(frameHex, 40),
+		"ask_size":        this.SbeReadDecimal(frameHex, 48),
+		"last_updated_at": this.SbeReadTimestamp(frameHex, 8),
+	}
+}
 func (this *Paradex) ParseSbeOrderBook(frameHex string, blockLength int64, frameLength int64) any {
 	var blockSize int64 = this.ParseToInt(blockLength)
 	//
 	// BookEvent (templateId 3), 89-byte block
 	//
-	//     ts int64, seq int64, pkgType uint8, nine best bid/ask int64 fields, then the bids and asks
-	//     groups of (price int64, size int64) entries and the market string
+	//     ts int64, seq int64, pkgType uint8 (0 snapshot, 1 delta), nine best bid/ask int64 fields, then
+	//     the bids and asks groups of (price int64, size int64) entries and the market string. A delta
+	//     carries the changed levels, a size of 0 removes the level
 	//
 	if blockSize < 17 {
 		return nil
 	}
-	// watchOrderBook subscribes to the snapshot channel, a delta would need a book to apply it to
 	var pkgType int64 = this.ParseToInt(this.SbeReadUint(frameHex, 24, 1))
-	if pkgType != 0 {
+	if (pkgType != 0) && (pkgType != 1) {
 		return nil
 	}
-	var inserts []any = []any{}
+	var levels []any = []any{}
 	var sides []string = []string{"BUY", "SELL"}
 	var frameEnd int64 = this.ParseToInt(frameLength)
 	var position int64 = this.ParseToInt(this.Sum(blockLength, 8))
@@ -1476,7 +2293,7 @@ func (this *Paradex) ParseSbeOrderBook(frameHex string, blockLength int64, frame
 			return nil
 		}
 		for j := 0; int64(j) < numInGroup; j++ {
-			inserts = append(inserts, map[string]any{
+			levels = append(levels, map[string]any{
 				"side":  sides[i],
 				"price": this.SbeReadDecimal(frameHex, position),
 				"size":  this.SbeReadDecimal(frameHex, position+8),
@@ -1489,17 +2306,33 @@ func (this *Paradex) ParseSbeOrderBook(frameHex string, blockLength int64, frame
 	if stringsLength < 1 {
 		return nil
 	}
+	var isSnapshot bool = (pkgType == 0)
 	return map[string]any{
 		"seq_no":          this.SbeReadInt64(frameHex, 16),
 		"market":          this.SafeString(strings, 0),
 		"last_updated_at": this.SbeReadTimestamp(frameHex, 8),
-		"update_type":     "s",
-		"inserts":         inserts,
-		"updates":         []any{},
-		"deletes":         []any{},
+		"update_type": func() string {
+			if isSnapshot {
+				return "s"
+			}
+			return "d"
+		}(),
+		"inserts": func() any {
+			if isSnapshot {
+				return levels
+			}
+			return []any{}
+		}(),
+		"updates": func() any {
+			if isSnapshot {
+				return []any{}
+			}
+			return levels
+		}(),
+		"deletes": []any{},
 	}
 }
-func (this *Paradex) ParseSbeMarketSummary(frameHex string, blockLength int64, frameLength int64) any {
+func (this *Paradex) ParseSbeMarketSummary(client any, frameHex string, blockLength int64, frameLength int64) any {
 	var blockSize int64 = this.ParseToInt(blockLength)
 	//
 	// MarketSummaryEvent (templateId 4), 248-byte block (240 before 1:3), of which the first
@@ -1517,13 +2350,20 @@ func (this *Paradex) ParseSbeMarketSummary(frameHex string, blockLength int64, f
 	if stringsLength < 1 {
 		return nil
 	}
+	// the market is read first, so that a frame for a market nobody subscribed to is dropped before its
+	// decimals are decoded, like one still in flight after its market left the scoped filter
+	var marketId *string = this.SafeString(strings, 0, "")
+	var subscribeHash string = "markets_summary." + *marketId
+	if !(client.(ccxt.ClientInterface).SubscriptionHas("markets_summary")) && !(client.(ccxt.ClientInterface).SubscriptionHas(subscribeHash)) {
+		return nil
+	}
 	// appended in 1:3: null outside the pre-expiry settlement window and for undated markets
 	var settlementTwapEstimate any = nil
 	if blockSize >= 248 {
 		settlementTwapEstimate = this.SbeReadDecimal(frameHex, 248)
 	}
 	return map[string]any{
-		"symbol":                   this.SafeString(strings, 0),
+		"symbol":                   marketId,
 		"mark_price":               this.SbeReadDecimal(frameHex, 24),
 		"last_traded_price":        this.SbeReadDecimal(frameHex, 40),
 		"bid":                      this.SbeReadDecimal(frameHex, 72),
@@ -1891,7 +2731,7 @@ func (this *Paradex) HandleErrorMessage(client any, message any) bool {
 	return false
 }
 func (this *Paradex) HandleBinaryMessage(client any, message any) {
-	var parsedMessage any = this.ParseSbeMessage(message)
+	var parsedMessage any = this.ParseSbeMessage(client, message)
 	if ccxt.IsEqual(parsedMessage, nil) {
 		return
 	}
@@ -1945,6 +2785,7 @@ func (this *Paradex) HandleStreamMessage(client any, message any) {
 		var methods map[string]any = map[string]any{
 			"trades":          this.HandleTrade,
 			"order_book":      this.HandleOrderBook,
+			"bbo":             this.HandleBidAsk,
 			"markets_summary": this.HandleTicker,
 			"orders":          this.HandleOrder,
 			"funding_data":    this.HandleFundingRate,
@@ -2001,12 +2842,65 @@ func (this *Paradex) WatchTrades(symbol string, options ...ccxt.WatchTradesOptio
 
 /**
  * @method
+ * @name paradex#watchTradesForSymbols
+ * @description get the list of most recent trades for a list of symbols
+ * @see https://docs.paradex.trade/ws/web-socket-channels/trades-market-symbol/trades-market-symbol
+ * @param {string[]} symbols unified symbols of the markets to fetch trades for
+ * @param {int} [since] timestamp in ms of the earliest trade to fetch
+ * @param {int} [limit] the maximum amount of trades to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+ */
+func (this *Paradex) WatchTradesForSymbols(symbols []string, options ...ccxt.WatchTradesForSymbolsOptions) ([]ccxt.Trade, error) {
+
+	opts := ccxt.WatchTradesForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.WatchTradesForSymbolsAsync(symbols, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	var res []ccxt.Trade = r.Value
+	return res, nil
+}
+
+/**
+ * @method
+ * @name paradex#watchLiquidations
+ * @description watch the public liquidations of a trading pair, from the liquidation trades of the trades channel
+ * @see https://docs.paradex.trade/ws/web-socket-channels/trades-market-symbol/trades-market-symbol
+ * @param {string} symbol unified CCXT market symbol
+ * @param {int} [since] the earliest time in ms to fetch liquidations for
+ * @param {int} [limit] the maximum number of liquidation structures to retrieve
+ * @param {object} [params] exchange specific parameters
+ * @returns {object[]} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
+ */
+func (this *Paradex) WatchLiquidations(symbol string, options ...ccxt.WatchLiquidationsOptions) ([]ccxt.Liquidation, error) {
+
+	opts := ccxt.WatchLiquidationsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.WatchLiquidationsAsync(symbol, opts.Since, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	var res []ccxt.Liquidation = r.Value
+	return res, nil
+}
+
+/**
+ * @method
  * @name paradex#watchOrderBook
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @see https://docs.paradex.trade/ws/web-socket-channels/order-book-market-symbol-feed-type-15-refresh-rate-price-tick/order-book-market-symbol-feed-type-15-refresh-rate-price-tick
  * @param {string} symbol unified symbol of the market to fetch the order book for
- * @param {int} [limit] the maximum amount of order book entries to return
+ * @param {int} [limit] above 15 the full-depth deltas feed is used and the whole book is returned, otherwise the 15-level snapshots
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.deltas] true for the full-depth deltas feed, default false (the 15-level snapshots)
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Paradex) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOptions) (ccxt.OrderBook, error) {
@@ -2017,6 +2911,32 @@ func (this *Paradex) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBoo
 		opt(&opts)
 	}
 	r := <-this.WatchOrderBookAsync(symbol, opts.Limit, opts.Params)
+	if r.Err != nil {
+		return ccxt.OrderBook{}, r.Err
+	}
+	var res ccxt.OrderBook = ccxt.NewOrderBookFromWs(r.Value)
+	return res, nil
+}
+
+/**
+ * @method
+ * @name paradex#watchOrderBookForSymbols
+ * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+ * @see https://docs.paradex.trade/ws/web-socket-channels/order-book-market-symbol-feed-type-15-refresh-rate-price-tick/order-book-market-symbol-feed-type-15-refresh-rate-price-tick
+ * @param {string[]} symbols unified array of symbols
+ * @param {int} [limit] above 15 the full-depth deltas feed is used and the whole book is returned, otherwise the 15-level snapshots
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.deltas] true for the full-depth deltas feed, default false (the 15-level snapshots)
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+ */
+func (this *Paradex) WatchOrderBookForSymbols(symbols []string, options ...ccxt.WatchOrderBookForSymbolsOptions) (ccxt.OrderBook, error) {
+
+	opts := ccxt.WatchOrderBookForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.WatchOrderBookForSymbolsAsync(symbols, opts.Limit, opts.Params)
 	if r.Err != nil {
 		return ccxt.OrderBook{}, r.Err
 	}
@@ -2053,7 +2973,7 @@ func (this *Paradex) WatchTicker(symbol string, options ...ccxt.WatchTickerOptio
  * @name paradex#watchTickers
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
  * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
- * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the tickers for, all markets when undefined, which is thousands of updates a second
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
@@ -2065,6 +2985,78 @@ func (this *Paradex) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tic
 		opt(&opts)
 	}
 	r := <-this.WatchTickersAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return ccxt.Tickers{}, r.Err
+	}
+	var res ccxt.Tickers = ccxt.Tickers{Tickers: r.Value}
+	return res, nil
+}
+
+/**
+ * @method
+ * @name paradex#watchMarkPrice
+ * @description watches a mark price for a specific market
+ * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
+ * @param {string} symbol unified symbol of the market to fetch the ticker for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Paradex) WatchMarkPrice(symbol string, options ...ccxt.WatchMarkPriceOptions) (ccxt.Ticker, error) {
+
+	opts := ccxt.WatchMarkPriceOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.WatchMarkPriceAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return ccxt.Ticker{}, r.Err
+	}
+	var res ccxt.Ticker = r.Value
+	return res, nil
+}
+
+/**
+ * @method
+ * @name paradex#watchMarkPrices
+ * @description watches the mark prices for all markets of a list
+ * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the tickers for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Paradex) WatchMarkPrices(options ...ccxt.WatchMarkPricesOptions) (ccxt.Tickers, error) {
+
+	opts := ccxt.WatchMarkPricesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.WatchMarkPricesAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return ccxt.Tickers{}, r.Err
+	}
+	var res ccxt.Tickers = ccxt.Tickers{Tickers: r.Value}
+	return res, nil
+}
+
+/**
+ * @method
+ * @name paradex#watchBidsAsks
+ * @description watches best bid & ask for symbols
+ * @see https://docs.paradex.trade/ws/web-socket-channels/bbo-market-symbol/bbo-market-symbol
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the best bid and ask for, all markets when undefined
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Paradex) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.Tickers, error) {
+
+	opts := ccxt.WatchBidsAsksOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.WatchBidsAsksAsync(opts.Symbols, opts.Params)
 	if r.Err != nil {
 		return ccxt.Tickers{}, r.Err
 	}
