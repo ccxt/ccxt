@@ -447,15 +447,12 @@
             {
                 "description": "swap over maxlimit",
                 "method": "fetchOHLCV",
-                "url": "https://api.backpack.exchange/api/v1/klines?endTime=1794252602&interval=1m&startTime=1794132602&symbol=BTC_USDC_PERP",
+                "url": "https://api.backpack.exchange/api/v1/klines?endTime=1793372602&interval=1m&startTime=1793252602&symbol=BTC_USDC_PERP",
                 "input": [
                     "BTC/USDC:USDC",
                     "1m",
-                    null,
-                    2500,
-                    {
-                        "until": 1794252602000
-                    }
+                    1793252602000,
+                    2500
                 ],
                 "output": null
             },
