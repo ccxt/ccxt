@@ -445,6 +445,18 @@
         ],
         "fetchOHLCV": [
             {
+                "description": "swap over maxlimit",
+                "method": "fetchOHLCV",
+                "url": "https://api.backpack.exchange/api/v1/klines?endTime=1794335917&interval=1m&startTime=1794215917&symbol=BTC_USDC_PERP",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1m",
+                    null,
+                    2500
+                ],
+                "output": null
+            },
+            {
                 "description": "swap -since +limit -until",
                 "disabled": "todo:need local skip for dynamic until",
                 "method": "fetchOHLCV",
