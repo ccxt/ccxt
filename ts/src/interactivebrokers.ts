@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/interactivebrokers.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidOrder, OperationFailed, OrderNotFound, NullResponse } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidOrder, InvalidProxySettings, OperationFailed, OrderNotFound, NullResponse } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import type { Account, Balances, Dict, Endpoint, Greeks, Int, LastPrice, LastPrices, List, Market, Num, NullableDict, OHLCV, OpenInterest, OpenInterests, Order, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
@@ -1759,7 +1759,7 @@ export default class interactivebrokers extends Exchange {
         const isStock = (assetClass === 'STK');
         const options = this.safeDict (this.options, 'fetchMarkets', {});
         const baseTickerId = this.safeString2 (market, 'ticker', 'symbol') as string;
-        const listingExchange = this.safeString (market, 'listingExchange');
+        const listingExchange = this.safeString2 (market, 'listingExchange', 'exchange');
         // coinbase derivatives perp-style futures are listed as FUT with a far (2030) nominal expiry, they are rolled with a funding adjustment, so they are unified as swaps
         // cfds are undated, cash-settled linear contracts on a stock, etf or index, also unified as swaps
         // the other FUT contracts (CME and coinbase derivatives dated crypto futures) are unified as futures
@@ -2918,7 +2918,12 @@ export default class interactivebrokers extends Exchange {
             //     }
             //
         } catch (ex) {
-            // handle the exception if needed
+            if (ex instanceof InvalidProxySettings) {
+                throw ex; // rethrow this error since it means the user has a problem with their proxy settings that needs to be fixed
+            }
+            if (ex instanceof OperationFailed) {
+                throw ex; // network-level failures are not the exchange saying the order is invalid
+            }
             const message = this.exceptionMessage (ex);
             // eg:  {"error":"Order 54348392 is not found","statusCode":503}
             if (message.indexOf ('is not found') >= 0) {
@@ -3741,7 +3746,14 @@ export default class interactivebrokers extends Exchange {
         const isGetOrDelete = (method === 'GET') || (method === 'DELETE');
         let requestBody: Str = undefined;
         let requestHeaders: NullableDict = undefined;
-        if (this.safeBool (this.options, 'useGateway', false)) {
+        // with the client portal gateway signIn () never sets a live session token, so besides options.useGateway
+        // the requests are routed to the gateway when there is no live session token and oauth is not configured
+        // (e.g. public calls like fetchOpenInterests made before any private call)
+        const useGatewayOption = this.safeBool (this.options, 'useGateway', false);
+        const hasLiveSessionToken = this.safeString (this.options, 'liveSessionToken') !== undefined;
+        const oauthConfigured = (this.safeString (this.options, 'encryptionPemPath') !== undefined) && (this.safeString (this.options, 'dhParamPemPath') !== undefined);
+        const isLiveSessionTokenRequest = path.endsWith ('v1/api/oauth/live_session_token');
+        if (useGatewayOption || (!hasLiveSessionToken && !oauthConfigured && !isLiveSessionTokenRequest)) {
             // the client portal gateway holds the authenticated session, requests are sent unsigned
             const gatewayUrl = this.safeString (this.options, 'gatewayUrl', 'https://localhost:5000/');
             url = this.ibkrGatewayBaseUrl (this.urls['api'][apiBase], gatewayUrl) + implodedPath;
@@ -3761,7 +3773,7 @@ export default class interactivebrokers extends Exchange {
         }
         this.checkRequiredCredentials ();
         const oauthParams = this.ibkrOauthBase (this.options['consumer_key'], this.apiKey);
-        if (path.endsWith ('v1/api/oauth/live_session_token')) {
+        if (isLiveSessionTokenRequest) {
             // the live session token request is signed with RSA-SHA256,
             // its parameters (diffie_hellman_challenge) are sent as oauth parameters in the Authorization header
             const accessTokenSecretHex = this.safeString (this.options, 'accessTokenSecretHex', '');
@@ -3779,7 +3791,7 @@ export default class interactivebrokers extends Exchange {
             // private requests are signed with HMAC-SHA256 using the live session token obtained by signIn ()
             const liveSessionToken = this.safeString (this.options, 'liveSessionToken');
             if (liveSessionToken === undefined) {
-                throw new AuthenticationError (this.id + ' requires a live session token, call signIn() first');
+                throw new AuthenticationError (this.id + ' requires a live session token, call signIn() first (or set options.useGateway = true to use the client portal gateway)');
             }
             oauthParams['oauth_signature_method'] = 'HMAC-SHA256';
             let signingParams = oauthParams;

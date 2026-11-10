@@ -1,64 +1,51 @@
 {
     "exchange": "interactivebrokers",
-    "skipKeys": ["acctIds", "cOID"],
+    "skipKeys": [
+        "acctIds",
+        "cOID"
+    ],
     "options": {
         "consumer_key": "TEST1",
         "accountId": "U3448646",
         "liveSessionToken": "MDEyMzQ1Njc4OWFiY2RlZg==",
         "liveSessionTokenExpiration": 9999999999999,
-		"signaturePemPath": "./private_signature.pem",
-		"encryptionPemPath": "./private_encryption.pem",
-		"dhParamPemPath": "./dhparam.pem"
+        "signaturePemPath": "./private_signature.pem",
+        "encryptionPemPath": "./private_encryption.pem",
+        "dhParamPemPath": "./dhparam.pem"
     },
     "methods": {
-        "fetchPositions": [
+        "fetchOrder": [
             {
-                "description": "crypto spot",
-                "method": "fetchPositions",
-                "url": "https://api.ibkr.com/v1/api/portfolio2/U3448646/positions",
+                "description": "stock limit order",
+                "method": "fetchOrder",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/order/status/1490918069",
                 "input": [
-                    [
-                        "ETH/USD"
-                    ]
+                    1490918069,
+                    "AAPL/USD"
                 ],
                 "output": null
             }
         ],
-        "fetchPositionsForSymbol": [
+        "fetchOHLCV": [
             {
-                "description": "crypto spot",
-                "method": "fetchPositionsForSymbol",
-                "url": "https://api.ibkr.com/v1/api/portfolio/U3448646/position/495759171",
+                "description": "stock daily candles",
+                "method": "fetchOHLCV",
+                "url": "https://api.ibkr.com/v1/api/iserver/marketdata/history?conid=265598&bar=1d&period=3d",
                 "input": [
-                    "ETH/USD"
+                    "AAPL/USD",
+                    "1d",
+                    null,
+                    3
                 ],
                 "output": null
-            },
+            }
+        ],
+        "fetchAccounts": [
             {
-                "description": "crypto spot",
-                "method": "fetchPositionsForSymbol",
-                "url": "https://api.ibkr.com/v1/api/portfolio/U3448646/position/495759171",
-                "input": [
-                    "ETH/USD"
-                ],
-                "output": null
-            },
-            {
-                "description": "crypto spot",
-                "method": "fetchPositionsForSymbol",
-                "url": "https://api.ibkr.com/v1/api/portfolio/U3448646/position/495759171",
-                "input": [
-                    "ETH/USD"
-                ],
-                "output": null
-            },
-            {
-                "description": "crypto spot",
-                "method": "fetchPositionsForSymbol",
-                "url": "https://api.ibkr.com/v1/api/portfolio/U3448646/position/495759171",
-                "input": [
-                    "ETH/USD"
-                ],
+                "description": "portfolio accounts",
+                "method": "fetchAccounts",
+                "url": "https://api.ibkr.com/v1/api/portfolio/accounts",
+                "input": [],
                 "output": null
             }
         ],
@@ -68,7 +55,7 @@
                 "method": "fetchCanceledAndClosedOrders",
                 "url": "https://api.ibkr.com/v1/api/iserver/account/orders?filters=filled%2Ccancelled",
                 "input": [
-                    "ETH/USD"
+                    "ETH/USD.PAXOS"
                 ],
                 "output": null
             }
@@ -89,8 +76,8 @@
                 "url": "https://api.ibkr.com/v1/api/iserver/marketdata/snapshot?conids=479624278%2C495759171&fields=7635",
                 "input": [
                     [
-                        "BTC/USD",
-                        "ETH/USD"
+                        "BTC/USD.PAXOS",
+                        "ETH/USD.PAXOS"
                     ]
                 ],
                 "output": null
@@ -103,8 +90,8 @@
                 "url": "https://api.ibkr.com/v1/api/iserver/marketdata/snapshot?conids=479624278%2C495759171&fields=31",
                 "input": [
                     [
-                        "BTC/USD",
-                        "ETH/USD"
+                        "BTC/USD.PAXOS",
+                        "ETH/USD.PAXOS"
                     ]
                 ],
                 "output": null
@@ -117,8 +104,8 @@
                 "url": "https://api.ibkr.com/v1/api/iserver/marketdata/snapshot?conids=479624278%2C495759171&fields=84%2C85%2C86%2C88",
                 "input": [
                     [
-                        "BTC/USD",
-                        "ETH/USD"
+                        "BTC/USD.PAXOS",
+                        "ETH/USD.PAXOS"
                     ]
                 ],
                 "output": null
@@ -126,11 +113,24 @@
         ],
         "createOrder": [
             {
+                "description": "stock limit buy",
+                "method": "createOrder",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/U3448646/orders",
+                "input": [
+                    "AAPL/USD",
+                    "limit",
+                    "buy",
+                    1,
+                    200
+                ],
+                "output": "{\"orders\":[{\"conid\":265598,\"side\":\"BUY\",\"quantity\":1,\"price\":200,\"orderType\":\"LMT\",\"tif\":\"DAY\",\"cOID\":\"ccxt4e91208961684e5bb246eb\",\"acctId\":\"U3448646\"}]}"
+            },
+            {
                 "description": "spot crypto buy market",
                 "method": "createOrder",
                 "url": "https://api.ibkr.com/v1/api/iserver/account/U3448646/orders",
                 "input": [
-                    "ETH/USD",
+                    "ETH/USD.PAXOS",
                     "market",
                     "buy",
                     1,
@@ -151,7 +151,7 @@
                 },
                 "url": "https://localhost:5000/v1/api/iserver/account/U3448646/orders",
                 "input": [
-                    "ETH/USD",
+                    "ETH/USD.PAXOS",
                     "market",
                     "buy",
                     1,
@@ -168,7 +168,7 @@
                 "method": "createOrder",
                 "url": "https://api.ibkr.com/v1/api/iserver/reply/177043b5-c95d-4809-b515-7357ed7ea4c7",
                 "input": [
-                    "ETH/USD",
+                    "ETH/USD.PAXOS",
                     "limit",
                     "sell",
                     0.01,
@@ -184,8 +184,8 @@
                 "url": "https://api.ibkr.com/v1/api/iserver/marketdata/snapshot?conids=479624278%2C495759171&fields=31%2C55%2C70%2C71%2C82%2C83%2C84%2C85%2C86%2C88%2C6457%2C6509%2C7058%2C7295%2C7296%2C7635%2C7741%2C7762",
                 "input": [
                     [
-                        "BTC/USD",
-                        "ETH/USD"
+                        "BTC/USD.PAXOS",
+                        "ETH/USD.PAXOS"
                     ]
                 ],
                 "output": null
@@ -197,7 +197,7 @@
                 "method": "fetchMyTrades",
                 "url": "https://api.ibkr.com/v1/api/pa/transactions",
                 "input": [
-                    "ETH/USD"
+                    "ETH/USD.PAXOS"
                 ],
                 "output": "{\"acctIds\":[\"U3448646\"],\"conids\":[495759171],\"currency\":\"USD\",\"days\":90}"
             }
@@ -208,7 +208,7 @@
                 "method": "fetchOrders",
                 "url": "https://api.ibkr.com/v1/api/iserver/account/orders",
                 "input": [
-                    "ETH/USD"
+                    "ETH/USD.PAXOS"
                 ],
                 "output": null
             }
@@ -219,7 +219,7 @@
                 "method": "fetchOpenOrders",
                 "url": "https://api.ibkr.com/v1/api/iserver/account/orders?filters=pending_submit%2Cpre_submitted%2Csubmitted%2Cpending_cancel%2Cwarn_state",
                 "input": [
-                    "ETH/USD"
+                    "ETH/USD.PAXOS"
                 ],
                 "output": null
             }
@@ -230,7 +230,7 @@
                 "method": "fetchClosedOrders",
                 "url": "https://api.ibkr.com/v1/api/iserver/account/orders?filters=filled",
                 "input": [
-                    "ETH/USD"
+                    "ETH/USD.PAXOS"
                 ],
                 "output": null
             }
@@ -241,7 +241,7 @@
                 "method": "fetchCanceledOrders",
                 "url": "https://api.ibkr.com/v1/api/iserver/account/orders?filters=cancelled",
                 "input": [
-                    "ETH/USD"
+                    "ETH/USD.PAXOS"
                 ],
                 "output": null
             },
@@ -250,7 +250,7 @@
                 "method": "fetchCanceledOrders",
                 "url": "https://api.ibkr.com/v1/api/iserver/account/orders?filters=cancelled",
                 "input": [
-                    "ETH/USD"
+                    "ETH/USD.PAXOS"
                 ],
                 "output": null
             }
@@ -270,6 +270,16 @@
             }
         ],
         "cancelOrder": [
+            {
+                "description": "cancel stock order",
+                "method": "cancelOrder",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/U3448646/order/1490918069",
+                "input": [
+                    1490918069,
+                    "AAPL/USD"
+                ],
+                "output": null
+            },
             {
                 "description": "spot without symbol",
                 "method": "cancelOrder",
