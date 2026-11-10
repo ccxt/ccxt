@@ -878,8 +878,8 @@ impl Upbit {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
-        return self.fetch_market_by_id(market.get("id").cloned().unwrap_or(Value::Null), &[params]).await;
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        return self.fetch_market_by_id(Value::from((market).id.clone()), &[params]).await;
 
     Value::Null
 }
@@ -1558,12 +1558,12 @@ impl Upbit {
         if (timestamp == Value::Null) {
             timestamp = self.parse8601(self.safe_string_k(trade.clone(), "created_at", &[]));
         }
-        let mut side: Value = Value::Null;
+        let mut side: Option<String> = None;
         let mut askOrBid: Value = self.safe_string_lower2(trade.clone(), Value::Str("ask_bid".into()), Value::Str("side".into()), &[Value::Str("".into())]);
         if (askOrBid.as_str() == Some("ask")) {
-            side = Value::Str("sell".into());
+            side = Some("sell".to_string());
         }  else if (askOrBid.as_str() == Some("bid")) {
-            side = Value::Str("buy".into());
+            side = Some("buy".to_string());
         }
         let mut cost: Option<String> = self.safe_string_k_opt(trade.clone(), "funds", &[]);
         let mut price: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("trade_price".into()), Value::Str("price".into()), &[]);
@@ -1589,7 +1589,7 @@ impl Upbit {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
@@ -1629,17 +1629,17 @@ impl Upbit {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(200) } else { limit });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("market".to_string(), Value::from((market).id.clone()));
                 m.insert("count".to_string(), limitResolved.clone());
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_trades_ticks(&[__ws_arg_5]).await;
-        return self.parse_trades(response, &[market, since, limitResolved]);
+        return self.parse_trades(response, &[(market).raw.clone(), since, limitResolved]);
         Value::Null
         }).await?))
     }
@@ -1668,10 +1668,10 @@ impl Upbit {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("market".to_string(), Value::from((market).id.clone()));
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
@@ -1818,13 +1818,13 @@ impl Upbit {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut timeframePeriod: Value = self.parse_timeframe(timeframe.clone());
         let mut timeframeValue: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(200) } else { limit });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("market".to_string(), Value::from((market).id.clone()));
                 m.insert("timeframe".to_string(), timeframeValue.clone());
                 m.insert("count".to_string(), limitResolved.clone());
             m
@@ -1875,7 +1875,7 @@ impl Upbit {
         //     ]
         //
         let mut ohlcvs: Value = self.to_array(response);
-        return self.parse_ohlc_vs(ohlcvs, &[market, timeframe, since, limitResolved]);
+        return self.parse_ohlc_vs(ohlcvs, &[(market).raw.clone(), timeframe, since, limitResolved]);
         Value::Null
         }).await?))
     }
@@ -1954,7 +1954,7 @@ impl Upbit {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(params.clone(), "clientOrderId", &[]);
         let mut customType: Option<String> = self.safe_string2(params.clone(), Value::Str("ordType".into()), Value::Str("ord_type".into()), &[]).as_str().map(str::to_owned);
         let mut postOnly: Value = self.is_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[params.clone()]);
@@ -1964,18 +1964,18 @@ impl Upbit {
         if postOnly.as_bool() == Some(true) && (selfTradePrevention.is_some()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support post_only and selfTradePrevention simultaneously.".into()))));
         }
-        let mut orderSide: Value = Value::Null;
+        let mut orderSide: Option<String> = None;
         if (side.as_str() == Some("buy")) {
-            orderSide = Value::Str("bid".into());
+            orderSide = Some("bid".to_string());
         }  else if (side.as_str() == Some("sell")) {
-            orderSide = Value::Str("ask".into());
+            orderSide = Some("ask".to_string());
         }  else {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() supports only buy or sell in the side argument.".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
-                m.insert("side".to_string(), orderSide);
+                m.insert("market".to_string(), Value::from((market).id.clone()));
+                m.insert("side".to_string(), orderSide.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
         if (type_var.as_str() == Some("limit")) {
@@ -2604,7 +2604,7 @@ impl Upbit {
             cost = price.clone().map(Value::from).unwrap_or(Value::Null);
             price = None;
         }
-        let mut average: Value = Value::Null;
+        let mut average: Option<String> = None;
         let mut fee: Value = Value::Null;
         let mut feeCost: Value = self.safe_string_k(order.clone(), "paid_fee", &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "market", &[]);
@@ -2647,7 +2647,7 @@ impl Upbit {
                 }
             }
             }
-            average = crate::precise::Precise::stringDiv(&cost, &filled.clone().map(Value::from).unwrap_or(Value::Null));
+            average = crate::precise::Precise::stringDiv(&cost, &filled.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         if (feeCost != Value::Null) {
             fee = Value::Map({
@@ -2673,7 +2673,7 @@ impl Upbit {
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("cost".to_string(), self.parse_number(cost, &[]));
-        m.insert("average".to_string(), self.parse_number(average, &[]));
+        m.insert("average".to_string(), self.parse_number(average.clone().map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), filled.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), remaining.clone().map(Value::from).unwrap_or(Value::Null));

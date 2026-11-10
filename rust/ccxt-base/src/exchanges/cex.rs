@@ -1117,10 +1117,10 @@ impl Cex {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("pair".to_string(), Value::from((market).id.clone()));
             m
         });
         if (since != Value::Null) {
@@ -1157,7 +1157,7 @@ impl Cex {
     m
 })]);
         let mut trades: Value = self.safe_list_k(data, "trades", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[market, since, limit]);
+        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1224,10 +1224,10 @@ impl Cex {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("pair".to_string(), Value::from((market).id.clone()));
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
@@ -1255,7 +1255,7 @@ impl Cex {
     m
 })]);
         let mut timestamp: Value = self.safe_integer_k(orderBook.clone(), "timestamp", &[]);
-        return self.parse_order_book(orderBook, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp]);
+        return self.parse_order_book(orderBook, Value::from((market).symbol.clone()), &[timestamp]);
         Value::Null
         }).await?))
     }
@@ -1296,10 +1296,10 @@ impl Cex {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("pair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("pair".to_string(), Value::from((market).id.clone()));
                 m.insert("resolution".to_string(), (if let (Some(__m), Some(__k)) = (self.timeframes.as_map(), timeframe.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
                 m.insert("dataType".to_string(), dataType);
             m
@@ -1344,7 +1344,7 @@ impl Cex {
         //            ...
         //
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(data, &[market, timeframe, since, limit]);
+        return self.parse_ohlc_vs(data, &[(market).raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1542,10 +1542,10 @@ impl Cex {
         let mut accountName: Value = accountNameparamsAccountVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsAccount: Value = accountNameparamsAccountVariable.get(1).cloned().unwrap_or(Value::Null); // default is empty string
         let methodparamsMethodVariable: Vec<Value> = self.handle_param_string(paramsAccount, Value::Str("method".into()), &[Value::Str("privatePostGetMyWalletBalance".into())]).as_array().cloned().unwrap_or_default();
-        let mut method: Value = methodparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut method: Option<String> = methodparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: Value = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut accountBalance: Value = Value::Null;
-        if (method.as_str() == Some("privatePostGetMyAccountStatusV3")) {
+        if (method.as_deref() == Some("privatePostGetMyAccountStatusV3")) {
             let mut response: Value = self.private_post_get_my_account_status_v3(&[paramsMethod.clone()]).await;
             //
             //    {
@@ -1919,11 +1919,11 @@ impl Cex {
         //
         let mut currency1: Option<String> = self.safe_string_k_opt(order.clone(), "currency1", &[]);
         let mut currency2: Option<String> = self.safe_string_k_opt(order.clone(), "currency2", &[]);
-        let mut marketId: Value = Value::Null;
+        let mut marketId: Option<String> = None;
         if (currency1.is_some()) && (currency2.is_some()) {
-            marketId = Value::Str(format!("{}{}", Value::Str(format!("{}{}", currency1.map(Value::from).unwrap_or(Value::Null), Value::Str("-".into())).into()), currency2.map(Value::from).unwrap_or(Value::Null)).into());
+            marketId = Some(format!("{}{}", Value::Str(format!("{}{}", currency1.map(Value::from).unwrap_or(Value::Null), Value::Str("-".into())).into()), currency2.map(Value::from).unwrap_or(Value::Null)));
         }
-        let mut marketResolved: Value = self.safe_market(&[marketId, market]);
+        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null);
         let mut fee: indexmap::IndexMap<String, Value> = ({
@@ -2276,12 +2276,12 @@ impl Cex {
     pub fn parse_ledger_entry(&self, mut item: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
         let mut amount: Value = self.safe_string_k(item.clone(), "amount", &[]);
-        let mut direction: Value = Value::Null;
+        let mut direction: Option<String> = None;
         if crate::precise::Precise::stringLe(&amount, &Value::Str("0".into())).as_bool() == Some(true) {
-            direction = Value::Str("out".into());
+            direction = Some("out".to_string());
             amount = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &amount);
         }  else {
-            direction = Value::Str("in".into());
+            direction = Some("in".to_string());
         }
         let mut currencyId: Option<String> = self.safe_string_k_opt(item.clone(), "currency", &[]);
         let mut currencyResolved: Value = self.safe_currency(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]);
@@ -2293,7 +2293,7 @@ impl Cex {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(item.clone(), "transactionId", &[]));
-        m.insert("direction".to_string(), direction);
+        m.insert("direction".to_string(), direction.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("account".to_string(), self.safe_string_k(item, "accountId", &[Value::Str("".into())]));
         m.insert("referenceAccount".to_string(), Value::Null);
         m.insert("referenceId".to_string(), Value::Null);

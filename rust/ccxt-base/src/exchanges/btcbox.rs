@@ -727,18 +727,18 @@ impl Btcbox {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut numSymbols: f64 = ((self.symbols.len() as i64) as f64);
         if numSymbols > ((1i64) as f64) {
-            request.insert("coin".into(), market.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
+            request.insert("coin".into(), (market).raw.as_map().and_then(|__m| __m.get("baseId")).cloned().unwrap_or(Value::Null));
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_depth(&[__ws_arg_0]).await;
-        return self.parse_order_book(response, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[]);
+        return self.parse_order_book(response, Value::from((market).symbol.clone()), &[]);
         Value::Null
         }).await?))
     }

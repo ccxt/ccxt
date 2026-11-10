@@ -510,9 +510,9 @@ impl Hollaex {
         let mut messageHash: Value = Value::Str("usertrade".into());
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            symbolResolved = self.safe_string_k(market.clone(), "symbol", &[]);
-            let marketId: String = self.safe_string_k_opt(market, "id", &[Value::Str("".into())]).unwrap_or_default();
+            let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            symbolResolved = Value::from((market).symbol.clone());
+            let marketId: String = self.safe_string_k_opt((market).raw.clone(), "id", &[Value::Str("".into())]).unwrap_or_default();
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), marketId).into());
         }
         let mut trades: Value = self.watch_private(messageHash, &[params]).await;
@@ -629,9 +629,9 @@ impl Hollaex {
         let mut messageHash: Value = Value::Str("order".into());
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            symbolResolved = self.safe_string_k(market.clone(), "symbol", &[]);
-            let marketId: String = self.safe_string_k_opt(market, "id", &[Value::Str("".into())]).unwrap_or_default();
+            let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            symbolResolved = Value::from((market).symbol.clone());
+            let marketId: String = self.safe_string_k_opt((market).raw.clone(), "id", &[Value::Str("".into())]).unwrap_or_default();
             messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), marketId).into());
         }
         let mut orders: Value = self.watch_private(messageHash, &[params]).await;

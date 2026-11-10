@@ -1067,7 +1067,7 @@ impl Deribit {
         }
         // for more info on useDepthEndpoint, see comment in .options
         let useDepthEndpointparamsUseDepthEndpointVariable: Vec<Value> = self.handle_option_bool_and_params(paramsInterval, Value::Str("watchOrderBookForSymbols".into()), Value::Str("useDepthEndpoint".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut useDepthEndpoint: Value = useDepthEndpointparamsUseDepthEndpointVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut useDepthEndpoint: bool = useDepthEndpointparamsUseDepthEndpointVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUseDepthEndpoint: Value = useDepthEndpointparamsUseDepthEndpointVariable.get(1).cloned().unwrap_or(Value::Null);
         let depthparamsDepthVariable: Vec<Value> = self.handle_option_string_and_params(paramsUseDepthEndpoint.clone(), Value::Str("watchOrderBookForSymbols".into()), Value::Str("depth".into()), &[Value::Str("20".into())]).as_array().cloned().unwrap_or_default();
         let mut depth: Value = depthparamsDepthVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -1076,11 +1076,11 @@ impl Deribit {
         let mut group: Value = groupparamsGroupVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsGroup: Value = groupparamsGroupVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut descriptor: Value = interval.clone();
-        if useDepthEndpoint.as_bool() == Some(true) {
+        if useDepthEndpoint {
             descriptor = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", group, Value::Str(".".into())).into()), depth).into()), Value::Str(".".into())).into()), interval).into());
         }
         let mut paramsResolved: Value = paramsUseDepthEndpoint;
-        if useDepthEndpoint.as_bool() == Some(true) {
+        if useDepthEndpoint {
             paramsResolved = paramsGroup;
         }
         let mut orderbook: Value = self.watch_multiple_wrapper(Value::Str("book".into()), descriptor, &[symbols, paramsResolved]).await;

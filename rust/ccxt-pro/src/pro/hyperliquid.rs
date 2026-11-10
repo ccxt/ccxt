@@ -793,8 +793,8 @@ impl Hyperliquid {
 }) });
         let mut coin: Option<String> = self.safe_string_k_opt(entry.clone(), "coin", &[]);
         let mut marketId: Value = self.parent.coin_to_market_id(coin.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(marketId.as_str().unwrap_or_default()));
-        let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut market: crate::types::Market = (match self.market(marketId.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut symbol: Value = Value::from((market).symbol.clone());
         let mut rawData: Value = self.safe_list_k(entry.clone(), "levels", &[Value::from(vec![])]);
         let mut data: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1615,8 +1615,8 @@ impl Hyperliquid {
         })]);
         let mut coin: Option<String> = self.safe_string_k_opt(first, "coin", &[]);
         let mut marketId: Value = self.parent.coin_to_market_id(coin.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(marketId.as_str().unwrap_or_default()));
-        let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut market: crate::types::Market = (match self.market(marketId.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut symbol: Value = Value::from((market).symbol.clone());
         if !(matches!((&self.trades, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
             let mut stored = ArrayCache::new(limit);
@@ -1908,13 +1908,13 @@ impl Hyperliquid {
         let mut userAddress: Option<String> = self.safe_string_opt(self.parent.handle_public_address(Value::Str("watchBalance".into()), params.clone()), Value::Int(0), &[]);
         let mut paramsValue: Value = self.safe_dict(self.parent.handle_public_address(Value::Str("watchBalance".into()), params.clone()), Value::Int(1), &[params]);
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), &[Value::Null, paramsValue]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut unifiedResult: Value = self.parent.is_unified_enabled(Value::Str("watchBalance".into()), &[userAddress.clone().map(Value::from).unwrap_or(Value::Null), Value::Bool(false), paramsMarketType.clone()]).await;
         let mut isUnifiedEnabled: bool = self.safe_bool_opt(unifiedResult.clone(), Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsValue2: Value = self.safe_dict(unifiedResult, Value::Int(1), &[paramsMarketType]);
         let mut dex: Option<String> = self.safe_string_k_opt(paramsValue2.clone(), "dex", &[]);
-        let mut isSpot: bool = ((type_var.as_str() == Some("spot")) || isUnifiedEnabled) && (dex.is_none());
+        let mut isSpot: bool = ((type_var.as_deref() == Some("spot")) || isUnifiedEnabled) && (dex.is_none());
         let mut topic: String = "clearinghouseState".to_string();
         if isSpot {
             topic = "spotState".to_string();
@@ -1972,13 +1972,13 @@ impl Hyperliquid {
         let mut userAddress: Option<String> = self.safe_string_opt(self.parent.handle_public_address(Value::Str("unWatchBalance".into()), params.clone()), Value::Int(0), &[]);
         let mut paramsValue: Value = self.safe_dict(self.parent.handle_public_address(Value::Str("unWatchBalance".into()), params.clone()), Value::Int(1), &[params]);
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("unWatchBalance".into()), &[Value::Null, paramsValue]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut unifiedResult: Value = self.parent.is_unified_enabled(Value::Str("unWatchBalance".into()), &[userAddress.clone().map(Value::from).unwrap_or(Value::Null), Value::Bool(false), paramsMarketType.clone()]).await;
         let mut isUnifiedEnabled: bool = self.safe_bool_opt(unifiedResult.clone(), Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsValue2: Value = self.safe_dict(unifiedResult, Value::Int(1), &[paramsMarketType]);
         let mut dex: Option<String> = self.safe_string_k(paramsValue2.clone(), "dex", &[]).as_str().map(str::to_owned);
-        let mut isSpot: bool = ((type_var.as_str() == Some("spot")) || isUnifiedEnabled) && (dex.is_none());
+        let mut isSpot: bool = ((type_var.as_deref() == Some("spot")) || isUnifiedEnabled) && (dex.is_none());
         let mut topic: String = "clearinghouseState".to_string();
         if isSpot {
             topic = "spotState".to_string();

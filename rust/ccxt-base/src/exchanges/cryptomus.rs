@@ -757,7 +757,7 @@ impl Cryptomus {
 
     pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
         // currency here is array of networks
-        let mut id: Value = Value::Null; // all entries have same id, as they were grouped by
+        let mut id: Option<String> = None; // all entries have same id, as they were grouped by
         let mut code: Value = Value::Null;
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -769,9 +769,9 @@ impl Cryptomus {
             while { if !__for_first_602 { i += 1; } __for_first_602 = false; i < (rawCurrency.len() as i64) } {
             let mut networkEntry: Value = self.safe_dict(rawCurrency.clone(), Value::Int(i), &[]);
             // set ID on first loop
-            if (id == Value::Null) {
-                id = self.safe_string_k(networkEntry.clone(), "currency_code", &[]);
-                code = self.safe_currency_code(id.clone(), &[]);
+            if (id.is_none()) {
+                id = self.safe_string_k(networkEntry.clone(), "currency_code", &[]).as_str().map(str::to_owned);
+                code = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             }
             let mut networkId: Option<String> = self.safe_string_k_opt(networkEntry.clone(), "network_code", &[]);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
@@ -809,7 +809,7 @@ impl Cryptomus {
         }
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id);
+        m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("code".to_string(), code);
         m.insert("networks".to_string(), Value::Map(networks));
         m.insert("info".to_string(), rawCurrency);
@@ -929,10 +929,10 @@ impl Cryptomus {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currencyPair".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("currencyPair".to_string(), Value::from((market).id.clone()));
             m
         });
         let mut level: Value = Value::Int(0);
@@ -998,10 +998,10 @@ impl Cryptomus {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currencyPair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("currencyPair".to_string(), Value::from((market).id.clone()));
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
@@ -1025,7 +1025,7 @@ impl Cryptomus {
         if (data != Value::Null) {
             dataList = data;
         }
-        return self.parse_trades(dataList, &[market, since, limit]);
+        return self.parse_trades(dataList, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1180,10 +1180,10 @@ impl Cryptomus {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("market".to_string(), Value::from((market).id.clone()));
                 m.insert("direction".to_string(), side.clone());
                 m.insert("tag".to_string(), Value::Str("ccxt".into()));
             m
@@ -1234,7 +1234,7 @@ impl Cryptomus {
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a type parameter (limit or market)".into()))));
         }
-        return self.parse_order(response, &[market]);
+        return self.parse_order(response, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }

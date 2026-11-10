@@ -1664,19 +1664,19 @@ impl Coinbaseinternational {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(paramsResolved, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        if paginate.as_bool() == Some(true) {
+        if paginate {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), paramsPaginate.clone(), Value::Int(10000)]).await;
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
                 m.insert("resolution".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
-        let mut marketInfo: Value = self.safe_dict_k(market.clone(), "info", &[Value::Map({
+        let mut marketInfo: Value = self.safe_dict_k((market).raw.clone(), "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1734,7 +1734,7 @@ impl Coinbaseinternational {
     m
 })]);
         let mut candles: Value = self.convert_trading_view_to_ohlcv(result, &[Value::Str("ticks".into()), Value::Str("open".into()), Value::Str("high".into()), Value::Str("low".into()), Value::Str("close".into()), Value::Str("volume".into()), Value::Bool(true)]);
-        return self.parse_ohlc_vs(candles, &[market, timeframe, since, limit]);
+        return self.parse_ohlc_vs(candles, &[(market).raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1782,9 +1782,9 @@ impl Coinbaseinternational {
         let mut paramsPaginate: Value = paramsResolved.clone();
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
             let paginateparamsFinalVariable: Vec<Value> = self.handle_option_bool_and_params(paramsResolved, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-            let mut paginate: Value = paginateparamsFinalVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut paginate: bool = paginateparamsFinalVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsFinal: Value = paginateparamsFinalVariable.get(1).cloned().unwrap_or(Value::Null);
-            if paginate.as_bool() == Some(true) {
+            if paginate {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() automatic pagination is not implemented; use since and params.until".into()))));
             }
             paramsPaginate = paramsFinal;
@@ -1795,7 +1795,7 @@ impl Coinbaseinternational {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut duration: Value = (match (&(self.parse_timeframe(Value::Str("1h".into()))), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         let mut now: Value = self.milliseconds();
         let mut sinceResolved: Value = since.clone();
@@ -1808,7 +1808,7 @@ impl Coinbaseinternational {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
                 m.insert("start_timestamp".to_string(), sinceResolved.clone());
                 m.insert("end_timestamp".to_string(), now);
             m
@@ -1846,7 +1846,7 @@ impl Coinbaseinternational {
         //     }
         //
         let mut rawRates: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]);
-        return self.parse_funding_rate_histories(rawRates, &[market, since, limit]);
+        return self.parse_funding_rate_histories(rawRates, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1983,10 +1983,10 @@ impl Coinbaseinternational {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[paramsResolved]);
@@ -2027,7 +2027,7 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_ticker(ticker, &[market]);
+        return self.parse_ticker(ticker, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2127,10 +2127,10 @@ impl Coinbaseinternational {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -2205,7 +2205,7 @@ impl Coinbaseinternational {
     m
 })]);
         let mut timestamp: Value = self.safe_integer_k(result.clone(), "timestamp", &[]);
-        return self.parse_order_book(result, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp]);
+        return self.parse_order_book(result, Value::from((market).symbol.clone()), &[timestamp]);
         Value::Null
         }).await?))
     }
@@ -2747,10 +2747,10 @@ impl Coinbaseinternational {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
             m
         });
         self.authenticate_v2(&[]).await;
@@ -2787,7 +2787,7 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_position(position, &[market]);
+        return self.parse_position(position, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -3291,7 +3291,7 @@ impl Coinbaseinternational {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut triggerPrice: Value = self.safe_number_n(paramsResolved.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stop_price".into())]), &[]);
         if (side == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".into()))));
@@ -3307,8 +3307,8 @@ impl Coinbaseinternational {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("amount".to_string(), self.get_order_amount(market.clone(), amount).map(Value::from).unwrap_or(Value::Null));
+                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
+                m.insert("amount".to_string(), self.get_order_amount((market).raw.clone(), amount).map(Value::from).unwrap_or(Value::Null));
                 m.insert("type".to_string(), type_var.clone());
             m
         });
@@ -3449,7 +3449,7 @@ impl Coinbaseinternational {
 })]).as_map().cloned().unwrap_or_default();
         let mut trades: Value = self.safe_list_k(result, "trades", &[Value::from(vec![])]);
         order.insert("trades".into(), trades);
-        return self.parse_order(Value::Map(order), &[market]);
+        return self.parse_order(Value::Map(order), &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -3759,10 +3759,10 @@ impl Coinbaseinternational {
         self.authenticate_v2(&[]).await;
         let mut response: Value = Value::Null;
         if (symbol != Value::Null) {
-            let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
+            let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("instrument_name".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
+                    m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
                 m
             });
             let __ws_arg_14 = self.extend(Value::Map(request), &[paramsResolved.clone()]);
@@ -4025,9 +4025,9 @@ impl Coinbaseinternational {
         let mut paramsPaginate: Value = paramsResolved.clone();
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
             let paginateparamsFinalVariable: Vec<Value> = self.handle_option_bool_and_params(paramsResolved, Value::Str("fetchOpenOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-            let mut paginate: Value = paginateparamsFinalVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut paginate: bool = paginateparamsFinalVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsFinal: Value = paginateparamsFinalVariable.get(1).cloned().unwrap_or(Value::Null);
-            if paginate.as_bool() == Some(true) {
+            if paginate {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() does not support pagination".into()))));
             }
             paramsPaginate = paramsFinal;
@@ -4038,10 +4038,10 @@ impl Coinbaseinternational {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOpenOrders() requires a symbol argument".into()))));
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
             m
         });
         if !(self.is_native_deribit_credentials().as_bool() == Some(true)) && (limit != Value::Null) {
@@ -4080,7 +4080,7 @@ impl Coinbaseinternational {
         //     }
         //
         let mut rawOrders: Value = self.safe_list_k(response, "result", &[Value::from(vec![])]);
-        return self.parse_orders(rawOrders, &[market, since, limit]);
+        return self.parse_orders(rawOrders, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -4119,9 +4119,9 @@ impl Coinbaseinternational {
         let mut paramsPaginate: Value = paramsResolved.clone();
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
             let paginateparamsFinalVariable: Vec<Value> = self.handle_option_bool_and_params(paramsResolved, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-            let mut paginate: Value = paginateparamsFinalVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut paginate: bool = paginateparamsFinalVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsFinal: Value = paginateparamsFinalVariable.get(1).cloned().unwrap_or(Value::Null);
-            if paginate.as_bool() == Some(true) {
+            if paginate {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters".into()))));
             }
             paramsPaginate = paramsFinal;
@@ -4132,10 +4132,10 @@ impl Coinbaseinternational {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument".into()))));
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
                 m.insert("include_old".to_string(), Value::Bool(true));
             m
         });
@@ -4221,7 +4221,7 @@ impl Coinbaseinternational {
     m
 })]);
         let mut trades: Value = self.safe_list_k(result, "trades", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[market, since, limit]);
+        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -4301,7 +4301,7 @@ impl Coinbaseinternational {
                 m.insert("currency".to_string(), feeCurrency);
             m
         });
-        let mut takerOrMaker: Value = Value::Null;
+        let mut takerOrMaker: Option<String> = None;
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
             let mut liquidities: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -4309,7 +4309,7 @@ impl Coinbaseinternational {
                     m.insert("T".to_string(), Value::Str("taker".into()));
                 m
             });
-            takerOrMaker = self.safe_string(Value::Map(liquidities), self.safe_string_k(trade.clone(), "liquidity", &[]), &[]);
+            takerOrMaker = self.safe_string(Value::Map(liquidities), self.safe_string_k(trade.clone(), "liquidity", &[]), &[]).as_str().map(str::to_owned);
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4321,7 +4321,7 @@ impl Coinbaseinternational {
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), self.safe_string_k(trade.clone(), "order_type", &[]));
         m.insert("side".to_string(), self.safe_string_k(trade, "direction", &[]));
-        m.insert("takerOrMaker".to_string(), takerOrMaker);
+        m.insert("takerOrMaker".to_string(), takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price);
         m.insert("amount".to_string(), amount);
         m.insert("cost".to_string(), cost);
@@ -4362,10 +4362,10 @@ impl Coinbaseinternational {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
             m
         });
         self.authenticate_v2(&[]).await;
@@ -4386,7 +4386,7 @@ impl Coinbaseinternational {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_leverage(result, &[market]);
+        return self.parse_leverage(result, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -4446,10 +4446,10 @@ impl Coinbaseinternational {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
                 m.insert("leverage".to_string(), self.number_to_string(leverage));
             m
         });

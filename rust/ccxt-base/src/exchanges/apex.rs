@@ -1362,10 +1362,10 @@ impl Apex {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "id2", &[]));
+                m.insert("symbol".to_string(), self.safe_string_k((market).raw.clone(), "id2", &[]));
             m
         });
         request.insert("limit".into(), (if (limit == Value::Null) { Value::Int(100) } else { limit })); // max 100, default 100
@@ -1402,7 +1402,7 @@ impl Apex {
     m
 })]);
         let mut timestamp: Value = self.milliseconds();
-        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(data.clone(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp, Value::Str("b".into()), Value::Str("a".into())]).as_map().cloned().unwrap_or_default();
+        let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(data.clone(), Value::from((market).symbol.clone()), &[timestamp, Value::Str("b".into()), Value::Str("a".into())]).as_map().cloned().unwrap_or_default();
         orderbook.insert("nonce".into(), self.safe_integer_k(data, "u", &[]));
         return Value::Map(orderbook);
         Value::Null
@@ -1632,8 +1632,8 @@ impl Apex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        request.insert("symbol".into(), Value::from((market).id.clone()));
         if (since != Value::Null) {
             request.insert("beginTimeInclusive".into(), since.clone());
         }
@@ -1680,7 +1680,7 @@ impl Apex {
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
-                    m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]));
+                    m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[(market).raw.clone()]));
                     m.insert("fundingRate".to_string(), self.safe_number_k(entry, "rate", &[]));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
                     m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
@@ -2775,12 +2775,12 @@ impl Apex {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut leverageString: Value = self.number_to_string(leverage);
         let mut initialMarginRate: Value = crate::precise::Precise::stringDivPrec(&Value::Str("1".into()), &leverageString, &Value::Int(4));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((market).id.clone()));
                 m.insert("initialMarginRate".to_string(), initialMarginRate);
             m
         });

@@ -325,9 +325,9 @@ impl Bittrade {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         // only supports a limit of 150 at this time
-        let marketId: String = self.safe_string_k_opt(market.clone(), "id", &[Value::Str("".into())]).unwrap_or_default();
+        let marketId: String = self.safe_string_k_opt((market).raw.clone(), "id", &[Value::Str("".into())]).unwrap_or_default();
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market.".into()), marketId).into()), Value::Str(".detail".into())).into());
         let mut api: Value = self.safe_string_k(self.options.clone(), "api", &[Value::Str("api".into())]);
         let mut apiUrls: Value = self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
@@ -359,7 +359,7 @@ impl Bittrade {
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), requestId);
                 m.insert("messageHash".to_string(), messageHash.clone());
-                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
                 m.insert("params".to_string(), params.clone());
             m
         });

@@ -725,9 +725,9 @@ impl Ndax {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut symbolValue: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
-        let marketId: String = self.safe_string_k_opt(market.clone(), "id", &[Value::Str("".into())]).unwrap_or_default();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut symbolValue: Value = self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]);
+        let marketId: String = self.safe_string_k_opt((market).raw.clone(), "id", &[Value::Str("".into())]).unwrap_or_default();
         let mut name: String = "SubscribeLevel2".to_string();
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), marketId).into());
         let mut url: Option<String> = self.safe_string_opt(self.safe_dict_k(self.urls.clone(), "api", &[Value::Map({
@@ -739,7 +739,7 @@ impl Ndax {
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("OMSId".to_string(), Value::from(omsId));
-                m.insert("InstrumentId".to_string(), self.safe_integer_k(market.clone(), "id", &[]));
+                m.insert("InstrumentId".to_string(), self.safe_integer_k((market).raw.clone(), "id", &[]));
                 m.insert("Depth".to_string(), limitValue.clone());
             m
         });
@@ -757,7 +757,7 @@ impl Ndax {
                 m.insert("messageHash".to_string(), messageHash.clone());
                 m.insert("name".to_string(), Value::from(name));
                 m.insert("symbol".to_string(), symbolValue);
-                m.insert("marketId".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("marketId".to_string(), Value::from((market).id.clone()));
                 m.insert("method".to_string(), Value::Str("handle_order_book_subscription".into()).clone());
                 m.insert("limit".to_string(), limitValue);
                 m.insert("params".to_string(), params.clone());

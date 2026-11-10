@@ -1609,8 +1609,8 @@ impl Binance {
         if (outcome != Value::Null) {
             self.load_outcome(outcome.clone(), &[]).await;
             outcomeObj = self.outcome(outcome.clone());
-            let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market((outcomeObj.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
-            request.insert("marketId".into(), market.get("id").cloned().unwrap_or(Value::Null));
+            let mut market: crate::types::Market = (match self.market((outcomeObj.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            request.insert("marketId".into(), Value::from((market).id.clone()));
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());

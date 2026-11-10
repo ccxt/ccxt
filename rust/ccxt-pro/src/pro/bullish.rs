@@ -448,13 +448,13 @@ impl Bullish {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades::".into()), self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())])).into());
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades::".into()), self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())])).into());
         let mut url: String = "/trading-api/v1/market-data/trades".to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("anonymousTrades".into()));
-                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((market).id.clone()));
             m
         });
         let mut trades: Value = self.watch_public(Value::from(url), messageHash, &[Value::Map(request), params]).await;
@@ -658,13 +658,13 @@ impl Bullish {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut url: String = "/trading-api/v1/market-data/orderbook".to_string();
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())])).into());
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())])).into());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("l2Orderbook".into()));
-                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((market).id.clone()));
             m
         });
         let mut orderbook: Value = self.watch_public(Value::from(url), messageHash, &[Value::Map(request), params]).await;

@@ -1215,10 +1215,10 @@ impl Dydx {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("market".to_string(), Value::from((market).id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -1242,7 +1242,7 @@ impl Dydx {
         // }
         //
         let mut rows: Value = self.safe_list_k(response, "trades", &[Value::from(vec![])]);
-        return self.parse_trades(rows, &[market, since, limit]);
+        return self.parse_trades(rows, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1284,10 +1284,10 @@ impl Dydx {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("market".to_string(), Value::from((market).id.clone()));
                 m.insert("resolution".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
@@ -1326,7 +1326,7 @@ impl Dydx {
         // }
         //
         let mut rows: Value = self.safe_list_k(response, "candles", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(rows, &[market, timeframe, since, limit]);
+        return self.parse_ohlc_vs(rows, &[(market).raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -1362,10 +1362,10 @@ impl Dydx {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("market".to_string(), Value::from((market).id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -1402,7 +1402,7 @@ impl Dydx {
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), entry.clone());
-                    m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]));
+                    m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[(market).raw.clone()]));
                     m.insert("fundingRate".to_string(), self.safe_number_k(entry, "rate", &[]));
                     m.insert("timestamp".to_string(), timestamp.clone());
                     m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -2080,7 +2080,7 @@ impl Dydx {
         let mut conditionalType: Value = Value::Int(0);
         let mut conditionalOrderTriggerSubticks: Value = Value::Str("0".into());
         let mut orderFlag: Value = Value::Null;
-        let mut timeInForceNumber: Value = Value::Null;
+        let mut timeInForceNumber: Option<i64> = None;
         if (timeInForce.as_deref() == Some("FOK")) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" timeInForce fok has been deprecated".into()))));
         }
@@ -2090,21 +2090,21 @@ impl Dydx {
             clientMetadata = Value::Int(1); // STOP_MARKET / TAKE_PROFIT_MARKET
             if (timeInForce.is_some()) {
                 // default is ioc
-                timeInForceNumber = Value::Int(1);
+                timeInForceNumber = Some(1);
             }
         }  else if (orderType.as_str() == Some("LIMIT")) {
             if (timeInForce.as_deref() == Some("GTT")) {
                 // long-term
                 orderFlag = Value::Int(64);
                 if postOnly.as_bool() == Some(true) {
-                    timeInForceNumber = Value::Int(2);
+                    timeInForceNumber = Some(2);
                 }  else {
-                    timeInForceNumber = Value::Int(0);
+                    timeInForceNumber = Some(0);
                 }
             }  else {
                 orderFlag = Value::Int(0);
                 if (timeInForce.as_deref() == Some("IOC")) {
-                    timeInForceNumber = Value::Int(1);
+                    timeInForceNumber = Some(1);
                 }  else {
                     panic!("{}", crate::exchange_errors::invalid_order("unexpected code path: timeInForce"));
                 }
@@ -2169,7 +2169,7 @@ impl Dydx {
         m.insert("subticks".to_string(), self.to_dydx_long(subticks));
         m.insert("goodTilBlock".to_string(), goodTillBlock);
         m.insert("goodTilBlockTime".to_string(), goodTillBlockTime);
-        m.insert("timeInForce".to_string(), timeInForceNumber);
+        m.insert("timeInForce".to_string(), Value::from(timeInForceNumber));
         m.insert("reduceOnly".to_string(), Value::Bool(reduceOnly));
         m.insert("clientMetadata".to_string(), clientMetadata);
         m.insert("conditionType".to_string(), conditionalType);
@@ -2602,15 +2602,15 @@ impl Dydx {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("market".to_string(), Value::from((market).id.clone()));
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.indexer_get_orderbooks_perpetual_market_market(&[__ws_arg_9]).await;
-        return self.parse_order_book(response, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
+        return self.parse_order_book(response, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("size".into())]);
         Value::Null
         }).await?))
     }
@@ -2640,12 +2640,12 @@ impl Dydx {
         let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency.clone()]);
         let mut currencyResolved: Value = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
         let mut type_var: Option<String> = self.safe_string_upper_k_opt(item.clone(), "type", &[]);
-        let mut direction: Value = Value::Null;
+        let mut direction: Option<String> = None;
         if (type_var.is_some()) {
             if (type_var.as_deref() == Some("TRANSFER_IN")) || (type_var.as_deref() == Some("DEPOSIT")) {
-                direction = Value::Str("in".into());
+                direction = Some("in".to_string());
             }  else if (type_var.as_deref() == Some("TRANSFER_OUT")) || (type_var.as_deref() == Some("WITHDRAWAL")) {
-                direction = Value::Str("out".into());
+                direction = Some("out".to_string());
             }
         }
         let mut amount: Option<String> = self.safe_string_k_opt(item.clone(), "size", &[]);
@@ -2656,7 +2656,7 @@ impl Dydx {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item.clone());
         m.insert("id".to_string(), self.safe_string_k(item.clone(), "id", &[]));
-        m.insert("direction".to_string(), direction);
+        m.insert("direction".to_string(), direction.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("account".to_string(), self.safe_string_k(sender, "address", &[]));
         m.insert("referenceAccount".to_string(), self.safe_string_k(recipient, "address", &[]));
         m.insert("referenceId".to_string(), self.safe_string_k(item, "transactionHash", &[]));
@@ -2762,17 +2762,17 @@ impl Dydx {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut gasPrice: Value = Value::Null;
-        let mut denom: Value = Value::Null;
+        let mut gasPrice: Option<String> = None;
+        let mut denom: Option<String> = None;
         if (defaultFeeDenom.as_deref() == Some("uusdc")) {
-            gasPrice = self.safe_string_k(feeDenom.clone(), "USDC_GAS_PRICE", &[]);
-            denom = self.safe_string_k(feeDenom.clone(), "USDC_DENOM", &[]);
+            gasPrice = self.safe_string_k(feeDenom.clone(), "USDC_GAS_PRICE", &[]).as_str().map(str::to_owned);
+            denom = self.safe_string_k(feeDenom.clone(), "USDC_DENOM", &[]).as_str().map(str::to_owned);
         }  else {
-            gasPrice = self.safe_string_k(feeDenom.clone(), "CHAINTOKEN_GAS_PRICE", &[]);
-            denom = self.safe_string_k(feeDenom, "CHAINTOKEN_DENOM", &[]);
+            gasPrice = self.safe_string_k(feeDenom.clone(), "CHAINTOKEN_GAS_PRICE", &[]).as_str().map(str::to_owned);
+            denom = self.safe_string_k(feeDenom, "CHAINTOKEN_DENOM", &[]).as_str().map(str::to_owned);
         }
         let mut gasLimit: Value = (self.parse_to_numeric(crate::precise::Precise::stringMul(&gasUsed.clone().map(Value::from).unwrap_or(Value::Null), &defaultFeeMultiplier.clone().map(Value::from).unwrap_or(Value::Null)))).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null);
-        let mut feeAmount: Value = crate::precise::Precise::stringMul(&self.number_to_string(gasLimit.clone()), &gasPrice);
+        let mut feeAmount: Value = crate::precise::Precise::stringMul(&self.number_to_string(gasLimit.clone()), &gasPrice.clone().map(Value::from).unwrap_or(Value::Null));
         if (feeAmount == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" estimateTxFee() missing feeAmount".into()))));
         }
@@ -2782,7 +2782,7 @@ impl Dydx {
         let mut feeObj: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("amount".to_string(), feeAmount);
-                m.insert("denom".to_string(), denom);
+                m.insert("denom".to_string(), denom.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
         return Value::Map({

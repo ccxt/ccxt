@@ -660,12 +660,12 @@ impl Hitbtc {
         }  else if (name.as_str() == Some("orderbook/{depth}/{speed}/batch")) {
             name = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("orderbook/D".into()), depthValue).into()), Value::Str("/".into())).into()), speedValue).into()), Value::Str("ms/batch".into())).into());
         }
-        let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbols".to_string(), Value::from(vec![market.get("id").cloned().unwrap_or(Value::Null)]));
+        m.insert("symbols".to_string(), Value::from(vec![Value::from((market).id.clone())]));
     m
 }));
             m
@@ -1181,12 +1181,12 @@ impl Hitbtc {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbols".to_string(), Value::from(vec![market.get("id").cloned().unwrap_or(Value::Null)]));
+        m.insert("symbols".to_string(), Value::from(vec![Value::from((market).id.clone())]));
     m
 }));
             m
@@ -1226,14 +1226,14 @@ impl Hitbtc {
     m
 }));
         crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("trades".into()));
-                m.insert("symbols".to_string(), Value::from(vec![market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]));
+                m.insert("symbols".to_string(), Value::from(vec![Value::from((market).symbol.clone())]));
             m
         });
-        return self.un_subscribe_public(Value::Str("trades".into()), Value::Str("trades".into()), Value::from(vec![market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]), Value::Map(subscription), &[params]).await;
+        return self.un_subscribe_public(Value::Str("trades".into()), Value::Str("trades".into()), Value::from(vec![Value::from((market).symbol.clone())]), Value::Map(subscription), &[params]).await;
         Value::Null
         }).await?))
     }
@@ -1400,10 +1400,10 @@ impl Hitbtc {
 }));
         let mut period: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut name: Value = Value::Str(format!("{}{}", Value::Str("candles/".into()), period).into());
-        let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut subscribeParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbols".to_string(), Value::from(vec![market.get("id").cloned().unwrap_or(Value::Null)]));
+                m.insert("symbols".to_string(), Value::from(vec![Value::from((market).id.clone())]));
             m
         });
         if (limit != Value::Null) {
@@ -1447,16 +1447,16 @@ impl Hitbtc {
     m
 }));
         crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut period: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut name: Value = Value::Str(format!("{}{}", Value::Str("candles/".into()), period).into());
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("topic".to_string(), Value::Str("ohlcv".into()));
-                m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), timeframe])]));
+                m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![Value::from((market).symbol.clone()), timeframe])]));
             m
         });
-        return self.un_subscribe_public(name.clone(), name.clone(), Value::from(vec![market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]), Value::Map(subscription), &[params]).await;
+        return self.un_subscribe_public(name.clone(), name.clone(), Value::from(vec![Value::from((market).symbol.clone())]), Value::Map(subscription), &[params]).await;
         Value::Null
         }).await?))
     }
@@ -1991,15 +1991,15 @@ impl Hitbtc {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelOrderWs".into()), &[market, params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("cancelOrderWs".into()), &[paramsMarketType]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModequeryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: Value = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null);
         request = self.extend(request.clone(), &[query]);
-        if (marketType.as_str() == Some("swap")) {
+        if (marketType.as_deref() == Some("swap")) {
             return self.trade_request(Value::Str("futures_cancel_order".into()), &[request.clone()]).await;
-        }  else if (marketType.as_str() == Some("margin")) || (marginMode != Value::Null) {
+        }  else if (marketType.as_deref() == Some("margin")) || (marginMode.is_some()) {
             return self.trade_request(Value::Str("margin_cancel_order".into()), &[request.clone()]).await;
         }  else {
             return self.trade_request(Value::Str("spot_cancel_order".into()), &[request]).await;
@@ -2039,14 +2039,14 @@ impl Hitbtc {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelAllOrdersWs".into()), &[market, params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("cancelAllOrdersWs".into()), &[paramsMarketType]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (marketType.as_str() == Some("swap")) {
+        if (marketType.as_deref() == Some("swap")) {
             return self.trade_request(Value::Str("futures_cancel_orders".into()), &[paramsMarginMode.clone()]).await;
-        }  else if (marketType.as_str() == Some("margin")) || (marginMode != Value::Null) {
+        }  else if (marketType.as_deref() == Some("margin")) || (marginMode.is_some()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersWs is not supported for margin orders".into()))));
         }  else {
             return self.trade_request(Value::Str("spot_cancel_orders".into()), &[paramsMarginMode]).await;
@@ -2096,13 +2096,13 @@ impl Hitbtc {
             request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOpenOrdersWs".into()), &[market, params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let marginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchOpenOrdersWs".into()), &[paramsMarketType]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModeVariable.get(0).cloned().unwrap_or(Value::Null);
-        if (marketType.as_str() == Some("swap")) {
+        let mut marginMode: Option<String> = marginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
+        if (marketType.as_deref() == Some("swap")) {
             return self.trade_request(Value::Str("futures_get_orders".into()), &[Value::Map(request.clone())]).await;
-        }  else if (marketType.as_str() == Some("margin")) || (marginMode != Value::Null) {
+        }  else if (marketType.as_deref() == Some("margin")) || (marginMode.is_some()) {
             return self.trade_request(Value::Str("margin_get_orders".into()), &[Value::Map(request.clone())]).await;
         }  else {
             return self.trade_request(Value::Str("spot_get_orders".into()), &[Value::Map(request)]).await;

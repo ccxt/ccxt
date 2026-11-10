@@ -3621,20 +3621,20 @@ pub trait ExchangeBase:
     m
 })]).as_map().cloned().unwrap_or_default();
         let mut feeSide: Option<String> = self.safe_string(Value::Map(market.clone()), Value::Str("feeSide".into()), &[Value::Str("quote".into())]).as_str().map(str::to_owned);
-        let mut useQuote: Value = Value::Null;
+        let mut useQuote: Option<bool> = None;
         if (feeSide.as_deref() == Some("get")) {
             // the fee is always in the currency you get
-            useQuote = Value::Bool(side.as_str() == Some("sell"));
+            useQuote = Some(side.as_str() == Some("sell"));
         }  else if (feeSide.as_deref() == Some("give")) {
             // the fee is always in the currency you give
-            useQuote = Value::Bool(side.as_str() == Some("buy"));
+            useQuote = Some(side.as_str() == Some("buy"));
         }  else {
             // the fee is always in feeSide currency
-            useQuote = Value::Bool(feeSide.as_deref() == Some("quote"));
+            useQuote = Some(feeSide.as_deref() == Some("quote"));
         }
         let mut cost: Value = self.number_to_string(amount);
         let mut key: Value = Value::Null;
-        if useQuote.as_bool() == Some(true) {
+        if (useQuote == Some(true)) {
             let mut priceString: Value = self.number_to_string(price);
             cost = crate::precise::Precise::stringMul(&cost, &priceString);
             key = Value::Str("quote".into());
@@ -4580,26 +4580,26 @@ pub trait ExchangeBase:
                         let mut i: i64 = 0;
             let mut __for_first_112: bool = true;
             while { if !__for_first_112 { i += 1; } __for_first_112 = false; i < (symbols.len() as i64) } {
-            let mut market: Value = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, (symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
+            let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, (symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if sameTypeOnly.as_bool() == Some(true) && (marketType != Value::Null) {
-                if (market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() != marketType.as_str()) {
+                if ((market).raw.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() != marketType.as_str()) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" symbols must be of the same type, either ".into())).into()), marketType).into()), Value::Str(" or ".into())).into()),
-                        market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null)).into()), Value::Str(".".into()))));
+                        (market).raw.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null)).into()), Value::Str(".".into()))));
                 }
             }
             if sameSubTypeOnly.as_bool() == Some(true) && (isLinearSubType != Value::Null) {
-                if (market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() != isLinearSubType.as_bool()) {
+                if ((market).raw.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null).as_bool() != isLinearSubType.as_bool()) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" symbols must be of the same subType, either linear or inverse.".into()))));
                 }
             }
-            if (type_var != Value::Null) && (market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() != type_var.as_str()) {
+            if (type_var != Value::Null) && ((market).raw.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() != type_var.as_str()) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" symbols must be of the same type ".into())).into()), type_var).into()), Value::Str(". If the type is incorrect you can change it in options or the params of the request".into()))));
             }
-            marketType = self.safe_string_k(market.clone(), "type", &[]);
-            if !matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
-                isLinearSubType = self.safe_bool_k(market.clone(), "linear", &[]);
+            marketType = self.safe_string_k((market).raw.clone(), "type", &[]);
+            if !(market).spot {
+                isLinearSubType = (market).raw.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null);
             }
-            let mut symbol: Value = self.safe_string_k(market, "symbol", &[symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)]);
+            let mut symbol: Value = self.safe_string_k((market).raw.clone(), "symbol", &[symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)]);
             result.push(symbol);
         }
         }
@@ -5107,38 +5107,38 @@ pub trait ExchangeBase:
             let mut hasContracts: bool = (contractsString != Value::Null) && crate::precise::Precise::stringGt(&contractsString, &Value::Str("0".into())).as_bool() == Some(true);
             let mut hasContractSize: bool = (contractSizeString != Value::Null) && crate::precise::Precise::stringGt(&contractSizeString, &Value::Str("0".into())).as_bool() == Some(true);
             let mut hasMm: bool = (maintenanceMarginString != Value::Null) && crate::precise::Precise::stringGt(&maintenanceMarginString, &Value::Str("0".into())).as_bool() == Some(true);
-            let mut priceDiff: Value = Value::Null;
+            let mut priceDiff: Option<String> = None;
             if hasEntryPrice && hasLiqPrice {
                 if isInverse {
                     let mut invEntry: Value = crate::precise::Precise::stringDiv(&Value::Str("1".into()), &entryPriceString);
                     let mut invLiq: Value = crate::precise::Precise::stringDiv(&Value::Str("1".into()), &liquidationPriceString);
                     if (side.as_deref() == Some("long")) {
-                        priceDiff = crate::precise::Precise::stringSub(&invLiq, &invEntry);
+                        priceDiff = crate::precise::Precise::stringSub(&invLiq, &invEntry).as_str().map(str::to_owned);
                     }  else if (side.as_deref() == Some("short")) {
-                        priceDiff = crate::precise::Precise::stringSub(&invEntry, &invLiq);
+                        priceDiff = crate::precise::Precise::stringSub(&invEntry, &invLiq).as_str().map(str::to_owned);
                     }  else {
-                        priceDiff = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&invEntry, &invLiq));
+                        priceDiff = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&invEntry, &invLiq)).as_str().map(str::to_owned);
                     }
                 }  else {
                     if (side.as_deref() == Some("long")) {
-                        priceDiff = crate::precise::Precise::stringSub(&entryPriceString, &liquidationPriceString);
+                        priceDiff = crate::precise::Precise::stringSub(&entryPriceString, &liquidationPriceString).as_str().map(str::to_owned);
                     }  else if (side.as_deref() == Some("short")) {
-                        priceDiff = crate::precise::Precise::stringSub(&liquidationPriceString, &entryPriceString);
+                        priceDiff = crate::precise::Precise::stringSub(&liquidationPriceString, &entryPriceString).as_str().map(str::to_owned);
                     }  else {
-                        priceDiff = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&entryPriceString, &liquidationPriceString));
+                        priceDiff = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&entryPriceString, &liquidationPriceString)).as_str().map(str::to_owned);
                     }
                 }
             }
-            let mut hasPriceDiff: bool = (priceDiff != Value::Null) && crate::precise::Precise::stringGt(&priceDiff, &Value::Str("0".into())).as_bool() == Some(true);
+            let mut hasPriceDiff: bool = (priceDiff.is_some()) && crate::precise::Precise::stringGt(&priceDiff.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true);
             if (maintenanceMarginString == Value::Null) && hasEntryMargin && hasPriceDiff && hasContracts && hasContractSize {
-                let mut lossFromEntry: Value = crate::precise::Precise::stringMul(&priceDiff, &crate::precise::Precise::stringMul(&contractsString, &contractSizeString));
+                let mut lossFromEntry: Value = crate::precise::Precise::stringMul(&priceDiff.clone().map(Value::from).unwrap_or(Value::Null), &crate::precise::Precise::stringMul(&contractsString, &contractSizeString));
                 let mut derivedMm: Value = crate::precise::Precise::stringSub(&entryMarginString, &lossFromEntry);
                 if crate::precise::Precise::stringGt(&derivedMm, &Value::Str("0".into())).as_bool() == Some(true) {
                     maintenanceMarginString = derivedMm.clone();
                     if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("maintenanceMargin".into(), self.parse_number(derivedMm.clone(), &[])); }
                 }
             }  else if (collateralString == Value::Null) && (initialMarginString == Value::Null) && hasMm && hasPriceDiff && hasContracts && hasContractSize {
-                let mut lossFromEntry: Value = crate::precise::Precise::stringMul(&priceDiff, &crate::precise::Precise::stringMul(&contractsString, &contractSizeString));
+                let mut lossFromEntry: Value = crate::precise::Precise::stringMul(&priceDiff.clone().map(Value::from).unwrap_or(Value::Null), &crate::precise::Precise::stringMul(&contractsString, &contractSizeString));
                 let mut derivedEntryMargin: Value = crate::precise::Precise::stringAdd(&maintenanceMarginString, &lossFromEntry);
                 if crate::precise::Precise::stringGt(&derivedEntryMargin, &Value::Str("0".into())).as_bool() == Some(true) {
                     initialMarginString = derivedEntryMargin.clone();
@@ -5204,7 +5204,7 @@ pub trait ExchangeBase:
                 }
             }  else if (contractsString == Value::Null) && hasEntryMargin && hasMm && hasPriceDiff && hasContractSize {
                 let mut marginBuffer: Value = crate::precise::Precise::stringSub(&entryMarginString, &maintenanceMarginString);
-                let mut denom: Value = crate::precise::Precise::stringMul(&priceDiff, &contractSizeString);
+                let mut denom: Value = crate::precise::Precise::stringMul(&priceDiff.clone().map(Value::from).unwrap_or(Value::Null), &contractSizeString);
                 if crate::precise::Precise::stringGt(&marginBuffer, &Value::Str("0".into())).as_bool() == Some(true) && crate::precise::Precise::stringGt(&denom, &Value::Str("0".into())).as_bool() == Some(true) {
                     let mut derivedContracts: Value = crate::precise::Precise::stringDiv(&marginBuffer, &denom);
                     if crate::precise::Precise::stringGt(&derivedContracts, &Value::Str("0".into())).as_bool() == Some(true) {
@@ -5214,7 +5214,7 @@ pub trait ExchangeBase:
                 }
             }  else if (contractSizeString == Value::Null) && hasEntryMargin && hasMm && hasPriceDiff && hasContracts {
                 let mut marginBuffer: Value = crate::precise::Precise::stringSub(&entryMarginString, &maintenanceMarginString);
-                let mut denom: Value = crate::precise::Precise::stringMul(&priceDiff, &contractsString);
+                let mut denom: Value = crate::precise::Precise::stringMul(&priceDiff.clone().map(Value::from).unwrap_or(Value::Null), &contractsString);
                 if crate::precise::Precise::stringGt(&marginBuffer, &Value::Str("0".into())).as_bool() == Some(true) && crate::precise::Precise::stringGt(&denom, &Value::Str("0".into())).as_bool() == Some(true) {
                     let mut derivedContractSize: Value = crate::precise::Precise::stringDiv(&marginBuffer, &denom);
                     if crate::precise::Precise::stringGt(&derivedContractSize, &Value::Str("0".into())).as_bool() == Some(true) {
@@ -5281,24 +5281,24 @@ pub trait ExchangeBase:
                 if crate::precise::Precise::stringGt(&entryPriceString, &Value::Str("0".into())).as_bool() == Some(true) && crate::precise::Precise::stringGt(&markPriceString, &Value::Str("0".into())).as_bool() == Some(true) && crate::precise::Precise::stringGt(&contractsString,
                     &Value::Str("0".into())).as_bool() == Some(true) && crate::precise::Precise::stringGt(&contractSizeString, &Value::Str("0".into())).as_bool() == Some(true) {
                     let mut totalSize: Value = crate::precise::Precise::stringMul(&contractsString, &contractSizeString);
-                    let mut pnlDiff: Value = Value::Null;
+                    let mut pnlDiff: Option<String> = None;
                     if isInverse {
                         let mut invEntry: Value = crate::precise::Precise::stringDiv(&Value::Str("1".into()), &entryPriceString);
                         let mut invMark: Value = crate::precise::Precise::stringDiv(&Value::Str("1".into()), &markPriceString);
                         if (side.as_deref() == Some("long")) {
-                            pnlDiff = crate::precise::Precise::stringSub(&invEntry, &invMark);
+                            pnlDiff = crate::precise::Precise::stringSub(&invEntry, &invMark).as_str().map(str::to_owned);
                         }  else if (side.as_deref() == Some("short")) {
-                            pnlDiff = crate::precise::Precise::stringSub(&invMark, &invEntry);
+                            pnlDiff = crate::precise::Precise::stringSub(&invMark, &invEntry).as_str().map(str::to_owned);
                         }
                     }  else {
                         if (side.as_deref() == Some("long")) {
-                            pnlDiff = crate::precise::Precise::stringSub(&markPriceString, &entryPriceString);
+                            pnlDiff = crate::precise::Precise::stringSub(&markPriceString, &entryPriceString).as_str().map(str::to_owned);
                         }  else if (side.as_deref() == Some("short")) {
-                            pnlDiff = crate::precise::Precise::stringSub(&entryPriceString, &markPriceString);
+                            pnlDiff = crate::precise::Precise::stringSub(&entryPriceString, &markPriceString).as_str().map(str::to_owned);
                         }
                     }
-                    if (pnlDiff != Value::Null) {
-                        let mut candidateUpnl: Value = crate::precise::Precise::stringMul(&pnlDiff, &totalSize);
+                    if (pnlDiff.is_some()) {
+                        let mut candidateUpnl: Value = crate::precise::Precise::stringMul(&pnlDiff.clone().map(Value::from).unwrap_or(Value::Null), &totalSize);
                         if crate::precise::Precise::stringEq(&candidateUpnl, &Value::Str("0".into())).as_bool() == Some(true) || crate::precise::Precise::stringGe(&crate::precise::Precise::stringAbs(&candidateUpnl), &Value::Str("0.000001".into())).as_bool() == Some(true) {
                             unrealizedPnlString = candidateUpnl.clone();
                             if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("unrealizedPnl".into(), self.parse_number(unrealizedPnlString.clone(), &[])); }
@@ -7145,8 +7145,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchPositionsADLRank")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchPositionsADLRank")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
-            let mut market: Value = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()));
-            let mut symbolResolved: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut symbolResolved: Value = Value::from((market).symbol.clone());
             let mut ranks: Value = crate::types::IntoRaw::into_raw(self.fetch_positions_adl_rank((Value::from(vec![symbolResolved.clone()])).to_opt_str_vec(), params).await);
             let mut rank: Value = self.safe_dict(ranks, Value::Int(0), &[]);
             if (rank == Value::Null) {
@@ -8076,8 +8076,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchLeverageTiers")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchLeverageTiers")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
-            let mut market: Value = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()));
-            if !matches!(self.safe_bool_k(market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
+            let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            if !(market).contract {
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchMarketLeverageTiers() supports contract markets only".into()))));
             }
             let mut tiers: Value = crate::types::IntoRaw::into_raw(self.fetch_leverage_tiers((Value::from(vec![symbol.clone()])).to_opt_str_vec(), Value::Null).await);
@@ -8710,9 +8710,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchFundingRates")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchFundingRates")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
-            let mut market: Value = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()));
-            let mut symbolResolved: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            if !matches!(self.safe_bool_k(market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
+            let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut symbolResolved: Value = Value::from((market).symbol.clone());
+            if !(market).contract {
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() supports contract markets only".into()))));
             }
             let mut rates: Value = crate::types::IntoRaw::into_raw(self.fetch_funding_rates((Value::from(vec![symbolResolved.clone()])).to_opt_str_vec(), params).await);
@@ -8746,9 +8746,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchFundingIntervals")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchFundingIntervals")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
-            let mut market: Value = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()));
-            let mut symbolResolved: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            if !matches!(self.safe_bool_k(market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
+            let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut symbolResolved: Value = Value::from((market).symbol.clone());
+            if !(market).contract {
                 panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingInterval() supports contract markets only".into()))));
             }
             let mut rates: Value = crate::types::IntoRaw::into_raw(self.fetch_funding_intervals((Value::from(vec![symbolResolved.clone()])).to_opt_str_vec(), params).await);
@@ -8929,8 +8929,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut markets: Value = self.markets.clone();
         let mut marketsById: Value = self.markets_by_id.clone();
         if ((markets != Value::Null) && (matches!((&markets, &account), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) || ((marketsById != Value::Null) && (matches!((&marketsById, &account), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) {
-            let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, account.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
-            return market.get("id").cloned().unwrap_or(Value::Null);
+            let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, account.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            return Value::from((market).id.clone());
         }  else {
             return account;
         }
@@ -9274,7 +9274,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut removeRepeatedOption: Value = removeRepeatedOptionparamsRemoveRepeatedVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsRemoveRepeated: Value = removeRepeatedOptionparamsRemoveRepeatedVariable.get(1).cloned().unwrap_or(Value::Null);
         let paginationDirectionparamsPaginationDirectionVariable: Vec<Value> = self.handle_option_string_and_params(paramsRemoveRepeated, method.clone(), Value::Str("paginationDirection".into()), &[Value::Str("backward".into())]).as_array().cloned().unwrap_or_default();
-        let mut paginationDirection: Value = paginationDirectionparamsPaginationDirectionVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginationDirection: Option<String> = paginationDirectionparamsPaginationDirectionVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsPaginationDirection: Value = paginationDirectionparamsPaginationDirectionVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut paginationTimestamp: Value = Value::Null;
         let mut result: Value = Value::from(vec![]);
@@ -9283,7 +9283,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_max_entries_per_request_and_params(method.clone(), &[maxEntriesPerRequest, paramsPaginationDirection]).as_array().cloned().unwrap_or_default();
         let mut maxEntriesPerRequestOption: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMaxEntriesPerRequest: Value = maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (paginationDirection.as_str() == Some("forward")) {
+        if (paginationDirection.as_deref() == Some("forward")) {
             if (since == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" pagination requires a since argument when paginationDirection set to forward".into()))));
             }
@@ -9295,7 +9295,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut __for_first_162: bool = true;
             while { if !__for_first_162 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_162 = false; i.as_f64().unwrap_or(f64::NAN) < maxCallsPaginationCalls.as_f64().unwrap_or(f64::NAN) } {
             {
-                if (paginationDirection.as_str() == Some("backward")) {
+                if (paginationDirection.as_deref() == Some("backward")) {
                     // do it backwards, starting from the last
                     // UNTIL filtering is required in order to work
                     if (paginationTimestamp != Value::Null) {
@@ -10776,8 +10776,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchMarkPrices")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchMarkPrices")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
-            let mut market: Value = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()));
-            let mut symbolResolved: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut symbolResolved: Value = Value::from((market).symbol.clone());
             let mut tickers: Value = crate::types::IntoRaw::into_raw(self.fetch_mark_prices((Value::from(vec![symbolResolved.clone()])).to_opt_str_vec(), params).await);
             let mut ticker: Value = self.safe_dict(tickers, symbolResolved.clone(), &[]);
             if (ticker == Value::Null) {
@@ -11734,8 +11734,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchTickersWs")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchTickersWs")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
-            let mut market: Value = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()));
-            let mut symbolResolved: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut symbolResolved: Value = Value::from((market).symbol.clone());
             let mut tickers: Value = crate::types::IntoRaw::into_raw(self.fetch_tickers_ws((Value::from(vec![symbolResolved.clone()])).to_opt_str_vec(), params).await);
             let mut ticker: Value = self.safe_dict(tickers, symbolResolved.clone(), &[]);
             if (ticker == Value::Null) {
@@ -12136,8 +12136,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         if (self.has.as_map().and_then(|__m| __m.get("fetchTickers")).cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.as_map().and_then(|__m| __m.get("fetchTickers")).cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
-            let mut market: Value = crate::types::IntoRaw::into_raw(<Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()));
-            let mut symbolResolved: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+            let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut symbolResolved: Value = Value::from((market).symbol.clone());
             let mut tickers: Value = crate::types::IntoRaw::into_raw(self.fetch_tickers((Value::from(vec![symbolResolved.clone()])).to_opt_str_vec(), params).await);
             let mut ticker: Value = self.safe_dict(tickers, symbolResolved.clone(), &[]);
             if (ticker == Value::Null) {

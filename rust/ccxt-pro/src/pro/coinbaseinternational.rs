@@ -736,9 +736,9 @@ impl Coinbaseinternational {
         let mut channel: Value = Value::Str(format!("{}{}", Value::Str("user.trades.any.any.".into()), interval).into());
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            symbolResolved = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            channel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("user.trades.".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()), Value::Str(".".into())).into()), interval).into());
+            let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            symbolResolved = Value::from((market).symbol.clone());
+            channel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("user.trades.".into()), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())])).into()), Value::Str(".".into())).into()), interval).into());
         }
         let mut trades: Value = self.subscribe(Value::from(vec![channel.clone()]), Value::from(vec![channel]), &[Value::Bool(true), paramsInterval]).await;
         return self.filter_by_symbol_since_limit(trades, &[symbolResolved, since, limit, Value::Bool(true)]);
@@ -846,9 +846,9 @@ impl Coinbaseinternational {
         let mut channel: Value = Value::Str(format!("{}{}", Value::Str("user.orders.any.any.".into()), interval).into());
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            symbolResolved = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            channel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("user.orders.".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()), Value::Str(".".into())).into()), interval).into());
+            let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            symbolResolved = Value::from((market).symbol.clone());
+            channel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("user.orders.".into()), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())])).into()), Value::Str(".".into())).into()), interval).into());
         }
         let mut orders: Value = self.subscribe(Value::from(vec![channel.clone()]), Value::from(vec![channel]), &[Value::Bool(true), paramsInterval]).await;
         let mut limitResolved: Value = limit.clone();
@@ -2182,11 +2182,11 @@ impl Coinbaseinternational {
         let mut paramsInterval: Value = intervalparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut isPrivate: Value = Value::Bool(interval.as_str() == Some("raw"));
         let useDepthEndpointparamsDepthEndpointVariable: Vec<Value> = self.handle_option_bool_and_params(paramsInterval, Value::Str("watchOrderBookForSymbols".into()), Value::Str("useDepthEndpoint".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut useDepthEndpoint: Value = useDepthEndpointparamsDepthEndpointVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut useDepthEndpoint: bool = useDepthEndpointparamsDepthEndpointVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsDepthEndpoint: Value = useDepthEndpointparamsDepthEndpointVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut paramsChannel: Value = paramsDepthEndpoint.clone();
         let mut descriptor: Value = Value::Str(format!("{}{}", Value::Str(".".into()), interval).into());
-        if useDepthEndpoint.as_bool() == Some(true) {
+        if useDepthEndpoint {
             let depthparamsDepthVariable: Vec<Value> = self.handle_option_string_and_params(paramsDepthEndpoint, Value::Str("watchOrderBookForSymbols".into()), Value::Str("depth".into()), &[Value::Str("20".into())]).as_array().cloned().unwrap_or_default();
             let mut depth: Value = depthparamsDepthVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsDepth: Value = depthparamsDepthVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -2270,11 +2270,11 @@ impl Coinbaseinternational {
         let mut interval: Value = intervalparamsIntervalVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsInterval: Value = intervalparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null);
         let useDepthEndpointparamsDepthEndpointVariable: Vec<Value> = self.handle_option_bool_and_params(paramsInterval, Value::Str("watchOrderBookForSymbols".into()), Value::Str("useDepthEndpoint".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut useDepthEndpoint: Value = useDepthEndpointparamsDepthEndpointVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut useDepthEndpoint: bool = useDepthEndpointparamsDepthEndpointVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsDepthEndpoint: Value = useDepthEndpointparamsDepthEndpointVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut paramsChannel: Value = paramsDepthEndpoint.clone();
         let mut descriptor: Value = Value::Str(format!("{}{}", Value::Str(".".into()), interval).into());
-        if useDepthEndpoint.as_bool() == Some(true) {
+        if useDepthEndpoint {
             let depthparamsDepthVariable: Vec<Value> = self.handle_option_string_and_params(paramsDepthEndpoint, Value::Str("watchOrderBookForSymbols".into()), Value::Str("depth".into()), &[Value::Str("20".into())]).as_array().cloned().unwrap_or_default();
             let mut depth: Value = depthparamsDepthVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsDepth: Value = depthparamsDepthVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -2698,11 +2698,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("amount".to_string(), self.parse_number(self.parent.get_order_amount(market.clone(), amount).map(Value::from).unwrap_or(Value::Null), &[]));
+                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
+                m.insert("amount".to_string(), self.parse_number(self.parent.get_order_amount((market).raw.clone(), amount).map(Value::from).unwrap_or(Value::Null), &[]));
                 m.insert("type".to_string(), type_var.clone());
             m
         });
@@ -2760,7 +2760,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         })]);
         if let Value::Dict(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("trades".into(), self.safe_list_k(result, "trades", &[Value::from(vec![])])); }
-        return self.parse_order(order, &[market]);
+        return self.parse_order(order, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2904,10 +2904,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (self.markets.clone() == Value::Null) {
                 crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
             }
-            let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
+            let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             paramsRequest = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("instrument_name".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
+                    m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
                 m
             }), &[paramsResolved]);
             method = "private/cancel_all_by_instrument".to_string();
@@ -2998,10 +2998,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -3009,7 +3009,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[paramsResolved]);
         let mut result: Value = self.request_ws(Value::Str("private/get_open_orders_by_instrument".into()), &[__ws_arg_10, Value::Bool(true)]).await;
-        return self.parse_orders(result, &[market, since, limit]);
+        return self.parse_orders(result, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3047,10 +3047,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -3059,7 +3059,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let __ws_arg_11 = self.extend(Value::Map(request), &[paramsResolved]);
         let mut result: Value = self.request_ws(Value::Str("private/get_order_history_by_instrument".into()), &[__ws_arg_11, Value::Bool(true)]).await;
         let mut orders: Value = self.safe_list_k(result.clone(), "orders", &[result.clone()]);
-        return self.parse_orders(orders, &[market, since, limit]);
+        return self.parse_orders(orders, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3140,10 +3140,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_name".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("instrument_name".to_string(), Value::from((market).id.clone()));
                 m.insert("include_old".to_string(), Value::Bool(true));
             m
         });
@@ -3153,7 +3153,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let __ws_arg_12 = self.extend(Value::Map(request), &[paramsResolved]);
         let mut result: Value = self.request_ws(Value::Str("private/get_user_trades_by_instrument".into()), &[__ws_arg_12, Value::Bool(true)]).await;
         let mut trades: Value = self.safe_list_k(result, "trades", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[market, since, limit]);
+        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }

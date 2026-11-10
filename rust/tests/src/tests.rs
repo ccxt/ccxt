@@ -366,16 +366,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !isPublic && (in_op(&self.checkedPublicTests, &methodName)) && !isFetchCurrencies {
             return Value::Bool(true);
         }
-        let mut skipMessage: Value = Value::Null;
+        let mut skipMessage: Option<String> = None;
         let mut supportedByExchange: bool = (in_op(&get_value(&exchange, &Value::Str("has".into())), &methodName)) && (get_value(&get_value(&exchange, &Value::Str("has".into())), &methodName) != Value::Null) && (!is_equal(&get_value(&get_value(&exchange, &Value::Str("has".into())), &methodName), &Value::Bool(false)));
         if !isLoadMarkets && ((Value::Int(self.onlySpecificTests.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)) && (!is_equal(&exchange.in_array(methodName.clone(), self.onlySpecificTests.clone()), &Value::Bool(true)))) {
-            skipMessage = Value::Str("[INFO] IGNORED_TEST".into());
+            skipMessage = Some("[INFO] IGNORED_TEST".to_string());
         }  else if !isLoadMarkets && !supportedByExchange && !isProxyTest && !isFeatureTest && !isConstructorTest {
-            skipMessage = Value::Str("[INFO] UNSUPPORTED_TEST".into()); // keep it aligned with the longest message
+            skipMessage = Some("[INFO] UNSUPPORTED_TEST".to_string()); // keep it aligned with the longest message
         }  else if matches!(&skippedPropertiesForMethod, Value::Str(_)) {
-            skipMessage = Value::Str("[INFO] SKIPPED_TEST".into());
+            skipMessage = Some("[INFO] SKIPPED_TEST".to_string());
         }  else if !(in_op(&self.testFiles, &methodName)) {
-            skipMessage = Value::Str("[INFO] UNIMPLEMENTED_TEST".into());
+            skipMessage = Some("[INFO] UNIMPLEMENTED_TEST".to_string());
         }
         let mut name: Value = get_value(&exchange, &Value::Str("id".into()));
         // the TESTING / TESTING DONE / TESTING FAILED markers are dumped unconditionally
@@ -387,9 +387,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             crate::live_dispatch::dispatch(&mut exchange, "load_markets", vec![Value::Bool(true)]).await;
             dump(&[self.add_padding(Value::Str("[INFO] TESTING DONE".into()), Value::Int(25)), name.clone(), methodName.clone()]);
         }
-        if (skipMessage != Value::Null) && (skipMessage.as_str() != Some("")) {
+        if (skipMessage.is_some()) && (skipMessage.as_deref() != Some("")) {
             if is_true(&self.info) {
-                dump(&[self.add_padding(skipMessage.clone(), Value::Int(25)), name.clone(), methodName.clone()]);
+                dump(&[self.add_padding(skipMessage.clone().map(Value::from).unwrap_or(Value::Null), Value::Int(25)), name.clone(), methodName.clone()]);
             }
             return Value::Bool(true);
         }
@@ -517,33 +517,33 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     if (i.as_f64() == (match (&(maxRetries), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64()) {
                         let mut isOnMaintenance: bool = matches!(&e, Value::Str(__s) if __s.contains("[OnMaintenance]"));
                         let mut isExchangeNotAvailable: bool = is_instance(&e, &Value::Str("ExchangeNotAvailable".into()));
-                        let mut shouldFail: Value = Value::Null;
-                        let mut retSuccess: Value = Value::Null;
+                        let mut shouldFail: Option<bool> = None;
+                        let mut retSuccess: Option<bool> = None;
                         if isLoadMarkets {
                             // if "loadMarkets" does not succeed, we must return "false" to caller method, to stop tests continual
-                            retSuccess = Value::Bool(false);
+                            retSuccess = Some(false);
                             // we might not break exchange tests, if exchange is on maintenance at this moment
                             if isOnMaintenance {
-                                shouldFail = Value::Bool(false);
+                                shouldFail = Some(false);
                             }  else {
-                                shouldFail = Value::Bool(true);
+                                shouldFail = Some(true);
                             }
                         }  else {
                             // for any other method tests:
                             if isExchangeNotAvailable && !isOnMaintenance {
                                 // break exchange tests if "ExchangeNotAvailable" exception is thrown, but it's not maintenance
-                                shouldFail = Value::Bool(true);
-                                retSuccess = Value::Bool(false);
+                                shouldFail = Some(true);
+                                retSuccess = Some(false);
                             }  else {
                                 // in all other cases of OperationFailed, show Warning, but don't mark test as failed
-                                shouldFail = Value::Bool(false);
-                                retSuccess = Value::Bool(true);
+                                shouldFail = Some(false);
+                                retSuccess = Some(true);
                             }
                         }
                         // output the message
-                        let mut failType: Value = (if shouldFail.as_bool() == Some(true) { Value::Str("[TEST_FAILURE]".into()) } else { Value::Str("[TEST_WARNING]".into()) });
+                        let mut failType: Value = (if (shouldFail == Some(true)) { Value::Str("[TEST_FAILURE]".into()) } else { Value::Str("[TEST_WARNING]".into()) });
                         dump(&[failType.clone(), get_value(&exchange, &Value::Str("id".into())), methodName.clone(), argsStringified.clone(), lastUrlMsg.clone(), Value::Str("Method could not be tested due to a repeated Network/Availability issues".into()), Value::Str(" | ".into()), exceptionMessage(e.clone())]);
-                        return retSuccess;
+                        return retSuccess.map(Value::from).unwrap_or(Value::Null);
                     }  else {
                         // wait and retry again
                         // (increase wait time on every retry)
@@ -2705,8 +2705,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             markets = self.load_markets_from_file(exchangeName.clone());
             currencies = self.load_currencies_from_file(exchangeName.clone());
         }
-        let mut wasmExecPath: Value = Value::Null;
-        let mut libraryPath: Value = Value::Null;
+        let mut wasmExecPath: Option<String> = None;
+        let mut libraryPath: Option<String> = None;
         // const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
         // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter-signer.wasm';
         // const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
@@ -2714,22 +2714,22 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut basePath: Value = Value::Str(format!("{}{}", getRootDir(), Value::Str("ts/src/test/static/binaries/".into())).into());
         if (exchangeName.as_str() == Some("lighter")) {
             if (self.lang.as_str() == Some("JS")) {
-                wasmExecPath = Value::Str(format!("{}{}", basePath, Value::Str("wasm_exec.js".into())).into());
-                libraryPath = Value::Str(format!("{}{}", basePath, Value::Str("lighter-signer.wasm".into())).into());
+                wasmExecPath = Some(format!("{}{}", basePath, Value::Str("wasm_exec.js".into())));
+                libraryPath = Some(format!("{}{}", basePath, Value::Str("lighter-signer.wasm".into())));
             }  else {
                 if is_true(&isWindows()) {
-                    libraryPath = Value::Str(format!("{}{}", basePath, Value::Str("lighter-signer-windows-amd64.dll".into())).into());
+                    libraryPath = Some(format!("{}{}", basePath, Value::Str("lighter-signer-windows-amd64.dll".into())));
                 }  else if is_true(&isLinux()) {
                     if is_true(&isAmd64()) {
-                        libraryPath = Value::Str(format!("{}{}", basePath, Value::Str("lighter-signer-linux-amd64.so".into())).into());
+                        libraryPath = Some(format!("{}{}", basePath, Value::Str("lighter-signer-linux-amd64.so".into())));
                     }  else {
-                        libraryPath = Value::Str(format!("{}{}", basePath, Value::Str("lighter-signer-linux-arm64.so".into())).into());
+                        libraryPath = Some(format!("{}{}", basePath, Value::Str("lighter-signer-linux-arm64.so".into())));
                     }
                 }  else {
                     if is_true(&isAmd64()) {
-                        libraryPath = Value::Str(format!("{}{}", basePath, Value::Str("lighter-signer-darwin-x86.dylib".into())).into());
+                        libraryPath = Some(format!("{}{}", basePath, Value::Str("lighter-signer-darwin-x86.dylib".into())));
                     }  else {
-                        libraryPath = Value::Str(format!("{}{}", basePath, Value::Str("lighter-signer-darwin-arm64.dylib".into())).into());
+                        libraryPath = Some(format!("{}{}", basePath, Value::Str("lighter-signer-darwin-arm64.dylib".into())));
                     }
                 }
             }
@@ -2772,8 +2772,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        m.insert("libraryPath".to_string(), libraryPath.clone());
-        m.insert("wasmExecPath".to_string(), wasmExecPath.clone());
+        m.insert("libraryPath".to_string(), libraryPath.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("wasmExecPath".to_string(), wasmExecPath.clone().map(Value::from).unwrap_or(Value::Null));
     m
 }));
             m

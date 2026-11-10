@@ -1593,27 +1593,27 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             close = last;
         }
         // the book is quoted in the yes token, the no side mirrors with sizes swapped
-        let mut bidSizeString: Value = Value::Null;
+        let mut bidSizeString: Option<String> = None;
         if isNo {
-            bidSizeString = self.safe_string_k(raw.clone(), "yes_ask_size_fp", &[]);
+            bidSizeString = self.safe_string_k(raw.clone(), "yes_ask_size_fp", &[]).as_str().map(str::to_owned);
         }  else {
-            bidSizeString = self.safe_string_k(raw.clone(), "yes_bid_size_fp", &[]);
+            bidSizeString = self.safe_string_k(raw.clone(), "yes_bid_size_fp", &[]).as_str().map(str::to_owned);
         }
-        let mut askSizeString: Value = Value::Null;
+        let mut askSizeString: Option<String> = None;
         if isNo {
-            askSizeString = self.safe_string_k(raw.clone(), "yes_bid_size_fp", &[]);
+            askSizeString = self.safe_string_k(raw.clone(), "yes_bid_size_fp", &[]).as_str().map(str::to_owned);
         }  else {
-            askSizeString = self.safe_string_k(raw.clone(), "yes_ask_size_fp", &[]);
+            askSizeString = self.safe_string_k(raw.clone(), "yes_ask_size_fp", &[]).as_str().map(str::to_owned);
         }
         // kalshi occasionally reports a negative size for settling/closed markets; a size
         // can't be negative, so drop it rather than emit an invalid volume
         let mut bidVolume: Value = Value::Null;
-        if (bidSizeString != Value::Null) && crate::precise::Precise::stringGe(&bidSizeString, &Value::Str("0".into())).as_bool() == Some(true) {
-            bidVolume = self.parse_number(bidSizeString.clone(), &[]);
+        if (bidSizeString.is_some()) && crate::precise::Precise::stringGe(&bidSizeString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            bidVolume = self.parse_number(bidSizeString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         }
         let mut askVolume: Value = Value::Null;
-        if (askSizeString != Value::Null) && crate::precise::Precise::stringGe(&askSizeString, &Value::Str("0".into())).as_bool() == Some(true) {
-            askVolume = self.parse_number(askSizeString.clone(), &[]);
+        if (askSizeString.is_some()) && crate::precise::Precise::stringGe(&askSizeString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            askVolume = self.parse_number(askSizeString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         }
         let mut average: Value = Value::Null;
         if (bid != Value::Null) && (ask != Value::Null) {
@@ -2896,11 +2896,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // never invent a side: a minimal response (e.g. a DELETE/cancel body) omits `action`,
         // and defaulting to 'sell' misreports a canceled buy. leave it undefined when absent.
         let mut action: Option<String> = self.safe_string_lower_k(order.clone(), "action", &[]).as_str().map(str::to_owned);
-        let mut side: Value = Value::Null;
+        let mut side: Option<String> = None;
         if (action.as_deref() == Some("buy")) {
-            side = Value::Str("buy".into());
+            side = Some("buy".to_string());
         }  else if (action.as_deref() == Some("sell")) {
-            side = Value::Str("sell".into());
+            side = Some("sell".to_string());
         }
         // price in the outcome's own leg: V2 returns *_price_dollars (already dollars),
         // legacy returned yes_price/no_price in cents
@@ -2944,7 +2944,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("type".to_string(), self.safe_string_lower_k(order, "type", &[Value::Str("limit".into())]));
         m.insert("timeInForce".to_string(), Value::Str("GTC".into()));
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), side);
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price);
         m.insert("stopPrice".to_string(), Value::Null);
         m.insert("triggerPrice".to_string(), Value::Null);
@@ -3300,13 +3300,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // map to kalshi's 'settled' (so resolved events ARE discoverable — previously they were
         // silently rewritten to 'open'); 'all' sends no filter
         let mut requestedStatus: Option<String> = self.safe_string_k(paramsOmitted.clone(), "status", &[self.safe_string(self.options.clone(), Value::Str("defaultEventStatus".into()), &[Value::Str("open".into())])]).as_str().map(str::to_owned);
-        let mut status: Value = Value::Null;
+        let mut status: Option<String> = None;
         if (requestedStatus.as_deref() == Some("active")) || (requestedStatus.as_deref() == Some("open")) {
-            status = Value::Str("open".into());
+            status = Some("open".to_string());
         }  else if (requestedStatus.as_deref() == Some("closed")) || (requestedStatus.as_deref() == Some("inactive")) {
-            status = Value::Str("closed".into());
+            status = Some("closed".to_string());
         }  else if (requestedStatus.as_deref() == Some("settled")) || (requestedStatus.as_deref() == Some("resolved")) {
-            status = Value::Str("settled".into());
+            status = Some("settled".to_string());
         }
         // anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
         let mut rest: Value = self.omit(paramsOmitted.clone(), Value::from(vec![Value::Str("status".into()), Value::Str("limit".into()), Value::Str("maxPages".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("tags".into()), Value::Str("category".into()), Value::Str("series_ticker".into())]), &[]);
@@ -3329,7 +3329,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (seriesTickersLength == 0.0) {
                 self.require_event_query(&[paramsOmitted.clone()]);
             }
-            rawEvents = self.fetch_series_events(seriesTickers, status, fetchCap, &[rest]).await;
+            rawEvents = self.fetch_series_events(seriesTickers, status.clone().map(Value::from).unwrap_or(Value::Null), fetchCap, &[rest]).await;
         }
         let mut rawEventsLength: f64 = ((rawEvents.len() as i64) as f64);
         let mut result: Vec<Value> = Vec::new();

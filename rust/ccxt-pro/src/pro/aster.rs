@@ -1432,27 +1432,27 @@ impl Aster {
         let mut id: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("t".into()), Value::Str("a".into()), &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "T", &[]).as_i64();
         let mut price: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("L".into()), Value::Str("p".into()), &[]);
-        let mut amount: Value = Value::Null;
+        let mut amount: Option<String> = None;
         if isPublicTrade {
-            amount = self.safe_string_k(trade.clone(), "q", &[]);
+            amount = self.safe_string_k(trade.clone(), "q", &[]).as_str().map(str::to_owned);
         }  else {
             // private trades, amount is in 'l' field, quantity of the last filled trade
-            amount = self.safe_string_k(trade.clone(), "l", &[]);
+            amount = self.safe_string_k(trade.clone(), "l", &[]).as_str().map(str::to_owned);
         }
         let mut cost: Value = self.safe_string_k(trade.clone(), "Y", &[]);
         if (cost == Value::Null) {
-            if (price.is_some()) && (amount != Value::Null) {
-                cost = crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &amount);
+            if (price.is_some()) && (amount.is_some()) {
+                cost = crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null));
             }
         }
         let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "s", &[]);
-        let mut defaultType: Value = Value::Null;
+        let mut defaultType: Option<String> = None;
         if (market == Value::Null) {
-            defaultType = self.safe_string_k(self.options.clone(), "defaultType", &[Value::Str("spot".into())]);
+            defaultType = self.safe_string_k(self.options.clone(), "defaultType", &[Value::Str("spot".into())]).as_str().map(str::to_owned);
         }  else {
-            defaultType = self.safe_string_k(market.clone(), "type", &[]);
+            defaultType = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
         }
-        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market, Value::Null, defaultType]);
+        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market, Value::Null, defaultType.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut side: Value = self.safe_string_lower_k(trade.clone(), "S", &[]);
         let mut takerOrMaker: Value = Value::Null;
         let mut orderId: Option<String> = self.safe_string_k_opt(trade.clone(), "i", &[]);
@@ -1487,7 +1487,7 @@ impl Aster {
         m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("cost".to_string(), cost);
         m.insert("fee".to_string(), fee);
     m
@@ -1865,16 +1865,16 @@ impl Aster {
             let mut __for_first_28: bool = true;
             while { if !__for_first_28 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_28 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
             let mut data: Value = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]);
-            let mut symbolString: Option<String> = self.safe_string_opt(data.clone(), Value::Int(0), &[]);
-            if (symbolString.is_none()) {
+            let mut symbolString: Value = self.safe_string(data.clone(), Value::Int(0), &[]);
+            if (symbolString == Value::Null) {
                 continue;
             }
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbolString.as_deref().unwrap_or_default()));
-            symbolString = self.safe_string_k_opt(market.clone(), "symbol", &[]);
+            let mut market: crate::types::Market = (match self.market(symbolString.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            symbolString = Value::from((market).symbol.clone());
             let mut unfiedTimeframe: Value = self.safe_string(data, Value::Int(1), &[Value::Str("".into())]);
             let mut timeframeId: Value = self.safe_string(self.timeframes.clone(), unfiedTimeframe.clone(), &[unfiedTimeframe.clone()]);
-            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[Value::Str("".into())]), Value::Str("@kline_".into())).into()), timeframeId).into())); };
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into()), Value::Str(":".into())).into()), unfiedTimeframe).into())); }
+            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k((market).raw.clone(), "id", &[Value::Str("".into())]), Value::Str("@kline_".into())).into()), timeframeId).into())); };
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())])).into()), Value::Str(":".into())).into()), unfiedTimeframe).into())); }
         }
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[self.omit(paramsCallerMethodName, Value::Str("callerMethodName".into()), &[])]);
@@ -1944,16 +1944,16 @@ impl Aster {
             let mut __for_first_29: bool = true;
             while { if !__for_first_29 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_29 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
             let mut data: Value = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]);
-            let mut symbolString: Option<String> = self.safe_string_opt(data.clone(), Value::Int(0), &[]);
-            if (symbolString.is_none()) {
+            let mut symbolString: Value = self.safe_string(data.clone(), Value::Int(0), &[]);
+            if (symbolString == Value::Null) {
                 continue;
             }
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbolString.as_deref().unwrap_or_default()));
-            symbolString = self.safe_string_k_opt(market.clone(), "symbol", &[]);
+            let mut market: crate::types::Market = (match self.market(symbolString.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            symbolString = Value::from((market).symbol.clone());
             let mut unfiedTimeframe: Value = self.safe_string(data, Value::Int(1), &[Value::Str("".into())]);
             let mut timeframeId: Value = self.safe_string(self.timeframes.clone(), unfiedTimeframe.clone(), &[unfiedTimeframe.clone()]);
-            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k(market.clone(), "id", &[Value::Str("".into())]), Value::Str("@kline_".into())).into()), timeframeId).into())); };
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:ohlcv:".into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into()), Value::Str(":".into())).into()), unfiedTimeframe).into())); }
+            if let Value::Arr(__a) = &mut subscriptionArgs { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_lower_k((market).raw.clone(), "id", &[Value::Str("".into())]), Value::Str("@kline_".into())).into()), timeframeId).into())); };
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:ohlcv:".into()), self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())])).into()), Value::Str(":".into())).into()), unfiedTimeframe).into())); }
         }
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[self.omit(paramsCallerMethodName, Value::Str("callerMethodName".into()), &[])]);

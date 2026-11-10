@@ -1010,9 +1010,9 @@ impl Upbit {
         // price and volume describe the fill when state is trade
         let mut price: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
         let mut amount: Option<String> = self.safe_string_k_opt(trade.clone(), "volume", &[]);
-        let mut cost: Value = Value::Null;
+        let mut cost: Option<String> = None;
         if (price.is_some()) && (amount.is_some()) {
-            cost = crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null));
+            cost = crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut takerOrMaker: Value = Value::Null;
         let mut isMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "is_maker", &[]);
@@ -1038,7 +1038,7 @@ impl Upbit {
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
-        m.insert("cost".to_string(), cost);
+        m.insert("cost".to_string(), cost.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), self.safe_string_k(trade.clone(), "uuid", &[]));
         m.insert("takerOrMaker".to_string(), takerOrMaker);
         m.insert("type".to_string(), self.safe_string_k(trade.clone(), "order_type", &[]));

@@ -2243,13 +2243,13 @@ impl Hyperliquid {
         }
         }
         let mut parsed: Value = self.parse_prediction_orders(Value::from(ordersWithStatus), &[Value::Null, since.clone()]);
-        let mut outcomeHandle: Value = Value::Null;
+        let mut outcomeHandle: Option<String> = None;
         if (outcome != Value::Null) {
             self.load_outcome(outcome.clone(), &[]).await;
             let mut outcomeObj: Value = self.outcome(outcome.clone());
-            outcomeHandle = self.safe_string_k(outcomeObj, "outcome", &[]);
+            outcomeHandle = self.safe_string_k(outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
         }
-        return self.filter_by_outcome_since_limit(parsed, &[outcomeHandle, since, limit]);
+        return self.filter_by_outcome_since_limit(parsed, &[outcomeHandle.clone().map(Value::from).unwrap_or(Value::Null), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2324,13 +2324,13 @@ impl Hyperliquid {
         }
         let mut dedupedValues: Value = Value::Array(deduped.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default());
         let mut parsed: Value = self.parse_prediction_orders(dedupedValues, &[Value::Null, since.clone()]);
-        let mut outcomeHandle: Value = Value::Null;
+        let mut outcomeHandle: Option<String> = None;
         if (outcome != Value::Null) {
             self.load_outcome(outcome.clone(), &[]).await;
             let mut outcomeObj: Value = self.outcome(outcome.clone());
-            outcomeHandle = self.safe_string_k(outcomeObj, "outcome", &[]);
+            outcomeHandle = self.safe_string_k(outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
         }
-        return self.filter_by_outcome_since_limit(parsed, &[outcomeHandle, since, limit]);
+        return self.filter_by_outcome_since_limit(parsed, &[outcomeHandle.clone().map(Value::from).unwrap_or(Value::Null), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2447,9 +2447,9 @@ impl Hyperliquid {
         }
         let mut totalAmount: Option<String> = self.safe_string_k_opt(entry.clone(), "origSz", &[]);
         let mut remaining: Option<String> = self.safe_string_k_opt(entry.clone(), "sz", &[]);
-        let mut filled: Value = Value::Null;
+        let mut filled: Option<String> = None;
         if (remaining.is_some()) && (totalAmount.is_some()) {
-            filled = crate::precise::Precise::stringSub(&totalAmount.clone().map(Value::from).unwrap_or(Value::Null), &remaining.clone().map(Value::from).unwrap_or(Value::Null));
+            filled = crate::precise::Precise::stringSub(&totalAmount.clone().map(Value::from).unwrap_or(Value::Null), &remaining.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "timestamp", &[]).as_i64();
         let mut tifRaw: Option<String> = self.safe_string_k_opt(entry.clone(), "tif", &[]);
@@ -2480,7 +2480,7 @@ impl Hyperliquid {
         m.insert("amount".to_string(), self.parse_number(totalAmount.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("average".to_string(), self.safe_number_k(entry, "avgPx", &[]));
-        m.insert("filled".to_string(), self.parse_number(filled, &[]));
+        m.insert("filled".to_string(), self.parse_number(filled.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("remaining".to_string(), self.parse_number(remaining.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::from(vec![]));
@@ -2613,10 +2613,10 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut outcomeHandle: Value = Value::Null;
+        let mut outcomeHandle: Option<String> = None;
         if (outcome != Value::Null) {
             let mut outcomeObj: Value = self.load_outcome(outcome, &[]).await;
-            outcomeHandle = self.safe_string_k(outcomeObj, "outcome", &[]);
+            outcomeHandle = self.safe_string_k(outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
         }  else {
             // fills identify their outcome only by the raw coin handle (e.g. "#10") — warm the
             // cache (one market load) so parsePredictionTrade can resolve the unified outcome identity
@@ -2652,7 +2652,7 @@ impl Hyperliquid {
         // parse without an outcome fallback — fills span every market the wallet traded, so a
         // requested-outcome fallback would mislabel fills whose market is no longer listed
         let mut parsedTrades: Value = self.parse_prediction_trades(fills, &[Value::Null]);
-        return self.filter_by_outcome_since_limit(parsedTrades, &[outcomeHandle, since, limit]);
+        return self.filter_by_outcome_since_limit(parsedTrades, &[outcomeHandle.clone().map(Value::from).unwrap_or(Value::Null), since, limit]);
         Value::Null
         }).await?))
     }

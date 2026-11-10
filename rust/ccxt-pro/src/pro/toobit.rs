@@ -715,8 +715,8 @@ impl Toobit {
             while { if !__for_first_643 { i += 1; } __for_first_643 = false; i < (symbolsAndTimeframes.len() as i64) } {
             let mut data: Value = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]);
             let mut symbolStr: Value = self.safe_string(data.clone(), Value::Int(0), &[Value::Str("".into())]);
-            let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(symbolStr.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
-            let mut marketId: Value = market.get("id").cloned().unwrap_or(Value::Null);
+            let mut market: crate::types::Market = (match self.market(symbolStr.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut marketId: Value = Value::from((market).id.clone());
             let mut unfiedTimeframe: Value = self.safe_string(data, Value::Int(1), &[Value::Str("1m".into())]);
             let mut rawTimeframe: Value = self.safe_string(timeframes.clone(), unfiedTimeframe.clone(), &[unfiedTimeframe.clone()]);
             if (selectedTimeframe != Value::Null) && (selectedTimeframe.as_str() != rawTimeframe.as_str()) {

@@ -867,10 +867,10 @@ impl Lbank {
     m
 }));
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTime".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if (type_var.as_str() == Some("swap")) {
+        if (type_var.as_deref() == Some("swap")) {
             response = self.contract_public_get_cfd_open_api_v1_pub_get_time(&[paramsMarketType.clone()]).await;
         }  else {
             response = self.spot_public_get_timestamp(&[paramsMarketType]).await;
@@ -1385,15 +1385,15 @@ impl Lbank {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
-            let mut responseForSwap: Value = crate::types::IntoRaw::into_raw(self.fetch_tickers((Value::from(vec![market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)])).to_opt_str_vec(), params.clone()).await);
-            let mut swapTicker: Value = self.safe_dict(responseForSwap, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[]);
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        if (market).swap {
+            let mut responseForSwap: Value = crate::types::IntoRaw::into_raw(self.fetch_tickers((Value::from(vec![Value::from((market).symbol.clone())])).to_opt_str_vec(), params.clone()).await);
+            let mut swapTicker: Value = self.safe_dict(responseForSwap, Value::from((market).symbol.clone()), &[]);
             return swapTicker;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((market).id.clone()));
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
@@ -1424,7 +1424,7 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_ticker(first, &[market]);
+        return self.parse_ticker(first, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1466,10 +1466,10 @@ impl Lbank {
             m
         });
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), &[market, params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if (type_var.as_str() == Some("swap")) {
+        if (type_var.as_deref() == Some("swap")) {
             request.insert("productGroup".into(), Value::Str("SwapU".into()));
             let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
             response = self.contract_public_get_cfd_open_api_v1_pub_market_data(&[__ws_arg_2]).await;
@@ -1555,18 +1555,18 @@ impl Lbank {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(60) } else { limit });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((market).id.clone()));
             m
         });
-        let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOrderBook".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOrderBook".into()), &[(market).raw.clone(), params]).as_array().cloned().unwrap_or_default();
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if (type_var.as_str() == Some("swap")) {
+        if (type_var.as_deref() == Some("swap")) {
             request.insert("depth".into(), limitResolved.clone());
             let __ws_arg_4 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
             response = self.contract_public_get_cfd_open_api_v1_pub_market_order(&[__ws_arg_4]).await;
@@ -1628,10 +1628,10 @@ impl Lbank {
     m
 })]);
         let mut timestamp: Value = self.milliseconds();
-        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
-            return self.parse_order_book(orderbook.clone(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp.clone(), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("volume".into())]);
+        if (market).swap {
+            return self.parse_order_book(orderbook.clone(), Value::from((market).symbol.clone()), &[timestamp.clone(), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("price".into()), Value::Str("volume".into())]);
         }
-        return self.parse_order_book(orderbook, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into())]);
+        return self.parse_order_book(orderbook, Value::from((market).symbol.clone()), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into())]);
         Value::Null
         }).await?))
     }
@@ -1692,19 +1692,19 @@ impl Lbank {
             costString = self.safe_string_k_opt(trade.clone(), "dealVolumePrice", &[]);
         }
         let mut side: Value = self.safe_string2(trade.clone(), Value::Str("tradeType".into()), Value::Str("type".into()), &[]);
-        let mut type_var: Value = Value::Null;
-        let mut takerOrMaker: Value = Value::Null;
+        let mut type_var: Option<String> = None;
+        let mut takerOrMaker: Option<String> = None;
         if (side != Value::Null) {
             let mut parts: Value = Value::Array(if let Some(__s) = side.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             side = self.safe_string(parts.clone(), Value::Int(0), &[]);
             let mut typePart: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
-            type_var = Value::Str("limit".into());
-            takerOrMaker = Value::Str("taker".into());
+            type_var = Some("limit".to_string());
+            takerOrMaker = Some("taker".to_string());
             if (typePart.is_some()) {
                 if (typePart.as_deref() == Some("market")) {
-                    type_var = Value::Str("market".into());
+                    type_var = Some("market".to_string());
                 }  else if (typePart.as_deref() == Some("maker")) {
-                    takerOrMaker = Value::Str("maker".into());
+                    takerOrMaker = Some("maker".to_string());
                 }
             }
         }
@@ -1733,8 +1733,8 @@ impl Lbank {
         m.insert("symbol".to_string(), symbol);
         m.insert("id".to_string(), id);
         m.insert("order".to_string(), order.map(Value::from).unwrap_or(Value::Null));
-        m.insert("type".to_string(), type_var);
-        m.insert("takerOrMaker".to_string(), takerOrMaker);
+        m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("takerOrMaker".to_string(), takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amountString);
@@ -1775,10 +1775,10 @@ impl Lbank {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((market).id.clone()));
             m
         });
         if (since != Value::Null) {
@@ -1821,7 +1821,7 @@ impl Lbank {
         //      }
         //
         let mut trades: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[market, since, limit]);
+        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1863,7 +1863,7 @@ impl Lbank {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut limitResolved: Value = self.parse_to_int((if (limit == Value::Null) { Value::Int(100) } else { crate::runtime::Math::min(&limit, &Value::Int(2000)) }));
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
         let mut now: Value = self.milliseconds();
@@ -1880,7 +1880,7 @@ impl Lbank {
             _ => Value::Null }), &Value::Int(2000)); // max 2000;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((market).id.clone()));
                 m.insert("type".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
                 m.insert("time".to_string(), parsedSince);
                 m.insert("size".to_string(), parsedLimit);
@@ -1889,7 +1889,7 @@ impl Lbank {
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.spot_public_get_kline(&[__ws_arg_8]).await;
         let mut ohlcvs: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_ohlc_vs(ohlcvs, &[market, timeframe, sinceResolved, limitResolved]);
+        return self.parse_ohlc_vs(ohlcvs, &[(market).raw.clone(), timeframe, sinceResolved, limitResolved]);
         Value::Null
         }).await?))
     }
@@ -2078,10 +2078,10 @@ impl Lbank {
         let mut fundingRate: Value = self.safe_number_k(ticker.clone(), "fundingRate", &[]);
         let mut fundingTime: Option<i64> = self.safe_integer_k(ticker.clone(), "nextFeeTime", &[]).as_i64();
         let mut positionFeeTime: Value = self.safe_integer_k(ticker.clone(), "positionFeeTime", &[]);
-        let mut intervalString: Value = Value::Null;
+        let mut intervalString: Option<String> = None;
         if (positionFeeTime != Value::Null) {
             let mut interval: Value = self.parse_to_int((match (((match ((positionFeeTime).as_f64(), (Value::Int(60)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64(), (Value::Int(60)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-            intervalString = Value::Str(format!("{}{}", Value::Str(format!("{}", interval).into()), Value::Str("h".into())).into());
+            intervalString = Some(format!("{}{}", Value::Str(format!("{}", interval).into()), Value::Str("h".into())));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2100,7 +2100,7 @@ impl Lbank {
         m.insert("previousFundingRate".to_string(), Value::Null);
         m.insert("previousFundingTimestamp".to_string(), Value::Null);
         m.insert("previousFundingDatetime".to_string(), Value::Null);
-        m.insert("interval".to_string(), intervalString);
+        m.insert("interval".to_string(), intervalString.clone().map(Value::from).unwrap_or(Value::Null));
     m
 });
 
@@ -2130,9 +2130,9 @@ impl Lbank {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut responseForSwap: Value = crate::types::IntoRaw::into_raw(self.fetch_funding_rates((Value::from(vec![market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)])).to_opt_str_vec(), params).await);
-        let mut fundingRate: Value = self.safe_dict(responseForSwap, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[]);
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut responseForSwap: Value = crate::types::IntoRaw::into_raw(self.fetch_funding_rates((Value::from(vec![Value::from((market).symbol.clone())])).to_opt_str_vec(), params).await);
+        let mut fundingRate: Value = self.safe_dict(responseForSwap, Value::from((market).symbol.clone()), &[]);
         return fundingRate;
         Value::Null
         }).await?))
@@ -2325,10 +2325,10 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let __ws_arg_10 = self.extend(params, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("category".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
+        m.insert("category".to_string(), Value::from((market).id.clone()));
     m
 })]);
         let mut result: Value = crate::types::IntoRaw::into_raw(self.fetch_trading_fees(__ws_arg_10).await);
@@ -2412,8 +2412,8 @@ impl Lbank {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        if !matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        if !(market).spot {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".into()))));
         }
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("createMarketBuyOrderRequiresPrice".into(), Value::Bool(false)); }
@@ -2454,14 +2454,14 @@ impl Lbank {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut clientOrderId: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("custom_id".into()), Value::Str("clientOrderId".into()), &[]);
         let mut postOnly: bool = self.safe_bool_k_opt(params.clone(), "postOnly", &[Value::Bool(false)]).unwrap_or(false);
         let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
         let mut paramsRequest: Value = self.omit(params, Value::from(vec![Value::Str("custom_id".into()), Value::Str("clientOrderId".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into())]), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((market).id.clone()));
             m
         });
         let mut ioc: bool = timeInForce.as_deref() == Some("IOC");
@@ -2549,7 +2549,7 @@ impl Lbank {
         m.insert("id".to_string(), self.safe_string_k(result.clone(), "order_id", &[]));
         m.insert("info".to_string(), result);
     m
-}), &[market]);
+}), &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2663,7 +2663,7 @@ impl Lbank {
         let mut rawStatus: Option<String> = self.safe_string_k_opt(order.clone(), "status", &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "symbol", &[]);
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
-        let mut timeInForce: Value = Value::Null;
+        let mut timeInForce: Option<String> = None;
         let mut postOnly: Value = Value::Bool(false);
         let mut type_var: String = "limit".to_string();
         let mut rawType: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("type".into()), Value::Str("tradeType".into()), &[]); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
@@ -2675,19 +2675,19 @@ impl Lbank {
         }
         if (typePart.as_deref() == Some("maker")) {
             postOnly = Value::Bool(true);
-            timeInForce = Value::Str("PO".into());
+            timeInForce = Some("PO".to_string());
         }
         if (typePart.as_deref() == Some("ioc")) {
-            timeInForce = Value::Str("IOC".into());
+            timeInForce = Some("IOC".to_string());
         }
         if (typePart.as_deref() == Some("fok")) {
-            timeInForce = Value::Str("FOK".into());
+            timeInForce = Some("FOK".to_string());
         }
         let mut price: Option<String> = self.safe_string_k_opt(order.clone(), "price", &[]);
         let mut costString: Option<String> = self.safe_string_k_opt(order.clone(), "cummulativeQuoteQty", &[]);
-        let mut amountString: Value = Value::Null;
+        let mut amountString: Option<String> = None;
         if (rawType.as_deref() != Some("buy_market")) {
-            amountString = self.safe_string2(order.clone(), Value::Str("origQty".into()), Value::Str("amount".into()), &[]);
+            amountString = self.safe_string2(order.clone(), Value::Str("origQty".into()), Value::Str("amount".into()), &[]).as_str().map(str::to_owned);
         }
         let mut filledString: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("executedQty".into()), Value::Str("deal_amount".into()), &[]);
         return self.safe_order(Value::Map({
@@ -2700,13 +2700,13 @@ impl Lbank {
         m.insert("status".to_string(), self.parse_order_status(rawStatus.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::from(type_var));
-        m.insert("timeInForce".to_string(), timeInForce);
+        m.insert("timeInForce".to_string(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), postOnly);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), Value::Null);
         m.insert("cost".to_string(), costString.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amountString);
+        m.insert("amount".to_string(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), filledString.map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
@@ -2773,10 +2773,10 @@ impl Lbank {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((market).id.clone()));
                 m.insert("orderId".to_string(), id);
             m
         });
@@ -2825,10 +2825,10 @@ impl Lbank {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((market).id.clone()));
                 m.insert("order_id".to_string(), id.clone());
             m
         });
@@ -2898,12 +2898,12 @@ impl Lbank {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut sinceValue: Value = self.safe_integer_k(params.clone(), "start_date", &[since]);
         let mut paramsOmitted: Value = self.omit(params, Value::Str("start_date".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((market).id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -2937,7 +2937,7 @@ impl Lbank {
         //      }
         //
         let mut trades: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[market, sinceValue, limit]);
+        return self.parse_trades(trades, &[(market).raw.clone(), sinceValue, limit]);
         Value::Null
         }).await?))
     }
@@ -2974,11 +2974,11 @@ impl Lbank {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(100) } else { limit });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((market).id.clone()));
                 m.insert("current_page".to_string(), Value::Int(1));
                 m.insert("page_length".to_string(), limitResolved.clone());
             m
@@ -3017,7 +3017,7 @@ impl Lbank {
     m
 })]);
         let mut orders: Value = self.safe_list_k(result, "orders", &[Value::from(vec![])]);
-        return self.parse_orders(orders, &[market, since, limitResolved]);
+        return self.parse_orders(orders, &[(market).raw.clone(), since, limitResolved]);
         Value::Null
         }).await?))
     }
@@ -3052,11 +3052,11 @@ impl Lbank {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut limitResolved: Value = (if (limit == Value::Null) { Value::Int(100) } else { limit });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((market).id.clone()));
                 m.insert("current_page".to_string(), Value::Int(1));
                 m.insert("page_length".to_string(), limitResolved.clone());
             m
@@ -3095,7 +3095,7 @@ impl Lbank {
     m
 })]);
         let mut orders: Value = self.safe_list_k(result, "orders", &[Value::from(vec![])]);
-        return self.parse_orders(orders, &[market, since, limitResolved]);
+        return self.parse_orders(orders, &[(market).raw.clone(), since, limitResolved]);
         Value::Null
         }).await?))
     }
@@ -3130,10 +3130,10 @@ impl Lbank {
         }
         let mut clientOrderId: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("origClientOrderId".into()), Value::Str("clientOrderId".into()), &[]);
         let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("origClientOrderId".into()), Value::Str("clientOrderId".into())]), &[]);
-        let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((market).id.clone()));
                 m.insert("orderId".to_string(), id);
             m
         });
@@ -3190,10 +3190,10 @@ impl Lbank {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((market).id.clone()));
             m
         });
         let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
@@ -3525,18 +3525,18 @@ impl Lbank {
         //      }
         //
         let mut id: Option<String> = self.safe_string_k_opt(transaction.clone(), "id", &[]);
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         if (id.is_none()) {
-            type_var = Value::Str("deposit".into());
+            type_var = Some("deposit".to_string());
         }  else {
-            type_var = Value::Str("withdrawal".into());
+            type_var = Some("withdrawal".to_string());
         }
         let mut txid: Option<String> = self.safe_string_k_opt(transaction.clone(), "txId", &[]);
         let mut timestamp: Option<i64> = self.safe_integer2(transaction.clone(), Value::Str("insertTime".into()), Value::Str("applyTime".into()), &[]).as_i64();
         let mut address: Option<String> = self.safe_string_k_opt(transaction.clone(), "address", &[]);
         let mut addressFrom: Value = Value::Null;
         let mut addressTo: Value = Value::Null;
-        if (type_var.as_str() == Some("deposit")) {
+        if (type_var.as_deref() == Some("deposit")) {
             addressFrom = address.clone().map(Value::from).unwrap_or(Value::Null);
         }  else {
             addressTo = address.clone().map(Value::from).unwrap_or(Value::Null);
@@ -3544,7 +3544,7 @@ impl Lbank {
         let mut amount: Value = self.safe_number_k(transaction.clone(), "amount", &[]);
         let mut currencyId: Option<String> = self.safe_string2_opt(transaction.clone(), Value::Str("coin".into()), Value::Str("coid".into()), &[]);
         let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
-        let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[]), type_var.clone()).map(Value::from).unwrap_or(Value::Null);
+        let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[]), type_var.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
         let mut fee: Value = Value::Null;
         let mut feeCost: Value = self.safe_number_k(transaction.clone(), "fee", &[]);
         if (feeCost != Value::Null) {
@@ -3569,7 +3569,7 @@ impl Lbank {
         m.insert("tag".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amount);
         m.insert("currency".to_string(), code);
         m.insert("status".to_string(), status.clone());

@@ -1803,10 +1803,10 @@ impl Toobit {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((market).id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -1842,7 +1842,7 @@ impl Toobit {
         //    }
         //
         let mut timestamp: Value = self.safe_integer_k(response.clone(), "t", &[]);
-        return self.parse_order_book(response, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp, Value::Str("b".into()), Value::Str("a".into())]);
+        return self.parse_order_book(response, Value::from((market).symbol.clone()), &[timestamp, Value::Str("b".into()), Value::Str("a".into())]);
         Value::Null
         }).await?))
     }
@@ -1875,10 +1875,10 @@ impl Toobit {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((market).id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -1886,7 +1886,7 @@ impl Toobit {
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.common_get_quote_v1_trades(&[__ws_arg_1]).await;
-        return self.parse_trades(response, &[market, since, limit]);
+        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2025,19 +2025,19 @@ impl Toobit {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((market).id.clone()));
                 m.insert("interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
         let mut paramsOmitted: Value = (if (until != Value::Null) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
         let endpointparamsPriceVariable: Vec<Value> = self.handle_option_string_and_params(paramsOmitted, Value::Str("fetchOHLCV".into()), Value::Str("price".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut endpoint: Value = endpointparamsPriceVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut endpoint: Option<String> = endpointparamsPriceVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsPrice: Value = endpointparamsPriceVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut isPriceKlines: bool = (endpoint.as_str() == Some("index")) || (endpoint.as_str() == Some("mark"));
+        let mut isPriceKlines: bool = (endpoint.as_deref() == Some("index")) || (endpoint.as_deref() == Some("mark"));
         let mut startKey: String = "startTime".to_string();
         let mut endKey: String = "endTime".to_string();
         if isPriceKlines {
@@ -2064,11 +2064,11 @@ impl Toobit {
             request.insert("limit".into(), limit.clone());
         }
         let mut response: Value = Value::from(vec![]);
-        if (endpoint.as_str() == Some("index")) {
-            request.insert("symbol".into(), self.safe_string(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("indexToken".into()), &[])); // index klines take the index id instead of the market id
+        if (endpoint.as_deref() == Some("index")) {
+            request.insert("symbol".into(), self.safe_string((market).raw.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("indexToken".into()), &[])); // index klines take the index id instead of the market id
             let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[paramsPrice.clone()]);
             response = self.common_get_quote_v1_index_klines(&[__ws_arg_2]).await;
-        }  else if (endpoint.as_str() == Some("mark")) {
+        }  else if (endpoint.as_deref() == Some("mark")) {
             let __ws_arg_3 = self.extend(Value::Map(request.clone()), &[paramsPrice.clone()]);
             response = self.common_get_quote_v1_mark_price_klines(&[__ws_arg_3]).await;
         }  else {
@@ -2081,7 +2081,7 @@ impl Toobit {
         }  else {
             candles = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         }
-        return self.parse_ohlc_vs(candles, &[market, timeframe, since, limit]);
+        return self.parse_ohlc_vs(candles, &[(market).raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2136,10 +2136,10 @@ impl Toobit {
             }
         }
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), &[market, params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if (type_var.as_str() == Some("spot")) {
+        if (type_var.as_deref() == Some("spot")) {
             let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
             response = self.common_get_quote_v1_ticker24hr(&[__ws_arg_5]).await;
         }  else {
@@ -2251,8 +2251,8 @@ impl Toobit {
         if (symbolsNormalized != Value::Null) {
             let mut length: f64 = ((symbolsNormalized.len() as i64) as f64);
             if (length == 1.0) {
-                let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
-                request.insert("symbol".into(), market.get("id").cloned().unwrap_or(Value::Null));
+                let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                request.insert("symbol".into(), Value::from((market).id.clone()));
             }
         }
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
@@ -2312,8 +2312,8 @@ impl Toobit {
         if (symbolsNormalized != Value::Null) {
             let mut length: f64 = ((symbolsNormalized.len() as i64) as f64);
             if (length == 1.0) {
-                let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
-                request.insert("symbol".into(), market.get("id").cloned().unwrap_or(Value::Null));
+                let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                request.insert("symbol".into(), Value::from((market).id.clone()));
             }
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
@@ -2398,8 +2398,8 @@ impl Toobit {
         if (symbolsNormalized != Value::Null) {
             let mut length: f64 = ((symbolsNormalized.len() as i64) as f64);
             if (length == 1.0) {
-                let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
-                request.insert("symbol".into(), market.get("id").cloned().unwrap_or(Value::Null));
+                let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                request.insert("symbol".into(), Value::from((market).id.clone()));
             }
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
@@ -2471,18 +2471,18 @@ impl Toobit {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
-        if paginate.as_bool() == Some(true) {
+        if paginate {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".into()), paramsPaginate.clone()]).await;
         }
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() requires a symbol argument".into()))));
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((market).id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -2490,7 +2490,7 @@ impl Toobit {
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[paramsPaginate]);
         let mut response: Value = self.common_get_api_v1_futures_history_funding_rate(&[__ws_arg_10]).await;
-        return self.parse_funding_rate_histories(response, &[market, since, limit]);
+        return self.parse_funding_rate_histories(response, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2608,12 +2608,12 @@ impl Toobit {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut response: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
+        if (market).spot {
             let requestparamsRequestVariable: Vec<Value> = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]).as_array().cloned().unwrap_or_default();
             let mut request: Value = requestparamsRequestVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsRequest: Value = requestparamsRequestVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -2626,7 +2626,7 @@ impl Toobit {
             let __ws_arg_12 = self.extend(request, &[paramsRequest]);
             response = self.private_post_api_v1_futures_order(&[__ws_arg_12]).await;
         }
-        return self.parse_order(response, &[market]);
+        return self.parse_order(response, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2640,11 +2640,11 @@ impl Toobit {
         if (type_var == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a type argument".into()))));
         }
-        let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if (side == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a side argument".into()))));
         }
-        let mut id: Value = market.get("id").cloned().unwrap_or(Value::Null);
+        let mut id: Value = Value::from((market).id.clone());
         let mut request: indexmap::IndexMap<String, Value> = {
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), id.clone());
@@ -2666,9 +2666,9 @@ impl Toobit {
             request.insert("quantity".into(), self.amount_to_precision(symbol, amount));
         }
         let isPostOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[paramsCost]).as_array().cloned().unwrap_or_default();
-        let mut isPostOnly: Value = isPostOnlyparamsPostOnlyVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut isPostOnly: bool = isPostOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPostOnly: Value = isPostOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
-        if isPostOnly.as_bool() == Some(true) {
+        if isPostOnly {
             request.insert("type".into(), Value::Str("LIMIT_MAKER".into()));
         }  else {
             request.insert("type".into(), (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
@@ -2690,10 +2690,10 @@ impl Toobit {
         if (side == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a side argument".into()))));
         }
-        let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = {
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((market).id.clone()));
                 m.insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount));
             m
         };
@@ -2718,9 +2718,9 @@ impl Toobit {
             request.insert("priceType".into(), Value::Str("MARKET".into()));
         }
         let isPostOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[paramsReduceOnly]).as_array().cloned().unwrap_or_default();
-        let mut isPostOnly: Value = isPostOnlyparamsPostOnlyVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut isPostOnly: bool = isPostOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPostOnly: Value = isPostOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
-        if isPostOnly.as_bool() == Some(true) {
+        if isPostOnly {
             request.insert("timeInForce".into(), Value::Str("LIMIT_MAKER".into()));
         }
         let mut values: Vec<Value> = self.handle_trigger_prices_and_params(symbol.clone(), paramsPostOnly, &[]).as_array().cloned().unwrap_or_default();
@@ -2837,7 +2837,7 @@ impl Toobit {
         let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
         let mut rawType: Option<String> = self.safe_string_k_opt(order.clone(), "type", &[]);
         let mut rawSideLower: Option<String> = self.safe_string_lower_k_opt(order.clone(), "side", &[]);
-        let mut reduceOnly: Value = Value::Null;
+        let mut reduceOnly: Option<bool> = None;
         if (rawSideLower.is_some()) {
             // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
             // the suffix is the only signal that carries reduceOnly, so read
@@ -2845,7 +2845,7 @@ impl Toobit {
             let mut sideParts: Value = Value::Array(if let Some(__s) = rawSideLower.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut sideSuffix: Option<String> = self.safe_string(sideParts.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
             if (sideSuffix.is_some()) {
-                reduceOnly = (Value::Bool(sideSuffix.as_deref() == Some("close")));
+                reduceOnly = Some(sideSuffix.as_deref() == Some("close"));
             }
             rawSideLower = self.safe_string_opt(sideParts, Value::Int(0), &[]);
         }
@@ -2876,7 +2876,7 @@ impl Toobit {
         m.insert("trades".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
         m.insert("marginMode".to_string(), Value::Null);
-        m.insert("reduceOnly".to_string(), reduceOnly);
+        m.insert("reduceOnly".to_string(), reduceOnly.map(Value::from).unwrap_or(Value::Null));
         m.insert("leverage".to_string(), Value::Null);
         m.insert("hedged".to_string(), Value::Null);
     m
@@ -2953,16 +2953,16 @@ impl Toobit {
             request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelOrder".into()), &[market.clone(), params, Value::Str("none".into())]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (marketType.as_str() == Some("none")) {
+        if (marketType.as_deref() == Some("none")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"".into()))));
         }
         let mut response: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (marketType.as_str() == Some("spot")) {
+        if (marketType.as_deref() == Some("spot")) {
             let __ws_arg_13 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
             response = self.private_delete_api_v1_spot_order(&[__ws_arg_13]).await;
         }  else {
@@ -3013,13 +3013,13 @@ impl Toobit {
             request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelAllOrders".into()), &[market, params, Value::Str("none".into())]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (marketType.as_str() == Some("none")) {
+        if (marketType.as_deref() == Some("none")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"".into()))));
         }
         let mut response: Value = Value::Null;
-        if (marketType.as_str() == Some("spot")) {
+        if (marketType.as_deref() == Some("spot")) {
             let __ws_arg_15 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
             response = self.private_delete_api_v1_spot_open_orders(&[__ws_arg_15]).await;
         }  else {
@@ -3071,13 +3071,13 @@ impl Toobit {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelOrders".into()), &[market.clone(), params, Value::Str("none".into())]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (marketType.as_str() == Some("none")) {
+        if (marketType.as_deref() == Some("none")) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"".into()))));
         }
         let mut response: Value = Value::Null;
-        if (marketType.as_str() == Some("spot")) {
+        if (marketType.as_deref() == Some("spot")) {
             let __ws_arg_17 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
             response = self.private_delete_api_v1_spot_cancel_order_by_ids(&[__ws_arg_17]).await;
         }  else {
@@ -3124,19 +3124,19 @@ impl Toobit {
                 m.insert("orderId".to_string(), id);
             m
         });
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut response: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
+        if (market).spot {
             let __ws_arg_19 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.private_get_api_v1_spot_order(&[__ws_arg_19]).await;
         }  else {
             let __ws_arg_20 = self.extend(Value::Map(request), &[params]);
             response = self.private_get_api_v1_futures_order(&[__ws_arg_20]).await;
         }
-        return self.parse_order(response, &[market]);
+        return self.parse_order(response, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -3182,10 +3182,10 @@ impl Toobit {
             request.insert("limit".into(), limit.clone());
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOpenOrders".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::from(vec![]);
-        if (marketType.as_str() == Some("spot")) {
+        if (marketType.as_deref() == Some("spot")) {
             let __ws_arg_21 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
             response = self.private_get_api_v1_spot_open_orders(&[__ws_arg_21]).await;
         }  else {
@@ -3367,22 +3367,22 @@ impl Toobit {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-        let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMyTrades".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        request.insert("symbol".into(), Value::from((market).id.clone()));
+        let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMyTrades".into()), &[(market).raw.clone(), params]).as_array().cloned().unwrap_or_default();
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), paramsMarketType, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::from(vec![]);
-        if (marketType.as_str() == Some("spot")) {
+        if (marketType.as_deref() == Some("spot")) {
             let __ws_arg_23 = self.extend(requestUntil.clone(), &[paramsUntil]);
             response = self.private_get_api_v1_account_trades(&[__ws_arg_23]).await;
         }  else {
             response = self.private_get_api_v1_futures_user_trades(&[requestUntil]).await;
         }
-        return self.parse_trades(response, &[market, since, limit]);
+        return self.parse_trades(response, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -3505,10 +3505,10 @@ impl Toobit {
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchLedger".into()), &[Value::Null, paramsUntil]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        if (marketType.as_str() == Some("spot")) {
+        if (marketType.as_deref() == Some("spot")) {
             let __ws_arg_25 = self.extend(requestUntil.clone(), &[paramsMarketType.clone()]);
             response = self.private_get_api_v1_account_balance_flow(&[__ws_arg_25]).await;
         }  else {
@@ -4046,14 +4046,14 @@ impl Toobit {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        if (market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() != Some("swap")) {
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        if ((market).raw.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() != Some("swap")) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() supports swap contracts only".into()))));
         }
         let mut marginModeValue: String = marginMode.as_str().map(str::to_uppercase).unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((market).id.clone()));
                 m.insert("marginType".to_string(), Value::from(marginModeValue));
             m
         });
@@ -4092,10 +4092,10 @@ impl Toobit {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((market).id.clone()));
                 m.insert("leverage".to_string(), leverage);
             m
         });
@@ -4129,10 +4129,10 @@ impl Toobit {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((market).id.clone()));
             m
         });
         let __ws_arg_36 = self.extend(Value::Map(request), &[params]);
@@ -4150,7 +4150,7 @@ impl Toobit {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_leverage(data, &[market]);
+        return self.parse_leverage(data, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }

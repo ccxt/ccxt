@@ -1034,15 +1034,15 @@ impl Coinspot {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("cointype".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("cointype".to_string(), Value::from((market).id.clone()));
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let mut orderbook: Value = self.private_post_orders(&[__ws_arg_0]).await;
-        return self.parse_order_book(orderbook, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[Value::Null, Value::Str("buyorders".into()), Value::Str("sellorders".into()), Value::Str("rate".into()), Value::Str("amount".into())]);
+        return self.parse_order_book(orderbook, Value::from((market).symbol.clone()), &[Value::Null, Value::Str("buyorders".into()), Value::Str("sellorders".into()), Value::Str("rate".into()), Value::Str("amount".into())]);
         Value::Null
         }).await?))
     }
@@ -1235,10 +1235,10 @@ impl Coinspot {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("cointype".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("cointype".to_string(), Value::from((market).id.clone()));
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
@@ -1252,7 +1252,7 @@ impl Coinspot {
         //     }
         //
         let mut trades: Value = self.safe_list_k(response, "orders", &[Value::from(vec![])]);
-        return self.parse_trades(trades, &[market, since, limit]);
+        return self.parse_trades(trades, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1373,7 +1373,7 @@ impl Coinspot {
         //       "price": 0.5168600000125209
         //     }
         let mut timestamp: Value = Value::Null;
-        let mut priceString: Value = Value::Null;
+        let mut priceString: Option<String> = None;
         let mut fee: Value = Value::Null;
         let mut audTotal: Option<String> = self.safe_string_k_opt(trade.clone(), "audtotal", &[]);
         let mut costString: Value = self.safe_string_k(trade.clone(), "total", &[audTotal.map(Value::from).unwrap_or(Value::Null)]);
@@ -1383,10 +1383,10 @@ impl Coinspot {
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("/".into())]);
         let mut solddate: Value = self.safe_integer_k(trade.clone(), "solddate", &[]);
         if (solddate != Value::Null) {
-            priceString = self.safe_string_k(trade.clone(), "rate", &[]);
+            priceString = self.safe_string_k(trade.clone(), "rate", &[]).as_str().map(str::to_owned);
             timestamp = solddate;
         }  else {
-            priceString = crate::precise::Precise::stringDiv(&costString, &amountString.clone().map(Value::from).unwrap_or(Value::Null));
+            priceString = crate::precise::Precise::stringDiv(&costString, &amountString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             let mut createdString: Option<String> = self.safe_string_k_opt(trade.clone(), "created", &[]);
             timestamp = self.parse8601(createdString.map(Value::from).unwrap_or(Value::Null));
             let mut audfeeExGst: Option<String> = self.safe_string_k_opt(trade.clone(), "audfeeExGst", &[]);
@@ -1412,7 +1412,7 @@ impl Coinspot {
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("takerOrMaker".to_string(), Value::Null);
-        m.insert("price".to_string(), self.parse_number(priceString, &[]));
+        m.insert("price".to_string(), self.parse_number(priceString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("amount".to_string(), self.parse_number(amountString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("cost".to_string(), self.parse_number(costString, &[]));
         m.insert("fee".to_string(), fee);
@@ -1458,10 +1458,10 @@ impl Coinspot {
         if (type_var.as_str() == Some("market")) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" createOrder() allows limit orders only".into()))));
         }
-        let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("cointype".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("cointype".to_string(), Value::from((market).id.clone()));
                 m.insert("amount".to_string(), amount);
                 m.insert("rate".to_string(), price);
             m

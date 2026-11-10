@@ -1163,21 +1163,21 @@ impl Bitstamp {
             side = "sell".to_string();
         }
         let mut orderSubTypeRaw: Option<String> = self.safe_string_lower_k(order.clone(), "order_subtype", &[]).as_str().map(str::to_owned); // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
-        let mut orderType: Value = Value::Null;
-        let mut timeInForce: Value = Value::Null;
+        let mut orderType: Option<String> = None;
+        let mut timeInForce: Option<String> = None;
         if (orderSubTypeRaw.as_deref() == Some("0")) {
-            orderType = Value::Str("limit".into());
+            orderType = Some("limit".to_string());
         }  else if (orderSubTypeRaw.as_deref() == Some("2")) {
-            orderType = Value::Str("market".into());
+            orderType = Some("market".to_string());
         }  else if (orderSubTypeRaw.as_deref() == Some("4")) {
-            orderType = Value::Str("limit".into());
-            timeInForce = Value::Str("IOC".into());
+            orderType = Some("limit".to_string());
+            timeInForce = Some("IOC".to_string());
         }  else if (orderSubTypeRaw.as_deref() == Some("6")) {
-            orderType = Value::Str("limit".into());
-            timeInForce = Value::Str("FOK".into());
+            orderType = Some("limit".to_string());
+            timeInForce = Some("FOK".to_string());
         }  else if (orderSubTypeRaw.as_deref() == Some("8")) {
-            orderType = Value::Str("limit".into());
-            timeInForce = Value::Str("GTD".into());
+            orderType = Some("limit".to_string());
+            timeInForce = Some("GTD".to_string());
         }
         let mut price: Option<String> = self.safe_string_k_opt(order.clone(), "price_str", &[]);
         let mut amountLeft: Option<String> = self.safe_string_k_opt(order.clone(), "amount_str", &[]);
@@ -1193,11 +1193,11 @@ impl Bitstamp {
         }
         let mut filled: Option<String> = self.safe_string_k_opt(order.clone(), "amount_traded", &[]);
         let mut event: Option<String> = self.safe_string_k(order.clone(), "event", &[]).as_str().map(str::to_owned);
-        let mut status: Value = Value::Null;
+        let mut status: Option<String> = None;
         if crate::precise::Precise::stringEq(&filled.clone().map(Value::from).unwrap_or(Value::Null), &amount).as_bool() == Some(true) {
-            status = Value::Str("closed".into());
+            status = Some("closed".to_string());
         }  else if (event.as_deref() == Some("order_deleted")) {
-            status = Value::Str("canceled".into());
+            status = Some("canceled".to_string());
         }
         let mut triggerPrice: Option<String> = self.safe_string_k_opt(order.clone(), "stop_price", &[]);
         let mut timestamp: Value = self.safe_timestamp_k(order.clone(), "datetime", &[]);
@@ -1212,8 +1212,8 @@ impl Bitstamp {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("type".to_string(), orderType);
-        m.insert("timeInForce".to_string(), timeInForce);
+        m.insert("type".to_string(), orderType.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("timeInForce".to_string(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), Value::from(side));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
@@ -1224,7 +1224,7 @@ impl Bitstamp {
         m.insert("average".to_string(), Value::Null);
         m.insert("filled".to_string(), filled.map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), remaining);
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::Null);
     m

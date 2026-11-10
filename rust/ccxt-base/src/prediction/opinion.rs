@@ -602,12 +602,12 @@ impl Opinion {
             let mut label: Option<String> = self.safe_string_opt(outcomeLabels.clone(), Value::Int(i), &[]);
             let mut tokenId: Value = self.safe_string(outcomeTokenIds.clone(), Value::Int(i), &[]);
             let mut outcomeHandle: Value = self.slug_to_outcome_symbol(effectiveEventSlug.clone(), slug.clone().map(Value::from).unwrap_or(Value::Null), label.clone().map(Value::from).unwrap_or(Value::Null));
-            let mut winner: Value = Value::Null;
+            let mut winner: Option<bool> = None;
             let mut settleFraction: Value = Value::Null;
             if hasResult {
-                winner = (Value::Bool(tokenId == resultTokenId));
-                settleFraction = (if winner.as_bool() == Some(true) { Value::Int(1) } else { Value::Int(0) });
-                if winner.as_bool() == Some(true) {
+                winner = Some(tokenId == resultTokenId);
+                settleFraction = (if (winner == Some(true)) { Value::Int(1) } else { Value::Int(0) });
+                if (winner == Some(true)) {
                     resolvedOutcome = outcomeHandle.clone();
                 }
             }
@@ -619,7 +619,7 @@ impl Opinion {
                     m.insert("market".to_string(), marketSymbol.clone());
                     m.insert("label".to_string(), label.map(Value::from).unwrap_or(Value::Null));
                     m.insert("active".to_string(), active.clone());
-                    m.insert("winner".to_string(), winner);
+                    m.insert("winner".to_string(), winner.map(Value::from).unwrap_or(Value::Null));
                     m.insert("settleFraction".to_string(), settleFraction);
                     m.insert("info".to_string(), raw.clone());
                 m
@@ -629,9 +629,9 @@ impl Opinion {
         let mut marketResolvedOutcome: Value = resolvedOutcome;
         // the venue sends cutoffAt 0 for markets without a scheduled cutoff - map it to
         // undefined instead of the epoch, same for the event-level end date
-        let mut expiryTimestamp: Value = Value::Null;
+        let mut expiryTimestamp: Option<i64> = None;
         if (self.safe_integer_k(raw.clone(), "cutoffAt", &[Value::Int(0)]).as_f64() != Some(0.0)) {
-            expiryTimestamp = self.safe_timestamp_k(raw.clone(), "cutoffAt", &[]);
+            expiryTimestamp = self.safe_timestamp_k(raw.clone(), "cutoffAt", &[]).as_i64();
         }
         let mut created: Value = self.safe_timestamp_k(raw.clone(), "createdAt", &[]);
         return Value::Map({
@@ -660,8 +660,8 @@ impl Opinion {
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);
         m.insert("contractSize".to_string(), Value::Null);
-        m.insert("expiry".to_string(), expiryTimestamp.clone());
-        m.insert("expiryDatetime".to_string(), self.iso8601(expiryTimestamp));
+        m.insert("expiry".to_string(), Value::from(expiryTimestamp));
+        m.insert("expiryDatetime".to_string(), self.iso8601(Value::from(expiryTimestamp)));
         m.insert("strike".to_string(), Value::Null);
         m.insert("optionType".to_string(), Value::Null);
         m.insert("taker".to_string(), self.safe_number(self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Str("taker".into()), &[]));
@@ -1015,9 +1015,9 @@ impl Opinion {
         let mut statusEnum: Option<String> = self.safe_string_k(rawEvent.clone(), "statusEnum", &[]).as_str().map(str::to_owned);
         let mut active: Value = (Value::Bool(statusEnum.as_deref() == Some("Activated")));
         let mut resolved: Value = (Value::Bool(statusEnum.as_deref() == Some("Resolved")));
-        let mut end: Value = Value::Null;
+        let mut end: Option<i64> = None;
         if (self.safe_integer_k(rawEvent.clone(), "cutoffAt", &[Value::Int(0)]).as_f64() != Some(0.0)) {
-            end = self.safe_timestamp_k(rawEvent.clone(), "cutoffAt", &[]);
+            end = self.safe_timestamp_k(rawEvent.clone(), "cutoffAt", &[]).as_i64();
         }
         let mut created: Value = self.safe_timestamp_k(rawEvent.clone(), "createdAt", &[]);
         let mut labels: Value = self.safe_list_k(rawEvent.clone(), "labels", &[Value::from(vec![])]);
@@ -1025,7 +1025,7 @@ impl Opinion {
         let __ws_arg_7 = self.safe_string(labels.clone(), Value::Int(0), &[]);
         let __ws_arg_8 = self.safe_number_k(rawEvent.clone(), "volume", &[]);
         let __ws_arg_9 = self.iso8601(created.clone());
-        let __ws_arg_10 = self.iso8601(end.clone());
+        let __ws_arg_10 = self.iso8601(Value::from(end));
         let __ws_arg_11 = self.safe_string2(rawEvent.clone(), Value::Str("coverUrl".into()), Value::Str("thumbnailUrl".into()), &[]);
         return self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1042,7 +1042,7 @@ impl Opinion {
         m.insert("volume".to_string(), __ws_arg_8);
         m.insert("created".to_string(), created);
         m.insert("createdDatetime".to_string(), __ws_arg_9);
-        m.insert("end".to_string(), end);
+        m.insert("end".to_string(), Value::from(end));
         m.insert("endDatetime".to_string(), __ws_arg_10);
         m.insert("image".to_string(), __ws_arg_11);
         m.insert("info".to_string(), rawEvent);
@@ -1617,21 +1617,21 @@ impl Opinion {
             makerRaw = crate::precise::Precise::stringMul(&amountStr, &priceStr);
         }
         let mut makerAmountWei: Value = self.decimal_to_precision(crate::precise::Precise::stringMul(&makerRaw, &decimalsStr), Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
-        let mut makerAmount: Value = Value::Null;
-        let mut takerAmount: Value = Value::Null;
+        let mut makerAmount: Option<String> = None;
+        let mut takerAmount: Option<String> = None;
         if (side.as_str() == Some("BUY")) {
             let mut k: Value = crate::precise::Precise::stringDivPrec(&makerAmountWei, &priceNum, &Value::Int(0));
-            makerAmount = crate::precise::Precise::stringMul(&k, &priceNum);
-            takerAmount = crate::precise::Precise::stringMul(&k, &priceDenom);
+            makerAmount = crate::precise::Precise::stringMul(&k, &priceNum).as_str().map(str::to_owned);
+            takerAmount = crate::precise::Precise::stringMul(&k, &priceDenom).as_str().map(str::to_owned);
         }  else {
             let mut k: Value = crate::precise::Precise::stringDivPrec(&makerAmountWei, &priceDenom, &Value::Int(0));
-            makerAmount = crate::precise::Precise::stringMul(&k, &priceDenom);
-            takerAmount = crate::precise::Precise::stringMul(&k, &priceNum);
+            makerAmount = crate::precise::Precise::stringMul(&k, &priceDenom).as_str().map(str::to_owned);
+            takerAmount = crate::precise::Precise::stringMul(&k, &priceNum).as_str().map(str::to_owned);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("makerAmount".to_string(), makerAmount);
-        m.insert("takerAmount".to_string(), takerAmount);
+        m.insert("makerAmount".to_string(), makerAmount.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("takerAmount".to_string(), takerAmount.clone().map(Value::from).unwrap_or(Value::Null));
     m
 });
 

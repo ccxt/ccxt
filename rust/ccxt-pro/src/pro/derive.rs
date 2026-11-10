@@ -941,8 +941,8 @@ impl Derive {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let marketId: String = self.safe_string_k_opt(market.clone(), "id", &[Value::Str("".into())]).unwrap_or_default();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let marketId: String = self.safe_string_k_opt((market).raw.clone(), "id", &[Value::Str("".into())]).unwrap_or_default();
         let mut topic: Value = Value::Str(format!("{}{}", Value::Str("trades.".into()), marketId).into());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -964,7 +964,7 @@ impl Derive {
         let mut trades: Value = self.watch_public(topic, Value::Map(request), Value::Map(subscription)).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = trades.get_limit(market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), limit);
+            limitResolved = trades.get_limit(Value::from((market).symbol.clone()), limit);
         }
         return self.filter_by_symbol_since_limit(trades, &[symbol, since, limitResolved, Value::Bool(true)]);
         Value::Null
@@ -1445,7 +1445,7 @@ impl Derive {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let fetchSnapshotparamsSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
-        let mut fetchSnapshot: Value = fetchSnapshotparamsSnapshotVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut fetchSnapshot: bool = fetchSnapshotparamsSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsSnapshot: Value = fetchSnapshotparamsSnapshotVariable.get(1).cloned().unwrap_or(Value::Null);
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id(Value::Str("watchBalance".into()), paramsSnapshot).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -1462,7 +1462,7 @@ impl Derive {
         if (subaccountIdKey == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() could not resolve the subaccount id".into()))));
         }
-        if fetchSnapshot.as_bool() == Some(true) && !(matches!((&self.balance, &subaccountIdKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if fetchSnapshot && !(matches!((&self.balance, &subaccountIdKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut snapshotRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("subaccount_id".to_string(), subaccountId.clone());
@@ -1532,7 +1532,7 @@ impl Derive {
         }
         let mut symbolsResolved: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(true)]);
         let fetchSnapshotparamsSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
-        let mut fetchSnapshot: Value = fetchSnapshotparamsSnapshotVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut fetchSnapshot: bool = fetchSnapshotparamsSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsSnapshot: Value = fetchSnapshotparamsSnapshotVariable.get(1).cloned().unwrap_or(Value::Null);
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.parent.handle_derive_subaccount_id(Value::Str("watchPositions".into()), paramsSnapshot).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -1558,7 +1558,7 @@ impl Derive {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        if fetchSnapshot.as_bool() == Some(true) && !(matches!((&loadedSnapshots, &subaccountIdKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if fetchSnapshot && !(matches!((&loadedSnapshots, &subaccountIdKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             let mut snapshotRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("subaccount_id".to_string(), subaccountId.clone());
@@ -1792,24 +1792,24 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("balances".to_string(), Value::Str("handle_balance".into()).clone());
             m
         });
-        let mut event: Value = Value::Null;
+        let mut event: Option<String> = None;
         let mut params: Value = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
         if (params != Value::Null) {
             let mut channel: Value = self.safe_string_k(params, "channel", &[]);
             if (channel != Value::Null) {
                 let mut parsedChannel: Value = Value::Array(if let Some(__s) = channel.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
                 if (channel.as_str().unwrap_or("").contains("orders")) || (Value::Int(channel.as_str().and_then(|__s| __s.find("trades")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) || (Value::Int(channel.as_str().and_then(|__s| __s.find("balances")).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) {
-                    event = self.safe_string(parsedChannel.clone(), Value::Int(1), &[]);
+                    event = self.safe_string(parsedChannel.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
                     // {subaccount_id}.trades
-                    if (event.as_str() == Some("trades")) {
-                        event = Value::Str("mytrades".into());
+                    if (event.as_deref() == Some("trades")) {
+                        event = Some("mytrades".to_string());
                     }
                 }  else {
-                    event = self.safe_string(parsedChannel, Value::Int(0), &[]);
+                    event = self.safe_string(parsedChannel, Value::Int(0), &[]).as_str().map(str::to_owned);
                 }
             }
         }
-        let mut method: Value = self.safe_value(Value::Map(methods), event, &[]);
+        let mut method: Value = self.safe_value(Value::Map(methods), event.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         if (method != Value::Null) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             return;

@@ -1088,10 +1088,10 @@ impl Weex {
         }
         let mut isBuyerMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "m", &[]); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
         let mut side: Value = Value::Null;
-        let mut takerOrMaker: Value = Value::Null;
+        let mut takerOrMaker: Option<String> = None;
         if (isBuyerMaker.is_some()) {
             side = (if isBuyerMaker == Some(true) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
-            takerOrMaker = Value::Str("taker".into()); // a public trade is reported from the aggressor's side, same as parseTrade
+            takerOrMaker = Some("taker".to_string()); // a public trade is reported from the aggressor's side, same as parseTrade
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1103,7 +1103,7 @@ impl Weex {
         m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), side);
-        m.insert("takerOrMaker".to_string(), takerOrMaker);
+        m.insert("takerOrMaker".to_string(), takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "p", &[]));
         m.insert("amount".to_string(), self.safe_string_k(trade.clone(), "q", &[]));
         m.insert("cost".to_string(), self.safe_string_k(trade, "v", &[]));
@@ -1186,11 +1186,11 @@ impl Weex {
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut firstEntry: Value = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(0), &[Value::from(vec![])]);
         let mut firstSymbol: Option<String> = self.safe_string_opt(firstEntry, Value::Int(0), &[]);
-        let mut firstMarket: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(firstSymbol.as_deref().unwrap_or_default())).as_map().cloned().unwrap_or_default();
-        let mut isContract: Value = firstMarket.get("contract").cloned().unwrap_or(Value::Null);
+        let mut firstMarket: crate::types::Market = (match self.market(firstSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut isContract: bool = (firstMarket).contract;
         let mut priceType: Value = Value::Str("LAST_PRICE".into());
         let mut paramsPriceType: Value = paramsOmitted.clone();
-        if (isContract.as_bool() == Some(true)) {
+        if (isContract) {
             { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params2(paramsOmitted, callerMethodName.clone(), Value::Str("price".into()), Value::Str("priceType".into()), &[priceType.clone()]).as_array().cloned().unwrap_or_default(); priceType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsPriceType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         }
         {
@@ -1200,7 +1200,7 @@ impl Weex {
             let mut data: Value = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]);
             let mut symbolString: Value = self.safe_string(data.clone(), Value::Int(0), &[Value::Str("".into())]);
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbolString.as_str().unwrap_or_default()));
-            if (market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() != firstMarket.get("type").cloned().unwrap_or(Value::Null).as_str()) {
+            if (market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() != (firstMarket).raw.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str()) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), callerMethodName).into()), Value::Str(" market symbols must be of the same type".into()))));
             }
             symbolString = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
@@ -1213,7 +1213,7 @@ impl Weex {
             messageHashes.push(messageHash);
         }
         }
-        let mut symboltimeframestoredVariable = self.subscribe_public(Value::from(messageHashes), Value::from(channels), &[isContract, paramsPriceType]).await;
+        let mut symboltimeframestoredVariable = self.subscribe_public(Value::from(messageHashes), Value::from(channels), &[Value::Bool(isContract), paramsPriceType]).await;
         let mut symbol: Value = get_value(&symboltimeframestoredVariable, &Value::Int(0));
         let mut timeframe: Value = get_value(&symboltimeframestoredVariable, &Value::Int(1));
         let mut stored: Value = get_value(&symboltimeframestoredVariable, &Value::Int(2));
@@ -1287,11 +1287,11 @@ impl Weex {
         let mut unSubHashes: Vec<Value> = Vec::new();
         let mut firstEntry: Value = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(0), &[Value::from(vec![])]);
         let mut firstSymbol: Option<String> = self.safe_string_opt(firstEntry, Value::Int(0), &[]);
-        let mut firstMarket: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(firstSymbol.as_deref().unwrap_or_default())).as_map().cloned().unwrap_or_default();
-        let mut isContract: Value = firstMarket.get("contract").cloned().unwrap_or(Value::Null);
+        let mut firstMarket: crate::types::Market = (match self.market(firstSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut isContract: bool = (firstMarket).contract;
         let mut priceType: Value = Value::Str("LAST_PRICE".into());
         let mut paramsPriceType: Value = paramsOmitted.clone();
-        if (isContract.as_bool() == Some(true)) {
+        if (isContract) {
             { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params2(paramsOmitted, callerMethodName.clone(), Value::Str("price".into()), Value::Str("priceType".into()), &[priceType.clone()]).as_array().cloned().unwrap_or_default(); priceType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsPriceType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         }
         {
@@ -1301,7 +1301,7 @@ impl Weex {
             let mut data: Value = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]);
             let mut symbolString: Value = self.safe_string(data.clone(), Value::Int(0), &[Value::Str("".into())]);
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbolString.as_str().unwrap_or_default()));
-            if (market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() != firstMarket.get("type").cloned().unwrap_or(Value::Null).as_str()) {
+            if (market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() != (firstMarket).raw.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str()) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), callerMethodName).into()), Value::Str(" market symbols must be of the same type".into()))));
             }
             symbolString = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
@@ -1325,7 +1325,7 @@ impl Weex {
                 m.insert("topic".to_string(), Value::Str("ohlcv".into()));
             m
         });
-        return self.subscribe_public(Value::from(unSubHashes), Value::from(channels), &[isContract, paramsPriceType, Value::Map(subscription)]).await;
+        return self.subscribe_public(Value::from(unSubHashes), Value::from(channels), &[Value::Bool(isContract), paramsPriceType, Value::Map(subscription)]).await;
         Value::Null
         }).await?))
     }
@@ -1875,9 +1875,9 @@ impl Weex {
         }
         let mut symbolResolved: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchMyTrades".into()), &[market, params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut isContract: Value = (Value::Bool(marketType.as_str() != Some("spot")));
+        let mut isContract: Value = (Value::Bool(marketType.as_deref() != Some("spot")));
         let mut messageHash: Value = Value::Str("myTrades".into());
         if matches!(&isContract, Value::Bool(true)) {
             messageHash = Value::Str("myContractTrades".into());
@@ -1923,9 +1923,9 @@ impl Weex {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchMyTrades does not support a symbol argument. Unsubscribing from myTrades is global for all symbols.".into()))));
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("unWatchMyTrades".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut isContract: Value = (Value::Bool(marketType.as_str() != Some("spot")));
+        let mut isContract: Value = (Value::Bool(marketType.as_deref() != Some("spot")));
         let mut subHash: String = "myTrades".to_string();
         if matches!(&isContract, Value::Bool(true)) {
             subHash = "myContractTrades".to_string();
@@ -2142,9 +2142,9 @@ impl Weex {
         }
         let mut symbolResolved: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchOrders".into()), &[market, params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut isContract: Value = (Value::Bool(marketType.as_str() != Some("spot")));
+        let mut isContract: Value = (Value::Bool(marketType.as_deref() != Some("spot")));
         let mut messageHash: Value = Value::Str("orders".into());
         if matches!(&isContract, Value::Bool(true)) {
             messageHash = Value::Str("contractOrders".into());
@@ -2189,9 +2189,9 @@ impl Weex {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchOrders does not support a symbol argument. Unsubscribing from orders is global for all symbols.".into()))));
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("unWatchOrders".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut isContract: Value = (Value::Bool(marketType.as_str() != Some("spot")));
+        let mut isContract: Value = (Value::Bool(marketType.as_deref() != Some("spot")));
         let mut subHash: String = "orders".to_string();
         if matches!(&isContract, Value::Bool(true)) {
             subHash = "contractOrders".to_string();

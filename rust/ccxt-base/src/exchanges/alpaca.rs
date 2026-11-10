@@ -1376,8 +1376,8 @@ impl Alpaca {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "id", &[]);
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut id: Option<String> = self.safe_string_k_opt((market).raw.clone(), "id", &[]);
         let mut loc: Value = self.safe_string_k(params.clone(), "loc", &[Value::Str("us".into())]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1433,7 +1433,7 @@ impl Alpaca {
     m
 })]);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(rawOrderbook.clone(), "t", &[]));
-        return self.parse_order_book(rawOrderbook, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp, Value::Str("b".into()), Value::Str("a".into()), Value::Str("p".into()), Value::Str("s".into())]);
+        return self.parse_order_book(rawOrderbook, Value::from((market).symbol.clone()), &[timestamp, Value::Str("b".into()), Value::Str("a".into()), Value::Str("p".into()), Value::Str("s".into())]);
         Value::Null
         }).await?))
     }
@@ -2633,14 +2633,14 @@ impl Alpaca {
         //         "created_at": "2024-11-03T07:30:05.609976344Z"
         //     }
         //
-        let mut parsedCurrency: Value = Value::Null;
+        let mut parsedCurrency: Option<String> = None;
         if (currency != Value::Null) {
-            parsedCurrency = self.safe_string_k(currency, "id", &[]);
+            parsedCurrency = self.safe_string_k(currency, "id", &[]).as_str().map(str::to_owned);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress.clone());
-        m.insert("currency".to_string(), parsedCurrency);
+        m.insert("currency".to_string(), parsedCurrency.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), self.safe_string_k(depositAddress, "address", &[]));
         m.insert("tag".to_string(), Value::Null);
@@ -2933,19 +2933,19 @@ impl Alpaca {
         //     }
         //
         let mut activityType: Option<String> = self.safe_string_k_opt(transaction.clone(), "activity_type", &[]);
-        let mut txid: Value = Value::Null;
+        let mut txid: Option<String> = None;
         let mut timestamp: Value = Value::Null;
         let mut datetime: Value = Value::Null;
         let mut network: Value = Value::Null;
-        let mut address: Value = Value::Null;
-        let mut addressTo: Value = Value::Null;
-        let mut addressFrom: Value = Value::Null;
+        let mut address: Option<String> = None;
+        let mut addressTo: Option<String> = None;
+        let mut addressFrom: Option<String> = None;
         let mut type_var: Value = Value::Null;
         let mut amount: Value = Value::Null;
         let mut code: Value = Value::Null;
         let mut status: Value = Value::Null;
         let mut comment: Value = Value::Null;
-        let mut internal: Value = Value::Null;
+        let mut internal: Option<bool> = None;
         let mut fee: Value = Value::Null;
         if (activityType.is_some()) {
             let mut netAmount: Option<String> = self.safe_string_k_opt(transaction.clone(), "net_amount", &[]);
@@ -2968,14 +2968,14 @@ impl Alpaca {
             }
             status = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null);
             comment = activityType.clone().map(Value::from).unwrap_or(Value::Null);
-            internal = (Value::Bool(activityType.as_deref() != Some("TRANS")));
+            internal = Some(activityType.as_deref() != Some("TRANS"));
         }  else {
-            txid = self.safe_string_k(transaction.clone(), "tx_hash", &[]);
+            txid = self.safe_string_k(transaction.clone(), "tx_hash", &[]).as_str().map(str::to_owned);
             datetime = self.safe_string_k(transaction.clone(), "created_at", &[]);
             timestamp = self.parse8601(datetime.clone());
-            address = self.safe_string_k(transaction.clone(), "to_address", &[]);
-            addressTo = self.safe_string_k(transaction.clone(), "to_address", &[]);
-            addressFrom = self.safe_string_k(transaction.clone(), "from_address", &[]);
+            address = self.safe_string_k(transaction.clone(), "to_address", &[]).as_str().map(str::to_owned);
+            addressTo = self.safe_string_k(transaction.clone(), "to_address", &[]).as_str().map(str::to_owned);
+            addressFrom = self.safe_string_k(transaction.clone(), "from_address", &[]).as_str().map(str::to_owned);
             type_var = self.parse_transaction_type(self.safe_string_k(transaction.clone(), "direction", &[])).map(Value::from).unwrap_or(Value::Null);
             amount = self.parse_number(self.safe_string_k(transaction.clone(), "amount", &[]), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "asset", &[]);
@@ -2996,13 +2996,13 @@ impl Alpaca {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), self.safe_string_k(transaction, "id", &[]));
-        m.insert("txid".to_string(), txid);
+        m.insert("txid".to_string(), txid.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), timestamp);
         m.insert("datetime".to_string(), datetime);
         m.insert("network".to_string(), network);
-        m.insert("address".to_string(), address);
-        m.insert("addressTo".to_string(), addressTo);
-        m.insert("addressFrom".to_string(), addressFrom);
+        m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("addressTo".to_string(), addressTo.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("addressFrom".to_string(), addressFrom.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), Value::Null);
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
@@ -3012,7 +3012,7 @@ impl Alpaca {
         m.insert("status".to_string(), status);
         m.insert("updated".to_string(), Value::Null);
         m.insert("comment".to_string(), comment);
-        m.insert("internal".to_string(), internal);
+        m.insert("internal".to_string(), internal.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
     m
 });

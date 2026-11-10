@@ -966,12 +966,12 @@ impl Apex {
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (symbolsAndTimeframes.len() as i64) } {
             let mut data: Value = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]);
             let mut symbolString: Option<String> = self.safe_string_opt(data.clone(), Value::Int(0), &[]);
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbolString.as_deref().unwrap_or_default()));
-            let marketId: String = self.safe_string_k_opt(market.clone(), "id2", &[Value::Str("".into())]).unwrap_or_default();
+            let mut market: crate::types::Market = (match self.market(symbolString.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let marketId: String = self.safe_string_k_opt((market).raw.clone(), "id2", &[Value::Str("".into())]).unwrap_or_default();
             let mut unfiedTimeframe: Value = self.safe_string(data, Value::Int(1), &[Value::Str("1".into())]);
             let mut timeframeId: Value = self.safe_string(self.timeframes.clone(), unfiedTimeframe.clone(), &[unfiedTimeframe.clone()]);
             rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candle.".into()), timeframeId).into()), Value::Str(".".into())).into()), marketId).into()));
-            messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()), Value::Str("::".into())).into()), unfiedTimeframe).into()));
+            messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv::".into()), Value::from((market).symbol.clone())).into()), Value::Str("::".into())).into()), unfiedTimeframe).into()));
         }
         }
         let mut symboltimeframestoredVariable = self.watch_topics(url, Value::from(messageHashes), Value::from(rawHashes), &[params]).await;

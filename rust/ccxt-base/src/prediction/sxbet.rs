@@ -630,9 +630,9 @@ impl Sxbet {
         let mut active: Value = (Value::Bool(status.as_deref() == Some("ACTIVE")));
         // guard against a zero sentinel for "no scheduled game time" - safeTimestamp would
         // turn it into the 1970 epoch
-        let mut gameTime: Value = Value::Null;
+        let mut gameTime: Option<i64> = None;
         if (self.safe_integer_k(raw.clone(), "gameTime", &[Value::Int(0)]).as_f64() != Some(0.0)) {
-            gameTime = self.safe_timestamp_k(raw.clone(), "gameTime", &[]);
+            gameTime = self.safe_timestamp_k(raw.clone(), "gameTime", &[]).as_i64();
         }
         let mut outcomeLabels: Value = Value::from(vec![outcomeOneName.clone().map(Value::from).unwrap_or(Value::Null), outcomeTwoName.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut outcomeIds: Value = Value::from(vec![marketHash.clone(), Value::Str(format!("{}{}", marketHash, Value::Str("-2".into())).into())]);
@@ -684,8 +684,8 @@ impl Sxbet {
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);
         m.insert("contractSize".to_string(), Value::Null);
-        m.insert("expiry".to_string(), gameTime.clone());
-        m.insert("expiryDatetime".to_string(), self.iso8601(gameTime));
+        m.insert("expiry".to_string(), Value::from(gameTime));
+        m.insert("expiryDatetime".to_string(), self.iso8601(Value::from(gameTime)));
         m.insert("strike".to_string(), Value::Null);
         m.insert("optionType".to_string(), Value::Null);
         m.insert("taker".to_string(), Value::Int(0));
@@ -983,7 +983,7 @@ impl Sxbet {
         }), Value::Str("gameTime".into()), &[]);
         let mut teamOneName: Value = Value::Null;
         let mut teamTwoName: Value = Value::Null;
-        let mut leagueLabel: Value = Value::Null;
+        let mut leagueLabel: Option<String> = None;
         let mut rawMarketsLength: f64 = ((rawMarkets.len() as i64) as f64);
         {
                         let mut i: Value = Value::Int(0);
@@ -1001,7 +1001,7 @@ impl Sxbet {
             if (teamOneName == Value::Null) {
                 teamOneName = self.safe_string_k(raw.clone(), "teamOneName", &[]);
                 teamTwoName = self.safe_string_k(raw.clone(), "teamTwoName", &[]);
-                leagueLabel = self.safe_string_k(raw.clone(), "leagueLabel", &[]);
+                leagueLabel = self.safe_string_k(raw.clone(), "leagueLabel", &[]).as_str().map(str::to_owned);
             }
             let mut gameTime: Value = self.safe_integer_k(raw, "gameTime", &[]);
             // skip the zero sentinel for "no scheduled game time" so it can't become the epoch
@@ -1017,10 +1017,10 @@ impl Sxbet {
         }), Value::Str("gameTime".into()), &[]);
         // some fixtures carry no team names on their market rows - fall back to the fixture id
         // so the unified event handle is never empty or built from stringified nulls
-        let mut title: Value = Value::Null;
+        let mut title: Option<String> = None;
         let mut eventSlug: Value = Value::Null;
         if (teamOneName != Value::Null) && (teamTwoName != Value::Null) {
-            title = Value::Str(format!("{}{}", Value::Str(format!("{}{}", teamOneName, Value::Str(" vs ".into())).into()), teamTwoName).into());
+            title = Some(format!("{}{}", Value::Str(format!("{}{}", teamOneName, Value::Str(" vs ".into())).into()), teamTwoName));
             eventSlug = self.shorten_slug(Value::Str(format!("{}{}", Value::Str(format!("{}{}", teamOneName, Value::Str(" ".into())).into()), teamTwoName).into()));
         }  else {
             eventSlug = self.shorten_slug(fixtureId.clone());
@@ -1030,9 +1030,9 @@ impl Sxbet {
         m.insert("id".to_string(), fixtureId.clone());
         m.insert("slug".to_string(), fixtureId);
         m.insert("event".to_string(), eventSlug);
-        m.insert("title".to_string(), title);
+        m.insert("title".to_string(), title.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("description".to_string(), Value::Null);
-        m.insert("category".to_string(), leagueLabel);
+        m.insert("category".to_string(), leagueLabel.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("tags".to_string(), Value::Null);
         m.insert("markets".to_string(), Value::from(marketsList));
         m.insert("mutuallyExclusive".to_string(), Value::Bool(false));
@@ -2523,13 +2523,13 @@ impl Sxbet {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut ownOdds: Value = Value::Null;
+        let mut ownOdds: Option<String> = None;
         if isOutcomeOneMaxWin {
-            ownOdds = self.safe_string_k(odds.clone(), "outcomeOne", &[]);
+            ownOdds = self.safe_string_k(odds.clone(), "outcomeOne", &[]).as_str().map(str::to_owned);
         }  else {
-            ownOdds = self.safe_string_k(odds, "outcomeTwo", &[]);
+            ownOdds = self.safe_string_k(odds, "outcomeTwo", &[]).as_str().map(str::to_owned);
         }
-        let mut entryPrice: Value = (if (ownOdds != Value::Null) { self.parse_number(crate::precise::Precise::stringDiv(&ownOdds, &oneDenom), &[]) } else { Value::Null });
+        let mut entryPrice: Value = (if (ownOdds.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&ownOdds.clone().map(Value::from).unwrap_or(Value::Null), &oneDenom), &[]) } else { Value::Null });
         let mut totalStake: Value = self.safe_string_k(raw.clone(), "totalStake", &[Value::Str("0".into())]);
         let mut pnl: Option<String> = self.safe_string_k_opt(raw.clone(), "pnl", &[]);
         let mut timestamp: Value = self.parse8601(self.safe_string_k(raw.clone(), "betTime", &[]));

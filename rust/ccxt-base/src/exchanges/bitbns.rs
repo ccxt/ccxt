@@ -782,10 +782,10 @@ impl Bitbns {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((market).id.clone()));
             m
         });
         if (limit != Value::Null) {
@@ -811,7 +811,7 @@ impl Bitbns {
         //     }
         //
         let mut timestamp: Value = self.safe_integer_k(response.clone(), "timestamp", &[]);
-        return self.parse_order_book(response, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp]);
+        return self.parse_order_book(response, Value::from((market).symbol.clone()), &[timestamp]);
         Value::Null
         }).await?))
     }
@@ -1247,10 +1247,10 @@ impl Bitbns {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((market).id.clone()));
                 m.insert("entry_id".to_string(), id.clone());
             m
         });
@@ -1290,7 +1290,7 @@ impl Bitbns {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_order(first, &[market]);
+        return self.parse_order(first, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -1417,12 +1417,12 @@ impl Bitbns {
             }
         }
         let mut factor: Option<String> = self.safe_string_k_opt(trade.clone(), "factor", &[]);
-        let mut costString: Value = Value::Null;
+        let mut costString: Option<String> = None;
         if (factor.is_some()) {
             amountString = crate::precise::Precise::stringDiv(&amountString, &factor.clone().map(Value::from).unwrap_or(Value::Null));
         }  else {
             amountString = self.safe_string_k(trade.clone(), "base_volume", &[]);
-            costString = self.safe_string_k(trade.clone(), "quote_volume", &[]);
+            costString = self.safe_string_k(trade.clone(), "quote_volume", &[]).as_str().map(str::to_owned);
         }
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut fee: Value = Value::Null;
@@ -1449,7 +1449,7 @@ impl Bitbns {
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), amountString);
-        m.insert("cost".to_string(), costString);
+        m.insert("cost".to_string(), costString.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
     m
 }), &[marketResolved]);
@@ -1486,10 +1486,10 @@ impl Bitbns {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("symbol".to_string(), Value::from((market).id.clone()));
                 m.insert("page".to_string(), Value::Int(0));
             m
         });
@@ -1540,7 +1540,7 @@ impl Bitbns {
         //     }
         //
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(data, &[market, since, limit]);
+        return self.parse_trades(data, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -1761,11 +1761,11 @@ impl Bitbns {
         let mut timestamp: Value = self.parse8601(self.safe_string2(transaction.clone(), Value::Str("date".into()), Value::Str("timestamp".into()), &[]));
         let mut type_var: Value = self.safe_string_k(transaction.clone(), "type", &[]);
         let mut expTime: Value = self.safe_string_k(transaction.clone(), "expTime", &[Value::Str("".into())]);
-        let mut status: Value = Value::Null;
+        let mut status: Option<String> = None;
         if (type_var != Value::Null) {
             if type_var.as_str().unwrap_or("").contains("deposit") {
                 type_var = Value::Str("deposit".into());
-                status = Value::Str("ok".into());
+                status = Some("ok".to_string());
             }  else if type_var.as_str().unwrap_or("").contains("withdraw") || expTime.as_str().unwrap_or("").contains("withdraw") {
                 type_var = Value::Str("withdrawal".into());
             }
@@ -1799,7 +1799,7 @@ impl Bitbns {
         m.insert("type".to_string(), type_var);
         m.insert("amount".to_string(), amount);
         m.insert("currency".to_string(), code);
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
         m.insert("comment".to_string(), Value::Null);
         m.insert("internal".to_string(), Value::Null);

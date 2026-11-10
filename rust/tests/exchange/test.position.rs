@@ -136,15 +136,15 @@ pub fn testPosition(mut exchange: Value, mut skippedProperties: Value, mut metho
                 market = exchange.market(symbolForMarket.clone());
             }
             let mut isInverse: bool = (market != Value::Null) && is_true(&exchange.safe_bool(market.clone(), Value::Str("inverse".into()), &[Value::Bool(false)]));
-            let mut priceDiff: Value = Value::Null;
+            let mut priceDiff: Option<String> = None;
             if isInverse {
                 let mut invEntry: Value = ccxt::precise::Precise::stringDiv(&Value::Str("1".into()), &entryPriceString);
                 let mut invLiq: Value = ccxt::precise::Precise::stringDiv(&Value::Str("1".into()), &liquidationPriceString);
-                priceDiff = ccxt::precise::Precise::stringAbs(&ccxt::precise::Precise::stringSub(&invEntry, &invLiq));
+                priceDiff = ccxt::precise::Precise::stringAbs(&ccxt::precise::Precise::stringSub(&invEntry, &invLiq)).as_str().map(str::to_owned);
             }  else {
-                priceDiff = ccxt::precise::Precise::stringAbs(&ccxt::precise::Precise::stringSub(&entryPriceString, &liquidationPriceString));
+                priceDiff = ccxt::precise::Precise::stringAbs(&ccxt::precise::Precise::stringSub(&entryPriceString, &liquidationPriceString)).as_str().map(str::to_owned);
             }
-            let mut lossFromEntry: Value = ccxt::precise::Precise::stringMul(&priceDiff, &ccxt::precise::Precise::stringMul(&contractsString, &contractSizeString));
+            let mut lossFromEntry: Value = ccxt::precise::Precise::stringMul(&priceDiff.clone().map(Value::from).unwrap_or(Value::Null), &ccxt::precise::Precise::stringMul(&contractsString, &contractSizeString));
             let mut calculatedMm: Value = ccxt::precise::Precise::stringSub(&entryMarginString, &lossFromEntry);
             assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGt(&calculatedMm, &Value::Str("0".into())))));
             let mut mmDiff: Value = ccxt::precise::Precise::stringAbs(&ccxt::precise::Precise::stringSub(&calculatedMm, &maintenanceMarginString));

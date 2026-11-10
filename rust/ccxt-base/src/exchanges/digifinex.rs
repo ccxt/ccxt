@@ -1293,10 +1293,10 @@ impl Digifinex {
 }));
         let mut defaultType: Option<String> = self.safe_string_k(self.options.clone(), "defaultType", &[]).as_str().map(str::to_owned);
         let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchMarketsV2".into()), &[params.clone()]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModequeryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: Value = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut promisesRaw: Vec<Value> = Vec::new();
-        if (marginMode != Value::Null) {
+        if (marginMode.is_some()) {
             promisesRaw.push(self.public_spot_get_margin_symbols(&[query.clone()]).await);
         }  else {
             promisesRaw.push(self.public_spot_get_trades_symbols(&[query]).await);
@@ -1391,15 +1391,15 @@ impl Digifinex {
             let mut type_var: Value = (if (defaultType.as_deref() == Some("margin")) { Value::Str("margin".into()) } else { Value::Str("spot".into()) });
             let mut spot: Value = Value::Bool(settle == Value::Null);
             let mut swap: Value = Value::Bool(!(matches!(&spot, Value::Bool(true))));
-            let mut margin: Value = (if (marginMode != Value::Null) { Value::Bool(true) } else { Value::Null });
+            let mut margin: Value = (if (marginMode.is_some()) { Value::Bool(true) } else { Value::Null });
             let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
-            let mut isInverse: Value = Value::Null;
+            let mut isInverse: Option<bool> = None;
             let mut isLinear: Value = Value::Null;
             if matches!(&swap, Value::Bool(true)) {
                 type_var = Value::Str("swap".into());
                 symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()), Value::Str(":".into())).into()), settle).into());
-                isInverse = self.safe_bool_k(market.clone(), "is_inverse", &[]);
-                isLinear = (if (isInverse.as_bool() != Some(true)) { Value::Bool(true) } else { Value::Bool(false) });
+                isInverse = self.safe_bool_k(market.clone(), "is_inverse", &[]).as_bool();
+                isLinear = (if (isInverse != Some(true)) { Value::Bool(true) } else { Value::Bool(false) });
                 let mut isTrading: bool = self.safe_bool_k_opt(market.clone(), "isTrading", &[Value::Bool(false)]).unwrap_or(false);
                 if isTrading {
                     isTradingSwap = true;
@@ -1425,7 +1425,7 @@ impl Digifinex {
                     m.insert("active".to_string(), isActive);
                     m.insert("contract".to_string(), swap);
                     m.insert("linear".to_string(), isLinear);
-                    m.insert("inverse".to_string(), isInverse);
+                    m.insert("inverse".to_string(), isInverse.map(Value::from).unwrap_or(Value::Null));
                     m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "contract_value", &[]));
                     m.insert("expiry".to_string(), Value::Null);
                     m.insert("expiryDatetime".to_string(), Value::Null);
@@ -1665,10 +1665,10 @@ impl Digifinex {
         let mut paramsMarketType: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchBalance".into()), &[paramsMarketType]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModequeryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: Value = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        let mut isMargin: bool = (marginMode != Value::Null) || (marketType.as_str() == Some("margin"));
+        let mut isMargin: bool = (marginMode.is_some()) || (marketType.as_str() == Some("margin"));
         if isMargin {
             response = self.private_spot_get_margin_assets(&[query.clone()]).await;
         }  else if (marketType.as_str() == Some("spot")) {
@@ -1750,9 +1750,9 @@ impl Digifinex {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let marketTypequeryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOrderBook".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default();
-        let mut marketType: Value = marketTypequeryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let marketTypequeryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOrderBook".into()), &[(market).raw.clone(), params]).as_array().cloned().unwrap_or_default();
+        let mut marketType: Option<String> = marketTypequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: Value = marketTypequeryVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1762,12 +1762,12 @@ impl Digifinex {
             request.insert("limit".into(), limit);
         }
         let mut response: Value = Value::Null;
-        if (marketType.as_str() == Some("swap")) {
-            request.insert("instrument_id".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+        if (marketType.as_deref() == Some("swap")) {
+            request.insert("instrument_id".into(), Value::from((market).id.clone()));
             let __ws_arg_0 = self.extend(Value::Map(request.clone()), &[query.clone()]);
             response = self.public_swap_get_public_depth(&[__ws_arg_0]).await;
         }  else {
-            request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            request.insert("symbol".into(), Value::from((market).id.clone()));
             let __ws_arg_1 = self.extend(Value::Map(request), &[query]);
             response = self.public_spot_get_order_book(&[__ws_arg_1]).await;
         }
@@ -1809,19 +1809,19 @@ impl Digifinex {
         //         }
         //     }
         //
-        let mut timestamp: Value = Value::Null;
+        let mut timestamp: Option<i64> = None;
         let mut orderBook: Value = Value::Null;
-        if (marketType.as_str() == Some("swap")) {
+        if (marketType.as_deref() == Some("swap")) {
             orderBook = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            timestamp = self.safe_integer_k(orderBook.clone(), "timestamp", &[]);
+            timestamp = self.safe_integer_k(orderBook.clone(), "timestamp", &[]).as_i64();
         }  else {
             orderBook = response.clone();
-            timestamp = self.safe_timestamp_k(response, "date", &[]);
+            timestamp = self.safe_timestamp_k(response, "date", &[]).as_i64();
         }
-        return self.parse_order_book(orderBook, market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null), &[timestamp]);
+        return self.parse_order_book(orderBook, Value::from((market).symbol.clone()), &[Value::from(timestamp)]);
         Value::Null
         }).await?))
     }
@@ -1857,14 +1857,14 @@ impl Digifinex {
             market = crate::types::IntoRaw::into_raw(self.market(first.as_deref().unwrap_or_default()));
         }
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), &[market, params]).as_array().cloned().unwrap_or_default();
-        let mut type_var: Value = type_varparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut response: Value = Value::Null;
-        if (type_var.as_str() == Some("swap")) {
+        if (type_var.as_deref() == Some("swap")) {
             let __ws_arg_2 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
             response = self.public_swap_get_public_tickers(&[__ws_arg_2]).await;
         }  else {
@@ -1971,18 +1971,18 @@ impl Digifinex {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut response: Value = Value::Null;
-        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
-            request.insert("instrument_id".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+        if (market).swap {
+            request.insert("instrument_id".into(), Value::from((market).id.clone()));
             let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.public_swap_get_public_ticker(&[__ws_arg_5]).await;
         }  else {
-            request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            request.insert("symbol".into(), Value::from((market).id.clone()));
             let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
             response = self.public_spot_get_ticker(&[__ws_arg_6]).await;
         }
@@ -2042,14 +2042,14 @@ impl Digifinex {
     m
 })]);
         let mut result: Value = data;
-        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
+        if !(market).swap {
             result = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("date".to_string(), Value::from(date));
                 m
             }), &[firstTicker]);
         }
-        return self.parse_ticker(result, &[market]);
+        return self.parse_ticker(result, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2209,7 +2209,7 @@ impl Digifinex {
         let mut marketResolved: Value = self.safe_market(&[(if (market == Value::Null) { marketId } else { Value::Null }), market]);
         let mut timestamp: Value = self.safe_timestamp2(trade.clone(), Value::Str("date".into()), Value::Str("timestamp".into()), &[]);
         let mut side: Value = self.safe_string2(trade.clone(), Value::Str("type".into()), Value::Str("side".into()), &[]);
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         let mut takerOrMaker: Value = Value::Null;
         if (marketResolved.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() == Some("swap")) {
             timestamp = self.safe_integer_k(trade.clone(), "trade_time", &[]);
@@ -2218,7 +2218,7 @@ impl Digifinex {
             let mut direction: Option<String> = self.safe_string_k(trade.clone(), "direction", &[]).as_str().map(str::to_owned);
             if (orderType.is_some()) {
                 if (orderType.as_deref() == Some("0")) {
-                    type_var = Value::Str("limit".into());
+                    type_var = Some("limit".to_string());
                 }
             }
             if (tradeRole.as_deref() == Some("1")) {
@@ -2247,9 +2247,9 @@ impl Digifinex {
             }
             let mut parts: Value = Value::Array(if let Some(__s) = side.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             side = self.safe_string(parts.clone(), Value::Int(0), &[]);
-            type_var = self.safe_string(parts, Value::Int(1), &[]);
-            if (type_var == Value::Null) {
-                type_var = Value::Str("limit".into());
+            type_var = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
+            if (type_var.is_none()) {
+                type_var = Some("limit".to_string());
             }
             let mut isMaker: bool = self.safe_bool_k_opt(trade.clone(), "is_maker", &[Value::Bool(false)]).unwrap_or(false);
             takerOrMaker = (if isMaker { Value::Str("maker".into()) } else { Value::Str("taker".into()) });
@@ -2276,7 +2276,7 @@ impl Digifinex {
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("symbol".to_string(), symbol);
-        m.insert("type".to_string(), type_var);
+        m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("order".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), priceString.map(Value::from).unwrap_or(Value::Null));
@@ -2385,25 +2385,25 @@ impl Digifinex {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         if (limit != Value::Null) {
-            if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
+            if (market).swap {
                 request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(100)));
             }  else {
                 request.insert("limit".into(), limit.clone());
             }
         }
         let mut response: Value = Value::Null;
-        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
-            request.insert("instrument_id".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+        if (market).swap {
+            request.insert("instrument_id".into(), Value::from((market).id.clone()));
             let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.public_swap_get_public_trades(&[__ws_arg_7]).await;
         }  else {
-            request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            request.insert("symbol".into(), Value::from((market).id.clone()));
             let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
             response = self.public_spot_get_trades(&[__ws_arg_8]).await;
         }
@@ -2449,7 +2449,7 @@ impl Digifinex {
         //     }
         //
         let mut data: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_trades(data, &[market, since, limit]);
+        return self.parse_trades(data, &[(market).raw.clone(), since, limit]);
         Value::Null
         }).await?))
     }
@@ -2508,14 +2508,14 @@ impl Digifinex {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut response: Value = Value::Null;
-        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
-            request.insert("instrument_id".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+        if (market).swap {
+            request.insert("instrument_id".into(), Value::from((market).id.clone()));
             request.insert("granularity".into(), timeframe.clone());
             if (limit != Value::Null) {
                 request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(100)));
@@ -2524,7 +2524,7 @@ impl Digifinex {
             response = self.public_swap_get_public_candles(&[__ws_arg_9]).await;
         }  else {
             let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
-            request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            request.insert("symbol".into(), Value::from((market).id.clone()));
             request.insert("period".into(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             let mut duration: Value = self.parse_timeframe(timeframe.clone());
             if (since != Value::Null) || (limit != Value::Null) || (until != Value::Null) {
@@ -2585,7 +2585,7 @@ impl Digifinex {
         //     }
         //
         let mut candles: Value = Value::Null;
-        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
+        if (market).swap {
             let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2594,7 +2594,7 @@ impl Digifinex {
         }  else {
             candles = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         }
-        return self.parse_ohlc_vs(candles, &[market, timeframe, since, limit]);
+        return self.parse_ohlc_vs(candles, &[(market).raw.clone(), timeframe, since, limit]);
         Value::Null
         }).await?))
     }
@@ -2636,12 +2636,12 @@ impl Digifinex {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marginResult: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[params.clone()]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Value = marginResult.get(0).cloned().unwrap_or(Value::Null);
-        let mut request: Value = self.create_order_request(symbol, type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params]);
+        let mut request: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params]);
         let mut response: Value = Value::Null;
-        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
+        if (market).swap {
             response = self.private_swap_post_trade_order_place(&[request.clone()]).await;
         }  else {
             if (marginMode != Value::Null) {
@@ -2668,8 +2668,8 @@ impl Digifinex {
         if (response == Value::Null) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), Value::Str(" createOrder() returned empty response".into()))));
         }
-        let mut order: indexmap::IndexMap<String, Value> = self.parse_order(response, &[market.clone()]).as_map().cloned().unwrap_or_default();
-        order.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
+        let mut order: indexmap::IndexMap<String, Value> = self.parse_order(response, &[(market).raw.clone()]).as_map().cloned().unwrap_or_default();
+        order.insert("symbol".into(), Value::from((market).symbol.clone()));
         order.insert("type".into(), type_var);
         order.insert("side".into(), side);
         order.insert("amount".into(), amount);
@@ -2742,17 +2742,17 @@ impl Digifinex {
             ordersRequests.push(orderRequest);
         }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut response: Value = Value::Null;
-        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
+        if (market).swap {
             response = self.private_swap_post_trade_batch_order(&[Value::from(ordersRequests.clone())]).await;
         }  else {
             request.insert("market".into(), (if (marginMode != Value::Null) { Value::Str("margin".into()) } else { Value::Str("spot".into()) }));
-            request.insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            request.insert("symbol".into(), Value::from((market).id.clone()));
             request.insert("list".into(), json_stringify(&Value::from(ordersRequests)));
             response = self.private_spot_post_market_order_batch_new(&[Value::Map(request)]).await;
         }
@@ -2778,7 +2778,7 @@ impl Digifinex {
         //     }
         //
         let mut data: Value = Value::from(vec![]);
-        if matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
+        if (market).swap {
             data = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]);
         }  else {
             data = self.safe_list_k(response, "order_ids", &[Value::from(vec![])]);
@@ -2794,13 +2794,13 @@ impl Digifinex {
                 m
             };
             individualOrder.insert("order_id".into(), self.safe_string(data.clone(), Value::Int(i), &[]));
-            individualOrder.insert("instrument_id".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            individualOrder.insert("instrument_id".into(), Value::from((market).id.clone()));
             individualOrder.insert("amount".into(), self.safe_number_k(rawOrder.clone(), "amount", &[]));
             individualOrder.insert("price".into(), self.safe_number_k(rawOrder, "price", &[]));
             result.push(Value::Map(individualOrder));
         }
         }
-        return self.parse_orders(Value::from(result), &[market]);
+        return self.parse_orders(Value::from(result), &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -2830,25 +2830,25 @@ impl Digifinex {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} request to be sent to the exchange
          */
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let marketTypeRawparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("createOrderRequest".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let marketTypeRawparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("createOrderRequest".into()), &[(market).raw.clone(), params]).as_array().cloned().unwrap_or_default();
         let mut marketTypeRaw: Value = marketTypeRawparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMarketType: Value = marketTypeRawparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrderRequest".into()), &[paramsMarketType]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut swap: bool = (marginMode == Value::Null) && (marketTypeRaw.as_str() == Some("swap"));
+        let mut swap: bool = (marginMode.is_none()) && (marketTypeRaw.as_str() == Some("swap"));
         let mut isMarketOrder: Value = (Value::Bool(type_var.as_str() == Some("market")));
         let mut isLimitOrder: bool = type_var.as_str() == Some("limit");
         let mut marketIdRequest: String = "symbol".to_string();
         if swap {
             marketIdRequest = "instrument_id".to_string();
         }
-        request.insert(marketIdRequest.clone(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+        request.insert(marketIdRequest.clone(), Value::from((market).id.clone()));
         let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), Value::Bool(false), &[paramsMarginMode.clone()]);
         let mut postOnlyParsed: Value = Value::Int(0);
         let mut paramsRequest: Value = Value::Null;
@@ -2883,7 +2883,7 @@ impl Digifinex {
             paramsRequest = self.omit(paramsMarginMode.clone(), Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("timeInForce".into()), Value::Str("postOnly".into())]), &[]);
         }  else {
             postOnlyParsed = (if (postOnly).as_bool() == Some(true) { Value::Int(1) } else { Value::Int(2) });
-            request.insert("market".into(), (if (marginMode != Value::Null) { Value::Str("margin".into()) } else { marketTypeRaw }));
+            request.insert("market".into(), (if (marginMode.is_some()) { Value::Str("margin".into()) } else { marketTypeRaw }));
             let mut suffix: String = "".to_string();
             if (type_var.as_str() == Some("market")) {
                 suffix = "_market".to_string();
@@ -2894,7 +2894,7 @@ impl Digifinex {
             // limit orders require the amount in the base currency, market orders require the amount in the quote currency
             let mut quantity: Value = Value::Null;
             let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable: Vec<Value> = self.handle_option_bool_and_params(paramsMarginMode, Value::Str("createOrderRequest".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
-            let mut createMarketBuyOrderRequiresPrice: Value = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut createMarketBuyOrderRequiresPrice: bool = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsRequiresPrice: Value = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.get(1).cloned().unwrap_or(Value::Null);
             let mut isMarketBuy: bool = matches!(&isMarketOrder, Value::Bool(true)) && (side.as_str() == Some("buy"));
             let mut keysToOmit: Value = Value::Null;
@@ -2908,7 +2908,7 @@ impl Digifinex {
                 let mut cost: Value = self.safe_number_k(paramsRequiresPrice, "cost", &[]);
                 if (cost != Value::Null) {
                     quantity = self.cost_to_precision(symbol.clone(), cost);
-                }  else if createMarketBuyOrderRequiresPrice.as_bool() == Some(true) {
+                }  else if createMarketBuyOrderRequiresPrice {
                     if (price == Value::Null) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument".into()))));
                     }  else {
@@ -2962,8 +2962,8 @@ impl Digifinex {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        if !matches!(self.safe_bool_k(market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        if !(market).spot {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createMarketBuyOrderWithCost() supports spot orders only".into()))));
         }
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("createMarketBuyOrderRequiresPrice".into(), Value::Bool(false)); }
@@ -3020,10 +3020,10 @@ impl Digifinex {
             request.insert("market".into(), marketType.clone());
         }
         let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("cancelOrder".into()), &[paramsMarketType]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModequeryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: Value = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
-        let mut isMargin: bool = (marginMode != Value::Null) || (marketType.as_str() == Some("margin"));
+        let mut isMargin: bool = (marginMode.is_some()) || (marketType.as_str() == Some("margin"));
         if isMargin {
             let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[query.clone()]);
             response = self.private_spot_post_margin_order_cancel(&[__ws_arg_11]).await;
@@ -3398,11 +3398,11 @@ impl Digifinex {
         //         "time_stamp": 1668134664828
         //     }
         //
-        let mut timestamp: Value = Value::Null;
-        let mut lastTradeTimestamp: Value = Value::Null;
-        let mut timeInForce: Value = Value::Null;
+        let mut timestamp: Option<i64> = None;
+        let mut lastTradeTimestamp: Option<i64> = None;
+        let mut timeInForce: Option<String> = None;
         let mut type_var: Value = Value::Null;
-        let mut reduceOnly: Value = Value::Null;
+        let mut reduceOnly: Option<bool> = None;
         let mut side: Value = self.safe_string_k(order.clone(), "type", &[]);
         let mut sideRaw: Option<String> = self.safe_string_k_opt(order.clone(), "type", &[]);
         let mut marketId: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("symbol".into()), Value::Str("instrument_id".into()), &[]);
@@ -3412,11 +3412,11 @@ impl Digifinex {
             let mut orderType: Value = self.safe_integer_k(order.clone(), "order_type", &[]);
             if (orderType != Value::Null) {
                 if (orderType.as_f64() == Some(9.0)) || (orderType.as_f64() == Some(10.0)) || (orderType.as_f64() == Some(11.0)) || (orderType.as_f64() == Some(12.0)) || (orderType.as_f64() == Some(15.0)) {
-                    timeInForce = Value::Str("FOK".into());
+                    timeInForce = Some("FOK".to_string());
                 }  else if (orderType.as_f64() == Some(1.0)) || (orderType.as_f64() == Some(2.0)) || (orderType.as_f64() == Some(3.0)) || (orderType.as_f64() == Some(4.0)) || (orderType.as_f64() == Some(13.0)) {
-                    timeInForce = Value::Str("IOC".into());
+                    timeInForce = Some("IOC".to_string());
                 }  else if (orderType.as_f64() == Some(6.0)) || (orderType.as_f64() == Some(7.0)) || (orderType.as_f64() == Some(8.0)) || (orderType.as_f64() == Some(14.0)) {
-                    timeInForce = Value::Str("GTC".into());
+                    timeInForce = Some("GTC".to_string());
                 }
                 if (orderType.as_f64() == Some(0.0)) || (orderType.as_f64() == Some(1.0)) || (orderType.as_f64() == Some(4.0)) || (orderType.as_f64() == Some(5.0)) || (orderType.as_f64() == Some(9.0)) || (orderType.as_f64() == Some(10.0)) {
                     type_var = Value::Str("limit".into());
@@ -3427,22 +3427,22 @@ impl Digifinex {
             // 1 open long, 2 open short, 3 close long, 4 close short
             if (sideRaw.as_deref() == Some("1")) {
                 side = Value::Str("buy".into());
-                reduceOnly = Value::Bool(false);
+                reduceOnly = Some(false);
             }  else if (sideRaw.as_deref() == Some("2")) {
                 side = Value::Str("sell".into());
-                reduceOnly = Value::Bool(false);
+                reduceOnly = Some(false);
             }  else if (sideRaw.as_deref() == Some("3")) {
                 side = Value::Str("sell".into());
-                reduceOnly = Value::Bool(true);
+                reduceOnly = Some(true);
             }  else if (sideRaw.as_deref() == Some("4")) {
                 side = Value::Str("buy".into());
-                reduceOnly = Value::Bool(true);
+                reduceOnly = Some(true);
             }
-            timestamp = self.safe_integer_k(order.clone(), "insert_time", &[]);
-            lastTradeTimestamp = self.safe_integer_k(order.clone(), "time_stamp", &[]);
+            timestamp = self.safe_integer_k(order.clone(), "insert_time", &[]).as_i64();
+            lastTradeTimestamp = self.safe_integer_k(order.clone(), "time_stamp", &[]).as_i64();
         }  else {
-            timestamp = self.safe_timestamp_k(order.clone(), "created_date", &[]);
-            lastTradeTimestamp = self.safe_timestamp_k(order.clone(), "finished_date", &[]);
+            timestamp = self.safe_timestamp_k(order.clone(), "created_date", &[]).as_i64();
+            lastTradeTimestamp = self.safe_timestamp_k(order.clone(), "finished_date", &[]).as_i64();
             if (sideRaw.is_some()) {
                 let mut parts: Vec<Value> = Value::Array(if let Some(__s) = sideRaw.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
                 let mut numParts: f64 = ((parts.len() as i64) as f64);
@@ -3459,17 +3459,17 @@ impl Digifinex {
         m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string2(order.clone(), Value::Str("order_id".into()), Value::Str("data".into()), &[]));
         m.insert("clientOrderId".to_string(), Value::Null);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("lastTradeTimestamp".to_string(), lastTradeTimestamp);
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
+        m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), type_var);
-        m.insert("timeInForce".to_string(), timeInForce);
+        m.insert("timeInForce".to_string(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), side);
         m.insert("price".to_string(), self.safe_number_k(order.clone(), "price", &[]));
         m.insert("triggerPrice".to_string(), Value::Null);
-        m.insert("reduceOnly".to_string(), reduceOnly);
+        m.insert("reduceOnly".to_string(), reduceOnly.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.safe_number2(order.clone(), Value::Str("amount".into()), Value::Str("size".into()), &[]));
         m.insert("filled".to_string(), self.safe_number2(order.clone(), Value::Str("executed_amount".into()), Value::Str("filled_qty".into()), &[]));
         m.insert("remaining".to_string(), Value::Null);
@@ -3524,7 +3524,7 @@ impl Digifinex {
         let mut paramsMarketType: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOpenOrders".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchOpenOrders".into()), &[paramsMarketType]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModequeryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: Value = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3549,7 +3549,7 @@ impl Digifinex {
             request.insert(marketIdRequest.clone(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
         let mut response: Value = Value::Null;
-        let mut isMargin: bool = (marginMode != Value::Null) || (marketType.as_str() == Some("margin"));
+        let mut isMargin: bool = (marginMode.is_some()) || (marketType.as_str() == Some("margin"));
         if isMargin {
             let __ws_arg_16 = self.extend(Value::Map(request.clone()), &[query.clone()]);
             response = self.private_spot_get_margin_order_current(&[__ws_arg_16]).await;
@@ -3655,7 +3655,7 @@ impl Digifinex {
         let mut paramsMarketType: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOrders".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchOrders".into()), &[paramsMarketType]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModequeryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: Value = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3682,7 +3682,7 @@ impl Digifinex {
             request.insert("limit".into(), limit.clone());
         }
         let mut response: Value = Value::Null;
-        let mut isMargin: bool = (marginMode != Value::Null) || (marketType.as_str() == Some("margin"));
+        let mut isMargin: bool = (marginMode.is_some()) || (marketType.as_str() == Some("margin"));
         if isMargin {
             let __ws_arg_19 = self.extend(Value::Map(request.clone()), &[query.clone()]);
             response = self.private_spot_get_margin_order_history(&[__ws_arg_19]).await;
@@ -3786,7 +3786,7 @@ impl Digifinex {
         let mut paramsMarketType: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOrder".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchOrder".into()), &[paramsMarketType]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModequeryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: Value = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut idValue: Value = self.number_to_string(id.clone());
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3802,7 +3802,7 @@ impl Digifinex {
             request.insert("market".into(), marketType.clone());
         }
         let mut response: Value = Value::Null;
-        let mut isMargin: bool = (marginMode != Value::Null) || (marketType.as_str() == Some("margin"));
+        let mut isMargin: bool = (marginMode.is_some()) || (marketType.as_str() == Some("margin"));
         if isMargin {
             let __ws_arg_22 = self.extend(Value::Map(request.clone()), &[query.clone()]);
             response = self.private_spot_get_margin_order(&[__ws_arg_22]).await;
@@ -3913,7 +3913,7 @@ impl Digifinex {
         let mut paramsMarketType: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMyTrades".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchMyTrades".into()), &[paramsMarketType]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModequeryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: Value = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null);
         if (marketType.as_str() == Some("swap")) {
             if (since != Value::Null) {
@@ -3936,7 +3936,7 @@ impl Digifinex {
             request.insert("limit".into(), limit.clone());
         }
         let mut response: Value = Value::Null;
-        let mut isMargin: bool = (marginMode != Value::Null) || (marketType.as_str() == Some("margin"));
+        let mut isMargin: bool = (marginMode.is_some()) || (marketType.as_str() == Some("margin"));
         if isMargin {
             let __ws_arg_25 = self.extend(Value::Map(request.clone()), &[query.clone()]);
             response = self.private_spot_get_margin_mytrades(&[__ws_arg_25]).await;
@@ -4103,7 +4103,7 @@ impl Digifinex {
         let mut paramsMarketType: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchLedger".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchLedger".into()), &[paramsMarketType]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModequeryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: Value = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null);
         if (marketType.as_str() == Some("swap")) {
             if (since != Value::Null) {
@@ -4128,7 +4128,7 @@ impl Digifinex {
             request.insert("limit".into(), limit.clone());
         }
         let mut response: Value = Value::Null;
-        let mut isMargin: bool = (marginMode != Value::Null) || (marketType.as_str() == Some("margin"));
+        let mut isMargin: bool = (marginMode.is_some()) || (marketType.as_str() == Some("margin"));
         if isMargin {
             let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[query.clone()]);
             response = self.private_spot_get_margin_financelog(&[__ws_arg_28]).await;
@@ -4518,16 +4518,16 @@ impl Digifinex {
         //         "timestamp": 1666505659000
         //     }
         //
-        let mut fromAccount: Value = Value::Null;
-        let mut toAccount: Value = Value::Null;
+        let mut fromAccount: Option<String> = None;
+        let mut toAccount: Option<String> = None;
         let mut data: Value = self.safe_dict_k(transfer.clone(), "data", &[transfer.clone()]);
         let mut type_var: Option<i64> = self.safe_integer_k(data.clone(), "type", &[]).as_i64();
         if (type_var == Some(1)) {
-            fromAccount = Value::Str("spot".into());
-            toAccount = Value::Str("swap".into());
+            fromAccount = Some("spot".to_string());
+            toAccount = Some("swap".to_string());
         }  else if (type_var == Some(2)) {
-            fromAccount = Value::Str("swap".into());
-            toAccount = Value::Str("spot".into());
+            fromAccount = Some("swap".to_string());
+            toAccount = Some("spot".to_string());
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(transfer.clone(), "timestamp", &[]).as_i64();
         return Value::Map({
@@ -4538,8 +4538,8 @@ impl Digifinex {
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(data.clone(), "currency", &[]), &[currency]));
         m.insert("amount".to_string(), self.safe_number2(data, Value::Str("amount".into()), Value::Str("transfer_amount".into()), &[]));
-        m.insert("fromAccount".to_string(), fromAccount);
-        m.insert("toAccount".to_string(), toAccount);
+        m.insert("fromAccount".to_string(), fromAccount.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("toAccount".to_string(), toAccount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("status".to_string(), self.parse_transfer_status(self.safe_string_k(transfer, "code", &[])).map(Value::from).unwrap_or(Value::Null));
     m
 });
@@ -4967,13 +4967,13 @@ impl Digifinex {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        if !(market).swap {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRate() supports swap contracts only".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_id".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("instrument_id".to_string(), Value::from((market).id.clone()));
             m
         });
         let __ws_arg_39 = self.extend(Value::Map(request), &[params]);
@@ -4994,7 +4994,7 @@ impl Digifinex {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_funding_rate(data, &[market]);
+        return self.parse_funding_rate(data, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -5110,13 +5110,13 @@ impl Digifinex {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        if !(market).swap {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingRateHistory() supports swap contracts only".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_id".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("instrument_id".to_string(), Value::from((market).id.clone()));
             m
         });
         if (since != Value::Null) {
@@ -5196,13 +5196,13 @@ impl Digifinex {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        if !(market).swap {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFee() supports swap markets only".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_id".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("instrument_id".to_string(), Value::from((market).id.clone()));
             m
         });
         let __ws_arg_41 = self.extend(Value::Map(request), &[params]);
@@ -5221,7 +5221,7 @@ impl Digifinex {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_trading_fee(data, &[market]);
+        return self.parse_trading_fee(data, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -5298,9 +5298,9 @@ impl Digifinex {
         let mut paramsMarketType: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchPositions".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchPositions".into()), &[paramsMarketType]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModequeryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: Value = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (marginMode != Value::Null) {
+        if (marginMode.is_some()) {
             marketType = Value::Str("margin".into());
         }
         if (market != Value::Null) {
@@ -5415,25 +5415,25 @@ impl Digifinex {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut marketType: Value = Value::Null;
         let mut paramsMarketType: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchPosition".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchPosition".into()), &[(market).raw.clone(), params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let marginModequeryVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchPosition".into()), &[paramsMarketType]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModequeryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModequeryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: Value = marginModequeryVariable.get(1).cloned().unwrap_or(Value::Null);
-        if (marginMode != Value::Null) {
+        if (marginMode.is_some()) {
             marketType = Value::Str("margin".into());
         }
         let mut marketIdRequest: String = "symbol".to_string();
         if (marketType.as_str() == Some("swap")) {
             marketIdRequest = "instrument_id".to_string();
         }
-        request.insert(marketIdRequest.clone(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+        request.insert(marketIdRequest.clone(), Value::from((market).id.clone()));
         let mut response: Value = Value::Null;
         if (marketType.as_str() == Some("spot")) || (marketType.as_str() == Some("margin")) {
             let __ws_arg_44 = self.extend(Value::Map(request.clone()), &[query.clone()]);
@@ -5500,7 +5500,7 @@ impl Digifinex {
             dataRequest = "data".to_string();
         }
         let mut data: Vec<Value> = self.safe_list(response.clone(), Value::from(dataRequest), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-        let mut position: indexmap::IndexMap<String, Value> = self.parse_position(data.get(0).cloned().unwrap_or(Value::Null), &[market]).as_map().cloned().unwrap_or_default();
+        let mut position: indexmap::IndexMap<String, Value> = self.parse_position(data.get(0).cloned().unwrap_or(Value::Null), &[(market).raw.clone()]).as_map().cloned().unwrap_or_default();
         if (marketType.as_str() == Some("swap")) {
             return Value::Map(position.clone());
         }  else {
@@ -5648,8 +5648,8 @@ impl Digifinex {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        if (market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() != Some("swap")) {
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        if ((market).raw.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() != Some("swap")) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() supports swap contracts only".into()))));
         }
         if (leverage.as_f64().unwrap_or(f64::NAN) < ((1i64) as f64)) || (leverage.as_f64().unwrap_or(f64::NAN) > ((100i64) as f64)) {
@@ -5657,7 +5657,7 @@ impl Digifinex {
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_id".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("instrument_id".to_string(), Value::from((market).id.clone()));
                 m.insert("leverage".to_string(), leverage);
             m
         });
@@ -5842,13 +5842,13 @@ impl Digifinex {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        if !matches!(self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]), Value::Bool(true)) {
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        if !(market).swap {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchMarketLeverageTiers() supports swap markets only".into()))));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_id".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("instrument_id".to_string(), Value::from((market).id.clone()));
             m
         });
         let __ws_arg_48 = self.extend(Value::Map(request), &[params]);
@@ -5884,7 +5884,7 @@ impl Digifinex {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_market_leverage_tiers(data, &[market]);
+        return self.parse_market_leverage_tiers(data, &[(market).raw.clone()]);
         Value::Null
         }).await?))
     }
@@ -6200,10 +6200,10 @@ impl Digifinex {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let mut side: Option<String> = self.safe_string_k_opt(params.clone(), "side", &[]);
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_id".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("instrument_id".to_string(), Value::from((market).id.clone()));
                 m.insert("amount".to_string(), self.number_to_string(amount));
                 m.insert("type".to_string(), type_var);
                 m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -6231,7 +6231,7 @@ impl Digifinex {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let __ws_arg_50 = self.parse_margin_modification(data, &[market]);
+        let __ws_arg_50 = self.parse_margin_modification(data, &[(market).raw.clone()]);
         return self.extend(__ws_arg_50, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::from(status));
@@ -6394,12 +6394,12 @@ impl Digifinex {
         if (self.markets.clone() == Value::Null) {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
-        let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marginModeLower: Value = (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         let mut marginModeResolved: Value = (if (marginModeLower.as_str() == Some("cross")) { Value::Str("crossed".into()) } else { marginModeLower });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("instrument_id".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
+                m.insert("instrument_id".to_string(), Value::from((market).id.clone()));
                 m.insert("margin_mode".to_string(), marginModeResolved);
             m
         });

@@ -537,9 +537,9 @@ impl Okx {
         });
         let mut messageHashResolved: Value = messageHash.clone();
         if (symbol != Value::Null) {
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            messageHashResolved = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k(market.clone(), "id", &[Value::Str("".into())])).into());
-            firstArgument.insert("instId".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            messageHashResolved = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())])).into());
+            firstArgument.insert("instId".into(), Value::from((market).id.clone()));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -980,8 +980,8 @@ impl Okx {
         let mut channel: Value = channelparamsChannelVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsChannel: Value = channelparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null);
         add_element_to_object(&mut paramsChannel, &Value::Str("channel".into()), channel);
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut symbolValue: Value = Value::from((market).symbol.clone());
         let mut ticker: Value = crate::types::IntoRaw::into_raw(self.watch_tickers((Value::from(vec![symbolValue.clone()])).to_opt_str_vec(), paramsChannel).await);
         return self.safe_value(ticker, symbolValue, &[]);
         Value::Null
@@ -1079,8 +1079,8 @@ impl Okx {
         let mut channel: Value = channelparamsChannelVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsChannel: Value = channelparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null);
         add_element_to_object(&mut paramsChannel, &Value::Str("channel".into()), channel);
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut symbolValue: Value = Value::from((market).symbol.clone());
         let mut ticker: Value = crate::types::IntoRaw::into_raw(self.watch_mark_prices((Value::from(vec![symbolValue.clone()])).to_opt_str_vec(), paramsChannel).await);
         return self.safe_value(ticker, symbolValue, &[]);
         Value::Null
@@ -2855,10 +2855,10 @@ impl Okx {
         }
         let mut uppercaseType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("watchMyTrades".into()), &[paramsOmitted]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
         if (uppercaseType.as_str() == Some("SPOT")) {
-            if (marginMode != Value::Null) {
+            if (marginMode.is_some()) {
                 uppercaseType = Value::Str("MARGIN".into());
             }
         }
@@ -3111,10 +3111,10 @@ impl Okx {
         }
         let mut uppercaseType: Value = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("watchOrders".into()), &[paramsOmitted]).as_array().cloned().unwrap_or_default();
-        let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
         if (uppercaseType.as_str() == Some("SPOT")) {
-            if (marginMode != Value::Null) {
+            if (marginMode.is_some()) {
                 uppercaseType = Value::Str("MARGIN".into());
             }
         }
@@ -3219,8 +3219,8 @@ impl Okx {
                 let mut order: Value = parsed.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 stored.append(order.clone());
                 let mut symbol: Value = self.safe_string_k(order, "symbol", &[Value::Str("".into())]);
-                let mut market: indexmap::IndexMap<String, Value> = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).as_map().cloned().unwrap_or_default();
-                marketIds.push(market.get("id").cloned().unwrap_or(Value::Null));
+                let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                marketIds.push(Value::from((market).id.clone()));
             }
             }
             client.resolve(&[stored.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -3684,8 +3684,8 @@ impl Okx {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         self.authenticate(&[]).await;
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        if (market.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() != Some("option")) {
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        if ((market).raw.as_map().and_then(|__m| __m.get("type")).cloned().unwrap_or(Value::Null).as_str() != Some("option")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.".into()))));
         }
         let mut url: Value = self.get_url(Value::Str("private".into()), &[Value::Str("private".into())]).map(Value::from).unwrap_or(Value::Null);
@@ -3697,7 +3697,7 @@ impl Okx {
                 m.insert("args".to_string(), Value::from(vec![self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("instType".to_string(), Value::Str("OPTION".into()));
-        m.insert("instFamily".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+        m.insert("instFamily".to_string(), Value::from((market).id.clone()));
     m
 }), &[params])]));
             m
