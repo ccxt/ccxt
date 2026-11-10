@@ -446,6 +446,7 @@
         "fetchOHLCV": [
             {
                 "description": "swap -since +limit -until",
+                "disabled": "todo:need local skip for dynamic until",
                 "method": "fetchOHLCV",
                 "url": "https://api.backpack.exchange/api/v1/klines?endTime=1794334278&interval=1m&startTime=1794334158&symbol=BTC_USDC_PERP",
                 "input": [
@@ -458,6 +459,7 @@
             },
             {
                 "description": "swap -since -limit -until",
+                "disabled": "todo:need local skip for dynamic until",
                 "method": "fetchOHLCV",
                 "url": "https://api.backpack.exchange/api/v1/klines?endTime=1794334163&interval=1m&startTime=1794328163&symbol=BTC_USDC_PERP",
                 "input": [
