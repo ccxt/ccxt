@@ -238,6 +238,10 @@ export default class paradex extends paradexRest {
             'id': request['id'],
             'messageHashes': [ unsubHash ],
         });
+        // a lost acknowledgement is timed out, so that neither the unwatch nor a watch waiting on it can hang
+        const client = this.client (url);
+        const timeout = this.safeInteger (this.options, 'unsubscribeTimeout', 10000);
+        this.delay (timeout, this.expirePendingUnsubscribe, client, unsubHash, this.safeString (unsubscription, 'id'));
         return await this.watch (url, unsubHash, this.deepExtend (request, params), unsubHash, unsubscription);
     }
 
@@ -360,9 +364,6 @@ export default class paradex extends paradexRest {
                 }
             }
             if (pending) {
-                // a lost acknowledgement is timed out, so that the watch cannot hang
-                const timeout = this.safeInteger (this.options, 'unsubscribeTimeout', 10000);
-                this.delay (timeout, this.expirePendingUnsubscribe, client, unsubHash, this.safeString (unsubscription, 'id'));
                 try {
                     await client.future (unsubHash);
                 } catch (e) {
