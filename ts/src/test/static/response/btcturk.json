@@ -6,6 +6,8 @@
         "fetchOHLCV": [
             {
                 "description": "spot 1d +since +limit -until",
+                "disabledCS": true,
+                "disabledCSDescription": "needs check for negative cals",
                 "method": "fetchOHLCV",
                 "input": [
                     "BTC/USDT",
