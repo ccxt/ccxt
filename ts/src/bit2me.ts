@@ -3,9 +3,10 @@
 
 import { sha256, sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bit2me.js';
-import { ExchangeError, AuthenticationError, BadRequest, BadSymbol, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance } from './base/errors.js';
+import { ExchangeError, AuthenticationError, ArgumentsRequired, BadRequest, BadSymbol, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance } from './base/errors.js';
+import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Currencies, CurrencyInterface, Dict, Endpoint, Int, List, Market, NullableDict, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Endpoint, Int, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -14,7 +15,7 @@ import type { Currencies, CurrencyInterface, Dict, Endpoint, Int, List, Market, 
  * @augments Exchange
  */
 export default class bit2me extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'bit2me',
             'name': 'Bit2Me',
@@ -35,30 +36,35 @@ export default class bit2me extends Exchange {
                 'borrowIsolatedMargin': false,
                 'borrowMargin': false,
                 'cancelAllOrders': false,
-                'cancelOrder': false,
+                'cancelOrder': true,
                 'cancelOrders': false,
                 'closeAllPositions': false,
                 'closePosition': false,
                 'createDepositAddress': false,
-                'createLimitOrder': false,
-                'createMarketOrder': false,
-                'createOrder': false,
+                'createLimitOrder': true,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrder': true,
+                'createMarketSellOrderWithCost': true,
+                'createOrder': true,
                 'createOrders': false,
-                'createPostOnlyOrder': false,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': false,
-                'createStopLimitOrder': false,
+                'createStopLimitOrder': true,
                 'createStopMarketOrder': false,
-                'createStopOrder': false,
+                'createStopOrder': true,
+                'createTriggerOrder': true,
                 'editOrder': false,
                 'fetchAccounts': false,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
-                'fetchClosedOrders': false,
+                'fetchCanceledAndClosedOrders': true,
+                'fetchCanceledOrders': true,
+                'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -81,14 +87,14 @@ export default class bit2me extends Exchange {
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
-                'fetchOpenOrders': false,
-                'fetchOrder': false,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': false,
-                'fetchOrderTrades': false,
+                'fetchOrders': true,
+                'fetchOrderTrades': true,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
@@ -101,7 +107,7 @@ export default class bit2me extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransactions': false,
-                'fetchTransfers': false,
+                'fetchTransfers': true,
                 'fetchWithdrawals': false,
                 'reduceMargin': false,
                 'repayCrossMargin': false,
@@ -111,7 +117,7 @@ export default class bit2me extends Exchange {
                 'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
-                'transfer': false,
+                'transfer': true,
                 'withdraw': false,
             },
             'timeframes': {
@@ -154,7 +160,7 @@ export default class bit2me extends Exchange {
                         'v1/trading/order': { 'cost': 1 } as Endpoint<List>,
                         'v1/trading/order/{id}': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/trading/order/{id}/trades': { 'cost': 1 } as Endpoint<List>,
-                        'v1/trading/trade': { 'cost': 1 } as Endpoint<List>,
+                        'v1/trading/trade': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/trading/wallet/balance': { 'cost': 1 } as Endpoint<List>,
                         'v1/trading/working-capital': { 'cost': 1 } as Endpoint<List>,
                         'v1/trading/movement': { 'cost': 1 } as Endpoint<List>,
@@ -209,11 +215,45 @@ export default class bit2me extends Exchange {
                         'iceberg': false,
                     },
                     'createOrders': undefined,
-                    'fetchMyTrades': undefined,
-                    'fetchOrder': undefined,
-                    'fetchOpenOrders': undefined,
-                    'fetchOrders': undefined,
-                    'fetchClosedOrders': undefined,
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'limit': 50,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': {
+                        'marginMode': false,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': {
+                        'marginMode': false,
+                        'limit': 100,
+                        'daysBack': 100000,
+                        'daysBackCanceled': 100000,
+                        'untilDays': 100000,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
                     'fetchOHLCV': {
                         'limit': 1000,
                     },
@@ -230,6 +270,20 @@ export default class bit2me extends Exchange {
             'options': {
                 'fetchCurrencies': {
                     'includeTestnet': false,
+                },
+                'mica': true, // MiCA compliant, USDT was delisted on 2025-03-21
+                'createMarketBuyOrderRequiresPrice': true, // market buy orders with a price are converted to a cost (amount * price), without a price the amount is sent in the base currency
+                'accountsByType': {
+                    'funding': 'wallet',
+                    'main': 'wallet',
+                    'wallet': 'wallet',
+                    'spot': 'trading',
+                    'trading': 'trading',
+                    'pro': 'trading',
+                },
+                'accountsById': {
+                    'wallet': 'funding',
+                    'trading': 'spot',
                 },
                 'networks': {
                     'BTC': 'BITCOIN',
@@ -280,6 +334,7 @@ export default class bit2me extends Exchange {
                     '500': ExchangeNotAvailable,
                     '502': ExchangeNotAvailable,
                     // order rejection codes
+                    'AMOUNT_IN_QUOTE_INVALID_ORDER_TYPE': InvalidOrder,
                     'AMOUNT_PRECISION_EXCEEDED': InvalidOrder,
                     'BUY_PRICE_IS_ABOVE_INITIAL_PRICE': InvalidOrder,
                     'BUY_STOP_PRICE_IS_BELOW_INITIAL_PRICE': InvalidOrder,
@@ -311,6 +366,7 @@ export default class bit2me extends Exchange {
                     'SELL_PRICE_IS_BELOW_INITIAL_PRICE': InvalidOrder,
                     'SELL_STOP_PRICE_IS_ABOVE_INITIAL_PRICE': InvalidOrder,
                     'TIME_IN_FORCE_INVALID': InvalidOrder,
+                    'TIME_IN_FORCE_NOT_AVAILABLE': InvalidOrder,
                     'TRADING_WALLET_NOT_BALANCE': InsufficientFunds,
                     'TRADING_WALLET_NOT_FOUND': ExchangeError,
                     'USER_IS_ALREADY_CREATING_ORDER': ExchangeError,
@@ -509,7 +565,9 @@ export default class bit2me extends Exchange {
         const actions = this.safeList (rawCurrency, 'actions', []);
         const deposit = this.inArray ('deposit', actions);
         const withdraw = this.inArray ('withdrawal', actions);
-        const precision = this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'exponent')));
+        // the exponent is only published for a handful of assets, fall back to the usual decimals
+        const defaultExponent = (assetType === 'fiat') ? '2' : '8';
+        const precision = this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'exponent', defaultExponent)));
         const networks: Dict = {};
         const networkId = this.safeString (rawCurrency, 'network');
         const networkCode = this.networkIdToCode (networkId, code);
@@ -749,26 +807,89 @@ export default class bit2me extends Exchange {
         //
         //     [ "sell", 69085.4, 0.00284291, 1793711134413 ]
         //
-        const side = this.safeStringLower (trade, 0);
-        const price = this.safeString (trade, 1);
-        const amount = this.safeString (trade, 2);
-        const timestamp = this.safeInteger (trade, 3);
-        const resolvedMarket = this.safeMarket (undefined, market);
+        // fetchMyTrades, fetchOrderTrades (private)
+        //
+        //     {
+        //         "amount": 0.24,
+        //         "amountCurrency": "BTC",
+        //         "clientOrderId": null,
+        //         "cost": 15600.12,
+        //         "costEuro": 15600.12,
+        //         "createdAt": "2024-05-07T14:09:02.310Z",
+        //         "feeAmount": 15.60012,
+        //         "feeCurrency": "EUR",
+        //         "feePercentage": 0.1,
+        //         "feePercentageDiscount": 0, // fetchOrderTrades only
+        //         "id": "4278a86a-53e7-4997-9102-01646ae8954a",
+        //         "isMaker": true,
+        //         "orderId": "536ee1dc-528a-419e-9c00-5e04c010658d",
+        //         "orderType": "limit",
+        //         "price": 65000.5,
+        //         "priceCurrency": "EUR",
+        //         "side": "buy",
+        //         "spaceCenterLevelId": null, // fetchOrderTrades only
+        //         "symbol": "BTC/EUR"
+        //     }
+        //
+        if (Array.isArray (trade)) {
+            const publicSide = this.safeStringLower (trade, 0);
+            const publicPrice = this.safeString (trade, 1);
+            const publicAmount = this.safeString (trade, 2);
+            const publicTimestamp = this.safeInteger (trade, 3);
+            const resolvedMarket = this.safeMarket (undefined, market);
+            return this.safeTrade ({
+                'info': trade,
+                'id': undefined,
+                'symbol': resolvedMarket['symbol'],
+                'timestamp': publicTimestamp,
+                'datetime': this.iso8601 (publicTimestamp),
+                'order': undefined,
+                'type': undefined,
+                'side': publicSide,
+                'takerOrMaker': undefined,
+                'price': publicPrice,
+                'amount': publicAmount,
+                'cost': undefined,
+                'fee': undefined,
+            }, resolvedMarket);
+        }
+        const marketId = this.safeString (trade, 'symbol');
+        const privateMarket = this.safeMarket (marketId, market);
+        const timestamp = this.parse8601 (this.safeString (trade, 'createdAt'));
+        const isMaker = this.safeBool (trade, 'isMaker');
+        let takerOrMaker: Str = undefined;
+        if (isMaker !== undefined) {
+            takerOrMaker = (isMaker) ? 'maker' : 'taker';
+        }
+        let fee = undefined;
+        const feeCost = this.safeString (trade, 'feeAmount');
+        if (feeCost !== undefined) {
+            let feeRate: Str = undefined;
+            const feePercentage = this.safeString (trade, 'feePercentage');
+            if (feePercentage !== undefined) {
+                feeRate = Precise.stringDiv (feePercentage, '100');
+            }
+            fee = {
+                'cost': feeCost,
+                'currency': this.safeCurrencyCode (this.safeString (trade, 'feeCurrency')),
+                'rate': feeRate,
+            };
+        }
         return this.safeTrade ({
             'info': trade,
-            'id': undefined,
-            'symbol': resolvedMarket['symbol'],
+            'id': this.safeString (trade, 'id'),
+            'symbol': privateMarket['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'order': undefined,
-            'type': undefined,
-            'side': side,
-            'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': undefined,
-            'fee': undefined,
-        }, resolvedMarket);
+            'order': this.safeString (trade, 'orderId'),
+            'type': this.parseOrderType (this.safeString (trade, 'orderType')),
+            'side': this.safeStringLower (trade, 'side'),
+            'takerOrMaker': takerOrMaker,
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'amount'),
+            'cost': this.safeString (trade, 'cost'),
+            'fee': fee,
+        }, privateMarket);
     }
 
     /**
@@ -835,6 +956,794 @@ export default class bit2me extends Exchange {
         ];
     }
 
+    /**
+     * @method
+     * @name bit2me#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://api.bit2me.com/docs/pro/api-reference/funding/v1/trading/wallet/balance/get
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.symbols] comma-separated currency codes, only those wallets are returned
+     * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+     */
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
+        await this.loadMarkets ();
+        const response = await this.privateGetV1TradingWalletBalance (params);
+        //
+        //     [
+        //         {
+        //             "balance": 1350.5,
+        //             "blockedBalance": 0,
+        //             "createdAt": "2023-09-13T14:05:42.149Z",
+        //             "currency": "EUR",
+        //             "id": "3a9f1c2d-7e4b-4f6a-8c1d-2b3e4f5a6b7c",
+        //             "rawBalance": "1350.5",
+        //             "rawBlockedBalance": "0",
+        //             "userId": "2bf436fc-43e6-459a-b647-6b446f72ad96"
+        //         }
+        //     ]
+        //
+        return this.parseBalanceList (response);
+    }
+
+    parseBalanceList (response: Dict[]): Balances {
+        const result: Dict = {
+            'info': response,
+        };
+        for (let i = 0; i < response.length; i++) {
+            const wallet = response[i];
+            const currencyId = this.safeString (wallet, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            // balance is the amount available for trading, blockedBalance is reserved by open orders and bots
+            account['free'] = this.safeString2 (wallet, 'rawBalance', 'balance');
+            account['used'] = this.safeString2 (wallet, 'rawBlockedBalance', 'blockedBalance');
+            if (code !== undefined) {
+                result[code] = account;
+            }
+        }
+        return this.safeBalance (result);
+    }
+
+    /**
+     * @method
+     * @name bit2me#createOrder
+     * @description create a trade order
+     * @see https://api.bit2me.com/docs/pro/api-reference/trading/v1/trading/order/post
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, required for limit orders, for market buy orders it is used to compute the cost to spend (amount * price)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] the price at which a stop-limit order is activated, requires a limit price
+     * @param {float} [params.cost] for market orders only, the amount to trade in units of the quote currency, overrides amount
+     * @param {string} [params.timeInForce] 'GTC' (default) or 'FOK' (limit orders only), IOC is not available on bit2me
+     * @param {boolean} [params.postOnly] true to place a post-only limit order
+     * @param {string} [params.clientOrderId] a unique identifier for the order, up to 48 characters
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = this.createOrderRequest (symbol, type, side, amount, price, params);
+        const response = await this.privatePostV1TradingOrder (request);
+        //
+        //     {
+        //         "cancelReason": null,
+        //         "clientOrderId": null,
+        //         "cost": 0,
+        //         "createdAt": "2024-05-07T14:08:30.961Z",
+        //         "feeAmount": 0,
+        //         "feeCurrency": "EUR",
+        //         "filledAmount": 0,
+        //         "id": "536ee1dc-528a-419e-9c00-5e04c010658d",
+        //         "orderAmount": 0.35,
+        //         "orderGroupId": null,
+        //         "orderType": "limit",
+        //         "postOnly": null,
+        //         "price": 65000.5,
+        //         "side": "buy",
+        //         "status": "open",
+        //         "stopPrice": 0,
+        //         "symbol": "BTC/EUR",
+        //         "timeInForce": "GTC",
+        //         "updatedAt": "2024-05-07T14:08:30.961Z",
+        //         "userId": "2bf436fc-43e6-459a-b647-6b446f72ad96"
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name bit2me#createOrderRequest
+     * @description helper function to build the request body for createOrder
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the request body
+     */
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Dict {
+        const market = this.market (symbol);
+        const isMarketOrder = (type === 'market');
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const cost = this.safeString (params, 'cost');
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        let query = this.omit (params, [ 'triggerPrice', 'stopPrice', 'cost', 'clientOrderId' ]);
+        let postOnly = false;
+        [ postOnly, query ] = this.handlePostOnly (isMarketOrder, false, query);
+        const timeInForce = this.safeStringUpper (query, 'timeInForce');
+        query = this.omit (query, 'timeInForce');
+        const request: Dict = {
+            'symbol': market['id'],
+            'side': side,
+            'orderType': type,
+        };
+        if (isMarketOrder) {
+            if (triggerPrice !== undefined) {
+                throw new InvalidOrder (this.id + ' createOrder() does not support stop-market orders, use a limit price to place a stop-limit order');
+            }
+            let quoteAmount: Str = undefined;
+            if (cost !== undefined) {
+                quoteAmount = cost;
+            } else if ((side === 'buy') && (price !== undefined)) {
+                // the unified convention for market buy orders, the cost to spend is amount * price
+                quoteAmount = Precise.stringMul (this.numberToString (amount), this.numberToString (price));
+            }
+            if (quoteAmount !== undefined) {
+                request['amount'] = this.costToPrecision (symbol, quoteAmount);
+                request['amountInQuote'] = true;
+            } else {
+                request['amount'] = this.amountToPrecision (symbol, amount);
+            }
+        } else {
+            if (price === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
+            }
+            request['amount'] = this.amountToPrecision (symbol, amount);
+            request['price'] = this.priceToPrecision (symbol, price);
+            if (triggerPrice !== undefined) {
+                request['orderType'] = 'stop-limit';
+                request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
+            }
+        }
+        if (postOnly) {
+            request['postOnly'] = true;
+        }
+        if (timeInForce !== undefined) {
+            request['timeInForce'] = timeInForce;
+        }
+        if (clientOrderId !== undefined) {
+            request['clientOrderId'] = clientOrderId;
+        }
+        return this.extend (request, query);
+    }
+
+    /**
+     * @method
+     * @name bit2me#cancelOrder
+     * @description cancels an open order
+     * @see https://api.bit2me.com/docs/pro/api-reference/trading/v1/trading/order/id/delete
+     * @param {string} id order id
+     * @param {string} [symbol] not used by bit2me.cancelOrder
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+        await this.loadMarkets ();
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request: Dict = {
+            'id': id,
+        };
+        const response = await this.privateDeleteV1TradingOrderId (this.extend (request, params));
+        //
+        //     {
+        //         "cancelReason": "CR-1: User request",
+        //         "clientOrderId": null,
+        //         "cost": 0,
+        //         "createdAt": "2024-05-07T14:08:30.961Z",
+        //         "feeAmount": 0,
+        //         "feeCurrency": "EUR",
+        //         "filledAmount": 0,
+        //         "id": "536ee1dc-528a-419e-9c00-5e04c010658d",
+        //         "orderAmount": 0.35,
+        //         "orderGroupId": null,
+        //         "orderType": "limit",
+        //         "postOnly": null,
+        //         "price": 65000.5,
+        //         "side": "buy",
+        //         "status": "cancelled",
+        //         "stopPrice": 0,
+        //         "symbol": "BTC/EUR",
+        //         "timeInForce": "GTC",
+        //         "updatedAt": "2024-05-07T14:10:34.837Z",
+        //         "userId": "2bf436fc-43e6-459a-b647-6b446f72ad96"
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
+    /**
+     * @method
+     * @name bit2me#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://api.bit2me.com/docs/pro/api-reference/trading/v1/trading/order/id/get
+     * @see https://api.bit2me.com/docs/pro/api-reference/trading/v1/trading/order/get
+     * @param {string} id the order id
+     * @param {string} [symbol] not used by bit2me.fetchOrder
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] fetch the order by its client order id instead of its id
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+        await this.loadMarkets ();
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            const query = this.omit (params, 'clientOrderId');
+            const requestByClientId: Dict = {
+                'clientOrderId': clientOrderId,
+            };
+            const orders = await this.privateGetV1TradingOrder (this.extend (requestByClientId, query));
+            const numOrders = orders.length;
+            if (numOrders === 0) {
+                throw new OrderNotFound (this.id + ' fetchOrder() could not find an order with clientOrderId ' + clientOrderId);
+            }
+            const first = this.safeDict (orders, 0, {});
+            return this.parseOrder (first, market);
+        }
+        const request: Dict = {
+            'id': id,
+        };
+        const response = await this.privateGetV1TradingOrderId (this.extend (request, params));
+        //
+        //     {
+        //         "cancelReason": null,
+        //         "clientOrderId": null,
+        //         "cost": 15600.12,
+        //         "createdAt": "2024-05-07T14:08:30.961Z",
+        //         "feeAmount": 15.60012,
+        //         "feeCurrency": "EUR",
+        //         "filledAmount": 0.24,
+        //         "id": "536ee1dc-528a-419e-9c00-5e04c010658d",
+        //         "orderAmount": 0.35,
+        //         "orderGroupId": null,
+        //         "orderType": "limit",
+        //         "postOnly": null,
+        //         "price": 65000.5,
+        //         "side": "buy",
+        //         "status": "open",
+        //         "stopPrice": 0,
+        //         "symbol": "BTC/EUR",
+        //         "timeInForce": "GTC",
+        //         "updatedAt": "2024-05-07T14:09:02.310Z",
+        //         "userId": "2bf436fc-43e6-459a-b647-6b446f72ad96"
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
+    /**
+     * @method
+     * @name bit2me#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://api.bit2me.com/docs/pro/api-reference/trading/v1/trading/order/get
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve, default 100, max 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @param {int} [params.offset] the number of orders to skip, for pagination
+     * @param {string} [params.status] only orders in exactly this status, one of 'open', 'inactive', 'filled', 'cancelled'
+     * @param {string} [params.status_in] comma-separated statuses to include
+     * @param {string} [params.clientOrderId] comma-separated client order ids to filter by
+     * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        let market: Market = undefined;
+        const request: Dict = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 100);
+        }
+        const [ until, query ] = this.handleParamInteger (params, 'until');
+        // startTime and endTime must always be sent together
+        if ((since !== undefined) || (until !== undefined)) {
+            const start = (since !== undefined) ? since : 0;
+            const end = (until !== undefined) ? until : this.milliseconds ();
+            request['startTime'] = this.iso8601 (start);
+            request['endTime'] = this.iso8601 (end);
+        }
+        const response = await this.privateGetV1TradingOrder (this.extend (request, query));
+        //
+        //     [
+        //         {
+        //             "cancelReason": null,
+        //             "clientOrderId": "my-bot-order-0001",
+        //             "cost": 649.87,
+        //             "createdAt": "2024-05-06T09:12:03.114Z",
+        //             "feeAmount": 1.94961,
+        //             "feeCurrency": "EUR",
+        //             "filledAmount": 0.01,
+        //             "id": "0f5c3e7a-2b1d-4c8e-9f6a-7d2e1b3c4a5f",
+        //             "orderAmount": 0.01,
+        //             "orderGroupId": null,
+        //             "orderType": "market",
+        //             "postOnly": null,
+        //             "price": 0,
+        //             "side": "sell",
+        //             "status": "filled",
+        //             "stopPrice": 0,
+        //             "symbol": "BTC/EUR",
+        //             "timeInForce": "GTC",
+        //             "updatedAt": "2024-05-06T09:12:03.402Z",
+        //             "userId": "2bf436fc-43e6-459a-b647-6b446f72ad96"
+        //         }
+        //     ]
+        //
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name bit2me#fetchOpenOrders
+     * @description fetch all unfilled currently open orders, including stop-limit orders waiting for their trigger
+     * @see https://api.bit2me.com/docs/pro/api-reference/trading/v1/trading/order/get
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch open orders for
+     * @param {int} [limit] the maximum number of open order structures to retrieve, default 100, max 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        const request: Dict = {
+            'status_in': 'open,inactive',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name bit2me#fetchClosedOrders
+     * @description fetches information on multiple filled orders made by the user
+     * @see https://api.bit2me.com/docs/pro/api-reference/trading/v1/trading/order/get
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve, default 100, max 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        const request: Dict = {
+            'status': 'filled',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name bit2me#fetchCanceledOrders
+     * @description fetches information on multiple canceled orders made by the user
+     * @see https://api.bit2me.com/docs/pro/api-reference/trading/v1/trading/order/get
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve, default 100, max 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        const request: Dict = {
+            'status': 'cancelled',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name bit2me#fetchCanceledAndClosedOrders
+     * @description fetches information on multiple canceled and filled orders made by the user
+     * @see https://api.bit2me.com/docs/pro/api-reference/trading/v1/trading/order/get
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve, default 100, max 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch orders for
+     * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        const request: Dict = {
+            'status_in': 'filled,cancelled',
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    parseOrderStatus (status: Str): Str {
+        const statuses: Dict = {
+            'open': 'open',
+            'inactive': 'open', // stop-limit order waiting for its trigger
+            'filled': 'closed',
+            'cancelled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderType (type: Str): Str {
+        const types: Dict = {
+            'limit': 'limit',
+            'market': 'market',
+            'stop-limit': 'limit',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    override parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        // createOrder, cancelOrder, fetchOrder, fetchOrders
+        //
+        //     {
+        //         "cancelReason": null,
+        //         "clientOrderId": null,
+        //         "cost": 15600.12,
+        //         "createdAt": "2024-05-07T14:08:30.961Z",
+        //         "feeAmount": 15.60012,
+        //         "feeCurrency": "EUR",
+        //         "filledAmount": 0.24,
+        //         "id": "536ee1dc-528a-419e-9c00-5e04c010658d",
+        //         "orderAmount": 0.35,
+        //         "orderGroupId": null,
+        //         "orderType": "limit",
+        //         "postOnly": null,
+        //         "price": 65000.5,
+        //         "side": "buy",
+        //         "status": "open",
+        //         "stopPrice": 0,
+        //         "symbol": "BTC/EUR",
+        //         "timeInForce": "GTC",
+        //         "updatedAt": "2024-05-07T14:09:02.310Z",
+        //         "userId": "2bf436fc-43e6-459a-b647-6b446f72ad96"
+        //     }
+        //
+        const marketId = this.safeString (order, 'symbol');
+        const resolvedMarket = this.safeMarket (marketId, market);
+        const timestamp = this.parse8601 (this.safeString (order, 'createdAt'));
+        const rawType = this.safeString (order, 'orderType');
+        let fee = undefined;
+        const feeCost = this.safeNumber (order, 'feeAmount');
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': this.safeCurrencyCode (this.safeString (order, 'feeCurrency')),
+            };
+        }
+        return this.safeOrder ({
+            'info': order,
+            'id': this.safeString (order, 'id'),
+            'clientOrderId': this.safeString (order, 'clientOrderId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': this.parse8601 (this.safeString (order, 'updatedAt')),
+            'symbol': resolvedMarket['symbol'],
+            'type': this.parseOrderType (rawType),
+            'timeInForce': this.safeString (order, 'timeInForce'),
+            'postOnly': this.safeBool (order, 'postOnly'),
+            'reduceOnly': undefined,
+            'side': this.safeStringLower (order, 'side'),
+            // market orders are stored with a price of 0
+            'price': this.omitZero (this.safeString (order, 'price')),
+            'triggerPrice': this.omitZero (this.safeString (order, 'stopPrice')),
+            'amount': this.safeString (order, 'orderAmount'),
+            'cost': this.safeString (order, 'cost'),
+            'average': undefined,
+            'filled': this.safeString (order, 'filledAmount'),
+            'remaining': undefined,
+            'status': this.parseOrderStatus (this.safeString (order, 'status')),
+            'fee': fee,
+            'trades': undefined,
+        }, resolvedMarket);
+    }
+
+    /**
+     * @method
+     * @name bit2me#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://api.bit2me.com/docs/pro/api-reference/trading/v1/trading/trade/get
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve, default 50, max 50
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch trades for
+     * @param {int} [params.offset] the number of trades to skip, for pagination
+     * @returns {Trade[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        let market: Market = undefined;
+        const request: Dict = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 50);
+        }
+        const [ until, query ] = this.handleParamInteger (params, 'until');
+        // startTime and endTime must always be sent together
+        if ((since !== undefined) || (until !== undefined)) {
+            const start = (since !== undefined) ? since : 0;
+            const end = (until !== undefined) ? until : this.milliseconds ();
+            request['startTime'] = this.iso8601 (start);
+            request['endTime'] = this.iso8601 (end);
+        }
+        const response = await this.privateGetV1TradingTrade (this.extend (request, query));
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "amount": 0.24,
+        //                 "amountCurrency": "BTC",
+        //                 "clientOrderId": null,
+        //                 "cost": 15600.12,
+        //                 "costEuro": 15600.12,
+        //                 "createdAt": "2024-05-07T14:09:02.310Z",
+        //                 "feeAmount": 15.60012,
+        //                 "feeCurrency": "EUR",
+        //                 "feePercentage": 0.1,
+        //                 "id": "4278a86a-53e7-4997-9102-01646ae8954a",
+        //                 "isMaker": true,
+        //                 "orderId": "536ee1dc-528a-419e-9c00-5e04c010658d",
+        //                 "orderType": "limit",
+        //                 "price": 65000.5,
+        //                 "priceCurrency": "EUR",
+        //                 "side": "buy",
+        //                 "symbol": "BTC/EUR"
+        //             }
+        //         ],
+        //         "total": 12
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name bit2me#fetchOrderTrades
+     * @description fetch all the trades made from a single order
+     * @see https://api.bit2me.com/docs/pro/api-reference/trading/v1/trading/order/id/trades/get
+     * @param {string} id order id
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+     */
+    override async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request: Dict = {
+            'id': id,
+        };
+        const response = await this.privateGetV1TradingOrderIdTrades (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "amount": 0.24,
+        //             "amountCurrency": "BTC",
+        //             "clientOrderId": null,
+        //             "cost": 15600.12,
+        //             "costEuro": 15600.12,
+        //             "createdAt": "2024-05-07T14:09:02.310Z",
+        //             "feeAmount": 15.60012,
+        //             "feeCurrency": "EUR",
+        //             "feePercentage": 0.1,
+        //             "feePercentageDiscount": 0,
+        //             "id": "4278a86a-53e7-4997-9102-01646ae8954a",
+        //             "isMaker": true,
+        //             "orderId": "536ee1dc-528a-419e-9c00-5e04c010658d",
+        //             "orderType": "limit",
+        //             "price": 65000.5,
+        //             "priceCurrency": "EUR",
+        //             "side": "buy",
+        //             "spaceCenterLevelId": null,
+        //             "symbol": "BTC/EUR"
+        //         }
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name bit2me#transfer
+     * @description transfer currency internally between the bit2me wallet and the trading (pro) wallet
+     * @see https://api.bit2me.com/docs/pro/api-reference/funding/v1/trading/wallet/deposit/post
+     * @see https://api.bit2me.com/docs/pro/api-reference/funding/v1/trading/wallet/withdraw/post
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount 'funding' (the bit2me wallet) or 'spot' (the trading wallet)
+     * @param {string} toAccount 'funding' (the bit2me wallet) or 'spot' (the trading wallet)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+     */
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params: Dict = {}): Promise<TransferEntry> {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
+        const request: Dict = {
+            'currency': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        let response = undefined;
+        if ((fromId === 'wallet') && (toId === 'trading')) {
+            response = await this.privatePostV1TradingWalletDeposit (this.extend (request, params));
+        } else if ((fromId === 'trading') && (toId === 'wallet')) {
+            response = await this.privatePostV1TradingWalletWithdraw (this.extend (request, params));
+        } else {
+            throw new BadRequest (this.id + ' transfer() only supports transfers between the funding account (bit2me wallet) and the spot account (trading wallet)');
+        }
+        //
+        //     {
+        //         "balance": 1350.5,
+        //         "blockedBalance": 0,
+        //         "createdAt": "2023-09-13T14:05:42.149Z",
+        //         "currency": "EUR",
+        //         "id": "3a9f1c2d-7e4b-4f6a-8c1d-2b3e4f5a6b7c",
+        //         "rawBalance": "1350.5",
+        //         "rawBlockedBalance": "0",
+        //         "userId": "2bf436fc-43e6-459a-b647-6b446f72ad96"
+        //     }
+        //
+        const transfer = this.parseTransfer (response, currency);
+        transfer['amount'] = amount;
+        transfer['fromAccount'] = fromAccount;
+        transfer['toAccount'] = toAccount;
+        return transfer;
+    }
+
+    /**
+     * @method
+     * @name bit2me#fetchTransfers
+     * @description fetch the history of movements between the bit2me wallet and the trading (pro) wallet
+     * @see https://api.bit2me.com/docs/pro/api-reference/funding/v1/trading/movement/get
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfer structures to retrieve, default 100, max 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
+     * @param {string} [params.movementType] 'deposit' or 'withdrawal', to fetch only one direction
+     * @returns {object[]} a list of [transfer structures](https://docs.ccxt.com/#/?id=transfer-structure)
+     */
+    override async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<TransferEntry[]> {
+        await this.loadMarkets ();
+        let currency: Currency = undefined;
+        const request: Dict = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['from'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['limit'] = Math.min (limit, 100);
+        }
+        const [ until, query ] = this.handleParamInteger (params, 'until');
+        if (until !== undefined) {
+            request['to'] = this.iso8601 (until);
+        }
+        const response = await this.privateGetV1TradingMovement (this.extend (request, query));
+        //
+        //     [
+        //         {
+        //             "amount": 100,
+        //             "createdAt": "2025-03-10T09:30:00.000Z",
+        //             "currency": "EUR",
+        //             "id": "1b2c3d4e-5f60-4718-9a2b-3c4d5e6f7a8b",
+        //             "movementType": "deposit",
+        //             "serviceOrderName": "wallet",
+        //             "status": "completed",
+        //             "walletId": "3a9f1c2d-7e4b-4f6a-8c1d-2b3e4f5a6b7c"
+        //         }
+        //     ]
+        //
+        return this.parseTransfers (response, currency, since, limit);
+    }
+
+    override parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+        //
+        // transfer
+        //
+        //     {
+        //         "balance": 1350.5,
+        //         "blockedBalance": 0,
+        //         "createdAt": "2023-09-13T14:05:42.149Z",
+        //         "currency": "EUR",
+        //         "id": "3a9f1c2d-7e4b-4f6a-8c1d-2b3e4f5a6b7c",
+        //         "rawBalance": "1350.5",
+        //         "rawBlockedBalance": "0",
+        //         "userId": "2bf436fc-43e6-459a-b647-6b446f72ad96"
+        //     }
+        //
+        // fetchTransfers
+        //
+        //     {
+        //         "amount": 100,
+        //         "createdAt": "2025-03-10T09:30:00.000Z",
+        //         "currency": "EUR",
+        //         "id": "1b2c3d4e-5f60-4718-9a2b-3c4d5e6f7a8b",
+        //         "movementType": "deposit",
+        //         "serviceOrderName": "wallet",
+        //         "status": "completed",
+        //         "walletId": "3a9f1c2d-7e4b-4f6a-8c1d-2b3e4f5a6b7c"
+        //     }
+        //
+        const currencyId = this.safeString (transfer, 'currency');
+        const movementType = this.safeString (transfer, 'movementType');
+        const accountsById = this.safeDict (this.options, 'accountsById', {});
+        let fromAccount: Str = undefined;
+        let toAccount: Str = undefined;
+        let id: Str = undefined;
+        let timestamp: Int = undefined;
+        let status: Str = undefined;
+        if (movementType !== undefined) {
+            // a movement from the historical list
+            id = this.safeString (transfer, 'id');
+            timestamp = this.parse8601 (this.safeString (transfer, 'createdAt'));
+            status = this.parseTransferStatus (this.safeString (transfer, 'status'));
+            const wallet = this.safeString (accountsById, 'wallet');
+            const trading = this.safeString (accountsById, 'trading');
+            fromAccount = (movementType === 'deposit') ? wallet : trading;
+            toAccount = (movementType === 'deposit') ? trading : wallet;
+        } else {
+            // the trading wallet returned by deposit/withdraw, createdAt is the wallet creation date
+            status = 'ok';
+        }
+        return {
+            'info': transfer,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.safeNumber (transfer, 'amount'),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': status,
+        };
+    }
+
+    parseTransferStatus (status: Str): Str {
+        const statuses: Dict = {
+            'completed': 'ok',
+            'pending': 'pending',
+            'failed': 'failed',
+            'cancelled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
         const apiName = api[0];
         let requestHeaders: NullableDict = undefined;
@@ -884,12 +1793,16 @@ export default class bit2me extends Exchange {
         //     {"code":403,"description":"invalid credentials"}
         //     {"message":"Validation errors","errors":[{"code":"INVALID_REQUEST_PARAMETER","message":"Invalid parameter (symbol): Value is required but was not provided","in":"query","name":"symbol"}]}
         //     {"message":["type must be one of the following values: all, fiat, crypto"],"error":"Bad Request","statusCode":400}
+        //     {"statusCode":412,"error":"Precondition Failed","message":"...","errorPayload":{"code":"ORDER_AMOUNT_LOWER_MARKET_MIN"}}
         //
         const errorCode = this.safeString2 (response, 'code', 'statusCode');
         const errorsList = this.safeList (response, 'errors');
-        if ((errorCode !== undefined) || (errorsList !== undefined)) {
+        const errorPayload = this.safeDict (response, 'errorPayload', {});
+        const payloadCode = this.safeString (errorPayload, 'code');
+        if ((errorCode !== undefined) || (errorsList !== undefined) || (payloadCode !== undefined)) {
             const message = this.safeStringN (response, [ 'message', 'description', 'error' ]);
             const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], payloadCode, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
