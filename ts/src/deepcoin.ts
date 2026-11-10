@@ -303,6 +303,9 @@ export default class deepcoin extends Exchange {
                 'swap': {
                     'linear': {
                         'extends': 'spot',
+                        'fetchOHLCV': {
+                            'volume': 'contracts',
+                        },
                     },
                     'inverse': {
                         'extends': 'spot',

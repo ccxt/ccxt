@@ -457,6 +457,9 @@ export default class hashkey extends Exchange {
                 'swap': {
                     'linear': {
                         'extends': 'forDerivatives',
+                        'fetchOHLCV': {
+                            'volume': 'contracts',
+                        },
                     },
                     'inverse': undefined,
                 },
