@@ -11,7 +11,29 @@
 		"dhParamPemPath": "./dhparam.pem"
     },
     "methods": {
+        "fetchPositions": [
+            {
+                "description": "crypto spot",
+                "method": "fetchPositions",
+                "url": "https://api.ibkr.com/v1/api/portfolio2/U3448646/positions",
+                "input": [
+                    [
+                        "ETH/USD"
+                    ]
+                ],
+                "output": null
+            }
+        ],
         "fetchPositionsForSymbol": [
+            {
+                "description": "crypto spot",
+                "method": "fetchPositionsForSymbol",
+                "url": "https://api.ibkr.com/v1/api/portfolio/U3448646/position/495759171",
+                "input": [
+                    "ETH/USD"
+                ],
+                "output": null
+            },
             {
                 "description": "crypto spot",
                 "method": "fetchPositionsForSymbol",

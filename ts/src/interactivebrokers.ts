@@ -1772,6 +1772,7 @@ export default class interactivebrokers extends Exchange {
         const isFuture = isFut && !isPerp;
         const isSwap = isCfd || isPerp;
         const isContract = isSwap || isFuture;
+        const isSpot = !isContract;
         const id = this.safeString (market, 'conid');
         const quoteId = this.safeString (market, 'currency');
         const quote = this.safeCurrencyCode (quoteId);
@@ -1812,6 +1813,9 @@ export default class interactivebrokers extends Exchange {
             }
         } else {
             base = this.safeCurrencyCode (baseTickerId);
+            if (!isSpot) {
+                contractSize = this.safeString (this.options, 'defaultContractSize', '1');
+            }
         }
         let symbol = base + '/' + quote;
         let settleId: Str = undefined;
@@ -1840,7 +1844,7 @@ export default class interactivebrokers extends Exchange {
             'settle': settle,
             'settleId': settleId,
             'type': marketType,
-            'spot': !isContract,
+            'spot': isSpot,
             'margin': false,
             'swap': isSwap,
             'future': isFuture,
