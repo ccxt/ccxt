@@ -747,7 +747,7 @@ export default class btcturk extends Exchange {
             if (sinceValue !== undefined) {
                 untilValue = sinceValue + limitResolved * duration;
             } else {
-                untilValue = now; 
+                untilValue = now;
             }
         }
         if (sinceValue === undefined) {
