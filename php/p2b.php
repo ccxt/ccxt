@@ -780,7 +780,7 @@ class p2b extends Exchange {
             'interval' => $timeframe,
         );
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = min($limit, 500);
         }
         $response = $this->publicGetMarketKline($this->extend($request, $params));
         //
