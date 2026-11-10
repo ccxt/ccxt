@@ -1197,8 +1197,8 @@ impl Cryptomus {
         let mut amountToString: Option<String> = self.number_to_string(amount).as_str().map(str::to_owned);
         let mut priceToString: Option<String> = self.number_to_string(price.clone()).as_str().map(str::to_owned);
         let mut paramsCost: Value = self.omit(paramsOmitted.clone(), Value::Str("cost".into()), &[]);
-        let mut costParam: Value = self.safe_string_k(paramsOmitted, "cost", &[]);
-        let mut cost: Value = costParam.clone();
+        let mut costParam: Option<String> = self.safe_string_k(paramsOmitted, "cost", &[]).as_str().map(str::to_owned);
+        let mut cost: Option<String> = costParam.clone();
         let mut response: Value = Value::Null;
         if (type_var.as_str() == Some("market")) {
             let mut requiresPriceAndParams: Value = self.handle_option_bool_and_params(paramsCost.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]);
@@ -1209,15 +1209,15 @@ impl Cryptomus {
             if sideBuy {
                 let mut createMarketBuyOrderRequiresPrice: Value = requiresPriceAndParams.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
                 if createMarketBuyOrderRequiresPrice.as_bool() == Some(true) {
-                    if (price == Value::Null) && (costParam == Value::Null) {
+                    if (price == Value::Null) && (costParam.is_none()) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option of param to false and pass the cost to spend in the amount argument".into()))));
-                    }  else if (costParam == Value::Null) {
-                        cost = crate::precise::Precise::stringMul(&amountToString.clone().map(Value::from).unwrap_or(Value::Null), &priceToString.clone().map(Value::from).unwrap_or(Value::Null));
+                    }  else if (costParam.is_none()) {
+                        cost = crate::precise::Precise::stringMul(&amountToString.clone().map(Value::from).unwrap_or(Value::Null), &priceToString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                     }
                 }  else {
-                    cost = (if ((costParam != Value::Null) && (costParam.as_str() != Some(""))) { costParam } else { amountToString.clone().map(Value::from).unwrap_or(Value::Null) });
+                    cost = (if ((costParam.is_some()) && (costParam.as_deref() != Some(""))) { costParam } else { amountToString.clone() });
                 }
-                request.insert("value".into(), cost);
+                request.insert("value".into(), cost.clone().map(Value::from).unwrap_or(Value::Null));
             }  else {
                 request.insert("quantity".into(), amountToString.clone().map(Value::from).unwrap_or(Value::Null));
             }
@@ -1659,10 +1659,10 @@ impl Cryptomus {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut makerFee: Value = self.safe_string_k(currentFeeTier.clone(), "maker_percent", &[]);
-        let mut takerFee: Value = self.safe_string_k(currentFeeTier, "taker_percent", &[]);
-        makerFee = crate::precise::Precise::stringDiv(&makerFee, &Value::Str("100".into()));
-        takerFee = crate::precise::Precise::stringDiv(&takerFee, &Value::Str("100".into()));
+        let mut makerFee: Option<String> = self.safe_string_k(currentFeeTier.clone(), "maker_percent", &[]).as_str().map(str::to_owned);
+        let mut takerFee: Option<String> = self.safe_string_k(currentFeeTier, "taker_percent", &[]).as_str().map(str::to_owned);
+        makerFee = crate::precise::Precise::stringDiv(&makerFee.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+        takerFee = crate::precise::Precise::stringDiv(&takerFee.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
         let mut feeTiers: Value = self.safe_list_k(data, "tariff_steps", &[Value::from(vec![])]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1682,8 +1682,8 @@ impl Cryptomus {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
         m.insert("symbol".to_string(), symbol.clone());
-        m.insert("maker".to_string(), self.parse_number(makerFee.clone(), &[]));
-        m.insert("taker".to_string(), self.parse_number(takerFee.clone(), &[]));
+        m.insert("maker".to_string(), self.parse_number(makerFee.clone().map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("taker".to_string(), self.parse_number(takerFee.clone().map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
         m.insert("tiers".to_string(), Value::Map(tiers.clone()));
@@ -1706,12 +1706,12 @@ impl Cryptomus {
             while { if !__for_first_606 { i += 1; } __for_first_606 = false; i < (feeTiers.len() as i64) } {
             let mut tier: Value = self.safe_dict(feeTiers.clone(), Value::Int(i), &[]);
             let mut turnover: Option<f64> = self.safe_number_k(tier.clone(), "from_turnover", &[]).as_f64();
-            let mut taker: Value = self.safe_string_k(tier.clone(), "taker_percent", &[]);
-            let mut maker: Value = self.safe_string_k(tier, "maker_percent", &[]);
-            maker = crate::precise::Precise::stringDiv(&maker, &Value::Str("100".into()));
-            taker = crate::precise::Precise::stringDiv(&taker, &Value::Str("100".into()));
-            makerFees.push(Value::from(vec![Value::from(turnover), self.parse_number(maker, &[])]));
-            takerFees.push(Value::from(vec![Value::from(turnover), self.parse_number(taker, &[])]));
+            let mut taker: Option<String> = self.safe_string_k(tier.clone(), "taker_percent", &[]).as_str().map(str::to_owned);
+            let mut maker: Option<String> = self.safe_string_k(tier, "maker_percent", &[]).as_str().map(str::to_owned);
+            maker = crate::precise::Precise::stringDiv(&maker.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+            taker = crate::precise::Precise::stringDiv(&taker.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+            makerFees.push(Value::from(vec![Value::from(turnover), self.parse_number(maker.clone().map(Value::from).unwrap_or(Value::Null), &[])]));
+            takerFees.push(Value::from(vec![Value::from(turnover), self.parse_number(taker.clone().map(Value::from).unwrap_or(Value::Null), &[])]));
         }
         }
         return Value::Map({

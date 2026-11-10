@@ -335,10 +335,10 @@ impl Bitopro {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: Value = Value::from((market).symbol.clone());
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("ORDER_BOOK".into()), Value::Str(":".into())).into()), symbolValue);
-        let mut marketIdValue: Value = self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]);
+        let mut marketIdValue: String = self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut endPart: Value = Value::Null;
         if (limit == Value::Null) {
-            endPart = marketIdValue.clone();
+            endPart = Value::from(marketIdValue.clone());
         }  else {
             endPart = Value::Str(format!("{}{}", Value::Str(format!("{}{}", marketIdValue, Value::Str(":".into())).into()), self.number_to_string(limit.clone())).into());
         }

@@ -1650,19 +1650,19 @@ impl Luno {
         }  else {
             side = (if matches!((self.safe_bool_k(trade.clone(), "is_buy", &[Value::Bool(false)])), Value::Bool(true)) { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
         }
-        let mut feeBaseString: Option<String> = self.safe_string_k_opt(trade.clone(), "fee_base", &[]);
-        let mut feeCounterString: Option<String> = self.safe_string_k_opt(trade.clone(), "fee_counter", &[]);
+        let mut feeBaseString: Option<String> = self.safe_string_k(trade.clone(), "fee_base", &[]).as_str().map(str::to_owned);
+        let mut feeCounterString: Option<String> = self.safe_string_k(trade.clone(), "fee_counter", &[]).as_str().map(str::to_owned);
         let mut feeCurrency: Option<String> = None;
         let mut feeCost: Value = Value::Null;
         if (feeBaseString.is_some()) {
             if !(crate::precise::Precise::stringEquals(&feeBaseString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0.0".into())).as_bool() == Some(true)) {
                 feeCurrency = self.safe_string_k(market.clone(), "base", &[]).as_str().map(str::to_owned);
-                feeCost = feeBaseString.map(Value::from).unwrap_or(Value::Null);
+                feeCost = feeBaseString.clone().map(Value::from).unwrap_or(Value::Null);
             }
         }  else if (feeCounterString.is_some()) {
             if !(crate::precise::Precise::stringEquals(&feeCounterString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0.0".into())).as_bool() == Some(true)) {
                 feeCurrency = self.safe_string_k(market.clone(), "quote", &[]).as_str().map(str::to_owned);
-                feeCost = feeCounterString.map(Value::from).unwrap_or(Value::Null);
+                feeCost = feeCounterString.clone().map(Value::from).unwrap_or(Value::Null);
             }
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
@@ -2463,9 +2463,9 @@ impl Luno {
         }
         let mut error: Value = self.safe_value_k(response.clone(), "error", &[]);
         if (error != Value::Null) {
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response)).into());
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response));
             let mut errorCode: Option<String> = self.safe_string_k(response, "error_code", &[]).as_str().map(str::to_owned);
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;

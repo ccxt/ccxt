@@ -1180,16 +1180,16 @@ impl Bitstamp {
             timeInForce = Some("GTD".to_string());
         }
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price_str", &[]).as_str().map(str::to_owned);
-        let mut amountLeft: Option<String> = self.safe_string_k_opt(order.clone(), "amount_str", &[]);
-        let mut amountAtCreate: Option<String> = self.safe_string_k_opt(order.clone(), "amount_at_create", &[]);
+        let mut amountLeft: Option<String> = self.safe_string_k(order.clone(), "amount_str", &[]).as_str().map(str::to_owned);
+        let mut amountAtCreate: Option<String> = self.safe_string_k(order.clone(), "amount_at_create", &[]).as_str().map(str::to_owned);
         // amount_str carries the amount left to be executed, while
         // amount_at_create is the original order amount - older messages
         // do not carry amount_at_create, so fall back to the old behaviour
         let mut amount: Value = amountLeft.clone().map(Value::from).unwrap_or(Value::Null);
         let mut remaining: Value = Value::Null;
         if (amountAtCreate.is_some()) {
-            amount = amountAtCreate.map(Value::from).unwrap_or(Value::Null);
-            remaining = amountLeft.map(Value::from).unwrap_or(Value::Null);
+            amount = amountAtCreate.clone().map(Value::from).unwrap_or(Value::Null);
+            remaining = amountLeft.clone().map(Value::from).unwrap_or(Value::Null);
         }
         let mut filled: Option<String> = self.safe_string_k(order.clone(), "amount_traded", &[]).as_str().map(str::to_owned);
         let mut event: Option<String> = self.safe_string_k(order.clone(), "event", &[]).as_str().map(str::to_owned);

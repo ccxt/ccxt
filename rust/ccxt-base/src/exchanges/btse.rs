@@ -1991,13 +1991,13 @@ impl Btse {
         let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
         let mut last: Option<String> = self.safe_string_k(ticker.clone(), "lastPrice", &[]).as_str().map(str::to_owned);
-        let mut baseVolume: Value = self.safe_string_k(ticker.clone(), "amount", &[]);
-        if (baseVolume != Value::Null) && (marketResolved != Value::Null) && matches!((self.safe_bool_k(marketResolved.clone(), "contract", &[Value::Bool(false)])), Value::Bool(true)) {
+        let mut baseVolume: Option<String> = self.safe_string_k(ticker.clone(), "amount", &[]).as_str().map(str::to_owned);
+        if (baseVolume.is_some()) && (marketResolved != Value::Null) && matches!((self.safe_bool_k(marketResolved.clone(), "contract", &[Value::Bool(false)])), Value::Bool(true)) {
             // for contract markets the amount field is denominated in contracts, verified live -
             // scaling by contractSize converts it into base currency units
             let mut contractSizeString: Option<String> = self.number_to_string(marketResolved.as_map().and_then(|__m| __m.get("contractSize")).cloned().unwrap_or(Value::Null)).as_str().map(str::to_owned);
             if (contractSizeString.is_some()) {
-                baseVolume = crate::precise::Precise::stringMul(&baseVolume, &contractSizeString.clone().map(Value::from).unwrap_or(Value::Null));
+                baseVolume = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &contractSizeString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             }
         }
         let mut timestamp: Option<i64> = self.safe_timestamp_k(ticker.clone(), "closeTime", &[]).as_i64();
@@ -2020,7 +2020,7 @@ impl Btse {
         m.insert("change".to_string(), self.safe_string_k(ticker.clone(), "priceChange", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), baseVolume);
+        m.insert("baseVolume".to_string(), baseVolume.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteVolume".to_string(), self.safe_string_k(ticker.clone(), "volume", &[]));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("indexPrice".to_string(), Value::Null);
@@ -2790,9 +2790,9 @@ impl Btse {
         if (timeInForce != Value::Null) {
             request.insert("timeInForce".into(), timeInForce);
         }
-        let mut triggerPrice: Option<String> = self.safe_string_k_opt(query.clone(), "triggerPrice", &[]);
-        let mut takeProfitPrice: Option<String> = self.safe_string_k_opt(query.clone(), "takeProfitPrice", &[]);
-        let mut stopLossPrice: Option<String> = self.safe_string_k_opt(query.clone(), "stopLossPrice", &[]);
+        let mut triggerPrice: Option<String> = self.safe_string_k(query.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
+        let mut takeProfitPrice: Option<String> = self.safe_string_k(query.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
+        let mut stopLossPrice: Option<String> = self.safe_string_k(query.clone(), "stopLossPrice", &[]).as_str().map(str::to_owned);
         let mut isTriggerOrder: bool = (triggerPrice.is_some()) || (takeProfitPrice.is_some());
         let mut isStopLossOrder: bool = stopLossPrice.is_some();
         let mut isConditionalOrder: bool = (isTriggerOrder || isStopLossOrder) && (matches!(&isMarketOrder, Value::Bool(true)) || isLimitOrder);
@@ -2876,7 +2876,7 @@ impl Btse {
                     if isLimitOrder {
                         triggerOrderType = Value::Str("STOP_LOSS_LIMIT".into());
                     }
-                    triggerPriceToSend = stopLossPrice.map(Value::from).unwrap_or(Value::Null);
+                    triggerPriceToSend = stopLossPrice.clone().map(Value::from).unwrap_or(Value::Null);
                 }  else {
                     triggerOrderType = Value::Str("TAKE_PROFIT".into());
                     if isLimitOrder {
@@ -2884,7 +2884,7 @@ impl Btse {
                     }
                     triggerPriceToSend = triggerPrice.clone().map(Value::from).unwrap_or(Value::Null);
                     if (triggerPriceToSend == Value::Null) {
-                        triggerPriceToSend = takeProfitPrice.map(Value::from).unwrap_or(Value::Null);
+                        triggerPriceToSend = takeProfitPrice.clone().map(Value::from).unwrap_or(Value::Null);
                     }
                 }
                 if isLimitOrder {
@@ -2907,7 +2907,7 @@ impl Btse {
                         request.insert("stopLossOrderPrice".into(), self.price_to_precision(symbol.clone(), stopPrice.clone().map(Value::from).unwrap_or(Value::Null)));
                     }
                     if (triggerPrice.is_some()) {
-                        request.insert("stopLossTriggerPrice".into(), self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null)));
+                        request.insert("stopLossTriggerPrice".into(), self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
                     }
                     let mut triggerPriceType: Value = self.safe_string_k(query.clone(), "triggerPriceType", &[Value::Str("last".into())]);
                     request.insert("stopLossTriggerPriceType".into(), self.encode_trigger_price_type(triggerPriceType.clone()).map(Value::from).unwrap_or(Value::Null));
@@ -3028,9 +3028,9 @@ impl Btse {
         if (timeInForce != Value::Null) {
             request.insert("timeInForce".into(), timeInForce);
         }
-        let mut triggerPrice: Option<String> = self.safe_string_k_opt(query.clone(), "triggerPrice", &[]);
-        let mut takeProfitPrice: Option<String> = self.safe_string_k_opt(query.clone(), "takeProfitPrice", &[]);
-        let mut stopLossPrice: Option<String> = self.safe_string_k_opt(query.clone(), "stopLossPrice", &[]);
+        let mut triggerPrice: Option<String> = self.safe_string_k(query.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
+        let mut takeProfitPrice: Option<String> = self.safe_string_k(query.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
+        let mut stopLossPrice: Option<String> = self.safe_string_k(query.clone(), "stopLossPrice", &[]).as_str().map(str::to_owned);
         let mut isTriggerOrder: bool = (triggerPrice.is_some()) || (takeProfitPrice.is_some());
         let mut isStopLossOrder: bool = stopLossPrice.is_some();
         let mut isConditionalOrder: bool = (isTriggerOrder || isStopLossOrder) && (matches!(&isMarketOrder, Value::Bool(true)) || isLimitOrder);
@@ -3101,10 +3101,10 @@ impl Btse {
                 request.insert("orderType".into(), Value::Str("CONDITIONAL".into()));
                 let mut triggerPriceToSend: Value = triggerPrice.clone().map(Value::from).unwrap_or(Value::Null);
                 if (triggerPriceToSend == Value::Null) {
-                    triggerPriceToSend = takeProfitPrice.map(Value::from).unwrap_or(Value::Null);
+                    triggerPriceToSend = takeProfitPrice.clone().map(Value::from).unwrap_or(Value::Null);
                 }
                 if (triggerPriceToSend == Value::Null) {
-                    triggerPriceToSend = stopLossPrice.map(Value::from).unwrap_or(Value::Null);
+                    triggerPriceToSend = stopLossPrice.clone().map(Value::from).unwrap_or(Value::Null);
                 }
                 request.insert("triggerPrice".into(), self.price_to_precision(symbol.clone(), triggerPriceToSend));
                 let mut triggerPriceType: Value = self.safe_string_k(query.clone(), "triggerPriceType", &[Value::Str("mark".into())]);
@@ -3125,7 +3125,7 @@ impl Btse {
                         request.insert("stopLossOrderPrice".into(), self.price_to_precision(symbol.clone(), stopPrice.clone().map(Value::from).unwrap_or(Value::Null)));
                     }
                     if (triggerPrice.is_some()) {
-                        request.insert("stopLossTriggerPrice".into(), self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null)));
+                        request.insert("stopLossTriggerPrice".into(), self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
                     }
                     let mut triggerPriceType: Value = self.safe_string_k(query.clone(), "triggerPriceType", &[Value::Str("mark".into())]);
                     request.insert("stopLossTriggerType".into(), self.encode_trigger_price_type(triggerPriceType.clone()).map(Value::from).unwrap_or(Value::Null));
@@ -4910,16 +4910,16 @@ impl Btse {
             let mut __for_first_491: bool = true;
             while { if !__for_first_491 { i += 1; } __for_first_491 = false; i < (safeResponse.len() as i64) } {
             let mut entrty: Value = self.safe_dict(safeResponse.clone(), Value::Int(i), &[]);
-            let mut leverageValue: Value = self.safe_integer_k(entrty.clone(), "leverage", &[]);
+            let mut leverageValue: Option<i64> = self.safe_integer_k(entrty.clone(), "leverage", &[]).as_i64();
             let mut positionDirection: Option<String> = self.safe_string_k(entrty.clone(), "positionDirection", &[]).as_str().map(str::to_owned);
             marginMode = self.safe_string_lower_k(entrty, "marginMode", &[]);
             if (positionDirection.as_deref() == Some("LONG")) {
-                longLeverage = leverageValue.clone();
+                longLeverage = Value::from(leverageValue);
             }  else if (positionDirection.as_deref() == Some("SHORT")) {
-                shortLeverage = leverageValue.clone();
+                shortLeverage = Value::from(leverageValue);
             }  else if (positionDirection.is_none()) {
-                longLeverage = leverageValue.clone();
-                shortLeverage = leverageValue;
+                longLeverage = Value::from(leverageValue);
+                shortLeverage = Value::from(leverageValue);
             }
         }
         }

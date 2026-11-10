@@ -560,19 +560,19 @@ impl Mudrex {
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), text.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), text).into()));
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errCode.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), text).into()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), text.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), text).into()));
-            let mut msg: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), text).into());
+            let mut msg: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), text);
             let mut low: Value = (if let Some(__s) = text.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
             if (code.as_f64() == Some(401.0)) || low.as_str().unwrap_or("").contains("auth") {
-                panic!("{}", crate::exchange_errors::authentication_error(msg));
+                panic!("{}", crate::exchange_errors::authentication_error(msg.clone()));
             }
             if (code.as_f64() == Some(429.0)) || low.as_str().unwrap_or("").contains("rate") {
-                panic!("{}", crate::exchange_errors::rate_limit_exceeded(msg));
+                panic!("{}", crate::exchange_errors::rate_limit_exceeded(msg.clone()));
             }
             if low.as_str().unwrap_or("").contains("insufficient") {
-                panic!("{}", crate::exchange_errors::insufficient_funds(msg));
+                panic!("{}", crate::exchange_errors::insufficient_funds(msg.clone()));
             }
             if (code.as_f64() == Some(400.0)) {
-                panic!("{}", crate::exchange_errors::bad_request(msg));
+                panic!("{}", crate::exchange_errors::bad_request(msg.clone()));
             }
             panic!("{}", crate::exchange_errors::exchange_error(msg));
         }
@@ -1033,7 +1033,7 @@ impl Mudrex {
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), &[Value::Null, params, Value::Str("swap".into())]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut requested: Option<String> = self.safe_string_n_opt(paramsMarketType.clone(), Value::from(vec![Value::Str("trade_currency".into()), Value::Str("tradeCurrency".into()), Value::Str("currency".into())]), &[]);
+        let mut requested: Option<String> = self.safe_string_n(paramsMarketType.clone(), Value::from(vec![Value::Str("trade_currency".into()), Value::Str("tradeCurrency".into()), Value::Str("currency".into())]), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: Value = self.omit(paramsMarketType, Value::from(vec![Value::Str("trade_currency".into()), Value::Str("tradeCurrency".into()), Value::Str("currency".into())]), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1053,16 +1053,16 @@ impl Mudrex {
             let __ws_arg_6 = self.extend(Value::Map(request), &[paramsOmitted]);
             response = self.private_get_futures_funds(&[__ws_arg_6]).await;
         }
-        let mut currency: Value = requested.map(Value::from).unwrap_or(Value::Null);
-        if (currency == Value::Null) {
-            currency = Value::Str("USDT".into());
+        let mut currency: Option<String> = requested;
+        if (currency.is_none()) {
+            currency = Some("USDT".to_string());
         }
         if (response == Value::Null) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance() returned empty response".into()))));
         }
         let __ws_arg_7 = self.extend(response, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("currency".to_string(), currency);
+        m.insert("currency".to_string(), currency.clone().map(Value::from).unwrap_or(Value::Null));
     m
 })]);
         return self.parse_balance(__ws_arg_7);
@@ -1398,7 +1398,7 @@ impl Mudrex {
         }
         // stop-loss / take-profit rows attached to a position carry the trigger value under the "price" key
         let mut isRiskOrder: bool = (rawSide.as_deref() == Some("STOPLOSS")) || (rawSide.as_deref() == Some("TAKEPROFIT"));
-        let mut priceString: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("price".into()), Value::Str("order_price".into()), &[]);
+        let mut priceString: Option<String> = self.safe_string2(order.clone(), Value::Str("price".into()), Value::Str("order_price".into()), &[]).as_str().map(str::to_owned);
         let mut orderPrice: Value = priceString.clone().map(Value::from).unwrap_or(Value::Null);
         let mut triggerPrice: Value = Value::Null;
         let mut stopLossPrice: Value = Value::Null;
@@ -1409,7 +1409,7 @@ impl Mudrex {
             if (rawSide.as_deref() == Some("STOPLOSS")) {
                 stopLossPrice = priceString.clone().map(Value::from).unwrap_or(Value::Null);
             }  else {
-                takeProfitPrice = priceString.map(Value::from).unwrap_or(Value::Null);
+                takeProfitPrice = priceString.clone().map(Value::from).unwrap_or(Value::Null);
             }
         }
         let mut trig: Option<String> = self.safe_string_upper_k(order.clone(), "trigger_type", &[]).as_str().map(str::to_owned);
@@ -2108,13 +2108,13 @@ impl Mudrex {
             while { if !__for_first_975 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_975 = false; i.as_f64().unwrap_or(f64::NAN) < ((allRows.len() as i64) as f64) } {
             let mut entry: Value = allRows.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut feeType: Option<String> = self.safe_string_k(entry.clone(), "fee_type", &[]).as_str().map(str::to_owned);
-            let mut pairKey: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(entry.clone(), "symbol", &[Value::Str("".into())]), Value::Str(":".into())).into()), self.safe_string_k(entry.clone(), "created_at", &[Value::Str("".into())])).into()),
-                Value::Str(":".into())).into()), self.safe_string_k(entry.clone(), "transaction_amount", &[Value::Str("".into())])).into());
+            let mut pairKey: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(entry.clone(), "symbol", &[Value::Str("".into())]), Value::Str(":".into())).into()), self.safe_string_k(entry.clone(), "created_at", &[Value::Str("".into())])).into()), Value::Str(":".into())).into()),
+                self.safe_string_k(entry.clone(), "transaction_amount", &[Value::Str("".into())]));
             if (feeType.as_deref() == Some("TRANSACTION")) {
                 transactions.push(entry.clone());
-                transactionKeys.push(pairKey.clone());
+                transactionKeys.push(Value::from(pairKey.clone()));
             }  else if (feeType.as_deref() == Some("REBATE")) {
-                if let Value::Arr(__a) = &mut rebateKeys { std::sync::Arc::make_mut(__a).push(pairKey); }
+                if let Value::Arr(__a) = &mut rebateKeys { std::sync::Arc::make_mut(__a).push(Value::from(pairKey)); }
                 if let Value::Arr(__a) = &mut rebateAmounts { std::sync::Arc::make_mut(__a).push(self.safe_string_k(entry, "fee_amount", &[Value::Str("0".into())])); }
             }
         }
@@ -2189,16 +2189,16 @@ impl Mudrex {
             takerOrMaker = Some("taker".to_string());
         }
         let mut fee: Value = Value::Null;
-        let mut feeCostString: Value = self.safe_string_k(trade.clone(), "fee_amount", &[]);
+        let mut feeCostString: Option<String> = self.safe_string_k(trade.clone(), "fee_amount", &[]).as_str().map(str::to_owned);
         // rebate_amount is attached by fetchMyTrades from the fill's REBATE row - the reported fee is the net charge
         let mut rebateString: Option<String> = self.safe_string_k(trade.clone(), "rebate_amount", &[]).as_str().map(str::to_owned);
-        if (feeCostString != Value::Null) && (rebateString.is_some()) {
-            feeCostString = crate::precise::Precise::stringSub(&feeCostString, &rebateString.clone().map(Value::from).unwrap_or(Value::Null));
+        if (feeCostString.is_some()) && (rebateString.is_some()) {
+            feeCostString = crate::precise::Precise::stringSub(&feeCostString.clone().map(Value::from).unwrap_or(Value::Null), &rebateString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
-        if (feeCostString != Value::Null) {
+        if (feeCostString.is_some()) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), feeCostString);
+                    m.insert("cost".to_string(), feeCostString.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("currency".to_string(), self.safe_string_k(trade.clone(), "trade_currency", &[]));
                 m
             });

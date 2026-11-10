@@ -466,12 +466,12 @@ impl Revolutx {
         let mut implodedPath: Value = self.implode_params(path.clone(), params.clone());
         let mut query: Value = self.omit(params, self.extract_params(path), &[]);
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
-        let mut baseApiUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]);
+        let mut baseApiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]).as_str().map(str::to_owned);
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut baseUrl: Value = baseApiUrl.map(Value::from).unwrap_or(Value::Null);
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("/".into())).into()), implodedPath).into());
+        let mut baseUrl: Option<String> = baseApiUrl;
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), implodedPath).into());
         let mut queryString: Value = Value::Str("".into());
         let mut bodyString: Value = Value::Str("".into());
         if (apiName.as_str() == Some("private")) {
@@ -858,8 +858,8 @@ impl Revolutx {
         }
         let mut percentage: Value = Value::Null;
         if (open.is_some()) && (priceChange.is_some()) {
-            let mut percentageString: Value = crate::precise::Precise::stringDivPrec(&priceChange.clone().map(Value::from).unwrap_or(Value::Null), &open.clone().map(Value::from).unwrap_or(Value::Null), &Value::Int(8));
-            percentage = self.parse_number(crate::precise::Precise::stringMul(&percentageString, &Value::Str("100".into())), &[]);
+            let mut percentageString: Option<String> = crate::precise::Precise::stringDivPrec(&priceChange.clone().map(Value::from).unwrap_or(Value::Null), &open.clone().map(Value::from).unwrap_or(Value::Null), &Value::Int(8)).as_str().map(str::to_owned);
+            percentage = self.parse_number(crate::precise::Precise::stringMul(&percentageString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]);
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1375,13 +1375,13 @@ impl Revolutx {
             }
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string_k(balance.clone(), "available", &[]));
-            let mut reserved: Option<String> = self.safe_string_k_opt(balance.clone(), "reserved", &[]);
+            let mut reserved: Option<String> = self.safe_string_k(balance.clone(), "reserved", &[]).as_str().map(str::to_owned);
             let mut staked: Option<String> = self.safe_string_k(balance.clone(), "staked", &[]).as_str().map(str::to_owned);
-            let mut used: Value = reserved.clone().map(Value::from).unwrap_or(Value::Null);
+            let mut used: Option<String> = reserved.clone();
             if (staked.is_some()) {
-                used = (if (reserved.is_none()) { staked.clone().map(Value::from).unwrap_or(Value::Null) } else { crate::precise::Precise::stringAdd(&reserved.clone().map(Value::from).unwrap_or(Value::Null), &staked.clone().map(Value::from).unwrap_or(Value::Null)) });
+                used = (if (reserved.is_none()) { staked.clone() } else { crate::precise::Precise::stringAdd(&reserved.clone().map(Value::from).unwrap_or(Value::Null), &staked.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned) });
             }
-            account.insert("used".into(), used);
+            account.insert("used".into(), used.clone().map(Value::from).unwrap_or(Value::Null));
             account.insert("total".into(), self.safe_string_k(balance, "total", &[]));
             result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
         }
@@ -1432,9 +1432,9 @@ impl Revolutx {
         let mut symbol: Option<String> = self.safe_symbol(orderSymbol.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("/".into())]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_lower_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut orderType: Option<String> = self.safe_string_lower_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
-        let mut quantity: Option<String> = self.safe_string_k_opt(order.clone(), "quantity", &[]);
-        let mut filledQuantity: Option<String> = self.safe_string_k_opt(order.clone(), "filled_quantity", &[]);
-        let mut leavesQuantity: Option<String> = self.safe_string_k_opt(order.clone(), "leaves_quantity", &[]);
+        let mut quantity: Option<String> = self.safe_string_k(order.clone(), "quantity", &[]).as_str().map(str::to_owned);
+        let mut filledQuantity: Option<String> = self.safe_string_k(order.clone(), "filled_quantity", &[]).as_str().map(str::to_owned);
+        let mut leavesQuantity: Option<String> = self.safe_string_k(order.clone(), "leaves_quantity", &[]).as_str().map(str::to_owned);
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut averageFillPrice: Option<String> = self.safe_string_k(order.clone(), "average_fill_price", &[]).as_str().map(str::to_owned);
         //
@@ -1470,8 +1470,8 @@ impl Revolutx {
                 }
             }
         }
-        let mut amount: Option<String> = self.safe_string_k_opt(order.clone(), "amount", &[]);
-        let mut filledAmount: Option<String> = self.safe_string_k_opt(order.clone(), "filled_amount", &[]);
+        let mut amount: Option<String> = self.safe_string_k(order.clone(), "amount", &[]).as_str().map(str::to_owned);
+        let mut filledAmount: Option<String> = self.safe_string_k(order.clone(), "filled_amount", &[]).as_str().map(str::to_owned);
         let mut totalFee: Option<String> = self.safe_string_k(order.clone(), "total_fee", &[]).as_str().map(str::to_owned);
         let mut feeCurrency: Option<String> = self.safe_string_k(order.clone(), "fee_currency", &[]).as_str().map(str::to_owned);
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null);
@@ -1489,19 +1489,19 @@ impl Revolutx {
         }
         let mut amountValue: Value = Value::Null;
         if (quantity.is_some()) {
-            amountValue = quantity.map(Value::from).unwrap_or(Value::Null);
+            amountValue = quantity.clone().map(Value::from).unwrap_or(Value::Null);
         }  else if (amount.is_some()) {
-            amountValue = amount.map(Value::from).unwrap_or(Value::Null);
+            amountValue = amount.clone().map(Value::from).unwrap_or(Value::Null);
         }
         let mut filledValue: Value = Value::Null;
         if (filledQuantity.is_some()) {
-            filledValue = filledQuantity.map(Value::from).unwrap_or(Value::Null);
+            filledValue = filledQuantity.clone().map(Value::from).unwrap_or(Value::Null);
         }  else if (filledAmount.is_some()) {
-            filledValue = filledAmount.map(Value::from).unwrap_or(Value::Null);
+            filledValue = filledAmount.clone().map(Value::from).unwrap_or(Value::Null);
         }
         let mut remainingValue: Value = Value::Null;
         if (leavesQuantity.is_some()) {
-            remainingValue = leavesQuantity.map(Value::from).unwrap_or(Value::Null);
+            remainingValue = leavesQuantity.clone().map(Value::from).unwrap_or(Value::Null);
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();

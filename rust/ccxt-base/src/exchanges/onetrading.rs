@@ -1174,15 +1174,15 @@ impl Onetrading {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut spotMakerFee: Value = self.safe_string_k(spotFees.clone(), "maker_fee", &[]);
-        let mut spotTakerFee: Value = self.safe_string_k(spotFees, "taker_fee", &[]);
-        spotMakerFee = crate::precise::Precise::stringDiv(&spotMakerFee, &Value::Str("100".into()));
-        spotTakerFee = crate::precise::Precise::stringDiv(&spotTakerFee, &Value::Str("100".into()));
+        let mut spotMakerFee: Option<String> = self.safe_string_k(spotFees.clone(), "maker_fee", &[]).as_str().map(str::to_owned);
+        let mut spotTakerFee: Option<String> = self.safe_string_k(spotFees, "taker_fee", &[]).as_str().map(str::to_owned);
+        spotMakerFee = crate::precise::Precise::stringDiv(&spotMakerFee.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+        spotTakerFee = crate::precise::Precise::stringDiv(&spotTakerFee.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
         // const feeTiers = this.safeValue (response, 'fee_tiers');
-        let mut futuresMakerFee: Value = self.safe_string_k(futuresFees.clone(), "maker_fee", &[]);
-        let mut futuresTakerFee: Value = self.safe_string_k(futuresFees, "taker_fee", &[]);
-        futuresMakerFee = crate::precise::Precise::stringDiv(&futuresMakerFee, &Value::Str("100".into()));
-        futuresTakerFee = crate::precise::Precise::stringDiv(&futuresTakerFee, &Value::Str("100".into()));
+        let mut futuresMakerFee: Option<String> = self.safe_string_k(futuresFees.clone(), "maker_fee", &[]).as_str().map(str::to_owned);
+        let mut futuresTakerFee: Option<String> = self.safe_string_k(futuresFees, "taker_fee", &[]).as_str().map(str::to_owned);
+        futuresMakerFee = crate::precise::Precise::stringDiv(&futuresMakerFee.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+        futuresTakerFee = crate::precise::Precise::stringDiv(&futuresTakerFee.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1195,8 +1195,8 @@ impl Onetrading {
             while { if !__for_first_1037 { i += 1; } __for_first_1037 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            let mut makerFee: Value = (if matches!((self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) { spotMakerFee.clone() } else { futuresMakerFee.clone() });
-            let mut takerFee: Value = (if matches!((self.safe_bool_k(market, "spot", &[Value::Bool(false)])), Value::Bool(true)) { spotTakerFee.clone() } else { futuresTakerFee.clone() });
+            let mut makerFee: Value = (if matches!((self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) { spotMakerFee.clone().map(Value::from).unwrap_or(Value::Null) } else { futuresMakerFee.clone().map(Value::from).unwrap_or(Value::Null) });
+            let mut takerFee: Value = (if matches!((self.safe_bool_k(market, "spot", &[Value::Bool(false)])), Value::Bool(true)) { spotTakerFee.clone().map(Value::from).unwrap_or(Value::Null) } else { futuresTakerFee.clone().map(Value::from).unwrap_or(Value::Null) });
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
@@ -1225,12 +1225,12 @@ impl Onetrading {
             while { if !__for_first_1038 { i += 1; } __for_first_1038 = false; i < (feeTiers.len() as i64) } {
             let mut tier: Value = self.safe_dict(feeTiers.clone(), Value::Int(i), &[]);
             let mut volume: Option<f64> = self.safe_number_k(tier.clone(), "volume", &[]).as_f64();
-            let mut taker: Value = self.safe_string_k(tier.clone(), "taker_fee", &[]);
-            let mut maker: Value = self.safe_string_k(tier, "maker_fee", &[]);
-            maker = crate::precise::Precise::stringDiv(&maker, &Value::Str("100".into()));
-            taker = crate::precise::Precise::stringDiv(&taker, &Value::Str("100".into()));
-            makerFees.push(Value::from(vec![Value::from(volume), self.parse_number(maker, &[])]));
-            takerFees.push(Value::from(vec![Value::from(volume), self.parse_number(taker, &[])]));
+            let mut taker: Option<String> = self.safe_string_k(tier.clone(), "taker_fee", &[]).as_str().map(str::to_owned);
+            let mut maker: Option<String> = self.safe_string_k(tier, "maker_fee", &[]).as_str().map(str::to_owned);
+            maker = crate::precise::Precise::stringDiv(&maker.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+            taker = crate::precise::Precise::stringDiv(&taker.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+            makerFees.push(Value::from(vec![Value::from(volume), self.parse_number(maker.clone().map(Value::from).unwrap_or(Value::Null), &[])]));
+            takerFees.push(Value::from(vec![Value::from(volume), self.parse_number(taker.clone().map(Value::from).unwrap_or(Value::Null), &[])]));
         }
         }
         return Value::Map({
@@ -2569,9 +2569,9 @@ impl Onetrading {
         //
         let mut message: Option<String> = self.safe_string_k(response, "error", &[]).as_str().map(str::to_owned);
         if (message.is_some()) {
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         return Value::Null;

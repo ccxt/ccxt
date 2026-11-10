@@ -151,6 +151,7 @@ impl crate::exchange_generated::ExchangeBase for Deepcoin {
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
+                "get_product_group_from_market" => self.get_product_group_from_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "handle_market_type_and_params" => self.handle_market_type_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -1554,7 +1555,7 @@ impl Deepcoin {
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(500)));
         }
-        let mut productGroup: Value = self.get_product_group_from_market((market).raw.clone()).map(Value::from).unwrap_or(Value::Null);
+        let mut productGroup: Value = self.get_product_group_from_market((market).raw.clone());
         request.insert("productGroup".into(), productGroup);
         let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.public_get_deepcoin_market_trades(&[__ws_arg_12]).await;
@@ -1564,7 +1565,7 @@ impl Deepcoin {
         }).await?))
     }
 
-    pub fn get_product_group_from_market(&self, mut market: Value) -> Option<String> {
+    pub fn get_product_group_from_market(&self, mut market: Value) -> Value {
         let __market_empty = indexmap::IndexMap::new();
         let market = market.as_map().unwrap_or(&__market_empty);
         let mut productGroup: String = "Spot".to_string();
@@ -1575,7 +1576,9 @@ impl Deepcoin {
                 productGroup = "Swap".to_string();
             }
         }
-        return Some(productGroup.as_str()).map(str::to_owned);
+        return Value::from(productGroup);
+
+    Value::Null
 }
 
     pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
@@ -2057,7 +2060,7 @@ impl Deepcoin {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut defaultNetwork: Option<String> = self.safe_string_opt(defaultNetworks, code.clone(), &[]);
+        let mut defaultNetwork: Option<String> = self.safe_string(defaultNetworks, code.clone(), &[]).as_str().map(str::to_owned);
         if (network == Value::Null) || (network.as_str() == Some("")) {
             network = defaultNetwork.clone().map(Value::from).unwrap_or(Value::Null);
         }
@@ -3456,7 +3459,7 @@ impl Deepcoin {
         if (market).spot {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelAllOrders() is not supported for spot markets".into()))));
         }
-        let mut productGroup: Value = self.get_product_group_from_market((market).raw.clone()).map(Value::from).unwrap_or(Value::Null);
+        let mut productGroup: Value = self.get_product_group_from_market((market).raw.clone());
         let mut marginMode: Option<String> = self.safe_string_k(params.clone(), "marginMode", &[]).as_str().map(str::to_owned);
         let mut encodedMarginMode: Value = (if (marginMode.as_deref() == Some("isolated")) { Value::Int(0) } else { Value::Int(1) });
         let mut paramsOmitted: Value = (if (marginMode.is_some()) { self.omit(params.clone(), Value::Str("marginMode".into()), &[]) } else { params });
@@ -4128,7 +4131,7 @@ impl Deepcoin {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), Value::from((market).id.clone()));
-                m.insert("instType".to_string(), self.get_product_group_from_market((market).raw.clone()).map(Value::from).unwrap_or(Value::Null));
+                m.insert("instType".to_string(), self.get_product_group_from_market((market).raw.clone()));
             m
         });
         let __ws_arg_35 = self.extend(Value::Map(request), &[params]);
@@ -4465,7 +4468,7 @@ impl Deepcoin {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut productGroup: Value = self.get_product_group_from_market((market).raw.clone()).map(Value::from).unwrap_or(Value::Null);
+        let mut productGroup: Value = self.get_product_group_from_market((market).raw.clone());
         let mut positionId: Option<String> = self.safe_string_k(params.clone(), "positionId", &[]).as_str().map(str::to_owned);
         let mut positionIds: Value = self.safe_list_k(params.clone(), "positionIds", &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4561,13 +4564,13 @@ impl Deepcoin {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut msg: Value = self.safe_string_k(response.clone(), "msg", &[]);
+        let mut msg: Option<String> = self.safe_string_k(response.clone(), "msg", &[]).as_str().map(str::to_owned);
         let mut messageCode: Option<String> = self.safe_string_k(response, "code", &[]).as_str().map(str::to_owned);
-        let mut sCode: Value = self.safe_string_k(data.clone(), "sCode", &[]);
-        let mut sMsg: Option<String> = self.safe_string_k_opt(data.clone(), "sMsg", &[]);
-        let mut errorCode: Option<String> = self.safe_string_k_opt(data.clone(), "errorCode", &[]);
-        if (msg != Value::Null) && (msg.as_str() == Some("")) && (sMsg.is_some()) {
-            msg = sMsg.clone().map(Value::from).unwrap_or(Value::Null);
+        let mut sCode: Option<String> = self.safe_string_k(data.clone(), "sCode", &[]).as_str().map(str::to_owned);
+        let mut sMsg: Option<String> = self.safe_string_k(data.clone(), "sMsg", &[]).as_str().map(str::to_owned);
+        let mut errorCode: Option<String> = self.safe_string_k(data.clone(), "errorCode", &[]).as_str().map(str::to_owned);
+        if (msg.is_some()) && (msg.as_deref() == Some("")) && (sMsg.is_some()) {
+            msg = sMsg;
         }
         let mut errorList: Value = self.safe_list_k(data.clone(), "errorList", &[]);
         if (errorList != Value::Null) {
@@ -4579,24 +4582,24 @@ impl Deepcoin {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                errorCode = self.safe_string_k_opt(entry, "errorCode", &[]);
+                errorCode = self.safe_string_k(entry, "errorCode", &[]).as_str().map(str::to_owned);
             }
             }
         }
-        let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
-        if (sCode == Value::Null) && (errorCode.is_some()) {
-            sCode = errorCode.clone().map(Value::from).unwrap_or(Value::Null);
+        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
+        if (sCode.is_none()) && (errorCode.is_some()) {
+            sCode = errorCode;
         }
-        let mut retCode: Option<String> = self.safe_string_k_opt(data.clone(), "retCode", &[]);
-        if (sCode == Value::Null) && (retCode.is_some()) {
-            sCode = retCode.map(Value::from).unwrap_or(Value::Null);
+        let mut retCode: Option<String> = self.safe_string_k(data.clone(), "retCode", &[]).as_str().map(str::to_owned);
+        if (sCode.is_none()) && (retCode.is_some()) {
+            sCode = retCode;
         }
-        if (code.as_f64() != Some(200.0)) || (messageCode.as_deref() != Some("0")) || ((sCode != Value::Null) && (sCode.as_str() != Some("0"))) {
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), messageCode.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), sCode, feedback.clone());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), msg.clone(), feedback.clone());
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), msg, feedback.clone());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback));
+        if (code.as_f64() != Some(200.0)) || (messageCode.as_deref() != Some("0")) || ((sCode.is_some()) && (sCode.as_deref() != Some("0"))) {
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), messageCode.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), sCode.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), msg.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), msg.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
+            panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
         }  else {
             let mut list: Value = self.safe_list_k(data.clone(), "list", &[Value::from(vec![])]);
             if (matches!(&data, Value::Dict(__d) if __d.contains_key("list"))) && (list == Value::Null) {

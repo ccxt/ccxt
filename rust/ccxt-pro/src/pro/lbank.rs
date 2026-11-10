@@ -1073,9 +1073,9 @@ if _try_result.is_err() {
         }
         let mut rawSide: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("direction".into()), Value::Int(3), &[]);
         let mut parts: Value = Value::Array(if let Some(__s) = rawSide.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
-        let mut firstPart: Option<String> = self.safe_string_opt(parts.clone(), Value::Int(0), &[]);
+        let mut firstPart: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut secondPart: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
-        let mut side: Value = firstPart.map(Value::from).unwrap_or(Value::Null);
+        let mut side: Value = firstPart.clone().map(Value::from).unwrap_or(Value::Null);
         // reverse if it was 'maker'
         if (secondPart.is_some()) && (secondPart.as_deref() == Some("maker")) {
             side = (if (side.as_str() == Some("buy")) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
@@ -1249,10 +1249,10 @@ if _try_result.is_err() {
         let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone(), Value::Str("_".into())]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(orderUpdate.clone(), "updateTime", &[]).as_i64();
         let mut status: Option<String> = self.safe_string_k(orderUpdate.clone(), "orderStatus", &[]).as_str().map(str::to_owned);
-        let mut orderAmount: Option<String> = self.safe_string_k_opt(orderUpdate.clone(), "orderAmt", &[]);
+        let mut orderAmount: Option<String> = self.safe_string_k(orderUpdate.clone(), "orderAmt", &[]).as_str().map(str::to_owned);
         let mut cost: Value = Value::Null;
         if (type_var.as_str() == Some("market")) && (side.as_deref() == Some("buy")) {
-            cost = orderAmount.map(Value::from).unwrap_or(Value::Null);
+            cost = orderAmount.clone().map(Value::from).unwrap_or(Value::Null);
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();

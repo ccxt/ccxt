@@ -660,7 +660,7 @@ impl Mexc {
         let mut spotPrefix: String = "spot:".to_string();
         let mut messageHashPrefix: Value = Value::Str("".into());
         if (isSpot.as_bool() == Some(true)) {
-            messageHashPrefix = Value::from(spotPrefix.clone());
+            messageHashPrefix = Value::from(spotPrefix);
         }
         let mut topic: Value = Value::Str(format!("{}{}", messageHashPrefix, Value::Str("ticker".into())).into());
         let mut result: Vec<Value> = vec![];

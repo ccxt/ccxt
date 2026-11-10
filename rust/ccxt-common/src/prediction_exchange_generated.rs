@@ -213,12 +213,12 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                 result = self.sort_by(result.clone(), sortKey, &[Value::Bool(true), Value::Int(0)]);
             }
         }
-        let mut limit: Value = (match params.get("limit") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
-        if (limit != Value::Null) {
+        let mut limit: Option<i64> = (match params.get("limit") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
+        if (limit.is_some()) {
             // clamp to the result length: arraySlice(x, 0, limit) with limit > length panics in Go
             // via reflect Slice, and throws in C#, unlike JS/Python which return the whole array
             let mut resultLength: Value = Value::Int(result.len() as i64);
-            let mut sliceEnd: Value = limit;
+            let mut sliceEnd: Value = Value::from(limit);
             if sliceEnd.as_f64().unwrap_or(f64::NAN) > resultLength.as_f64().unwrap_or(f64::NAN) {
                 sliceEnd = resultLength;
             }
@@ -2002,9 +2002,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // never declares, and whose parseTrades post-filters embedded fills by `symbol`, dropping every
         // outcome-addressed row). prediction is always linear with a contract size of 1.
         let mut amount: Value = self.omit_zero(self.safe_string_k(outcomeOrder.clone(), "amount", &[]));
-        let mut filled: Value = self.safe_string_k(outcomeOrder.clone(), "filled", &[]);
-        let mut remaining: Value = self.safe_string_k(outcomeOrder.clone(), "remaining", &[]);
-        let mut cost: Value = self.safe_string_k(outcomeOrder.clone(), "cost", &[]);
+        let mut filled: Option<String> = self.safe_string_k(outcomeOrder.clone(), "filled", &[]).as_str().map(str::to_owned);
+        let mut remaining: Option<String> = self.safe_string_k(outcomeOrder.clone(), "remaining", &[]).as_str().map(str::to_owned);
+        let mut cost: Option<String> = self.safe_string_k(outcomeOrder.clone(), "cost", &[]).as_str().map(str::to_owned);
         let mut average: Value = self.omit_zero(self.safe_string_k(outcomeOrder.clone(), "average", &[]));
         let mut price: Value = self.omit_zero(self.safe_string_k(outcomeOrder.clone(), "price", &[]));
         let mut side: Option<String> = self.safe_string_k(outcomeOrder.clone(), "side", &[]).as_str().map(str::to_owned);
@@ -2016,11 +2016,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut tradesLength: f64 = ((trades.len() as i64) as f64);
         let mut feeList: Vec<Value> = Vec::new();
         if tradesLength > ((0i64) as f64) {
-            if (filled == Value::Null) {
-                filled = Value::Str("0".into());
+            if (filled.is_none()) {
+                filled = Some("0".to_string());
             }
-            if (cost == Value::Null) {
-                cost = Value::Str("0".into());
+            if (cost.is_none()) {
+                cost = Some("0".to_string());
             }
             {
                                 let mut i: Value = Value::Int(0);
@@ -2029,11 +2029,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut trade: Value = trades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
                 let mut tradeAmount: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
                 if (tradeAmount.is_some()) {
-                    filled = crate::precise::Precise::stringAdd(&filled, &tradeAmount.clone().map(Value::from).unwrap_or(Value::Null));
+                    filled = crate::precise::Precise::stringAdd(&filled.clone().map(Value::from).unwrap_or(Value::Null), &tradeAmount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                 }
                 let mut tradeCost: Option<String> = self.safe_string_k(trade.clone(), "cost", &[]).as_str().map(str::to_owned);
                 if (tradeCost.is_some()) {
-                    cost = crate::precise::Precise::stringAdd(&cost, &tradeCost.clone().map(Value::from).unwrap_or(Value::Null));
+                    cost = crate::precise::Precise::stringAdd(&cost.clone().map(Value::from).unwrap_or(Value::Null), &tradeCost.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
                 }
                 if (side.is_none()) {
                     side = self.safe_string_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
@@ -2054,22 +2054,22 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         // fill any totals the venue left undefined (linear, contract size 1)
-        if (filled == Value::Null) && (amount != Value::Null) && (remaining != Value::Null) {
-            filled = crate::precise::Precise::stringSub(&amount, &remaining);
+        if (filled.is_none()) && (amount != Value::Null) && (remaining.is_some()) {
+            filled = crate::precise::Precise::stringSub(&amount, &remaining.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
-        if (remaining == Value::Null) && (amount != Value::Null) && (filled != Value::Null) {
-            remaining = crate::precise::Precise::stringSub(&amount, &filled);
+        if (remaining.is_none()) && (amount != Value::Null) && (filled.is_some()) {
+            remaining = crate::precise::Precise::stringSub(&amount, &filled.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
-        if (amount == Value::Null) && (filled != Value::Null) && (remaining != Value::Null) {
-            amount = crate::precise::Precise::stringAdd(&filled, &remaining);
+        if (amount == Value::Null) && (filled.is_some()) && (remaining.is_some()) {
+            amount = crate::precise::Precise::stringAdd(&filled.clone().map(Value::from).unwrap_or(Value::Null), &remaining.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        if (average == Value::Null) && (filled != Value::Null) && (cost != Value::Null) && crate::precise::Precise::stringGt(&filled, &Value::Str("0".into())).as_bool() == Some(true) {
-            average = crate::precise::Precise::stringDiv(&cost, &filled);
+        if (average == Value::Null) && (filled.is_some()) && (cost.is_some()) && crate::precise::Precise::stringGt(&filled.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            average = crate::precise::Precise::stringDiv(&cost.clone().map(Value::from).unwrap_or(Value::Null), &filled.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        if (cost == Value::Null) && (filled != Value::Null) {
+        if (cost.is_none()) && (filled.is_some()) {
             let mut multiplyPrice: Value = (if (average != Value::Null) { average.clone() } else { price.clone() });
             if (multiplyPrice != Value::Null) {
-                cost = crate::precise::Precise::stringMul(&filled, &multiplyPrice);
+                cost = crate::precise::Precise::stringMul(&filled.clone().map(Value::from).unwrap_or(Value::Null), &multiplyPrice).as_str().map(str::to_owned);
             }
         }
         let mut fee: Value = self.safe_dict_k(outcomeOrder.clone(), "fee", &[]);
@@ -2115,9 +2115,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("price".to_string(), self.parse_number(price, &[]));
                 m.insert("average".to_string(), self.parse_number(average, &[]));
                 m.insert("amount".to_string(), self.parse_number(amount, &[]));
-                m.insert("filled".to_string(), self.parse_number(filled, &[]));
-                m.insert("remaining".to_string(), self.parse_number(remaining, &[]));
-                m.insert("cost".to_string(), self.parse_number(cost, &[]));
+                m.insert("filled".to_string(), self.parse_number(filled.clone().map(Value::from).unwrap_or(Value::Null), &[]));
+                m.insert("remaining".to_string(), self.parse_number(remaining.clone().map(Value::from).unwrap_or(Value::Null), &[]));
+                m.insert("cost".to_string(), self.parse_number(cost.clone().map(Value::from).unwrap_or(Value::Null), &[]));
                 m.insert("fee".to_string(), fee);
                 m.insert("reduceOnly".to_string(), self.safe_bool_k(outcomeOrder.clone(), "reduceOnly", &[]));
                 m.insert("postOnly".to_string(), (if (postOnlyValue != Value::Null) { postOnlyValue } else { derivedPostOnly }));
@@ -2140,9 +2140,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // build the prediction trade directly (no crypto safeTrade, which leaks fields the type omits)
         let mut price: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
-        let mut cost: Value = self.safe_string_k(trade.clone(), "cost", &[]);
-        if (cost == Value::Null) && (price.is_some()) && (amount.is_some()) {
-            cost = crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut cost: Option<String> = self.safe_string_k(trade.clone(), "cost", &[]).as_str().map(str::to_owned);
+        if (cost.is_none()) && (price.is_some()) && (amount.is_some()) {
+            cost = crate::precise::Precise::stringMul(&price.clone().map(Value::from).unwrap_or(Value::Null), &amount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
         let mut datetime: Option<String> = self.safe_string_k(trade.clone(), "datetime", &[]).as_str().map(str::to_owned);
@@ -2160,7 +2160,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("takerOrMaker".to_string(), self.safe_string_k(trade.clone(), "takerOrMaker", &[]));
                 m.insert("price".to_string(), self.parse_number(price.map(Value::from).unwrap_or(Value::Null), &[]));
                 m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
-                m.insert("cost".to_string(), self.parse_number(cost, &[]));
+                m.insert("cost".to_string(), self.parse_number(cost.map(Value::from).unwrap_or(Value::Null), &[]));
                 m.insert("fee".to_string(), self.safe_dict_k(trade.clone(), "fee", &[]));
                 m.insert("realizedPnl".to_string(), self.safe_number_k(trade.clone(), "realizedPnl", &[]));
                 m.insert("outcome".to_string(), self.safe_string_k(trade.clone(), "outcome", &[]));
@@ -2183,14 +2183,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut open: Value = self.omit_zero(self.safe_string_k(ticker.clone(), "open", &[]));
         let mut close: Value = self.omit_zero(self.safe_string2(ticker.clone(), Value::Str("close".into()), Value::Str("last".into()), &[]));
         let mut last: Value = self.omit_zero(self.safe_string2(ticker.clone(), Value::Str("last".into()), Value::Str("close".into()), &[]));
-        let mut change: Value = self.safe_string_k(ticker.clone(), "change", &[]);
+        let mut change: Option<String> = self.safe_string_k(ticker.clone(), "change", &[]).as_str().map(str::to_owned);
         let mut percentage: Value = self.omit_zero(self.safe_string_k(ticker.clone(), "percentage", &[]));
         let mut average: Value = self.omit_zero(self.safe_string_k(ticker.clone(), "average", &[]));
-        if (change == Value::Null) && (open != Value::Null) && (close != Value::Null) {
-            change = crate::precise::Precise::stringSub(&close, &open);
+        if (change.is_none()) && (open != Value::Null) && (close != Value::Null) {
+            change = crate::precise::Precise::stringSub(&close, &open).as_str().map(str::to_owned);
         }
-        if (percentage == Value::Null) && (change != Value::Null) && (open != Value::Null) && crate::precise::Precise::stringGt(&open, &Value::Str("0".into())).as_bool() == Some(true) {
-            percentage = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&change, &open), &Value::Str("100".into()));
+        if (percentage == Value::Null) && (change.is_some()) && (open != Value::Null) && crate::precise::Precise::stringGt(&open, &Value::Str("0".into())).as_bool() == Some(true) {
+            percentage = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&change.clone().map(Value::from).unwrap_or(Value::Null), &open), &Value::Str("100".into()));
         }
         if (average == Value::Null) && (open != Value::Null) && (close != Value::Null) {
             average = crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&open, &close), &Value::Str("2".into()));
@@ -2213,7 +2213,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("open".to_string(), self.parse_number(open, &[]));
                 m.insert("close".to_string(), self.parse_number(close, &[]));
                 m.insert("last".to_string(), self.parse_number(last, &[]));
-                m.insert("change".to_string(), self.parse_number(change, &[]));
+                m.insert("change".to_string(), self.parse_number(change.map(Value::from).unwrap_or(Value::Null), &[]));
                 m.insert("percentage".to_string(), self.parse_number(percentage, &[]));
                 m.insert("average".to_string(), self.parse_number(average, &[]));
                 m.insert("baseVolume".to_string(), self.safe_number_k(ticker.clone(), "baseVolume", &[]));

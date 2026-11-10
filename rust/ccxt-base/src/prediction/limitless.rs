@@ -1665,12 +1665,12 @@ impl Limitless {
             let mut rawAsksLength: f64 = ((rawAsks.len() as i64) as f64);
             let mut yesBestBid: Value = (if (rawBidsLength > ((0i64) as f64)) { rawBids.get(0).cloned().unwrap_or(Value::Null) } else { Value::Null });
             let mut yesBestAsk: Value = (if (rawAsksLength > ((0i64) as f64)) { rawAsks.get(0).cloned().unwrap_or(Value::Null) } else { Value::Null });
-            let mut yesBidPrice: Option<String> = self.safe_string_k_opt(yesBestBid.clone(), "price", &[]);
-            let mut yesBidSize: Option<String> = self.safe_string_k_opt(yesBestBid, "size", &[]);
-            let mut yesAskPrice: Option<String> = self.safe_string_k_opt(yesBestAsk.clone(), "price", &[]);
-            let mut yesAskSize: Option<String> = self.safe_string_k_opt(yesBestAsk, "size", &[]);
-            let mut yesLast: Option<String> = self.safe_string_k_opt(book.clone(), "lastTradePrice", &[]);
-            let mut yesMid: Option<String> = self.safe_string_k_opt(book, "midpoint", &[]);
+            let mut yesBidPrice: Option<String> = self.safe_string_k(yesBestBid.clone(), "price", &[]).as_str().map(str::to_owned);
+            let mut yesBidSize: Option<String> = self.safe_string_k(yesBestBid, "size", &[]).as_str().map(str::to_owned);
+            let mut yesAskPrice: Option<String> = self.safe_string_k(yesBestAsk.clone(), "price", &[]).as_str().map(str::to_owned);
+            let mut yesAskSize: Option<String> = self.safe_string_k(yesBestAsk, "size", &[]).as_str().map(str::to_owned);
+            let mut yesLast: Option<String> = self.safe_string_k(book.clone(), "lastTradePrice", &[]).as_str().map(str::to_owned);
+            let mut yesMid: Option<String> = self.safe_string_k(book, "midpoint", &[]).as_str().map(str::to_owned);
             if isYes {
                 bidStr = yesBidPrice.clone().map(Value::from).unwrap_or(Value::Null);
                 bidSizeStr = yesBidSize.clone().map(Value::from).unwrap_or(Value::Null);
@@ -1682,11 +1682,11 @@ impl Limitless {
                 if (yesAskPrice.is_some()) {
                     bidStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &yesAskPrice.clone().map(Value::from).unwrap_or(Value::Null));
                 }
-                bidSizeStr = yesAskSize.map(Value::from).unwrap_or(Value::Null);
+                bidSizeStr = yesAskSize.clone().map(Value::from).unwrap_or(Value::Null);
                 if (yesBidPrice.is_some()) {
                     askStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &yesBidPrice.clone().map(Value::from).unwrap_or(Value::Null));
                 }
-                askSizeStr = yesBidSize.map(Value::from).unwrap_or(Value::Null);
+                askSizeStr = yesBidSize.clone().map(Value::from).unwrap_or(Value::Null);
                 if (yesLast.is_some()) {
                     lastStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &yesLast.clone().map(Value::from).unwrap_or(Value::Null));
                 }
@@ -2940,12 +2940,12 @@ if _try_result.is_err() {
         }
         // when the profile trades through a smart wallet the order must be signed by the
         // linked embedded (owner) wallet, not by the smart wallet itself
-        let mut embeddedAddress: Option<String> = self.safe_string_k_opt(accountInfo.clone(), "embeddedAccount", &[]);
+        let mut embeddedAddress: Option<String> = self.safe_string_k(accountInfo.clone(), "embeddedAccount", &[]).as_str().map(str::to_owned);
         let mut hasEmbedded: bool = embeddedAddress.is_some();
         let mut isSmartWallet: bool = usesSmartWallet && hasEmbedded;
         let mut signer: Value = maker.clone();
         if isSmartWallet {
-            signer = embeddedAddress.map(Value::from).unwrap_or(Value::Null);
+            signer = embeddedAddress.clone().map(Value::from).unwrap_or(Value::Null);
         }
         { let __destr_tmp: Vec<Value> = self.handle_option_and_params(paramsValue.clone(), Value::Str("createOrder".into()), Value::Str("signer".into()), &[signer.clone()]).as_array().cloned().unwrap_or_default(); signer = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsValue = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -3029,13 +3029,13 @@ if _try_result.is_err() {
         }  else if isMarket {
             makerAmount = self.amount_to_prediction_precision(outcome.clone(), amount.clone());
         }  else {
-            let mut calculatedCost: Value = crate::precise::Precise::stringMul(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &priceString.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut calculatedCost: Option<String> = crate::precise::Precise::stringMul(&amountString.clone().map(Value::from).unwrap_or(Value::Null), &priceString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             if (side.as_str() == Some("buy")) {
-                makerAmount = self.cost_to_prediction_precision(outcome.clone(), calculatedCost.clone());
+                makerAmount = self.cost_to_prediction_precision(outcome.clone(), calculatedCost.clone().map(Value::from).unwrap_or(Value::Null));
                 takerAmount = self.amount_to_prediction_precision(outcome.clone(), amount.clone());
             }  else {
                 makerAmount = self.amount_to_prediction_precision(outcome.clone(), amount);
-                takerAmount = self.cost_to_prediction_precision(outcome, calculatedCost);
+                takerAmount = self.cost_to_prediction_precision(outcome, calculatedCost.clone().map(Value::from).unwrap_or(Value::Null));
             }
         }
         // amounts must be integers (uint256): parseNumber yields a float that the Python EIP-712 encoder rejects
@@ -3247,8 +3247,8 @@ if _try_result.is_err() {
         if (amount.is_some()) {
             let mut decimals: i64 = self.safe_integer_k(self.options.clone(), "usdcDecimals", &[Value::Int(6)]).as_i64().unwrap_or(6);
             // scale the human USDC amount to base units (amount / 10^-decimals = amount * 10^decimals)
-            let mut scaled: Value = crate::precise::Precise::stringDiv(&amount.clone().map(Value::from).unwrap_or(Value::Null), &self.parse_precision(&[self.number_to_string(Value::from(decimals))]));
-            let mut amountInt: Value = self.parse_to_int(scaled);
+            let mut scaled: Option<String> = crate::precise::Precise::stringDiv(&amount.clone().map(Value::from).unwrap_or(Value::Null), &self.parse_precision(&[self.number_to_string(Value::from(decimals))])).as_str().map(str::to_owned);
+            let mut amountInt: Value = self.parse_to_int(scaled.clone().map(Value::from).unwrap_or(Value::Null));
             let mut amountBase16: Value = self.int_to_base16(amountInt, &[]);
             amountHex = amountBase16.as_str().map(|__s| Value::Str(format!("{:0>64}", __s).into())).unwrap_or(Value::Null);
         }
@@ -3394,7 +3394,7 @@ if _try_result.is_err() {
         let mut failedLethgn: f64 = ((failed.len() as i64) as f64);
         if failedLethgn > ((0i64) as f64) {
             let mut message: Value = json_stringify(&response);
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders failed: ".into())).into()), message).into());
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders failed: ".into())).into()), message);
             panic!("{}", crate::exchange_errors::order_not_found(feedback));
         }
         return self.parse_prediction_orders(canceled, &[]);
@@ -4270,7 +4270,7 @@ if _try_result.is_err() {
             while { if !__for_first_1336 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1336 = false; i.as_f64().unwrap_or(f64::NAN) < categoriesLength } {
             let mut category: Value = self.safe_dict(categories.clone(), i.clone(), &[]);
             let mut name: Value = self.safe_string_lower_k(category.clone(), "name", &[Value::Str("".into())]);
-            let mut categoryId: Option<String> = self.safe_string_k_opt(category, "id", &[]);
+            let mut categoryId: Option<String> = self.safe_string_k(category, "id", &[]).as_str().map(str::to_owned);
             let mut matched: bool = false;
             {
                                 let mut wi: Value = Value::Int(0);
@@ -4426,13 +4426,13 @@ if _try_result.is_err() {
         if (statusCodeInt.as_f64().unwrap_or(f64::NAN) >= ((200i64) as f64)) && (statusCodeInt.as_f64().unwrap_or(f64::NAN) < ((300i64) as f64)) {
             return Value::Null;
         }
-        let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
+        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
         // the API returns either a string message or an array of field-validation errors
         let mut message: Option<String> = self.safe_string_k(response, "message", &[]).as_str().map(str::to_owned);
         if (message.is_some()) {
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
         }
-        self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, feedback.clone());
+        self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, Value::from(feedback.clone()));
         // a 400 is a client-side bad request (bad params, or a business rule like "market not
         // resolved"), not a transport outage — throw BadRequest with the exchange message instead
         // of letting the base map the bare 400 to a retryable network-unavailable error

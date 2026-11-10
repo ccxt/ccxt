@@ -682,14 +682,14 @@ impl Bitrue {
         if (market).swap {
             let mut baseIdLower: String = self.safe_string_lower_k((market).raw.clone(), "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut quoteIdLower: String = self.safe_string_lower_k((market).raw.clone(), "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut wsId: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("e_".into()), baseIdLower).into()), quoteIdLower).into());
+            let mut wsId: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("e_".into()), baseIdLower).into()), quoteIdLower);
             channel = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), wsId).into()), Value::Str("_depth_step0".into())));
-            cbId = wsId;
+            cbId = Value::from(wsId);
             url = wsUrls.get("futurePublic").cloned().unwrap_or(Value::Null);
         }  else {
-            let mut marketIdLowercase: Value = self.safe_string_lower_k((market).raw.clone(), "id", &[Value::Str("".into())]);
+            let mut marketIdLowercase: String = self.safe_string_lower_k((market).raw.clone(), "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             channel = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), marketIdLowercase).into()), Value::Str("_simple_depth_step0".into())));
-            cbId = marketIdLowercase;
+            cbId = Value::from(marketIdLowercase);
             url = wsUrls.get("public").cloned().unwrap_or(Value::Null);
         }
         let mut message: indexmap::IndexMap<String, Value> = ({
@@ -750,8 +750,8 @@ impl Bitrue {
         let mut isFutures: bool = channelKind.as_deref() == Some("e");
         let mut market: Value = Value::Null;
         if isFutures {
-            let mut wsBaseQuote: Value = self.safe_string_lower(parts.clone(), Value::Int(2), &[]);
-            market = self.find_swap_market_by_ws_base_quote(wsBaseQuote);
+            let mut wsBaseQuote: Option<String> = self.safe_string_lower(parts.clone(), Value::Int(2), &[]).as_str().map(str::to_owned);
+            market = self.find_swap_market_by_ws_base_quote(wsBaseQuote.clone().map(Value::from).unwrap_or(Value::Null));
         }  else {
             let mut marketId: Option<String> = self.safe_string_upper(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
             market = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -940,8 +940,8 @@ impl Bitrue {
         //
         let mut channel: Value = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut parts: Value = Value::Array(if let Some(__s) = channel.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
-        let mut wsBaseQuote: Value = self.safe_string_lower(parts, Value::Int(2), &[]);
-        let mut market: Value = self.find_swap_market_by_ws_base_quote(wsBaseQuote);
+        let mut wsBaseQuote: Option<String> = self.safe_string_lower(parts, Value::Int(2), &[]).as_str().map(str::to_owned);
+        let mut market: Value = self.find_swap_market_by_ws_base_quote(wsBaseQuote.clone().map(Value::from).unwrap_or(Value::Null));
         let mut symbol: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
         if (symbol.is_none()) {
             return;
@@ -1098,8 +1098,8 @@ impl Bitrue {
         //
         let mut channel: Value = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut parts: Value = Value::Array(if let Some(__s) = channel.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
-        let mut wsBaseQuote: Value = self.safe_string_lower(parts.clone(), Value::Int(2), &[]);
-        let mut market: Value = self.find_swap_market_by_ws_base_quote(wsBaseQuote);
+        let mut wsBaseQuote: Option<String> = self.safe_string_lower(parts.clone(), Value::Int(2), &[]).as_str().map(str::to_owned);
+        let mut market: Value = self.find_swap_market_by_ws_base_quote(wsBaseQuote.clone().map(Value::from).unwrap_or(Value::Null));
         let mut symbol: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
         if (symbol.is_none()) {
             return;
@@ -1224,8 +1224,8 @@ impl Bitrue {
         //
         let mut channel: Value = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut parts: Value = Value::Array(if let Some(__s) = channel.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
-        let mut wsBaseQuote: Value = self.safe_string_lower(parts, Value::Int(2), &[]);
-        let mut market: Value = self.find_swap_market_by_ws_base_quote(wsBaseQuote);
+        let mut wsBaseQuote: Option<String> = self.safe_string_lower(parts, Value::Int(2), &[]).as_str().map(str::to_owned);
+        let mut market: Value = self.find_swap_market_by_ws_base_quote(wsBaseQuote.clone().map(Value::from).unwrap_or(Value::Null));
         let mut symbol: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
         if (symbol.is_none()) {
             return;

@@ -898,15 +898,15 @@ impl Krakenfutures {
         let verboseparamsVerboseVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchOrders".into()), Value::Str("verbose".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut verbose: bool = verboseparamsVerboseVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsVerbose: Value = verboseparamsVerboseVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut name: Value = Value::Str("open_orders".into());
+        let mut name: Option<String> = Some("open_orders".to_string());
         let mut messageHash: Value = Value::Str("orders".into());
         if verbose {
-            name = Value::Str("open_orders_verbose".into());
+            name = Some("open_orders_verbose".to_string());
             messageHash = Value::Str("orders:verbose".into());
         }
-        let mut feed: Option<String> = self.safe_string_k_opt(paramsVerbose.clone(), "feed", &[]);
+        let mut feed: Option<String> = self.safe_string_k(paramsVerbose.clone(), "feed", &[]).as_str().map(str::to_owned);
         if (feed.is_some()) {
-            name = feed.clone().map(Value::from).unwrap_or(Value::Null);
+            name = feed.clone();
             messageHash = Value::Str("orders".into());
             if (feed.as_deref() == Some("open_orders_verbose")) {
                 messageHash = Value::Str("orders:verbose".into());
@@ -916,7 +916,7 @@ impl Krakenfutures {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(":".into()), Value::from((market).symbol.clone())).into())).into());
         }
-        let mut orders: Value = self.subscribe_private(name, messageHash, &[paramsVerbose]).await;
+        let mut orders: Value = self.subscribe_private(name.clone().map(Value::from).unwrap_or(Value::Null), messageHash, &[paramsVerbose]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbol, limit);
@@ -1306,29 +1306,29 @@ impl Krakenfutures {
                 }
                 crate::runtime::append_to_object_array(&mut previousOrder, &Value::Str("trades".into()), trade.clone());
                 add_element_to_object(&mut previousOrder, &Value::Str("lastTradeTimestamp".into()), trade.as_map().and_then(|__m| __m.get("timestamp")).cloned().unwrap_or(Value::Null));
-                let mut totalCost: Value = Value::Str("0".into());
-                let mut totalAmount: Value = Value::Str("0".into());
+                let mut totalCost: Option<String> = Some("0".to_string());
+                let mut totalAmount: Option<String> = Some("0".to_string());
                 let mut trades: Vec<Value> = self.safe_list_k(previousOrder.clone(), "trades", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_435: bool = true;
                     while { if !__for_first_435 { i += 1; } __for_first_435 = false; i < (trades.len() as i64) } {
                     let mut currentTrade: Value = trades.get(i as usize).cloned().unwrap_or(Value::Null);
-                    totalCost = crate::precise::Precise::stringAdd(&totalCost, &self.number_to_string(currentTrade.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null)));
-                    totalAmount = crate::precise::Precise::stringAdd(&totalAmount, &self.number_to_string(currentTrade.as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null)));
+                    totalCost = crate::precise::Precise::stringAdd(&totalCost.clone().map(Value::from).unwrap_or(Value::Null), &self.number_to_string(currentTrade.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null))).as_str().map(str::to_owned);
+                    totalAmount = crate::precise::Precise::stringAdd(&totalAmount.clone().map(Value::from).unwrap_or(Value::Null), &self.number_to_string(currentTrade.as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null))).as_str().map(str::to_owned);
                 }
                 }
-                if crate::precise::Precise::stringGt(&totalAmount, &Value::Str("0".into())).as_bool() == Some(true) {
-                    add_element_to_object(&mut previousOrder, &Value::Str("average".into()), crate::precise::Precise::stringDiv(&totalCost, &totalAmount));
+                if crate::precise::Precise::stringGt(&totalAmount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+                    add_element_to_object(&mut previousOrder, &Value::Str("average".into()), crate::precise::Precise::stringDiv(&totalCost.clone().map(Value::from).unwrap_or(Value::Null), &totalAmount.clone().map(Value::from).unwrap_or(Value::Null)));
                 }
-                add_element_to_object(&mut previousOrder, &Value::Str("cost".into()), totalCost);
+                add_element_to_object(&mut previousOrder, &Value::Str("cost".into()), totalCost.clone().map(Value::from).unwrap_or(Value::Null));
                 let mut filledString: Option<String> = self.number_to_string(trade.as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null)).as_str().map(str::to_owned);
                 let mut stringOrderFilled: String = self.safe_string_k(previousOrder.clone(), "filled", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
-                let mut totalFilled: Value = crate::precise::Precise::stringAdd(&Value::from(stringOrderFilled), &filledString.clone().map(Value::from).unwrap_or(Value::Null));
-                add_element_to_object(&mut previousOrder, &Value::Str("filled".into()), totalFilled.clone());
+                let mut totalFilled: Option<String> = crate::precise::Precise::stringAdd(&Value::from(stringOrderFilled), &filledString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                add_element_to_object(&mut previousOrder, &Value::Str("filled".into()), totalFilled.clone().map(Value::from).unwrap_or(Value::Null));
                 let mut prevAmountString: Option<String> = self.safe_string_k(previousOrder.clone(), "amount", &[]).as_str().map(str::to_owned);
-                let mut remaining: Value = crate::precise::Precise::stringSub(&prevAmountString.clone().map(Value::from).unwrap_or(Value::Null), &totalFilled);
-                add_element_to_object(&mut previousOrder, &Value::Str("remaining".into()), remaining);
+                let mut remaining: Option<String> = crate::precise::Precise::stringSub(&prevAmountString.clone().map(Value::from).unwrap_or(Value::Null), &totalFilled.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                add_element_to_object(&mut previousOrder, &Value::Str("remaining".into()), remaining.clone().map(Value::from).unwrap_or(Value::Null));
                 if (previousOrder.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null) == Value::Null) {
                     add_element_to_object(&mut previousOrder, &Value::Str("fee".into()), Value::Map({
     let mut m = indexmap::IndexMap::new();

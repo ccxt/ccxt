@@ -1232,8 +1232,8 @@ impl Polymarket {
         let mut symbolResolved: Value = symbol.clone();
         if (symbol != Value::Null) {
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            let mut resolvedSymbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
-            symbolResolved = resolvedSymbol.clone();
+            let mut resolvedSymbol: String = self.safe_string_k(market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            symbolResolved = Value::from(resolvedSymbol.clone());
             messageHash = format!("{}{}", Value::Str("orders:".into()), resolvedSymbol);
         }
         let mut subscribeHashes: Value = Value::from(vec![Value::Str("orders".into())]);
@@ -1355,8 +1355,8 @@ impl Polymarket {
         let mut symbolResolved: Value = symbol.clone();
         if (symbol != Value::Null) {
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            let mut resolvedSymbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
-            symbolResolved = resolvedSymbol.clone();
+            let mut resolvedSymbol: String = self.safe_string_k(market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            symbolResolved = Value::from(resolvedSymbol.clone());
             messageHash = format!("{}{}", Value::Str("myTrades:".into()), resolvedSymbol);
         }
         let mut subscribeHashes: Value = Value::from(vec![Value::Str("fills".into())]);

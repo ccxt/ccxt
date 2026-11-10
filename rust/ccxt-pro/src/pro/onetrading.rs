@@ -660,8 +660,8 @@ impl Onetrading {
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            let mut symbolValue: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
-            symbolResolved = symbolValue.clone();
+            let mut symbolValue: String = self.safe_string_k(market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            symbolResolved = Value::from(symbolValue.clone());
             messageHash = format!("{}{}", Value::Str("myTrades:".into()), symbolValue);
         }
         self.authenticate(&[params.clone()]).await;
@@ -866,8 +866,8 @@ impl Onetrading {
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            let mut symbolValue: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
-            symbolResolved = symbolValue.clone();
+            let mut symbolValue: String = self.safe_string_k(market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            symbolResolved = Value::from(symbolValue.clone());
             messageHash = format!("{}{}", Value::Str("orders:".into()), symbolValue);
         }
         self.authenticate(&[params.clone()]).await;

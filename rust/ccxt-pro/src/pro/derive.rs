@@ -1100,8 +1100,8 @@ impl Derive {
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut subaccountIdString: Value = self.number_to_string(subaccountId);
-        let mut topic: Value = Value::Str(format!("{}{}", subaccountIdString, Value::Str(".orders".into())).into());
-        let mut messageHash: Value = topic.clone();
+        let mut topic: String = format!("{}{}", subaccountIdString, Value::Str(".orders".into()));
+        let mut messageHash: Value = Value::from(topic.clone());
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             symbolResolved = self.symbol(symbol.clone());
@@ -1112,14 +1112,14 @@ impl Derive {
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::from(vec![topic.clone()]));
+        m.insert("channels".to_string(), Value::from(vec![Value::from(topic.clone())]));
     m
 }));
             m
         });
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("name".to_string(), topic);
+                m.insert("name".to_string(), Value::from(topic));
                 m.insert("params".to_string(), paramsDeriveSubaccountId.clone());
             m
         });
@@ -1307,8 +1307,8 @@ impl Derive {
         let mut subaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsDeriveSubaccountId: Value = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut subaccountIdString: Value = self.number_to_string(subaccountId);
-        let mut topic: Value = Value::Str(format!("{}{}", subaccountIdString, Value::Str(".trades".into())).into());
-        let mut messageHash: Value = topic.clone();
+        let mut topic: String = format!("{}{}", subaccountIdString, Value::Str(".trades".into()));
+        let mut messageHash: Value = Value::from(topic.clone());
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             symbolResolved = self.symbol(symbol.clone());
@@ -1319,14 +1319,14 @@ impl Derive {
                 m.insert("method".to_string(), Value::Str("subscribe".into()));
                 m.insert("params".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("channels".to_string(), Value::from(vec![topic.clone()]));
+        m.insert("channels".to_string(), Value::from(vec![Value::from(topic.clone())]));
     m
 }));
             m
         });
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("name".to_string(), topic);
+                m.insert("name".to_string(), Value::from(topic));
                 m.insert("params".to_string(), paramsDeriveSubaccountId.clone());
             m
         });
@@ -1614,15 +1614,15 @@ impl Derive {
         let mut newSize: String = self.safe_string_k(entry.clone(), "new_balance", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         let mut isShort: Value = crate::precise::Precise::stringLt(&Value::from(newSize.clone()), &Value::Str("0".into()));
         let mut side: Value = (if isShort.as_bool() == Some(true) { Value::Str("short".into()) } else { Value::Str("long".into()) });
-        let mut contracts: Value = crate::precise::Precise::stringAbs(&Value::from(newSize));
+        let mut contracts: Option<String> = crate::precise::Precise::stringAbs(&Value::from(newSize)).as_str().map(str::to_owned);
         let mut cache: Value = self.safe_value(self.positions.clone(), subaccountIdKey, &[]);
         let mut symbolPositions: Value = self.safe_dict(cache.hashmap(), Value::from(symbol.clone()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
         // a fill through zero flattens the opposite side first
-        let mut oppositeSide: Value = (if isShort.as_bool() == Some(true) { Value::Str("long".into()) } else { Value::Str("short".into()) });
-        let mut opposite: Value = self.safe_dict(symbolPositions.clone(), oppositeSide, &[]);
+        let mut oppositeSide: String = (if isShort.as_bool() == Some(true) { "long".to_string() } else { "short".to_string() });
+        let mut opposite: Value = self.safe_dict(symbolPositions.clone(), Value::from(oppositeSide), &[]);
         if (opposite != Value::Null) {
             let mut oppositeContracts: Option<String> = self.safe_string_k(opposite.clone(), "contracts", &[]).as_str().map(str::to_owned);
             if (oppositeContracts.is_some()) && (oppositeContracts.as_deref() != Some("0")) {
@@ -1645,7 +1645,7 @@ impl Derive {
                 m
             }));
         }
-        add_element_to_object(&mut position, &Value::Str("contracts".into()), self.parse_number(contracts, &[]));
+        add_element_to_object(&mut position, &Value::Str("contracts".into()), self.parse_number(contracts.map(Value::from).unwrap_or(Value::Null), &[]));
         add_element_to_object(&mut position, &Value::Str("side".into()), side);
         add_element_to_object(&mut position, &Value::Str("lastUpdateTimestamp".into()), self.milliseconds());
         add_element_to_object(&mut position, &Value::Str("info".into()), entry);
@@ -1752,9 +1752,9 @@ impl Derive {
         let mut errorCode: Option<String> = self.safe_string_k(errorMessage, "code", &[]).as_str().map(str::to_owned);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if (errorCode.is_some()) {
-                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message)).into());
-                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
-                panic!("{}", crate::exchange_errors::exchange_error(feedback));
+                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message));
+                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
+                panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
             }
             return Value::Bool(false);
          #[allow(unreachable_code)] { Value::Null }}));

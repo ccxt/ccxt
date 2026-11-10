@@ -2554,20 +2554,20 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 currencyCode = self.currency(currency.clone().map(Value::from).unwrap_or(Value::Null));
             }
             marginMode = self.safe_string_k(paramsOmitted, "margin", &[Value::Str("cross".into())]).as_str().map(str::to_owned);
-            let mut prefix: Value = Value::Str("accounts".into());
-            messageHash = prefix.clone();
+            let mut prefix: String = "accounts".to_string();
+            messageHash = Value::from(prefix.clone());
             if (subType.as_str() == Some("linear")) {
                 if isUnifiedAccount {
                     // usdt contracts account
-                    prefix = Value::Str("accounts_unify".into());
-                    messageHash = prefix.clone();
+                    prefix = "accounts_unify".to_string();
+                    messageHash = Value::from(prefix.clone());
                     channel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix, Value::Str(".".into())).into()), Value::Str("usdt".into())).into());
                 }  else {
                     // usdt contracts account
                     if (marginMode.as_deref() == Some("cross")) {
-                        prefix = Value::Str(format!("{}{}", prefix, Value::Str("_cross".into())).into());
+                        prefix = format!("{}{}", prefix, Value::Str("_cross".into()));
                     }
-                    messageHash = prefix.clone();
+                    messageHash = Value::from(prefix.clone());
                     if (marginMode.as_deref() == Some("isolated")) {
                         // isolated margin only allows filtering by symbol3
                         if (symbol.is_some()) && (market.is_some()) {
@@ -3251,10 +3251,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut code: Option<String> = self.safe_string2(message.clone(), Value::Str("code".into()), Value::Str("err-code".into()), &[]).as_str().map(str::to_owned);
         if (code.is_some()) && ((code.as_deref() != Some("200")) && (code.as_deref() != Some("0"))) {
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message)).into());
+            let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message));
             let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                self.throw_exactly_matched_exception(wsExceptions.get("exact").cloned().unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
-                panic!("{}", crate::exchange_errors::exchange_error(feedback));
+                self.throw_exactly_matched_exception(wsExceptions.get("exact").cloned().unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
+                panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
              #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if is_instance(&e, &Value::Str("AuthenticationError".into())) {

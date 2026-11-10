@@ -952,9 +952,9 @@ impl Bitfinex {
             marketId = self.safe_string(trade.clone().into(), Value::Int(1), &[]);
         }
         let mut marketResolved: Value = self.safe_market(&[marketId.clone(), market]);
-        let mut createdKey: Value = (if isPublic { Value::Int(1) } else { Value::Int(2) });
-        let mut priceKey: Value = (if isPublic { Value::Int(3) } else { Value::Int(5) });
-        let mut amountKey: Value = (if isPublic { Value::Int(2) } else { Value::Int(4) });
+        let mut createdKey: i64 = (if isPublic { 1 } else { 2 });
+        let mut priceKey: i64 = (if isPublic { 3 } else { 5 });
+        let mut amountKey: i64 = (if isPublic { 2 } else { 4 });
         marketId = marketResolved.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
         let mut type_var: Value = self.safe_string(trade.clone().into(), Value::Int(6), &[]);
         if (type_var != Value::Null) {
@@ -969,9 +969,9 @@ impl Bitfinex {
             orderId = self.safe_string(trade.clone().into(), Value::Int(3), &[]).as_str().map(str::to_owned);
         }
         let mut id: Option<String> = self.safe_string(trade.clone().into(), Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut timestamp: Option<i64> = self.safe_integer(trade.clone().into(), createdKey, &[]).as_i64();
-        let mut price: Option<String> = self.safe_string(trade.clone().into(), priceKey, &[]).as_str().map(str::to_owned);
-        let mut amountString: Option<String> = self.safe_string(trade.clone().into(), amountKey, &[]).as_str().map(str::to_owned);
+        let mut timestamp: Option<i64> = self.safe_integer(trade.clone().into(), Value::from(createdKey), &[]).as_i64();
+        let mut price: Option<String> = self.safe_string(trade.clone().into(), Value::from(priceKey), &[]).as_str().map(str::to_owned);
+        let mut amountString: Option<String> = self.safe_string(trade.clone().into(), Value::from(amountKey), &[]).as_str().map(str::to_owned);
         let mut amount: Value = self.parse_number(crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null)), &[]);
         let mut side: Value = Value::Null;
         if (amount != Value::Null) {
@@ -1274,7 +1274,7 @@ impl Bitfinex {
         let mut asks: Value = book.as_map().and_then(|__m| __m.get("asks")).cloned().unwrap_or(Value::Null);
         let mut prec: Option<String> = self.safe_string_k(subscription, "prec", &[Value::Str("P0".into())]).as_str().map(str::to_owned);
         let mut isRaw: bool = prec.as_deref() == Some("R0");
-        let mut idToCheck: Value = (if isRaw { Value::Int(2) } else { Value::Int(0) });
+        let mut idToCheck: i64 = (if isRaw { 2 } else { 0 });
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_105: bool = true;
@@ -1282,11 +1282,11 @@ impl Bitfinex {
             let mut bid: Value = self.safe_list(bids.clone(), i.clone(), &[]);
             let mut ask: Value = self.safe_list(asks.clone(), i.clone(), &[]);
             if (bid != Value::Null) {
-                stringArray.push(self.number_to_string(self.safe_number(bid.clone(), idToCheck.clone(), &[])));
+                stringArray.push(self.number_to_string(self.safe_number(bid.clone(), Value::from(idToCheck), &[])));
                 stringArray.push(self.number_to_string(self.safe_number(bid, Value::Int(1), &[])));
             }
             if (ask != Value::Null) {
-                stringArray.push(self.number_to_string(self.safe_number(ask.clone(), idToCheck.clone(), &[])));
+                stringArray.push(self.number_to_string(self.safe_number(ask.clone(), Value::from(idToCheck), &[])));
                 let mut aski1: Value = self.safe_number(ask, Value::Int(1), &[]);
                 if (aski1 != Value::Null) {
                     stringArray.push(self.number_to_string((match &(aski1) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null })));
@@ -1802,10 +1802,10 @@ impl Bitfinex {
         let mut marketId: Option<String> = self.safe_string(order.clone(), Value::Int(3), &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[symbol.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut amount: Value = self.safe_string(order.clone(), Value::Int(7), &[]);
+        let mut amount: Option<String> = self.safe_string(order.clone(), Value::Int(7), &[]).as_str().map(str::to_owned);
         let mut side: String = "buy".to_string();
-        if crate::precise::Precise::stringLt(&amount, &Value::Str("0".into())).as_bool() == Some(true) {
-            amount = crate::precise::Precise::stringAbs(&amount);
+        if crate::precise::Precise::stringLt(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            amount = crate::precise::Precise::stringAbs(&amount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             side = "sell".to_string();
         }
         let mut remaining: Value = crate::precise::Precise::stringAbs(&self.safe_string(order.clone(), Value::Int(6), &[]));
@@ -1838,7 +1838,7 @@ impl Bitfinex {
         m.insert("stopPrice".to_string(), stopPrice.clone());
         m.insert("triggerPrice".to_string(), stopPrice);
         m.insert("average".to_string(), average.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), remaining);
         m.insert("filled".to_string(), Value::Null);
         m.insert("status".to_string(), status);

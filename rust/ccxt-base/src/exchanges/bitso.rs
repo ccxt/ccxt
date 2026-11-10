@@ -815,10 +815,10 @@ impl Bitso {
             direction = None.clone();
         }  else if (operation.as_deref() == Some("fee")) {
             direction = Some("out".to_string());
-            let mut cost: Value = crate::precise::Precise::stringAbs(&amount.clone().map(Value::from).unwrap_or(Value::Null));
+            let mut cost: Option<String> = crate::precise::Precise::stringAbs(&amount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), cost);
+                    m.insert("cost".to_string(), cost.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("currency".to_string(), currencyResolved.clone());
                 m
             });
@@ -944,13 +944,13 @@ impl Bitso {
                 while { if !__for_first_419 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_419 = false; j.as_f64().unwrap_or(f64::NAN) < ((feeTiers.len() as i64) as f64) } {
                 let mut tier: Value = self.safe_dict(feeTiers.clone().into(), j.clone(), &[]);
                 let mut volume: Option<f64> = self.safe_number_k(tier.clone(), "volume", &[]).as_f64();
-                let mut takerFee: Value = self.safe_number_k(tier.clone(), "taker", &[]);
-                let mut makerFee: Value = self.safe_number_k(tier, "maker", &[]);
-                takerFees.push(Value::from(vec![Value::from(volume), takerFee.clone()]));
-                makerFees.push(Value::from(vec![Value::from(volume), makerFee.clone()]));
+                let mut takerFee: Option<f64> = self.safe_number_k(tier.clone(), "taker", &[]).as_f64();
+                let mut makerFee: Option<f64> = self.safe_number_k(tier, "maker", &[]).as_f64();
+                takerFees.push(Value::from(vec![Value::from(volume), Value::from(takerFee)]));
+                makerFees.push(Value::from(vec![Value::from(volume), Value::from(makerFee)]));
                 if (j.as_f64() == Some(0.0)) {
-                    fee.insert("taker".into(), takerFee);
-                    fee.insert("maker".into(), makerFee);
+                    fee.insert("taker".into(), Value::from(takerFee));
+                    fee.insert("maker".into(), Value::from(makerFee));
                 }
             }
             }
@@ -1471,9 +1471,9 @@ impl Bitso {
                 side = Value::Str("buy".into());
             }
         }
-        let mut amount: Value = self.safe_string2(trade.clone(), Value::Str("amount".into()), Value::Str("major".into()), &[]);
-        if (amount != Value::Null) {
-            amount = crate::precise::Precise::stringAbs(&amount);
+        let mut amount: Option<String> = self.safe_string2(trade.clone(), Value::Str("amount".into()), Value::Str("major".into()), &[]).as_str().map(str::to_owned);
+        if (amount.is_some()) {
+            amount = crate::precise::Precise::stringAbs(&amount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut fee: Value = Value::Null;
         let mut feeCost: Option<String> = self.safe_string_k(trade.clone(), "fees_amount", &[]).as_str().map(str::to_owned);
@@ -1487,9 +1487,9 @@ impl Bitso {
                 m
             });
         }
-        let mut cost: Value = self.safe_string_k(trade.clone(), "minor", &[]);
-        if (cost != Value::Null) {
-            cost = crate::precise::Precise::stringAbs(&cost);
+        let mut cost: Option<String> = self.safe_string_k(trade.clone(), "minor", &[]).as_str().map(str::to_owned);
+        if (cost.is_some()) {
+            cost = crate::precise::Precise::stringAbs(&cost.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }
         let mut price: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut orderId: Option<String> = self.safe_string_k(trade.clone(), "oid", &[]).as_str().map(str::to_owned);
@@ -1506,8 +1506,8 @@ impl Bitso {
         m.insert("side".to_string(), side);
         m.insert("takerOrMaker".to_string(), takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount);
-        m.insert("cost".to_string(), cost);
+        m.insert("amount".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("cost".to_string(), cost.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), fee);
     m
 }), &[market]);
@@ -2874,13 +2874,13 @@ impl Bitso {
             //
             let mut success: bool = self.safe_bool_k(response.clone(), "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if !success {
-                let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response)).into());
+                let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response));
                 let mut error: Value = self.safe_dict_k(response, "error", &[]);
                 if (error == Value::Null) {
-                    panic!("{}", crate::exchange_errors::exchange_error(feedback));
+                    panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
                 }
                 let mut codeError: Option<String> = self.safe_string_k(error, "code", &[]).as_str().map(str::to_owned);
-                self.throw_exactly_matched_exception(self.exceptions.clone(), codeError.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
+                self.throw_exactly_matched_exception(self.exceptions.clone(), codeError.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
         }

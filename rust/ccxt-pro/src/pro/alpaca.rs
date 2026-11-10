@@ -729,8 +729,8 @@ impl Alpaca {
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            let mut marketSymbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
-            symbolResolved = marketSymbol.clone();
+            let mut marketSymbol: String = self.safe_string_k(market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            symbolResolved = Value::from(marketSymbol.clone());
             messageHash = format!("{}{}", Value::Str("myTrades:".into()), marketSymbol);
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -786,8 +786,8 @@ impl Alpaca {
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            let mut marketSymbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
-            symbolResolved = marketSymbol.clone();
+            let mut marketSymbol: String = self.safe_string_k(market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            symbolResolved = Value::from(marketSymbol.clone());
             messageHash = format!("{}{}", Value::Str("orders:".into()), marketSymbol);
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1085,10 +1085,10 @@ impl Alpaca {
         //
         let mut code: String = (match message.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut msg: Option<String> = (match message.get("msg") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut header: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" code: ".into())).into()), code).into());
-        let mut errorMessage: Value = header.clone();
+        let mut header: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" code: ".into())).into()), code);
+        let mut errorMessage: String = header.clone();
         if (msg.is_some()) {
-            errorMessage = Value::Str(format!("{}{}", Value::Str(format!("{}{}", header, Value::Str(" message: ".into())).into()), msg.clone().map(Value::from).unwrap_or(Value::Null)).into());
+            errorMessage = format!("{}{}", Value::Str(format!("{}{}", header, Value::Str(" message: ".into())).into()), msg.clone().map(Value::from).unwrap_or(Value::Null));
         }
         panic!("{}", crate::exchange_errors::exchange_error(errorMessage));
 

@@ -1477,12 +1477,12 @@ impl Toobit {
         let mut marketId: Option<String> = self.safe_string_k(order.clone(), "s", &[]).as_str().map(str::to_owned);
         let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone()]).as_str().map(str::to_owned);
         let mut priceType: Option<String> = self.safe_string_lower_k(order.clone(), "pt", &[]).as_str().map(str::to_owned);
-        let mut rawOrderType: Option<String> = self.safe_string_lower_k_opt(order.clone(), "o", &[]);
+        let mut rawOrderType: Option<String> = self.safe_string_lower_k(order.clone(), "o", &[]).as_str().map(str::to_owned);
         let mut orderType: Value = Value::Null;
         if (priceType.as_deref() == Some("market")) {
             orderType = Value::Str("market".into());
         }  else {
-            orderType = rawOrderType.map(Value::from).unwrap_or(Value::Null);
+            orderType = rawOrderType.clone().map(Value::from).unwrap_or(Value::Null);
         }
         let mut feeCost: Option<f64> = self.safe_number_k(order.clone(), "n", &[]).as_f64();
         let mut fee: Value = Value::Null;

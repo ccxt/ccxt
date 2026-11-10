@@ -1800,11 +1800,11 @@ impl Kraken {
                     while { if !__for_first_422 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_422 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
                     let mut currentAsk: Vec<Value> = self.safe_list(checkAsks.clone(), i.clone(), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                     let mut currentAskLength: f64 = ((currentAsk.len() as i64) as f64);
-                    let mut formattedAsk: Value = Value::Str("".into());
+                    let mut formattedAsk: String = "".to_string();
                     if currentAskLength > ((1i64) as f64) {
-                        formattedAsk = Value::Str(format!("{}{}", self.format_number(currentAsk.get(0).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), self.format_number(currentAsk.get(1).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null)).into());
+                        formattedAsk = format!("{}{}", self.format_number(currentAsk.get(0).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), self.format_number(currentAsk.get(1).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
                     }
-                    payloadArray.push(formattedAsk);
+                    payloadArray.push(Value::from(formattedAsk));
                 }
                 }
                 {
@@ -1813,11 +1813,11 @@ impl Kraken {
                     while { if !__for_first_423 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_423 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
                     let mut currentBid: Vec<Value> = self.safe_list(checkBids.clone(), i.clone(), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                     let mut currentBidLength: f64 = ((currentBid.len() as i64) as f64);
-                    let mut formattedBid: Value = Value::Str("".into());
+                    let mut formattedBid: String = "".to_string();
                     if currentBidLength > ((1i64) as f64) {
-                        formattedBid = Value::Str(format!("{}{}", self.format_number(currentBid.get(0).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), self.format_number(currentBid.get(1).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null)).into());
+                        formattedBid = format!("{}{}", self.format_number(currentBid.get(0).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null), self.format_number(currentBid.get(1).cloned().unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
                     }
-                    payloadArray.push(formattedBid);
+                    payloadArray.push(Value::from(formattedBid));
                 }
                 }
             }

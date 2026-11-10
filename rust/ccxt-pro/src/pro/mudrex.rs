@@ -439,20 +439,20 @@ impl Mudrex {
         }
         let mut streamBaseId: Value = self.safe_string_k((market).raw.clone(), "baseId", &[Value::Str("".into())]);
         let mut streamQuoteId: Value = self.safe_string_k((market).raw.clone(), "quoteId", &[Value::Str("".into())]);
-        let mut stream: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix, Value::Str("@".into())).into()), interval).into()), Value::Str("@".into())).into()),
-            (if let Some(__s) = streamBaseId.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).into()), (if let Some(__s) = streamQuoteId.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).into());
-        let mut messageHash: Value = stream.clone();
+        let mut stream: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", prefix, Value::Str("@".into())).into()), interval).into()), Value::Str("@".into())).into()),
+            (if let Some(__s) = streamBaseId.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).into()), (if let Some(__s) = streamQuoteId.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }));
+        let mut messageHash: String = stream.clone();
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         self.set_broker_headers();
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), self.request_id());
                 m.insert("method".to_string(), Value::Str("SUBSCRIBE".into()));
-                m.insert("params".to_string(), Value::from(vec![stream]));
+                m.insert("params".to_string(), Value::from(vec![Value::from(stream)]));
             m
         });
         let mut request: Value = self.extend(Value::Map(subscribe), &[paramsOmitted]);
-        let mut ohlcv: Value = self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
+        let mut ohlcv: Value = self.watch(url, Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue, limit);
@@ -492,9 +492,9 @@ impl Mudrex {
 }) });
         let mut code: Option<String> = self.safe_string_k(error.clone(), "code", &[]).as_str().map(str::to_owned);
         let mut msg: String = self.safe_string_k(error, "msg", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), msg).into());
+        let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), msg);
         if (code.as_deref() == Some("429")) {
-            panic!("{}", crate::exchange_errors::rate_limit_exceeded(feedback));
+            panic!("{}", crate::exchange_errors::rate_limit_exceeded(feedback.clone()));
         }
         panic!("{}", crate::exchange_errors::exchange_error(feedback));
 }

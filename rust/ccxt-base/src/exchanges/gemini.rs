@@ -1299,17 +1299,17 @@ impl Gemini {
     m
 }));
         let mut data: Value = self.fetch_web_endpoint(Value::Str("fetchMarkets".into()), Value::Str("webGetRestApi".into()), Value::Bool(false), &[Value::Str("<h1 id=\"symbols-and-minimums\">Symbols and minimums</h1>".into())]).await;
-        let mut error: Value = Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.".into())).into());
+        let mut error: String = format!("{}{}", self.id.clone(), Value::Str(" fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.".into()));
         let mut tables: Value = split(&data, &Value::Str("tbody>".into()));
         let mut numTables: Value = tables.as_array().map_or(Value::Int(0), |__a| Value::Int(__a.len() as i64));
         if numTables.as_f64().unwrap_or(f64::NAN) < ((2i64) as f64) {
-            panic!("{}", crate::exchange_errors::not_supported(error));
+            panic!("{}", crate::exchange_errors::not_supported(error.clone()));
         }
         let mut table: Value = self.safe_string(tables, Value::Int(1), &[Value::Str("".into())]);
         let mut rows: Vec<Value> = Value::Array(if let Some(__s) = table.as_str() { __s.split("\n<tr>\n").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default(); // eslint-disable-line quotes
         let mut numRows: f64 = ((rows.len() as i64) as f64);
         if numRows < ((2i64) as f64) {
-            panic!("{}", crate::exchange_errors::not_supported(error));
+            panic!("{}", crate::exchange_errors::not_supported(error.clone()));
         }
         let mut result: Vec<Value> = Vec::new();
         {
@@ -1320,7 +1320,7 @@ impl Gemini {
             let mut cells: Value = Value::Array(if let Some(__s) = row.as_str() { __s.split("</td>\n").map(Value::from).collect() } else { Vec::new() }); // eslint-disable-line quotes
             let mut numCells: f64 = ((cells.len() as i64) as f64);
             if numCells < ((5i64) as f64) {
-                panic!("{}", crate::exchange_errors::not_supported(error));
+                panic!("{}", crate::exchange_errors::not_supported(error.clone()));
             }
             //     [
             //         '<td>btcusd', // currency
@@ -2256,10 +2256,10 @@ impl Gemini {
         //
         let mut makerBps: Option<String> = self.safe_string_k(response.clone(), "api_maker_fee_bps", &[]).as_str().map(str::to_owned);
         let mut takerBps: Option<String> = self.safe_string_k(response.clone(), "api_taker_fee_bps", &[]).as_str().map(str::to_owned);
-        let mut makerString: Value = crate::precise::Precise::stringDiv(&makerBps.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("10000".into()));
-        let mut takerString: Value = crate::precise::Precise::stringDiv(&takerBps.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("10000".into()));
-        let mut maker: Value = self.parse_number(makerString, &[]);
-        let mut taker: Value = self.parse_number(takerString, &[]);
+        let mut makerString: Option<String> = crate::precise::Precise::stringDiv(&makerBps.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("10000".into())).as_str().map(str::to_owned);
+        let mut takerString: Option<String> = crate::precise::Precise::stringDiv(&takerBps.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("10000".into())).as_str().map(str::to_owned);
+        let mut maker: Value = self.parse_number(makerString.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut taker: Value = self.parse_number(takerString.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

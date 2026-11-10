@@ -949,12 +949,12 @@ impl Hyperliquid {
         let mut firstSymbol: Option<String> = self.safe_string_opt(symbolsNormalized.clone(), Value::Int(0), &[]);
         if (firstSymbol.is_some()) {
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(firstSymbol.as_deref().unwrap_or_default()));
-            let mut dexName: Option<String> = self.safe_string_opt(self.safe_dict_k(market, "info", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]), Value::Str("dex".into()), &[]);
+            let mut dexName: Option<String> = self.safe_string(self.safe_dict_k(market, "info", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]), Value::Str("dex".into()), &[]).as_str().map(str::to_owned);
             if (dexName.is_some()) {
-                defaultDex = dexName.map(Value::from).unwrap_or(Value::Null);
+                defaultDex = dexName.clone().map(Value::from).unwrap_or(Value::Null);
             }
         }
         let mut paramsOmitted: Value = (if (defaultDex != Value::Null) { self.omit(params.clone(), Value::Str("dex".into()), &[]) } else { params });

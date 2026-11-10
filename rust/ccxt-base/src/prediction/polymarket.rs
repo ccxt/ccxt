@@ -150,6 +150,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "sign_hash" => self.sign_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "sign_message" => self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "subscribe_user_channel" => self.subscribe_user_channel(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "tag_to_slug" => self.tag_to_slug(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_str).unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_str), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -1157,11 +1158,11 @@ impl Polymarket {
             sortParam = "startDate".to_string();
         }
         let mut status: Option<String> = self.safe_string_k(params.clone(), "status", &[Value::Str("active".into())]).as_str().map(str::to_owned);
-        let mut eventsStatus: Value = Value::Str("active".into());
+        let mut eventsStatus: Option<String> = Some("active".to_string());
         if (status.as_deref() == Some("closed")) || (status.as_deref() == Some("inactive")) {
-            eventsStatus = Value::Str("closed".into());
+            eventsStatus = Some("closed".to_string());
         }  else if (status.as_deref() == Some("all")) {
-            eventsStatus = Value::Null;
+            eventsStatus = None.clone();
         }
         let mut rest: Value = self.omit(params.clone(), Value::from(vec![Value::Str("limit".into()), Value::Str("sort".into()), Value::Str("status".into()), Value::Str("searchIn".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("query".into()), Value::Str("queries".into()), Value::Str("searchPageSize".into()), Value::Str("maxSearchPages".into())]), &[]);
         let mut seen: Value = Value::Map({
@@ -1182,8 +1183,8 @@ impl Polymarket {
                     m.insert("ascending".to_string(), Value::Bool(false));
                 m
             });
-            if (eventsStatus != Value::Null) {
-                baseRequest.insert("events_status".into(), eventsStatus.clone());
+            if (eventsStatus.is_some()) {
+                baseRequest.insert("events_status".into(), eventsStatus.clone().map(Value::from).unwrap_or(Value::Null));
             }
             let mut firstRequest: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1288,11 +1289,11 @@ impl Polymarket {
  * @param {string} tag the tag label or slug
  * @returns {string} the gamma tag slug
  */
-    pub fn tag_to_slug(&self, mut tag: Value) -> Option<String> {
+    pub fn tag_to_slug(&self, mut tag: Value) -> Value {
         let mut lower: String = tag.as_str().map(str::to_lowercase).unwrap_or_default();
         let mut allowed: String = "abcdefghijklmnopqrstuvwxyz0123456789".to_string();
         let mut chars: Vec<Value> = self.string_to_chars_array(Value::from(lower.clone())).as_array().cloned().unwrap_or_default();
-        let mut slug: Value = Value::Str("".into());
+        let mut slug: String = "".to_string();
         let mut pendingSep: bool = false;
         {
                         let mut i: i64 = 0;
@@ -1300,20 +1301,22 @@ impl Polymarket {
             while { if !__for_first_1413 { i += 1; } __for_first_1413 = false; i < (chars.len() as i64) } {
             let mut ch: Value = chars.get(i as usize).cloned().unwrap_or(Value::Null);
             if Value::Int(Some(allowed.as_str()).zip(ch.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-                if pendingSep && (slug.as_str() != Some("")) {
-                    slug = Value::Str(format!("{}{}", slug, Value::Str("-".into())).into());
+                if pendingSep && (slug != "") {
+                    slug = format!("{}{}", slug, Value::Str("-".into()));
                 }
-                slug = Value::Str(format!("{}{}", slug, ch).into());
+                slug = format!("{}{}", slug, ch);
                 pendingSep = false;
             }  else {
                 pendingSep = true;
             }
         }
         }
-        if (slug.as_str() == Some("")) {
-            return Value::from(lower).as_str().map(str::to_owned);
+        if (slug == "") {
+            return Value::from(lower);
         }
-        return slug.as_str().map(str::to_owned);
+        return Value::from(slug);
+
+    Value::Null
 }
 
 /*
@@ -1397,7 +1400,7 @@ impl Polymarket {
         if requestedTagsLength > ((0i64) as f64) {
             // gamma matches tag_slug case-insensitively but only in slug form ("fed-rates"),
             // so human-readable labels ("Fed Rates") must be slugified first
-            add_element_to_object(&mut baseRequest, &Value::Str("tag_slug".into()), self.tag_to_slug(self.safe_string(requestedTags.clone().into(), Value::Int(0), &[])).map(Value::from).unwrap_or(Value::Null));
+            add_element_to_object(&mut baseRequest, &Value::Str("tag_slug".into()), self.tag_to_slug(self.safe_string(requestedTags.clone().into(), Value::Int(0), &[])));
         }
         if (status.as_deref() == Some("active")) {
             add_element_to_object(&mut baseRequest, &Value::Str("active".into()), Value::Bool(true));
@@ -2728,10 +2731,10 @@ impl Polymarket {
         }
         let mut price: Option<f64> = self.safe_number_k(trade.clone(), "price", &[]).as_f64();
         let mut amount: Option<f64> = self.safe_number_k(trade.clone(), "size", &[]).as_f64();
-        let mut rawSide: Option<String> = self.safe_string_lower_k_opt(trade.clone(), "side", &[]);
+        let mut rawSide: Option<String> = self.safe_string_lower_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut side: Value = Value::Null;
         if (rawSide.as_deref() == Some("buy")) || (rawSide.as_deref() == Some("sell")) {
-            side = rawSide.map(Value::from).unwrap_or(Value::Null);
+            side = rawSide.clone().map(Value::from).unwrap_or(Value::Null);
         }
         let mut assetId: Option<String> = self.safe_string2(trade.clone(), Value::Str("asset".into()), Value::Str("asset_id".into()), &[]).as_str().map(str::to_owned);
         let mut mkt: Value = Value::Null;
@@ -2741,10 +2744,10 @@ impl Polymarket {
             mkt = self.safe_outcome(assetId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         }
         let mut outcome: Value = self.safe_outcome_symbol(Value::Null, &[mkt.clone()]);
-        let mut rawTakerOrMaker: Option<String> = self.safe_string_lower_k_opt(trade.clone(), "trader_side", &[]);
+        let mut rawTakerOrMaker: Option<String> = self.safe_string_lower_k(trade.clone(), "trader_side", &[]).as_str().map(str::to_owned);
         let mut takerOrMaker: Value = Value::Null;
         if (rawTakerOrMaker.as_deref() == Some("taker")) || (rawTakerOrMaker.as_deref() == Some("maker")) {
-            takerOrMaker = rawTakerOrMaker.map(Value::from).unwrap_or(Value::Null);
+            takerOrMaker = rawTakerOrMaker.clone().map(Value::from).unwrap_or(Value::Null);
         }
         let mut feeRateBps: Option<String> = self.safe_string_k(trade.clone(), "fee_rate_bps", &[]).as_str().map(str::to_owned);
         let mut fee: Value = Value::Null;
@@ -3264,9 +3267,9 @@ impl Polymarket {
             let mut __for_first_1440: bool = true;
             while { if !__for_first_1440 { i += 1; } __for_first_1440 = false; i < (orders.len() as i64) } {
             let mut o: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
-            let mut __oc: Option<String> = self.safe_string_k_opt(o.clone(), "outcome", &[]);
+            let mut __oc: Option<String> = self.safe_string_k(o.clone(), "outcome", &[]).as_str().map(str::to_owned);
             if (__oc.is_some()) {
-                orderOutcomes.push(__oc.map(Value::from).unwrap_or(Value::Null));
+                orderOutcomes.push(__oc.clone().map(Value::from).unwrap_or(Value::Null));
             }
         }
         }
@@ -3459,11 +3462,11 @@ impl Polymarket {
                 m.insert("builder".to_string(), builderBytes32.clone());
             m
         });
-        let mut exchangeV2: Value = self.safe_string_k(self.options.clone(), "exchangeAddress", &[Value::Str("0xE111180000d2663C0091e4f400237545B87B996B".into())]);
-        let mut negRiskExchangeV2: Value = self.safe_string_k(self.options.clone(), "negRiskExchangeAddress", &[Value::Str("0xe2222d279d744050d28e00520010520000310F59".into())]);
-        let mut exchangeAddress: Value = exchangeV2;
+        let mut exchangeV2: String = self.safe_string_k(self.options.clone(), "exchangeAddress", &[Value::Str("0xE111180000d2663C0091e4f400237545B87B996B".into())]).as_str().unwrap_or("0xE111180000d2663C0091e4f400237545B87B996B").to_string();
+        let mut negRiskExchangeV2: String = self.safe_string_k(self.options.clone(), "negRiskExchangeAddress", &[Value::Str("0xe2222d279d744050d28e00520010520000310F59".into())]).as_str().unwrap_or("0xe2222d279d744050d28e00520010520000310F59").to_string();
+        let mut exchangeAddress: Value = Value::from(exchangeV2);
         if negRisk.as_bool() == Some(true) {
-            exchangeAddress = negRiskExchangeV2;
+            exchangeAddress = Value::from(negRiskExchangeV2);
         }
         let mut domainVersion: String = self.safe_string_k(self.options.clone(), "ctfExchangeVersion", &[Value::Str("2".into())]).as_str().unwrap_or("2").to_string();
         let mut signature: Value = self.sign_clob_order(Value::Map(message), exchangeAddress, Value::from(domainVersion), signatureType.clone()).map(Value::from).unwrap_or(Value::Null);
@@ -4218,9 +4221,9 @@ impl Polymarket {
                         let mut ti: Value = Value::Int(0);
             let mut __for_first_1447: bool = true;
             while { if !__for_first_1447 { if let Value::Int(n) = &mut ti { *n += 1; } } __for_first_1447 = false; ti.as_f64().unwrap_or(f64::NAN) < rawTagsLength } {
-            let mut tagLabel: Option<String> = self.safe_string2_opt(rawTags.get(ti.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), Value::Str("label".into()), Value::Str("slug".into()), &[]);
+            let mut tagLabel: Option<String> = self.safe_string2(rawTags.get(ti.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), Value::Str("label".into()), Value::Str("slug".into()), &[]).as_str().map(str::to_owned);
             if (tagLabel.is_some()) {
-                parsedTags.push(tagLabel.map(Value::from).unwrap_or(Value::Null));
+                parsedTags.push(tagLabel.clone().map(Value::from).unwrap_or(Value::Null));
             }
         }
         }
@@ -5044,8 +5047,8 @@ if _try_result.is_err() {
         }
         let mut mid: Value = Value::Null;
         if (bestBid != Value::Null) && (bestAsk != Value::Null) {
-            let mut sum: Value = crate::precise::Precise::stringAdd(&self.number_to_string(bestBid.clone()), &self.number_to_string(bestAsk.clone()));
-            mid = self.parse_number(crate::precise::Precise::stringDiv(&sum, &Value::Str("2".into())), &[]);
+            let mut sum: Option<String> = crate::precise::Precise::stringAdd(&self.number_to_string(bestBid.clone()), &self.number_to_string(bestAsk.clone())).as_str().map(str::to_owned);
+            mid = self.parse_number(crate::precise::Precise::stringDiv(&sum.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("2".into())), &[]);
         }  else if (bestBid != Value::Null) {
             mid = bestBid.clone();
         }  else {

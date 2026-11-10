@@ -1963,18 +1963,18 @@ impl Whitebit {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut makerFee: Value = self.safe_string_k(fee.clone(), "maker_fee", &[]);
-            let mut takerFee: Value = self.safe_string_k(fee.clone(), "taker_fee", &[]);
-            makerFee = crate::precise::Precise::stringDiv(&makerFee, &Value::Str("100".into()));
-            takerFee = crate::precise::Precise::stringDiv(&takerFee, &Value::Str("100".into()));
+            let mut makerFee: Option<String> = self.safe_string_k(fee.clone(), "maker_fee", &[]).as_str().map(str::to_owned);
+            let mut takerFee: Option<String> = self.safe_string_k(fee.clone(), "taker_fee", &[]).as_str().map(str::to_owned);
+            makerFee = crate::precise::Precise::stringDiv(&makerFee.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+            takerFee = crate::precise::Precise::stringDiv(&takerFee.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fee);
         m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(false));
-        m.insert("maker".to_string(), self.parse_number(makerFee, &[]));
-        m.insert("taker".to_string(), self.parse_number(takerFee, &[]));
+        m.insert("maker".to_string(), self.parse_number(makerFee.map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("taker".to_string(), self.parse_number(takerFee.map(Value::from).unwrap_or(Value::Null), &[]));
     m
 })); }
         }
@@ -2062,11 +2062,11 @@ impl Whitebit {
             while { if !__for_first_1153 { i += 1; } __for_first_1153 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.safe_value(markets.clone(), marketId, &[]);
-            let mut marketSymbol: Value = self.safe_string_k(market.clone(), "symbol", &[]);
-            if (market == Value::Null) || (market == Value::Null) || (marketSymbol == Value::Null) || (marketSymbol.as_str() == Some("")) {
+            let mut marketSymbol: Option<String> = self.safe_string_k(market.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            if (market == Value::Null) || (market == Value::Null) || (marketSymbol.is_none()) || (marketSymbol.as_deref() == Some("")) {
                 continue;
             }
-            let mut symbol: Value = marketSymbol;
+            let mut symbol: Value = marketSymbol.clone().map(Value::from).unwrap_or(Value::Null);
             // Filter by symbols if specified
             if (symbols != Value::Null) {
                 if !(self.in_array(symbol.clone(), symbols.clone()).as_bool() == Some(true)) {
@@ -6100,19 +6100,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (response != Value::Null) {
             // For cases where we have a meaningful status
             // {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
-            let mut status: Option<String> = self.safe_string_k_opt(response.clone(), "status", &[]);
+            let mut status: Option<String> = self.safe_string_k(response.clone(), "status", &[]).as_str().map(str::to_owned);
             let mut errors: Value = self.safe_dict_k(response.clone(), "errors", &[]);
             // {"code":10,"message":"Unauthorized request."}
-            let mut message: Option<String> = self.safe_string_k_opt(response.clone(), "message", &[]);
+            let mut message: Option<String> = self.safe_string_k(response.clone(), "message", &[]).as_str().map(str::to_owned);
             // For these cases where we have a generic code variable error key
             // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
             let mut codeNew: Option<i64> = self.safe_integer_k(response.clone(), "code", &[]).as_i64();
             let mut hasErrorStatus: bool = (status.is_some()) && (status.as_deref() != Some("200")) && (errors != Value::Null);
             if hasErrorStatus || (codeNew.is_some()) {
                 let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
-                let mut errorInfo: Value = message.map(Value::from).unwrap_or(Value::Null);
+                let mut errorInfo: Value = message.clone().map(Value::from).unwrap_or(Value::Null);
                 if hasErrorStatus {
-                    errorInfo = status.map(Value::from).unwrap_or(Value::Null);
+                    errorInfo = status.clone().map(Value::from).unwrap_or(Value::Null);
                 }  else {
                     let mut errorObject: Value = self.safe_dict_k(response.clone(), "errors", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
