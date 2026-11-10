@@ -123,7 +123,7 @@ export default class vexora extends Exchange {
      * @description retrieves the list of markets from the public products endpoint
      * @see https://trade.smartcore.su/api/products
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of @link market unified structures
+     * @returns {object[]} a list of unified market structures
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const products = await this.publicGetProducts (params) as any;
@@ -192,7 +192,7 @@ export default class vexora extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of @link order-book structures
+     * @returns {object} A dictionary of order-book structures
      */
     override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         await this.loadMarkets ();
@@ -209,7 +209,7 @@ export default class vexora extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest trade to report — not supported by the endpoint, filtered locally
      * @param {int} [limit] the maximum amount of trades to report, capped by the exchange at 50
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of @link trade structures
+     * @returns {object[]} a list of trade structures
      */
     override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         await this.loadMarkets ();
@@ -286,7 +286,7 @@ export default class vexora extends Exchange {
      * @see https://trade.smartcore.su/api/products/{id}/book
      * @param {string} symbol unified symbol of the market to fetch a ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a @link ticker structure
+     * @returns {object} a ticker structure
      */
     override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
@@ -347,7 +347,7 @@ export default class vexora extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': undefined,
             'lastTradeTimestamp': lastTimestamp,
-            'info': { 'book': bookRequest, 'window': { 'high': windowHigh, 'low': windowLow, 'baseVolume': windowBaseVolume, 'quoteVolume': windowQuoteVolume, 'tradesCount': tradesResponse.length } },
+            'info': { 'book': bookRequest, 'window': { 'high': windowHigh, 'low': windowLow, 'baseVolume': windowBaseVolume, 'quoteVolume': windowQuoteVolume, 'tradesCount': tradesResponse.length }},
         };
         return this.safeTicker (ticker, market);
     }
