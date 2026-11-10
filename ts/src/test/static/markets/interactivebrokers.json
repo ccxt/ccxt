@@ -29,7 +29,7 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 1e-08,
+            "amount": 1e-8,
             "price": 0.05
         },
         "limits": {
@@ -142,7 +142,7 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 1e-08,
+            "amount": 1e-8,
             "price": 0.25
         },
         "limits": {
@@ -327,5 +327,227 @@
         "tierBased": false,
         "percentage": true,
         "feeSide": "get"
+    },
+    "ETH/USD.COINDERIV:USD": {
+        "id": "805366682",
+        "lowercaseId": null,
+        "symbol": "ETH/USD.COINDERIV:USD",
+        "base": "ETH",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "ETP",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.002,
+        "maker": 0.002,
+        "contractSize": 0.1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.5
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 1,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "symbol": "ETP",
+            "conid": 805366682,
+            "underlyingConid": 805366634,
+            "expirationDate": 20301220,
+            "ltd": 20301220,
+            "shortFuturesCutOff": 20301220,
+            "longFuturesCutOff": 20301220,
+            "incrementRules": [
+                {
+                    "lowerEdge": 0,
+                    "increment": 0.5
+                }
+            ],
+            "displayRule": {
+                "magnification": 0,
+                "displayRuleStep": [
+                    {
+                        "decimalDigits": 2,
+                        "lowerEdge": 0,
+                        "wholeDigits": 4
+                    }
+                ]
+            },
+            "currency": "USD",
+            "time": 3,
+            "chineseName": "&#x7F8E;&#x5143;",
+            "allExchanges": "COINDERIV",
+            "listingExchange": "COINDERIV",
+            "countryCode": "US",
+            "name": "nano Ether ETH Perpetual Futures",
+            "assetClass": "FUT",
+            "expiry": "20301220",
+            "lastTradingDay": "20301220",
+            "group": null,
+            "putOrCall": null,
+            "sector": null,
+            "sectorGroup": null,
+            "strike": "0",
+            "ticker": "ETP",
+            "undConid": 805366634,
+            "multiplier": 0.1,
+            "type": "",
+            "undComp": "nano Ether ETH Perpetual Futures",
+            "undSym": "ETP",
+            "underExchange": "COINDERIV",
+            "hasOptions": false,
+            "fullName": "ETP Dec20'30",
+            "isEventContract": false
+        },
+        "tierBased": false,
+        "percentage": true,
+        "feeSide": "get",
+        "underlyingSymbol": "ETH/USD"
+    },
+    "BTC/USD.COINDERIV:USD": {
+        "id": "805366677",
+        "lowercaseId": null,
+        "symbol": "BTC/USD.COINDERIV:USD",
+        "base": "BTC",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "BIP",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.002,
+        "maker": 0.002,
+        "contractSize": 0.01,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 5
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 1,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "symbol": "BIP",
+            "conid": 805366677,
+            "underlyingConid": 805366629,
+            "expirationDate": 20301220,
+            "ltd": 20301220,
+            "shortFuturesCutOff": 20301220,
+            "longFuturesCutOff": 20301220,
+            "incrementRules": [
+                {
+                    "lowerEdge": 0,
+                    "increment": 5
+                }
+            ],
+            "displayRule": {
+                "magnification": 0,
+                "displayRuleStep": [
+                    {
+                        "decimalDigits": 0,
+                        "lowerEdge": 0,
+                        "wholeDigits": 6
+                    }
+                ]
+            },
+            "currency": "USD",
+            "time": 4,
+            "chineseName": "&#x7F8E;&#x5143;",
+            "allExchanges": "COINDERIV",
+            "listingExchange": "COINDERIV",
+            "countryCode": "US",
+            "name": "nano Bitcoin BTC Perpetual Futures",
+            "assetClass": "FUT",
+            "expiry": "20301220",
+            "lastTradingDay": "20301220",
+            "group": null,
+            "putOrCall": null,
+            "sector": null,
+            "sectorGroup": null,
+            "strike": "0",
+            "ticker": "BIP",
+            "undConid": 805366629,
+            "multiplier": 0.01,
+            "type": "",
+            "undComp": "nano Bitcoin BTC Perpetual Futures",
+            "undSym": "BIP",
+            "underExchange": "COINDERIV",
+            "hasOptions": false,
+            "fullName": "BIP Dec20'30",
+            "isEventContract": false
+        },
+        "tierBased": false,
+        "percentage": true,
+        "feeSide": "get",
+        "underlyingSymbol": "BTC/USD"
     }
 }

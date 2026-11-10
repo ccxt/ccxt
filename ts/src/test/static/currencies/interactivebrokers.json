@@ -29,7 +29,7 @@
         "id": "USD",
         "numericId": null,
         "code": "USD",
-        "precision": 0.000001,
+        "precision": 1e-8,
         "type": null,
         "name": null,
         "active": null,
