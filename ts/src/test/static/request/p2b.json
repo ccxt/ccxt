@@ -102,6 +102,18 @@
         ],
         "fetchOHLCV": [
             {
+                "description": "over limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.p2pb2b.com/api/v2/public/market/kline?market=BTC_USDT&interval=1m&limit=500",
+                "input": [
+                    "BTC/USDT",
+                    "1m",
+                    null,
+                    501
+                ],
+                "output": null
+            },
+            {
                 "description": "spot ohlcv",
                 "method": "fetchOHLCV",
                 "url": "https://api.p2pb2b.com/api/v2/public/market/kline?market=BTC_USDT&interval=1m",
