@@ -87,7 +87,6 @@ export default class interactivebrokers extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
-                'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTrades': false,
@@ -1375,7 +1374,7 @@ export default class interactivebrokers extends Exchange {
         return undefined;
     }
 
-    async fetchWithDetails (plainEntries: Dict) {
+    async fetchSecWithDetails (plainEntries: Dict) {
         const detailIds = Object.keys (plainEntries);
         const entries: Dict[] = [];
         const numDetails = detailIds.length;
@@ -1450,7 +1449,7 @@ export default class interactivebrokers extends Exchange {
                 }
             }
         }
-        const detailMarkets = await this.fetchWithDetails (entries);
+        const detailMarkets = await this.fetchSecWithDetails (entries);
         return this.parseMarkets (detailMarkets);
     }
 
@@ -1496,7 +1495,7 @@ export default class interactivebrokers extends Exchange {
                 }
             }
         }
-        const detailMarkets = await this.fetchWithDetails (entries);
+        const detailMarkets = await this.fetchSecWithDetails (entries);
         return this.parseMarkets (detailMarkets);
     }
 
@@ -1547,7 +1546,7 @@ export default class interactivebrokers extends Exchange {
             }
         }
         const cryptoSwapExchanges = this.safeList (options, 'cryptoSwapExchanges', []);
-        const detailMarkets = await this.fetchWithDetails (entries);
+        const detailMarkets = await this.fetchSecWithDetails (entries);
         const result = [];
         for (let i = 0; i < detailMarkets.length; i++) {
             const detail = detailMarkets[i];
@@ -1605,7 +1604,7 @@ export default class interactivebrokers extends Exchange {
             }
         }
         const cryptoFutureExchanges = this.safeList (options, 'cryptoFutureExchanges', []);
-        const detailMarkets = await this.fetchWithDetails (entries);
+        const detailMarkets = await this.fetchSecWithDetails (entries);
         const result = [];
         for (let j = 0; j < detailMarkets.length; j++) {
             const detail = detailMarkets[j];
@@ -1651,7 +1650,7 @@ export default class interactivebrokers extends Exchange {
                 entries[conid] = cfd;
             }
         }
-        const detailMarkets = await this.fetchWithDetails (entries);
+        const detailMarkets = await this.fetchSecWithDetails (entries);
         // keep the order of options.fetchMarkets.cfdExchanges, the first exchange wins the plain symbol on collisions
         const result = [];
         for (let i = 0; i < cfdExchanges.length; i++) {
@@ -1688,7 +1687,7 @@ export default class interactivebrokers extends Exchange {
                 }
             }
         }
-        const markets = await this.fetchWithDetails (entries);
+        const markets = await this.fetchSecWithDetails (entries);
         return this.parseMarkets (markets);
     }
 
@@ -1885,23 +1884,6 @@ export default class interactivebrokers extends Exchange {
         });
     }
 
-    /**
-     * @method
-     * @name interactivebrokers#fetchTicker
-     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-md-snapshot
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-     */
-    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        const market = this.market (symbol);
-        const tickers = await this.fetchTickers ([ market['symbol'] ], params);
-        return this.safeDict (tickers, market['symbol']) as Ticker;
-    }
 
     /**
      * @method
