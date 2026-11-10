@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -19,16 +20,21 @@ class paradex extends \ccxt\async\paradex {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
+                'watchBidsAsks' => true,
                 'watchFundingRate' => true,
                 'watchFundingRates' => true,
+                'watchLiquidations' => true,
+                'watchMarkPrice' => true,
+                'watchMarkPrices' => true,
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchOrderBook' => true,
+                'watchOrderBookForSymbols' => true,
                 'watchOrders' => true,
                 'watchMyTrades' => true,
                 'watchPositions' => true,
                 'watchTrades' => true,
-                'watchTradesForSymbols' => false,
+                'watchTradesForSymbols' => true,
                 'watchBalance' => true,
                 'watchOHLCV' => false,
             ),
@@ -55,6 +61,16 @@ class paradex extends \ccxt\async\paradex {
                 'sbeSchemaVersion' => '3',
                 // SBE frames must reach handleMessage as raw bytes, the JSON feed only sends text frames
                 'decompressBinary' => false,
+                'watchOrderBook' => array(
+                    // true subscribes to the full-depth deltas feed, a limit above 15 does too, otherwise
+                    // the book is the 15-level snapshot sent every 100ms
+                    'deltas' => false,
+                ),
+                'ws' => array(
+                    // paces the requests sent on a connection: a subscribe per market adds up when
+                    // many symbols are watched at once
+                    'cost' => 2,
+                ),
             ),
             'streaming' => array(),
         ));
@@ -69,7 +85,14 @@ class paradex extends \ccxt\async\paradex {
         return $url . '?sbeSchemaId=1&sbeSchemaVersion=' . $schemaVersion;
     }
 
-    public function get_order_book_channel(?string $marketId): string {
+    public function get_order_book_channel(?string $marketId, bool $deltas = false): string {
+        if ($deltas) {
+            // the docs list the channel as order_book.{market_symbol}.{feed_type}@15@{refresh_rate}, but the deltas feed
+            // takes none of those parameters: it sends one full-depth snapshot on subscribe, then incremental updates
+            // see the order book channel description in https://docs.paradex.trade/ws/web-socket-channels/order-book-market-symbol-feed-type-15-refresh-rate-price-tick/order-book-market-symbol-feed-type-15-refresh-rate-price-tick
+            // do not add @15@{refresh_rate} here, that is the 15-level snapshot form
+            return 'order_book.' . $marketId . '.deltas';
+        }
         return 'order_book.' . $marketId . '.snapshot@15@100ms';
     }
 
@@ -94,6 +117,100 @@ class paradex extends \ccxt\async\paradex {
                 'channel' => $channel,
             ),
         );
+    }
+
+    public function unsubscribe_request(string $channel): array {
+        /**
+         * @ignore
+         * builds a json-rpc unsubscribe request
+         * @param {string} $channel the $channel to unsubscribe from
+         * @return {array} the unsubscribe request
+         */
+        return array(
+            'jsonrpc' => '2.0',
+            'id' => $this->request_id(),
+            'method' => 'unsubscribe',
+            'params' => array(
+                'channel' => $channel,
+            ),
+        );
+    }
+
+    public function send_request(string $url, array $request, ?string $subscribeHash = null): PromiseInterface {
+        return Async\async(self::do_send_request(...))($url, $request, $subscribeHash);
+    }
+
+    private function do_send_request(string $url, array $request, ?string $subscribeHash = null) {
+        /**
+         * @ignore
+         * sends a json-rpc $request and waits for its reply, the reply or an error with its id settles it
+         * @param {string} $url the websocket $url
+         * @param {array} $request the json-rpc $request
+         * @param {string} [$subscribeHash] the $subscription the $request opens, the $request id when null
+         * @return {array} the reply
+         */
+        $requestHash = 'request:' . $this->safe_string($request, 'id');
+        $subscription = array(
+            'id' => $request['id'],
+            'messageHashes' => array( $requestHash ),
+        );
+        $hash = ($subscribeHash === null) ? $requestHash : $subscribeHash;
+        return Async\await($this->watch($url, $requestHash, $request, $hash, $subscription));
+    }
+
+    public function subscribe_channels(string $url, array $messageHashes, array $channels, $params = array()): PromiseInterface {
+        return Async\async(self::do_subscribe_channels(...))($url, $messageHashes, $channels, $params);
+    }
+
+    private function do_subscribe_channels(string $url, array $messageHashes, array $channels, $params = array()) {
+        /**
+         * @ignore
+         * subscribes to the $channels not subscribed yet on the connection, one $request per $channel as the server takes one $channel per $request, and waits for an update on any of the message hashes
+         * @param {string} $url the websocket $url
+         * @param {string[]} $messageHashes the message hashes to wait on
+         * @param {string[]} $channels the $channels to subscribe to
+         * @param {array} [$params] extra parameters merged into each subscribe $request
+         * @return {array} the first update
+         */
+        // messageHashes[i] is the hash the updates of channels[i] resolve. The channels still to subscribe are
+        // looked up again after each await: another watch may have subscribed one meanwhile, and a reconnect
+        // starts a client without any. Each but the last is sent once the previous one is acknowledged
+        $channelsLength = count($channels);
+        for ($attempt = 0; $attempt < $channelsLength; $attempt++) {
+            $pending = $this->unsubscribed_channels($url, $channels);
+            $pendingLength = count($pending);
+            if ($pendingLength < 2) {
+                break;
+            }
+            $channel = $channels[$pending[0]];
+            $pendingRequest = $this->subscribe_request($channel);
+            Async\await($this->send_request($url, $this->deep_extend($pendingRequest, $params), $channel));
+        }
+        // the last one goes with the watch, so that an update sent right after it is not missed
+        $missing = $this->unsubscribed_channels($url, $channels);
+        $missingLength = count($missing);
+        if ($missingLength === 0) {
+            return Async\await($this->watch_multiple($url, $messageHashes, null, $channels));
+        }
+        $index = $missing[0];
+        $request = $this->subscribe_request($channels[$index]);
+        // a failed subscribe rejects the watchers of its own channel only
+        $subscription = array(
+            'id' => $request['id'],
+            'messageHashes' => array( $messageHashes[$index] ),
+        );
+        return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), array( $channels[$index] ), $subscription));
+    }
+
+    public function unsubscribed_channels(string $url, array $channels): array {
+        $client = $this->client($url);
+        $result = array();
+        for ($i = 0; $i < count($channels); $i++) {
+            if (!(is_array($client->subscriptions) && array_key_exists($channels[$i] ?? '', $client->subscriptions))) {
+                $result[] = $i;
+            }
+        }
+        return $result;
     }
 
     public function authenticate($params = array()) {
@@ -167,6 +284,14 @@ class paradex extends \ccxt\async\paradex {
         if ($isAuth) {
             $this->handle_authentication_message($client, $message);
         }
+        if ($requestId !== null) {
+            // sendRequest waits on the request id, a request without a subscription of its own is kept under it
+            $requestHash = 'request:' . $requestId;
+            if (is_array($client->subscriptions) && array_key_exists($requestHash ?? '', $client->subscriptions)) {
+                unset($client->subscriptions[$requestHash]);
+            }
+            $client->resolve($message, $requestHash);
+        }
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -207,6 +332,110 @@ class paradex extends \ccxt\async\paradex {
         return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_trades_for_symbols(...))($symbols, $since, $limit, $params);
+    }
+
+    private function do_watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent $trades for a list of $symbols
+         *
+         * @see https://docs.paradex.trade/ws/web-socket-channels/trades-$market-symbol/trades-$market-symbol
+         *
+         * @param {string[]} $symbols unified $symbols of the markets to fetch $trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of $trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsNormalized = $this->market_symbols($symbols, null, false);
+        $symbolsLength = count($symbolsNormalized);
+        if ($symbolsLength === 0) {
+            throw new ArgumentsRequired($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
+        }
+        $channels = array();
+        for ($i = 0; $i < $symbolsLength; $i++) {
+            $market = $this->market($symbolsNormalized[$i]);
+            $channels[] = 'trades.' . $market['id'];
+        }
+        $url = $this->get_ws_url();
+        // handleTrade resolves the channel of each market
+        $trades = Async\await($this->subscribe_channels($url, $channels, $channels, $params));
+        $first = $this->safe_dict($trades, 0);
+        $tradeSymbol = $this->safe_string($first, 'symbol');
+        $limitResolved = $limit;
+        if ($this->newUpdates) {
+            $limitResolved = $trades->getLimit($tradeSymbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
+    }
+
+    public function watch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_liquidations(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_watch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watch the public $liquidations of a trading pair, from the liquidation trades of the trades $channel
+         *
+         * @see https://docs.paradex.trade/ws/web-socket-channels/trades-$market-symbol/trades-$market-$symbol
+         *
+         * @param {string} $symbol unified CCXT $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch $liquidations for
+         * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+         * @param {array} [$params] exchange specific parameters
+         * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=liquidation-structure liquidation structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $channel = 'trades.' . $market['id'];
+        $messageHash = 'liquidations:' . $market['symbol'];
+        $url = $this->get_ws_url();
+        $liquidations = Async\await($this->subscribe_channels($url, array( $messageHash ), array( $channel ), $params));
+        $limitResolved = $limit;
+        if ($this->newUpdates) {
+            $limitResolved = $liquidations->getLimit($market['symbol'], $limit);
+        }
+        return $this->filter_by_since_limit($liquidations, $since, $limitResolved, 'timestamp', true);
+    }
+
+    public function parse_ws_liquidation(array $liquidation, ?array $market = null): array {
+        //
+        //     {
+        //         "id": "1718179273230201709233240002",
+        //         "market": "XRP-USD-PERP",
+        //         "side": "SELL",
+        //         "size": "120",
+        //         "price": "1.2854",
+        //         "created_at": 1718179273230,
+        //         "trade_type": "LIQUIDATION"
+        //     }
+        //
+        $marketId = $this->safe_string($liquidation, 'market');
+        $marketResolved = $this->safe_market($marketId, $market);
+        $timestamp = $this->safe_integer($liquidation, 'created_at');
+        $contracts = $this->safe_string($liquidation, 'size');
+        $price = $this->safe_string($liquidation, 'price');
+        return $this->safe_liquidation(array(
+            'info' => $liquidation,
+            'symbol' => $marketResolved['symbol'],
+            'contracts' => $this->parse_number($contracts),
+            'contractSize' => null,
+            'price' => $this->parse_number($price),
+            // the side of the taker, the liquidated order
+            'side' => $this->safe_string_lower($liquidation, 'side'),
+            'baseValue' => $this->parse_number($contracts),
+            'quoteValue' => $this->parse_number(Precise::string_mul($contracts, $price)),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        ), $marketResolved);
+    }
+
     public function handle_trade(Client $client, array $message): array {
         //
         //     {
@@ -238,6 +467,20 @@ class paradex extends \ccxt\async\paradex {
         }
         $stored->append($parsedTrade);
         $client->resolve($stored, $messageHash);
+        if ($this->safe_string($data, 'trade_type') === 'LIQUIDATION') {
+            // one cache per market, kept in the options next to the request id counter: this.liquidations
+            // is typed as a single cache in some languages and initialized as a map in others
+            $liquidation = $this->parse_ws_liquidation($data);
+            $caches = $this->safe_dict($this->options, 'liquidationsBySymbol', array());
+            $liquidations = $this->safe_value($caches, $symbol);
+            if ($liquidations === null) {
+                $liquidations = new ArrayCache($this->safe_integer($this->options, 'liquidationsLimit', 1000));
+                $caches[$symbol] = $liquidations;
+                $this->options['liquidationsBySymbol'] = $caches;
+            }
+            $liquidations->append($liquidation);
+            $client->resolve($liquidations, 'liquidations:' . $symbol);
+        }
         // an SBE frame names its market but not the subscription it was sent for,
         // so the trades.ALL subscription is resolved from the per-market channel too
         $isSbe = $this->safe_bool($message, 'sbe', false);
@@ -255,29 +498,79 @@ class paradex extends \ccxt\async\paradex {
         /**
          * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
-         * @see https://docs.paradex.trade/ws/web-socket-channels/order-book-$market-$symbol-feed-type-15-refresh-rate-price-tick/order-book-$market-$symbol-feed-type-15-refresh-rate-price-tick
+         * @see https://docs.paradex.trade/ws/web-socket-channels/order-book-market-$symbol-feed-type-15-refresh-rate-price-tick/order-book-market-$symbol-feed-type-15-refresh-rate-price-tick
          *
-         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {string} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int} [$limit] above 15 the full-depth deltas feed is used and the whole book is returned, otherwise the 15-level snapshots
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->deltas] true for the full-depth deltas feed, default false (the 15-level snapshots)
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
+    }
+
+    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_order_book_for_symbols(...))($symbols, $limit, $params);
+    }
+
+    private function do_watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://docs.paradex.trade/ws/web-socket-channels/order-book-$market-symbol-feed-type-15-refresh-rate-price-tick/order-book-$market-symbol-feed-type-15-refresh-rate-price-tick
+         *
+         * @param {string[]} $symbols unified array of $symbols
+         * @param {int} [$limit] above 15 the full-depth $deltas feed is used and the whole book is returned, otherwise the 15-level snapshots
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->deltas] true for the full-depth $deltas feed, default false (the 15-level snapshots)
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $market = $this->market($symbol);
-        $messageHash = $this->get_order_book_channel($market['id']);
+        $symbolsNormalized = $this->market_symbols($symbols, null, false);
+        $symbolsLength = count($symbolsNormalized);
+        if ($symbolsLength === 0) {
+            throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
+        }
+        list($deltasOption, $paramsDeltas) = $this->handle_option_and_params($params, 'watchOrderBook', 'deltas', false);
+        $deltas = ($deltasOption === true) || (($limit !== null) && ($limit > 15));
         $url = $this->get_ws_url();
-        $request = $this->subscribe_request($messageHash);
-        $subscription = array(
-            'id' => $request['id'],
-            'messageHashes' => array( $messageHash ),
-        );
-        $orderbook = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, $subscription));
+        $client = $this->client($url);
+        $channels = array();
+        $messageHashes = array();
+        for ($i = 0; $i < $symbolsLength; $i++) {
+            $market = $this->market($symbolsNormalized[$i]);
+            $deltasChannel = $this->get_order_book_channel($market['id'], true);
+            $snapshotChannel = $this->get_order_book_channel($market['id'], false);
+            // one feed per market on a connection: both send BookEvent frames, which do not name their channel,
+            // and the 15-level snapshots would cut a full-depth book down. The deltas feed is a superset, it stays
+            // the market stays on the deltas feed from the first call that asks for it, a call made while the
+            // snapshot feed is being unsubscribed included
+            $deltasHash = $deltasChannel . ':requested';
+            $isDeltas = $deltas || (is_array($client->subscriptions) && array_key_exists($deltasHash ?? '', $client->subscriptions));
+            if ($isDeltas) {
+                $client->subscriptions[$deltasHash] = true;
+            }
+            if ($isDeltas && (is_array($client->subscriptions) && array_key_exists($snapshotChannel ?? '', $client->subscriptions))) {
+                // the snapshot feed is unsubscribed before the deltas one is subscribed, no snapshot of it
+                // arrives once the reply is in
+                $unsubscribe = $this->unsubscribe_request($snapshotChannel);
+                unset($client->subscriptions[$snapshotChannel]);
+                Async\await($this->send_request($url, $unsubscribe));
+            }
+            $channel = ($isDeltas) ? $deltasChannel : $snapshotChannel;
+            $channels[] = $channel;
+            $messageHashes[] = 'orderbook:' . $market['symbol'];
+        }
+        $orderbook = Async\await($this->subscribe_channels($url, $messageHashes, $channels, $paramsDeltas));
         return $orderbook->limit();
     }
 
     public function handle_order_book(Client $client, array $message) {
+        //
+        // a snapshot, the 15-level feed sends one every 100ms, the deltas feed sends a full-depth one on
+        // subscribe and on a resync
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -307,29 +600,82 @@ class paradex extends \ccxt\async\paradex {
         //         }
         //     }
         //
+        // a delta, the levels added or changed, and the levels removed
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "order_book.XRP-USD-PERP.deltas",
+        //             "data": {
+        //                 "seq_no": 1669897428,
+        //                 "market": "XRP-USD-PERP",
+        //                 "last_updated_at": 1792183966700,
+        //                 "update_type": "d",
+        //                 "inserts": [],
+        //                 "updates": [ { "side": "SELL", "price": "1.3908", "size": "6600" } ],
+        //                 "deletes": [ { "side": "SELL", "price": "1.4737", "size": "0" } ]
+        //             }
+        //         }
+        //     }
+        //
         $params = $this->safe_dict($message, 'params', array());
         $data = $this->safe_dict($params, 'data', array());
         $marketId = $this->safe_string($data, 'market');
         $market = $this->safe_market($marketId);
-        $timestamp = $this->safe_integer($data, 'last_updated_at');
         $symbol = $this->safe_string($market, 'symbol', '');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
-            $this->orderbooks[$symbol] = $this->order_book();
-        }
+        $timestamp = $this->safe_integer($data, 'last_updated_at');
+        $nonce = $this->safe_integer($data, 'seq_no');
+        $messageHash = 'orderbook:' . $symbol;
         // levels go into local arrays first: pushing into orderbookData['bids'] appends to a copy in go
         $bids = array();
         $asks = array();
-        $inserts = $this->safe_list($data, 'inserts');
-        for ($i = 0; $i < count(($inserts)); $i++) {
-            $insert = $this->safe_dict($inserts, $i);
-            $side = $this->safe_string($insert, 'side');
-            $price = $this->safe_string($insert, 'price');
-            $size = $this->safe_string($insert, 'size');
-            if ($side === 'BUY') {
-                $bids[] = array( $price, $size );
-            } else {
-                $asks[] = array( $price, $size );
+        // a level of the deletes is removed whatever size it carries, an SBE delta removes one by a size of 0
+        $levelKeys = array( 'inserts', 'updates', 'deletes' );
+        for ($k = 0; $k < count($levelKeys); $k++) {
+            $isDelete = ($levelKeys[$k] === 'deletes');
+            $levels = $this->safe_list($data, $levelKeys[$k], array());
+            for ($i = 0; $i < count($levels); $i++) {
+                $level = $this->safe_dict($levels, $i);
+                $price = $this->safe_string($level, 'price');
+                $size = ($isDelete) ? '0' : $this->safe_string($level, 'size');
+                if ($this->safe_string($level, 'side') === 'BUY') {
+                    $bids[] = array( $price, $size );
+                } else {
+                    $asks[] = array( $price, $size );
+                }
             }
+        }
+        if ($this->safe_string($data, 'update_type') === 'd') {
+            $deltasChannel = $this->get_order_book_channel($marketId, true);
+            $stored = $this->safe_value($this->orderbooks, $symbol);
+            // a delta applies only to the book of the deltas feed
+            if (($stored === null) || !(is_array($client->subscriptions) && array_key_exists($deltasChannel ?? '', $client->subscriptions))) {
+                return;
+            }
+            $storedNonce = $stored['nonce'];
+            // no book to apply it to: before the first snapshot, and between a resync and its snapshot
+            if (($storedNonce === null) || ($nonce === null) || ($nonce <= $storedNonce)) {
+                return;
+            }
+            if ($nonce !== $this->sum($storedNonce, 1)) {
+                // a skipped delta leaves the book wrong, the feed is subscribed again for a fresh snapshot
+                $stored['nonce'] = null;
+                $this->spawn(array($this, 'resubscribe_order_book'), $client, $deltasChannel, $messageHash);
+                return;
+            }
+            $storedBids = $stored['bids'];
+            $storedAsks = $stored['asks'];
+            $this->handle_book_side_deltas($storedBids, $bids);
+            $this->handle_book_side_deltas($storedAsks, $asks);
+            $stored['nonce'] = $nonce;
+            $stored['timestamp'] = $timestamp;
+            $stored['datetime'] = $this->iso8601($timestamp);
+            $client->resolve($stored, $messageHash);
+            return;
+        }
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbookData = array(
             'bids' => $bids,
@@ -337,10 +683,50 @@ class paradex extends \ccxt\async\paradex {
         );
         $orderbook = $this->orderbooks[$symbol];
         $snapshot = $this->parse_order_book($orderbookData, $symbol, $timestamp, 'bids', 'asks');
-        $snapshot['nonce'] = $this->safe_integer($data, 'seq_no');
+        $snapshot['nonce'] = $nonce;
         $orderbook->reset($snapshot);
-        $messageHash = $this->safe_string($params, 'channel');
+        // a channel override in params still resolves, frames are routed by market and package type
         $client->resolve($orderbook, $messageHash);
+    }
+
+    public function handle_book_side_deltas(mixed $bookside, array $deltas) {
+        // a size of 0 removes the price level
+        for ($i = 0; $i < count($deltas); $i++) {
+            $bidAsk = $this->parse_order_book_bid_ask($deltas[$i], 0, 1);
+            $bookside->storeArray($bidAsk);
+        }
+    }
+
+    public function resubscribe_order_book(Client $client, string $channel, string $messageHash): PromiseInterface {
+        return Async\async(self::do_resubscribe_order_book(...))($client, $channel, $messageHash);
+    }
+
+    private function do_resubscribe_order_book(Client $client, string $channel, string $messageHash) {
+        /**
+         * @ignore
+         * subscribes to an order book deltas feed again, the server sends a fresh full-depth snapshot on $subscribe
+         * @param {array} $client the websocket $client
+         * @param {string} $channel the deltas $channel
+         * @param {string} $messageHash the message hash the book watchers wait on
+         * @return {boolean} true once both requests are sent
+         */
+        // a subscribe alone is acknowledged without a snapshot, the feed is unsubscribed first. Both requests
+        // keep their ids in the subscriptions, so that an error reply reaches neither an unrelated watcher nor
+        // the whole connection
+        $unsubscribe = $this->unsubscribe_request($channel);
+        $subscribe = $this->subscribe_request($channel);
+        $unsubscribeHash = 'request:' . $this->safe_string($unsubscribe, 'id');
+        $client->subscriptions[$unsubscribeHash] = array(
+            'id' => $unsubscribe['id'],
+            'messageHashes' => array(),
+        );
+        $client->subscriptions[$channel] = array(
+            'id' => $subscribe['id'],
+            'messageHashes' => array( $messageHash ),
+        );
+        Async\await($client->send($unsubscribe));
+        Async\await($client->send($subscribe));
+        return true;
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
@@ -361,17 +747,8 @@ class paradex extends \ccxt\async\paradex {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        // the per-market channel: the all-markets one carries a summary for every listed
-        // option too, thousands of messages a second, all decoded only to be filtered out
-        $channel = 'markets_summary.' . $market['id'];
-        $url = $this->get_ws_url();
         $messageHash = 'markets_summary.' . $market['symbol'];
-        $request = $this->subscribe_request($channel);
-        $subscription = array(
-            'id' => $request['id'],
-            'messageHashes' => array( $messageHash ),
-        );
-        return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $channel, $subscription));
+        return Async\await($this->subscribe_markets_summary(array( $market['symbol'] ), array( $messageHash ), $params));
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -384,7 +761,7 @@ class paradex extends \ccxt\async\paradex {
          *
          * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
          *
-         * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the tickers for, all markets when null, which is thousands of updates a second
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
@@ -392,22 +769,41 @@ class paradex extends \ccxt\async\paradex {
             Async\await($this->load_markets());
         }
         $symbolsNormalized = $this->market_symbols($symbols);
-        $channel = 'markets_summary';
-        $url = $this->get_ws_url();
-        $messageHashes = array();
-        if ($symbolsNormalized !== null && (gettype($symbolsNormalized) === 'array' && array_keys($symbolsNormalized) === array_keys(array_keys($symbolsNormalized)))) {
-            for ($i = 0; $i < count($symbolsNormalized); $i++) {
-                $messageHash = $channel . '.' . $symbolsNormalized[$i];
-                $messageHashes[] = $messageHash;
-            }
-        } else {
-            $messageHashes[] = $channel;
+        $symbolsLength = 0;
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
         }
-        $request = $this->subscribe_request($channel);
-        $subscription = array(
-            'id' => $request['id'],
-        );
-        $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes, $subscription));
+        $channel = 'markets_summary';
+        $messageHashes = array();
+        $newTicker = null;
+        if ($symbolsLength > 0) {
+            for ($i = 0; $i < $symbolsLength; $i++) {
+                $messageHashes[] = $channel . '.' . ($symbolsNormalized)[$i];
+            }
+            $newTicker = Async\await($this->subscribe_markets_summary($symbolsNormalized, $messageHashes, $params));
+        } else {
+            // every listed market, options included
+            $url = $this->get_ws_url();
+            $client = $this->client($url);
+            $scopedHash = $channel . ':scoped';
+            if (is_array($client->subscriptions) && array_key_exists($scopedHash ?? '', $client->subscriptions)) {
+                // a scoped subscription keeps its filter through a plain subscribe, it is unsubscribed first
+                $subscribeHashes = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
+                for ($i = 0; $i < count($subscribeHashes); $i++) {
+                    if (($subscribeHashes[$i] === $scopedHash) || (mb_strpos($subscribeHashes[$i], $channel . '.') === 0)) {
+                        unset($client->subscriptions[$subscribeHashes[$i]]);
+                    }
+                }
+                $unsubscribe = $this->unsubscribe_request($channel);
+                Async\await($this->send_request($url, $unsubscribe));
+            }
+            $request = $this->subscribe_request($channel);
+            $subscription = array(
+                'id' => $request['id'],
+                'messageHashes' => array( $channel ),
+            );
+            $newTicker = Async\await($this->watch($url, $channel, $this->deep_extend($request, $params), $channel, $subscription));
+        }
         if ($this->newUpdates) {
             $result = array();
             $newTickerSymbol = $this->safe_string($newTicker, 'symbol');
@@ -417,6 +813,197 @@ class paradex extends \ccxt\async\paradex {
             return $result;
         }
         return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
+    }
+
+    public function subscribe_markets_summary(array $symbols, array $messageHashes, $params = array()): PromiseInterface {
+        return Async\async(self::do_subscribe_markets_summary(...))($symbols, $messageHashes, $params);
+    }
+
+    private function do_subscribe_markets_summary(array $symbols, array $messageHashes, $params = array()) {
+        /**
+         * @ignore
+         * watches the market summaries of a list of markets over one scoped $subscription, the markets not in it yet are added in place
+         *
+         * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
+         *
+         * @param {string[]} $symbols unified $symbols of the markets
+         * @param {string[]} $messageHashes the message hashes to wait on
+         * @param {array} [$params] extra parameters merged into the $request
+         * @return {array} the first ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~ updated
+         */
+        $url = $this->get_ws_url();
+        $client = $this->client($url);
+        $channel = 'markets_summary';
+        if (is_array($client->subscriptions) && array_key_exists($channel ?? '', $client->subscriptions)) {
+            // the all-markets subscription carries these markets already
+            return Async\await($this->watch_multiple($url, $messageHashes, null, array( $channel )));
+        }
+        // one subscription with a market filter: a subscription per market is a request per market, and
+        // the all-markets one is thousands of frames a second, mostly options, decoded to be dropped
+        $scopedHash = $channel . ':scoped';
+        $subscribeHashes = array();
+        $missing = array();
+        $missingHashes = array();
+        // messageHashes[i] is the hash the summaries of symbols[i] resolve
+        for ($i = 0; $i < count($symbols); $i++) {
+            $marketId = $this->market($symbols[$i])['id'];
+            $subscribeHash = $channel . '.' . $marketId;
+            $subscribeHashes[] = $subscribeHash;
+            if (!(is_array($client->subscriptions) && array_key_exists($subscribeHash ?? '', $client->subscriptions))) {
+                $missing[] = $marketId;
+                $missingHashes[] = $messageHashes[$i];
+            }
+        }
+        $missingLength = count($missing);
+        if ($missingLength === 0) {
+            return Async\await($this->watch_multiple($url, $messageHashes, null, $subscribeHashes));
+        }
+        $request = null;
+        if (is_array($client->subscriptions) && array_key_exists($scopedHash ?? '', $client->subscriptions)) {
+            $request = array(
+                'jsonrpc' => '2.0',
+                'id' => $this->request_id(),
+                'method' => 'modify_subscription',
+                'params' => array(
+                    'channel' => $channel,
+                    'add' => $missing,
+                ),
+            );
+        } else {
+            $request = $this->subscribe_request($channel);
+            $request['params']['markets'] = $missing;
+            $subscribeHashes[] = $scopedHash;
+        }
+        // a failed request is forgotten with every market it carried, the next watch sends them again, and
+        // it rejects the watchers of those markets only
+        $subscription = array(
+            'id' => $request['id'],
+            'messageHashes' => $missingHashes,
+        );
+        return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $subscribeHashes, $subscription));
+    }
+
+    public function watch_mark_price(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_mark_price(...))($symbol, $params);
+    }
+
+    private function do_watch_mark_price(string $symbol, $params = array()) {
+        /**
+         * watches a mark price for a specific market
+         *
+         * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-$symbol
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        return Async\await($this->watch_ticker($symbol, $params));
+    }
+
+    public function watch_mark_prices(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_mark_prices(...))($symbols, $params);
+    }
+
+    private function do_watch_mark_prices(?array $symbols = null, $params = array()) {
+        /**
+         * watches the mark prices for all markets of a list
+         *
+         * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary-market-symbol/markets-summary-market-symbol
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the tickers for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        return Async\await($this->watch_tickers($symbols, $params));
+    }
+
+    public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_watch_bids_asks(...))($symbols, $params);
+    }
+
+    private function do_watch_bids_asks(?array $symbols = null, $params = array()) {
+        /**
+         * watches best bid & ask for $symbols
+         *
+         * @see https://docs.paradex.trade/ws/web-socket-channels/bbo-$market-symbol/bbo-$market-symbol
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the best bid and ask for, all markets when null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbolsNormalized = $this->market_symbols($symbols);
+        $symbolsLength = 0;
+        if ($symbolsNormalized !== null) {
+            $symbolsLength = count($symbolsNormalized);
+        }
+        $url = $this->get_ws_url();
+        $channels = array();
+        $messageHashes = array();
+        if ($symbolsLength > 0) {
+            for ($i = 0; $i < $symbolsLength; $i++) {
+                $market = $this->market(($symbolsNormalized)[$i]);
+                $channels[] = 'bbo.' . $market['id'];
+                $messageHashes[] = 'bidask:' . $market['symbol'];
+            }
+        } else {
+            $channels[] = 'bbo.ALL';
+            $messageHashes[] = 'bidask';
+        }
+        $newBidAsk = Async\await($this->subscribe_channels($url, $messageHashes, $channels, $params));
+        if ($this->newUpdates) {
+            $result = array();
+            $result[$newBidAsk['symbol']] = $newBidAsk;
+            return $result;
+        }
+        return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsNormalized);
+    }
+
+    public function handle_bid_ask(Client $client, array $message) {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "bbo.XRP-USD-PERP",
+        //             "data": {
+        //                 "market": "XRP-USD-PERP",
+        //                 "seq_no": 1669897465,
+        //                 "bid": "1.2782",
+        //                 "bid_size": "267.7",
+        //                 "ask": "1.318",
+        //                 "ask_size": "259.6",
+        //                 "last_updated_at": 1792183969812
+        //             }
+        //         }
+        //     }
+        //
+        $params = $this->safe_dict($message, 'params', array());
+        $data = $this->safe_dict($params, 'data', array());
+        $bidAsk = $this->parse_ws_bid_ask($data);
+        $symbol = $bidAsk['symbol'];
+        $this->bidsasks[$symbol] = $bidAsk;
+        $client->resolve($bidAsk, 'bidask:' . $symbol);
+        // an SBE frame does not tell bbo.ALL from the per-market channel
+        $client->resolve($bidAsk, 'bidask');
+    }
+
+    public function parse_ws_bid_ask(array $data, ?array $market = null): array {
+        $marketId = $this->safe_string($data, 'market');
+        $marketResolved = $this->safe_market($marketId, $market);
+        $timestamp = $this->safe_integer($data, 'last_updated_at');
+        return $this->safe_ticker(array(
+            'symbol' => $marketResolved['symbol'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'ask' => $this->safe_string($data, 'ask'),
+            'askVolume' => $this->safe_string($data, 'ask_size'),
+            'bid' => $this->safe_string($data, 'bid'),
+            'bidVolume' => $this->safe_string($data, 'bid_size'),
+            'info' => $data,
+        ), $marketResolved);
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -842,25 +1429,21 @@ class paradex extends \ccxt\async\paradex {
         /**
          * watch the current funding rate for a $symbol
          *
-         * @see https://docs.paradex.trade/ws/web-socket-channels/funding-data-market-symbol/funding-data-market-$symbol
+         * @see https://docs.paradex.trade/ws/web-socket-channels/funding-data-$market-symbol/funding-data-$market-$symbol
          *
-         * @param {string} $symbol unified market $symbol
+         * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolValue = $this->symbol($symbol);
-        $channel = 'funding_data';
+        $market = $this->market($symbol);
+        // the per-market channel, the all-markets one sends every perpetual's funding
+        $channel = 'funding_data.' . $market['id'];
         $url = $this->get_ws_url();
-        $messageHash = $channel . '.' . $symbolValue;
-        $request = $this->subscribe_request($channel);
-        $subscription = array(
-            'id' => $request['id'],
-            'messageHashes' => array( $messageHash ),
-        );
-        return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash, $subscription));
+        $messageHash = 'funding_data.' . $market['symbol'];
+        return Async\await($this->subscribe_channels($url, array( $messageHash ), array( $channel ), $params));
     }
 
     public function watch_funding_rates(?array $symbols = null, $params = array()): PromiseInterface {
@@ -937,13 +1520,10 @@ class paradex extends \ccxt\async\paradex {
         $fundingRate = $this->parse_funding_rate_ws($data);
         $symbol = $this->safe_string($fundingRate, 'symbol');
         $this->fundingRates[$symbol] = $fundingRate;
-        $channel = $this->safe_string($params, 'channel');
-        // watchFundingRates without symbols waits on the bare channel
-        $client->resolve($fundingRate, $channel);
-        if ($channel !== null) {
-            $messageHash = $channel . '.' . $symbol;
-            $client->resolve($fundingRate, $messageHash);
-        }
+        // watchFundingRates without symbols waits on the bare channel, the per-market and all-markets
+        // channels carry the same frame
+        $client->resolve($fundingRate, 'funding_data');
+        $client->resolve($fundingRate, 'funding_data.' . $symbol);
     }
 
     public function parse_funding_rate_ws(array $contract, ?array $market = null): array {
@@ -988,7 +1568,7 @@ class paradex extends \ccxt\async\paradex {
         );
     }
 
-    public function parse_sbe_message(mixed $message): mixed {
+    public function parse_sbe_message(Client $client, mixed $message): mixed {
         //
         // Paradex SBE schema 1:3 (https://docs.paradex.trade), little-endian. Every frame is an 8-byte
         // header (blockLength, templateId, schemaId, version as uint16) followed by a fixed block of
@@ -1017,13 +1597,19 @@ class paradex extends \ccxt\async\paradex {
             if ($data !== null) {
                 $channel = 'trades.' . $this->safe_string($data, 'market', '');
             }
+        } elseif ($templateId === 2) {
+            $data = $this->parse_sbe_bbo($frameHex, $blockLength, $frameLength);
+            if ($data !== null) {
+                $channel = 'bbo.' . $this->safe_string($data, 'market', '');
+            }
         } elseif ($templateId === 3) {
+            // the snapshot and deltas feeds send the same frame, handleOrderBook tells them apart by package type
             $data = $this->parse_sbe_order_book($frameHex, $blockLength, $frameLength);
             if ($data !== null) {
-                $channel = $this->get_order_book_channel($this->safe_string($data, 'market'));
+                $channel = 'order_book.' . $this->safe_string($data, 'market', '');
             }
         } elseif ($templateId === 4) {
-            $data = $this->parse_sbe_market_summary($frameHex, $blockLength, $frameLength);
+            $data = $this->parse_sbe_market_summary($client, $frameHex, $blockLength, $frameLength);
             $channel = 'markets_summary';
         } elseif ($templateId === 5) {
             $data = $this->parse_sbe_funding_data($frameHex, $blockLength, $frameLength);
@@ -1199,23 +1785,50 @@ class paradex extends \ccxt\async\paradex {
         );
     }
 
+    public function parse_sbe_bbo(string $frameHex, float $blockLength, float $frameLength): ?array {
+        $blockSize = $this->parse_to_int($blockLength);
+        //
+        // BboEvent (templateId 2), 48-byte block
+        //
+        //     ts int64, seq int64, bidPrice int64, bidSize int64, askPrice int64, askSize int64 (each price
+        //     and size null on an empty side), then the market string
+        //
+        if ($blockSize < 48) {
+            return null;
+        }
+        $strings = $this->sbe_read_var_strings($frameHex, $this->sum($blockLength, 8), 1, $frameLength);
+        $stringsLength = count($strings);
+        if ($stringsLength < 1) {
+            return null;
+        }
+        return array(
+            'market' => $this->safe_string($strings, 0),
+            'seq_no' => $this->sbe_read_int64($frameHex, 16),
+            'bid' => $this->sbe_read_decimal($frameHex, 24),
+            'bid_size' => $this->sbe_read_decimal($frameHex, 32),
+            'ask' => $this->sbe_read_decimal($frameHex, 40),
+            'ask_size' => $this->sbe_read_decimal($frameHex, 48),
+            'last_updated_at' => $this->sbe_read_timestamp($frameHex, 8),
+        );
+    }
+
     public function parse_sbe_order_book(string $frameHex, float $blockLength, float $frameLength): ?array {
         $blockSize = $this->parse_to_int($blockLength);
         //
         // BookEvent (templateId 3), 89-byte block
         //
-        //     ts int64, seq int64, pkgType uint8, nine best bid/ask int64 fields, then the bids and asks
-        //     groups of (price int64, size int64) entries and the market string
+        //     ts int64, seq int64, pkgType uint8 (0 snapshot, 1 delta), nine best bid/ask int64 fields, then
+        //     the bids and asks groups of (price int64, size int64) entries and the market string. A delta
+        //     carries the changed levels, a size of 0 removes the level
         //
         if ($blockSize < 17) {
             return null;
         }
-        // watchOrderBook subscribes to the snapshot channel, a delta would need a book to apply it to
         $pkgType = $this->parse_to_int($this->sbe_read_uint($frameHex, 24, 1));
-        if ($pkgType !== 0) {
+        if (($pkgType !== 0) && ($pkgType !== 1)) {
             return null;
         }
-        $inserts = array();
+        $levels = array();
         $sides = array( 'BUY', 'SELL' );
         $frameEnd = $this->parse_to_int($frameLength);
         $position = $this->parse_to_int($this->sum($blockLength, 8));
@@ -1230,7 +1843,7 @@ class paradex extends \ccxt\async\paradex {
                 return null;
             }
             for ($j = 0; $j < $numInGroup; $j++) {
-                $inserts[] = array(
+                $levels[] = array(
                     'side' => $sides[$i],
                     'price' => $this->sbe_read_decimal($frameHex, $position),
                     'size' => $this->sbe_read_decimal($frameHex, $position + 8),
@@ -1243,18 +1856,20 @@ class paradex extends \ccxt\async\paradex {
         if ($stringsLength < 1) {
             return null;
         }
+        $isSnapshot = ($pkgType === 0);
         return array(
             'seq_no' => $this->sbe_read_int64($frameHex, 16),
             'market' => $this->safe_string($strings, 0),
             'last_updated_at' => $this->sbe_read_timestamp($frameHex, 8),
-            'update_type' => 's',
-            'inserts' => $inserts,
-            'updates' => array(),
+            'update_type' => ($isSnapshot) ? 's' : 'd',
+            'inserts' => ($isSnapshot) ? $levels : array(),
+            // a delta does not tell an insert from an update, a removal is a size of 0 among them
+            'updates' => ($isSnapshot) ? array() : $levels,
             'deletes' => array(),
         );
     }
 
-    public function parse_sbe_market_summary(string $frameHex, float $blockLength, float $frameLength): ?array {
+    public function parse_sbe_market_summary(Client $client, string $frameHex, float $blockLength, float $frameLength): ?array {
         $blockSize = $this->parse_to_int($blockLength);
         //
         // MarketSummaryEvent (templateId 4), 248-byte block (240 before 1:3), of which the first
@@ -1272,13 +1887,20 @@ class paradex extends \ccxt\async\paradex {
         if ($stringsLength < 1) {
             return null;
         }
+        // the market is read first, so that a frame for a market nobody subscribed to is dropped before its
+        // decimals are decoded, like one still in flight after its market left the scoped filter
+        $marketId = $this->safe_string($strings, 0, '');
+        $subscribeHash = 'markets_summary.' . $marketId;
+        if (!(is_array($client->subscriptions) && array_key_exists('markets_summary' ?? '', $client->subscriptions)) && !(is_array($client->subscriptions) && array_key_exists($subscribeHash ?? '', $client->subscriptions))) {
+            return null;
+        }
         // appended in 1:3: null outside the pre-expiry settlement window and for undated markets
         $settlementTwapEstimate = null;
         if ($blockSize >= 248) {
             $settlementTwapEstimate = $this->sbe_read_decimal($frameHex, 248);
         }
         return array(
-            'symbol' => $this->safe_string($strings, 0),
+            'symbol' => $marketId,
             'mark_price' => $this->sbe_read_decimal($frameHex, 24),
             'last_traded_price' => $this->sbe_read_decimal($frameHex, 40),
             'bid' => $this->sbe_read_decimal($frameHex, 72),
@@ -1591,7 +2213,7 @@ class paradex extends \ccxt\async\paradex {
     }
 
     public function handle_binary_message(Client $client, mixed $message) {
-        $parsedMessage = $this->parse_sbe_message($message);
+        $parsedMessage = $this->parse_sbe_message($client, $message);
         if ($parsedMessage === null) {
             return;
         }
@@ -1647,6 +2269,7 @@ class paradex extends \ccxt\async\paradex {
             $methods = array(
                 'trades' => array($this, 'handle_trade'),
                 'order_book' => array($this, 'handle_order_book'),
+                'bbo' => array($this, 'handle_bid_ask'),
                 'markets_summary' => array($this, 'handle_ticker'),
                 'orders' => array($this, 'handle_order'),
                 'funding_data' => array($this, 'handle_funding_rate'),
