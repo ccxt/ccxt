@@ -452,7 +452,7 @@ If you have multiple sub-accounts you need to specify the sub-account you want t
 
 Paper trading is also supported, upon logging in just toggle the option.
 
-### How to use the GRVT Exchange in CCXT?
+## How to use the GRVT Exchange in CCXT?
 
 GRVT works similarly to any other CCXT DEX and only requires the l1 private key of the wallet.
 
@@ -477,7 +477,7 @@ CCXT is also a builder on GRVT meaning that by default users will pay 1bps (0.01
 exchange.options['builderFee'] = False
 ```
 
-### How to use the Extended Exchange in CCXT?
+## How to use the Extended Exchange in CCXT?
 
 Extended works similarly to any other CCXT DEX and only requires the StarkKey private key and the API Key, both can be retrieved using the website.
 
@@ -502,7 +502,7 @@ CCXT is also a builder on Extended meaning that by default users will pay 1bps (
 exchange.options['builderFee'] = False
 ```
 
-### How to use the Apex Exchange in CCXT?
+## How to use the Apex Exchange in CCXT?
 
 An example on how to instantiate the Apex exchange:
 
@@ -519,7 +519,7 @@ exchange = ccxt.apex({
 })
 ```
 
-### How to trade stocks at Backpack?
+## How to trade stocks at Backpack?
 
 Backpack lists tokenized US stocks next to its crypto markets. In CCXT they are regular spot markets flagged with `market['stock'] = true`. Set the `stock` option once when creating the exchange and every unified method will target the stock markets.
 
@@ -550,7 +550,7 @@ exchange.cancel_order(order['id'], 'SPCX.US/USDC')
 
 Markets ending in `.RFQ` (for example `AAPL.US.RFQ/USDC`) are quote-based: `create_order` with `type = 'market'` requests a quote and executes it, and an optional `price` acts as the worst price you accept. With the option set, `fetch_balance()` returns only your stock holdings. To trade crypto again from the same instance, set `exchange.options['stock'] = False`.
 
-### How to trade stocks at Bitget?
+## How to trade stocks at Bitget?
 
 Bitget lists tokenized US stocks as spot markets of its unified trading account (UTA). In CCXT they are regular spot markets flagged with `market['stock'] = true`, with symbols such as `RGOOGL/USDT`. Set the `stock` option once when creating the exchange and every call on that instance targets the stock markets.
 
@@ -646,7 +646,7 @@ order = await exchange.create_order(outcome, 'limit', 'buy', 5, 0.02)
 
 All the familiar unified methods (`fetchTicker`, `fetchOrderBook`, `fetchTrades`, `fetchOHLCV`, `createOrder`, `cancelOrder`, `fetchBalance`, `fetchPositions`, `watch*`, ...) take the outcome handle where a symbol would normally go. Complete runnable end-to-end examples for every language live under `examples/<lang>/prediction/`.
 
-### How to use the Prediction Exchange Polymarket?
+## How to use the Prediction Exchange Polymarket?
 
 Polymarket requires two credentials:
 
@@ -668,7 +668,7 @@ Notes:
 - Older accounts (browser-wallet / Gnosis-Safe proxies) need the signature type switched: `exchange.options['signatureType'] = 2` — and if you pass your EOA as `walletAddress`, also set `exchange.options['funder']` to the proxy wallet that holds the USDC.
 - Alternatively to the `privateKey`, you can supply previously created L2 API credentials directly as `apiKey`, `secret` and `password` (the POLY passphrase).
 
-### How to use the Prediction Exchange Kalshi?
+## How to use the Prediction Exchange Kalshi?
 
 Kalshi uses classic API credentials generated in the account settings (https://kalshi.com/account/profile → API keys):
 
@@ -682,7 +682,7 @@ exchange = ccxt.prediction.kalshi({
 })
 ```
 
-### How to use the Prediction Exchange Hyperliquid?
+## how to use the Prediction Exchange Hyperliquid?
 
 Hyperliquid prediction markets use exactly the same credentials as the regular hyperliquid DEX:
 
