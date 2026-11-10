@@ -224,10 +224,10 @@
         "percentage": true,
         "feeSide": "get"
     },
-    "AAPL/USD": {
+    "AAPL/USD.NASDAQ": {
         "id": "265598",
         "lowercaseId": null,
-        "symbol": "AAPL/USD",
+        "symbol": "AAPL/USD.NASDAQ",
         "base": "AAPL",
         "quote": "USD",
         "settle": null,
