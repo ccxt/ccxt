@@ -60,7 +60,7 @@
                 "url": "https://api.ibkr.com/v1/api/iserver/account/order/status/1490918069",
                 "input": [
                     1490918069,
-                    "AAPL/USD"
+                    "AAPL/USD.NASDAQ"
                 ],
                 "output": null
             }
@@ -80,7 +80,7 @@
                 "method": "fetchOHLCV",
                 "url": "https://api.ibkr.com/v1/api/iserver/marketdata/history?conid=265598&bar=1d&period=3d",
                 "input": [
-                    "AAPL/USD",
+                    "AAPL/USD.NASDAQ",
                     "1d",
                     null,
                     3
@@ -189,7 +189,7 @@
                 "method": "createOrder",
                 "url": "https://api.ibkr.com/v1/api/iserver/account/U3448646/orders",
                 "input": [
-                    "AAPL/USD",
+                    "AAPL/USD.NASDAQ",
                     "limit",
                     "buy",
                     1,
@@ -348,7 +348,7 @@
                 "url": "https://api.ibkr.com/v1/api/iserver/account/U3448646/order/1490918069",
                 "input": [
                     1490918069,
-                    "AAPL/USD"
+                    "AAPL/USD.NASDAQ"
                 ],
                 "output": null
             },
