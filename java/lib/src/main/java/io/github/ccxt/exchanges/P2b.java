@@ -863,7 +863,7 @@ public class P2b extends P2bApi
             }};
             if (!java.util.Objects.equals(limit, null))
             {
-                request.put("limit", limit);
+                request.put("limit", Math.min(limit, 500));
             }
             Map<String, Object> response = (this.publicGetMarketKline(this.extend(request, parameters))).join();
             //
