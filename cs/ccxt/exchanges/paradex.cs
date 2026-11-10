@@ -3727,7 +3727,7 @@ public partial class paradex : Exchange
         if ((leverage == null))
         {
             // the endpoint always sets the leverage too, keep the current one instead of resetting it
-            object currentLeverage = ccxt.BaseExchange.FromLeverage(await this.FetchLeverage(symbol));
+            Dictionary<string, object> currentLeverage = ccxt.BaseExchange.FromLeverage(await this.FetchLeverage(symbol));
             leverage = this.safeInteger(currentLeverage, "longLeverage");
             if ((leverage == null))
             {
