@@ -445,53 +445,38 @@
         ],
         "fetchOHLCV": [
             {
-                "description": "swap +since -limit -until",
-                "disabled": "todo : add skipkeys inside here, bcz endtime is variable",
+                "description": "swap -since +limit -until",
                 "method": "fetchOHLCV",
-                "url": "https://api.backpack.exchange/api/v1/klines?endTime=1794252817&interval=1m&startTime=1794250602&symbol=BTC_USDC_PERP",
+                "url": "https://api.backpack.exchange/api/v1/klines?endTime=1794334278&interval=1m&startTime=1794334158&symbol=BTC_USDC_PERP",
                 "input": [
                     "BTC/USDC:USDC",
                     "1m",
-                    1794250602000
-                ],
-                "output": null
-            },
-            {
-                "description": "swap +since +limit -until",
-                "method": "fetchOHLCV",
-                "url": "https://api.backpack.exchange/api/v1/klines?endTime=1794250722&interval=1m&startTime=1794250602&symbol=BTC_USDC_PERP",
-                "input": [
-                    "BTC/USDC:USDC",
-                    "1m",
-                    1794250602000,
+                    null,
                     2
                 ],
                 "output": null
             },
             {
-                "description": "swap +since -limit +until",
+                "description": "swap -since -limit -until",
                 "method": "fetchOHLCV",
-                "url": "https://api.backpack.exchange/api/v1/klines?endTime=1794252602&interval=1m&startTime=1794250602&symbol=BTC_USDC_PERP",
+                "url": "https://api.backpack.exchange/api/v1/klines?endTime=1794334163&interval=1m&startTime=1794328163&symbol=BTC_USDC_PERP",
                 "input": [
                     "BTC/USDC:USDC",
                     "1m",
-                    1794250602000,
                     null,
-                    {
-                        "until": 1794252602000
-                    }
+                    null
                 ],
                 "output": null
             },
             {
-                "description": "swap +since +limit +until",
+                "description": "swap -since -limit +until",
                 "method": "fetchOHLCV",
-                "url": "https://api.backpack.exchange/api/v1/klines?endTime=1794252602&interval=1m&startTime=1794250602&symbol=BTC_USDC_PERP",
+                "url": "https://api.backpack.exchange/api/v1/klines?endTime=1794252602&interval=1m&startTime=1794246602&symbol=BTC_USDC_PERP",
                 "input": [
                     "BTC/USDC:USDC",
                     "1m",
-                    1794250602000,
-                    2,
+                    null,
+                    null,
                     {
                         "until": 1794252602000
                     }
@@ -514,49 +499,32 @@
                 "output": null
             },
             {
-                "description": "spot +since +limit",
+                "description": "swap +since +limit +until",
                 "method": "fetchOHLCV",
-                "url": "https://api.backpack.exchange/api/v1/klines?endTime=1780003000&interval=1m&startTime=1780000000&symbol=BTC_USDC",
+                "url": "https://api.backpack.exchange/api/v1/klines?endTime=1794252602&interval=1m&startTime=1794252402&symbol=BTC_USDC_PERP",
                 "input": [
-                    "BTC/USDC",
+                    "BTC/USDC:USDC",
                     "1m",
-                    1780000000000,
-                    50
+                    1794252402000,
+                    2,
+                    {
+                        "until": 1794252602000
+                    }
                 ],
                 "output": null
             },
             {
-                "description": "spot +since",
+                "description": "swap +since -limit +until",
                 "method": "fetchOHLCV",
-                "url": "https://api.backpack.exchange/api/v1/klines?endTime=1780006000&interval=1m&startTime=1780000000&symbol=BTC_USDC",
+                "url": "https://api.backpack.exchange/api/v1/klines?endTime=1794252602&interval=1m&startTime=1794252402&symbol=BTC_USDC_PERP",
                 "input": [
-                    "BTC/USDC",
+                    "BTC/USDC:USDC",
                     "1m",
-                    1780000000000
-                ],
-                "output": null
-            },
-            {
-                "disabled": true,
-                "description": "spot (disabled bcz of dynamic since calculation)",
-                "method": "fetchOHLCV",
-                "url": "https://api.backpack.exchange/api/v1/klines?endTime=1790680254&interval=1m&startTime=1790674254&symbol=BTC_USDC",
-                "input": [
-                    "BTC/USDC",
-                    "1m"
-                ],
-                "output": null
-            },
-            {
-                "description": "fetchOHLCV stock RFQ",
-                "method": "fetchOHLCV",
-                "url": "https://api.backpack.exchange/api/v1/klines?endTime=1792228403&interval=1m&priceType=Last&source=External&startTime=1792228223&symbol=AAPL.US_USDC",
-                "input": [
-                    "AAPL.US.RFQ/USDC",
-                    "1m",
+                    1794252402000,
                     null,
-                    3,
-                    { "until": 1792228403000 }
+                    {
+                        "until": 1794252602000
+                    }
                 ],
                 "output": null
             }
