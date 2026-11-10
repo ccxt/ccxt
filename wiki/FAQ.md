@@ -386,13 +386,19 @@ For example, while orders can be placed normally, cancelling an order on dYdX do
 
 CCXT provides sensible defaults for the most common use cases; however, you may need to override these values (using params or options) depending on your specific requirements.
 
-### How to use the InteractiveBrokers in CCXT?
+## How to use the InteractiveBrokers in CCXT?
 
 As opposed to typical exchanges in CCXT, InteractiveBrokers has a different kind of API infrastructure. Users can use IBKR Web-Api with either Oauth or a special Gateway app. However note, due to the IBKR limitations, user can only have one active session - if you login the ibkr website, your running ibkr instance might switch off. Users can add addition profiles ("users") in account management, however each of them would need separate data-subscriptions or whatever, like a separate account.
 
 #### Use IBKR Web-Api with Oauth 1.0
 
-The access to the Web-API seems not available to all retail users. You should visit https://ndcdyn.interactivebrokers.com/oauth/ where you can generate credenials. If that page shows error message like `Oauth1.0 is only available to institutional clients` (![example screenshot](https://i.imgur.com/vu8JXK9.png)), then you might need at first to go through [this process](https://www.interactivebrokers.com/docs/web-api/authentication/oauth-1a/first-party-oauth/registration-process) and mail them that you want to use programmatic access. If you are rejected for Oauth access, then skip to the next paragraph, but if you are approved, then you will be able to generate api-keys (![example screenshot](https://i.imgur.com/pSHadxF.png)). However after generation it might up to 24 hours to become activated by IBKR system. Then set these credentials for exchange instance:
+The access to the Web-API seems not available to all retail users. You should visit https://ndcdyn.interactivebrokers.com/oauth/ where you can generate credentials. If that page shows this error message `Oauth1.0 is only available to institutional clients` ![example screenshot](https://i.imgur.com/vu8JXK9.png)
+
+you need first to go through [this process](https://www.interactivebrokers.com/docs/web-api/authentication/oauth-1a/first-party-oauth/registration-process) and email them  to request programmatic access.
+
+If you are rejected for Oauth access, then skip to the next paragraph, but if you are approved, then you will be able to generate api-keys. ![example screenshot](https://i.imgur.com/pSHadxF.png)
+
+However after generation it might take up to 24 hours to become activated. After the activation you ca set these credentials:
 
 ```
 instance = new ccxt.interactivebrokers ({
@@ -446,7 +452,7 @@ If you have multiple sub-accounts you need to specify the sub-account you want t
 
 Paper trading is also supported, upon logging in just toggle the option.
 
-### How to use the GRVT Exchange in CCXT?
+## How to use the GRVT Exchange in CCXT?
 
 GRVT works similarly to any other CCXT DEX and only requires the l1 private key of the wallet.
 
@@ -471,7 +477,7 @@ CCXT is also a builder on GRVT meaning that by default users will pay 1bps (0.01
 exchange.options['builderFee'] = False
 ```
 
-### How to use the Extended Exchange in CCXT?
+## How to use the Extended Exchange in CCXT?
 
 Extended works similarly to any other CCXT DEX and only requires the StarkKey private key and the API Key, both can be retrieved using the website.
 
@@ -496,7 +502,7 @@ CCXT is also a builder on Extended meaning that by default users will pay 1bps (
 exchange.options['builderFee'] = False
 ```
 
-### How to use the Apex Exchange in CCXT?
+## How to use the Apex Exchange in CCXT?
 
 An example on how to instantiate the Apex exchange:
 
@@ -513,7 +519,7 @@ exchange = ccxt.apex({
 })
 ```
 
-### How to trade stocks at Backpack?
+## How to trade stocks at Backpack?
 
 Backpack lists tokenized US stocks next to its crypto markets. In CCXT they are regular spot markets flagged with `market['stock'] = true`. Set the `stock` option once when creating the exchange and every unified method will target the stock markets.
 
@@ -544,7 +550,7 @@ exchange.cancel_order(order['id'], 'SPCX.US/USDC')
 
 Markets ending in `.RFQ` (for example `AAPL.US.RFQ/USDC`) are quote-based: `create_order` with `type = 'market'` requests a quote and executes it, and an optional `price` acts as the worst price you accept. With the option set, `fetch_balance()` returns only your stock holdings. To trade crypto again from the same instance, set `exchange.options['stock'] = False`.
 
-### How to trade stocks at Bitget?
+## How to trade stocks at Bitget?
 
 Bitget lists tokenized US stocks as spot markets of its unified trading account (UTA). In CCXT they are regular spot markets flagged with `market['stock'] = true`, with symbols such as `RGOOGL/USDT`. Set the `stock` option once when creating the exchange and every call on that instance targets the stock markets.
 
@@ -640,7 +646,7 @@ order = await exchange.create_order(outcome, 'limit', 'buy', 5, 0.02)
 
 All the familiar unified methods (`fetchTicker`, `fetchOrderBook`, `fetchTrades`, `fetchOHLCV`, `createOrder`, `cancelOrder`, `fetchBalance`, `fetchPositions`, `watch*`, ...) take the outcome handle where a symbol would normally go. Complete runnable end-to-end examples for every language live under `examples/<lang>/prediction/`.
 
-### How to use the Prediction Exchange Polymarket?
+## How to use the Prediction Exchange Polymarket?
 
 Polymarket requires two credentials:
 
@@ -662,7 +668,7 @@ Notes:
 - Older accounts (browser-wallet / Gnosis-Safe proxies) need the signature type switched: `exchange.options['signatureType'] = 2` — and if you pass your EOA as `walletAddress`, also set `exchange.options['funder']` to the proxy wallet that holds the USDC.
 - Alternatively to the `privateKey`, you can supply previously created L2 API credentials directly as `apiKey`, `secret` and `password` (the POLY passphrase).
 
-### How to use the Prediction Exchange Kalshi?
+## How to use the Prediction Exchange Kalshi?
 
 Kalshi uses classic API credentials generated in the account settings (https://kalshi.com/account/profile → API keys):
 
@@ -676,7 +682,7 @@ exchange = ccxt.prediction.kalshi({
 })
 ```
 
-### How to use the Prediction Exchange Hyperliquid?
+## how to use the Prediction Exchange Hyperliquid?
 
 Hyperliquid prediction markets use exactly the same credentials as the regular hyperliquid DEX:
 

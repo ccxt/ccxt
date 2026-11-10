@@ -97,12 +97,15 @@ export default class interactivebrokers extends interactivebrokersRest {
     async ibkrConnect (): Promise<string> {
         await this.authenticate ();
         const useGateway = this.safeBool (this.options, 'useGateway', false);
-        let url = this.urls['api']['ws'] + '?oauth_token=' + this.apiKey;
+        let url = undefined;
         if (useGateway) {
             // wss://api.ibkr.com/v1/api/ws -> wss://localhost:5000/v1/api/ws
             const gatewayUrl = this.safeString (this.options, 'gatewayUrl', 'https://localhost:5000/');
             const restUrl = this.ibkrGatewayBaseUrl (this.urls['api']['ws'].replace ('wss://', 'https://'), gatewayUrl);
             url = restUrl.replace ('https://', 'wss://').replace ('http://', 'ws://');
+        } else {
+            // this.apiKey (the oauth consumer key) is unset in gateway mode, concatenating it here would crash in python/php
+            url = this.urls['api']['ws'] + '?oauth_token=' + this.apiKey;
         }
         if (!(url in this.clients)) {
             const response = await this.webapiPostV1ApiTickle ();
@@ -589,7 +592,9 @@ export default class interactivebrokers extends interactivebrokersRest {
         let subscription: Dict | undefined = undefined;
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (key.startsWith ('smh::' + marketId + '::')) {
+            // the base watch () stores internal futures (connected/authenticated) under an undefined
+            // subscription hash, which is a None dict key in python, so it cannot be assumed a string
+            if ((key !== undefined) && key.startsWith ('smh::' + marketId + '::')) {
                 const candidate = client.subscriptions[key];
                 const duration = this.safeInteger (candidate, 'duration');
                 if ((subscription === undefined) || (duration === barLength)) {
