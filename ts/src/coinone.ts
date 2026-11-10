@@ -382,7 +382,7 @@ export default class coinone extends Exchange {
      * @method
      * @name coinone#fetchMarkets
      * @description retrieves data on all markets for coinone
-     * @see https://docs.coinone.co.kr/v1.0/reference/tickers
+     * @see https://docs.coinone.co.kr/reference/tickers
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -516,7 +516,7 @@ export default class coinone extends Exchange {
      * @method
      * @name coinone#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.coinone.co.kr/v1.0/reference/v21
+     * @see https://docs.coinone.co.kr/reference/find-balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -532,7 +532,7 @@ export default class coinone extends Exchange {
      * @method
      * @name coinone#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.coinone.co.kr/v1.0/reference/orderbook
+     * @see https://docs.coinone.co.kr/reference/orderbook
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -582,8 +582,8 @@ export default class coinone extends Exchange {
      * @method
      * @name coinone#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://docs.coinone.co.kr/v1.0/reference/tickers
-     * @see https://docs.coinone.co.kr/v1.0/reference/ticker
+     * @see https://docs.coinone.co.kr/reference/tickers
+     * @see https://docs.coinone.co.kr/reference/ticker
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -648,7 +648,7 @@ export default class coinone extends Exchange {
      * @method
      * @name coinone#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.coinone.co.kr/v1.0/reference/ticker
+     * @see https://docs.coinone.co.kr/reference/ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -837,7 +837,7 @@ export default class coinone extends Exchange {
      * @method
      * @name coinone#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.coinone.co.kr/v1.0/reference/recent-completed-orders
+     * @see https://docs.coinone.co.kr/reference/recent-completed-orders
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -883,7 +883,7 @@ export default class coinone extends Exchange {
      * @method
      * @name coinone#createOrder
      * @description create a trade order
-     * @see https://docs.coinone.co.kr/reference/order-v21
+     * @see https://docs.coinone.co.kr/reference/order-place-limit-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type must be 'limit'
      * @param {string} side 'buy' or 'sell'
