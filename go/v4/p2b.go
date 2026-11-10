@@ -920,7 +920,7 @@ func (this *P2b) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 		"interval": timeframe,
 	}
 	if limit != nil {
-		request["limit"] = limit
+		request["limit"] = mathMin(limit, 500)
 	}
 
 	r1 := <-this.PublicGetMarketKline(this.Extend(request, params))

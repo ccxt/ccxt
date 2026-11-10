@@ -1517,7 +1517,8 @@
             },
             "ticker": {
                 "bid": "messed bid-ask",
-                "compareOHLC": "todo"
+                "compareOHLC": "todo",
+                "lastBetweenBidAsk": "todo: exchange perps have very low volume"
             },
             "watchOrderBook": {
                 "spread": "tmp",

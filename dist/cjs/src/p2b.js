@@ -775,7 +775,7 @@ class p2b extends p2b$1["default"] {
             'interval': timeframe,
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 500);
         }
         const response = await this.publicGetMarketKline(this.extend(request, params));
         //

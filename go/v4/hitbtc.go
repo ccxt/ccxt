@@ -3700,7 +3700,7 @@ func (this *Hitbtc) transferBody(ch chan AsyncResult[TransferEntry], code string
 
 	//
 	//     [
-	//         "2db6ebab-fb26-4537-9ef8-1a689472d236"
+	//         "2db6ebab-fb26-4537-9ef8-1a689472d235"
 	//     ]
 	//
 	ch <- AsyncResult[TransferEntry]{Value: this.ParseTransfer(response, currency)}
