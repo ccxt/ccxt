@@ -1271,12 +1271,9 @@ export default class toobit extends Exchange {
                 request['to'] = this.sum (since, duration * limit * 1000);
             }
         } else if ((since !== undefined) && (limit !== undefined)) {
-            // without an end time the exchange returns the latest candles, not the ones starting at since,
-            // so end the window at the start of the limit-th candle from the first one at or after since
+            // without an end time the exchange returns the latest candles, not the ones starting at since
             const duration = this.parseTimeframe (timeframe) * 1000;
-            const firstCandle = this.parseToInt (Math.ceil (since / duration)) * duration;
-            const endTimeByLimit = this.sum (firstCandle, duration * (limit - 1));
-            request['endTime'] = Math.min (endTimeByLimit, this.milliseconds ());
+            request['endTime'] = Math.min (this.sum (since, duration * limit) - 1, this.milliseconds ());
         }
         if (limit !== undefined) {
             request['limit'] = limit;
