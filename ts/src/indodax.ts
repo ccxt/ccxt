@@ -2999,6 +2999,8 @@ export default class indodax extends Exchange {
             };
         } else {
             this.checkRequiredCredentials ();
+            // go: copy into a string so the v1 fallthrough does not return apiUrl as-is
+            url = apiUrl + '';
             requestBody = this.urlencode (this.extend ({
                 'method': path,
                 'timestamp': this.requestTimestamp (),
