@@ -771,7 +771,7 @@ class p2b(Exchange, ImplicitAPI):
             'interval': timeframe,
         }
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 500)
         response = self.publicGetMarketKline(self.extend(request, params))
         #
         #    {
