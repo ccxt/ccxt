@@ -386,7 +386,7 @@ For example, while orders can be placed normally, cancelling an order on dYdX do
 
 CCXT provides sensible defaults for the most common use cases; however, you may need to override these values (using params or options) depending on your specific requirements.
 
-### How to use the InteractiveBrokers in CCXT?
+## How to use the InteractiveBrokers in CCXT?
 
 As opposed to typical exchanges in CCXT, InteractiveBrokers has a different kind of API infrastructure. Users can use IBKR Web-Api with either Oauth or a special Gateway app. However note, due to the IBKR limitations, user can only have one active session - if you login the ibkr website, your running ibkr instance might switch off. Users can add addition profiles ("users") in account management, however each of them would need separate data-subscriptions or whatever, like a separate account.
 
