@@ -59,7 +59,6 @@ export default class interactivebrokers extends Exchange {
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
-                'fetchGreeks': true,
                 'fetchIndexOHLCV': false,
                 'fetchL2OrderBook': false,
                 'fetchLastPrices': true,
@@ -1816,7 +1815,8 @@ export default class interactivebrokers extends Exchange {
                 contractSize = this.safeString (this.options, 'defaultContractSize', '1');
             }
         }
-        let symbol = base + '/' + quote;
+        let symbol = base + '/' + quote + '.' + listingExchange; // specific to IBKR
+        const underlyingSymbol = base + '/' + quote;
         let settleId: Str = undefined;
         let settle: Str = undefined;
         if (isContract) {
@@ -1836,6 +1836,7 @@ export default class interactivebrokers extends Exchange {
         return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
+            'underlyingSymbol': underlyingSymbol,
             'quote': quote,
             'quoteId': quoteId,
             'base': base,
@@ -2126,62 +2127,6 @@ export default class interactivebrokers extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'info': interest,
         }, resolved);
-    }
-
-    /**
-     * @method
-     * @name interactivebrokers#fetchGreeks
-     * @description fetches an option contracts greeks, the implied volatility is returned as a ratio, e.g. 0.25 for 25%
-     * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-md-snapshot
-     * @param {string} symbol unified symbol of the market to fetch greeks for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
-     */
-    override async fetchGreeks (symbol: string, params: Dict = {}): Promise<Greeks> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        const market = this.market (symbol);
-        // 7308 delta, 7309 gamma, 7310 theta, 7311 vega, 7633 implied vol %, 7635 mark, 31 last, 84/86 bid/ask, 88/85 bid/ask size
-        const fields = '31,84,85,86,88,7308,7309,7310,7311,7633,7635';
-        const response = await this.ibkrFetchSnapshot ([ market['symbol'] ], fields, params, [ '7308', '7633' ]);
-        //
-        //     [ { "31": "5.20", "84": "5.10", "86": "5.30", "7308": "0.512", "7309": "0.031", "7310": "-0.084", "7311": "0.215", "7633": "24.8%", "conid": 265598, "_updated": 1791449398940 } ]
-        //
-        const first = this.safeDict (response, 0, {});
-        return this.parseGreeks (first, market);
-    }
-
-    override parseGreeks (greeks: Dict, market: Market = undefined): Greeks {
-        const marketId = this.safeString (greeks, 'conid');
-        const resolved = this.safeMarket (marketId, market);
-        const timestamp = this.safeInteger (greeks, '_updated');
-        const impliedVolatilityPercent = this.ibkrParseValue (this.safeString (greeks, '7633'));
-        let impliedVolatility: Str = undefined;
-        if (impliedVolatilityPercent !== undefined) {
-            impliedVolatility = Precise.stringDiv (impliedVolatilityPercent, '100');
-        }
-        return {
-            'symbol': resolved['symbol'],
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'delta': this.parseNumber (this.ibkrParseValue (this.safeString (greeks, '7308'))),
-            'gamma': this.parseNumber (this.ibkrParseValue (this.safeString (greeks, '7309'))),
-            'theta': this.parseNumber (this.ibkrParseValue (this.safeString (greeks, '7310'))),
-            'vega': this.parseNumber (this.ibkrParseValue (this.safeString (greeks, '7311'))),
-            'rho': undefined,
-            'bidSize': this.parseNumber (this.ibkrParseValue (this.safeString (greeks, '88'))),
-            'askSize': this.parseNumber (this.ibkrParseValue (this.safeString (greeks, '85'))),
-            'bidImpliedVolatility': undefined,
-            'askImpliedVolatility': undefined,
-            'markImpliedVolatility': this.parseNumber (impliedVolatility),
-            'bidPrice': this.parseNumber (this.ibkrParseValue (this.safeString (greeks, '84'))),
-            'askPrice': this.parseNumber (this.ibkrParseValue (this.safeString (greeks, '86'))),
-            'markPrice': this.parseNumber (this.ibkrParseValue (this.safeString (greeks, '7635'))),
-            'lastPrice': this.parseNumber (this.ibkrParseValue (this.safeString (greeks, '31'))),
-            'underlyingPrice': undefined,
-            'info': greeks,
-        };
     }
 
     /**

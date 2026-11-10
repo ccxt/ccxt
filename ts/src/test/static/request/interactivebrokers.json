@@ -14,6 +14,45 @@
         "dhParamPemPath": "./dhparam.pem"
     },
     "methods": {
+        "fetchPositionsForSymbol": [
+            {
+                "description": "spot crypto",
+                "method": "fetchPositionsForSymbol",
+                "url": "https://localhost:5000/v1/api/portfolio/U3448646/position/495759171",
+                "input": [
+                    "ETH/USD.PAXOS"
+                ],
+                "output": null
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "spot crypto",
+                "method": "fetchPositions",
+                "url": "https://localhost:5000/v1/api/portfolio2/U3448646/positions",
+                "input": [
+                    [
+                        "ETH/USD.PAXOS",
+                        "BTC/USD.PAXOS"
+                    ]
+                ],
+                "output": null
+            }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "swap crypto",
+                "method": "fetchOpenInterests",
+                "url": "https://localhost:5000/v1/api/iserver/marketdata/snapshot?conids=805366682%2C805366677&fields=31%2C7697%2C7638",
+                "input": [
+                    [
+                        "ETH/USD.COINDERIV:USD",
+                        "BTC/USD.COINDERIV:USD"
+                    ]
+                ],
+                "output": null
+            }
+        ],
         "fetchOrder": [
             {
                 "description": "stock limit order",
@@ -27,6 +66,15 @@
             }
         ],
         "fetchOHLCV": [
+            {
+                "description": "crypto spot",
+                "method": "fetchOHLCV",
+                "url": "https://localhost:5000/v1/api/iserver/marketdata/history?conid=495759171&bar=1min&period=1000min",
+                "input": [
+                    "ETH/USD.PAXOS"
+                ],
+                "output": null
+            },
             {
                 "description": "stock daily candles",
                 "method": "fetchOHLCV",
@@ -85,6 +133,18 @@
         ],
         "fetchLastPrices": [
             {
+                "description": "spot crypto",
+                "method": "fetchLastPrices",
+                "url": "https://localhost:5000/v1/api/iserver/marketdata/snapshot?conids=495759171%2C479624278&fields=31",
+                "input": [
+                    [
+                        "ETH/USD.PAXOS",
+                        "BTC/USD.PAXOS"
+                    ]
+                ],
+                "output": null
+            },
+            {
                 "description": "crypto spot",
                 "method": "fetchLastPrices",
                 "url": "https://api.ibkr.com/v1/api/iserver/marketdata/snapshot?conids=479624278%2C495759171&fields=31",
@@ -98,6 +158,18 @@
             }
         ],
         "fetchBidsAsks": [
+            {
+                "description": "spot crypto",
+                "method": "fetchBidsAsks",
+                "url": "https://localhost:5000/v1/api/iserver/marketdata/snapshot?conids=495759171%2C479624278&fields=84%2C85%2C86%2C88",
+                "input": [
+                    [
+                        "ETH/USD.PAXOS",
+                        "BTC/USD.PAXOS"
+                    ]
+                ],
+                "output": null
+            },
             {
                 "description": "crypto spot",
                 "method": "fetchBidsAsks",
