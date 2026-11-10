@@ -620,9 +620,9 @@ impl P2b {
     }
 
     pub fn parse_market(&self, mut market: Value) -> Value {
-        let mut marketId: Option<String> = self.safe_string_k_opt(market.clone(), "name", &[]);
-        let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "stock", &[]);
-        let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "money", &[]);
+        let mut marketId: Option<String> = self.safe_string_k(market.clone(), "name", &[]).as_str().map(str::to_owned);
+        let mut baseId: Option<String> = self.safe_string_k(market.clone(), "stock", &[]).as_str().map(str::to_owned);
+        let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "money", &[]).as_str().map(str::to_owned);
         let mut base: Value = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut quote: Value = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         if (base == Value::Null) || (quote == Value::Null) {
@@ -633,13 +633,13 @@ impl P2b {
         let mut maxPrice: Option<String> = self.safe_string_k_opt(limits.clone(), "max_price", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
+        m.insert("id".to_string(), marketId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into()));
         m.insert("base".to_string(), base);
         m.insert("quote".to_string(), quote);
         m.insert("settle".to_string(), Value::Null);
-        m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
+        m.insert("baseId".to_string(), baseId.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("quoteId".to_string(), quoteId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("settleId".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Str("spot".into()));
         m.insert("spot".to_string(), Value::Bool(true));
@@ -851,7 +851,7 @@ impl P2b {
         //
         let mut timestamp: Value = self.safe_integer_product_k(ticker.clone(), "at", Value::Int(1000), &[]);
         let mut tickerInner: Value = self.safe_dict_k(ticker.clone(), "ticker", &[ticker.clone()]);
-        let mut last: Option<String> = self.safe_string_k_opt(tickerInner.clone(), "last", &[]);
+        let mut last: Option<String> = self.safe_string_k(tickerInner.clone(), "last", &[]).as_str().map(str::to_owned);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_string_k(market.clone(), "symbol", &[]));
@@ -866,7 +866,7 @@ impl P2b {
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), self.safe_string_k(tickerInner.clone(), "open", &[]));
         m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("last".to_string(), last.map(Value::from).unwrap_or(Value::Null));
+        m.insert("last".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), self.safe_string_k(tickerInner.clone(), "change", &[]));
@@ -1066,11 +1066,11 @@ impl P2b {
         //    }
         //
         let mut timestamp: Value = self.safe_integer_product2(trade.clone(), Value::Str("time".into()), Value::Str("deal_time".into()), Value::Int(1000), &[]);
-        let mut takerOrMaker: Value = self.safe_string_k(trade.clone(), "role", &[]);
-        if (takerOrMaker.as_str() == Some("1")) {
-            takerOrMaker = Value::Str("maker".into());
-        }  else if (takerOrMaker.as_str() == Some("2")) {
-            takerOrMaker = Value::Str("taker".into());
+        let mut takerOrMaker: Option<String> = self.safe_string_k(trade.clone(), "role", &[]).as_str().map(str::to_owned);
+        if (takerOrMaker.as_deref() == Some("1")) {
+            takerOrMaker = Some("maker".to_string());
+        }  else if (takerOrMaker.as_deref() == Some("2")) {
+            takerOrMaker = Some("taker".to_string());
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1082,7 +1082,7 @@ impl P2b {
         m.insert("order".to_string(), self.safe_string2(trade.clone(), Value::Str("dealOrderId".into()), Value::Str("deal_order_id".into()), &[]));
         m.insert("type".to_string(), Value::Null);
         m.insert("side".to_string(), self.safe_string2(trade.clone(), Value::Str("type".into()), Value::Str("side".into()), &[]));
-        m.insert("takerOrMaker".to_string(), takerOrMaker);
+        m.insert("takerOrMaker".to_string(), takerOrMaker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), self.safe_string_k(trade.clone(), "price", &[]));
         m.insert("amount".to_string(), self.safe_string_k(trade.clone(), "amount", &[]));
         m.insert("cost".to_string(), self.safe_string_k(trade.clone(), "deal", &[]));
@@ -1249,12 +1249,12 @@ impl P2b {
             let mut currencyId: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut balance: Value = self.safe_dict(response.clone(), currencyId.clone(), &[]);
             let mut code: Value = self.safe_currency_code(currencyId, &[]);
-            let mut used: Option<String> = self.safe_string_k_opt(balance.clone(), "freeze", &[]);
-            let mut available: Option<String> = self.safe_string_k_opt(balance, "available", &[]);
+            let mut used: Option<String> = self.safe_string_k(balance.clone(), "freeze", &[]).as_str().map(str::to_owned);
+            let mut available: Option<String> = self.safe_string_k(balance, "available", &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("free".to_string(), available.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("used".to_string(), used.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("free".to_string(), available.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("used".to_string(), used.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             });
             result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
@@ -1821,8 +1821,8 @@ impl P2b {
         //    }
         //
         let mut timestamp: Value = self.safe_integer_product2(order.clone(), Value::Str("timestamp".into()), Value::Str("ctime".into()), Value::Int(1000), &[]);
-        let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "market", &[]);
-        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketId: Option<String> = self.safe_string_k(order.clone(), "market", &[]).as_str().map(str::to_owned);
+        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -1929,11 +1929,11 @@ impl P2b {
         //     {"success":false,"errorCode":1010,"message":"This action is unauthorized.","result":[]}
         //     {"success":true,"errorCode":"","message":"","result":{...},"cache_time":1787611797.535462,"current_time":1787611797.535973}
         //
-        let mut success: bool = self.safe_bool_k_opt(response.clone(), "success", &[Value::Bool(true)]).unwrap_or(true);
-        if !(success) {
-            let mut errorCode: Option<String> = self.safe_string_k_opt(response, "errorCode", &[]);
+        let mut success: bool = self.safe_bool_k(response.clone(), "success", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        if !success {
+            let mut errorCode: Option<String> = self.safe_string_k(response, "errorCode", &[]).as_str().map(str::to_owned);
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
             let mut codeAsString: Value = Value::Str(format!("{}", code).into());
             let mut statusCode: Value = self.parse_to_int(code);
             if (statusCode.as_f64().unwrap_or(f64::NAN) < ((400i64) as f64)) || !(matches!((&self.httpExceptions, &codeAsString), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {

@@ -480,8 +480,8 @@ impl Bitget {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let symbolValue: String = self.safe_string_k_opt((market).raw.clone(), "symbol", &[Value::Str("".into())]).unwrap_or_default();
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbolValue).into());
+        let mut symbolValue: String = self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbolValue);
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchTicker".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut uta: Value = utaparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUta: Value = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -503,7 +503,7 @@ impl Bitget {
         }
         args.insert(topicOrChannel.clone(), Value::Str("ticker".into()));
         args.insert(symbolOrInstId.clone(), Value::from((market).id.clone()));
-        return self.watch_public(uta, messageHash, Value::Map(args), &[paramsValue]).await;
+        return self.watch_public(uta, Value::from(messageHash), Value::Map(args), &[paramsValue]).await;
         Value::Null
         }).await?))
     }
@@ -785,18 +785,18 @@ impl Bitget {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut utaTimestamp: Value = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
-        let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "ts", &[utaTimestamp]);
+        let mut utaTimestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
+        let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "ts", &[Value::from(utaTimestamp)]);
         let mut instType: Option<String> = self.safe_string_lower_k(arg.clone(), "instType", &[]).as_str().map(str::to_owned);
         let mut marketType: String = "contract".to_string();
         if (instType.as_deref() == Some("spot")) {
             marketType = "spot".to_string();
         }
-        let mut utaMarketId: Option<String> = self.safe_string_k_opt(arg, "symbol", &[]);
-        let mut marketId: Value = self.safe_string_k(ticker.clone(), "instId", &[utaMarketId.map(Value::from).unwrap_or(Value::Null)]);
+        let mut utaMarketId: Option<String> = self.safe_string_k(arg, "symbol", &[]).as_str().map(str::to_owned);
+        let mut marketId: Value = self.safe_string_k(ticker.clone(), "instId", &[utaMarketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut marketResolved: Value = self.safe_market(&[marketId, market, Value::Null, Value::from(marketType)]);
-        let mut close: Option<String> = self.safe_string2_opt(ticker.clone(), Value::Str("lastPr".into()), Value::Str("lastPrice".into()), &[]);
-        let mut changeCoefficient: Option<String> = self.safe_string2_opt(ticker.clone(), Value::Str("price24hPcnt".into()), Value::Str("change24h".into()), &[]);
+        let mut close: Option<String> = self.safe_string2(ticker.clone(), Value::Str("lastPr".into()), Value::Str("lastPrice".into()), &[]).as_str().map(str::to_owned);
+        let mut changeCoefficient: Option<String> = self.safe_string2(ticker.clone(), Value::Str("price24hPcnt".into()), Value::Str("change24h".into()), &[]).as_str().map(str::to_owned);
         let mut changePercentage: Value = crate::precise::Precise::stringMul(&changeCoefficient.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into()));
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -812,7 +812,7 @@ impl Bitget {
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), self.safe_string2(ticker.clone(), Value::Str("open24h".into()), Value::Str("openPrice24h".into()), &[]));
         m.insert("close".to_string(), close.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("last".to_string(), close.map(Value::from).unwrap_or(Value::Null));
+        m.insert("last".to_string(), close.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), changePercentage);
@@ -928,15 +928,15 @@ impl Bitget {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut utaTimestamp: Value = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
-        let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "ts", &[utaTimestamp]);
+        let mut utaTimestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
+        let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "ts", &[Value::from(utaTimestamp)]);
         let mut instType: Option<String> = self.safe_string_lower_k(arg.clone(), "instType", &[]).as_str().map(str::to_owned);
         let mut marketType: String = "contract".to_string();
         if (instType.as_deref() == Some("spot")) {
             marketType = "spot".to_string();
         }
-        let mut utaMarketId: Option<String> = self.safe_string_k_opt(arg, "symbol", &[]);
-        let mut marketId: Value = self.safe_string_k(ticker.clone(), "instId", &[utaMarketId.map(Value::from).unwrap_or(Value::Null)]);
+        let mut utaMarketId: Option<String> = self.safe_string_k(arg, "symbol", &[]).as_str().map(str::to_owned);
+        let mut marketId: Value = self.safe_string_k(ticker.clone(), "instId", &[utaMarketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut marketResolved: Value = self.safe_market(&[marketId, market, Value::Null, Value::from(marketType)]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -989,7 +989,7 @@ impl Bitget {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: Value = self.safe_string_k((market).raw.clone(), "symbol", &[Value::Str("".into())]);
         let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[]);
-        let mut interval: Option<String> = self.safe_string_opt(timeframes, timeframe.clone(), &[]);
+        let mut interval: Option<String> = self.safe_string(timeframes, timeframe.clone(), &[]).as_str().map(str::to_owned);
         let mut messageHash: Option<String> = None;
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchOHLCV".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut uta: Value = utaparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -1020,7 +1020,7 @@ impl Bitget {
             args.insert("interval".into(), interval.clone().map(Value::from).unwrap_or(Value::Null));
             messageHash = Some(format!("{}{}", Value::Str("kline:".into()), symbolValue));
         }  else {
-            args.insert("channel".into(), Value::Str(format!("{}{}", Value::Str("candle".into()), interval.map(Value::from).unwrap_or(Value::Null)).into()));
+            args.insert("channel".into(), Value::Str(format!("{}{}", Value::Str("candle".into()), interval.clone().map(Value::from).unwrap_or(Value::Null)).into()));
             args.insert("instId".into(), Value::from((market).id.clone()));
             messageHash = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("candles:".into()), timeframe).into()), Value::Str(":".into())).into()), symbolValue));
         }
@@ -1063,7 +1063,7 @@ impl Bitget {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[]);
-        let mut interval: Option<String> = self.safe_string_opt(timeframes, timeframe, &[]);
+        let mut interval: Option<String> = self.safe_string(timeframes, timeframe, &[]).as_str().map(str::to_owned);
         let mut channel: Value = Value::Null;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut messageHash: Option<String> = None;
@@ -1100,7 +1100,7 @@ impl Bitget {
             channel = Value::Str(format!("{}{}", Value::Str("candle".into()), interval.clone().map(Value::from).unwrap_or(Value::Null)).into());
             args.insert("channel".into(), channel.clone());
             args.insert("instId".into(), Value::from((market).id.clone()));
-            messageHash = Some(format!("{}{}", Value::Str("candles:".into()), interval.map(Value::from).unwrap_or(Value::Null)));
+            messageHash = Some(format!("{}{}", Value::Str("candles:".into()), interval.clone().map(Value::from).unwrap_or(Value::Null)));
         }
         return self.un_watch_channel(symbol, channel, messageHash.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("watchOHLCV".into()), &[paramsRequest]).await;
         Value::Null
@@ -1176,8 +1176,8 @@ impl Bitget {
         if (instType.as_deref() == Some("spot")) {
             marketType = "spot".to_string();
         }
-        let mut marketId: Option<String> = self.safe_string2_opt(arg.clone(), Value::Str("instId".into()), Value::Str("symbol".into()), &[]);
-        let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType.clone())]);
+        let mut marketId: Option<String> = self.safe_string2(arg.clone(), Value::Str("instId".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
+        let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType)]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
         let mut symbolOhlcvs: indexmap::IndexMap<String, Value> = self.safe_dict(self.ohlcvs.clone(), symbol.clone(), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1250,18 +1250,18 @@ impl Bitget {
         //         "turnover": "4616746.46654"
         //     }
         //
-        let mut volumeIndex: Value = Value::Int(5);
-        let mut isInverse: Value = (match market.get("inverse") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Bool(false) });
-        if isInverse.as_bool() == Some(true) {
-            volumeIndex = Value::Int(6);
+        let mut volumeIndex: i64 = 5;
+        let mut isInverse: bool = (match market.get("inverse") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Bool(false) }).as_bool().unwrap_or(false);
+        if isInverse {
+            volumeIndex = 6;
         }
-        let mut timestamp: Value = self.safe_integer2(ohlcv.clone(), Value::Str("start".into()), Value::Int(0), &[]);
-        let mut open: Value = self.safe_number2(ohlcv.clone(), Value::Str("open".into()), Value::Int(1), &[]);
-        let mut high: Value = self.safe_number2(ohlcv.clone(), Value::Str("high".into()), Value::Int(2), &[]);
-        let mut low: Value = self.safe_number2(ohlcv.clone(), Value::Str("low".into()), Value::Int(3), &[]);
-        let mut close: Value = self.safe_number2(ohlcv.clone(), Value::Str("close".into()), Value::Int(4), &[]);
-        let mut volume: Value = self.safe_number2(ohlcv, Value::Str("volume".into()), volumeIndex, &[]);
-        return Value::from(vec![timestamp, open, high, low, close, volume]);
+        let mut timestamp: Option<i64> = self.safe_integer2(ohlcv.clone(), Value::Str("start".into()), Value::Int(0), &[]).as_i64();
+        let mut open: Option<f64> = self.safe_number2(ohlcv.clone(), Value::Str("open".into()), Value::Int(1), &[]).as_f64();
+        let mut high: Option<f64> = self.safe_number2(ohlcv.clone(), Value::Str("high".into()), Value::Int(2), &[]).as_f64();
+        let mut low: Option<f64> = self.safe_number2(ohlcv.clone(), Value::Str("low".into()), Value::Int(3), &[]).as_f64();
+        let mut close: Option<f64> = self.safe_number2(ohlcv.clone(), Value::Str("close".into()), Value::Int(4), &[]).as_f64();
+        let mut volume: Option<f64> = self.safe_number2(ohlcv, Value::Str("volume".into()), Value::from(volumeIndex), &[]).as_f64();
+        return Value::from(vec![Value::from(timestamp), Value::from(open), Value::from(high), Value::from(low), Value::from(close), Value::from(volume)]);
 
     Value::Null
 }
@@ -1363,7 +1363,7 @@ impl Bitget {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), messageHashTopic).into()), Value::Str(":".into())).into()), Value::from((market).symbol.clone())).into());
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), messageHashTopic).into()), Value::Str(":".into())).into()), Value::from((market).symbol.clone()));
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, methodName.clone(), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut uta: Value = utaparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUta: Value = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null);
@@ -1398,9 +1398,9 @@ impl Bitget {
             args.insert("instId".into(), Value::from((market).id.clone()));
         }
         if privateChannel {
-            return self.un_watch_private(uta.clone(), messageHash.clone(), Value::Map(args.clone()), &[paramsRequest.clone()]).await;
+            return self.un_watch_private(uta.clone(), Value::from(messageHash.clone()), Value::Map(args.clone()), &[paramsRequest.clone()]).await;
         }
-        return self.un_watch_public(uta, messageHash, Value::Map(args), &[paramsRequest]).await;
+        return self.un_watch_public(uta, Value::from(messageHash), Value::Map(args), &[paramsRequest]).await;
 
     Value::Null
 }
@@ -1553,8 +1553,8 @@ impl Bitget {
         if (instType.as_deref() == Some("spot")) {
             marketType = "spot".to_string();
         }
-        let mut marketId: Option<String> = self.safe_string2_opt(arg, Value::Str("instId".into()), Value::Str("symbol".into()), &[]);
-        let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType.clone())]);
+        let mut marketId: Option<String> = self.safe_string2(arg, Value::Str("instId".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
+        let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType)]);
         let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
         let mut data: Value = (match message.get("data") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
@@ -1563,7 +1563,7 @@ impl Bitget {
         if (rawOrderBook == Value::Null) {
             return;
         }
-        let mut timestamp: Value = self.safe_integer_k(rawOrderBook.clone(), "ts", &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(rawOrderBook.clone(), "ts", &[]).as_i64();
         let mut incrementalBook: bool = channel.as_deref() == Some("books");
         if incrementalBook {
             // storedOrderBook = this.safeValue (this.orderbooks, symbol);
@@ -1591,8 +1591,8 @@ impl Bitget {
             let mut bids: Value = self.safe_list2(rawOrderBook.clone(), Value::Str("bids".into()), Value::Str("b".into()), &[Value::from(vec![])]);
             self.handle_deltas(storedOrderBook.book_field("asks"), asks);
             self.handle_deltas(storedOrderBook.book_field("bids"), bids);
-            storedOrderBook.set_book_meta("timestamp", timestamp.clone());
-            storedOrderBook.set_book_meta("datetime", self.iso8601(timestamp.clone()));
+            storedOrderBook.set_book_meta("timestamp", Value::from(timestamp));
+            storedOrderBook.set_book_meta("datetime", self.iso8601(Value::from(timestamp)));
             let mut checksum: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]);
             // UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
             // so only validate the checksum when the exchange actually sends one
@@ -1653,7 +1653,7 @@ impl Bitget {
                     bidsKey = "b".to_string();
                 }
             }
-            let mut parsedOrderbook: Value = self.parse_order_book(rawOrderBook, symbol.clone(), &[timestamp, Value::from(bidsKey), Value::from(asksKey)]);
+            let mut parsedOrderbook: Value = self.parse_order_book(rawOrderBook, symbol.clone(), &[Value::from(timestamp), Value::from(bidsKey), Value::from(asksKey)]);
             orderbook.reset(parsedOrderbook);
         }
         client.resolve(&[(if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash]);
@@ -1896,8 +1896,8 @@ impl Bitget {
         if (instType.as_deref() == Some("spot")) {
             marketType = "spot".to_string();
         }
-        let mut marketId: Option<String> = self.safe_string2_opt(arg, Value::Str("instId".into()), Value::Str("symbol".into()), &[]);
-        let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType.clone())]);
+        let mut marketId: Option<String> = self.safe_string2(arg, Value::Str("instId".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
+        let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType)]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
         let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
         if (stored == Value::Null) {
@@ -2018,7 +2018,7 @@ impl Bitget {
         //         "T": "1756287827920" // Fill timestamp
         //     }
         //
-        let mut instId: Value = self.safe_string2(trade.clone(), Value::Str("symbol".into()), Value::Str("instId".into()), &[]);
+        let mut instId: Option<String> = self.safe_string2(trade.clone(), Value::Str("symbol".into()), Value::Str("instId".into()), &[]).as_str().map(str::to_owned);
         let mut posMode: Option<String> = self.safe_string_k(trade.clone(), "posMode", &[]).as_str().map(str::to_owned);
         let mut category: Option<String> = self.safe_string_k(trade.clone(), "category", &[]).as_str().map(str::to_owned);
         let mut defaultType: Value = Value::Null;
@@ -2027,15 +2027,15 @@ impl Bitget {
         }  else {
             defaultType = (if (posMode.is_some()) { Value::Str("contract".into()) } else { Value::Str("spot".into()) });
         }
-        let mut marketResolved: Value = self.safe_market(&[(if (market == Value::Null) { instId } else { Value::Null }), market, Value::Null, defaultType]);
-        let mut timestamp: Option<i64> = self.safe_integer_n_opt(trade.clone(), Value::from(vec![Value::Str("uTime".into()), Value::Str("cTime".into()), Value::Str("ts".into()), Value::Str("T".into()), Value::Str("execTime".into())]), &[]);
+        let mut marketResolved: Value = self.safe_market(&[(if (market == Value::Null) { instId.clone().map(Value::from).unwrap_or(Value::Null) } else { Value::Null }), market, Value::Null, defaultType]);
+        let mut timestamp: Option<i64> = self.safe_integer_n(trade.clone(), Value::from(vec![Value::Str("uTime".into()), Value::Str("cTime".into()), Value::Str("ts".into()), Value::Str("T".into()), Value::Str("execTime".into())]), &[]).as_i64();
         let mut feeDetail: Value = self.safe_list_k(trade.clone(), "feeDetail", &[Value::from(vec![])]);
         let mut first: Value = self.safe_dict(feeDetail, Value::Int(0), &[]);
         let mut fee: Value = Value::Null;
         if (first != Value::Null) {
-            let mut feeCurrencyId: Option<String> = self.safe_string_k_opt(first.clone(), "feeCoin", &[]);
-            let mut feeCurrencyCode: Value = self.safe_currency_code(feeCurrencyId.map(Value::from).unwrap_or(Value::Null), &[]);
-            let mut feeCost: Option<String> = self.safe_string2_opt(first, Value::Str("totalFee".into()), Value::Str("fee".into()), &[]);
+            let mut feeCurrencyId: Option<String> = self.safe_string_k(first.clone(), "feeCoin", &[]).as_str().map(str::to_owned);
+            let mut feeCurrencyCode: Value = self.safe_currency_code(feeCurrencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut feeCost: Option<String> = self.safe_string2(first, Value::Str("totalFee".into()), Value::Str("fee".into()), &[]).as_str().map(str::to_owned);
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), crate::precise::Precise::stringAbs(&feeCost.clone().map(Value::from).unwrap_or(Value::Null)));
@@ -2095,7 +2095,7 @@ impl Bitget {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let mut market: Value = Value::Null;
-        let mut messageHash: Value = Value::Str("".into());
+        let mut messageHash: String = "".to_string();
         let mut subscriptionHash: String = "positions".to_string();
         let mut instType: Value = Value::Str("USDT-FUTURES".into());
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchPositions".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
@@ -2113,7 +2113,7 @@ impl Bitget {
         if uta.as_bool() == Some(true) {
             instType = Value::Str("UTA".into());
         }
-        messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", instType, Value::Str(":positions".into())).into()), messageHash).into());
+        messageHash = format!("{}{}", Value::Str(format!("{}{}", instType, Value::Str(":positions".into())).into()), messageHash);
         let mut args: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), instType);
@@ -2139,7 +2139,7 @@ impl Bitget {
         if !(uta.as_bool() == Some(true)) {
             args.insert("instId".into(), Value::Str("default".into()));
         }
-        let mut newPositions: Value = self.watch_private(uta, messageHash, Value::from(subscriptionHash), Value::Map(args), &[paramsRequest]).await;
+        let mut newPositions: Value = self.watch_private(uta, Value::from(messageHash), Value::from(subscriptionHash), Value::Map(args), &[paramsRequest]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
@@ -2250,8 +2250,8 @@ impl Bitget {
             let mut __for_first_119: bool = true;
             while { if !__for_first_119 { i += 1; } __for_first_119 = false; i < (rawPositions.len() as i64) } {
             let mut rawPosition: Value = rawPositions.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut marketId: Option<String> = self.safe_string2_opt(rawPosition.clone(), Value::Str("instId".into()), Value::Str("symbol".into()), &[]);
-            let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::Str("contract".into())]);
+            let mut marketId: Option<String> = self.safe_string2(rawPosition.clone(), Value::Str("instId".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
+            let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::Str("contract".into())]);
             let mut position: Value = self.parse_ws_position(rawPosition, &[market]);
             if let Value::Arr(__a) = &mut newPositions { std::sync::Arc::make_mut(__a).push(position.clone()); }
             cache.append(position);
@@ -2331,21 +2331,21 @@ impl Bitget {
         //         "holdMode": "hedge_mode"
         //     }
         //
-        let mut marketId: Option<String> = self.safe_string2_opt(position.clone(), Value::Str("instId".into()), Value::Str("symbol".into()), &[]);
-        let mut marginModeId: Option<String> = self.safe_string_k_opt(position.clone(), "marginMode", &[]);
-        let mut marginMode: Value = self.get_supported_mapping(marginModeId.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+        let mut marketId: Option<String> = self.safe_string2(position.clone(), Value::Str("instId".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
+        let mut marginModeId: Option<String> = self.safe_string_k(position.clone(), "marginMode", &[]).as_str().map(str::to_owned);
+        let mut marginMode: Value = self.get_supported_mapping(marginModeId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("crossed".to_string(), Value::Str("cross".into()));
                 m.insert("isolated".to_string(), Value::Str("isolated".into()));
             m
         })]);
         let mut hedgedId: Option<String> = self.safe_string2(position.clone(), Value::Str("posMode".into()), Value::Str("holdMode".into()), &[]).as_str().map(str::to_owned);
-        let mut hedged: Value = Value::Bool(false);
+        let mut hedged: bool = false;
         if (hedgedId.as_deref() == Some("hedge_mode")) {
-            hedged = Value::Bool(true);
+            hedged = true;
         }
-        let mut timestamp: Option<i64> = self.safe_integer_n_opt(position.clone(), Value::from(vec![Value::Str("updatedTime".into()), Value::Str("uTime".into()), Value::Str("cTime".into()), Value::Str("createdTime".into())]), &[]);
-        let mut percentageDecimal: Option<String> = self.safe_string2_opt(position.clone(), Value::Str("unrealizedPLR".into()), Value::Str("profitRate".into()), &[]);
+        let mut timestamp: Option<i64> = self.safe_integer_n(position.clone(), Value::from(vec![Value::Str("updatedTime".into()), Value::Str("uTime".into()), Value::Str("cTime".into()), Value::Str("createdTime".into())]), &[]).as_i64();
+        let mut percentageDecimal: Option<String> = self.safe_string2(position.clone(), Value::Str("unrealizedPLR".into()), Value::Str("profitRate".into()), &[]).as_str().map(str::to_owned);
         let mut percentage: Value = crate::precise::Precise::stringMul(&percentageDecimal.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into()));
         let mut contractSize: Value = Value::Null;
         if (market != Value::Null) {
@@ -2355,7 +2355,7 @@ impl Bitget {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_k(position.clone(), "posId", &[]));
-        m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market, Value::Null, Value::Str("contract".into())]));
+        m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market, Value::Null, Value::Str("contract".into())]));
         m.insert("notional".to_string(), Value::Null);
         m.insert("marginMode".to_string(), marginMode);
         m.insert("liquidationPrice".to_string(), self.safe_number2(position.clone(), Value::Str("liquidationPrice".into()), Value::Str("liqPrice".into()), &[]));
@@ -2366,7 +2366,7 @@ impl Bitget {
         m.insert("contractSize".to_string(), contractSize);
         m.insert("markPrice".to_string(), self.safe_number_k(position.clone(), "markPrice", &[]));
         m.insert("side".to_string(), self.safe_string2(position.clone(), Value::Str("holdSide".into()), Value::Str("posSide".into()), &[]));
-        m.insert("hedged".to_string(), hedged);
+        m.insert("hedged".to_string(), Value::Bool(hedged));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("maintenanceMargin".to_string(), Value::Null);
@@ -2425,17 +2425,17 @@ impl Bitget {
         let isTriggerparamsTriggerVariable: Vec<Value> = self.is_trigger_order(params).as_array().cloned().unwrap_or_default();
         let mut isTrigger: Value = isTriggerparamsTriggerVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsTrigger: Value = isTriggerparamsTriggerVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut messageHash: Value = Value::Str("order".into());
+        let mut messageHash: String = "order".to_string();
         if (isTrigger.as_bool() == Some(true)) {
-            messageHash = Value::Str("triggerOrder".into());
+            messageHash = "triggerOrder".to_string();
         }
-        let mut subscriptionHash: Value = Value::Str("order:trades".into());
+        let mut subscriptionHash: String = "order:trades".to_string();
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
             symbolResolved = self.safe_string_k(market.clone(), "symbol", &[]);
             marketId = self.safe_string_k(market.clone(), "id", &[]);
-            messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbolResolved).into());
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbolResolved);
         }
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(paramsTrigger, Value::Str("watchOrders".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut uta: Value = utaparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -2451,13 +2451,13 @@ impl Bitget {
             marketId = Value::Str("default".into());
         }
         if (productType.is_none()) && (type_var.as_deref() != Some("spot")) && (symbolResolved == Value::Null) {
-            messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), subType).into());
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), subType);
         }  else if (productType.as_deref() == Some("USDT-FUTURES")) {
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(":linear".into())).into());
+            messageHash = format!("{}{}", messageHash, Value::Str(":linear".into()));
         }  else if (productType.as_deref() == Some("COIN-FUTURES")) {
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(":inverse".into())).into());
+            messageHash = format!("{}{}", messageHash, Value::Str(":inverse".into()));
         }  else if (productType.as_deref() == Some("USDC-FUTURES")) {
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(":usdcfutures".into())).into()); // non unified channel
+            messageHash = format!("{}{}", messageHash, Value::Str(":usdcfutures".into())); // non unified channel
         }
         let mut useSpotInstType: bool = (symbol == Value::Null) && (type_var.as_deref() == Some("spot"));
         let mut instType: Value = Value::Str("SPOT".into());
@@ -2466,10 +2466,10 @@ impl Bitget {
             { let __destr_tmp: Vec<Value> = self.get_inst_type(Value::Str("watchOrders".into()), market, &[uta.clone(), paramsSubType]).as_array().cloned().unwrap_or_default(); instType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsInstType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         }
         if (type_var.as_deref() == Some("spot")) && (symbolResolved != Value::Null) {
-            subscriptionHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", subscriptionHash, Value::Str(":".into())).into()), symbolResolved).into());
+            subscriptionHash = format!("{}{}", Value::Str(format!("{}{}", subscriptionHash, Value::Str(":".into())).into()), symbolResolved);
         }
         if (isTrigger.as_bool() == Some(true)) {
-            subscriptionHash = Value::Str(format!("{}{}", subscriptionHash, Value::Str(":stop".into())).into()); // we don't want to re-use the same subscription hash for stop orders
+            subscriptionHash = format!("{}{}", subscriptionHash, Value::Str(":stop".into())); // we don't want to re-use the same subscription hash for stop orders
         }
         // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
         let mut instId: Value = Value::Str("default".into());
@@ -2485,7 +2485,7 @@ impl Bitget {
         let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
         if (marginMode != Value::Null) {
             instType = Value::Str("MARGIN".into());
-            messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), marginMode).into());
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), marginMode);
             if (marginMode.as_str() == Some("isolated")) {
                 channel = "orders-isolated".to_string();
             }  else {
@@ -2496,7 +2496,7 @@ impl Bitget {
             instType = Value::Str("UTA".into());
             channel = "order".to_string();
         }
-        subscriptionHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", subscriptionHash, Value::Str(":".into())).into()), instType).into());
+        subscriptionHash = format!("{}{}", Value::Str(format!("{}{}", subscriptionHash, Value::Str(":".into())).into()), instType);
         let mut args: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), instType);
@@ -2518,7 +2518,7 @@ impl Bitget {
         if !(uta.as_bool() == Some(true)) {
             args.insert("instId".into(), instId);
         }
-        let mut orders: Value = self.watch_private(uta, messageHash, subscriptionHash, Value::Map(args), &[paramsRequest]).await;
+        let mut orders: Value = self.watch_private(uta, Value::from(messageHash), Value::from(subscriptionHash), Value::Map(args), &[paramsRequest]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.clone(), limit);
@@ -2617,8 +2617,8 @@ impl Bitget {
     m
 }) });
         let mut channel: Option<String> = self.safe_string2(arg.clone(), Value::Str("channel".into()), Value::Str("topic".into()), &[Value::Str("".into())]).as_str().map(str::to_owned);
-        let mut instType: Option<String> = self.safe_string_lower_k_opt(arg.clone(), "instType", &[]);
-        let mut argInstId: Option<String> = self.safe_string_k_opt(arg, "instId", &[]);
+        let mut instType: Option<String> = self.safe_string_lower_k(arg.clone(), "instType", &[]).as_str().map(str::to_owned);
+        let mut argInstId: Option<String> = self.safe_string_k(arg, "instId", &[]).as_str().map(str::to_owned);
         let mut marketType: Option<String> = None;
         if (instType.as_deref() == Some("spot")) {
             marketType = Some("spot".to_string());
@@ -2869,26 +2869,26 @@ impl Bitget {
         if (category.as_deref() == Some("margin")) {
             isMargin = true;
         }
-        let mut marketId: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("instId".into()), Value::Str("symbol".into()), &[]);
-        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
+        let mut marketId: Option<String> = self.safe_string2(order.clone(), Value::Str("instId".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
+        let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
         let mut timestamp: Option<i64> = self.safe_integer2(order.clone(), Value::Str("cTime".into()), Value::Str("createdTime".into()), &[]).as_i64();
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-        let mut rawStatus: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("status".into()), Value::Str("orderStatus".into()), &[]);
+        let mut rawStatus: Option<String> = self.safe_string2(order.clone(), Value::Str("status".into()), Value::Str("orderStatus".into()), &[]).as_str().map(str::to_owned);
         let mut orderFee: Value = self.safe_list_k(order.clone(), "feeDetail", &[Value::from(vec![])]);
         let mut fee: Value = self.safe_dict(orderFee, Value::Int(0), &[]);
-        let mut feeAmount: Option<String> = self.safe_string_k_opt(fee.clone(), "fee", &[]);
+        let mut feeAmount: Option<String> = self.safe_string_k(fee.clone(), "fee", &[]).as_str().map(str::to_owned);
         let mut feeObject: Value = Value::Null;
         if (feeAmount.is_some()) {
-            let mut feeCurrency: Option<String> = self.safe_string_k_opt(fee, "feeCoin", &[]);
+            let mut feeCurrency: Option<String> = self.safe_string_k(fee, "feeCoin", &[]).as_str().map(str::to_owned);
             feeObject = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&feeAmount.clone().map(Value::from).unwrap_or(Value::Null)), &[]));
-                    m.insert("currency".to_string(), self.safe_currency_code(feeCurrency.map(Value::from).unwrap_or(Value::Null), &[]));
+                    m.insert("currency".to_string(), self.safe_currency_code(feeCurrency.clone().map(Value::from).unwrap_or(Value::Null), &[]));
                 m
             });
         }
-        let mut triggerPrice: Value = self.safe_number_k(order.clone(), "triggerPrice", &[]);
-        let mut isTriggerOrder: bool = triggerPrice != Value::Null;
+        let mut triggerPrice: Option<f64> = self.safe_number_k(order.clone(), "triggerPrice", &[]).as_f64();
+        let mut isTriggerOrder: bool = triggerPrice.is_some();
         let mut price: Value = Value::Null;
         if !isTriggerOrder {
             price = self.safe_number_k(order.clone(), "price", &[]);
@@ -2896,14 +2896,14 @@ impl Bitget {
             // for spot trigger order, limit price is this
             price = self.safe_number_k(order.clone(), "executePrice", &[]);
         }
-        let mut avgPriceString: Value = self.safe_string_lower_n(order.clone(), Value::from(vec![Value::Str("priceAvg".into()), Value::Str("fillPrice".into()), Value::Str("avgPrice".into())]), &[]);
-        let mut avgPrice: Value = (if (avgPriceString == Value::Null) { Value::Null } else { self.omit_zero(avgPriceString) });
-        let mut side: Option<String> = self.safe_string_k_opt(order.clone(), "side", &[]);
-        let mut type_var: Option<String> = self.safe_string_k_opt(order.clone(), "orderType", &[]);
-        let mut accBaseVolumeString: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("accBaseVolume".into()), Value::Str("cumExecQty".into()), &[]);
-        let mut accBaseVolume: Value = self.omit_zero(accBaseVolumeString.map(Value::from).unwrap_or(Value::Null));
-        let mut newSizeString: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("newSize".into()), Value::Str("cumExecValue".into()), &[]);
-        let mut newSizeValue: Value = self.omit_zero(newSizeString.map(Value::from).unwrap_or(Value::Null));
+        let mut avgPriceString: Option<String> = self.safe_string_lower_n(order.clone(), Value::from(vec![Value::Str("priceAvg".into()), Value::Str("fillPrice".into()), Value::Str("avgPrice".into())]), &[]).as_str().map(str::to_owned);
+        let mut avgPrice: Value = (if (avgPriceString.is_none()) { Value::Null } else { self.omit_zero(avgPriceString.clone().map(Value::from).unwrap_or(Value::Null)) });
+        let mut side: Option<String> = self.safe_string_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
+        let mut type_var: Option<String> = self.safe_string_k(order.clone(), "orderType", &[]).as_str().map(str::to_owned);
+        let mut accBaseVolumeString: Option<String> = self.safe_string2(order.clone(), Value::Str("accBaseVolume".into()), Value::Str("cumExecQty".into()), &[]).as_str().map(str::to_owned);
+        let mut accBaseVolume: Value = self.omit_zero(accBaseVolumeString.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut newSizeString: Option<String> = self.safe_string2(order.clone(), Value::Str("newSize".into()), Value::Str("cumExecValue".into()), &[]).as_str().map(str::to_owned);
+        let mut newSizeValue: Value = self.omit_zero(newSizeString.clone().map(Value::from).unwrap_or(Value::Null));
         let mut isMarketOrder: bool = type_var.as_deref() == Some("market");
         let mut isBuy: bool = side.as_deref() == Some("buy");
         let mut totalAmount: Value = Value::Null;
@@ -2953,18 +2953,18 @@ impl Bitget {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("lastTradeTimestamp".to_string(), self.safe_integer2(order.clone(), Value::Str("uTime".into()), Value::Str("updatedTime".into()), &[]));
-        m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
+        m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), self.safe_string_upper2(order, Value::Str("force".into()), Value::Str("timeInForce".into()), &[]));
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
+        m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price);
-        m.insert("triggerPrice".to_string(), triggerPrice);
+        m.insert("triggerPrice".to_string(), Value::from(triggerPrice));
         m.insert("amount".to_string(), totalAmount);
         m.insert("cost".to_string(), cost);
         m.insert("average".to_string(), avgPrice);
         m.insert("filled".to_string(), filledAmount);
         m.insert("remaining".to_string(), remaining.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("status".to_string(), self.parse_ws_order_status(rawStatus.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parse_ws_order_status(rawStatus.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), feeObject);
         m.insert("trades".to_string(), Value::Null);
     m
@@ -3017,12 +3017,12 @@ impl Bitget {
             crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await);
         }
         let mut market: Value = Value::Null;
-        let mut messageHash: Value = Value::Str("myTrades".into());
+        let mut messageHash: String = "myTrades".to_string();
         let mut symbolResolved: Value = Value::Null;
         if (symbol != Value::Null) {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
             symbolResolved = self.safe_string_k(market.clone(), "symbol", &[]);
-            messageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbolResolved).into());
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str(":".into())).into()), symbolResolved);
         }
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchMyTrades".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -3039,7 +3039,7 @@ impl Bitget {
         if uta.as_bool() == Some(true) {
             instType = Value::Str("UTA".into());
         }
-        let mut subscriptionHash: Value = Value::Str(format!("{}{}", Value::Str("fill:".into()), instType).into());
+        let mut subscriptionHash: String = format!("{}{}", Value::Str("fill:".into()), instType);
         let mut args: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), instType);
@@ -3061,7 +3061,7 @@ impl Bitget {
         if !(uta.as_bool() == Some(true)) {
             args.insert("instId".into(), Value::Str("default".into()));
         }
-        let mut trades: Value = self.watch_private(uta, messageHash, subscriptionHash, Value::Map(args), &[paramsRequest]).await;
+        let mut trades: Value = self.watch_private(uta, Value::from(messageHash), Value::from(subscriptionHash), Value::Map(args), &[paramsRequest]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.clone(), limit);
@@ -3211,12 +3211,12 @@ impl Bitget {
                 if (category.as_deref() == Some("spot")) || (category.as_deref() == Some("margin")) {
                     marketType = "spot".to_string();
                 }
-                let mut marketId: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("instId".into()), Value::Str("symbol".into()), &[]);
-                market = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType)]);
+                let mut marketId: Option<String> = self.safe_string2(trade.clone(), Value::Str("instId".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
+                market = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(marketType)]);
             }
             let mut parsed: Value = self.parse_ws_trade(trade, &[market]);
             stored.append(parsed.clone());
-            let symbol: String = self.safe_string_k_opt(parsed, "symbol", &[Value::Str("".into())]).unwrap_or_default();
+            let mut symbol: String = self.safe_string_k(parsed, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut symbolSpecificMessageHash: Value = Value::Str(format!("{}{}", Value::Str("myTrades:".into()), symbol).into());
             client.resolve(&[stored.clone(), symbolSpecificMessageHash]);
         }
@@ -3308,9 +3308,9 @@ impl Bitget {
         if !(isStockOrUta) {
             args.insert("coin".into(), Value::Str("default".into()));
         }
-        let mut instTypeLower: Value = self.safe_string_lower(Value::Map(args.clone()), Value::Str("instType".into()), &[Value::Str("".into())]);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("balance:".into()), instTypeLower).into());
-        return self.watch_private(Value::Bool(isStockOrUta), messageHash.clone(), messageHash.clone(), Value::Map(args), &[paramsRequest]).await;
+        let mut instTypeLower: String = self.safe_string_lower(Value::Map(args.clone()), Value::Str("instType".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut messageHash: String = format!("{}{}", Value::Str("balance:".into()), instTypeLower);
+        return self.watch_private(Value::Bool(isStockOrUta), Value::from(messageHash.clone()), Value::from(messageHash), Value::Map(args), &[paramsRequest]).await;
         Value::Null
         }).await?))
     }
@@ -3410,7 +3410,7 @@ impl Bitget {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut instType: Option<String> = self.safe_string_lower_k_opt(arg, "instType", &[]);
+        let mut instType: Option<String> = self.safe_string_lower_k(arg, "instType", &[]).as_str().map(str::to_owned);
         let mut data: Vec<Value> = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -3431,7 +3431,7 @@ impl Bitget {
                         account = self.safe_dict(self.balance.clone(), code.clone(), &[account.clone()]);
                     }
                     let mut borrow: Option<String> = self.safe_string_k_opt(entry.clone(), "borrow", &[]);
-                    let mut debts: Option<String> = self.safe_string_k_opt(entry.clone(), "debts", &[]);
+                    let mut debts: Option<String> = self.safe_string_k(entry.clone(), "debts", &[]).as_str().map(str::to_owned);
                     if (borrow.is_some()) || (debts.is_some()) {
                         add_element_to_object(&mut account, &Value::Str("debt".into()), crate::precise::Precise::stringAdd(&borrow.clone().map(Value::from).unwrap_or(Value::Null), &debts.clone().map(Value::from).unwrap_or(Value::Null)));
                     }
@@ -3452,7 +3452,7 @@ impl Bitget {
                 }
                 let mut borrow: Option<String> = self.safe_string_k_opt(rawBalance.clone(), "borrow", &[]);
                 if (borrow.is_some()) {
-                    let mut interest: Option<String> = self.safe_string_k_opt(rawBalance.clone(), "interest", &[]);
+                    let mut interest: Option<String> = self.safe_string_k(rawBalance.clone(), "interest", &[]).as_str().map(str::to_owned);
                     add_element_to_object(&mut account, &Value::Str("debt".into()), crate::precise::Precise::stringAdd(&borrow.clone().map(Value::from).unwrap_or(Value::Null), &interest.clone().map(Value::from).unwrap_or(Value::Null)));
                 }
                 let mut freeQuery: String = "available".to_string();
@@ -3483,7 +3483,7 @@ impl Bitget {
 }));
         let mut url: Value = (if (uta.as_bool() == Some(true)) { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null),
             "utaPublic") } else { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public") });
-        let mut sandboxMode: bool = self.safe_bool2_opt(self.options.clone(), Value::Str("sandboxMode".into()), Value::Str("sandbox".into()), &[Value::Bool(false)]).unwrap_or(false);
+        let mut sandboxMode: bool = self.safe_bool2(self.options.clone(), Value::Str("sandboxMode".into()), Value::Str("sandbox".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if sandboxMode {
             let mut instType: Option<String> = self.safe_string_k(args.clone(), "instType", &[]).as_str().map(str::to_owned);
             if (instType.as_deref() != Some("SCOIN-FUTURES")) && (instType.as_deref() != Some("SUSDT-FUTURES")) && (instType.as_deref() != Some("SUSDC-FUTURES")) {
@@ -3513,7 +3513,7 @@ impl Bitget {
 }));
         let mut url: Value = (if (uta.as_bool() == Some(true)) { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null),
             "utaPublic") } else { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public") });
-        let mut sandboxMode: bool = self.safe_bool2_opt(self.options.clone(), Value::Str("sandboxMode".into()), Value::Str("sandbox".into()), &[Value::Bool(false)]).unwrap_or(false);
+        let mut sandboxMode: bool = self.safe_bool2(self.options.clone(), Value::Str("sandboxMode".into()), Value::Str("sandbox".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if sandboxMode {
             let mut instType: Option<String> = self.safe_string_k(args.clone(), "instType", &[]).as_str().map(str::to_owned);
             if (instType.as_deref() != Some("SCOIN-FUTURES")) && (instType.as_deref() != Some("SUSDT-FUTURES")) && (instType.as_deref() != Some("SUSDC-FUTURES")) {
@@ -3544,7 +3544,7 @@ impl Bitget {
         let mut isUta: bool = (match &(uta) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) });
         let mut url: Value = (if isUta { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null),
             "utaPrivate") } else { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private") });
-        let mut sandboxMode: bool = self.safe_bool2_opt(self.options.clone(), Value::Str("sandboxMode".into()), Value::Str("sandbox".into()), &[Value::Bool(false)]).unwrap_or(false);
+        let mut sandboxMode: bool = self.safe_bool2(self.options.clone(), Value::Str("sandboxMode".into()), Value::Str("sandbox".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if sandboxMode {
             let mut instType: Option<String> = self.safe_string_k(args.clone(), "instType", &[]).as_str().map(str::to_owned);
             if (instType.as_deref() != Some("SCOIN-FUTURES")) && (instType.as_deref() != Some("SUSDT-FUTURES")) && (instType.as_deref() != Some("SUSDC-FUTURES")) {
@@ -3579,7 +3579,7 @@ impl Bitget {
 }));
         let mut url: Value = (if (uta.as_bool() == Some(true)) { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null),
             "utaPublic") } else { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public") });
-        let mut sandboxMode: bool = self.safe_bool2_opt(self.options.clone(), Value::Str("sandboxMode".into()), Value::Str("sandbox".into()), &[Value::Bool(false)]).unwrap_or(false);
+        let mut sandboxMode: bool = self.safe_bool2(self.options.clone(), Value::Str("sandboxMode".into()), Value::Str("sandbox".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if sandboxMode {
             let mut argsArrayFirst: Value = self.safe_dict(argsArray.clone(), Value::Int(0), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3609,16 +3609,16 @@ impl Bitget {
     m
 }));
         self.check_required_credentials(&[]);
-        let mut url: Value = self.safe_string_k(params.clone(), "url", &[Value::Str("".into())]);
-        let mut client: Value = self.client(&[url.clone()]);
+        let mut url: String = self.safe_string_k(params.clone(), "url", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut client: Value = self.client(&[Value::from(url.clone())]);
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut messageHash: String = "authenticated".to_string();
         let mut future: Value = client.reusable_future(Value::from(messageHash.clone()));
         let mut authenticated: Value = self.safe_value(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             let mut timestamp: Value = Value::Str(format!("{}", self.seconds()).into());
-            let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, Value::Str("GET".into())).into()), Value::Str("/user/verify".into())).into());
-            let mut signature: Value = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
+            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", timestamp, Value::Str("GET".into())).into()), Value::Str("/user/verify".into()));
+            let mut signature: Value = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             let mut operation: String = "login".to_string();
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -3634,7 +3634,7 @@ impl Bitget {
                 m
             });
             let mut message: Value = self.extend(Value::Map(request), &[params]);
-            self.watch(url, Value::from(messageHash.clone()), &[message, Value::from(messageHash.clone())]).await;
+            self.watch(Value::from(url), Value::from(messageHash.clone()), &[message, Value::from(messageHash.clone())]).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 
@@ -3648,7 +3648,7 @@ impl Bitget {
 }));
         let mut url: Value = (if (uta.as_bool() == Some(true)) { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null),
             "utaPrivate") } else { crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private") });
-        let mut sandboxMode: bool = self.safe_bool2_opt(self.options.clone(), Value::Str("sandboxMode".into()), Value::Str("sandbox".into()), &[Value::Bool(false)]).unwrap_or(false);
+        let mut sandboxMode: bool = self.safe_bool2(self.options.clone(), Value::Str("sandboxMode".into()), Value::Str("sandbox".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if sandboxMode {
             let mut instType: Option<String> = self.safe_string_k(args.clone(), "instType", &[]).as_str().map(str::to_owned);
             if (instType.as_deref() != Some("SCOIN-FUTURES")) && (instType.as_deref() != Some("SUSDT-FUTURES")) && (instType.as_deref() != Some("SUSDC-FUTURES")) {
@@ -3696,11 +3696,11 @@ impl Bitget {
         let mut event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if (event.as_deref() == Some("error")) {
-                let mut code: Option<String> = match __pro_message.get("code").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
+                let mut code: Option<String> = (match __pro_message.get("code").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
                 let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message)).into());
-                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.map(Value::from).unwrap_or(Value::Null), feedback.clone());
-                let mut msg: Value = (match __pro_message.get("msg").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
-                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), msg.clone(), feedback.clone());
+                self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
+                let mut msg: String = (match __pro_message.get("msg").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
+                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), Value::from(msg.clone()), feedback.clone());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
             return Value::Bool(false);
@@ -3908,8 +3908,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (instType.as_deref() == Some("spot")) {
             type_var = "spot".to_string();
         }
-        let mut instId: Option<String> = self.safe_string2_opt(arg, Value::Str("instId".into()), Value::Str("symbol".into()), &[]);
-        let mut market: Value = self.safe_market(&[instId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(type_var)]);
+        let mut instId: Option<String> = self.safe_string2(arg, Value::Str("instId".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
+        let mut market: Value = self.safe_market(&[instId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(type_var)]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:orderbook:".into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into());
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook:".into()), symbol).into());
@@ -3945,8 +3945,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (instType.as_deref() == Some("spot")) {
             type_var = "spot".to_string();
         }
-        let mut instId: Option<String> = self.safe_string2_opt(arg, Value::Str("instId".into()), Value::Str("symbol".into()), &[]);
-        let mut market: Value = self.safe_market(&[instId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(type_var)]);
+        let mut instId: Option<String> = self.safe_string2(arg, Value::Str("instId".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
+        let mut market: Value = self.safe_market(&[instId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(type_var)]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:trade:".into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into());
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str("trade:".into()), symbol).into());
@@ -3982,8 +3982,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (instType.as_deref() == Some("spot")) {
             type_var = "spot".to_string();
         }
-        let mut instId: Option<String> = self.safe_string2_opt(arg, Value::Str("instId".into()), Value::Str("symbol".into()), &[]);
-        let mut market: Value = self.safe_market(&[instId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(type_var)]);
+        let mut instId: Option<String> = self.safe_string2(arg, Value::Str("instId".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
+        let mut market: Value = self.safe_market(&[instId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(type_var)]);
         let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:ticker:".into()), self.safe_string_k(market, "symbol", &[Value::Str("".into())])).into());
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbol).into());
@@ -4022,7 +4022,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (instType.as_deref() == Some("spot")) {
             type_var = "spot".to_string();
         }
-        let mut instId: Option<String> = self.safe_string2_opt(arg.clone(), Value::Str("instId".into()), Value::Str("symbol".into()), &[]);
+        let mut instId: Option<String> = self.safe_string2(arg.clone(), Value::Str("instId".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
         let mut channel: Value = self.safe_string2(arg.clone(), Value::Str("channel".into()), Value::Str("topic".into()), &[Value::Str("".into())]);
         let mut interval: Value = self.safe_string_k(arg, "interval", &[]);
         let mut isUta: Option<bool> = None;
@@ -4034,7 +4034,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut timeframes: Value = self.safe_dict_k(self.options.clone(), "timeframes", &[]);
         let mut timeframe: Value = self.find_timeframe(interval, &[timeframes]);
-        let mut market: Value = self.safe_market(&[instId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(type_var)]);
+        let mut market: Value = self.safe_market(&[instId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::from(type_var)]);
         let mut symbol: Value = self.safe_string_k(market, "symbol", &[Value::Str("".into())]);
         let mut messageHash: Option<String> = None;
         let mut subMessageHash: Option<String> = None;

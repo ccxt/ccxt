@@ -704,9 +704,9 @@ impl Cex {
     }
 
     pub fn parse_currency(&self, mut rawCurrency: Value) -> Value {
-        let mut id: Option<String> = self.safe_string_k_opt(rawCurrency.clone(), "currency", &[]);
+        let mut id: Option<String> = self.safe_string_k(rawCurrency.clone(), "currency", &[]).as_str().map(str::to_owned);
         let mut code: Value = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut isFiat: bool = self.safe_bool_k_opt(rawCurrency.clone(), "fiat", &[Value::Bool(false)]).unwrap_or(false);
+        let mut isFiat: bool = self.safe_bool_k(rawCurrency.clone(), "fiat", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut type_var: String = "crypto".to_string();
         if isFiat {
             type_var = "fiat".to_string();
@@ -768,7 +768,7 @@ impl Cex {
         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("code".to_string(), code);
         m.insert("name".to_string(), Value::Null);
-        m.insert("type".to_string(), Value::from(type_var.clone()));
+        m.insert("type".to_string(), Value::from(type_var));
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), self.safe_bool_k(rawCurrency.clone(), "walletDeposit", &[]));
         m.insert("withdraw".to_string(), self.safe_bool_k(rawCurrency.clone(), "walletWithdrawal", &[]));
@@ -845,23 +845,23 @@ impl Cex {
     }
 
     pub fn parse_market(&self, mut market: Value) -> Value {
-        let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "base", &[]);
+        let mut baseId: Option<String> = self.safe_string_k(market.clone(), "base", &[]).as_str().map(str::to_owned);
         let mut base: Value = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "quote", &[]);
+        let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "quote", &[]).as_str().map(str::to_owned);
         let mut quote: Value = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         if (base == Value::Null) || (quote == Value::Null) {
             return Value::Null;
         }
-        let mut id: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("-".into())).into()), quote).into()); // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
-        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
+        let mut id: String = format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("-".into())).into()), quote); // not actual id, but for this exchange we can use this abbreviation, because e.g. tickers have hyphen in between
+        let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote);
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id);
-        m.insert("symbol".to_string(), symbol);
+        m.insert("id".to_string(), Value::from(id));
+        m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("base".to_string(), base);
-        m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
+        m.insert("baseId".to_string(), baseId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote);
-        m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
+        m.insert("quoteId".to_string(), quoteId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("settle".to_string(), Value::Null);
         m.insert("settleId".to_string(), Value::Null);
         m.insert("type".to_string(), Value::Str("spot".into()));
@@ -952,8 +952,8 @@ impl Cex {
         //    }
         //
         let mut data: Value = self.safe_dict_k(response, "data", &[]);
-        let mut timestamp: Value = self.safe_integer_k(data, "timestamp", &[]);
-        return timestamp;
+        let mut timestamp: Option<i64> = self.safe_integer_k(data, "timestamp", &[]).as_i64();
+        return Value::from(timestamp);
         Value::Null
         }).await?))
     }
@@ -1060,8 +1060,8 @@ impl Cex {
 
     pub fn parse_ticker(&self, mut ticker: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "id", &[]);
-        let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]);
+        let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "id", &[]).as_str().map(str::to_owned);
+        let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone()]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
@@ -1175,8 +1175,8 @@ impl Cex {
         //                    "amount": "0.00165962"
         //                },
         //
-        let mut dateStr: Option<String> = self.safe_string_k_opt(trade.clone(), "dateISO", &[]);
-        let mut timestamp: Value = self.parse8601(dateStr.map(Value::from).unwrap_or(Value::Null));
+        let mut dateStr: Option<String> = self.safe_string_k(trade.clone(), "dateISO", &[]).as_str().map(str::to_owned);
+        let mut timestamp: Value = self.parse8601(dateStr.clone().map(Value::from).unwrap_or(Value::Null));
         let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1254,8 +1254,8 @@ impl Cex {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut timestamp: Value = self.safe_integer_k(orderBook.clone(), "timestamp", &[]);
-        return self.parse_order_book(orderBook, Value::from((market).symbol.clone()), &[timestamp]);
+        let mut timestamp: Option<i64> = self.safe_integer_k(orderBook.clone(), "timestamp", &[]).as_i64();
+        return self.parse_order_book(orderBook, Value::from((market).symbol.clone()), &[Value::from(timestamp)]);
         Value::Null
         }).await?))
     }
@@ -1917,11 +1917,11 @@ impl Cex {
         //                "expireTime": null,
         //                "effectiveTime": null
         //
-        let mut currency1: Option<String> = self.safe_string_k_opt(order.clone(), "currency1", &[]);
-        let mut currency2: Option<String> = self.safe_string_k_opt(order.clone(), "currency2", &[]);
+        let mut currency1: Option<String> = self.safe_string_k(order.clone(), "currency1", &[]).as_str().map(str::to_owned);
+        let mut currency2: Option<String> = self.safe_string_k(order.clone(), "currency2", &[]).as_str().map(str::to_owned);
         let mut marketId: Option<String> = None;
         if (currency1.is_some()) && (currency2.is_some()) {
-            marketId = Some(format!("{}{}", Value::Str(format!("{}{}", currency1.map(Value::from).unwrap_or(Value::Null), Value::Str("-".into())).into()), currency2.map(Value::from).unwrap_or(Value::Null)));
+            marketId = Some(format!("{}{}", Value::Str(format!("{}{}", currency1.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("-".into())).into()), currency2.clone().map(Value::from).unwrap_or(Value::Null)));
         }
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
         let mut symbol: Value = marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -1930,18 +1930,18 @@ impl Cex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut feeAmount: Value = self.safe_number_k(order.clone(), "feeAmount", &[]);
-        if (feeAmount != Value::Null) {
-            let mut currencyId: Option<String> = self.safe_string_k_opt(order.clone(), "feeCurrency", &[]);
-            let mut feeCode: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut feeAmount: Option<f64> = self.safe_number_k(order.clone(), "feeAmount", &[]).as_f64();
+        if (feeAmount.is_some()) {
+            let mut currencyId: Option<String> = self.safe_string_k(order.clone(), "feeCurrency", &[]).as_str().map(str::to_owned);
+            let mut feeCode: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             fee.insert("currency".into(), feeCode);
-            fee.insert("cost".into(), feeAmount);
+            fee.insert("cost".into(), Value::from(feeAmount));
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "serverCreateTimestamp", &[]).as_i64();
-        let mut requestedBase: Value = self.safe_number_k(order.clone(), "requestedAmountCcy1", &[]);
-        let mut executedBase: Value = self.safe_number_k(order.clone(), "executedAmountCcy1", &[]);
+        let mut requestedBase: Option<f64> = self.safe_number_k(order.clone(), "requestedAmountCcy1", &[]).as_f64();
+        let mut executedBase: Option<f64> = self.safe_number_k(order.clone(), "executedAmountCcy1", &[]).as_f64();
         // const requestedQuote = this.safeNumber (order, 'requestedAmountCcy2');
-        let mut executedQuote: Value = self.safe_number_k(order.clone(), "executedAmountCcy2", &[]);
+        let mut executedQuote: Option<f64> = self.safe_number_k(order.clone(), "executedAmountCcy2", &[]).as_f64();
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "orderId", &[]));
@@ -1957,10 +1957,10 @@ impl Cex {
         m.insert("side".to_string(), self.safe_string_lower_k(order.clone(), "side", &[]));
         m.insert("price".to_string(), self.safe_number_k(order.clone(), "price", &[]));
         m.insert("triggerPrice".to_string(), self.safe_number_k(order.clone(), "stopPrice", &[]));
-        m.insert("amount".to_string(), requestedBase);
-        m.insert("cost".to_string(), executedQuote);
+        m.insert("amount".to_string(), Value::from(requestedBase));
+        m.insert("cost".to_string(), Value::from(executedQuote));
         m.insert("average".to_string(), self.safe_number_k(order.clone(), "averagePrice", &[]));
-        m.insert("filled".to_string(), executedBase);
+        m.insert("filled".to_string(), Value::from(executedBase));
         m.insert("remaining".to_string(), Value::Null);
         m.insert("status".to_string(), status);
         m.insert("fee".to_string(), Value::Map(fee));
@@ -2283,12 +2283,12 @@ impl Cex {
         }  else {
             direction = Some("in".to_string());
         }
-        let mut currencyId: Option<String> = self.safe_string_k_opt(item.clone(), "currency", &[]);
+        let mut currencyId: Option<String> = self.safe_string_k(item.clone(), "currency", &[]).as_str().map(str::to_owned);
         let mut currencyResolved: Value = self.safe_currency(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]);
-        let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currencyResolved.clone()]);
-        let mut timestampString: Option<String> = self.safe_string_k_opt(item.clone(), "timestamp", &[]);
-        let mut timestamp: Value = self.parse8601(timestampString.map(Value::from).unwrap_or(Value::Null));
-        let mut type_var: Option<String> = self.safe_string_k_opt(item.clone(), "type", &[]);
+        let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currencyResolved.clone()]);
+        let mut timestampString: Option<String> = self.safe_string_k(item.clone(), "timestamp", &[]).as_str().map(str::to_owned);
+        let mut timestamp: Value = self.parse8601(timestampString.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut type_var: Option<String> = self.safe_string_k(item.clone(), "type", &[]).as_str().map(str::to_owned);
         return self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), item.clone());
@@ -2297,7 +2297,7 @@ impl Cex {
         m.insert("account".to_string(), self.safe_string_k(item, "accountId", &[Value::Str("".into())]));
         m.insert("referenceAccount".to_string(), Value::Null);
         m.insert("referenceId".to_string(), Value::Null);
-        m.insert("type".to_string(), self.parse_ledger_entry_type(type_var.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
+        m.insert("type".to_string(), self.parse_ledger_entry_type(type_var.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), code);
         m.insert("amount".to_string(), self.parse_number(amount, &[]));
         m.insert("timestamp".to_string(), timestamp.clone());
@@ -2398,15 +2398,15 @@ impl Cex {
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
-        let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "currency", &[]);
+        let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "currency", &[]).as_str().map(str::to_owned);
         let mut direction: Option<String> = self.safe_string_k(transaction.clone(), "direction", &[]).as_str().map(str::to_owned);
         let mut type_var: String = "deposit".to_string();
         if (direction.as_deref() == Some("withdraw")) {
             type_var = "withdrawal".to_string();
         }
-        let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
-        let mut updatedAt: Option<String> = self.safe_string_k_opt(transaction.clone(), "updatedAt", &[]);
-        let mut timestamp: Value = self.parse8601(updatedAt.map(Value::from).unwrap_or(Value::Null));
+        let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]);
+        let mut updatedAt: Option<String> = self.safe_string_k(transaction.clone(), "updatedAt", &[]).as_str().map(str::to_owned);
+        let mut timestamp: Value = self.parse8601(updatedAt.clone().map(Value::from).unwrap_or(Value::Null));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
@@ -2610,8 +2610,8 @@ impl Cex {
         //         }
         //     }
         //
-        let mut currencyId: Option<String> = self.safe_string_k_opt(transfer.clone(), "currency", &[]);
-        let mut currencyCode: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
+        let mut currencyId: Option<String> = self.safe_string_k(transfer.clone(), "currency", &[]).as_str().map(str::to_owned);
+        let mut currencyCode: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transfer.clone());
@@ -2694,16 +2694,16 @@ impl Cex {
 
     pub fn parse_deposit_address(&self, mut depositAddress: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
-        let mut address: Option<String> = self.safe_string_k_opt(depositAddress.clone(), "address", &[]);
-        let mut currencyId: Option<String> = self.safe_string_k_opt(depositAddress.clone(), "currency", &[]);
-        let mut currencyResolved: Value = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), &[currency]);
+        let mut address: Option<String> = self.safe_string_k(depositAddress.clone(), "address", &[]).as_str().map(str::to_owned);
+        let mut currencyId: Option<String> = self.safe_string_k(depositAddress.clone(), "currency", &[]).as_str().map(str::to_owned);
+        let mut currencyResolved: Value = self.safe_currency(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]);
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress.clone());
         m.insert("currency".to_string(), currencyResolved.as_map().and_then(|__m| __m.get("code")).cloned().unwrap_or(Value::Null));
         m.insert("network".to_string(), self.network_id_to_code(&[self.safe_string_k(depositAddress, "blockchain", &[]), self.safe_string_k(currencyResolved, "code", &[])]));
-        m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
+        m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), Value::Null);
     m
 });
@@ -2721,11 +2721,11 @@ impl Cex {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Value = api.get(0).cloned().unwrap_or(Value::Null);
-        let mut apiUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]);
+        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), apiName.clone(), &[]).as_str().map(str::to_owned);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" sign() has no API URL for this endpoint".into()))));
         }
-        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
+        let mut url: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.implode_params(path.clone(), params.clone())).into());
         let mut query: Value = self.omit(params, self.extract_params(path.clone()), &[]);
         if (apiName.as_str() == Some("public")) {
             if (method.as_str() == Some("GET")) {
@@ -2752,8 +2752,8 @@ impl Cex {
             self.check_required_credentials(&[]);
             let mut seconds: Value = Value::Str(format!("{}", self.seconds()).into());
             let mut bodySigned: Value = json_stringify(&query);
-            let mut auth: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", path, seconds).into()), bodySigned).into());
-            let mut signature: Value = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
+            let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", path, seconds).into()), bodySigned);
+            let mut signature: Value = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
             let mut headersSigned: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
@@ -2799,11 +2799,11 @@ impl Cex {
             }
         }
         let mut responseParsed: Value = (if (response == Value::Null) { responseFixed } else { response });
-        let mut error: Option<String> = self.safe_string_k_opt(responseParsed.clone(), "error", &[]);
+        let mut error: Option<String> = self.safe_string_k(responseParsed.clone(), "error", &[]).as_str().map(str::to_owned);
         if (error.is_some()) {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), error.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), error.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), error.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         // check errors in order-engine (the responses are not standard, so we parse here)
@@ -2812,10 +2812,10 @@ impl Cex {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut rejectReason: Option<String> = self.safe_string_k_opt(data, "rejectReason", &[]);
+            let mut rejectReason: Option<String> = self.safe_string_k(data, "rejectReason", &[]).as_str().map(str::to_owned);
             if (rejectReason.is_some()) {
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), rejectReason.clone().map(Value::from).unwrap_or(Value::Null), rejectReason.clone().map(Value::from).unwrap_or(Value::Null));
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() ".into())).into()), rejectReason.map(Value::from).unwrap_or(Value::Null))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() ".into())).into()), rejectReason.clone().map(Value::from).unwrap_or(Value::Null))));
             }
         }
         return Value::Null;

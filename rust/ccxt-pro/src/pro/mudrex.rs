@@ -289,7 +289,7 @@ impl Mudrex {
  * @description injects the broker Partner-Id into the websocket connection headers
  */
     pub fn set_broker_headers(&mut self) {
-        let mut brokerId: Option<String> = self.safe_string_k_opt(self.options.clone(), "broker", &[]);
+        let mut brokerId: Option<String> = self.safe_string_k(self.options.clone(), "broker", &[]).as_str().map(str::to_owned);
         if (brokerId.is_none()) {
             return;
         }
@@ -305,7 +305,7 @@ impl Mudrex {
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        headers.insert("Partner-Id".into(), brokerId.map(Value::from).unwrap_or(Value::Null));
+        headers.insert("Partner-Id".into(), brokerId.clone().map(Value::from).unwrap_or(Value::Null));
         innerOptions.insert("headers".into(), Value::Map(headers));
         wsOptions.insert("options".into(), Value::Map(innerOptions));
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("ws".into(), Value::Map(wsOptions)); }
@@ -327,7 +327,7 @@ impl Mudrex {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: Value = Value::from((market).symbol.clone());
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbolValue).into());
+        let mut messageHash: String = format!("{}{}", Value::Str("ticker:".into()), symbolValue);
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         self.set_broker_headers();
         let mut baseIdString: Value = self.safe_string_k((market).raw.clone(), "baseId", &[Value::Str("".into())]);
@@ -343,7 +343,7 @@ impl Mudrex {
             m
         });
         let mut request: Value = self.extend(Value::Map(subscribe), &[params]);
-        return self.watch(url, messageHash.clone(), &[request, messageHash.clone()]).await;
+        return self.watch(url, Value::from(messageHash.clone()), &[request, Value::from(messageHash)]).await;
         Value::Null
         }).await?))
     }
@@ -491,7 +491,7 @@ impl Mudrex {
     m
 }) });
         let mut code: Option<String> = self.safe_string_k(error.clone(), "code", &[]).as_str().map(str::to_owned);
-        let msg: String = self.safe_string_k_opt(error, "msg", &[Value::Str("".into())]).unwrap_or_default();
+        let mut msg: String = self.safe_string_k(error, "msg", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), msg).into());
         if (code.as_deref() == Some("429")) {
             panic!("{}", crate::exchange_errors::rate_limit_exceeded(feedback));
@@ -553,14 +553,14 @@ impl Mudrex {
             let mut market: Value = self.safe_market(&[(if let Some(__s) = s.as_deref() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             let mut timestamp: Value = self.milliseconds();
-            let mut last: Value = self.safe_number_k(t.clone(), "p", &[]);
+            let mut last: Option<f64> = self.safe_number_k(t.clone(), "p", &[]).as_f64();
             let mut result: Value = self.safe_ticker(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), symbol.clone());
                     m.insert("timestamp".to_string(), timestamp.clone());
                     m.insert("datetime".to_string(), self.iso8601(timestamp));
-                    m.insert("last".to_string(), last.clone());
-                    m.insert("close".to_string(), last);
+                    m.insert("last".to_string(), Value::from(last));
+                    m.insert("close".to_string(), Value::from(last));
                     m.insert("info".to_string(), t);
                 m
             }), &[]);
