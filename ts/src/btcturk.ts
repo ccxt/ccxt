@@ -745,16 +745,21 @@ export default class btcturk extends Exchange {
         let untilValue: Int = until;
         if (untilValue === undefined) {
             if (sinceValue !== undefined) {
-                untilValue = sinceValue + limitResolved * duration;
+                untilValue = this.sum (sinceValue, limitResolved * duration);
             } else {
                 untilValue = now;
             }
         }
-        if (sinceValue === undefined) {
+        if (sinceValue === undefined && untilValue !== undefined) {
             sinceValue = untilValue - limitResolved * duration;
         }
-        request['to'] = this.parseToInt (untilValue / 1000);
-        request['from'] = this.parseToInt (sinceValue / 1000);
+        // ts
+        if (sinceValue !== undefined) {
+            request['from'] = this.parseToInt (sinceValue / 1000);
+        }
+        if (untilValue !== undefined) {
+            request['to'] = this.parseToInt (untilValue / 1000);
+        }
         const response = await this.graphGetKlinesHistory (this.extend (request, paramsWithoutUntil));
         //
         //    {
