@@ -298,7 +298,7 @@ public partial class BaseExchange
     {
         var url = url2.ToString();
         var messageHashes = (messageHashes2 as List<object>).Select(obj => obj.ToString()).ToList();
-        var subscribeHashes = (subscribeHashes2 as List<object>).Select(obj => obj.ToString()).ToList();
+        var subscribeHashes = (subscribeHashes2 as List<object>)?.Select(obj => obj.ToString()).ToList();
 
         var client = this.client(url);
 
