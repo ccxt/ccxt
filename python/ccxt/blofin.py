@@ -27,11 +27,11 @@ from ccxt.base.precise import Precise
 
 class blofin(Exchange, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(blofin, self).describe(), {
             'id': 'blofin',
             'name': 'BloFin',
-            'countries': ['US'],
+            'countries': ['MH'],  # Marshall Islands
             'version': 'v1',
             'rateLimit': 200,  # 1500 requests per 5 minutes per IP is the binding budget => 200ms per request (500/min allows 120ms, but 1500/5min does not)
             'pro': True,
@@ -660,7 +660,7 @@ class blofin(Exchange, ImplicitAPI):
             return None
         symbol = base + '/' + quote
         if swap:
-            symbol = symbol + ':' + settle
+            symbol = base + '/' + quote + ':' + settle
         expiry = None
         strikePrice = None
         optionType = None
@@ -957,7 +957,9 @@ class blofin(Exchange, ImplicitAPI):
                 'currency': feeCurrency,
             }
         if isSpot:
-            spotSymbol = marketResolved['base'] + '/' + marketResolved['quote']
+            spotBase = self.safe_string(marketResolved, 'base', '')
+            spotQuote = self.safe_string(marketResolved, 'quote', '')
+            spotSymbol = spotBase + '/' + spotQuote
             cost = self.parse_number(Precise.string_mul(price, amount))
             result = {
                 'info': trade,
@@ -1005,14 +1007,12 @@ class blofin(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.paginate]: *only applies to publicGetMarketHistoryTrades* default False, when True will automatically paginate by calling self endpoint multiple times
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         if self.markets is None:
             self.load_markets()
-        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchTrades', 'paginate', False)
-        if paginate:
-            return self.fetch_paginated_call_cursor('fetchTrades', symbol, since, limit, paramsPaginate, 'tradeId', 'after', None, 100)
+        # the endpoint returns the latest trades only and ignores 'after' / 'before', so there is no cursor to paginate with
+        paramsNoPaginate = self.omit(params, 'paginate')
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -1020,7 +1020,7 @@ class blofin(Exchange, ImplicitAPI):
         response = None
         if limit is not None:
             request['limit'] = limit  # default 100
-        method, paramsMethod = self.handle_option_string_and_params(paramsPaginate, 'fetchTrades', 'method', 'publicGetMarketTrades')
+        method, paramsMethod = self.handle_option_string_and_params(paramsNoPaginate, 'fetchTrades', 'method', 'publicGetMarketTrades')
         if method == 'publicGetMarketTrades':
             response = self.publicGetMarketTrades(self.extend(request, paramsMethod))
         data = self.safe_list(response, 'data', [])
@@ -1129,7 +1129,7 @@ class blofin(Exchange, ImplicitAPI):
         rates = []
         data = self.safe_list(response, 'data', [])
         for i in range(0, len(data)):
-            rate = data[i]
+            rate = self.safe_dict(data, i, {})
             timestamp = self.safe_integer(rate, 'fundingTime')
             rates.append({
                 'info': rate,
@@ -1196,7 +1196,7 @@ class blofin(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        if market['swap'] is not True:
+        if not self.safe_bool(market, 'swap', False):
             raise ExchangeError(self.id + ' fetchFundingRate() is only valid for swap markets')
         request = {
             'instId': market['id'],
@@ -1226,7 +1226,7 @@ class blofin(Exchange, ImplicitAPI):
         else:
             return self.parse_balance(response)
 
-    def parse_balance(self, response: object) -> Balances:
+    def parse_balance(self, response: dict) -> Balances:
         #
         # "data" similar for REST & WS
         #
@@ -1339,8 +1339,7 @@ class blofin(Exchange, ImplicitAPI):
         }
         response: dict
         if accountType is not None and accountType != 'swap':
-            options = self.safe_dict(self.options, 'accountsByType', {})
-            parsedAccountType = self.safe_string(options, accountType, accountType)
+            parsedAccountType = self.safe_string(self.options['accountsByType'], accountType, accountType)
             request['accountType'] = parsedAccountType
             response = self.privateGetAssetBalances(self.extend(request, paramsAccountType))
         else:
@@ -1495,8 +1494,10 @@ class blofin(Exchange, ImplicitAPI):
         fee = None
         if feeCostString is not None:
             feeCostSigned = Precise.string_abs(feeCostString)
-            feeCurrencyId = self.safe_string(order, 'feeCcy', 'USDT')
+            feeCurrencyId = self.safe_string(order, 'feeCcy')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
+            if feeCurrencyCode is None:
+                feeCurrencyCode = self.safe_string(marketResolved, 'settle')
             fee = {
                 'cost': self.parse_number(feeCostSigned),
                 'currency': feeCurrencyCode,
@@ -1675,11 +1676,11 @@ class blofin(Exchange, ImplicitAPI):
             request['clientOrderId'] = clientOrderId
         else:
             if (not isTrigger) and (not isTpsl):
-                request['orderId'] = str(id)
+                request['orderId'] = self.number_to_string(id)
             elif isTpsl:
-                request['tpslId'] = str(id)
+                request['tpslId'] = self.number_to_string(id)
             elif isTrigger:
-                request['algoId'] = str(id)
+                request['algoId'] = self.number_to_string(id)
         query = self.omit(params, ['orderId', 'clientOrderId', 'stop', 'trigger', 'tpsl'])
         if isTpsl:
             tpslResponse = self.cancel_orders([id], symbol, params)
@@ -1748,13 +1749,13 @@ class blofin(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['clientOrderId'] = clientOrderId
-        elif isTpsl is True:
+        elif isTpsl:
             request['tpslId'] = id
         else:
             request['orderId'] = id
         query = self.omit(params, ['clientOrderId', 'tpsl', 'TPSL'])
         response: dict
-        if isTpsl is True:
+        if isTpsl:
             response = self.privateGetTradeOrderTpslDetail(self.extend(request, query))
         else:
             response = self.privateGetTradeOrderDetail(self.extend(request, query))
@@ -1940,8 +1941,7 @@ class blofin(Exchange, ImplicitAPI):
         return self.parse_transactions(data, currency, since, limit, paramsUntil)
 
     def network_code_to_chain_id(self, networkCode: str, currency: Currency = None) -> Str:
-        aliases = self.safe_dict(self.options, 'networkCodeAliases', {})
-        aliasedCode = self.safe_string(aliases, networkCode, networkCode)
+        aliasedCode = self.safe_string(self.options['networkCodeAliases'], networkCode, networkCode)
         unifiedCode = self.safe_string(self.networkAliases, aliasedCode, aliasedCode)
         # prefer the exact chain id from the currencies registry when it is
         # loaded, since some ids are currency-specific (USDT on Optimism)
@@ -1954,15 +1954,12 @@ class blofin(Exchange, ImplicitAPI):
         # the live venue identifies chains by display names; the suffix
         # family is built here as prefix + space + parenthesized suffix
         # because such literals are not transpiler-safe in source
-        networks = self.safe_dict(self.options, 'networks', {})
-        direct = self.safe_string(networks, unifiedCode)
+        direct = self.safe_string(self.options['networks'], unifiedCode)
         if direct is not None:
             return direct
-        prefixes = self.safe_dict(self.options, 'networkPrefixes', {})
-        prefix = self.safe_string(prefixes, unifiedCode)
+        prefix = self.safe_string(self.options['networkPrefixes'], unifiedCode)
         if prefix is not None:
-            suffixes = self.safe_dict(self.options, 'networkSuffixes', {})
-            suffix = self.safe_string(suffixes, unifiedCode, unifiedCode)
+            suffix = self.safe_string(self.options['networkSuffixes'], unifiedCode, unifiedCode)
             return prefix + ' ' + '(' + suffix + ')'
         return unifiedCode
 
@@ -1981,8 +1978,7 @@ class blofin(Exchange, ImplicitAPI):
             tail = self.safe_string(parts, 1, '')
             tailParts = tail.split(')')
             suffix = self.safe_string(tailParts, 0)
-            bySuffix = self.safe_dict(self.options, 'networkCodesBySuffix', {})
-            suffixCode = self.safe_string(bySuffix, suffix)
+            suffixCode = self.safe_string(self.options['networkCodesBySuffix'], suffix)
             if suffixCode is not None:
                 return suffixCode
             prefixes = self.safe_dict(self.options, 'networkPrefixes', {})
@@ -2124,8 +2120,7 @@ class blofin(Exchange, ImplicitAPI):
                 if networkKeysLength == 1:
                     networkCode = self.safe_string(networkKeys, 0)
                 else:
-                    defaultNetworks = self.safe_dict(self.options, 'defaultNetworks', {})
-                    networkCode = self.safe_string(defaultNetworks, currency['code'])
+                    networkCode = self.safe_string(self.options['defaultNetworks'], currency['code'])
             if networkCode is None:
                 raise ArgumentsRequired(self.id + ' fetchDepositAddress() requires a params["network"] or params["chain"] for ' + code)
             # the same display-name chain ids that withdrawal-apply and the currencies registry use
@@ -2206,10 +2201,12 @@ class blofin(Exchange, ImplicitAPI):
             }
         if chainsLength == 1:
             # a single network means the currency-level fee is unambiguous
-            networkKeys = list(result['networks'].keys())
+            networks = self.safe_dict(result, 'networks', {})
+            networkKeys = list(networks.keys())
             onlyNetwork = self.safe_string(networkKeys, 0)
             if onlyNetwork is not None:
-                result['withdraw'] = result['networks'][onlyNetwork]['withdraw']
+                networkResolved = self.safe_dict(networks, onlyNetwork, {})
+                result['withdraw'] = networkResolved['withdraw']
         return result
 
     def fetch_deposit(self, id: str, code: Str = None, params: dict = {}) -> Transaction:
@@ -2237,12 +2234,12 @@ class blofin(Exchange, ImplicitAPI):
         # venue ignores the filter and returns the latest records instead
         dataLength = len(data)
         for i in range(0, dataLength):
-            entry = data[i]
+            entry = self.safe_value(data, i)
             if self.safe_string(entry, 'depositId') == id:
                 return self.parse_transaction(entry, currency)
         raise ExchangeError(self.id + ' fetchDeposit() could not find deposit ' + id)
 
-    def fetch_withdrawal(self, id: str, code: Str = None, params: dict = {}) -> Transaction:
+    def fetch_withdrawal(self, id: Str, code: Str = None, params: dict = {}) -> Transaction:
         """
         fetch data on a currency withdrawal via the withdrawal id
 
@@ -2271,7 +2268,7 @@ class blofin(Exchange, ImplicitAPI):
         # case the venue ignores the filter and returns the latest records
         dataLength = len(data)
         for i in range(0, dataLength):
-            entry = data[i]
+            entry = self.safe_value(data, i)
             matches = False
             if id is not None:
                 matches = (self.safe_string(entry, 'withdrawId') == id)
@@ -2550,7 +2547,7 @@ class blofin(Exchange, ImplicitAPI):
             'fee': None,
         }, currencyResolved)
 
-    def parse_ids(self, ids: object):
+    def parse_ids(self, ids: object) -> Strings:
         """
  @ignore
         :param string[]|str ids: order ids
@@ -2591,25 +2588,25 @@ class blofin(Exchange, ImplicitAPI):
             if tpslIds is not None:
                 for i in range(0, len(tpslIds)):
                     request.append({
-                        'tpslId': tpslIds[i],
+                        'tpslId': self.safe_string(tpslIds, i),
                         'instId': market['id'],
                     })
             for i in range(0, len(orderIds)):
                 if trigger is True:
                     request.append({
-                        'tpslId': orderIds[i],
+                        'tpslId': self.safe_string(orderIds, i),
                         'instId': market['id'],
                     })
                 else:
                     request.append({
-                        'orderId': orderIds[i],
+                        'orderId': self.safe_string(orderIds, i),
                         'instId': market['id'],
                     })
         else:
             for i in range(0, len(clientOrderIds)):
                 request.append({
                     'instId': market['id'],
-                    'clientOrderId': clientOrderIds[i],
+                    'clientOrderId': self.safe_string(clientOrderIds, i),
                 })
         response: dict
         if method == 'privatePostTradeCancelTpsl':
@@ -2635,9 +2632,8 @@ class blofin(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
-        accountsByType = self.safe_dict(self.options, 'accountsByType', {})
-        fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
-        toId = self.safe_string(accountsByType, toAccount, toAccount)
+        fromId = self.safe_string(self.options['accountsByType'], fromAccount, fromAccount)
+        toId = self.safe_string(self.options['accountsByType'], toAccount, toAccount)
         request = {
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
@@ -2836,7 +2832,7 @@ class blofin(Exchange, ImplicitAPI):
         contractSizeString = self.number_to_string(contractSize)
         markPriceString = self.safe_string(position, 'markPrice')
         notionalString = self.safe_string(position, 'notionalUsd')
-        if marketResolved['inverse'] is True:
+        if self.safe_bool(marketResolved, 'inverse', False):
             notionalString = Precise.string_div(Precise.string_mul(contractsAbs, contractSizeString), markPriceString)
         elif notionalString is None:
             notionalString = Precise.string_mul(Precise.string_mul(contractsAbs, contractSizeString), markPriceString)
@@ -2940,17 +2936,8 @@ class blofin(Exchange, ImplicitAPI):
         if (marginMode != 'cross') and (marginMode != 'isolated'):
             raise BadRequest(self.id + ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated')
         symbolsNormalized = self.market_symbols(symbols)
-        symbolsList = symbolsNormalized
-        instIds = ''
-        for i in range(0, len(symbolsList)):
-            entry = symbolsList[i]
-            entryMarket = self.market(entry)
-            if i > 0:
-                instIds = instIds + ',' + entryMarket['id']
-            else:
-                instIds = instIds + entryMarket['id']
         request = {
-            'instId': instIds,
+            'instId': ','.join(self.market_ids(symbolsNormalized)),
             'marginMode': marginMode,
         }
         response = self.privateGetAccountBatchLeverageInfo(self.extend(request, query))
@@ -3070,7 +3057,7 @@ class blofin(Exchange, ImplicitAPI):
  EXCHANGE SPECIFIC PARAMETERS
         :param boolean [params.autoCxl]: whether any pending orders for closing out needs to be automatically canceled when close position via a market order. False or True, the default is False
         :param str [params.tag]: order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
-        :returns dict[]: `A list of position structures <https://docs.ccxt.com/?id=position-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -3330,18 +3317,18 @@ class blofin(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:
             return None  # fallback to default error handler
         #
         # {"code":"152002","msg":"Parameter bar error."}
         #
-        code = self.safe_string(response, 'code')
+        codeError = self.safe_string(response, 'code')
         message = self.safe_string(response, 'msg')
         feedback = self.id + ' ' + body
-        if code is not None and code != '0':
+        if codeError is not None and codeError != '0':
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
-            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+            self.throw_exactly_matched_exception(self.exceptions['exact'], codeError, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
             raise ExchangeError(feedback)  # unknown message
         #
@@ -3392,8 +3379,8 @@ class blofin(Exchange, ImplicitAPI):
                     request += urlencodedQuery
             else:
                 if not self.is_empty(query):
-                    signedBody = self.json(query)
-                    sign_body = signedBody
+                    sign_body = self.json(query)
+                    signedBody = sign_body
                 signedHeaders['Content-Type'] = 'application/json'
             auth = request + method + timestamp + timestamp + sign_body
             signature = self.string_to_base64(self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256))

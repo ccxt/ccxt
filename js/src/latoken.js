@@ -456,7 +456,7 @@ export default class latoken extends Exchange {
         const result = [];
         const rawMarkets = this.toArray(response);
         for (let i = 0; i < rawMarkets.length; i++) {
-            const market = rawMarkets[i];
+            const market = this.safeValue(rawMarkets, i);
             const id = this.safeString(market, 'id');
             // the exchange shows them inverted
             const baseId = this.safeString(market, 'baseCurrency');
@@ -597,7 +597,7 @@ export default class latoken extends Exchange {
         const rawCurrencies = this.toArray(response);
         const merged = [];
         for (let i = 0; i < rawCurrencies.length; i++) {
-            const rawCurrency = rawCurrencies[i];
+            const rawCurrency = this.safeValue(rawCurrencies, i);
             const bindingEntry = this.safeDict(bindingsById, this.safeString(rawCurrency, 'id'));
             const bindings = this.safeList(bindingEntry, 'bindings');
             let mergedCurrency = rawCurrency;
@@ -717,11 +717,12 @@ export default class latoken extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        let maxTimestamp = undefined;
         const types = this.safeDict(this.options, 'types', {});
         const accountType = this.safeString(types, type, type);
         const balancesByType = this.groupBy(response, 'type');
         const balances = this.safeList(balancesByType, accountType, []);
+        const firstBalance = this.safeDict(balances, 0);
+        let maxTimestamp = this.safeInteger(firstBalance, 'timestamp');
         for (let i = 0; i < balances.length; i++) {
             const balance = this.safeDict(balances, i);
             const currencyId = this.safeString(balance, 'currency');
@@ -989,10 +990,10 @@ export default class latoken extends Exchange {
         const priceString = this.safeString(trade, 'price');
         const amountString = this.safeString(trade, 'quantity');
         const costString = this.safeString(trade, 'cost');
-        const makerBuyer = this.safeBool(trade, 'makerBuyer');
+        const makerBuyer = this.safeBool(trade, 'makerBuyer', false);
         let side = this.safeString(trade, 'direction');
         if (side === undefined) {
-            side = (makerBuyer === true) ? 'sell' : 'buy';
+            side = makerBuyer ? 'sell' : 'buy';
         }
         else {
             if (side === 'TRADE_DIRECTION_BUY') {
@@ -1003,7 +1004,7 @@ export default class latoken extends Exchange {
             }
         }
         const isBuy = (side === 'buy');
-        const isMaker = (makerBuyer === true) && isBuy;
+        const isMaker = makerBuyer && isBuy;
         const takerOrMaker = isMaker ? 'maker' : 'taker';
         const baseId = this.safeString(trade, 'baseCurrency');
         const quoteId = this.safeString(trade, 'quoteCurrency');
@@ -1986,7 +1987,7 @@ export default class latoken extends Exchange {
         const query = this.omit(params, this.extractParams(path));
         const urlencodedQuery = this.urlencode(query);
         if (method === 'GET') {
-            if (Object.keys(query).length > 0) {
+            if (urlencodedQuery !== '') {
                 requestString += '?' + urlencodedQuery;
             }
         }

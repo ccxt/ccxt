@@ -3,11 +3,12 @@
 
 import binance from '../abstract/pro/binanceus.js';
 import binanceusRest from '../binanceus.js';
+import type { Dict } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
 export default class binanceus extends binance {
-    override describe (): any {
+    override describe (): Dict {
         // eslint-disable-next-line new-cap
         const restInstance = new binanceusRest ();
         const restDescribe = restInstance.describe ();

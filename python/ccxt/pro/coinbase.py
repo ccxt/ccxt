@@ -4,17 +4,18 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support
-from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById
+from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
 from ccxt.base.types import Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import NotSupported
 
 
 class coinbase(ccxt.async_support.coinbase):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(coinbase, self).describe(), {
             'has': {
                 'ws': True,
@@ -29,7 +30,7 @@ class coinbase(ccxt.async_support.coinbase):
                 'fetchTradesWs': False,
                 'watchBalance': False,
                 'watchMyTrades': False,
-                'watchOHLCV': False,
+                'watchOHLCV': True,
                 'watchOrderBook': True,
                 'watchOrderBookForSymbols': True,
                 'watchOrders': True,
@@ -59,7 +60,7 @@ class coinbase(ccxt.async_support.coinbase):
             },
         })
 
-    async def subscribe(self, name: str, isPrivate: bool, symbol: Str | Strings = None, params: dict = {}):
+    async def subscribe(self, name: str, isPrivate: bool = False, symbol: Str = None, params: dict = {}):
         """
  @ignore
         subscribes to a websocket channel
@@ -77,15 +78,7 @@ class coinbase(ccxt.async_support.coinbase):
         market = None
         messageHash = name
         productIds = []
-        if isinstance(symbol, list):
-            symbols = self.market_symbols(symbol)
-            marketIds = self.market_ids(symbols)
-            if marketIds is None:
-                productIds = []
-            else:
-                productIds = marketIds
-            messageHash = messageHash + '::' + ','.join(symbols)
-        elif symbol is not None:
+        if symbol is not None:
             market = self.market(symbol)
             messageHash = name + '::' + symbol
             productIds = [self.safe_string(market, 'id')]
@@ -102,7 +95,7 @@ class coinbase(ccxt.async_support.coinbase):
             subscribe = self.extend(subscribe, self.create_ws_auth(name, productIds))
         return await self.watch(url, messageHash, subscribe, messageHash)
 
-    async def un_subscribe(self, topic: str, name: str, isPrivate: bool, symbol: Str | Strings = None):
+    async def un_subscribe(self, topic: str, name: str, isPrivate: bool = False, symbol: Str = None):
         """
  @ignore
         unSubscribes to a websocket channel
@@ -124,19 +117,10 @@ class coinbase(ccxt.async_support.coinbase):
         watchMessageHash = name
         unWatchMessageHash = 'unsubscribe:' + name
         productIds = []
-        if isinstance(symbol, list):
-            symbols = self.market_symbols(symbol)
-            marketIds = self.market_ids(symbols)
-            if marketIds is None:
-                productIds = []
-            else:
-                productIds = marketIds
-            watchMessageHash = watchMessageHash + '::' + ','.join(symbols)
-            unWatchMessageHash = unWatchMessageHash + '::' + ','.join(symbols)
-        elif symbol is not None:
+        if symbol is not None:
             market = self.market(symbol)
             watchMessageHash = name + '::' + symbol
-            unWatchMessageHash = unWatchMessageHash + '::' + symbol
+            unWatchMessageHash = 'unsubscribe:' + name + '::' + symbol
             productIds = [self.safe_string(market, 'id')]
         url = self.urls['api']['ws']
         # '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
@@ -160,7 +144,7 @@ class coinbase(ccxt.async_support.coinbase):
         self.options['unSubscription'] = None
         return res
 
-    async def subscribe_multiple(self, name: str, isPrivate: bool, symbols: Strings = None, params: dict = {}):
+    async def subscribe_multiple(self, name: str, isPrivate: bool = False, symbols: Strings = None, params: dict = {}):
         """
  @ignore
         subscribes to a websocket channel
@@ -194,7 +178,7 @@ class coinbase(ccxt.async_support.coinbase):
             subscribe = self.extend(subscribe, self.create_ws_auth(name, productIds))
         return await self.watch_multiple(url, messageHashes, subscribe, messageHashes)
 
-    async def un_subscribe_multiple(self, topic: str, name: str, isPrivate: bool, symbols: Strings = None, params: dict = {}):
+    async def un_subscribe_multiple(self, topic: str, name: str, isPrivate: bool = False, symbols: Strings = None, params: dict = {}):
         """
  @ignore
         unsubscribes to a websocket channel
@@ -260,12 +244,12 @@ class coinbase(ccxt.async_support.coinbase):
             if isCloudAPiKey and self.apiKey.startswith('-----BEGIN'):
                 raise ArgumentsRequired(self.id + ' apiKey should contain the name (eg: organizations/3b910e93....) and not the public key')
             currentToken = self.safe_string(self.options, 'wsToken')
-            tokenTimestamp = self.safe_integer(self.options, 'wsTokenTimestamp', 0)
+            tokenTimestamp = self.parse_to_int(self.safe_integer(self.options, 'wsTokenTimestamp', 0))
             seconds = self.seconds()
             tokenExpiry = tokenTimestamp + 90
             if currentToken is None or tokenExpiry < seconds:
                 # we should generate new token
-                token = self.create_auth_token(seconds, None, None, self.isEddsaApiKey())
+                token = self.create_auth_token(seconds, '', None, self.isEddsaApiKey())
                 self.options['wsToken'] = token
                 self.options['wsTokenTimestamp'] = seconds
             subscribe['jwt'] = self.safe_string(self.options, 'wsToken')
@@ -320,7 +304,7 @@ class coinbase(ccxt.async_support.coinbase):
         ticker = await self.subscribe_multiple(name, False, symbolsResolved, params)
         if self.newUpdates:
             tickers = {}
-            symbol = ticker['symbol']
+            symbol = self.safe_string(ticker, 'symbol', '')
             tickers[symbol] = ticker
             return tickers
         return self.tickers
@@ -447,7 +431,7 @@ class coinbase(ccxt.async_support.coinbase):
                 result = self.parse_ws_ticker(ticker)
                 result['timestamp'] = timestamp
                 result['datetime'] = datetime
-                symbol = result['symbol']
+                symbol = self.safe_string(result, 'symbol', '')
                 if symbol is not None:
                     self.tickers[symbol] = result
                 newTickers.append(result)
@@ -500,6 +484,84 @@ class coinbase(ccxt.async_support.coinbase):
             'baseVolume': self.safe_string(ticker, 'volume_24_h'),
             'quoteVolume': None,
         })
+
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '5m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
+        """
+        watches historical candlestick data containing the open, high, low, close price, and volume of a market
+
+        https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/websocket/websocket-channels#candles-channel
+
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents, only 5m is supported
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
+        if timeframe != '5m':
+            raise NotSupported(self.id + ' watchOHLCV() only supports the 5m timeframe')
+        if self.markets is None:
+            await self.load_markets()
+        symbolValue = self.symbol(symbol)
+        name = 'candles'
+        ohlcv = await self.subscribe(name, False, symbolValue, params)
+        limitResolved = limit
+        if self.newUpdates:
+            limitResolved = ohlcv.getLimit(symbolValue, limit)
+        return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
+
+    def handle_ohlcv(self, client: Client, message: object):
+        #
+        #     {
+        #         "channel": "candles",
+        #         "timestamp": "2023-06-09T20:19:35.39625135Z",
+        #         "sequence_num": 0,
+        #         "events": [
+        #             {
+        #                 "type": "snapshot",
+        #                 "candles": [
+        #                     {
+        #                         "start": "1688998200",
+        #                         "high": "1867.72",
+        #                         "low": "1865.63",
+        #                         "open": "1867.38",
+        #                         "close": "1866.81",
+        #                         "volume": "0.20269406",
+        #                         "product_id": "ETH-USD"
+        #                     }
+        #                 ]
+        #             }
+        #         ]
+        #     }
+        #
+        events = self.safe_list(message, 'events', [])
+        timeframe = '5m'
+        for i in range(0, len(events)):
+            event = events[i]
+            candles = self.safe_list(event, 'candles', [])
+            for j in range(0, len(candles)):
+                candle = candles[j]
+                marketId = self.safe_string(candle, 'product_id')
+                market = self.safe_market(marketId)
+                symbol = market['symbol']
+                parsed = [
+                    self.safe_timestamp(candle, 'start'),
+                    self.safe_number(candle, 'open'),
+                    self.safe_number(candle, 'high'),
+                    self.safe_number(candle, 'low'),
+                    self.safe_number(candle, 'close'),
+                    self.safe_number(candle, 'volume'),
+                ]
+                self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+                stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+                if stored is None:
+                    limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+                    stored = ArrayCacheByTimestamp(limit)
+                    self.ohlcvs[symbol][timeframe] = stored
+                stored.append(parsed)
+                messageHash = 'candles::' + symbol
+                client.resolve(stored, messageHash)
+                self.try_resolve_usdc(client, messageHash, stored)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
@@ -627,7 +689,7 @@ class coinbase(ccxt.async_support.coinbase):
             await self.load_markets()
         name = 'level2'
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         orderbook = await self.subscribe(name, False, symbolValue, params)
         return orderbook.limit()
 
@@ -872,7 +934,7 @@ class coinbase(ccxt.async_support.coinbase):
             marketId = self.safe_string(event, 'product_id')
             # sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
             market = self.safe_market(marketId)
-            symbol = market['symbol']
+            symbol = self.safe_string(market, 'symbol', '')
             messageHash = 'level2::' + symbol
             subscription = self.safe_dict(client.subscriptions, messageHash, {})
             limit = self.safe_integer(subscription, 'limit')
@@ -960,6 +1022,7 @@ class coinbase(ccxt.async_support.coinbase):
             'subscriptions': self.handle_subscription_status,
             'ticker': self.handle_tickers,
             'ticker_batch': self.handle_tickers,
+            'candles': self.handle_ohlcv,
             'market_trades': self.handle_trade,
             'user': self.handle_order,
             'l2_data': self.handle_order_book,

@@ -8,7 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 
 class bybiteu extends \ccxt\pro\bybit {
-    public function describe(): mixed {
+    public function describe(): array {
         // eslint-disable-next-line new-cap
         $restInstance = new \ccxt\async\bybiteu();
         $restDescribe = $restInstance->describe();

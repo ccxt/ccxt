@@ -77,11 +77,6 @@ func (this *Krakenfutures) PrivateGetOpenorders(args ...any) <-chan EndpointResu
 	return Fetch2Result[map[string]any](this, "openorders", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
 }
 
-// PrivateGetRecentorders returns a channel that yields a JSON object.
-func (this *Krakenfutures) PrivateGetRecentorders(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "recentorders", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})
-}
-
 // PrivateGetFills returns a channel that yields a JSON object.
 func (this *Krakenfutures) PrivateGetFills(args ...any) <-chan EndpointResult[map[string]any] {
 	return Fetch2Result[map[string]any](this, "fills", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(1)})

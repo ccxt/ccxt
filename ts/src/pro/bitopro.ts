@@ -12,7 +12,7 @@ import type { WsOrderBook } from '../base/ws/OrderBook.js';
 // ----------------------------------------------------------------------------
 
 export default class bitopro extends bitoproRest {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -81,11 +81,12 @@ export default class bitopro extends bitoproRest {
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
         const messageHash = 'ORDER_BOOK' + ':' + symbolValue;
+        const marketIdValue = this.safeString (market, 'id', '');
         let endPart: Str = undefined;
         if (limit === undefined) {
-            endPart = market['id'];
+            endPart = marketIdValue;
         } else {
-            endPart = market['id'] + ':' + this.numberToString (limit);
+            endPart = marketIdValue + ':' + this.numberToString (limit);
         }
         const orderbook: WsOrderBook = await this.watchPublic ('order-books', messageHash, endPart);
         return orderbook.limit ();
@@ -188,7 +189,8 @@ export default class bitopro extends bitoproRest {
             tradesCache = new ArrayCache (limit);
         }
         for (let i = 0; i < trades.length; i++) {
-            tradesCache.append (trades[i]);
+            const trade = trades[i];
+            tradesCache.append (trade);
         }
         this.trades[symbol] = tradesCache;
         if (event !== undefined) {
@@ -216,7 +218,8 @@ export default class bitopro extends bitoproRest {
         let messageHash = 'USER_TRADE';
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            messageHash = messageHash + ':' + market['symbol'];
+            const symbolValue: string = market['symbol'];
+            messageHash = messageHash + ':' + symbolValue;
         }
         const wsUrl = this.safeString (this.urls['ws'], 'private');
         if (wsUrl === undefined) {
@@ -436,17 +439,19 @@ export default class bitopro extends bitoproRest {
         };
         // this.options = this.extend (defaultOptions, this.options);
         this.extendExchangeOptions (defaultOptions);
-        const originalHeaders = this.options['ws']['options']['headers'];
+        const wsOptions = this.safeDict (this.options, 'ws', {});
+        const wsInnerOptions = this.safeDict (wsOptions, 'options', {});
+        const originalHeaders = wsInnerOptions['headers'];
         const headers: Dict = {
             'X-BITOPRO-API': 'ccxt',
             'X-BITOPRO-APIKEY': this.apiKey,
             'X-BITOPRO-PAYLOAD': payload,
             'X-BITOPRO-SIGNATURE': signature,
         };
-        this.options['ws']['options']['headers'] = headers;
+        wsInnerOptions['headers'] = headers;
         // instantiate client
         this.client (url);
-        this.options['ws']['options']['headers'] = originalHeaders;
+        wsInnerOptions['headers'] = originalHeaders;
     }
 
     /**

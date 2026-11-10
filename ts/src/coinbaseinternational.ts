@@ -6,7 +6,7 @@ import Exchange from './abstract/coinbaseinternational.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder, AuthenticationError, NotSupported, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, MarketInterface, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, int, OHLCV, Endpoint, Leverage } from './base/types.js';
+import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, MarketInterface, Currency, CurrencyInterface, TransferEntry, Position, FundingRateHistory, Currencies, Dict, NullableDict, int, OHLCV, Endpoint, Leverage } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ import type { Int, Num, OrderSide, OrderType, Order, Trade, Ticker, Str, Transac
  * @augments Exchange
  */
 export default class coinbaseinternational extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'coinbaseinternational',
             'name': 'Coinbase International',
@@ -321,7 +321,7 @@ export default class coinbaseinternational extends Exchange {
             },
             'options': {
                 'route': 'auto', // deribit for native Deribit, coinbase for Coinbase, auto detects known native key formats
-                'brokerId': 'nfqkvdjp',
+                'brokerId': 'ccxt',
                 'portfolio': '', // default portfolio id
                 'accessTokenRefreshRatio': 0.8, // refresh the bearer token after 80% of expires_in
                 'networksById': {
@@ -598,10 +598,10 @@ export default class coinbaseinternational extends Exchange {
             type = 'option';
         }
         let symbol = instrumentName;
-        if (!isComboMarket) {
+        if (!isComboMarket && (base !== undefined) && (quote !== undefined)) {
             symbol = base + '/' + quote;
-            if (!isSpot) {
-                symbol = symbol + ':' + settle;
+            if (!isSpot && (settle !== undefined)) {
+                symbol = base + '/' + quote + ':' + settle;
             }
         }
         const linear = isSpot ? undefined : (settle === quote);
@@ -856,13 +856,13 @@ export default class coinbaseinternational extends Exchange {
             throw new NotSupported (this.id + ' fetchOHLCV() is not supported for Coinbase-routed Deribit spot instruments');
         }
         let limitResolved: Int = limit;
-        const duration = this.parseTimeframe (timeframe);
+        const duration = this.parseToInt (this.parseTimeframe (timeframe));
         const now = this.milliseconds ();
         if (since === undefined) {
             if (limitResolved === undefined) {
                 limitResolved = 100;
             }
-            request['start_timestamp'] = this.sum (now, -limitResolved * duration * 1000);
+            request['start_timestamp'] = this.sum (now, this.parseToInt (limitResolved) * duration * -1000);
             request['end_timestamp'] = now;
         } else {
             const sinceResolved = Math.max (since - 1, 0);
@@ -870,7 +870,7 @@ export default class coinbaseinternational extends Exchange {
             if (limitResolved === undefined) {
                 request['end_timestamp'] = now;
             } else {
-                request['end_timestamp'] = this.sum (sinceResolved, limitResolved * duration * 1000);
+                request['end_timestamp'] = this.sum (sinceResolved, this.parseToInt (limitResolved) * duration * 1000);
             }
         }
         const until = this.safeInteger (paramsPaginate, 'until');
@@ -953,7 +953,7 @@ export default class coinbaseinternational extends Exchange {
         const duration = this.parseTimeframe ('1h') * 1000;
         const now = this.milliseconds ();
         let sinceResolved: Int = since;
-        if (sinceResolved === undefined) {
+        if (since === undefined) {
             sinceResolved = now - (30 * 24 * 60 * 60 * 1000);
         }
         const request: Dict = {
@@ -1218,8 +1218,8 @@ export default class coinbaseinternational extends Exchange {
                     throw new BadRequest (this.id + ' fetchOrderBook() limit must be between 1 and 10000');
                 }
                 for (let i = 0; i < depths.length; i++) {
-                    if (limit <= depths[i]) {
-                        request['depth'] = depths[i];
+                    if (limit <= this.parseToInt (depths[i])) {
+                        request['depth'] = this.safeInteger (depths, i, 0);
                         break;
                     }
                 }
@@ -1552,14 +1552,14 @@ export default class coinbaseinternational extends Exchange {
             // Account summaries are arrays; retain the gateway info shape without dropping balances.
             const summaries = this.safeList (result, 'summaries');
             if (summaries !== undefined) {
-                return this.parseBalance (summaries);
+                return this.parseBalanceList (summaries);
             }
-            return this.parseBalance (this.safeDict (result, 'summaries', []));
+            return this.parseBalanceList (this.safeDict (result, 'summaries', []));
         }
-        return this.parseBalance (result);
+        return this.parseBalanceList (result);
     }
 
-    override parseBalance (response: any): Balances {
+    parseBalanceList (response: any): Balances {
         const result: Dict = {
             'info': response,
         };
@@ -1612,7 +1612,7 @@ export default class coinbaseinternational extends Exchange {
         const currency = this.currency (code);
         const now = this.milliseconds ();
         let sinceResolved: Int = since;
-        if (sinceResolved === undefined) {
+        if (since === undefined) {
             sinceResolved = now - (30 * 24 * 60 * 60 * 1000);
         }
         const request: Dict = {
@@ -1820,9 +1820,9 @@ export default class coinbaseinternational extends Exchange {
         let contracts: Num = this.safeNumber (position, 'size');
         if (this.isNativeDeribitCredentials ()) {
             let size = this.safeString (position, 'size');
-            if (marketResolved['option'] !== true) {
+            if (!this.safeBool (marketResolved, 'option', false)) {
                 notional = size;
-                if (marketResolved['linear'] === true) {
+                if (this.safeBool (marketResolved, 'linear', false)) {
                     size = this.safeString (position, 'size_currency');
                 }
             } else {
@@ -1943,7 +1943,7 @@ export default class coinbaseinternational extends Exchange {
         const currency = this.currency (code);
         const now = this.milliseconds ();
         let sinceResolved: Int = since;
-        if (sinceResolved === undefined) {
+        if (since === undefined) {
             sinceResolved = now - (30 * 24 * 60 * 60 * 1000);
         }
         const request: Dict = {
@@ -2139,7 +2139,7 @@ export default class coinbaseinternational extends Exchange {
      */
     getOrderAmount (market: MarketInterface, amount: Num): Str {
         let exchangeAmount = this.numberToString (amount);
-        if (this.isNativeDeribitCredentials () && (market['contract'] === true)) {
+        if (this.isNativeDeribitCredentials () && (this.safeBool (market, 'contract', false))) {
             exchangeAmount = Precise.stringMul (exchangeAmount, this.safeString (market, 'contractSize'));
         }
         return this.amountToPrecision (market['symbol'], exchangeAmount);
@@ -2406,7 +2406,7 @@ export default class coinbaseinternational extends Exchange {
         const lastUpdateTimestamp = this.safeInteger (order, 'last_update_timestamp');
         let filled = this.safeNumber (order, 'filled_amount');
         let amount = this.safeNumber (order, 'amount');
-        if (this.isNativeDeribitCredentials () && (marketResolved['contract'] === true)) {
+        if (this.isNativeDeribitCredentials () && (this.safeBool (marketResolved, 'contract', false))) {
             const contractSize = this.safeString (marketResolved, 'contractSize');
             amount = this.parseNumber (this.safeString (order, 'contracts', Precise.stringDiv (this.safeString (order, 'amount'), contractSize)));
             filled = this.parseNumber (Precise.stringDiv (this.safeString (order, 'filled_amount'), contractSize));
@@ -2422,7 +2422,7 @@ export default class coinbaseinternational extends Exchange {
         let cost: Num = undefined;
         if ((filledString !== undefined) && (averageString !== undefined)) {
             cost = this.parseNumber (Precise.stringMul (filledString, averageString));
-            if (this.isNativeDeribitCredentials () && (marketResolved['inverse'] === true) && (marketResolved['option'] !== true)) {
+            if (this.isNativeDeribitCredentials () && (this.safeBool (marketResolved, 'inverse', false)) && (!this.safeBool (marketResolved, 'option', false))) {
                 cost = this.parseNumber (Precise.stringDiv (filledString, averageString));
             }
         }
@@ -3009,14 +3009,14 @@ export default class coinbaseinternational extends Exchange {
         const price = this.safeNumber (trade, 'price');
         let amount = this.safeNumber (trade, 'amount');
         const amountString = this.safeString (trade, 'amount');
-        if (this.isNativeDeribitCredentials () && (marketResolved['contract'] === true)) {
+        if (this.isNativeDeribitCredentials () && (this.safeBool (marketResolved, 'contract', false))) {
             amount = this.parseNumber (this.safeString (trade, 'contracts', Precise.stringDiv (amountString, this.safeString (marketResolved, 'contractSize'))));
         }
         const priceString = this.safeString (trade, 'price');
         let cost: Num = undefined;
         if ((amountString !== undefined) && (priceString !== undefined)) {
             cost = this.parseNumber (Precise.stringMul (amountString, priceString));
-            if (this.isNativeDeribitCredentials () && (marketResolved['inverse'] === true) && (marketResolved['option'] !== true)) {
+            if (this.isNativeDeribitCredentials () && (this.safeBool (marketResolved, 'inverse', false)) && (!this.safeBool (marketResolved, 'option', false))) {
                 cost = this.parseNumber (Precise.stringDiv (amountString, priceString));
             }
         }
@@ -3164,9 +3164,9 @@ export default class coinbaseinternational extends Exchange {
      * @param {boolean} [useEddsa] true for Ed25519 keys, false for ECDSA PEM keys
      * @returns {string} signed JWT
      */
-    createAuthToken (seconds: Int, method: Str = undefined, url: Str = undefined, useEddsa = false) {
+    createAuthToken (seconds: Int, method: Str = undefined, url: Str = undefined, useEddsa: boolean = false) {
         let uri: Str = undefined;
-        if (url !== undefined) {
+        if ((url !== undefined) && (method !== undefined)) {
             uri = method + ' ' + url.replace ('https://', '');
             const quesPos = uri.indexOf ('?');
             if (quesPos > 0) {
@@ -3187,7 +3187,7 @@ export default class coinbaseinternational extends Exchange {
             'sub': this.apiKey,
             'iss': iss,
             'nbf': seconds,
-            'exp': (seconds as number) + 120,
+            'exp': this.parseToInt (seconds) + 120,
             'iat': seconds,
         };
         if (uri !== undefined) {
@@ -3267,18 +3267,11 @@ export default class coinbaseinternational extends Exchange {
      * @returns {string|undefined} the access token
      */
     getV2AccessToken (): Str {
-        const token = this.safeString (this.options, 'v2AccessToken');
-        if ((token !== undefined) && (token !== '')) {
-            return token;
-        }
-        if ((this.token === undefined) || (this.token === '')) {
-            return undefined;
-        }
-        return this.token;
+        return this.safeString (this.options, 'v2AccessToken', this.token);
     }
 
-    override sign (path: string, api: string[] | string = 'public', method: string = 'GET', params: Dict = {}): Dict {
-        const access = Array.isArray (api) ? api[0] : api;
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        const access = api[0];
         const rpcMethod = access + '/' + path;
         let requestParams: Dict = this.handleRouteAndParams ('sign', params);
         const isNativeDeribit = this.isNativeDeribitCredentials ();
@@ -3308,7 +3301,7 @@ export default class coinbaseinternational extends Exchange {
         } else if ((access === 'private') && isNativeDeribit) {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ().toString ();
-            const nonce = this.nonce ().toString ();
+            const nonce = this.numberToString (this.nonce ());
             let signedRequest = '/' + 'api/' + this.version + '/' + access + '/' + path;
             if (Object.keys (requestParams).length > 0) {
                 signedRequest += '?' + this.urlencode (requestParams);
@@ -3322,7 +3315,7 @@ export default class coinbaseinternational extends Exchange {
             };
         } else if (access === 'private') {
             const accessToken = this.getV2AccessToken ();
-            if (accessToken === undefined) {
+            if ((accessToken === undefined) || (accessToken === '')) {
                 throw new AuthenticationError (this.id + ' requires an access token from public/auth');
             }
             requestHeaders = {
@@ -3374,11 +3367,12 @@ export default class coinbaseinternational extends Exchange {
      * @returns {object} cleaned parameters; options.route persists the selection for nested calls and Pro
      */
     handleRouteAndParams (methodName: string, params: Dict = {}): Dict {
-        const [ route, paramsResolved ] = this.handleOptionAndParams (params, methodName, 'route', 'auto');
+        const [ route, paramsResolved ] = this.handleOptionStringAndParams (params, methodName, 'route', 'auto');
         const deribit = this.resolveRoute (route);
         const previousBackend = this.safeBool (this.options, 'routeBackend');
         const configuredBackend = this.isNativeDeribitCredentials ();
-        const hasToken = this.getV2AccessToken () !== undefined;
+        const currentToken = this.getV2AccessToken ();
+        const hasToken = (currentToken !== undefined) && (currentToken !== '');
         const hasWsState = this.safeInteger (this.options, 'wsAuthRefreshAt') !== undefined;
         if ((previousBackend !== undefined) && (previousBackend !== deribit)) {
             throw new BadRequest (this.id + ' cannot switch route backend on an initialized instance; use a separate exchange instance');
@@ -3436,7 +3430,7 @@ export default class coinbaseinternational extends Exchange {
         return (this.apiKey.length === 8) && (this.secret.length === 43);
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         //
         //     { "jsonrpc": "2.0", "id": 1, "error": { "code": 13004, "message": "invalid_credentials" } }
         //
