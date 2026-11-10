@@ -228,7 +228,7 @@ export default class raydium extends Exchange {
     parseLiquidityPool (pool: Dict): Dict {
         const info = this.safeDict (pool, 'info', pool);
         const poolId = this.safeString (pool, 'poolId', this.safeString (pool, 'id'));
-        return this.extend ({}, pool, {
+        return this.extend (pool, {
             'id': this.safeString (pool, 'id', poolId),
             'poolId': poolId,
             'type': this.safeString (pool, 'type'),
@@ -257,7 +257,7 @@ export default class raydium extends Exchange {
      */
     parseLiquidity (position: Dict): Dict {
         const info = this.safeDict (position, 'info', position);
-        return this.extend ({}, position, {
+        return this.extend (position, {
             'id': this.safeString (position, 'id'),
             'poolId': this.safeString (position, 'poolId'),
             'owner': this.safeString (position, 'owner'),
@@ -284,7 +284,7 @@ export default class raydium extends Exchange {
     parsePoolFee (fee: Dict, positionId: string, type: string): Dict {
         const info = this.safeDict (fee, 'info', fee);
         const amount = this.safeNumber2 (fee, 'unclaimedAmount', 'unclaimedFee');
-        return this.extend ({}, fee, {
+        return this.extend (fee, {
             'id': this.safeString (fee, 'id', positionId),
             'poolId': this.safeString (fee, 'poolId'),
             'positionId': this.safeString (fee, 'positionId', positionId),
@@ -304,7 +304,7 @@ export default class raydium extends Exchange {
      */
     parsePoolMintAddresses (addresses: Dict): Dict {
         const info = this.safeDict (addresses, 'info', addresses);
-        return this.extend ({}, addresses, {
+        return this.extend (addresses, {
             'id': this.safeString (addresses, 'id', this.safeString (addresses, 'poolId')),
             'poolId': this.safeString (addresses, 'poolId', this.safeString (addresses, 'id')),
             'baseCurrency': this.safeString (addresses, 'baseCurrency', this.safeString (addresses, 'mintA', this.safeString (addresses, 'mint'))),
@@ -323,7 +323,7 @@ export default class raydium extends Exchange {
     parsePoolSubmission (submission: Dict, wallet: Str = undefined): Dict {
         const info = this.safeDict (submission, 'info', submission);
         const signature = this.safeString2 (submission, 'signature', 'transactionId', this.safeString (submission, 'txid'));
-        return this.extend ({}, submission, {
+        return this.extend (submission, {
             'id': this.safeString (submission, 'id', signature),
             'signature': signature,
             'poolId': this.safeString (submission, 'poolId', this.safeString (submission, 'poolAddress')),
@@ -940,7 +940,7 @@ export default class raydium extends Exchange {
         if (walletAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchStake() requires params.walletAddress');
         }
-        return await this.fetchLiquidity (undefined, this.extend ({}, params, { 'walletAddress': walletAddress, 'type': 'stake' }));
+        return await this.fetchLiquidity (undefined, this.extend (params, { 'walletAddress': walletAddress, 'type': 'stake' }));
     }
 
     /**

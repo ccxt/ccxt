@@ -732,7 +732,7 @@ export default class jupiter extends Exchange {
     parseLiquidityPool (pool: Dict): Dict {
         const info = this.safeDict (pool, 'info', pool);
         const poolId = this.safeString (pool, 'poolId', this.safeString (pool, 'id'));
-        return this.extend ({}, pool, {
+        return this.extend (pool, {
             'id': this.safeString (pool, 'id', poolId),
             'poolId': poolId,
             'type': this.safeString (pool, 'type'),
@@ -761,7 +761,7 @@ export default class jupiter extends Exchange {
      */
     parseLiquidity (position: Dict): Dict {
         const info = this.safeDict (position, 'info', position);
-        return this.extend ({}, position, {
+        return this.extend (position, {
             'id': this.safeString (position, 'id'),
             'poolId': this.safeString (position, 'poolId'),
             'owner': this.safeString (position, 'owner'),
@@ -788,7 +788,7 @@ export default class jupiter extends Exchange {
     parsePoolFee (fee: Dict, poolId: string, type: string): Dict {
         const info = this.safeDict (fee, 'info', fee);
         const amount = this.safeNumber2 (fee, 'unclaimedAmount', 'unclaimedFee');
-        return this.extend ({}, fee, {
+        return this.extend (fee, {
             'id': this.safeString (fee, 'id', poolId),
             'poolId': this.safeString (fee, 'poolId', poolId),
             'positionId': this.safeString (fee, 'positionId'),
@@ -809,7 +809,7 @@ export default class jupiter extends Exchange {
     parsePoolMintAddresses (addresses: Dict): Dict {
         const info = this.safeDict (addresses, 'info', addresses);
         const poolId = this.safeString (addresses, 'poolId', this.safeString (addresses, 'id', this.safeString (addresses, 'dbcPool')));
-        return this.extend ({}, addresses, {
+        return this.extend (addresses, {
             'id': this.safeString (addresses, 'id', poolId),
             'poolId': poolId,
             'baseCurrency': this.safeString (addresses, 'baseCurrency', this.safeString (addresses, 'mintA', this.safeString (addresses, 'mint'))),
@@ -828,7 +828,7 @@ export default class jupiter extends Exchange {
     parsePoolSubmission (submission: Dict, owner: Str = undefined): Dict {
         const info = this.safeDict (submission, 'info', submission);
         const signature = this.safeString2 (submission, 'signature', 'transactionId', this.safeString (submission, 'txid'));
-        return this.extend ({}, submission, {
+        return this.extend (submission, {
             'id': this.safeString (submission, 'id', signature),
             'signature': signature,
             'poolId': this.safeString (submission, 'poolId', this.safeString (submission, 'poolAddress')),
@@ -1040,7 +1040,7 @@ export default class jupiter extends Exchange {
     parseDCAOrder (order: Dict): Dict {
         const data = this.safeDict (order, 'data', this.safeDict (order, 'order', order));
         const info = this.safeDict (order, 'info', order);
-        return this.extend ({}, data, {
+        return this.extend (data, {
             'id': this.safeString (data, 'id', this.safeString (data, 'publicKey')),
             'owner': this.safeString (data, 'owner', this.safeString (data, 'user')),
             'inputCurrency': this.safeString (data, 'inputCurrency', this.safeString (data, 'inputMint')),
