@@ -24,6 +24,244 @@
                         "conid": 495759171,
                         "contractDesc": "ETH CRYPTO",
                         "position": 0.001,
+                        "mktPrice": 2099.6320801,
+                        "mktValue": 2.1,
+                        "currency": "USD",
+                        "avgCost": 2345.64485245,
+                        "avgPrice": 2345.64485245,
+                        "realizedPnl": -142.77,
+                        "unrealizedPnl": -0.25,
+                        "exchs": null,
+                        "expiry": null,
+                        "putOrCall": null,
+                        "multiplier": 0,
+                        "strike": "0",
+                        "exerciseStyle": null,
+                        "conExchMap": [],
+                        "assetClass": "CRYPTO",
+                        "undConid": 0,
+                        "model": "",
+                        "incrementRules": [
+                            {
+                                "lowerEdge": 0,
+                                "increment": 0.05
+                            }
+                        ],
+                        "displayRule": {
+                            "magnification": 0,
+                            "displayRuleStep": [
+                                {
+                                    "decimalDigits": 2,
+                                    "lowerEdge": 0,
+                                    "wholeDigits": 4
+                                }
+                            ]
+                        },
+                        "time": 12,
+                        "chineseName": "&#x7F8E;&#x5143;",
+                        "allExchanges": "PAXOS",
+                        "listingExchange": "PAXOS",
+                        "countryCode": "US",
+                        "name": "Ethereum cryptocurrency",
+                        "lastTradingDay": null,
+                        "group": null,
+                        "sector": null,
+                        "sectorGroup": null,
+                        "ticker": "ETH",
+                        "type": "",
+                        "hasOptions": false,
+                        "fullName": "ETH",
+                        "isEventContract": false,
+                        "pageSize": 100
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "acctId": "U3448646",
+                            "conid": 495759171,
+                            "contractDesc": "ETH CRYPTO",
+                            "position": 0.001,
+                            "mktPrice": 2099.6320801,
+                            "mktValue": 2.1,
+                            "currency": "USD",
+                            "avgCost": 2345.64485245,
+                            "avgPrice": 2345.64485245,
+                            "realizedPnl": -142.77,
+                            "unrealizedPnl": -0.25,
+                            "exchs": null,
+                            "expiry": null,
+                            "putOrCall": null,
+                            "multiplier": 0,
+                            "strike": "0",
+                            "exerciseStyle": null,
+                            "conExchMap": [],
+                            "assetClass": "CRYPTO",
+                            "undConid": 0,
+                            "model": "",
+                            "incrementRules": [
+                                {
+                                    "lowerEdge": 0,
+                                    "increment": 0.05
+                                }
+                            ],
+                            "displayRule": {
+                                "magnification": 0,
+                                "displayRuleStep": [
+                                    {
+                                        "decimalDigits": 2,
+                                        "lowerEdge": 0,
+                                        "wholeDigits": 4
+                                    }
+                                ]
+                            },
+                            "time": 12,
+                            "chineseName": "&#x7F8E;&#x5143;",
+                            "allExchanges": "PAXOS",
+                            "listingExchange": "PAXOS",
+                            "countryCode": "US",
+                            "name": "Ethereum cryptocurrency",
+                            "lastTradingDay": null,
+                            "group": null,
+                            "sector": null,
+                            "sectorGroup": null,
+                            "ticker": "ETH",
+                            "type": "",
+                            "hasOptions": false,
+                            "fullName": "ETH",
+                            "isEventContract": false,
+                            "pageSize": 100
+                        },
+                        "id": null,
+                        "symbol": "ETH/USD",
+                        "timestamp": null,
+                        "datetime": null,
+                        "isolated": null,
+                        "hedged": null,
+                        "side": "long",
+                        "contracts": 0.001,
+                        "contractSize": 1.000175230652783,
+                        "entryPrice": 2345.64485245,
+                        "markPrice": 2099.6320801,
+                        "notional": 2.1,
+                        "leverage": null,
+                        "collateral": null,
+                        "initialMargin": null,
+                        "maintenanceMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMarginPercentage": null,
+                        "unrealizedPnl": -0.25,
+                        "realizedPnl": -142.77,
+                        "liquidationPrice": null,
+                        "marginMode": null,
+                        "marginRatio": null,
+                        "percentage": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "lastUpdateTimestamp": null,
+                        "positionMargin": null
+                    }
+                ]
+            },
+            {
+                "description": "crypto spot",
+                "method": "fetchPositionsForSymbol",
+                "input": [
+                    "ETH/USD"
+                ],
+                "httpResponse": [
+                    {
+                        "acctId": "U3448646",
+                        "conid": 495759171,
+                        "contractDesc": "ETH CRYPTO",
+                        "position": 0.001,
+                        "mktPrice": 2099.6320801,
+                        "mktValue": 2.1,
+                        "currency": "USD",
+                        "avgCost": 2345.64485245,
+                        "avgPrice": 2345.64485245,
+                        "realizedPnl": -142.77,
+                        "unrealizedPnl": -0.25,
+                        "exchs": null,
+                        "expiry": null,
+                        "putOrCall": null,
+                        "multiplier": null,
+                        "strike": 0,
+                        "exerciseStyle": null,
+                        "conExchMap": [],
+                        "assetClass": "CRYPTO",
+                        "undConid": 0,
+                        "model": ""
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "acctId": "U3448646",
+                            "conid": 495759171,
+                            "contractDesc": "ETH CRYPTO",
+                            "position": 0.001,
+                            "mktPrice": 2099.6320801,
+                            "mktValue": 2.1,
+                            "currency": "USD",
+                            "avgCost": 2345.64485245,
+                            "avgPrice": 2345.64485245,
+                            "realizedPnl": -142.77,
+                            "unrealizedPnl": -0.25,
+                            "exchs": null,
+                            "expiry": null,
+                            "putOrCall": null,
+                            "multiplier": null,
+                            "strike": 0,
+                            "exerciseStyle": null,
+                            "conExchMap": [],
+                            "assetClass": "CRYPTO",
+                            "undConid": 0,
+                            "model": ""
+                        },
+                        "id": null,
+                        "symbol": "ETH/USD",
+                        "timestamp": null,
+                        "datetime": null,
+                        "isolated": null,
+                        "hedged": null,
+                        "side": "long",
+                        "contracts": 0.001,
+                        "contractSize": 1.000175230652783,
+                        "entryPrice": 2345.64485245,
+                        "markPrice": 2099.6320801,
+                        "notional": 2.1,
+                        "leverage": null,
+                        "collateral": null,
+                        "initialMargin": null,
+                        "maintenanceMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMarginPercentage": null,
+                        "unrealizedPnl": -0.25,
+                        "realizedPnl": -142.77,
+                        "liquidationPrice": null,
+                        "marginMode": null,
+                        "marginRatio": null,
+                        "percentage": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "lastUpdateTimestamp": null,
+                        "positionMargin": null
+                    }
+                ]
+            },
+            {
+                "description": "crypto spot",
+                "method": "fetchPositionsForSymbol",
+                "input": [
+                    "ETH/USD"
+                ],
+                "httpResponse": [
+                    {
+                        "acctId": "U3448646",
+                        "conid": 495759171,
+                        "contractDesc": "ETH CRYPTO",
+                        "position": 0.001,
                         "mktPrice": 2112.1142578,
                         "mktValue": 2.11,
                         "currency": "USD",
@@ -1419,82 +1657,6 @@
                     "stopPrice": null,
                     "takeProfitPrice": null,
                     "stopLossPrice": null
-                }
-            }
-        ],
-        "fetchTicker": [
-            {
-                "description": "crypto spot",
-                "method": "fetchTicker",
-                "input": [
-                    "ETH/USD"
-                ],
-                "httpResponse": [
-                    {
-                        "31": "2397.85",
-                        "55": "ETH",
-                        "70": "2525.00",
-                        "71": "2393.50",
-                        "82": "-95.05",
-                        "83": -3.81,
-                        "84": "2397.80",
-                        "85": "1.31578908",
-                        "86": "2397.90",
-                        "88": "0.83409791",
-                        "6119": "q0",
-                        "6509": "R",
-                        "7635": "2397.852",
-                        "7741": "2492.90",
-                        "7762": "3524",
-                        "conidEx": "495759171",
-                        "_updated": 1792673978527,
-                        "server_id": "q0",
-                        "conid": 495759171
-                    }
-                ],
-                "parsedResponse": {
-                    "symbol": "ETH/USD",
-                    "timestamp": 1792673978527,
-                    "datetime": "2026-10-22T12:59:38.527Z",
-                    "high": 2525,
-                    "low": 2393.5,
-                    "bid": 2397.8,
-                    "bidVolume": 0.83409791,
-                    "ask": 2397.9,
-                    "askVolume": 1.31578908,
-                    "vwap": null,
-                    "open": 2492.9,
-                    "close": 2397.85,
-                    "last": 2397.85,
-                    "previousClose": 2492.9,
-                    "change": -95.05,
-                    "percentage": -3.81,
-                    "average": 2445.37,
-                    "baseVolume": 3524,
-                    "quoteVolume": null,
-                    "markPrice": 2397.852,
-                    "indexPrice": null,
-                    "info": {
-                        "31": "2397.85",
-                        "55": "ETH",
-                        "70": "2525.00",
-                        "71": "2393.50",
-                        "82": "-95.05",
-                        "83": -3.81,
-                        "84": "2397.80",
-                        "85": "1.31578908",
-                        "86": "2397.90",
-                        "88": "0.83409791",
-                        "6119": "q0",
-                        "6509": "R",
-                        "7635": "2397.852",
-                        "7741": "2492.90",
-                        "7762": "3524",
-                        "conidEx": "495759171",
-                        "_updated": 1792673978527,
-                        "server_id": "q0",
-                        "conid": 495759171
-                    }
                 }
             }
         ],

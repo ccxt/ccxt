@@ -42,6 +42,24 @@
                     "ETH/USD"
                 ],
                 "output": null
+            },
+            {
+                "description": "crypto spot",
+                "method": "fetchPositionsForSymbol",
+                "url": "https://api.ibkr.com/v1/api/portfolio/U3448646/position/495759171",
+                "input": [
+                    "ETH/USD"
+                ],
+                "output": null
+            },
+            {
+                "description": "crypto spot",
+                "method": "fetchPositionsForSymbol",
+                "url": "https://api.ibkr.com/v1/api/portfolio/U3448646/position/495759171",
+                "input": [
+                    "ETH/USD"
+                ],
+                "output": null
             }
         ],
         "fetchCanceledAndClosedOrders": [
@@ -157,31 +175,6 @@
                     2200
                 ],
                 "output": "{\"confirmed\":true}"
-            }
-        ],
-        "fetchTicker": [
-            {
-                "description": "crypto spot",
-                "method": "fetchTicker",
-                "url": "https://api.ibkr.com/v1/api/iserver/marketdata/snapshot?conids=495759171&fields=31%2C55%2C70%2C71%2C82%2C83%2C84%2C85%2C86%2C88%2C6457%2C6509%2C7058%2C7295%2C7296%2C7635%2C7741%2C7762",
-                "input": [
-                    "ETH/USD"
-                ],
-                "output": null
-            },
-            {
-                "description": "gateway crypto spot",
-                "method": "fetchTicker",
-                "options": {
-                    "useGateway": true,
-                    "gatewayAuthenticatedTimestamp": 9999999999999,
-                    "gatewayKeepAlive": false
-                },
-                "url": "https://localhost:5000/v1/api/iserver/marketdata/snapshot?conids=495759171&fields=31%2C55%2C70%2C71%2C82%2C83%2C84%2C85%2C86%2C88%2C6457%2C6509%2C7058%2C7295%2C7296%2C7635%2C7741%2C7762",
-                "input": [
-                    "ETH/USD"
-                ],
-                "output": null
             }
         ],
         "fetchTickers": [

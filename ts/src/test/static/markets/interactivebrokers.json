@@ -105,7 +105,8 @@
             "type": "",
             "hasOptions": false,
             "fullName": "ETH",
-            "isEventContract": false
+            "isEventContract": false,
+            "pageSize": 100
         },
         "tierBased": false,
         "percentage": true,
