@@ -22,7 +22,7 @@ async function example () {
         },
     });
     await exchange.loadMarkets ();
-    const symbol = 'AAPL/USD.PAXOS';
+    const symbol = 'AAPL/USD.NASDAQ';
     const market = exchange.market (symbol);
     console.log ('Found', market['info']['name'], '— conid', market['id'], '— symbol', market['symbol']);
     const ticker = await exchange.fetchTicker (symbol);
