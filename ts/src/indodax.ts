@@ -2961,9 +2961,9 @@ export default class indodax extends Exchange {
         if (apiName === 'public') {
             const query = this.omit (params, this.extractParams (path));
             const requestPath = '/' + this.implodeParams (path, params);
-            url = url + requestPath;
+            url = apiUrl + requestPath;
             if (Object.keys (query).length > 0) {
-                url += '?' + this.urlencodeWithArrayRepeat (query);
+                url = apiUrl + requestPath + '?' + this.urlencodeWithArrayRepeat (query);
             }
         } else if (apiName === 'v2') {
             this.checkRequiredCredentials ();
