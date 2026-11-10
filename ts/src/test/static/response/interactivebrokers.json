@@ -11,6 +11,301 @@
 		"dhParamPemPath": "./dhparam.pem"
     },
     "methods": {
+        "fetchOrder": [
+            {
+                "description": "stock limit order",
+                "method": "fetchOrder",
+                "input": [
+                    1490918069,
+                    "AAPL/USD"
+                ],
+                "httpResponse": {
+                    "sub_type": null,
+                    "request_id": "2684604",
+                    "server_id": "111987",
+                    "order_id": 1490918069,
+                    "conidex": "265598",
+                    "conid": 265598,
+                    "symbol": "AAPL",
+                    "side": "B",
+                    "contract_description_1": "AAPL",
+                    "listing_exchange": "NASDAQ.NMS",
+                    "option_acct": "c",
+                    "company_name": "APPLE INC",
+                    "size": "1.0",
+                    "total_size": "1.0",
+                    "currency": "USD",
+                    "account": "U3448646",
+                    "order_type": "LIMIT",
+                    "limit_price": "200.00",
+                    "cum_fill": "0.0",
+                    "order_status": "PreSubmitted",
+                    "order_ccp_status": "0",
+                    "order_status_description": "Order Submitted",
+                    "tif": "DAY",
+                    "fg_color": "#FFFFFF",
+                    "bg_color": "#0000CC",
+                    "order_not_editable": false,
+                    "editable_fields": "\u001e",
+                    "cannot_cancel_order": false,
+                    "outside_rth": false,
+                    "all_or_none": false,
+                    "deactivate_order": false,
+                    "use_price_mgmt_algo": false,
+                    "sec_type": "STK",
+                    "available_chart_periods": "#R|1",
+                    "order_description": "Buy 1 Limit 200.00, Day",
+                    "order_description_with_contract": "Buy 1 AAPL Limit 200.00, Day",
+                    "clearing_id": "IB",
+                    "clearing_name": "IB",
+                    "alert_active": 1,
+                    "child_order_type": "3",
+                    "order_clearing_account": "U3448646",
+                    "size_and_fills": "0/1",
+                    "exit_strategy_display_price": "200.00",
+                    "exit_strategy_chart_description": "Buy 1 Limit 200.00, Day",
+                    "exit_strategy_tool_availability": "1",
+                    "allowed_duplicate_opposite": true,
+                    "order_time": "261110091417"
+                },
+                "parsedResponse": {
+                    "id": "1490918069",
+                    "clientOrderId": null,
+                    "timestamp": 1794302057000,
+                    "datetime": "2026-11-10T09:14:17.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "AAPL/USD",
+                    "type": "limit",
+                    "timeInForce": "Day",
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": "buy",
+                    "price": 200,
+                    "triggerPrice": null,
+                    "amount": 1,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 1,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "info": {
+                        "sub_type": null,
+                        "request_id": "2684604",
+                        "server_id": "111987",
+                        "order_id": 1490918069,
+                        "conidex": "265598",
+                        "conid": 265598,
+                        "symbol": "AAPL",
+                        "side": "B",
+                        "contract_description_1": "AAPL",
+                        "listing_exchange": "NASDAQ.NMS",
+                        "option_acct": "c",
+                        "company_name": "APPLE INC",
+                        "size": "1.0",
+                        "total_size": "1.0",
+                        "currency": "USD",
+                        "account": "U3448646",
+                        "order_type": "LIMIT",
+                        "limit_price": "200.00",
+                        "cum_fill": "0.0",
+                        "order_status": "PreSubmitted",
+                        "order_ccp_status": "0",
+                        "order_status_description": "Order Submitted",
+                        "tif": "DAY",
+                        "fg_color": "#FFFFFF",
+                        "bg_color": "#0000CC",
+                        "order_not_editable": false,
+                        "editable_fields": "\u001e",
+                        "cannot_cancel_order": false,
+                        "outside_rth": false,
+                        "all_or_none": false,
+                        "deactivate_order": false,
+                        "use_price_mgmt_algo": false,
+                        "sec_type": "STK",
+                        "available_chart_periods": "#R|1",
+                        "order_description": "Buy 1 Limit 200.00, Day",
+                        "order_description_with_contract": "Buy 1 AAPL Limit 200.00, Day",
+                        "clearing_id": "IB",
+                        "clearing_name": "IB",
+                        "alert_active": 1,
+                        "child_order_type": "3",
+                        "order_clearing_account": "U3448646",
+                        "size_and_fills": "0/1",
+                        "exit_strategy_display_price": "200.00",
+                        "exit_strategy_chart_description": "Buy 1 Limit 200.00, Day",
+                        "exit_strategy_tool_availability": "1",
+                        "allowed_duplicate_opposite": true,
+                        "order_time": "261110091417"
+                    },
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "stock daily candles",
+                "method": "fetchOHLCV",
+                "input": [
+                    "AAPL/USD",
+                    "1d",
+                    null,
+                    3
+                ],
+                "httpResponse": {
+                    "serverId": "2676846",
+                    "symbol": "AAPL",
+                    "text": "APPLE INC",
+                    "priceFactor": 100,
+                    "startTime": "20261105-14:30:00",
+                    "high": "35233/596797.875/5760",
+                    "low": "33830/578089.1/1440",
+                    "timePeriod": "3d",
+                    "barLength": 86400,
+                    "mdAvailability": "S",
+                    "mktDataDelay": 0,
+                    "outsideRth": false,
+                    "volumeFactor": 40,
+                    "priceDisplayRule": 1,
+                    "priceDisplayValue": "2",
+                    "negativeCapable": false,
+                    "messageVersion": 2,
+                    "data": [
+                        {
+                            "o": 338.73,
+                            "c": 342.37,
+                            "h": 345.79,
+                            "l": 338.3,
+                            "v": 578089.1,
+                            "t": 1793975400000
+                        },
+                        {
+                            "o": 345,
+                            "c": 350.69,
+                            "h": 352.33,
+                            "l": 344.78,
+                            "v": 596797.875,
+                            "t": 1794234600000
+                        }
+                    ],
+                    "points": 1,
+                    "travelTime": 91
+                },
+                "parsedResponse": [
+                    [
+                        1793975400000,
+                        338.73,
+                        345.79,
+                        338.3,
+                        342.37,
+                        578089.1
+                    ],
+                    [
+                        1794234600000,
+                        345,
+                        352.33,
+                        344.78,
+                        350.69,
+                        596797.875
+                    ]
+                ]
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "all positions",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": [],
+                "parsedResponse": []
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "portfolio accounts",
+                "method": "fetchAccounts",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "id": "U3448646",
+                        "PrepaidCrypto-Z": false,
+                        "PrepaidCrypto-P": false,
+                        "brokerageAccess": true,
+                        "accountId": "U3448646",
+                        "accountVan": "U3448646",
+                        "accountTitle": "JOHN DOE",
+                        "displayName": "JOHN DOE",
+                        "accountAlias": null,
+                        "accountStatus": 1793919600000,
+                        "currency": "USD",
+                        "type": "DEMO",
+                        "tradingType": "STKNOPT",
+                        "businessType": "INDEPENDENT",
+                        "category": "",
+                        "ibEntity": "IBLLC-US",
+                        "faclient": false,
+                        "clearingStatus": "O",
+                        "covestor": false,
+                        "noClientTrading": false,
+                        "trackVirtualFXPortfolio": false,
+                        "acctCustType": "INDIVIDUAL",
+                        "parent": {
+                            "mmc": [],
+                            "accountId": "",
+                            "isMParent": false,
+                            "isMChild": false,
+                            "isMultiplex": false
+                        },
+                        "desc": "U3448646"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "U3448646",
+                        "type": "demo",
+                        "code": "USD",
+                        "info": {
+                            "id": "U3448646",
+                            "PrepaidCrypto-Z": false,
+                            "PrepaidCrypto-P": false,
+                            "brokerageAccess": true,
+                            "accountId": "U3448646",
+                            "accountVan": "U3448646",
+                            "accountTitle": "JOHN DOE",
+                            "displayName": "JOHN DOE",
+                            "accountAlias": null,
+                            "accountStatus": 1793919600000,
+                            "currency": "USD",
+                            "type": "DEMO",
+                            "tradingType": "STKNOPT",
+                            "businessType": "INDEPENDENT",
+                            "category": "",
+                            "ibEntity": "IBLLC-US",
+                            "faclient": false,
+                            "clearingStatus": "O",
+                            "covestor": false,
+                            "noClientTrading": false,
+                            "trackVirtualFXPortfolio": false,
+                            "acctCustType": "INDIVIDUAL",
+                            "parent": {
+                                "mmc": [],
+                                "accountId": "",
+                                "isMParent": false,
+                                "isMChild": false,
+                                "isMultiplex": false
+                            },
+                            "desc": "U3448646"
+                        },
+                        "name": "JOHN DOE"
+                    }
+                ]
+            }
+        ],
         "fetchPositionsForSymbol": [
             {
                 "description": "crypto spot",
@@ -1228,6 +1523,59 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "stock limit buy",
+                "method": "createOrder",
+                "input": [
+                    "AAPL/USD",
+                    "limit",
+                    "buy",
+                    1,
+                    200
+                ],
+                "httpResponse": [
+                    {
+                        "order_id": "1490918069",
+                        "local_order_id": "ccxta284e542b4fb424ca97f70",
+                        "order_status": "PreSubmitted",
+                        "encrypt_message": "1"
+                    }
+                ],
+                "parsedResponse": {
+                    "id": "1490918069",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "AAPL/USD",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "info": {
+                        "order_id": "1490918069",
+                        "local_order_id": "ccxta284e542b4fb424ca97f70",
+                        "order_status": "PreSubmitted",
+                        "encrypt_message": "1"
+                    },
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
             {
                 "description": "spot crypto buy market",
                 "method": "createOrder",
@@ -3026,6 +3374,54 @@
             }
         ],
         "cancelOrder": [
+            {
+                "description": "cancel stock order",
+                "method": "cancelOrder",
+                "input": [
+                    1490918069,
+                    "AAPL/USD"
+                ],
+                "httpResponse": {
+                    "msg": "Request was submitted",
+                    "order_id": 1490918069,
+                    "conid": -1,
+                    "account": null
+                },
+                "parsedResponse": {
+                    "id": "1490918069",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "AAPL/USD",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "info": {
+                        "msg": "Request was submitted",
+                        "order_id": 1490918069,
+                        "conid": -1,
+                        "account": null
+                    },
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
             {
                 "description": "spot without symbol",
                 "method": "cancelOrder",

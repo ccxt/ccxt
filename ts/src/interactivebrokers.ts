@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/interactivebrokers.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidOrder, OperationFailed, OrderNotFound, NullResponse } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeClosedByUser, ExchangeError, InsufficientFunds, InvalidOrder, InvalidProxySettings, OperationFailed, OrderNotFound, NullResponse } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import type { Account, Balances, Dict, Endpoint, Greeks, Int, LastPrice, LastPrices, List, Market, Num, NullableDict, OHLCV, OpenInterest, OpenInterests, Order, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
@@ -2932,7 +2932,12 @@ export default class interactivebrokers extends Exchange {
             //     }
             //
         } catch (ex) {
-            // handle the exception if needed
+            if (ex instanceof InvalidProxySettings) {
+                throw ex; // rethrow this error since it means the user has a problem with their proxy settings that needs to be fixed
+            }
+            if (ex instanceof OperationFailed) {
+                throw ex; // network-level failures are not the exchange saying the order is invalid
+            }
             const message = this.exceptionMessage (ex);
             // eg:  {"error":"Order 54348392 is not found","statusCode":503}
             if (message.indexOf ('is not found') >= 0) {

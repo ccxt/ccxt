@@ -1,16 +1,63 @@
 {
     "exchange": "interactivebrokers",
-    "skipKeys": ["acctIds", "cOID"],
+    "skipKeys": [
+        "acctIds",
+        "cOID"
+    ],
     "options": {
         "consumer_key": "TEST1",
         "accountId": "U3448646",
         "liveSessionToken": "MDEyMzQ1Njc4OWFiY2RlZg==",
         "liveSessionTokenExpiration": 9999999999999,
-		"signaturePemPath": "./private_signature.pem",
-		"encryptionPemPath": "./private_encryption.pem",
-		"dhParamPemPath": "./dhparam.pem"
+        "signaturePemPath": "./private_signature.pem",
+        "encryptionPemPath": "./private_encryption.pem",
+        "dhParamPemPath": "./dhparam.pem"
     },
     "methods": {
+        "fetchOrder": [
+            {
+                "description": "stock limit order",
+                "method": "fetchOrder",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/order/status/1490918069",
+                "input": [
+                    1490918069,
+                    "AAPL/USD"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "stock daily candles",
+                "method": "fetchOHLCV",
+                "url": "https://api.ibkr.com/v1/api/iserver/marketdata/history?conid=265598&bar=1d&period=3d",
+                "input": [
+                    "AAPL/USD",
+                    "1d",
+                    null,
+                    3
+                ],
+                "output": null
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "all positions",
+                "method": "fetchPositions",
+                "url": "https://api.ibkr.com/v1/api/portfolio2/U3448646/positions",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "portfolio accounts",
+                "method": "fetchAccounts",
+                "url": "https://api.ibkr.com/v1/api/portfolio/accounts",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchPositionsForSymbol": [
             {
                 "description": "crypto spot",
@@ -85,6 +132,19 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "stock limit buy",
+                "method": "createOrder",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/U3448646/orders",
+                "input": [
+                    "AAPL/USD",
+                    "limit",
+                    "buy",
+                    1,
+                    200
+                ],
+                "output": "{\"orders\":[{\"conid\":265598,\"side\":\"BUY\",\"quantity\":1,\"price\":200,\"orderType\":\"LMT\",\"tif\":\"DAY\",\"cOID\":\"ccxt4e91208961684e5bb246eb\",\"acctId\":\"U3448646\"}]}"
+            },
             {
                 "description": "spot crypto buy market",
                 "method": "createOrder",
@@ -255,6 +315,16 @@
             }
         ],
         "cancelOrder": [
+            {
+                "description": "cancel stock order",
+                "method": "cancelOrder",
+                "url": "https://api.ibkr.com/v1/api/iserver/account/U3448646/order/1490918069",
+                "input": [
+                    1490918069,
+                    "AAPL/USD"
+                ],
+                "output": null
+            },
             {
                 "description": "spot without symbol",
                 "method": "cancelOrder",
