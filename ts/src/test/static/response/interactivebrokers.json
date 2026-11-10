@@ -453,7 +453,7 @@
                 "method": "fetchOrder",
                 "input": [
                     1490918069,
-                    "AAPL/USD"
+                    "AAPL/USD.NASDAQ"
                 ],
                 "httpResponse": {
                     "sub_type": null,
@@ -511,7 +511,7 @@
                     "datetime": "2026-11-10T09:14:17.000Z",
                     "lastTradeTimestamp": null,
                     "lastUpdateTimestamp": null,
-                    "symbol": "AAPL/USD",
+                    "symbol": "AAPL/USD.NASDAQ",
                     "type": "limit",
                     "timeInForce": "Day",
                     "postOnly": false,
@@ -16620,7 +16620,7 @@
                 "description": "stock daily candles",
                 "method": "fetchOHLCV",
                 "input": [
-                    "AAPL/USD",
+                    "AAPL/USD.NASDAQ",
                     "1d",
                     null,
                     3
@@ -17590,7 +17590,7 @@
                 "description": "stock limit buy",
                 "method": "createOrder",
                 "input": [
-                    "AAPL/USD",
+                    "AAPL/USD.NASDAQ",
                     "limit",
                     "buy",
                     1,
@@ -17611,7 +17611,7 @@
                     "datetime": null,
                     "lastTradeTimestamp": null,
                     "lastUpdateTimestamp": null,
-                    "symbol": "AAPL/USD",
+                    "symbol": "AAPL/USD.NASDAQ",
                     "type": null,
                     "timeInForce": null,
                     "postOnly": null,
@@ -19366,7 +19366,7 @@
                 "method": "cancelOrder",
                 "input": [
                     1490918069,
-                    "AAPL/USD"
+                    "AAPL/USD.NASDAQ"
                 ],
                 "httpResponse": {
                     "msg": "Request was submitted",
@@ -19381,7 +19381,7 @@
                     "datetime": null,
                     "lastTradeTimestamp": null,
                     "lastUpdateTimestamp": null,
-                    "symbol": "AAPL/USD",
+                    "symbol": "AAPL/USD.NASDAQ",
                     "type": null,
                     "timeInForce": null,
                     "postOnly": null,

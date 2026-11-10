@@ -1,4 +1,4 @@
-import ccxt from '../../ts/ccxt.js';
+import ccxt from '../../js/ccxt.js';
 
 // Trade US stocks on InteractiveBrokers through the Client Portal Gateway. (you can alternatively use oauth 1.0 if your account allows it)
 //
@@ -22,7 +22,7 @@ async function example () {
         },
     });
     await exchange.loadMarkets ();
-    const symbol = 'AAPL/USD';
+    const symbol = 'AAPL/USD.PAXOS';
     const market = exchange.market (symbol);
     console.log ('Found', market['info']['name'], '— conid', market['id'], '— symbol', market['symbol']);
     const ticker = await exchange.fetchTicker (symbol);

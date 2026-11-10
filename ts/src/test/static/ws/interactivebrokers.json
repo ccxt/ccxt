@@ -531,7 +531,7 @@
                             },
                             "timestamp": 1793198360000,
                             "datetime": "2026-10-28T14:39:20.000Z",
-                            "symbol": "ETH/USD",
+                            "symbol": "ETH/USD.PAXOS",
                             "order": "757158966",
                             "type": null,
                             "side": "buy",
@@ -580,7 +580,7 @@
                             },
                             "timestamp": 1793198360000,
                             "datetime": "2026-10-28T14:39:20.000Z",
-                            "symbol": "ETH/USD",
+                            "symbol": "ETH/USD.PAXOS",
                             "order": "757158966",
                             "type": null,
                             "side": "buy",
@@ -1299,7 +1299,7 @@
                             "datetime": "2026-10-28T11:57:06.000Z",
                             "lastTradeTimestamp": null,
                             "lastUpdateTimestamp": null,
-                            "symbol": "ETH/USD",
+                            "symbol": "ETH/USD.PAXOS",
                             "type": "limit",
                             "timeInForce": "GTC",
                             "postOnly": false,
@@ -1361,7 +1361,7 @@
             {
                 "description": "crypto spot",
                 "input": [
-                    "BTC/USD"
+                    "BTC/USD.PAXOS"
                 ],
                 "url": "wss://api.ibkr.com/v1/api/ws?oauth_token=84270d7070618c28432c",
                 "messages": [
@@ -1926,7 +1926,7 @@
                         "timestamp": 1793182292057,
                         "datetime": "2026-10-28T10:11:32.057Z",
                         "nonce": null,
-                        "symbol": "BTC/USD"
+                        "symbol": "BTC/USD.PAXOS"
                     },
                     {
                         "bids": [
@@ -1952,7 +1952,7 @@
                         "timestamp": 1793182292332,
                         "datetime": "2026-10-28T10:11:32.332Z",
                         "nonce": null,
-                        "symbol": "BTC/USD"
+                        "symbol": "BTC/USD.PAXOS"
                     },
                     {
                         "bids": [
@@ -1978,7 +1978,7 @@
                         "timestamp": 1793182292992,
                         "datetime": "2026-10-28T10:11:32.992Z",
                         "nonce": null,
-                        "symbol": "BTC/USD"
+                        "symbol": "BTC/USD.PAXOS"
                     },
                     {
                         "bids": [
@@ -2000,7 +2000,7 @@
                         "timestamp": 1793182293234,
                         "datetime": "2026-10-28T10:11:33.234Z",
                         "nonce": null,
-                        "symbol": "BTC/USD"
+                        "symbol": "BTC/USD.PAXOS"
                     },
                     {
                         "bids": [
@@ -2022,7 +2022,7 @@
                         "timestamp": 1793182293537,
                         "datetime": "2026-10-28T10:11:33.537Z",
                         "nonce": null,
-                        "symbol": "BTC/USD"
+                        "symbol": "BTC/USD.PAXOS"
                     },
                     {
                         "bids": [
@@ -2044,7 +2044,7 @@
                         "timestamp": 1793182293837,
                         "datetime": "2026-10-28T10:11:33.837Z",
                         "nonce": null,
-                        "symbol": "BTC/USD"
+                        "symbol": "BTC/USD.PAXOS"
                     },
                     {
                         "bids": [
@@ -2074,7 +2074,7 @@
                         "timestamp": 1793182294443,
                         "datetime": "2026-10-28T10:11:34.443Z",
                         "nonce": null,
-                        "symbol": "BTC/USD"
+                        "symbol": "BTC/USD.PAXOS"
                     },
                     {
                         "bids": [
@@ -2104,7 +2104,7 @@
                         "timestamp": 1793182294737,
                         "datetime": "2026-10-28T10:11:34.737Z",
                         "nonce": null,
-                        "symbol": "BTC/USD"
+                        "symbol": "BTC/USD.PAXOS"
                     }
                 ]
             }
@@ -2113,7 +2113,7 @@
             {
                 "description": "crypto spot",
                 "input": [
-                    "BTC/USD"
+                    "BTC/USD.PAXOS"
                 ],
                 "url": "wss://api.ibkr.com/v1/api/ws?oauth_token=84270d7070618c28432c",
                 "messages": [
@@ -2581,8 +2581,8 @@
                 "description": "crypto spot multiple",
                 "input": [
                     [
-                        "BTC/USD",
-                        "ETH/USD"
+                        "BTC/USD.PAXOS",
+                        "ETH/USD.PAXOS"
                     ]
                 ],
                 "url": "wss://api.ibkr.com/v1/api/ws?oauth_token=84270d7070618c28432c",
@@ -2908,8 +2908,8 @@
                 ],
                 "parsedResponses": [
                     {
-                        "BTC/USD": {
-                            "symbol": "BTC/USD",
+                        "BTC/USD.PAXOS": {
+                            "symbol": "BTC/USD.PAXOS",
                             "timestamp": 1793123317098,
                             "datetime": "2026-10-27T17:48:37.098Z",
                             "bid": 80548.5,
@@ -2956,8 +2956,8 @@
                         }
                     },
                     {
-                        "ETH/USD": {
-                            "symbol": "ETH/USD",
+                        "ETH/USD.PAXOS": {
+                            "symbol": "ETH/USD.PAXOS",
                             "timestamp": 1793123317098,
                             "datetime": "2026-10-27T17:48:37.098Z",
                             "bid": 2348.35,
@@ -3004,8 +3004,8 @@
                         }
                     },
                     {
-                        "BTC/USD": {
-                            "symbol": "BTC/USD",
+                        "BTC/USD.PAXOS": {
+                            "symbol": "BTC/USD.PAXOS",
                             "timestamp": 1793123317598,
                             "datetime": "2026-10-27T17:48:37.598Z",
                             "bid": 80550.75,
@@ -3052,8 +3052,8 @@
                         }
                     },
                     {
-                        "ETH/USD": {
-                            "symbol": "ETH/USD",
+                        "ETH/USD.PAXOS": {
+                            "symbol": "ETH/USD.PAXOS",
                             "timestamp": 1793123317598,
                             "datetime": "2026-10-27T17:48:37.598Z",
                             "bid": 2348.4,
@@ -3100,8 +3100,8 @@
                         }
                     },
                     {
-                        "BTC/USD": {
-                            "symbol": "BTC/USD",
+                        "BTC/USD.PAXOS": {
+                            "symbol": "BTC/USD.PAXOS",
                             "timestamp": 1793123318098,
                             "datetime": "2026-10-27T17:48:38.098Z",
                             "bid": 80550.75,
@@ -3148,8 +3148,8 @@
                         }
                     },
                     {
-                        "ETH/USD": {
-                            "symbol": "ETH/USD",
+                        "ETH/USD.PAXOS": {
+                            "symbol": "ETH/USD.PAXOS",
                             "timestamp": 1793123318098,
                             "datetime": "2026-10-27T17:48:38.098Z",
                             "bid": 2348.35,
@@ -3196,8 +3196,8 @@
                         }
                     },
                     {
-                        "BTC/USD": {
-                            "symbol": "BTC/USD",
+                        "BTC/USD.PAXOS": {
+                            "symbol": "BTC/USD.PAXOS",
                             "timestamp": 1793123319099,
                             "datetime": "2026-10-27T17:48:39.099Z",
                             "bid": 80550.75,
@@ -3244,8 +3244,8 @@
                         }
                     },
                     {
-                        "ETH/USD": {
-                            "symbol": "ETH/USD",
+                        "ETH/USD.PAXOS": {
+                            "symbol": "ETH/USD.PAXOS",
                             "timestamp": 1793123319099,
                             "datetime": "2026-10-27T17:48:39.099Z",
                             "bid": 2348.35,
@@ -3794,7 +3794,7 @@
                 "description": "crypto spot single",
                 "input": [
                     [
-                        "BTC/USD"
+                        "BTC/USD.PAXOS"
                     ]
                 ],
                 "url": "wss://api.ibkr.com/v1/api/ws?oauth_token=84270d7070618c28432c",
@@ -4043,8 +4043,8 @@
                 ],
                 "parsedResponses": [
                     {
-                        "BTC/USD": {
-                            "symbol": "BTC/USD",
+                        "BTC/USD.PAXOS": {
+                            "symbol": "BTC/USD.PAXOS",
                             "timestamp": 1793122461782,
                             "datetime": "2026-10-27T17:34:21.782Z",
                             "high": 80726.75,
@@ -4091,8 +4091,8 @@
                         }
                     },
                     {
-                        "BTC/USD": {
-                            "symbol": "BTC/USD",
+                        "BTC/USD.PAXOS": {
+                            "symbol": "BTC/USD.PAXOS",
                             "timestamp": 1793122462535,
                             "datetime": "2026-10-27T17:34:22.535Z",
                             "high": 80726.75,
@@ -4139,8 +4139,8 @@
                         }
                     },
                     {
-                        "BTC/USD": {
-                            "symbol": "BTC/USD",
+                        "BTC/USD.PAXOS": {
+                            "symbol": "BTC/USD.PAXOS",
                             "timestamp": 1793122463331,
                             "datetime": "2026-10-27T17:34:23.331Z",
                             "high": 80726.75,
@@ -4187,8 +4187,8 @@
                         }
                     },
                     {
-                        "BTC/USD": {
-                            "symbol": "BTC/USD",
+                        "BTC/USD.PAXOS": {
+                            "symbol": "BTC/USD.PAXOS",
                             "timestamp": 1793122464042,
                             "datetime": "2026-10-27T17:34:24.042Z",
                             "high": 80726.75,
@@ -4235,8 +4235,8 @@
                         }
                     },
                     {
-                        "BTC/USD": {
-                            "symbol": "BTC/USD",
+                        "BTC/USD.PAXOS": {
+                            "symbol": "BTC/USD.PAXOS",
                             "timestamp": 1793122464795,
                             "datetime": "2026-10-27T17:34:24.795Z",
                             "high": 80726.75,
@@ -4283,8 +4283,8 @@
                         }
                     },
                     {
-                        "BTC/USD": {
-                            "symbol": "BTC/USD",
+                        "BTC/USD.PAXOS": {
+                            "symbol": "BTC/USD.PAXOS",
                             "timestamp": 1793122465798,
                             "datetime": "2026-10-27T17:34:25.798Z",
                             "high": 80726.75,
@@ -4331,8 +4331,8 @@
                         }
                     },
                     {
-                        "BTC/USD": {
-                            "symbol": "BTC/USD",
+                        "BTC/USD.PAXOS": {
+                            "symbol": "BTC/USD.PAXOS",
                             "timestamp": 1793122466551,
                             "datetime": "2026-10-27T17:34:26.551Z",
                             "high": 80726.75,
