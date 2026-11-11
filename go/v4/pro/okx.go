@@ -3127,11 +3127,11 @@ func (this *Okx) HandleMyTrades(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Okx) RequestId() string {
+func (this *Okx) RequestId() int64 {
+	// millisecond timestamp plus 3 random digits stays a safe integer
 	var ts string = strconv.FormatInt(this.Milliseconds(), 10)
-	var randomNumber int64 = this.RandNumber(4)
-	var randomPart string = strconv.FormatInt(randomNumber, 10)
-	return ts + randomPart
+	var randomPart string = strconv.FormatInt(this.RandNumber(3), 10)
+	return this.ParseToInt(ts + randomPart)
 }
 
 /**
@@ -3173,7 +3173,7 @@ func (this *Okx) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symbol 
 		panic(r1.Err)
 	}
 	var url string = this.GetUrl("private", "private")
-	var messageHash string = this.RequestId()
+	var messageHash string = strconv.FormatInt(this.RequestId(), 10)
 	op, paramsOp := this.HandleOptionStringAndParams(params, "createOrderWs", "op", "batch-orders")
 	var args map[string]any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, paramsOp)
 	var market map[string]any = this.Market(symbol)
@@ -3278,7 +3278,7 @@ func (this *Okx) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id string
 		panic(r1.Err)
 	}
 	var url string = this.GetUrl("private", "private")
-	var messageHash string = this.RequestId()
+	var messageHash string = strconv.FormatInt(this.RequestId(), 10)
 	op, paramsOp := this.HandleOptionStringAndParams(params, "editOrderWs", "op", "amend-order")
 	var args any = this.EditOrderRequest(&id, symbol, typeVar, side, amount, price, paramsOp)
 	var market map[string]any = this.Market(symbol)
@@ -3340,7 +3340,7 @@ func (this *Okx) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id stri
 		panic(r1.Err)
 	}
 	var url string = this.GetUrl("private", "private")
-	var messageHash string = this.RequestId()
+	var messageHash string = strconv.FormatInt(this.RequestId(), 10)
 	var clientOrderId *string = this.SafeString2(params, "clOrdId", "clientOrderId")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "clOrdId"})
 	var market map[string]any = this.Market(symbol)
@@ -3409,7 +3409,7 @@ func (this *Okx) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], ids 
 		panic(r1.Err)
 	}
 	var url string = this.GetUrl("private", "private")
-	var messageHash string = this.RequestId()
+	var messageHash string = strconv.FormatInt(this.RequestId(), 10)
 	var args []any = []any{}
 	var market map[string]any = this.Market(symbol)
 	var instIdCode *int64 = this.SafeInteger(market, "instIdCode")
@@ -3477,7 +3477,7 @@ func (this *Okx) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], o
 		panic(ccxt.BadRequest(this.Id + " cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required."))
 	}
 	var url string = this.GetUrl("private", "private")
-	var messageHash string = this.RequestId()
+	var messageHash string = strconv.FormatInt(this.RequestId(), 10)
 	var request map[string]any = map[string]any{
 		"id": messageHash,
 		"op": "mass-cancel",

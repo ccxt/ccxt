@@ -90,9 +90,9 @@ func (this *Weex) Describe() map[string]any {
 		"streaming": map[string]any{},
 	})
 }
-func (this *Weex) RequestId() *string {
+func (this *Weex) RequestId() int64 {
 	var requestId int64 = this.NextRequestId("requestId")
-	return this.NumberToString(requestId)
+	return requestId
 }
 func (this *Weex) SubscribePublicAsync(messageHashes any, channels any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
@@ -108,7 +108,7 @@ func (this *Weex) subscribePublicBody(ch chan ccxt.AsyncResult[any], messageHash
 	_ = params
 	var subscription map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = subscription
-	var id *string = this.RequestId()
+	var id int64 = this.RequestId()
 	var method string = "SUBSCRIBE"
 	var unsubscribe *bool = this.SafeBool(subscription, "unsubscribe", false)
 	if unsubscribe != nil && *unsubscribe {
@@ -120,7 +120,7 @@ func (this *Weex) subscribePublicBody(ch chan ccxt.AsyncResult[any], messageHash
 		"params": channels,
 	}
 	var subscriptionExtended map[string]any = this.Extend(subscription, map[string]any{
-		"id": id,
+		"id": strconv.FormatInt(id, 10),
 	})
 	var typeVar string = "spot"
 	if isContract == true {
@@ -160,14 +160,14 @@ func (this *Weex) subscribePrivateBody(ch chan ccxt.AsyncResult[any], messageHas
 	if unsubscribe != nil && *unsubscribe {
 		method = "UNSUBSCRIBE"
 	}
-	var id *string = this.RequestId()
+	var id int64 = this.RequestId()
 	var message map[string]any = map[string]any{
 		"id":     id,
 		"method": method,
 		"params": []any{channel},
 	}
 	var subscriptionExtended map[string]any = this.Extend(subscription, map[string]any{
-		"id": id,
+		"id": strconv.FormatInt(id, 10),
 	})
 
 	r := <-this.Watch(url, messageHash, this.DeepExtend(message, params), subscribeHash, subscriptionExtended)

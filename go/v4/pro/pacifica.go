@@ -7,6 +7,7 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 
 import "maps"
 import "slices"
+import "strconv"
 import "strings"
 
 type Pacifica struct {
@@ -2106,14 +2107,18 @@ func (this *Pacifica) HandlePong(client any, message map[string]any) any {
 	client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(message, "pong", this.Milliseconds()))
 	return message
 }
-func (this *Pacifica) RequestId() string {
-	return this.Uuid() // uuid v4
+func (this *Pacifica) RequestId() int64 {
+	// millisecond timestamp plus 3 random digits stays a safe integer
+	var ts string = strconv.FormatInt(this.Milliseconds(), 10)
+	var randomPart string = strconv.FormatInt(this.RandNumber(3), 10)
+	return this.ParseToInt(ts + randomPart)
 }
 func (this *Pacifica) WrapAsPostAction(operationType any, request any) map[string]any {
 	if ccxt.IsEqual(operationType, nil) {
 		panic(ccxt.ArgumentsRequired(this.Id + "postAction() requires a \"operationType\" argument!"))
 	}
-	var requestId string = this.RequestId()
+	// the venue requires a full uuid v4 request id
+	var requestId string = this.Uuid()
 	var postParams map[string]any = map[string]any{}
 	ccxt.AddElementToObject(postParams, operationType, request)
 	var payload map[string]any = map[string]any{

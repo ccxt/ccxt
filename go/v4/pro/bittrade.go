@@ -53,9 +53,9 @@ func (this *Bittrade) Describe() map[string]any {
 		},
 	})
 }
-func (this *Bittrade) RequestId() string {
+func (this *Bittrade) RequestId() int64 {
 	var requestId int64 = this.NextRequestId("requestId")
-	return strconv.FormatInt(requestId, 10)
+	return requestId
 }
 
 /**
@@ -95,13 +95,13 @@ func (this *Bittrade) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sym
 		"hostname": this.Hostname,
 	}
 	var url string = this.ImplodeParams(apiWsUrls["public"], hostname)
-	var requestId string = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var request map[string]any = map[string]any{
 		"sub": messageHash,
-		"id":  requestId,
+		"id":  strconv.FormatInt(requestId, 10),
 	}
 	var subscription map[string]any = map[string]any{
-		"id":          requestId,
+		"id":          strconv.FormatInt(requestId, 10),
 		"messageHash": messageHash,
 		"symbol":      market["symbol"],
 		"params":      params,
@@ -196,13 +196,13 @@ func (this *Bittrade) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 		"hostname": this.Hostname,
 	}
 	var url string = this.ImplodeParams(apiWsUrls["public"], hostname)
-	var requestId string = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var request map[string]any = map[string]any{
 		"sub": messageHash,
-		"id":  requestId,
+		"id":  strconv.FormatInt(requestId, 10),
 	}
 	var subscription map[string]any = map[string]any{
-		"id":          requestId,
+		"id":          strconv.FormatInt(requestId, 10),
 		"messageHash": messageHash,
 		"symbol":      symbolValue,
 		"params":      params,
@@ -315,13 +315,13 @@ func (this *Bittrade) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 		"hostname": this.Hostname,
 	}
 	var url string = this.ImplodeParams(apiWsUrls["public"], hostname)
-	var requestId string = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var request map[string]any = map[string]any{
 		"sub": messageHash,
-		"id":  requestId,
+		"id":  strconv.FormatInt(requestId, 10),
 	}
 	var subscription map[string]any = map[string]any{
-		"id":          requestId,
+		"id":          strconv.FormatInt(requestId, 10),
 		"messageHash": messageHash,
 		"symbol":      symbolValue,
 		"timeframe":   timeframe,
@@ -433,13 +433,13 @@ func (this *Bittrade) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 		"hostname": this.Hostname,
 	}
 	var url string = this.ImplodeParams(apiWsUrls["public"], hostname)
-	var requestId string = this.RequestId()
+	var requestId int64 = this.RequestId()
 	var request map[string]any = map[string]any{
 		"sub": messageHash,
-		"id":  requestId,
+		"id":  strconv.FormatInt(requestId, 10),
 	}
 	var subscription map[string]any = map[string]any{
-		"id":          requestId,
+		"id":          strconv.FormatInt(requestId, 10),
 		"messageHash": messageHash,
 		"symbol":      symbolValue,
 		"limit":       limitValue,
@@ -541,15 +541,15 @@ func (this *Bittrade) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.O
 				"hostname": this.Hostname,
 			}
 			var url string = this.ImplodeParams(apiWsUrls["public"], hostname)
-			var requestId string = this.RequestId()
+			var requestId int64 = this.RequestId()
 			var request map[string]any = map[string]any{
 				"req": messageHash,
-				"id":  requestId,
+				"id":  strconv.FormatInt(requestId, 10),
 			}
 			// this is a temporary subscription by a specific requestId
 			// it has a very short lifetime until the snapshot is received over ws
 			var snapshotSubscription map[string]any = map[string]any{
-				"id":          requestId,
+				"id":          strconv.FormatInt(requestId, 10),
 				"messageHash": messageHash,
 				"symbol":      symbol,
 				"limit":       limit,
@@ -557,7 +557,7 @@ func (this *Bittrade) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.O
 				"method":      this.HandleOrderBookSnapshot,
 			}
 
-			r := <-this.Watch(url, requestId, request, requestId, snapshotSubscription)
+			r := <-this.Watch(url, strconv.FormatInt(requestId, 10), request, strconv.FormatInt(requestId, 10), snapshotSubscription)
 			if r.Err != nil {
 				panic(r.Err)
 			}
