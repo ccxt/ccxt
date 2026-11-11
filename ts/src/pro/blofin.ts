@@ -679,7 +679,8 @@ export default class blofin extends blofinRest {
                 }
             }
         }
-        return this.filterBySymbolsSinceLimit (newest, requestedSymbols, since, limitResolved, true);
+        const requested = this.filterByArray (newest, 'symbol', requestedSymbols, false);
+        return this.filterBySinceLimit (requested, since, limitResolved, 'timestamp', true);
     }
 
     handleOrders (client: Client, message: Dict) {
