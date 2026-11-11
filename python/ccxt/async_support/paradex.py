@@ -582,7 +582,7 @@ class paradex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_list(response, 'results')
+        data = self.safe_list(response, 'results', [])
         return self.parse_markets(data)
 
     def parse_market(self, market: dict) -> Market:

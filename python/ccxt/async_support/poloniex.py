@@ -866,7 +866,7 @@ class poloniex(Exchange, ImplicitAPI):
         #                "limitMaxQty": "1000000"
         #            },
         #
-        markets = self.safe_list(response, 'data')
+        markets = self.safe_list(response, 'data', [])
         return self.parse_markets(markets)
 
     def parse_market(self, market: dict) -> Market:

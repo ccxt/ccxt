@@ -6674,7 +6674,7 @@ class gate(Exchange, ImplicitAPI):
             requestUntil['from'] = since
         if limit is not None:
             requestUntil['limit'] = limit
-        response = None
+        response: List
         marginMode, paramsMarginMode = self.handle_margin_mode_and_params('fetchBorrowInterest', paramsUntil, 'cross')
         if isUnifiedAccount:
             response = self.privateUnifiedGetInterestRecords(self.extend(requestUntil, paramsMarginMode))
@@ -6682,8 +6682,8 @@ class gate(Exchange, ImplicitAPI):
             if market is not None:
                 requestUntil['currency_pair'] = market['id']
             response = self.privateMarginGetUniInterestRecords(self.extend(requestUntil, paramsMarginMode))
-        elif marginMode == 'cross':
-            # deprecated and not present in the exchange's docs but still works
+        else:
+            # cross: deprecated and not present in the exchange's docs but still works
             response = self.privateMarginGetCrossInterestRecords(self.extend(requestUntil, paramsMarginMode))
         interest = self.parse_borrow_interests(response, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)

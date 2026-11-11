@@ -3187,7 +3187,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         "unrealized_pnl": "-0.049158102631998504"
         #     }
         #
-        rows = self.safe_list(response, 'positions')
+        rows = self.safe_list(response, 'positions', [])
         interest = self.parse_borrow_interests(rows, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 

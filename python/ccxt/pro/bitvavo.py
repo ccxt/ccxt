@@ -1408,7 +1408,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         #    }
         #
         messageHash = self.safe_string(message, 'requestId')
-        response = self.safe_list(message, 'response')
+        response = self.safe_list(message, 'response', [])
         currencies = self.parse_currencies(response)
         client.resolve(currencies, messageHash)
 

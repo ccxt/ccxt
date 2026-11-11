@@ -1173,7 +1173,7 @@ class hashkey(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         response = await self.publicGetApiV1ExchangeInfo(params)
-        coins = self.safe_list(response, 'coins')
+        coins = self.safe_list(response, 'coins', [])
         #
         #     {
         #         ...

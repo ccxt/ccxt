@@ -13165,7 +13165,7 @@ class binance(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        rows = self.safe_list(response, 'rows')
+        rows = self.safe_list(response, 'rows', [])
         interest = self.parse_borrow_interests(rows, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
