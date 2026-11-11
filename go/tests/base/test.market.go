@@ -128,28 +128,18 @@ func TestMarket(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	var validSubTypes []any = []any{"linear", "inverse", "quanto", nil}
 	AssertInArray(exchange, skippedProperties, method, market, "subType", validSubTypes)
 	// check if 'type' is consistent
-	var checkedTypes []any = []any{"spot", "swap", "future", "option"}
+	var checkedTypes []string = []string{"spot", "swap", "future", "option"}
 	for i := 0; i < len(checkedTypes); i++ {
-		var typeVar *string = SafeStringPtr(func() any {
-			if i >= 0 && i < len(checkedTypes) {
-				return DerefScalar(checkedTypes[i])
-			}
-			return nil
-		}())
+		var typeVar string = checkedTypes[i]
 		if IsEqual(GetValue(market, typeVar), true) {
-			Assert(IsEqual(typeVar, GetValue(market, "type")), Add(Add(Add(Add(Add("market.type (", GetValue(market, "type")), ") not equal to \""), typeVar), "\""), logText))
+			Assert((typeVar == GetValue(market, "type")), Add(Add(Add(Add(Add("market.type (", GetValue(market, "type")), ") not equal to \""), typeVar), "\""), logText))
 		}
 	}
 	// check if 'subType' is consistent
 	if (swap != nil && *swap == true) || (future != nil && *future == true) {
-		var checkedSubTypes []any = []any{"linear", "inverse"}
+		var checkedSubTypes []string = []string{"linear", "inverse"}
 		for i := 0; i < len(checkedSubTypes); i++ {
-			var subType *string = SafeStringPtr(func() any {
-				if i >= 0 && i < len(checkedSubTypes) {
-					return DerefScalar(checkedSubTypes[i])
-				}
-				return nil
-			}())
+			var subType string = checkedSubTypes[i]
 			if IsEqual(GetValue(market, subType), true) {
 				Assert(IsEqual(subType, GetValue(market, "subType")), Add(Add(Add(Add(Add("market.subType (", GetValue(market, "subType")), ") not equal to \""), subType), "\""), logText))
 			}

@@ -995,14 +995,16 @@ const GO_RETURN_TYPES: Dict = {
 };
 
 // the element of a generated Go endpoint channel. A union or an undeclared shape has no
-// member that would be honest for every response, and the runtime dispatch is not asserted
-// by the api leaf, so both keep the widest element.
+// member that would be honest for every response, so it keeps the widest element. The
+// declared shape holds whether or not the body can be baked: baking decides the transport
+// (path/cost vs runtime dispatch), never the response shape. A scalar stays boxed for an
+// unbaked body: endpointValue[string] answers "" where the box answers nil.
 function goChannelElement (exchange: string, method: string, resolvable: any): string {
-    if (!goBakes (resolvable)) {
-        return 'any'
-    }
     const members = returnTypeMembers (exchange, method)
     const element = (members.length === 1) ? GO_RETURN_TYPES[members[0]] : undefined
+    if (!goBakes (resolvable)) {
+        return ((element === 'map[string]any') || (element === '[]any')) ? element : 'any'
+    }
     return element || 'any'
 }
 
@@ -1014,12 +1016,15 @@ function goChannelType (element: string, pkgPrefix: string): string {
 
 function goEndpointBody (method: string, resolvable: any, callEndpoint: string, pkgPrefix: string, element: string): string {
     if (!goBakes (resolvable)) {
-        return `\treturn this.${callEndpoint}("${method}", args...)`
+        const dispatch = `this.${callEndpoint}("${method}", args...)`
+        // an unbaked body keeps the runtime dispatch; a typed element wraps it so the declared
+        // response shape reaches the receiver (endpointValue[T] is the conversion the call site did)
+        return (element === 'any') ? `\treturn ${dispatch}` : `\treturn ${pkgPrefix}EndpointTyped[${element}](${dispatch})`
     }
     const paths: string[] = resolvable.paths || []
     // the api argument is always the []string of walked path levels
     const api = `[]string{${paths.map (x => JSON.stringify (x)).join (', ')}}`
-    const call = `${JSON.stringify (resolvable.endpoint)}, ${api}, ${JSON.stringify (resolvable.method)}, ${pkgPrefix}GetArg(args, 0, nil), map[string]any{}, nil, map[string]any{"cost": float64(${resolvable.goCost})}`
+    const call = `${JSON.stringify (resolvable.endpoint)}, ${api}, ${JSON.stringify (resolvable.method)}, ${pkgPrefix}GetArg(args, 0, nil), map[string]any{"cost": float64(${resolvable.goCost})}`
     if (element === 'any') {
         return `\treturn this.Fetch2Async(${call})`
     }

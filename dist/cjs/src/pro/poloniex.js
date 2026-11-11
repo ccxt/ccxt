@@ -21,6 +21,9 @@ class poloniex extends poloniex$1["default"] {
                 'watchTickers': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
+                'unWatchOHLCV': true,
+                'unWatchTrades': true,
+                'unWatchTradesForSymbols': true,
                 'watchBalance': true,
                 'watchStatus': false,
                 'watchOrders': true,
@@ -90,7 +93,7 @@ class poloniex extends poloniex$1["default"] {
     async authenticate(params = {}) {
         this.checkRequiredCredentials();
         const timestamp = this.numberToString(this.milliseconds());
-        const url = this.urls['api']['ws']['private'];
+        const url = this.safeString(this.urls['api']['ws'], 'private', '');
         const messageHash = 'authenticated';
         const client = this.client(url);
         let future = this.safeValue(client.subscriptions, messageHash);
@@ -148,7 +151,7 @@ class poloniex extends poloniex$1["default"] {
      */
     async subscribe(name, messageHash, isPrivate, symbols = undefined, params = {}) {
         let publicOrPrivate = 'public';
-        if (isPrivate) {
+        if (isPrivate === true) {
             publicOrPrivate = 'private';
         }
         const url = this.safeString(this.urls['api']['ws'], publicOrPrivate);
@@ -188,14 +191,35 @@ class poloniex extends poloniex$1["default"] {
     /**
      * @ignore
      * @method
+     * @description unsubscribes from a public websocket channel
+     * @param {string} name name of the channel
+     * @param {string[]} symbols CCXT market symbols
+     * @param {string[]} messageHashes unique identifiers resolved once the exchange acknowledges the unsubscribe
+     * @param {object} [params] extra parameters specific to the poloniex api
+     * @returns {object} true once the exchange acknowledges the unsubscribe
+     */
+    async unSubscribe(name, symbols, messageHashes, params = {}) {
+        const url = this.urls['api']['ws']['public'];
+        const request = {
+            'event': 'unsubscribe',
+            'channel': [
+                name,
+            ],
+            'symbols': this.marketIds(symbols),
+        };
+        return await this.watchMultiple(url, messageHashes, this.extend(request, params), messageHashes);
+    }
+    /**
+     * @ignore
+     * @method
      * @description Connects to a websocket channel
      * @param {string} name name of the channel
      * @param {object} [params] extra parameters specific to the poloniex api
      * @returns {object} data from the websocket stream
      */
     async tradeRequest(name, params = {}) {
-        const url = this.urls['api']['ws']['private'];
-        const messageHash = this.nonce().toString();
+        const url = this.safeString(this.urls['api']['ws'], 'private', '');
+        const messageHash = this.numberToString(this.nonce());
         const subscribe = {
             'id': messageHash,
             'event': name,
@@ -391,6 +415,29 @@ class poloniex extends poloniex$1["default"] {
     }
     /**
      * @method
+     * @name poloniex#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#candlesticks
+     * @param {string} symbol unified symbol of the market to unwatch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const timeframes = this.safeDict(this.options, 'timeframes', {});
+        const channel = this.safeString(timeframes, timeframe, timeframe);
+        if (channel === undefined) {
+            throw new errors.BadRequest(this.id + ' unWatchOHLCV cannot take a timeframe of ' + timeframe);
+        }
+        const market = this.market(symbol);
+        const messageHash = 'unsubscribe:' + channel + '::' + market['symbol'];
+        return await this.unSubscribe(channel, [market['symbol']], [messageHash], params);
+    }
+    /**
+     * @method
      * @name poloniex#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://api-docs.poloniex.com/spot/websocket/market-data#ticker
@@ -458,7 +505,7 @@ class poloniex extends poloniex$1["default"] {
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true, true);
         const name = 'trades';
-        const url = this.urls['api']['ws']['public'];
+        const url = this.safeString(this.urls['api']['ws'], 'public', '');
         const marketIds = this.marketIds(symbolsNormalized);
         const subscribe = {
             'event': 'subscribe',
@@ -482,6 +529,39 @@ class poloniex extends poloniex$1["default"] {
             limitResolved = trades.getLimit(tradeSymbol, limit);
         }
         return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
+    }
+    /**
+     * @method
+     * @name poloniex#unWatchTrades
+     * @description unWatches the list of most recent trades for a particular symbol
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+     * @param {string} symbol unified symbol of the market to unwatch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchTrades(symbol, params = {}) {
+        return await this.unWatchTradesForSymbols([symbol], params);
+    }
+    /**
+     * @method
+     * @name poloniex#unWatchTradesForSymbols
+     * @description unWatches the list of most recent trades for a list of symbols
+     * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+     * @param {string[]} symbols unified symbols of the markets to unwatch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} status of the unwatch request
+     */
+    async unWatchTradesForSymbols(symbols, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true, true);
+        const name = 'trades';
+        const messageHashes = [];
+        for (let i = 0; i < symbolsNormalized.length; i++) {
+            messageHashes.push('unsubscribe:' + name + '::' + symbolsNormalized[i]);
+        }
+        return await this.unSubscribe(name, symbolsNormalized, messageHashes, params);
     }
     /**
      * @method
@@ -574,7 +654,7 @@ class poloniex extends poloniex$1["default"] {
         // balance from a rest snapshot once per subscription - otherwise the
         // first resolves would only list the currencies that changed since
         // subscribing
-        const url = this.urls['api']['ws']['private'];
+        const url = this.safeString(this.urls['api']['ws'], 'private', '');
         const client = this.client(url);
         this.setBalanceCache(client, name);
         const options = this.safeDict(this.options, 'watchBalance');
@@ -726,9 +806,9 @@ class poloniex extends poloniex$1["default"] {
             const marketId = this.safeString(item, 'symbol');
             if (marketId !== undefined) {
                 const trade = this.parseWsTrade(item);
-                const symbol = trade['symbol'];
+                const symbol = this.safeString(trade, 'symbol');
                 const type = 'trades';
-                const messageHash = type + '::' + symbol;
+                const messageHash = type + '::' + this.safeString(trade, 'symbol', '');
                 let tradesArray = (symbol === undefined) ? undefined : this.safeValue(this.trades, symbol);
                 if (tradesArray === undefined) {
                     const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
@@ -910,12 +990,11 @@ class poloniex extends poloniex$1["default"] {
         //    }
         //
         const data = this.safeList(message, 'data', []);
-        let orders = this.orders;
-        if (orders === undefined) {
+        if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit');
-            orders = new Cache.ArrayCacheBySymbolById(limit);
-            this.orders = orders;
+            this.orders = new Cache.ArrayCacheBySymbolById(limit);
         }
+        const orders = this.orders;
         const marketIds = [];
         for (let i = 0; i < data.length; i++) {
             const order = this.safeDict(data, i);
@@ -948,9 +1027,9 @@ class poloniex extends poloniex$1["default"] {
                     previousOrder['lastTradeTimestamp'] = trade['timestamp'];
                     let totalCost = '0';
                     let totalAmount = '0';
-                    const previousOrderTrades = previousOrder['trades'];
+                    const previousOrderTrades = this.safeList(previousOrder, 'trades', []);
                     for (let j = 0; j < previousOrderTrades.length; j++) {
-                        const previousOrderTrade = previousOrderTrades[j];
+                        const previousOrderTrade = this.safeDict(previousOrderTrades, j, {});
                         const cost = this.numberToString(previousOrderTrade['cost']);
                         const amount = this.numberToString(previousOrderTrade['amount']);
                         totalCost = Precise["default"].stringAdd(totalCost, cost);
@@ -994,7 +1073,7 @@ class poloniex extends poloniex$1["default"] {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.market(marketId);
-            const symbol = market['symbol'];
+            const symbol = this.safeString(market, 'symbol', '');
             const messageHash = 'orders::' + symbol;
             client.resolve(orders, messageHash);
         }
@@ -1101,7 +1180,7 @@ class poloniex extends poloniex$1["default"] {
             const marketId = this.safeString(item, 'symbol');
             if (marketId !== undefined) {
                 const ticker = this.parseTicker(item);
-                const symbol = ticker['symbol'];
+                const symbol = this.safeString(ticker, 'symbol');
                 if (symbol !== undefined) {
                     this.tickers[symbol] = ticker;
                 }
@@ -1262,7 +1341,7 @@ class poloniex extends poloniex$1["default"] {
         if (this.balance === undefined) {
             this.balance = {};
         }
-        this.balance['info'] = data;
+        this.balance['info'] = this.safeList(message, 'data', []);
         const firstBalance = this.safeDict(data, 0, {});
         const timestamp = this.safeInteger(firstBalance, 'ts');
         this.balance['timestamp'] = timestamp;
@@ -1284,7 +1363,7 @@ class poloniex extends poloniex$1["default"] {
     handleMyTrades(client, parsedTrade) {
         // emulated using the orders' stream
         const messageHash = 'myTrades';
-        const symbol = parsedTrade['symbol'];
+        const symbol = this.safeString(parsedTrade, 'symbol', '');
         if (this.myTrades === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             this.myTrades = new Cache.ArrayCacheBySymbolById(limit);
@@ -1306,6 +1385,10 @@ class poloniex extends poloniex$1["default"] {
         const event = this.safeString(message, 'event');
         if (event === 'pong') {
             client.lastPong = this.milliseconds();
+        }
+        if (event === 'unsubscribe') {
+            this.handleUnsubscription(client, message);
+            return;
         }
         const methods = {
             'candles_minute_1': this.handleOHLCV,
@@ -1333,18 +1416,43 @@ class poloniex extends poloniex$1["default"] {
             'cancelAllOrders': this.handleOrderRequest,
             'auth': this.handleAuthenticate,
         };
-        const method = (type === undefined) ? undefined : this.safeValue(methods, type);
+        const method = this.safeValue(methods, type);
         if (type === 'auth') {
             this.handleAuthenticate(client, message);
         }
         else if (type === undefined) {
             this.handleOrderRequest(client, message);
         }
-        else {
+        else if (method !== undefined) {
             const data = this.safeList(message, 'data', []);
             const dataLength = data.length;
             if (dataLength > 0) {
                 method.call(this, client, message);
+            }
+        }
+    }
+    handleUnsubscription(client, message) {
+        //
+        //    {
+        //        "event": "unsubscribe",
+        //        "channel": "trades",
+        //        "symbols": [ "ETH_USDT", "BTC_USDT" ]
+        //    }
+        //
+        const channel = this.safeString(message, 'channel', '');
+        const marketIds = this.safeList(message, 'symbols', []);
+        const timeframes = this.safeDict(this.options, 'timeframes', {});
+        const timeframe = this.findTimeframe(channel, timeframes);
+        for (let i = 0; i < marketIds.length; i++) {
+            const symbol = this.safeSymbol(this.safeString(marketIds, i));
+            const subMessageHash = channel + '::' + symbol;
+            if (channel === 'trades') {
+                this.cleanCache({ 'topic': 'trades', 'symbols': [symbol] });
+                this.cleanUnsubscription(client, subMessageHash, 'unsubscribe:' + subMessageHash);
+            }
+            else if (timeframe !== undefined) {
+                this.cleanCache({ 'topic': 'ohlcv', 'symbolsAndTimeframes': [[symbol, timeframe]] });
+                this.cleanUnsubscription(client, subMessageHash, 'unsubscribe:' + subMessageHash);
             }
         }
     }
@@ -1418,9 +1526,9 @@ class poloniex extends poloniex$1["default"] {
         //    }
         //
         const data = this.safeDict(message, 'data');
-        const success = this.safeBool(data, 'success');
+        const success = this.safeBool(data, 'success', false);
         const messageHash = 'authenticated';
-        if (success === true) {
+        if (success) {
             client.resolve(message, messageHash);
         }
         else {

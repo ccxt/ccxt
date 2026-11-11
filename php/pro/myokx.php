@@ -8,7 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 
 class myokx extends \ccxt\pro\okx {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'myokx',
             'name' => 'MyOKX (EEA)',

@@ -87,7 +87,9 @@ class modetrade extends modetrade$1["default"] {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': true,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -563,11 +565,11 @@ class modetrade extends modetrade$1["default"] {
         const quoteId = this.safeString(parts, 2);
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
-        if ((base === undefined) || (quote === undefined)) {
-            return undefined;
-        }
         const settleId = this.safeString(parts, 2);
         const settle = this.safeCurrencyCode(settleId);
+        if ((base === undefined) || (quote === undefined) || (settle === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote + ':' + settle;
         return this.safeMarketStructure({
             'id': marketId,
@@ -804,7 +806,8 @@ class modetrade extends modetrade$1["default"] {
         //         "is_maker": "1"
         //     }
         //
-        const isFromFetchOrder = ('id' in trade);
+        const id = this.safeString(trade, 'id');
+        const isFromFetchOrder = id !== undefined;
         const timestamp = this.safeInteger(trade, 'executed_timestamp');
         const marketId = this.safeString(trade, 'symbol');
         const marketResolved = this.safeMarket(marketId, market);
@@ -815,7 +818,6 @@ class modetrade extends modetrade$1["default"] {
         const fee = this.parseTokenAndFeeTemp(trade, 'fee_asset', 'fee');
         const cost = Precise["default"].stringMul(price, amount);
         const side = this.safeStringLower(trade, 'side');
-        const id = this.safeString(trade, 'id');
         let takerOrMaker = undefined;
         if (isFromFetchOrder) {
             const isMaker = this.safeString(trade, 'is_maker') === '1';
@@ -1082,8 +1084,7 @@ class modetrade extends modetrade$1["default"] {
                 'datetime': this.iso8601(timestamp),
             });
         }
-        const sorted = this.sortBy(rates, 'timestamp');
-        return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit);
+        return this.filterBySymbolSinceLimit(this.sortBy(rates, 'timestamp'), symbolResolved, since, limit);
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -1212,6 +1213,86 @@ class modetrade extends modetrade$1["default"] {
             result.push(this.parseTicker(ticker));
         }
         return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
+    }
+    parseOpenInterest(interest, market = undefined) {
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDC",
+        //         "index_price": 81559.8,
+        //         "mark_price": 81542.2,
+        //         "open_interest": 42.65602,
+        //         "24h_open": 81606.8,
+        //         "24h_close": 81518.1,
+        //         "24h_high": 81706.7,
+        //         "24h_low": 81069.9,
+        //         "24h_volume": 65.48965,
+        //         "24h_amount": 5333323.390584
+        //     }
+        //
+        const marketId = this.safeString(interest, 'symbol');
+        const marketResolved = this.safeMarket(marketId, market);
+        const timestamp = this.safeInteger(interest, 'timestamp');
+        return this.safeOpenInterest({
+            'symbol': marketResolved['symbol'],
+            'openInterestAmount': this.safeNumber(interest, 'open_interest'),
+            'openInterestValue': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'info': interest,
+        }, marketResolved);
+    }
+    /**
+     * @method
+     * @name modetrade#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    async fetchOpenInterest(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.v1PublicGetPublicFuturesSymbol(this.extend(request, params));
+        const data = this.safeDict(response, 'data', {});
+        const timestamp = this.safeInteger(response, 'timestamp');
+        const interest = this.extend({ 'timestamp': timestamp }, data);
+        return this.parseOpenInterest(interest, market);
+    }
+    /**
+     * @method
+     * @name modetrade#fetchOpenInterests
+     * @description retrieves the open interest for a list of contract trading pairs
+     * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    async fetchOpenInterests(symbols = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const symbolsNormalized = this.marketSymbols(symbols);
+        const response = await this.v1PublicGetPublicFutures(params);
+        const data = this.safeDict(response, 'data', {});
+        const rows = this.safeList(data, 'rows', []);
+        const timestamp = this.safeInteger(response, 'timestamp');
+        const result = [];
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const marketId = this.safeString(row, 'symbol', '');
+            if ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id)) {
+                continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
+            }
+            const interest = this.extend({ 'timestamp': timestamp }, row);
+            result.push(this.parseOpenInterest(interest));
+        }
+        return this.indexBy(this.filterByArray(result, 'symbol', symbolsNormalized, false), 'symbol');
     }
     parseIncome(income, market = undefined) {
         //
@@ -1723,7 +1804,7 @@ class modetrade extends modetrade$1["default"] {
                 'algo_type': 'POSITIONAL_TP_SL',
                 'child_orders': [],
             };
-            const childOrders = outterOrder['child_orders'];
+            const childOrders = [];
             let closeSide = 'BUY';
             if (orderSide === 'BUY') {
                 closeSide = 'SELL';
@@ -1750,6 +1831,7 @@ class modetrade extends modetrade$1["default"] {
                 };
                 childOrders.push(takeProfitOrder);
             }
+            outterOrder['child_orders'] = childOrders;
             request['child_orders'] = [outterOrder];
         }
         const paramsOmitted = this.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit']);
@@ -2541,7 +2623,7 @@ class modetrade extends modetrade$1["default"] {
         //     }
         // }
         //
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         return this.parseBalance(data);
     }
     async getAssetHistoryRows(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2552,7 +2634,7 @@ class modetrade extends modetrade$1["default"] {
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
-            request['token'] = currency['id'];
+            request['token'] = this.safeString(currency, 'id');
         }
         if (since !== undefined) {
             request['start_t'] = since;
@@ -2815,16 +2897,15 @@ class modetrade extends modetrade$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeDict(response, 'data', {});
-        return this.safeNumber(data, 'withdraw_nonce');
+        return this.safeNumber(this.safeDict(response, 'data', {}), 'withdraw_nonce');
     }
     hashMessage(message) {
         return '0x' + this.hash(message, sha3_js.keccak_256, 'hex');
     }
     signHash(hash, privateKey) {
         const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
-        const r = signature['r'];
-        const s = signature['s'];
+        const r = this.safeString(signature, 'r', '');
+        const s = this.safeString(signature, 's', '');
         const v = this.intToBase16(this.sum(27, signature['v']));
         return '0x' + r.padStart(64, '0') + s.padStart(64, '0') + v;
     }
@@ -2885,7 +2966,7 @@ class modetrade extends modetrade$1["default"] {
             'chainId': this.parseToInt(chainId),
             'receiver': address,
             'token': codeUpper,
-            'amount': amount.toString(),
+            'amount': this.numberToString(amount),
             'withdrawNonce': withdrawNonce,
             'timestamp': nonce,
         };
@@ -3195,9 +3276,11 @@ class modetrade extends modetrade$1["default"] {
                     const brokerId = this.safeString(this.options, 'brokerId', 'CCXTMODE');
                     if (path === 'batch-order') {
                         const ordersList = this.safeList(paramsSorted, 'orders', []);
+                        const taggedOrders = [];
                         for (let i = 0; i < ordersList.length; i++) {
-                            paramsSorted['orders'][i]['order_tag'] = brokerId;
+                            taggedOrders.push(this.extend(this.safeDict(ordersList, i, {}), { 'order_tag': brokerId }));
                         }
+                        paramsSorted['orders'] = taggedOrders;
                     }
                     else {
                         paramsSorted['order_tag'] = brokerId;
@@ -3208,19 +3291,18 @@ class modetrade extends modetrade$1["default"] {
             if (isPostOrPut && isOrder) {
                 paramsSigned = this.keysort(paramsSorted);
             }
-            let auth = '';
             const ts = this.nonce().toString();
             url += pathWithParams;
             let apiKey = this.apiKey;
-            if (apiKey.indexOf('ed25519:') < 0) {
-                apiKey = 'ed25519:' + apiKey;
+            if (this.apiKey.indexOf('ed25519:') < 0) {
+                apiKey = 'ed25519:' + this.apiKey;
             }
             const signedHeaders = {
                 'orderly-account-id': this.accountId,
                 'orderly-key': apiKey,
                 'orderly-timestamp': ts,
             };
-            auth = ts + method + '/' + version + '/' + pathWithParams;
+            let auth = ts + method + '/' + version + '/' + pathWithParams;
             let signedBody = undefined;
             if (method === 'POST' || method === 'PUT') {
                 signedBody = this.json(paramsSigned);
@@ -3236,8 +3318,8 @@ class modetrade extends modetrade$1["default"] {
                 signedBody = (method === 'DELETE') ? '' : undefined;
             }
             let secret = this.secret;
-            if (secret.indexOf('ed25519:') >= 0) {
-                const parts = secret.split('ed25519:');
+            if (this.secret.indexOf('ed25519:') >= 0) {
+                const parts = this.secret.split('ed25519:');
                 secret = parts[1];
             }
             const signature = crypto.eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519_js.ed25519);
@@ -3246,7 +3328,7 @@ class modetrade extends modetrade$1["default"] {
         }
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((response === undefined) || (response === null)) {
             return undefined; // fallback to default error handler
         }
@@ -3254,9 +3336,9 @@ class modetrade extends modetrade$1["default"] {
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        const success = this.safeBool(response, 'success');
+        const success = this.safeBool(response, 'success', false);
         const errorCode = this.safeString(response, 'code');
-        if (success !== true) {
+        if (!success) {
             const feedback = this.id + ' ' + this.json(response);
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);

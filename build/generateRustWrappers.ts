@@ -283,7 +283,7 @@ function mapReturnType(name: string, tsReturn: string): { rustReturn: string, de
             // pushed back to the Value-returning `call_raw`.
             return {
                 rustReturn: 'Vec<OHLCV>',
-                decode: v => `match ${v} { Value::Arr(arr) => arr.iter().map(|c| { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(|x| x.as_f64()) { *slot = f; } } } out }).collect(), _ => Vec::new() }`,
+                decode: v => `match ${v} { Value::Arr(arr) => { let mut rows = Vec::new(); for c in arr.iter() { let mut out = [0.0f64; 6]; if let Value::Arr(fields) = c { for (i, slot) in out.iter_mut().enumerate() { if let Some(f) = fields.get(i).and_then(Value::as_f64) { *slot = f; } } } rows.push(out); } rows }, _ => Vec::new() }`,
             };
         }
         if (elem === 'string') {
@@ -403,13 +403,13 @@ function mapParamType(p: any): ParamInfo | null {
             return {
                 name, isOptional: true,
                 rustType: `Option<Vec<String>>`,
-                toValueExpr: `match ${name} { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(|s| Value::Str(s.into())).collect())), None => Value::Null }`,
+                toValueExpr: `match ${name} { Some(list) => Value::Arr(std::sync::Arc::new(list.into_iter().map(Value::from).collect())), None => Value::Null }`,
             };
         }
         return {
             name, isOptional: false,
             rustType: `Vec<String>`,
-            toValueExpr: `Value::Arr(std::sync::Arc::new(${name}.into_iter().map(|s| Value::Str(s.into())).collect()))`,
+            toValueExpr: `Value::Arr(std::sync::Arc::new(${name}.into_iter().map(Value::from).collect()))`,
         };
     }
     // Unknown / object — pass through as `Value`. Honour the TS optionality

@@ -185,7 +185,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('GetAccountInfo', [ 'private' ], 'GET', params, { 'cost': 1 });
     }
 
-    privateGetGetAccountPositions (params = {}): Promise<Dict> {
+    privateGetGetAccountPositions (params = {}): Promise<List> {
         return this.request ('GetAccountPositions', [ 'private' ], 'GET', params, { 'cost': 1 });
     }
 

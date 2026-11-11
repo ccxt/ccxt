@@ -8,6 +8,7 @@ import (
 	"math/rand/v2"
 	"os"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -485,6 +486,9 @@ func main() {
 				parameters = append(parameters, true)
 			} else if arg == "false" {
 				parameters = append(parameters, false)
+			} else if numeric, isNumeric := parseNumericArg(arg); isNumeric {
+				// mirror the ts cli: "123" -> int, "0.5" -> float, so the typed args (amount, price, since, limit) are accepted
+				parameters = append(parameters, numeric)
 			} else {
 				parameters = append(parameters, arg)
 			}
@@ -528,7 +532,11 @@ func main() {
 		SetCredentials(instance)
 	}
 
-	<-instance.LoadMarkets()
+	loaded := <-instance.LoadMarketsAsync()
+	if loaded.Err != nil {
+		fmt.Println(Red + loaded.Err.Error() + Reset)
+		os.Exit(1)
+	}
 
 	before := time.Now().UnixMilli()
 	for true {
@@ -547,4 +555,30 @@ func main() {
 
 	fmt.Println("Execution time: ", Yellow, after-before, "ms", Reset)
 
+}
+
+// parseNumericArg converts a positional cli argument that looks like a number, like the ts cli does
+func parseNumericArg(arg string) (any, bool) {
+	if arg == "" {
+		return nil, false
+	}
+	if isDigitsOnly(arg) {
+		if asInt, err := strconv.ParseInt(arg, 10, 64); err == nil {
+			return asInt, true
+		}
+		return nil, false
+	}
+	if asFloat, err := strconv.ParseFloat(arg, 64); err == nil {
+		return asFloat, true
+	}
+	return nil, false
+}
+
+func isDigitsOnly(arg string) bool {
+	for _, c := range arg {
+		if c < '0' || c > '9' {
+			return false
+		}
+	}
+	return true
 }

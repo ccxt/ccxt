@@ -16,22 +16,22 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestFetchOpenOrders extends BaseTest {
-    public CompletableFuture<Object> testFetchOpenOrders(BaseExchange exchange, Object skippedProperties, Object symbol)
+    public CompletableFuture<Object> testFetchOpenOrders(BaseExchange exchange, Object skippedProperties, String symbol)
     {
 
         return BaseExchange.supplyAsync(() -> {
 
         String method = "fetchOpenOrders";
-        Object orders = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOpenOrders", new Object[]{Helpers.toStringArg(symbol), (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
+        Object orders = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOpenOrders", new Object[]{symbol, (Long) null, (Long) null, new HashMap<String, Object>() {{}}})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, orders, symbol);
         Object now = exchange.milliseconds();
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
             Object order = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
-            TestOrder.testOrder(exchange, skippedProperties, method, order, symbol, now);
+            TestOrder.testOrder(exchange, skippedProperties, method, order, (String) (symbol), now);
             TestSharedMethods.AssertInArray(exchange, skippedProperties, method, order, "status", new ArrayList<Object>(Arrays.asList("open")));
         }
-        TestSharedMethods.AssertTimestampOrder(exchange, method, symbol, orders);
+        TestSharedMethods.AssertTimestampOrder(exchange, method, (String) (symbol), orders);
         return true;
         });
 

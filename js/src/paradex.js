@@ -9,7 +9,7 @@ import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { Precise } from './base/Precise.js';
 import Exchange from './abstract/paradex.js';
-import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest, ArgumentsRequired, BadSymbol, OperationRejected, InvalidOrder } from './base/errors.js';
+import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest, ArgumentsRequired, BadSymbol, OperationRejected, InvalidOrder, OrderNotFound, DuplicateOrderId, ExchangeNotAvailable, AccountNotEnabled, AccountSuspended, OnMaintenance, RateLimitExceeded, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ecdsa } from './base/functions/crypto.js';
 //  ---------------------------------------------------------------------------
@@ -32,7 +32,7 @@ export default class paradex extends Exchange {
             'dex': true,
             'has': {
                 'CORS': undefined,
-                'spot': false,
+                'spot': true,
                 'margin': false,
                 'swap': true,
                 'future': false,
@@ -311,44 +311,63 @@ export default class paradex extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    'VALIDATION_ERROR': AuthenticationError,
-                    'BINDING_ERROR': OperationRejected,
+                    'VALIDATION_ERROR': BadRequest,
+                    'BINDING_ERROR': BadRequest,
                     'INTERNAL_ERROR': ExchangeError,
                     'NOT_FOUND': BadRequest,
-                    'SERVICE_UNAVAILABLE': ExchangeError,
+                    'SERVICE_UNAVAILABLE': ExchangeNotAvailable,
                     'INVALID_REQUEST_PARAMETER': BadRequest,
-                    'ORDER_ID_NOT_FOUND': InvalidOrder,
+                    'ORDER_ID_NOT_FOUND': OrderNotFound,
                     'ORDER_IS_CLOSED': InvalidOrder,
-                    'ORDER_IS_NOT_OPEN_YET': InvalidOrder,
-                    'CLIENT_ORDER_ID_NOT_FOUND': InvalidOrder,
-                    'DUPLICATED_CLIENT_ID': InvalidOrder,
-                    'INVALID_PRICE_PRECISION': OperationRejected,
-                    'INVALID_SYMBOL': OperationRejected,
-                    'INVALID_TOKEN': OperationRejected,
+                    'ORDER_IS_NOT_OPEN': InvalidOrder,
+                    'INVALID_PRICE_PRECISION': InvalidOrder,
+                    'INVALID_ORDER_SIZE': InvalidOrder,
+                    'CLIENT_ORDER_ID_NOT_FOUND': OrderNotFound,
+                    'ALGO_ID_NOT_FOUND': OrderNotFound,
+                    'DUPLICATED_CLIENT_ID': DuplicateOrderId,
+                    'INVALID_SYMBOL': BadSymbol,
+                    'INVALID_TOKEN': AuthenticationError,
+                    'INVALID_TOKEN_SCOPE': PermissionDenied,
                     'INVALID_ETHEREUM_ADDRESS': OperationRejected,
-                    'INVALID_ETHEREUM_SIGNATURE': OperationRejected,
+                    'INVALID_ETHEREUM_SIGNATURE': AuthenticationError,
+                    'INVALID_EVM_SIGNATURE': AuthenticationError,
                     'INVALID_STARKNET_ADDRESS': OperationRejected,
-                    'INVALID_STARKNET_SIGNATURE': OperationRejected,
+                    'INVALID_STARKNET_SIGNATURE': AuthenticationError,
                     'STARKNET_SIGNATURE_VERIFICATION_FAILED': AuthenticationError,
+                    'EVM_SIGNATURE_VERIFICATION_FAILED': AuthenticationError,
+                    'INVALID_SUBKEY': AuthenticationError,
+                    'SUBKEY_REVOKED': AuthenticationError,
                     'BAD_STARKNET_REQUEST': BadRequest,
                     'ETHEREUM_SIGNER_MISMATCH': BadRequest,
                     'ETHEREUM_HASH_MISMATCH': BadRequest,
-                    'NOT_ONBOARDED': BadRequest,
+                    'NOT_ONBOARDED': AccountNotEnabled,
                     'INVALID_TIMESTAMP': BadRequest,
-                    'INVALID_SIGNATURE_EXPIRATION': AuthenticationError,
+                    'INVALID_BLOCK_EXPIRATION': AuthenticationError,
                     'ACCOUNT_NOT_FOUND': AuthenticationError,
                     'INVALID_ORDER_SIGNATURE': AuthenticationError,
                     'PUBLIC_KEY_INVALID': BadRequest,
                     'UNAUTHORIZED_ETHEREUM_ADDRESS': BadRequest,
+                    'UNAUTHORIZED_ERROR': PermissionDenied,
+                    'NO_ACCESS_TO_MARKET': PermissionDenied,
+                    'IP_NOT_ALLOWED': PermissionDenied,
+                    'RPI_ACCOUNT_NOT_WHITELISTED': PermissionDenied,
                     'ETHEREUM_ADDRESS_ALREADY_ONBOARDED': BadRequest,
-                    'MARKET_NOT_FOUND': BadRequest,
+                    'MARKET_NOT_FOUND': BadSymbol,
                     'ALLOWLIST_ENTRY_NOT_FOUND': BadRequest,
                     'USERNAME_IN_USE': AuthenticationError,
                     'GEO_IP_BLOCK': PermissionDenied,
-                    'ETHEREUM_ADDRESS_BLOCKED': PermissionDenied,
+                    'ETHEREUM_ADDRESS_BLOCKED': AccountSuspended,
                     'PROGRAM_NOT_FOUND': BadRequest,
                     'INVALID_DASHBOARD': OperationRejected,
                     'MARKET_NOT_OPEN': BadRequest,
+                    'SYSTEM_STATUS_CANCEL_ONLY': OnMaintenance,
+                    'SYSTEM_STATUS_POST_ONLY': OperationRejected,
+                    'MMP_CONFIG_INVALID': OperationRejected,
+                    'MMP_NOT_ENABLED': OperationRejected,
+                    'MMP_NOT_CONFIGURED': OperationRejected,
+                    'MMP_MIN_FREEZE_NOT_ELAPSED': OperationRejected,
+                    'ONBOARDING_RATE_LIMITED': RateLimitExceeded,
+                    'RFQ_CREATE_BUDGET_EXCEEDED': RateLimitExceeded,
                     'INVALID_REFERRAL_CODE': OperationRejected,
                     'PARENT_ADDRESS_ALREADY_ONBOARDED': BadRequest,
                     'INVALID_PARENT_ACCOUNT': OperationRejected,
@@ -367,8 +386,15 @@ export default class paradex extends Exchange {
                     '40110': AuthenticationError, // Malformed Bearer Token
                     '40111': AuthenticationError, // Invalid Bearer Token
                     '40112': PermissionDenied, // Geo IP blocked
+                    '40300': PermissionDenied, // Permission denied
+                    '40301': NotSupported, // SBE encoding required
+                    '42900': OperationRejected, // Max subscriptions per connection, a retry does not help until a channel is unsubscribed
+                    '42901': RateLimitExceeded, // Rate limited
                 },
                 'broad': {
+                    // INVALID_REQUEST_PARAMETER is shared by every validation failure, its message tells them apart
+                    'must be a multiple of': InvalidOrder,
+                    'market not found': BadSymbol,
                     'missing or malformed jwt': AuthenticationError,
                 },
             },
@@ -379,7 +405,16 @@ export default class paradex extends Exchange {
                 'broker': 'CCXT',
             },
             'features': {
-                'spot': undefined,
+                'spot': {
+                    'extends': 'forSwap',
+                    'createOrder': {
+                        // spot takes limit and market orders only, no trigger, stop loss or take profit types
+                        'triggerPrice': false,
+                        'triggerDirection': false,
+                        'stopLossPrice': false,
+                        'takeProfitPrice': false,
+                    },
+                },
                 'forSwap': {
                     'sandbox': true,
                     'createOrder': {
@@ -618,26 +653,54 @@ export default class paradex extends Exchange {
         //     ]
         //  }
         //
+        // spot
+        //
+        //     {
+        //         "symbol": "ETH-USD",
+        //         "base_currency": "ETH",
+        //         "quote_currency": "USD",
+        //         "settlement_currency": "USDC",
+        //         "order_size_increment": "0.0001",
+        //         "price_tick_size": "0.01",
+        //         "min_notional": "10",
+        //         "asset_kind": "SPOT",
+        //         "market_kind": "cross",
+        //         ...
+        //     }
+        //
         const assetKind = this.safeString(market, 'asset_kind');
+        const isSpot = (assetKind === 'SPOT');
         const isOptionPerpetual = (assetKind === 'PERP_OPTION');
         const isOptionDelivery = (assetKind === 'OPTION');
         const isOption = isOptionPerpetual || isOptionDelivery;
         let type = 'swap';
-        if (isOption) {
+        if (isSpot) {
+            type = 'spot';
+        }
+        else if (isOption) {
             type = 'option';
         }
         const isSwap = (type === 'swap');
         const marketId = this.safeString(market, 'symbol');
-        const quoteId = this.safeString(market, 'quote_currency');
+        let quoteId = this.safeString(market, 'quote_currency');
         const baseId = this.safeString(market, 'base_currency');
+        let settleId = this.safeString(market, 'settlement_currency');
+        if (isSpot) {
+            // spot is quoted in "USD" but paid and received in the settlement token (USDC),
+            // a spot market has no settle, so the token it trades against is the quote
+            quoteId = settleId;
+            settleId = undefined;
+        }
         const quote = this.safeCurrencyCode(quoteId);
         const base = this.safeCurrencyCode(baseId);
         if ((base === undefined) || (quote === undefined)) {
             return undefined;
         }
-        const settleId = this.safeString(market, 'settlement_currency');
         const settle = this.safeCurrencyCode(settleId);
-        let symbol = base + '/' + quote + ':' + settle;
+        let symbol = base + '/' + quote;
+        if (!isSpot && (settle !== undefined)) {
+            symbol = symbol + ':' + settle;
+        }
         let expiry = this.safeInteger(market, 'expiry_at');
         const optionType = this.safeString(market, 'option_type');
         const strikePrice = this.safeString(market, 'strike_price');
@@ -645,8 +708,13 @@ export default class paradex extends Exchange {
         let makerFee = this.parseNumber('-0.00005');
         if (isOption) {
             const optionTypeSuffix = (optionType === 'CALL') ? 'C' : 'P';
-            const deliveryValue = (expiry === 0) ? '' : this.yymmdd(expiry) + '-';
-            symbol = symbol + '-' + deliveryValue + strikePrice + '-' + optionTypeSuffix;
+            let deliveryValue = '';
+            if (expiry !== 0) {
+                deliveryValue = this.yymmdd(expiry) + '-';
+            }
+            if (strikePrice !== undefined) {
+                symbol = symbol + '-' + deliveryValue + strikePrice + '-' + optionTypeSuffix;
+            }
             makerFee = this.parseNumber('0.0003');
         }
         else {
@@ -663,18 +731,18 @@ export default class paradex extends Exchange {
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': false,
+            'spot': isSpot,
             'margin': undefined,
             'swap': isSwap,
             'future': false,
             'option': isOption,
             'active': this.safeBool(market, 'enableTrading'),
-            'contract': true,
-            'linear': true,
-            'inverse': false,
+            'contract': !isSpot,
+            'linear': (isSpot) ? undefined : true,
+            'inverse': (isSpot) ? undefined : false,
             'taker': takerFee,
             'maker': makerFee,
-            'contractSize': this.parseNumber('1'),
+            'contractSize': (isSpot) ? undefined : this.parseNumber('1'),
             'expiry': expiry,
             'expiryDatetime': expireDatetime,
             'strike': this.parseNumber(strikePrice),
@@ -836,7 +904,7 @@ export default class paradex extends Exchange {
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
-     * @param {string} [params.price] "last", "mark", "index", default is "last"
+     * @param {string} [params.price] "last", "mark", "index" (sent as "underlying"), default is "last"
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -851,7 +919,8 @@ export default class paradex extends Exchange {
         const duration = this.parseTimeframe(timeframe);
         const price = this.safeString(params, 'price');
         if (price !== undefined) {
-            request['price_kind'] = price;
+            // the exchange names the index price "underlying" and rejects "index"
+            request['price_kind'] = (price === 'index') ? 'underlying' : price;
         }
         const [requestUntil, paramsUntil] = this.handleUntilOption('end_at', request, params);
         const hasEnd = ('end_at' in request);
@@ -867,7 +936,7 @@ export default class paradex extends Exchange {
             }
         }
         else {
-            const endAtRaw = hasEnd ? this.safeInteger(requestUntil, 'end_at', 0) : this.milliseconds();
+            const endAtRaw = this.safeInteger(requestUntil, 'end_at', this.milliseconds());
             const endAt = this.parseToInt(endAtRaw);
             requestUntil['end_at'] = endAt;
             requestUntil['start_at'] = endAt - windowLength + 1;
@@ -1335,7 +1404,7 @@ export default class paradex extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (market['contract'] !== true) {
+        if (!this.safeBool(market, 'contract', false)) {
             throw new BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const request = {
@@ -1424,14 +1493,14 @@ export default class paradex extends Exchange {
         if (l1) {
             const l1D = {
                 'name': 'Paradex',
-                'chainId': systemConfig['l1_chain_id'],
+                'chainId': this.safeString(systemConfig, 'l1_chain_id'),
                 'version': '1',
             };
             return l1D;
         }
         const domain = {
             'name': 'Paradex',
-            'chainId': systemConfig['starknet_chain_id'],
+            'chainId': this.safeString(systemConfig, 'starknet_chain_id'),
             'version': 1,
         };
         return domain;
@@ -1451,7 +1520,7 @@ export default class paradex extends Exchange {
             };
             const msg = this.ethEncodeStructuredData(domain, messageTypes, message);
             const signature = this.signMessage(msg, this.privateKey);
-            const account = this.retrieveStarkAccount(signature, systemConfig['paraclear_account_hash'], systemConfig['paraclear_account_proxy_hash']);
+            const account = this.retrieveStarkAccount(signature, this.safeString(systemConfig, 'paraclear_account_hash'), this.safeString(systemConfig, 'paraclear_account_proxy_hash'));
             this.options['paradexAccount'] = account;
         }
         return this.safeDict(this.options, 'paradexAccount', {});
@@ -1467,11 +1536,11 @@ export default class paradex extends Exchange {
                 { 'name': 'action', 'type': 'felt' },
             ],
         };
-        const msg = this.starknetEncodeStructuredData(domain, messageTypes, req, account['address']);
+        const msg = this.starknetEncodeStructuredData(domain, messageTypes, req, this.safeString(account, 'address'));
         const signature = this.starknetSign(msg, account['privateKey']);
         params['signature'] = signature;
-        params['account'] = account['address'];
-        params['public_key'] = account['publicKey'];
+        params['account'] = this.safeString(account, 'address');
+        params['public_key'] = this.safeString(account, 'publicKey');
         const response = await this.privatePostOnboarding(params);
         return response;
     }
@@ -1507,10 +1576,10 @@ export default class paradex extends Exchange {
                 { 'name': 'expiration', 'type': 'felt' },
             ],
         };
-        const msg = this.starknetEncodeStructuredData(domain, messageTypes, req, account['address']);
+        const msg = this.starknetEncodeStructuredData(domain, messageTypes, req, this.safeString(account, 'address'));
         const signature = this.starknetSign(msg, account['privateKey']);
         params['signature'] = signature;
-        params['account'] = account['address'];
+        params['account'] = this.safeString(account, 'address');
         params['timestamp'] = req['timestamp'];
         params['expiration'] = req['expiration'];
         const response = await this.privatePostAuth(params);
@@ -1580,6 +1649,21 @@ export default class paradex extends Exchange {
         const average = this.omitZero(this.safeString(order, 'avg_fill_price'));
         const remaining = this.omitZero(this.safeString(order, 'remaining_size'));
         const triggerPrice = this.omitZero(this.safeString(order, 'trigger_price'));
+        let stopLossPrice = undefined;
+        let takeProfitPrice = undefined;
+        if (orderType !== undefined) {
+            if (orderType.indexOf('STOP_LOSS') >= 0) {
+                stopLossPrice = triggerPrice;
+            }
+            else if (orderType.indexOf('TAKE_PROFIT') >= 0) {
+                takeProfitPrice = triggerPrice;
+            }
+        }
+        const timeInForce = this.parseTimeInForce(this.safeString(order, 'instruction'));
+        let postOnly = undefined;
+        if (timeInForce !== undefined) {
+            postOnly = (timeInForce === 'PO');
+        }
         const lastUpdateTimestamp = this.safeInteger(order, 'last_updated_at');
         const flags = this.safeList(order, 'flags');
         let reduceOnly = undefined;
@@ -1596,14 +1680,14 @@ export default class paradex extends Exchange {
             'status': this.parseOrderStatus(status),
             'symbol': symbol,
             'type': this.parseOrderType(orderType),
-            'timeInForce': this.parseTimeInForce(this.safeString(order, 'instruction')),
-            'postOnly': undefined,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
             'triggerPrice': triggerPrice,
-            'takeProfitPrice': undefined,
-            'stopLossPrice': undefined,
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
             'average': average,
             'amount': amount,
             'filled': undefined,
@@ -1622,6 +1706,7 @@ export default class paradex extends Exchange {
             'IOC': 'IOC',
             'GTC': 'GTC',
             'POST_ONLY': 'PO',
+            'RPI': 'PO', // retail price improvement orders only rest on the book, the raw instruction stays in info
         };
         return this.safeString(timeInForces, timeInForce);
     }
@@ -1643,11 +1728,29 @@ export default class paradex extends Exchange {
             'MARKET': 'market',
             'STOP_LIMIT': 'limit',
             'STOP_MARKET': 'market',
+            'STOP_LOSS_LIMIT': 'limit',
+            'STOP_LOSS_MARKET': 'market',
+            'TAKE_PROFIT_LIMIT': 'limit',
+            'TAKE_PROFIT_MARKET': 'market',
         };
         return this.safeStringLower(types, type, type);
     }
     scaleNumber(num) {
         return Precise.stringMul(num, '100000000');
+    }
+    encodeTimeInForce(timeInForce) {
+        const timeInForces = {
+            'GTC': 'GTC',
+            'IOC': 'IOC',
+            'PO': 'POST_ONLY',
+            'POST_ONLY': 'POST_ONLY',
+            'RPI': 'RPI',
+        };
+        const instruction = this.safeString(timeInForces, timeInForce);
+        if (instruction === undefined) {
+            throw new NotSupported(this.id + ' createOrder() does not support timeInForce ' + timeInForce + ', supported values are GTC, IOC, PO and RPI');
+        }
+        return instruction;
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         if (type === undefined) {
@@ -1664,7 +1767,6 @@ export default class paradex extends Exchange {
             'market': market['id'],
             'side': orderSide,
             'type': orderType, // LIMIT/MARKET/STOP_LIMIT/STOP_MARKET,STOP_LOSS_MARKET,STOP_LOSS_LIMIT,TAKE_PROFIT_MARKET,TAKE_PROFIT_LIMIT
-            'instruction': 'GTC',
         };
         const triggerPrice = this.safeString2(params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeString(params, 'stopLossPrice');
@@ -1675,62 +1777,59 @@ export default class paradex extends Exchange {
         const isStopOrder = (triggerPrice !== undefined) || isTakeProfitOrder || isStopLossOrder;
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
         const postOnly = this.isPostOnly(isMarket, undefined, params);
-        if (!isMarket) {
-            if (postOnly) {
-                request['instruction'] = 'POST_ONLY';
+        let instruction = 'GTC';
+        if (timeInForce !== undefined) {
+            instruction = this.encodeTimeInForce(timeInForce);
+        }
+        if (postOnly && (instruction !== 'RPI')) {
+            instruction = 'POST_ONLY';
+        }
+        if ((instruction === 'POST_ONLY') || (instruction === 'RPI')) {
+            // both instructions only rest on the book, the exchange rejects them on market and trigger orders
+            if (isMarket) {
+                throw new InvalidOrder(this.id + ' createOrder() market orders cannot be post only or RPI');
             }
-            else if (timeInForce === 'IOC') {
-                request['instruction'] = 'IOC';
+            if (isStopOrder) {
+                throw new InvalidOrder(this.id + ' createOrder() trigger, stop loss and take profit orders cannot be post only or RPI');
             }
         }
-        if (price !== undefined) {
+        request['instruction'] = instruction;
+        // the exchange requires the price to be omitted for every market order type
+        if ((price !== undefined) && !isMarket) {
             request['price'] = this.priceToPrecision(symbol, price);
         }
         const clientOrderId = this.safeStringN(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
         }
+        const [recvWindow, paramsRecvWindow] = this.handleOptionAndParams2(params, 'createOrder', 'recvWindow', 'recv_window');
+        if (recvWindow !== undefined) {
+            request['recv_window'] = this.parseToInt(recvWindow);
+        }
+        const isTakeProfitOrStopLoss = isStopLossOrder || isTakeProfitOrder;
         let sizeString = '0';
+        // a stop loss or take profit order with a size of 0 closes the whole position when triggered
+        if (!isTakeProfitOrStopLoss || ((amount !== undefined) && (amount > 0))) {
+            sizeString = this.amountToPrecision(symbol, amount);
+        }
         let stopPrice = undefined;
         if (isStopOrder) {
-            // flags: Reduce_Only must be provided for TPSL orders.
-            if (isMarket) {
-                if (isStopLossOrder) {
-                    stopPrice = this.priceToPrecision(symbol, stopLossPrice);
-                    reduceOnly = true;
-                    request['type'] = 'STOP_LOSS_MARKET';
-                }
-                else if (isTakeProfitOrder) {
-                    stopPrice = this.priceToPrecision(symbol, takeProfitPrice);
-                    reduceOnly = true;
-                    request['type'] = 'TAKE_PROFIT_MARKET';
-                }
-                else {
-                    stopPrice = this.priceToPrecision(symbol, triggerPrice);
-                    sizeString = this.amountToPrecision(symbol, amount);
-                    request['type'] = 'STOP_MARKET';
-                }
+            if (isTakeProfitOrStopLoss) {
+                // flags: Reduce_Only must be provided for TPSL orders.
+                reduceOnly = true;
+            }
+            if (isStopLossOrder) {
+                stopPrice = this.priceToPrecision(symbol, stopLossPrice);
+                request['type'] = (isMarket) ? 'STOP_LOSS_MARKET' : 'STOP_LOSS_LIMIT';
+            }
+            else if (isTakeProfitOrder) {
+                stopPrice = this.priceToPrecision(symbol, takeProfitPrice);
+                request['type'] = (isMarket) ? 'TAKE_PROFIT_MARKET' : 'TAKE_PROFIT_LIMIT';
             }
             else {
-                if (isStopLossOrder) {
-                    stopPrice = this.priceToPrecision(symbol, stopLossPrice);
-                    reduceOnly = true;
-                    request['type'] = 'STOP_LOSS_LIMIT';
-                }
-                else if (isTakeProfitOrder) {
-                    stopPrice = this.priceToPrecision(symbol, takeProfitPrice);
-                    reduceOnly = true;
-                    request['type'] = 'TAKE_PROFIT_LIMIT';
-                }
-                else {
-                    stopPrice = this.priceToPrecision(symbol, triggerPrice);
-                    sizeString = this.amountToPrecision(symbol, amount);
-                    request['type'] = 'STOP_LIMIT';
-                }
+                stopPrice = this.priceToPrecision(symbol, triggerPrice);
+                request['type'] = (isMarket) ? 'STOP_MARKET' : 'STOP_LIMIT';
             }
-        }
-        else {
-            sizeString = this.amountToPrecision(symbol, amount);
         }
         if (stopPrice !== undefined) {
             request['trigger_price'] = stopPrice;
@@ -1741,24 +1840,24 @@ export default class paradex extends Exchange {
                 'REDUCE_ONLY',
             ];
         }
-        const paramsOmitted = this.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
+        const paramsOmitted = this.omit(paramsRecvWindow, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'post_only', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice']);
         return this.extend(request, paramsOmitted);
     }
     async signOrderRequest(request, modify = false) {
         const account = await this.retrieveAccount();
-        const now = this.parseToInt(this.nonce());
+        const now = this.milliseconds();
         const orderType = this.safeString(request, 'type');
         if (orderType === undefined) {
             throw new ExchangeError(this.id + ' signOrderRequest() missing orderType');
         }
         const isMarket = (orderType.indexOf('MARKET') >= 0);
         const orderReq = {
-            'timestamp': now * 1000,
-            'market': this.stringToBase16(request['market']),
+            'timestamp': now,
+            'market': this.stringToBase16(this.safeString(request, 'market')),
             'side': (this.safeString(request, 'side') === 'BUY') ? '1' : '2',
-            'orderType': this.stringToBase16(request['type']),
-            'size': this.scaleNumber(request['size']),
-            'price': (isMarket) ? '0' : this.scaleNumber(request['price']),
+            'orderType': this.stringToBase16(this.safeString(request, 'type')),
+            'size': this.scaleNumber(this.safeString(request, 'size')),
+            'price': (isMarket) ? '0' : this.scaleNumber(this.safeString(request, 'price')),
         };
         const orderFields = [
             { 'name': 'timestamp', 'type': 'felt' },
@@ -1770,7 +1869,7 @@ export default class paradex extends Exchange {
         ];
         let messageTypes = {};
         if (modify) {
-            orderReq['id'] = request['id'];
+            orderReq['id'] = this.safeString(request, 'id');
             orderFields.push({ 'name': 'id', 'type': 'felt' });
             messageTypes = {
                 'ModifyOrder': orderFields,
@@ -1782,7 +1881,7 @@ export default class paradex extends Exchange {
             };
         }
         const domain = await this.prepareParadexDomain();
-        const msg = this.starknetEncodeStructuredData(domain, messageTypes, orderReq, account['address']);
+        const msg = this.starknetEncodeStructuredData(domain, messageTypes, orderReq, this.safeString(account, 'address'));
         const signature = this.starknetSign(msg, account['privateKey']);
         const signedRequest = this.extend(request, {
             'signature': signature,
@@ -1803,12 +1902,13 @@ export default class paradex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
-     * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
-     * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
-     * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
+     * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at, an amount of 0 closes the whole position
+     * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at, an amount of 0 closes the whole position
+     * @param {string} [params.timeInForce] "GTC", "IOC", "PO" or "RPI" (retail price improvement), "FOK" and "GTD" are not supported
      * @param {bool} [params.postOnly] true or false
      * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
      * @param {string} [params.clientOrderId] a unique id for the order
+     * @param {int} [params.recvWindow] the number of milliseconds after the signature timestamp the order is accepted for, the exchange applies its own default when omitted
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1861,18 +1961,21 @@ export default class paradex extends Exchange {
      * @param {string} type 'limit' or a TPSL order type
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of the currency you want to trade in units of the base currency
-     * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, required for limit orders and ignored for market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.stopPrice] alias for triggerPrice
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {float} [params.stopLossPrice] the price a stop loss order is triggered at
+     * @param {float} [params.takeProfitPrice] the price a take profit order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         if (amount === undefined) {
             throw new ArgumentsRequired(this.id + ' editOrder() requires an amount argument');
         }
-        if (price === undefined) {
-            throw new ArgumentsRequired(this.id + ' editOrder() requires a price argument');
+        const isMarket = (type !== undefined) && (type.toUpperCase() === 'MARKET');
+        if ((price === undefined) && !isMarket) {
+            throw new ArgumentsRequired(this.id + ' editOrder() requires a price argument for limit orders');
         }
         await this.authenticateRest();
         if (this.markets === undefined) {
@@ -1880,7 +1983,7 @@ export default class paradex extends Exchange {
         }
         const market = this.market(symbol);
         let request = this.createOrderRequest(symbol, type, side, amount, price, params);
-        request = this.omit(request, ['instruction', 'client_id', 'flags']);
+        request = this.omit(request, ['instruction', 'client_id', 'flags', 'recv_window']);
         request['order_id'] = id;
         request['id'] = id;
         request = await this.signOrderRequest(request, true);
@@ -1951,38 +2054,47 @@ export default class paradex extends Exchange {
         }
         const response = await this.privatePostOrdersBatch(ordersRequests);
         //
-        // {
-        //     "errors": [
-        //         {
-        //             "error": "VALIDATION_ERROR",
-        //             "message": "Invalid order"
-        //         }
-        //     ],
-        //     "orders": [
-        //         {
-        //             "id": "123456",
-        //             "market": "BTC-USD-PERP",
-        //             "side": "BUY",
-        //             "type": "LIMIT",
-        //             "price": "26000",
-        //             "size": "0.05",
-        //             "status": "NEW"
-        //         }
-        //     ]
-        // }
+        // orders and errors are index-aligned with the request, null where the other array has the entry
+        //
+        //     {
+        //         "errors": [
+        //             null,
+        //             {
+        //                 "error": "DUPLICATED_CLIENT_ID",
+        //                 "message": "duplicated client order id"
+        //             }
+        //         ],
+        //         "orders": [
+        //             {
+        //                 "id": "123456",
+        //                 "market": "BTC-USD-PERP",
+        //                 "side": "BUY",
+        //                 "type": "LIMIT",
+        //                 "price": "26000",
+        //                 "size": "0.05",
+        //                 "status": "NEW"
+        //             },
+        //             null
+        //         ]
+        //     }
         //
         const responseOrders = this.safeList(response, 'orders', []);
-        const parsedOrders = this.parseOrders(responseOrders);
         const errors = this.safeList(response, 'errors', []);
-        const rejected = [];
-        for (let i = 0; i < errors.length; i++) {
-            const error = errors[i];
-            rejected.push(this.safeOrder({
-                'info': error,
-                'status': 'rejected',
-            }));
+        const result = [];
+        for (let i = 0; i < orders.length; i++) {
+            const responseOrder = this.safeDict(responseOrders, i);
+            if (responseOrder !== undefined) {
+                result.push(this.parseOrder(responseOrder));
+            }
+            else {
+                const error = this.safeDict(errors, i);
+                result.push(this.safeOrder({
+                    'info': error,
+                    'status': 'rejected',
+                }));
+            }
         }
-        return this.arrayConcat(parsedOrders, rejected);
+        return result;
     }
     /**
      * @method
@@ -2035,7 +2147,7 @@ export default class paradex extends Exchange {
         }
         const clientOrderIds = this.safeListN(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
         const paramsOmitted = this.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
-        const hasOrderIds = (ids !== undefined) && (Array.isArray(ids));
+        const hasOrderIds = Array.isArray(ids);
         const hasClientOrderIds = (clientOrderIds !== undefined) && (Array.isArray(clientOrderIds));
         if (!hasOrderIds && !hasClientOrderIds) {
             throw new ArgumentsRequired(this.id + ' cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter');
@@ -2348,9 +2460,9 @@ export default class paradex extends Exchange {
         //     }
         //
         const data = this.safeList(response, 'results', []);
-        return this.parseBalance(data);
+        return this.parseBalanceList(data);
     }
-    parseBalance(response) {
+    parseBalanceList(response) {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = this.safeDict(response, i, {});
@@ -2432,7 +2544,7 @@ export default class paradex extends Exchange {
     /**
      * @method
      * @name paradex#fetchPosition
-     * @description fetch data on an open position
+     * @description fetch data on a single position, a closed one included
      * @see https://docs.paradex.trade/api/prod/account/get-positions
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2444,7 +2556,16 @@ export default class paradex extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const positions = await this.fetchPositions([market['symbol']], params);
+        const response = await this.privateGetPositions(params);
+        const data = this.safeList(response, 'results', []);
+        // unlike fetchPositions, a closed or flat position is kept so the market still gets a structured position
+        const matching = [];
+        for (let i = 0; i < data.length; i++) {
+            if (this.safeString(data[i], 'market') === market['id']) {
+                matching.push(data[i]);
+            }
+        }
+        const positions = this.parsePositions(matching, [market['symbol']]);
         return this.safeDict(positions, 0, {});
     }
     /**
@@ -2462,7 +2583,7 @@ export default class paradex extends Exchange {
             await this.loadMarkets();
         }
         const symbolsNormalized = this.marketSymbols(symbols);
-        const response = await this.privateGetPositions();
+        const response = await this.privateGetPositions(params);
         //
         //     {
         //         "results": [
@@ -2491,7 +2612,17 @@ export default class paradex extends Exchange {
         //     }
         //
         const data = this.safeList(response, 'results', []);
-        return this.parsePositions(data, symbolsNormalized);
+        // the endpoint keeps returning a market's position after it is closed, with a size of 0
+        const openPositions = [];
+        for (let i = 0; i < data.length; i++) {
+            const position = data[i];
+            const status = this.safeString(position, 'status');
+            const size = this.safeString(position, 'size');
+            if ((status !== 'CLOSED') && !Precise.stringEq(size, '0')) {
+                openPositions.push(position);
+            }
+        }
+        return this.parsePositions(openPositions, symbolsNormalized);
     }
     parsePosition(position, market = undefined) {
         //
@@ -2536,6 +2667,7 @@ export default class paradex extends Exchange {
             'notional': this.parseNumber(notionalString),
             'collateral': undefined, // cross margin is held at the account level, the position payload only carries its cost
             'unrealizedPnl': this.safeNumber(position, 'unrealized_pnl'),
+            'realizedPnl': this.safeNumber(position, 'realized_pnl'),
             'side': side,
             'contracts': this.parseNumber(quantity),
             'contractSize': undefined,
@@ -2550,7 +2682,7 @@ export default class paradex extends Exchange {
             'leverage': this.safeNumber(position, 'leverage'),
             'liquidationPrice': liquidationPrice,
             'marginRatio': undefined,
-            'marginMode': undefined,
+            'marginMode': 'cross', // isolated margin positions live on their own sub-account
             'percentage': undefined,
         });
     }
@@ -2638,8 +2770,13 @@ export default class paradex extends Exchange {
         }
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchDeposits', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchDeposits', code, since, limit, paramsPaginate, 'next', 'cursor', undefined, 100);
+            // a page can hold no deposit at all, which would end the pagination early, so every row is paginated and filtered afterwards
+            const transactions = await this.fetchPaginatedCallCursor('fetchDeposits', code, since, undefined, this.extend(paramsPaginate, { 'allKinds': true }), 'next', 'cursor', undefined, 100);
+            const transactionsOfKind = this.filterTransactionsByKind(transactions, 'DEPOSIT');
+            return this.filterBySinceLimit(transactionsOfKind, since, limit);
         }
+        const allKinds = this.safeBool(paramsPaginate, 'allKinds', false);
+        const paramsKinds = this.omit(paramsPaginate, 'allKinds');
         const request = {};
         if (limit !== undefined) {
             request['page_size'] = limit;
@@ -2647,7 +2784,7 @@ export default class paradex extends Exchange {
         if (since !== undefined) {
             request['start_at'] = since;
         }
-        const [requestUntil, paramsUntil] = this.handleUntilOption('end_at', request, paramsPaginate);
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end_at', request, paramsKinds);
         const response = await this.privateGetTransfers(this.extend(requestUntil, paramsUntil));
         //
         //     {
@@ -2671,10 +2808,15 @@ export default class paradex extends Exchange {
         //     }
         //
         const rows = this.safeList(response, 'results', []);
+        // the cursor pagination reads the next page cursor from the parsed entries
+        const next = this.safeString(response, 'next');
+        for (let i = 0; i < rows.length; i++) {
+            rows[i]['next'] = next;
+        }
         const deposits = [];
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
-            if (this.safeString(row, 'kind') === 'DEPOSIT') {
+            if (allKinds || (this.safeString(row, 'kind') === 'DEPOSIT')) {
                 deposits.push(row);
             }
         }
@@ -2700,8 +2842,13 @@ export default class paradex extends Exchange {
         }
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchWithdrawals', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchWithdrawals', code, since, limit, paramsPaginate, 'next', 'cursor', undefined, 100);
+            // a page can hold no withdrawal at all, which would end the pagination early, so every row is paginated and filtered afterwards
+            const transactions = await this.fetchPaginatedCallCursor('fetchWithdrawals', code, since, undefined, this.extend(paramsPaginate, { 'allKinds': true }), 'next', 'cursor', undefined, 100);
+            const transactionsOfKind = this.filterTransactionsByKind(transactions, 'WITHDRAWAL');
+            return this.filterBySinceLimit(transactionsOfKind, since, limit);
         }
+        const allKinds = this.safeBool(paramsPaginate, 'allKinds', false);
+        const paramsKinds = this.omit(paramsPaginate, 'allKinds');
         const request = {};
         if (limit !== undefined) {
             request['page_size'] = limit;
@@ -2709,7 +2856,7 @@ export default class paradex extends Exchange {
         if (since !== undefined) {
             request['start_at'] = since;
         }
-        const [requestUntil, paramsUntil] = this.handleUntilOption('end_at', request, paramsPaginate);
+        const [requestUntil, paramsUntil] = this.handleUntilOption('end_at', request, paramsKinds);
         const response = await this.privateGetTransfers(this.extend(requestUntil, paramsUntil));
         //
         //     {
@@ -2733,10 +2880,15 @@ export default class paradex extends Exchange {
         //     }
         //
         const rows = this.safeList(response, 'results', []);
+        // the cursor pagination reads the next page cursor from the parsed entries
+        const next = this.safeString(response, 'next');
+        for (let i = 0; i < rows.length; i++) {
+            rows[i]['next'] = next;
+        }
         const deposits = [];
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
-            if (this.safeString(row, 'kind') === 'WITHDRAWAL') {
+            if (allKinds || (this.safeString(row, 'kind') === 'WITHDRAWAL')) {
                 deposits.push(row);
             }
         }
@@ -2799,6 +2951,11 @@ export default class paradex extends Exchange {
         //     }
         //
         const rows = this.safeList(response, 'results', []);
+        // the cursor pagination reads the next page cursor from the parsed entries
+        const next = this.safeString(response, 'next');
+        for (let i = 0; i < rows.length; i++) {
+            rows[i]['next'] = next;
+        }
         return this.parseTransfers(rows, currency, since, limit);
     }
     parseTransfer(transfer, currency = undefined) {
@@ -2895,6 +3052,16 @@ export default class paradex extends Exchange {
             'fee': undefined,
         };
     }
+    filterTransactionsByKind(transactions, kind) {
+        const result = [];
+        for (let i = 0; i < transactions.length; i++) {
+            const info = this.safeDict(transactions[i], 'info');
+            if (this.safeString(info, 'kind') === kind) {
+                result.push(transactions[i]);
+            }
+        }
+        return result;
+    }
     parseTransactionStatus(status) {
         const statuses = {
             'PENDING': 'pending',
@@ -2956,7 +3123,7 @@ export default class paradex extends Exchange {
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.leverage] the rate of leverage
+     * @param {float} [params.leverage] the rate of leverage, the current leverage of the market is kept when omitted
      * @returns {object} response from the exchange
      */
     async setMarginMode(marginMode, symbol = undefined, params = {}) {
@@ -2966,11 +3133,19 @@ export default class paradex extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        const leverage = 1;
-        const [leverageOption, paramsLeverage] = this.handleOptionAndParams(params, 'setMarginMode', 'leverage', leverage);
+        const [leverageOption, paramsLeverage] = this.handleOptionAndParams(params, 'setMarginMode', 'leverage');
+        let leverage = leverageOption;
+        if (leverage === undefined) {
+            // the endpoint always sets the leverage too, keep the current one instead of resetting it
+            const currentLeverage = await this.fetchLeverage(symbol);
+            leverage = this.safeInteger(currentLeverage, 'longLeverage');
+            if (leverage === undefined) {
+                throw new ArgumentsRequired(this.id + ' setMarginMode() requires a params.leverage argument, the current leverage of ' + market['symbol'] + ' could not be fetched');
+            }
+        }
         const request = {
             'market': market['id'],
-            'leverage': leverageOption,
+            'leverage': leverage,
             'margin_type': this.encodeMarginMode(marginMode),
         };
         return await this.privatePostAccountMarginMarket(this.extend(request, paramsLeverage));
@@ -3284,6 +3459,11 @@ export default class paradex extends Exchange {
         // }
         //
         const results = this.safeList(response, 'results', []);
+        // the cursor pagination reads the next page cursor from the parsed entries
+        const next = this.safeString(response, 'next');
+        for (let i = 0; i < results.length; i++) {
+            results[i]['next'] = next;
+        }
         return this.parseIncomes(results, market, since, limit);
     }
     parseIncome(income, market = undefined) {
@@ -3415,19 +3595,19 @@ export default class paradex extends Exchange {
             let privateBody = undefined;
             // TODO: optimize
             if (pathValue === 'auth') {
-                privateHeaders['PARADEX-STARKNET-ACCOUNT'] = query['account'];
-                privateHeaders['PARADEX-STARKNET-SIGNATURE'] = query['signature'];
-                privateHeaders['PARADEX-TIMESTAMP'] = query['timestamp'].toString();
-                privateHeaders['PARADEX-SIGNATURE-EXPIRATION'] = query['expiration'].toString();
+                privateHeaders['PARADEX-STARKNET-ACCOUNT'] = this.safeString(query, 'account');
+                privateHeaders['PARADEX-STARKNET-SIGNATURE'] = this.safeString(query, 'signature');
+                privateHeaders['PARADEX-TIMESTAMP'] = this.safeString(query, 'timestamp');
+                privateHeaders['PARADEX-SIGNATURE-EXPIRATION'] = this.safeString(query, 'expiration');
             }
             else if (pathValue === 'onboarding') {
                 privateHeaders['PARADEX-ETHEREUM-ACCOUNT'] = this.walletAddress;
-                privateHeaders['PARADEX-STARKNET-ACCOUNT'] = query['account'];
-                privateHeaders['PARADEX-STARKNET-SIGNATURE'] = query['signature'];
-                privateHeaders['PARADEX-TIMESTAMP'] = this.nonce().toString();
+                privateHeaders['PARADEX-STARKNET-ACCOUNT'] = this.safeString(query, 'account');
+                privateHeaders['PARADEX-STARKNET-SIGNATURE'] = this.safeString(query, 'signature');
+                privateHeaders['PARADEX-TIMESTAMP'] = this.numberToString(this.nonce());
                 privateHeaders['Content-Type'] = 'application/json';
                 privateBody = this.json({
-                    'public_key': query['public_key'],
+                    'public_key': this.safeString(query, 'public_key'),
                 });
             }
             else {
@@ -3461,7 +3641,7 @@ export default class paradex extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -3472,13 +3652,53 @@ export default class paradex extends Exchange {
         //         "message": "User has never called /onboarding endpoint"
         //     }
         //
-        const errorCode = this.safeString(response, 'error');
-        if (errorCode !== undefined) {
-            const feedback = this.id + ' ' + body;
-            this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
-            this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
-            throw new ExchangeError(feedback); // unknown message
+        //     {
+        //         "error": "INVALID_REQUEST_PARAMETER",
+        //         "message": "market: FOO-USD-PERP does not exist.",
+        //         "data": { "market": "FOO-USD-PERP does not exist." }
+        //     }
+        //
+        //     {
+        //         "message": "missing or malformed jwt"
+        //     }
+        //
+        let errorCode = this.safeString(response, 'error');
+        let message = this.safeString(response, 'message');
+        if ((errorCode === undefined) && (code === 400)) {
+            //
+            // a batch where every order was rejected, errors are index-aligned with the request
+            //
+            //     {
+            //         "errors": [ { "error": "DUPLICATED_CLIENT_ID", "message": "..." } ],
+            //         "orders": [ null ]
+            //     }
+            //
+            const batchErrors = this.safeList(response, 'errors', []);
+            for (let i = 0; i < batchErrors.length; i++) {
+                const batchErrorCode = this.safeString(batchErrors[i], 'error');
+                if (batchErrorCode !== undefined) {
+                    errorCode = batchErrorCode;
+                    message = this.safeString(batchErrors[i], 'message');
+                    break;
+                }
+            }
         }
-        return undefined;
+        const feedback = this.id + ' ' + body;
+        if (errorCode === undefined) {
+            if ((code >= 400) && (message !== undefined)) {
+                this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
+            }
+            return undefined; // fallback to default error handler
+        }
+        // the broad patterns read the message of a validation failure only, other codes carry free text that could match them by accident
+        if ((errorCode === 'INVALID_REQUEST_PARAMETER') && (message !== undefined)) {
+            // an unknown market fails the validation of the market field, "market: FOO-USD-PERP does not exist."
+            if ((message.indexOf('market') === 0) && (message.indexOf('does not exist') >= 0)) {
+                throw new BadSymbol(feedback);
+            }
+            this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
+        }
+        this.throwExactlyMatchedException(this.exceptions['exact'], errorCode, feedback);
+        throw new ExchangeError(feedback); // unknown message
     }
 }

@@ -36,7 +36,7 @@ public class Bigone extends BigoneApi
        super(options);
    }
 
-    public Object describe()
+    public Map<String, Object> describe()
     {
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "bigone" );
@@ -709,7 +709,7 @@ public class Bigone extends BigoneApi
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.publicGetAssetPairs(parameters), this.contractPublicGetSymbols(parameters)));
             Object promisesResult = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             Map<String, Object> response = (Map<String, Object>) this.safeDict(promisesResult, 0, (Object) null);
-            Object contractResponse = (promisesResult == null || 1 >= ((List<?>)promisesResult).size() ? null : ((List<?>)promisesResult).get(1));
+            Object contractResponse = this.safeValue(promisesResult, 1);
             //
             //     {
             //         "code":0,
@@ -947,7 +947,7 @@ public class Bigone extends BigoneApi
         //    }
         //
         String marketType = "swap";
-        if (((Map<?, ?>)ticker).containsKey("asset_pair_name"))
+        if (!java.util.Objects.equals(this.safeString(ticker, "asset_pair_name"), null))
         {
             marketType = "spot";
         }
@@ -1169,7 +1169,7 @@ public class Bigone extends BigoneApi
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(market.get("contract"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "symbol", market.get("id") );
@@ -1202,7 +1202,7 @@ public class Bigone extends BigoneApi
                 //        from: '0'
                 //    }
                 //
-                return this.parseContractOrderBook((Map<String, Object>) (response), market.get("symbol"), limit);
+                return this.parseContractOrderBook((Map<String, Object>) (response), (String) (market.get("symbol")), limit);
             } else
             {
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1234,23 +1234,23 @@ public class Bigone extends BigoneApi
 
     }
 
-    public Object parseContractBidsAsks(Object bidsAsks)
+    public Object parseContractBidsAsks(Map<String, Object> bidsAsks)
     {
-        List<Object> bidsAsksKeys = ((List<Object>) switch ((Object)(bidsAsks)) { case Map<?, ?> j39v3 -> { synchronized (j39v3) { yield new ArrayList<Object>(j39v3.keySet()); } } case null, default -> new ArrayList<Object>(); });
+        List<String> bidsAsksKeys = new ArrayList<String>(bidsAsks.keySet());
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)bidsAsksKeys).size(); i++)
         {
-            Object price = (bidsAsksKeys == null || i < 0 || i >= bidsAsksKeys.size() ? null : bidsAsksKeys.get(i));
-            Object amount = Helpers.GetValue(bidsAsks, price);
+            String price = (bidsAsksKeys == null || i < 0 || i >= bidsAsksKeys.size() ? null : bidsAsksKeys.get(i));
+            Object amount = (bidsAsks == null || price == null ? null : bidsAsks.get(price));
             ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(this.parseNumber(price), this.parseNumber(amount))));
         }
         return result;
     }
 
-    public Map<String, Object> parseContractOrderBook(Map<String, Object> orderbook, Object symbol, Long limit)
+    public Map<String, Object> parseContractOrderBook(Map<String, Object> orderbook, String symbol, Long limit)
     {
-        Map<String, Object> responseBids = (Map<String, Object>) this.safeDict(orderbook, "bids", (Object) null);
-        Map<String, Object> responseAsks = (Map<String, Object>) this.safeDict(orderbook, "asks", (Object) null);
+        Map<String, Object> responseBids = (Map<String, Object>) this.safeDict(orderbook, "bids", new HashMap<String, Object>() {{}});
+        Map<String, Object> responseAsks = (Map<String, Object>) this.safeDict(orderbook, "asks", new HashMap<String, Object>() {{}});
         List<Object> bids = (List<Object>) this.parseContractBidsAsks(responseBids);
         List<Object> asks = (List<Object>) this.parseContractBidsAsks(responseAsks);
         return new HashMap<String, Object>() {{
@@ -1429,7 +1429,7 @@ public class Bigone extends BigoneApi
         {
             result.put("fee", null);
         }
-        return this.safeTrade((Map<String, Object>) (result), marketResolved);
+        return this.safeTrade(result, marketResolved);
     }
 
     /**
@@ -1453,7 +1453,7 @@ public class Bigone extends BigoneApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (java.util.Objects.equals(market.get("contract"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {
                 throw new NotSupported((this.id + " fetchTrades () can only fetch trades for spot markets")) ;
             }
@@ -1526,7 +1526,7 @@ public class Bigone extends BigoneApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (java.util.Objects.equals(market.get("contract"), true))
+            if (Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
             {
                 throw new NotSupported((this.id + " fetchOHLCV () can only fetch ohlcvs for spot markets")) ;
             }
@@ -1591,7 +1591,7 @@ public class Bigone extends BigoneApi
 
     }
 
-    public Balances parseBalance(Object response)
+    public Balances parseBalance(Map<String, Object> response)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
@@ -1653,7 +1653,7 @@ public class Bigone extends BigoneApi
             //         ],
             //     }
             //
-            return this.parseBalance(response);
+            return this.parseBalance((Map<String, Object>) (response));
         }).thenApply(Balances::new);
 
     }
@@ -1707,9 +1707,9 @@ public class Bigone extends BigoneApi
         {
             triggerPrice = null;
         }
-        Boolean immediateOrCancel = (Boolean) this.safeBool(order, "immediate_or_cancel", (Object) null);
+        Boolean immediateOrCancel = (Boolean) this.safeBool(order, "immediate_or_cancel", false);
         String timeInForce = null;
-        if (java.util.Objects.equals(immediateOrCancel, true))
+        if (Boolean.TRUE.equals(immediateOrCancel))
         {
             timeInForce = "IOC";
         }
@@ -1771,7 +1771,7 @@ public class Bigone extends BigoneApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            if (!java.util.Objects.equals(market.get("spot"), true))
+            if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 throw new NotSupported((this.id + " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
@@ -2250,7 +2250,7 @@ public class Bigone extends BigoneApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object apiName = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
+        String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String bodySigned = null;
         Object query = this.omit(parameters, this.extractParams(path));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
@@ -2263,14 +2263,14 @@ public class Bigone extends BigoneApi
         Map<String, Object> headersValue = new HashMap<String, Object>() {{}};
         if (java.util.Objects.equals(apiName, "public") || java.util.Objects.equals(apiName, "webExchange") || java.util.Objects.equals(apiName, "contractPublic"))
         {
-            if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+            if (((Map<String, Object>)query).size() > 0)
             {
                 url = (url + ("?" + this.urlencode(query)));
             }
         } else
         {
             this.checkRequiredCredentials(true);
-            String nonce = String.valueOf(this.nonce());
+            String nonce = this.numberToString(this.nonce());
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "type", "OpenAPIV2" );
                 put( "sub", Bigone.this.apiKey );
@@ -2280,7 +2280,7 @@ public class Bigone extends BigoneApi
             headersValue.put("Authorization", ("Bearer " + token));
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
-                if (((List<Object>) switch ((Object)(query)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); }).size() > 0)
+                if (((Map<String, Object>)query).size() > 0)
                 {
                     url = (url + ("?" + this.urlencode(query)));
                 }
@@ -2444,7 +2444,7 @@ public class Bigone extends BigoneApi
         String address = this.safeString(transaction, "target_address");
         String tag = this.safeString(transaction, "memo");
         String type = "deposit";
-        if (transaction.containsKey("customer_id"))
+        if (!java.util.Objects.equals(this.safeString(transaction, "customer_id"), null))
         {
             type = "withdrawal";
         }
@@ -2744,12 +2744,12 @@ public class Bigone extends BigoneApi
             //     }
             //
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseTransaction((Map<String, Object>) (data), currency);
+            return this.parseTransaction(data, currency);
         }).thenApply(Transaction::new);
 
     }
 
-    public Object handleErrors(Object httpCode, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, Object requestBody)
+    public Object handleErrors(Object code, Object reason, Object url, Object method, Object headers, Object body, Object response, Object requestHeaders, String requestBody)
     {
         if (java.util.Objects.equals(response, null))
         {
@@ -2759,14 +2759,14 @@ public class Bigone extends BigoneApi
         //      {"code":10013,"message":"Resource not found"}
         //      {"code":40004,"message":"invalid jwt"}
         //
-        String code = this.safeString(response, "code");
+        String codeError = this.safeString(response, "code");
         String message = this.safeString(response, "message");
-        if ((!java.util.Objects.equals(code, "0")) && (!java.util.Objects.equals(code, null)))
+        if ((!java.util.Objects.equals(codeError, "0")) && (!java.util.Objects.equals(codeError, null)))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), message, feedback);
-            this.throwExactlyMatchedException(this.exceptions.get("exact"), code, feedback);
-            this.throwBroadlyMatchedException(this.exceptions.get("broad"), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), codeError, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

@@ -16,7 +16,7 @@ import java.util.Map;
 
 
 public class TestCurrency extends BaseTest {
-    public static void testCurrency(BaseExchange exchange, Object skippedProperties, Object method, Object entry)
+    public static void testCurrency(BaseExchange exchange, Object skippedProperties, String method, Map<String, Object> entry)
     {
         if (java.util.Objects.equals(entry, null))
         {
@@ -51,7 +51,7 @@ public class TestCurrency extends BaseTest {
         }} );
     }});
             format.put("type", "crypto"); // crypto, fiat, leverage, other
-            TestSharedMethods.AssertInArray(exchange, skippedProperties, method, entry, "type", new ArrayList<Object>(Arrays.asList("fiat", "crypto", "leveraged", "other", null))); // todo: remove undefined
+            TestSharedMethods.AssertInArray(exchange, skippedProperties, (String) (method), entry, "type", new ArrayList<Object>(Arrays.asList("fiat", "crypto", "leveraged", "other", null))); // todo: remove undefined
             // only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
             if (!java.util.Objects.equals(currencyType, "crypto") && (Helpers.inOp(skippedProperties, "depositForNonCrypto")))
             {
@@ -67,14 +67,14 @@ public class TestCurrency extends BaseTest {
             }
         }
         //
-        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, ((Map<String, Object>)entry).get("code"));
+        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, (String) (method), entry, (String) (entry.get("code")));
         // check if empty networks should be skipped
         Object networks = exchange.safeDict(entry, "networks", new HashMap<String, Object>() {{}});
         List<String> networkKeys = new ArrayList<String>(((Map<String, Object>)networks).keySet());
         Integer networkKeysLength = ((List<?>)networkKeys).size();
         for (var i = 0; (networkKeysLength != null && i < networkKeysLength); i++)
         {
-            TestSharedMethods.AssertUnifiedNetworkCode(exchange, skippedProperties, method, entry, (networkKeys == null || i < 0 || i >= networkKeys.size() ? null : networkKeys.get(i)));
+            TestSharedMethods.AssertUnifiedNetworkCode(exchange, skippedProperties, (String) (method), entry, (String) ((networkKeys == null || i < 0 || i >= networkKeys.size() ? null : networkKeys.get(i))));
         }
         if (java.util.Objects.equals(networkKeysLength, 0) && (Helpers.inOp(skippedProperties, "skipCurrenciesWithoutNetworks")))
         {
@@ -82,7 +82,7 @@ public class TestCurrency extends BaseTest {
         }
         try
         {
-            TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+            TestSharedMethods.AssertStructure(exchange, skippedProperties, (String) (method), entry, format, emptyAllowedFor);
         } catch(Exception e)
         {
             Object message = exchange.exceptionMessage(e, true);
@@ -91,38 +91,38 @@ public class TestCurrency extends BaseTest {
             {
                 // @ts-ignore
                 format.put("id", 123);
-                TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+                TestSharedMethods.AssertStructure(exchange, skippedProperties, (String) (method), entry, format, emptyAllowedFor);
             } else
             {
                 Assert(java.util.Objects.equals(message, ""), message);
             }
         }
         //
-        TestSharedMethods.checkPrecisionAccuracy(exchange, skippedProperties, method, entry, "precision");
-        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "fee", "0");
+        TestSharedMethods.checkPrecisionAccuracy(exchange, skippedProperties, (String) (method), entry, "precision");
+        TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), entry, "fee", "0");
         if (!(Helpers.inOp(skippedProperties, "limits")))
         {
             Object limits = exchange.safeValue(entry, "limits", new HashMap<String, Object>() {{}});
             Object withdrawLimits = exchange.safeValue(limits, "withdraw", new HashMap<String, Object>() {{}});
             Object depositLimits = exchange.safeValue(limits, "deposit", new HashMap<String, Object>() {{}});
-            TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, withdrawLimits, "min", "0");
-            TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, withdrawLimits, "max", "0");
-            TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, depositLimits, "min", "0");
-            TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, depositLimits, "max", "0");
+            TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), withdrawLimits, "min", "0");
+            TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), withdrawLimits, "max", "0");
+            TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), depositLimits, "min", "0");
+            TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), depositLimits, "max", "0");
             // max should be more than min (withdrawal limits)
             String minStringWithdrawal = exchange.safeString(withdrawLimits, "min");
             if (!java.util.Objects.equals(minStringWithdrawal, null))
             {
-                TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, withdrawLimits, "max", minStringWithdrawal);
+                TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), withdrawLimits, "max", minStringWithdrawal);
             }
             // max should be more than min (deposit limits)
             String minStringDeposit = exchange.safeString(depositLimits, "min");
             if (!java.util.Objects.equals(minStringDeposit, null))
             {
-                TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, depositLimits, "max", minStringDeposit);
+                TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, (String) (method), depositLimits, "max", minStringDeposit);
             }
             // check valid ID & CODE
-            TestSharedMethods.AssertValidCurrencyIdAndCode(exchange, skippedProperties, method, entry, ((Map<String, Object>)entry).get("id"), ((Map<String, Object>)entry).get("code"));
+            TestSharedMethods.AssertValidCurrencyIdAndCode(exchange, skippedProperties, (String) (method), entry, (String) (entry.get("id")), (String) (entry.get("code")));
         }
     }
 

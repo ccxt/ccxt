@@ -9,11 +9,11 @@ use Exception; // a common import
 use ccxt\abstract\blofin as Exchange;
 
 class blofin extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'blofin',
             'name' => 'BloFin',
-            'countries' => array( 'US' ),
+            'countries' => array( 'MH' ), // Marshall Islands
             'version' => 'v1',
             'rateLimit' => 200, // 1500 requests per 5 minutes per IP is the binding budget => 200ms per request (500/min allows 120ms, but 1500/5min does not)
             'pro' => true,
@@ -645,7 +645,7 @@ class blofin extends Exchange {
         }
         $symbol = $base . '/' . $quote;
         if ($swap) {
-            $symbol = $symbol . ':' . $settle;
+            $symbol = $base . '/' . $quote . ':' . $settle;
         }
         $expiry = null;
         $strikePrice = null;
@@ -955,7 +955,9 @@ class blofin extends Exchange {
             );
         }
         if ($isSpot) {
-            $spotSymbol = $marketResolved['base'] . '/' . $marketResolved['quote'];
+            $spotBase = $this->safe_string($marketResolved, 'base', '');
+            $spotQuote = $this->safe_string($marketResolved, 'quote', '');
+            $spotSymbol = $spotBase . '/' . $spotQuote;
             $cost = $this->parse_number(Precise::string_mul($price, $amount));
             $result = array(
                 'info' => $trade,
@@ -1005,16 +1007,13 @@ class blofin extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically $paginate by calling this endpoint multiple times
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
-        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchTrades', 'paginate', false);
-        if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchTrades', $symbol, $since, $limit, $paramsPaginate, 'tradeId', 'after', null, 100);
-        }
+        // the endpoint returns the latest trades only and ignores 'after' / 'before', so there is no cursor to paginate with
+        $paramsNoPaginate = $this->omit($params, 'paginate');
         $market = $this->market($symbol);
         $request = array(
             'instId' => $market['id'],
@@ -1023,7 +1022,7 @@ class blofin extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 100
         }
-        list($method, $paramsMethod) = $this->handle_option_string_and_params($paramsPaginate, 'fetchTrades', 'method', 'publicGetMarketTrades');
+        list($method, $paramsMethod) = $this->handle_option_string_and_params($paramsNoPaginate, 'fetchTrades', 'method', 'publicGetMarketTrades');
         if ($method === 'publicGetMarketTrades') {
             $response = $this->publicGetMarketTrades($this->extend($request, $paramsMethod));
         }
@@ -1146,7 +1145,7 @@ class blofin extends Exchange {
         $rates = array();
         $data = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
-            $rate = $data[$i];
+            $rate = $this->safe_dict($data, $i, array());
             $timestamp = $this->safe_integer($rate, 'fundingTime');
             $rates[] = array(
                 'info' => $rate,
@@ -1218,7 +1217,7 @@ class blofin extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        if ($market['swap'] !== true) {
+        if (!$this->safe_bool($market, 'swap', false)) {
             throw new ExchangeError($this->id . ' fetchFundingRate() is only valid for swap markets');
         }
         $request = array(
@@ -1252,7 +1251,7 @@ class blofin extends Exchange {
         }
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         //
         // "data" similar for REST & WS
         //
@@ -1371,8 +1370,7 @@ class blofin extends Exchange {
         $request = array(
         );
         if ($accountType !== null && $accountType !== 'swap') {
-            $options = $this->safe_dict($this->options, 'accountsByType', array());
-            $parsedAccountType = $this->safe_string($options, $accountType, $accountType);
+            $parsedAccountType = $this->safe_string($this->options['accountsByType'], $accountType, $accountType);
             $request['accountType'] = $parsedAccountType;
             $response = $this->privateGetAssetBalances($this->extend($request, $paramsAccountType));
         } else {
@@ -1544,8 +1542,11 @@ class blofin extends Exchange {
         $fee = null;
         if ($feeCostString !== null) {
             $feeCostSigned = Precise::string_abs($feeCostString);
-            $feeCurrencyId = $this->safe_string($order, 'feeCcy', 'USDT');
+            $feeCurrencyId = $this->safe_string($order, 'feeCcy');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
+            if ($feeCurrencyCode === null) {
+                $feeCurrencyCode = $this->safe_string($marketResolved, 'settle');
+            }
             $fee = array(
                 'cost' => $this->parse_number($feeCostSigned),
                 'currency' => $feeCurrencyCode,
@@ -1745,11 +1746,11 @@ class blofin extends Exchange {
             $request['clientOrderId'] = $clientOrderId;
         } else {
             if ((!$isTrigger) && (!$isTpsl)) {
-                $request['orderId'] = (string) $id;
+                $request['orderId'] = $this->number_to_string($id);
             } elseif ($isTpsl) {
-                $request['tpslId'] = (string) $id;
+                $request['tpslId'] = $this->number_to_string($id);
             } elseif ($isTrigger) {
-                $request['algoId'] = (string) $id;
+                $request['algoId'] = $this->number_to_string($id);
             }
         }
         $query = $this->omit($params, array( 'orderId', 'clientOrderId', 'stop', 'trigger', 'tpsl' ));
@@ -1827,13 +1828,13 @@ class blofin extends Exchange {
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
             $request['clientOrderId'] = $clientOrderId;
-        } elseif ($isTpsl === true) {
+        } elseif ($isTpsl) {
             $request['tpslId'] = $id;
         } else {
             $request['orderId'] = $id;
         }
         $query = $this->omit($params, array( 'clientOrderId', 'tpsl', 'TPSL' ));
-        if ($isTpsl === true) {
+        if ($isTpsl) {
             $response = $this->privateGetTradeOrderTpslDetail($this->extend($request, $query));
         } else {
             $response = $this->privateGetTradeOrderDetail($this->extend($request, $query));
@@ -2045,8 +2046,7 @@ class blofin extends Exchange {
     }
 
     public function network_code_to_chain_id(string $networkCode, ?array $currency = null): ?string {
-        $aliases = $this->safe_dict($this->options, 'networkCodeAliases', array());
-        $aliasedCode = $this->safe_string($aliases, $networkCode, $networkCode);
+        $aliasedCode = $this->safe_string($this->options['networkCodeAliases'], $networkCode, $networkCode);
         $unifiedCode = $this->safe_string($this->networkAliases, $aliasedCode, $aliasedCode);
         // prefer the exact chain id from the currencies registry when it is
         // loaded, since some ids are currency-specific (USDT on Optimism)
@@ -2061,16 +2061,13 @@ class blofin extends Exchange {
         // the live venue identifies chains by display names; the suffix
         // family is built here as prefix + space + parenthesized suffix
         // because such literals are not transpiler-safe in source
-        $networks = $this->safe_dict($this->options, 'networks', array());
-        $direct = $this->safe_string($networks, $unifiedCode);
+        $direct = $this->safe_string($this->options['networks'], $unifiedCode);
         if ($direct !== null) {
             return $direct;
         }
-        $prefixes = $this->safe_dict($this->options, 'networkPrefixes', array());
-        $prefix = $this->safe_string($prefixes, $unifiedCode);
+        $prefix = $this->safe_string($this->options['networkPrefixes'], $unifiedCode);
         if ($prefix !== null) {
-            $suffixes = $this->safe_dict($this->options, 'networkSuffixes', array());
-            $suffix = $this->safe_string($suffixes, $unifiedCode, $unifiedCode);
+            $suffix = $this->safe_string($this->options['networkSuffixes'], $unifiedCode, $unifiedCode);
             return $prefix . ' ' . '(' . $suffix . ')';
         }
         return $unifiedCode;
@@ -2092,8 +2089,7 @@ class blofin extends Exchange {
             $tail = $this->safe_string($parts, 1, '');
             $tailParts = explode(')', $tail);
             $suffix = $this->safe_string($tailParts, 0);
-            $bySuffix = $this->safe_dict($this->options, 'networkCodesBySuffix', array());
-            $suffixCode = $this->safe_string($bySuffix, $suffix);
+            $suffixCode = $this->safe_string($this->options['networkCodesBySuffix'], $suffix);
             if ($suffixCode !== null) {
                 return $suffixCode;
             }
@@ -2244,8 +2240,7 @@ class blofin extends Exchange {
                 if ($networkKeysLength === 1) {
                     $networkCode = $this->safe_string($networkKeys, 0);
                 } else {
-                    $defaultNetworks = $this->safe_dict($this->options, 'defaultNetworks', array());
-                    $networkCode = $this->safe_string($defaultNetworks, $currency['code']);
+                    $networkCode = $this->safe_string($this->options['defaultNetworks'], $currency['code']);
                 }
             }
             if ($networkCode === null) {
@@ -2337,10 +2332,12 @@ class blofin extends Exchange {
         }
         if ($chainsLength === 1) {
             // a single network means the currency-level fee is unambiguous
-            $networkKeys = is_array($result['networks']) ? array_keys($result['networks']) : array();
+            $networks = $this->safe_dict($result, 'networks', array());
+            $networkKeys = is_array($networks) ? array_keys($networks) : array();
             $onlyNetwork = $this->safe_string($networkKeys, 0);
             if ($onlyNetwork !== null) {
-                $result['withdraw'] = $result['networks'][$onlyNetwork]['withdraw'];
+                $networkResolved = $this->safe_dict($networks, $onlyNetwork, array());
+                $result['withdraw'] = $networkResolved['withdraw'];
             }
         }
         return $result;
@@ -2372,7 +2369,7 @@ class blofin extends Exchange {
         // venue ignores the filter and returns the latest records instead
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
-            $entry = $data[$i];
+            $entry = $this->safe_value($data, $i);
             if ($this->safe_string($entry, 'depositId') === $id) {
                 return $this->parse_transaction($entry, $currency);
             }
@@ -2380,7 +2377,7 @@ class blofin extends Exchange {
         throw new ExchangeError($this->id . ' fetchDeposit() could not find deposit ' . $id);
     }
 
-    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()): array {
+    public function fetch_withdrawal(?string $id, ?string $code = null, $params = array()): array {
         /**
          * fetch $data on a $currency withdrawal via the withdrawal $id
          *
@@ -2412,7 +2409,7 @@ class blofin extends Exchange {
         // case the venue ignores the filter and returns the latest records
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
-            $entry = $data[$i];
+            $entry = $this->safe_value($data, $i);
             $matches = false;
             if ($id !== null) {
                 $matches = ($this->safe_string($entry, 'withdrawId') === $id);
@@ -2711,7 +2708,7 @@ class blofin extends Exchange {
         ), $currencyResolved);
     }
 
-    public function parse_ids(mixed $ids) {
+    public function parse_ids(mixed $ids): ?array {
         /**
          * @ignore
          * @param {string[]|string} $ids order $ids
@@ -2757,7 +2754,7 @@ class blofin extends Exchange {
             if ($tpslIds !== null) {
                 for ($i = 0; $i < count($tpslIds); $i++) {
                     $request[] = array(
-                        'tpslId' => $tpslIds[$i],
+                        'tpslId' => $this->safe_string($tpslIds, $i),
                         'instId' => $market['id'],
                     );
                 }
@@ -2765,12 +2762,12 @@ class blofin extends Exchange {
             for ($i = 0; $i < count($orderIds); $i++) {
                 if ($trigger === true) {
                     $request[] = array(
-                        'tpslId' => $orderIds[$i],
+                        'tpslId' => $this->safe_string($orderIds, $i),
                         'instId' => $market['id'],
                     );
                 } else {
                     $request[] = array(
-                        'orderId' => $orderIds[$i],
+                        'orderId' => $this->safe_string($orderIds, $i),
                         'instId' => $market['id'],
                     );
                 }
@@ -2779,7 +2776,7 @@ class blofin extends Exchange {
             for ($i = 0; $i < count($clientOrderIds); $i++) {
                 $request[] = array(
                     'instId' => $market['id'],
-                    'clientOrderId' => $clientOrderIds[$i],
+                    'clientOrderId' => $this->safe_string($clientOrderIds, $i),
                 );
             }
         }
@@ -2809,9 +2806,8 @@ class blofin extends Exchange {
             $this->load_markets();
         }
         $currency = $this->currency($code);
-        $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
-        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
-        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+        $fromId = $this->safe_string($this->options['accountsByType'], $fromAccount, $fromAccount);
+        $toId = $this->safe_string($this->options['accountsByType'], $toAccount, $toAccount);
         $request = array(
             'currency' => $currency['id'],
             'amount' => $this->currency_to_precision($code, $amount),
@@ -3026,7 +3022,7 @@ class blofin extends Exchange {
         $contractSizeString = $this->number_to_string($contractSize);
         $markPriceString = $this->safe_string($position, 'markPrice');
         $notionalString = $this->safe_string($position, 'notionalUsd');
-        if ($marketResolved['inverse'] === true) {
+        if ($this->safe_bool($marketResolved, 'inverse', false)) {
             $notionalString = Precise::string_div(Precise::string_mul($contractsAbs, $contractSizeString), $markPriceString);
         } elseif ($notionalString === null) {
             $notionalString = Precise::string_mul(Precise::string_mul($contractsAbs, $contractSizeString), $markPriceString);
@@ -3141,19 +3137,8 @@ class blofin extends Exchange {
             throw new BadRequest($this->id . ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated');
         }
         $symbolsNormalized = $this->market_symbols($symbols);
-        $symbolsList = $symbolsNormalized;
-        $instIds = '';
-        for ($i = 0; $i < count($symbolsList); $i++) {
-            $entry = $symbolsList[$i];
-            $entryMarket = $this->market($entry);
-            if ($i > 0) {
-                $instIds = $instIds . ',' . $entryMarket['id'];
-            } else {
-                $instIds = $instIds . $entryMarket['id'];
-            }
-        }
         $request = array(
-            'instId' => $instIds,
+            'instId' => implode(',', $this->market_ids($symbolsNormalized)),
             'marginMode' => $marginMode,
         );
         $response = $this->privateGetAccountBatchLeverageInfo($this->extend($request, $query));
@@ -3284,7 +3269,7 @@ class blofin extends Exchange {
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {boolean} [$params->autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a $market order. false or true, the default is false
          * @param {string} [$params->tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
-         * @return {array[]} ~@link https://docs.ccxt.com/?id=position-structure A list of position structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -3564,19 +3549,19 @@ class blofin extends Exchange {
         );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
         //
         // {"code":"152002","msg":"Parameter bar error."}
         //
-        $code = $this->safe_string($response, 'code');
+        $codeError = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'msg');
         $feedback = $this->id . ' ' . $body;
-        if ($code !== null && $code !== '0') {
+        if ($codeError !== null && $codeError !== '0') {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $codeError, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown message
         }
@@ -3633,8 +3618,8 @@ class blofin extends Exchange {
                 }
             } else {
                 if (!$this->is_empty($query)) {
-                    $signedBody = $this->json($query);
-                    $sign_body = $signedBody;
+                    $sign_body = $this->json($query);
+                    $signedBody = $sign_body;
                 }
                 $signedHeaders['Content-Type'] = 'application/json';
             }

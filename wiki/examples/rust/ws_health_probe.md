@@ -51,7 +51,6 @@ const VENUES: &[&str] = &[
     "blofin",
     "bullish",
     "bybit",
-    "bydfi",
     "cex",
     "coinbase",
     "coinbaseexchange",

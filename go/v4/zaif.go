@@ -15,7 +15,7 @@ func newZaif() *Zaif {
 	return p
 }
 
-func (this *Zaif) Describe() any {
+func (this *Zaif) Describe() map[string]any {
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "zaif",
 		"name":      "Zaif",
@@ -317,11 +317,11 @@ func (this *Zaif) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	listEp319 := <-this.PublicGetCurrencyPairsAll(params)
-	if listEp319.Err != nil {
-		panic(listEp319.Err)
+	marketsRecv := <-this.PublicGetCurrencyPairsAll(params)
+	if marketsRecv.Err != nil {
+		panic(marketsRecv.Err)
 	}
-	var markets []any = listEp319.Value
+	var markets []any = marketsRecv.Value
 
 	//
 	//     [
@@ -347,15 +347,15 @@ func (this *Zaif) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(markets))}
 	return nil
 }
-func (this *Zaif) ParseMarket(market any) any {
+func (this *Zaif) ParseMarket(market any) map[string]any {
 	var id *string = this.SafeString(market, "currency_pair")
 	var name *string = this.SafeString(market, "name")
 	if name == nil {
 		panic(ExchangeError(this.Id + " parseMarket() missing name"))
 	}
-	baseIdquoteIdVariable := strings.Split(*name, "/")
-	baseId := GetValue(baseIdquoteIdVariable, 0)
-	quoteId := GetValue(baseIdquoteIdVariable, 1)
+	var nameParts []string = strings.Split(*name, "/")
+	var baseId *string = this.SafeString(nameParts, 0)
+	var quoteId *string = this.SafeString(nameParts, 1)
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	if (base == nil) || (quote == nil) {
@@ -436,7 +436,7 @@ func (this *Zaif) ParseBalance(response any) map[string]any {
 		account["free"] = balance
 		account["total"] = balance
 		if deposit != nil {
-			if func() bool { _, ok := deposit[currencyId]; return ok }() {
+			if _, ok := deposit[currencyId]; ok {
 				account["total"] = this.SafeString(deposit, currencyId)
 			}
 		}
@@ -702,11 +702,11 @@ func (this *Zaif) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 		"pair": market["id"],
 	}
 
-	listEp676 := <-this.PublicGetTradesPair(this.Extend(request, params))
-	if listEp676.Err != nil {
-		panic(listEp676.Err)
+	responseRecv := <-this.PublicGetTradesPair(this.Extend(request, params))
+	if responseRecv.Err != nil {
+		panic(responseRecv.Err)
 	}
-	var response []any = listEp676.Value
+	var response []any = responseRecv.Value
 	//
 	//      [
 	//          {
@@ -789,7 +789,7 @@ func (this *Zaif) createOrderBody(ch chan AsyncResult[Order], symbol string, typ
 
 	ch <- AsyncResult[Order]{Value: this.SafeOrder(map[string]any{
 		"info": response,
-		"id":   ToString(data["order_id"]),
+		"id":   this.NumberToString(data["order_id"]),
 	}, market)}
 	return nil
 }
@@ -1039,14 +1039,7 @@ func (this *Zaif) withdrawBody(ch chan AsyncResult[Transaction], code string, am
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var tagWithdrawTagparamsWithdrawTagVariable []any = this.HandleParamString(params, "tag")
-	tagWithdrawTag := func() any {
-		if p, _ := tagWithdrawTagparamsWithdrawTagVariable[0].(*string); p != nil {
-			return *p
-		}
-		return nil
-	}()
-	var paramsWithdrawTag map[string]any = MapTyped(tagWithdrawTagparamsWithdrawTagVariable[1])
+	tagWithdrawTag, paramsWithdrawTag := this.HandleParamString(params, "tag")
 	this.CheckAddress(address, code, tagWithdrawTag)
 	if this.Markets == nil {
 
@@ -1065,7 +1058,7 @@ func (this *Zaif) withdrawBody(ch chan AsyncResult[Transaction], code string, am
 		"address":  address,
 	}
 	if tagWithdrawTag != nil {
-		request["message"] = tagWithdrawTag
+		request["message"] = *tagWithdrawTag
 	}
 
 	r1 := <-this.PrivatePostWithdraw(this.Extend(request, paramsWithdrawTag))
@@ -1143,33 +1136,32 @@ func (this *Zaif) ParseTransaction(transaction any, optionalArgs ...any) Transac
 	})
 }
 func (this *Zaif) CustomNonce() any {
-	var num *string = this.NumberToString(float64(this.Milliseconds()) / 1000)
-	var nonce any = ParseFloat(num)
+	var nonce float64 = float64(this.Milliseconds()) / 1000
 	return ToFixed(nonce, 8)
 }
-func (this *Zaif) Sign(path string, optionalArgs ...any) any {
-	api := GetArg(optionalArgs, 0, []any{"public"})
+func (this *Zaif) Sign(path string, optionalArgs ...any) map[string]any {
+	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})
 	_ = api
 	var method string = GetArgString(optionalArgs, 1, "GET")
 	_ = method
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var apiName *string = SafeStringPtr(GetValue(api, 0))
+	var apiName string = api[0]
 	var baseApiUrl *string = this.SafeString(this.Urls["api"], "rest")
 	if baseApiUrl == nil {
 		panic(ExchangeError(this.Id + " sign() has no API URL for this endpoint"))
 	}
 	var baseUrl *string = baseApiUrl
 	var url string = *baseUrl + "/"
-	if apiName != nil && *apiName == "public" {
+	if apiName == "public" {
 		url += "api/" + this.Version + "/" + this.ImplodeParams(path, params)
-	} else if apiName != nil && *apiName == "fapi" {
+	} else if apiName == "fapi" {
 		url += "fapi/" + this.Version + "/" + this.ImplodeParams(path, params)
 	} else {
 		this.CheckRequiredCredentials()
-		if apiName != nil && *apiName == "ecapi" {
+		if apiName == "ecapi" {
 			url += "ecapi"
-		} else if apiName != nil && *apiName == "tlapi" {
+		} else if apiName == "tlapi" {
 			url += "tlapi"
 		} else {
 			url += "tapi"
@@ -1198,7 +1190,7 @@ func (this *Zaif) Sign(path string, optionalArgs ...any) any {
 		"headers": nil,
 	}
 }
-func (this *Zaif) HandleErrors(httpCode any, reason any, url any, method any, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Zaif) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
@@ -1228,7 +1220,7 @@ func NewZaif(userConfig map[string]any) *Zaif {
 func (this *Zaif) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.Exchange.InitParent(userConfig, this.Describe(), this)
 }
 
 // typed methods

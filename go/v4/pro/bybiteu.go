@@ -18,7 +18,7 @@ func newBybiteu() *Bybiteu {
 	return p
 }
 
-func (this *Bybiteu) Describe() any {
+func (this *Bybiteu) Describe() map[string]any {
 	// eslint-disable-next-line new-cap
 	restInstance := ccxt.NewBybiteu(nil)
 	var restDescribe any = restInstance.Describe()

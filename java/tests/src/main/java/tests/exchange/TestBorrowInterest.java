@@ -16,7 +16,7 @@ import java.util.Map;
 
 
 public class TestBorrowInterest extends BaseTest {
-    public static void testBorrowInterest(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object requestedCode, Object requestedSymbol)
+    public static void testBorrowInterest(BaseExchange exchange, Object skippedProperties, String method, Object entry, String requestedCode, String requestedSymbol)
     {
         Map<String, Object> format = new HashMap<String, Object>() {{
             put( "info", new HashMap<String, Object>() {{}} );
@@ -29,13 +29,13 @@ public class TestBorrowInterest extends BaseTest {
             put( "datetime", "2021-11-30T00:00:00.000Z" );
         }};
         List<String> emptyAllowedFor = new ArrayList<String>(Arrays.asList("account"));
-        TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
-        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry);
-        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, ((Map<String, Object>)entry).get("currency"), requestedCode);
-        TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, entry, ((Map<String, Object>)entry).get("account"), requestedSymbol);
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "interest", "0");
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "interestRate", "0");
-        TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "amountBorrowed", "0");
+        TestSharedMethods.AssertStructure(exchange, skippedProperties, (String) (method), entry, format, emptyAllowedFor);
+        TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, (String) (method), entry);
+        TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, (String) (method), entry, (String) (((Map<String, Object>)entry).get("currency")), requestedCode);
+        TestSharedMethods.AssertSymbol(exchange, skippedProperties, (String) (method), entry, ((Map<String, Object>)entry).get("account"), requestedSymbol);
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "interest", "0");
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "interestRate", "0");
+        TestSharedMethods.AssertGreater(exchange, skippedProperties, (String) (method), entry, "amountBorrowed", "0");
     }
 
 }
