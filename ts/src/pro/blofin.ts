@@ -701,11 +701,16 @@ export default class blofin extends blofinRest {
         const arg = this.safeDict (message, 'arg');
         const channelName = this.safeString (arg, 'channel');
         const data = this.safeList (message, 'data') as List;
+        const symbols: string[] = [];
         for (let i = 0; i < data.length; i++) {
             const order = this.parseWsOrder (this.safeValue (data, i));
             orders.append (order);
+            symbols.push (this.safeString (order, 'symbol', ''));
+        }
+        // resolve only once the whole frame is stored, so a reader never sees it half applied
+        for (let i = 0; i < symbols.length; i++) {
             if (channelName !== undefined) {
-                client.resolve (orders, channelName + ':' + this.safeString (order, 'symbol', ''));
+                client.resolve (orders, channelName + ':' + symbols[i]);
             }
             client.resolve (orders, channelName);
         }
