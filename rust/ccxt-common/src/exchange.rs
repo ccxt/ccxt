@@ -1574,7 +1574,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             "[ExchangeError] {} loadOrderBook() failed to synchronize",
             match id { Value::Str(s) => s.as_ref(), _ => "" }).into());
         if !crate::runtime::in_op(&self.orderbooks, &symbol) {
-            crate::pro::ws_client::value_reject(&client, &[err(&self.id), message_hash]);
+            crate::pro::ws_client::value_reject(&client, err(&self.id), message_hash.as_str());
             return;
         }
         let max_retries: i64 = 3;
@@ -1599,20 +1599,20 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
                     .collect();
                 self.dispatch_to_derived("handle_deltas", vec![stored.clone(), Value::List(deltas)]).await;
                 crate::set_value(&mut stored, &Value::Str("cache".into()), Value::List(Vec::new()));
-                crate::pro::ws_client::value_resolve(&client, &[stored.clone(), message_hash.clone()]);
+                crate::pro::ws_client::value_resolve(&client, stored.clone(), message_hash.as_str());
                 return;
             }
             tries += 1;
         }
-        crate::pro::ws_client::value_reject(&client, &[err(&self.id), message_hash]);
+        crate::pro::ws_client::value_reject(&client, err(&self.id), message_hash.as_str());
     } }
 
     fn watch(
         &mut self,
-        url: Value,
-        message_hash: Value,
+        url: impl Into<Value>,
+        message_hash: impl Into<Value>,
         optional_args: &[Value],
-    ) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    ) -> impl ::std::future::Future<Output = Value> + Send { let (url, message_hash): (Value, Value) = (url.into(), message_hash.into()); async move {
         let url_s = match &url { Value::Str(s) => s.to_string(), v => crate::runtime::stringify_param(v) };
         let hash_s = match &message_hash { Value::Str(s) => s.to_string(), v => crate::runtime::stringify_param(v) };
         let message = optional_args.get(0).cloned().unwrap_or(Value::Null);
@@ -1624,10 +1624,10 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
 
     fn watch_multiple(
         &mut self,
-        url: Value,
+        url: impl Into<Value>,
         message_hashes: Value,
         optional_args: &[Value],
-    ) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    ) -> impl ::std::future::Future<Output = Value> + Send { let url: Value = url.into(); async move {
         let url_s = match &url { Value::Str(s) => s.to_string(), v => crate::runtime::stringify_param(v) };
         let hashes = ws_string_list(&message_hashes);
         let message = optional_args.get(0).cloned().unwrap_or(Value::Null);

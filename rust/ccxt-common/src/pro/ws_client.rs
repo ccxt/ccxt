@@ -1028,8 +1028,8 @@ impl ClientHandle {
     /// The `Value` handle the untyped generated handlers take.
     pub fn as_value(&self) -> Value { self.value.clone() }
 
-    pub fn resolve(&self, args: &[Value]) -> Value { value_resolve(&self.value, args) }
-    pub fn reject(&self, args: &[Value]) -> Value { value_reject(&self.value, args) }
+    pub fn resolve<'k>(&self, value: impl Into<Value>, hash: impl Into<Option<&'k str>>) -> Value { value_resolve(&self.value, value.into(), hash.into()) }
+    pub fn reject<'k>(&self, err: impl Into<Value>, hash: impl Into<Option<&'k str>>) -> Value { value_reject(&self.value, err.into(), hash.into()) }
     pub fn send(&self, args: &[Value]) -> Value { value_send(&self.value, args) }
     pub fn reset(&self, error: Value) -> Value { value_reset(&self.value, error) }
     pub fn on_pong(&self) -> Value { value_on_pong(&self.value) }
@@ -1039,10 +1039,10 @@ impl ClientHandle {
 
     /// `delete client.subscriptions[key]`: drops the live client's entry and
     /// the handle's snapshot entry (what `remove(&mut subscriptions, key)` did).
-    pub fn remove_subscription(&mut self, key: &Value) {
-        if let (Value::Dict(m), Value::Str(k)) = (&mut self.subscriptions, key) {
+    pub fn remove_subscription<'k>(&mut self, key: impl Into<Option<&'k str>>) {
+        if let (Value::Dict(m), Some(k)) = (&mut self.subscriptions, key.into()) {
             crate::value::try_ws_subs_remove(m, k);
-            Arc::make_mut(m).shift_remove(k.as_ref());
+            Arc::make_mut(m).shift_remove(k);
         }
     }
 
@@ -1058,26 +1058,26 @@ impl ClientHandle {
         }
     }
     /// `key in client.subscriptions`, read from the handle's snapshot.
-    pub fn has_subscription(&self, key: &Value) -> bool { crate::runtime::in_op(&self.subscriptions, key) }
+    pub fn has_subscription<'k>(&self, key: impl Into<Option<&'k str>>) -> bool { handle_has(&self.subscriptions, key.into()) }
     /// `client.subscriptions[key]` (Null when absent).
-    pub fn get_subscription(&self, key: &Value) -> Value { crate::get_value(&self.subscriptions, key) }
+    pub fn get_subscription<'k>(&self, key: impl Into<Option<&'k str>>) -> Value { handle_get(&self.subscriptions, key.into()) }
     /// `Object.keys(client.subscriptions)` (internal tags filtered).
     pub fn subscription_keys(&self) -> Vec<Value> {
         crate::runtime::object_keys(&self.subscriptions).as_array().cloned().unwrap_or_default()
     }
     /// `key in client.futures`, read from the handle's snapshot.
-    pub fn has_future(&self, key: &Value) -> bool { crate::runtime::in_op(&self.futures, key) }
+    pub fn has_future<'k>(&self, key: impl Into<Option<&'k str>>) -> bool { handle_has(&self.futures, key.into()) }
     /// `client.futures[key]` (Null when absent).
-    pub fn get_future(&self, key: &Value) -> Value { crate::get_value(&self.futures, key) }
+    pub fn get_future<'k>(&self, key: impl Into<Option<&'k str>>) -> Value { handle_get(&self.futures, key.into()) }
     /// `Object.keys(client.futures)`.
     pub fn future_keys(&self) -> Vec<Value> {
         crate::runtime::object_keys(&self.futures).as_array().cloned().unwrap_or_default()
     }
-    pub fn future(&self, args: &[Value]) -> Value {
-        self.value.future(args)
+    pub fn future(&self, hash: impl Into<Value>) -> Value {
+        self.value.future(hash)
     }
-    pub fn reusable_future(&self, msg_hash: Value) -> Value {
-        self.value.reusable_future(msg_hash)
+    pub fn reusable_future(&self, hash: impl Into<Value>) -> Value {
+        self.value.reusable_future(hash)
     }
 }
 
@@ -1201,16 +1201,21 @@ pub fn url_of(client: &Value) -> Option<String> {
     }
 }
 
-fn hash_str(v: &Value) -> Option<String> {
-    match v {
-        Value::Str(s) => Some(s.to_string()),
-        _ => None,
+/// `k in client.subscriptions|futures` on the handle's snapshot (a non-string key is never present).
+fn handle_has(map: &Value, key: Option<&str>) -> bool {
+    matches!((map, key), (Value::Dict(m), Some(k)) if m.contains_key(k))
+}
+
+/// `client.subscriptions|futures[k]` on the handle's snapshot (Null when absent).
+fn handle_get(map: &Value, key: Option<&str>) -> Value {
+    match key {
+        Some(k) => crate::get_value(map, &Value::from(k)),
+        None => Value::Null,
     }
 }
 
 /// `client.resolve(value, messageHash)` routed by URL. Returns `value`.
-pub fn value_resolve(client: &Value, args: &[Value]) -> Value {
-    let value = args.get(0).cloned().unwrap_or(Value::Null);
+pub fn value_resolve(client: &Value, value: Value, hash: Option<&str>) -> Value {
     // `client.futures[hash].resolve(value)` — the future handle carries its own
     // hash, so there is no second arg. Resolve that hash.
     if let Some(hash) = future_hash_of(client) {
@@ -1219,9 +1224,9 @@ pub fn value_resolve(client: &Value, args: &[Value]) -> Value {
         }
         return value;
     }
-    if let (Some(url), Some(hash)) = (url_of(client), args.get(1).and_then(hash_str)) {
+    if let (Some(url), Some(hash)) = (url_of(client), hash) {
         if let Some(c) = get_client(&url) {
-            c.resolve(&hash, value.clone());
+            c.resolve(hash, value.clone());
         }
     }
     value
@@ -1236,8 +1241,7 @@ fn future_hash_of(client: &Value) -> Option<String> {
 }
 
 /// `client.reject(error, messageHash)` routed by URL.
-pub fn value_reject(client: &Value, args: &[Value]) -> Value {
-    let err = args.get(0).cloned().unwrap_or(Value::Null);
+pub fn value_reject(client: &Value, err: Value, hash: Option<&str>) -> Value {
     // `client.futures[hash].reject(error)` — future handle carries its own hash.
     if let Some(hash) = future_hash_of(client) {
         if let Some(url) = url_of(client) {
@@ -1247,8 +1251,8 @@ pub fn value_reject(client: &Value, args: &[Value]) -> Value {
     }
     if let Some(url) = url_of(client) {
         if let Some(c) = get_client(&url) {
-            match args.get(1).and_then(hash_str) {
-                Some(hash) => c.reject(&hash, err.clone()),
+            match hash {
+                Some(hash) => c.reject(hash, err.clone()),
                 // reject with no hash → reject every pending future.
                 None => c.reject_pending_futures(err.clone()),
             }
@@ -1461,7 +1465,7 @@ mod tests {
                         let message = args.get(1).cloned().unwrap_or(Value::Null);
                         let last = crate::get_value(&message, &Value::Str("last".into()));
                         // `client.resolve(value, messageHash)` — routes to the registry.
-                        client.resolve(&[last, Value::Str("ticker".into())]);
+                        client.resolve(last, "ticker");
                         Value::Null
                     }
                     _ => self.call_dynamic_base(method, args).await,

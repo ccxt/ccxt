@@ -297,13 +297,13 @@ impl Value {
     /// `client.reject(error, messageHash)` — stores a rejection the `watch`
     /// drive loop delivers to the awaiting caller. Routes by the client
     /// handle's `url` to the WS registry (no-op on a non-client Value).
-    pub fn reject(&self, args: &[Value]) -> Value {
-        crate::pro::ws_client::value_reject(self, args)
+    pub fn reject<'k>(&self, err: impl Into<Value>, hash: impl Into<Option<&'k str>>) -> Value {
+        crate::pro::ws_client::value_reject(self, err.into(), hash.into())
     }
     /// `client.resolve(value, messageHash)` — stores the resolved value the
     /// `watch` drive loop returns. Routes by the client handle's `url`.
-    pub fn resolve(&self, args: &[Value]) -> Value {
-        crate::pro::ws_client::value_resolve(self, args)
+    pub fn resolve<'k>(&self, value: impl Into<Value>, hash: impl Into<Option<&'k str>>) -> Value {
+        crate::pro::ws_client::value_resolve(self, value.into(), hash.into())
     }
     /// `client.future(messageHash)` — TS's atomic check-and-insert: opens a
     /// single-flight for the hash (or joins the open one) and hands back a
@@ -312,13 +312,13 @@ impl Value {
     /// does the work (venue `authenticate` leader election). Await the handle
     /// with `exchange_stubs::ws_await_flight`; the transpiler emits that
     /// wherever the TS source awaits.
-    pub fn future(&self, args: &[Value]) -> Value {
-        self.open_flight(args.get(0).cloned().unwrap_or(Value::Null))
+    pub fn future(&self, hash: impl Into<Value>) -> Value {
+        self.open_flight(hash.into())
     }
     /// `client.reusable_future(messageHash)` — shared flight per hash, i.e. the
     /// same registry and handle as `future`.
-    pub fn reusable_future(&self, msg_hash: Value) -> Value {
-        self.open_flight(msg_hash)
+    pub fn reusable_future(&self, hash: impl Into<Value>) -> Value {
+        self.open_flight(hash.into())
     }
     /// Shared body of `future` / `reusable_future`: open-or-join the flight on
     /// the client this handle names, and return a handle to it. A non-client
@@ -759,6 +759,8 @@ impl OmitSource for Value { fn into_operand(self) -> Value { self } }
 impl OmitSource for &Dict { fn into_operand(self) -> Value { Value::Dict(Arc::clone(self)) } }
 /// A dict local lent to a `params: impl Into<Value>` parameter: the shared map, not a copy.
 impl From<&Dict> for Value { fn from(m: &Dict) -> Self { Value::Dict(Arc::clone(m)) } }
+/// A ws hash or key slot reads a `Value` key as its string (any other variant is no key).
+impl<'a> From<&'a Value> for Option<&'a str> { fn from(v: &'a Value) -> Self { v.as_str() } }
 
 /// `get_value_k` on the map itself.
 pub fn get_map_value_k(m: &HashMap<String, Value>, key: &str) -> Value {
