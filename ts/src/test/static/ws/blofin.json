@@ -346,7 +346,7 @@
         ],
         "watchOrders": [
             {
-                "description": "all symbols share one cache, so a read returns every symbol's new updates",
+                "description": "a watch without a symbol returns every new update, here two orders of a symbol that is not the first one cached",
                 "input": [],
                 "url": "wss://openapi.blofin.com/ws/private",
                 "messages": [
@@ -930,7 +930,7 @@
         "watchOrdersForSymbols": [
             {
                 "description": "updates for an unrequested symbol do not bring back already-returned orders",
-                "disabledRS": "the rust client keeps the results stored for the other hashes of a multi-hash watch, so a frame that updates two watched symbols makes the next read return the first frame again instead of this one - a rust runtime fix (take_settled), not a blofin one",
+                "disabledRS": "the rust client keeps the results stored for the other hashes of a multi-hash watch, so a frame that updates two requested symbols is returned again by the next read in place of the following frame - needs a rust runtime fix (take_settled), not a blofin one",
                 "input": [
                     [
                         "BTC/USDT:USDT",

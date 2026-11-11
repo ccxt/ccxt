@@ -649,8 +649,8 @@ export default class blofin extends blofinRest {
             channel = 'orders-algo';
         }
         const orders = await this.watchMultipleWrapper (false, channel, 'watchOrdersForSymbols', symbols, paramsOmitted);
-        // every symbol shares one orders cache, so count and filter by the requested symbols
-        // instead of by the symbol of whichever order happens to be cached first
+        // every symbol shares one orders cache, so filter by the requested symbols and count
+        // per symbol only when exactly one is requested
         let requestedSymbols: Strings = undefined;
         let countSymbol: Str = undefined;
         const unifiedSymbols = this.marketSymbols (symbols, undefined, true);
@@ -673,6 +673,7 @@ export default class blofin extends blofinRest {
                 // symbols are exactly this read's updates; take them before filtering by symbol
                 const newCount = orders.getLimit (undefined, undefined);
                 if (newCount === 0) {
+                    // another watcher already took the count, and a limit of 0 would return the whole cache
                     newest = [];
                 } else {
                     newest = this.filterBySinceLimit (orders, undefined, newCount, 'timestamp', true);
@@ -707,7 +708,7 @@ export default class blofin extends blofinRest {
             orders.append (order);
             symbols.push (this.safeString (order, 'symbol', ''));
         }
-        // resolve only once the whole frame is stored, so a reader never sees it half applied
+        // resolve only after the whole frame is stored, so a consumer that runs concurrently (go) never sees it half applied
         for (let i = 0; i < symbols.length; i++) {
             if (channelName !== undefined) {
                 client.resolve (orders, channelName + ':' + symbols[i]);
