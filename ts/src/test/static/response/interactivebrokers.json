@@ -191,7 +191,7 @@
                 "input": [
                     [
                         "ETH.COINDERIV/USD:USD",
-                        "BTC/.COINDERIV/USD:USD"
+                        "BTC.COINDERIV/USD:USD"
                     ]
                 ],
                 "httpResponse": [
@@ -221,8 +221,8 @@
                     }
                 ],
                 "parsedResponse": {
-                    "BTC/.COINDERIV/USD:USD": {
-                        "symbol": "BTC/.COINDERIV/USD:USD",
+                    "BTC.COINDERIV/USD:USD": {
+                        "symbol": "BTC.COINDERIV/USD:USD",
                         "openInterestAmount": 195000,
                         "openInterestValue": 143120250,
                         "timestamp": 1794325155440,
