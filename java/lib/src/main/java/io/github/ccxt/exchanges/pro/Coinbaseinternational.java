@@ -127,9 +127,9 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         }});
     }
 
-    public Object requestId()
+    public Long requestId()
     {
-        Object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
+        Long requestId = (Long) this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         this.options.put("requestId", requestId);
         return requestId;
     }
@@ -156,7 +156,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             // re-authenticate in-band before the session expires, also while no watch call is pending
             // retry in 60s if this attempt fails; a successful reply reschedules via handleAuthenticationMessage
             this.options.put("wsAuthRefreshAt", this.sum(this.milliseconds(), 60000));
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             this.options.put("wsAuthRequestId", requestId);
             Map<String, Object> parameters = new HashMap<String, Object>() {{
                 put( "grant_type", "client_credentials" );
@@ -1900,7 +1900,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             if (java.util.Objects.equals(future, null))
             {
                 this.checkRequiredCredentials(true);
-                Object requestId = this.requestId();
+                Long requestId = this.requestId();
                 this.options.put("wsAuthRequestId", requestId);
                 Map<String, Object> paramsAuth = new HashMap<String, Object>() {{
                     put( "grant_type", "client_credentials" );
@@ -1950,7 +1950,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             {
                 (this.authenticate(new HashMap<String, Object>() {{}})).join();
             }
-            Object requestId = this.requestId();
+            Long requestId = this.requestId();
             String messageHash = String.valueOf(requestId);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );

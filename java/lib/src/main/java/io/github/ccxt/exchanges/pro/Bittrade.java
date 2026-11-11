@@ -64,10 +64,10 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         }});
     }
 
-    public String requestId()
+    public Long requestId()
     {
         Long requestId = this.nextCounter("requestId", 1L);
-        return (String) (String.valueOf(requestId));
+        return requestId;
     }
 
     /**
@@ -99,13 +99,13 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 put( "hostname", Bittrade.this.hostname );
             }};
             String url = (String) this.implodeParams(apiWsUrls.get("public"), hostname);
-            String requestId = this.requestId();
+            Long requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "sub", messageHash );
-                put( "id", requestId );
+                put( "id", String.valueOf(requestId) );
             }};
             Map<String, Object> subscription = new HashMap<String, Object>() {{
-                put( "id", requestId );
+                put( "id", String.valueOf(requestId) );
                 put( "messageHash", messageHash );
                 put( "symbol", market.get("symbol") );
                 put( "params", parameters );
@@ -185,13 +185,13 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 put( "hostname", Bittrade.this.hostname );
             }};
             String url = (String) this.implodeParams(apiWsUrls.get("public"), hostname);
-            String requestId = this.requestId();
+            Long requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "sub", messageHash );
-                put( "id", requestId );
+                put( "id", String.valueOf(requestId) );
             }};
             Map<String, Object> subscription = new HashMap<String, Object>() {{
-                put( "id", requestId );
+                put( "id", String.valueOf(requestId) );
                 put( "messageHash", messageHash );
                 put( "symbol", symbolValue );
                 put( "params", parameters );
@@ -289,13 +289,13 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 put( "hostname", Bittrade.this.hostname );
             }};
             String url = (String) this.implodeParams(apiWsUrls.get("public"), hostname);
-            String requestId = this.requestId();
+            Long requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "sub", messageHash );
-                put( "id", requestId );
+                put( "id", String.valueOf(requestId) );
             }};
             Map<String, Object> subscription = new HashMap<String, Object>() {{
-                put( "id", requestId );
+                put( "id", String.valueOf(requestId) );
                 put( "messageHash", messageHash );
                 put( "symbol", symbolValue );
                 put( "timeframe", java.util.Objects.requireNonNullElse(timeframe, "1m") );
@@ -391,13 +391,13 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                 put( "hostname", Bittrade.this.hostname );
             }};
             String url = (String) this.implodeParams(apiWsUrls.get("public"), hostname);
-            String requestId = this.requestId();
+            Long requestId = this.requestId();
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "sub", messageHash );
-                put( "id", requestId );
+                put( "id", String.valueOf(requestId) );
             }};
             Map<String, Object> subscription = new HashMap<String, Object>() {{
-                put( "id", requestId );
+                put( "id", String.valueOf(requestId) );
                 put( "messageHash", messageHash );
                 put( "symbol", symbolValue );
                 put( "limit", limitValue );
@@ -477,22 +477,22 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
                     put( "hostname", Bittrade.this.hostname );
                 }};
                 String url = (String) this.implodeParams(apiWsUrls.get("public"), hostname);
-                String requestId = this.requestId();
+                Long requestId = this.requestId();
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "req", messageHash );
-                    put( "id", requestId );
+                    put( "id", String.valueOf(requestId) );
                 }};
                 // this is a temporary subscription by a specific requestId
                 // it has a very short lifetime until the snapshot is received over ws
                 Map<String, Object> snapshotSubscription = new HashMap<String, Object>() {{
-                    put( "id", requestId );
+                    put( "id", String.valueOf(requestId) );
                     put( "messageHash", messageHash );
                     put( "symbol", symbol );
                     put( "limit", limit );
                     put( "params", parameters );
                     put( "method", "handleOrderBookSnapshot");
                 }};
-                io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, requestId, request, requestId, snapshotSubscription)).join();
+                io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, String.valueOf(requestId), request, String.valueOf(requestId), snapshotSubscription)).join();
                 return orderbook.limit();
             } catch(Exception e)
             {

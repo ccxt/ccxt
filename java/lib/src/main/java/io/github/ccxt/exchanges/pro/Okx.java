@@ -2690,12 +2690,12 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         }
     }
 
-    public String requestId()
+    public Long requestId()
     {
+        // millisecond timestamp plus 3 random digits stays a safe integer
         String ts = String.valueOf(this.milliseconds());
-        Object randomNumber = this.randNumber(4);
-        String randomPart = String.valueOf(randomNumber);
-        return (String) ((ts + randomPart));
+        String randomPart = String.valueOf(this.randNumber(3));
+        return this.parseToInt((ts + randomPart));
     }
 
     /**
@@ -2723,7 +2723,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String url = this.getUrl("private", "private");
-            String messageHash = this.requestId();
+            String messageHash = String.valueOf(this.requestId());
             Pair<String, Map<String, Object>> opparamsOpVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrderWs", "op", "batch-orders");
             String op = opparamsOpVariable.first();
             Map<String, Object> paramsOp = opparamsOpVariable.second();
@@ -2815,7 +2815,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String url = this.getUrl("private", "private");
-            String messageHash = this.requestId();
+            String messageHash = String.valueOf(this.requestId());
             Pair<String, Map<String, Object>> opparamsOpVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "editOrderWs", "op", "amend-order");
             String op = opparamsOpVariable.first();
             Map<String, Object> paramsOp = opparamsOpVariable.second();
@@ -2863,7 +2863,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String url = this.getUrl("private", "private");
-            String messageHash = this.requestId();
+            String messageHash = String.valueOf(this.requestId());
             String clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clientOrderId", "clOrdId")));
             Map<String, Object> market = this.market(symbol);
@@ -2918,7 +2918,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
             String url = this.getUrl("private", "private");
-            String messageHash = this.requestId();
+            String messageHash = String.valueOf(this.requestId());
             List<Object> args = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> market = this.market(symbol);
             Long instIdCode = this.safeInteger(market, "instIdCode");
@@ -2971,7 +2971,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 throw new BadRequest((this.id + " cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.")) ;
             }
             String url = this.getUrl("private", "private");
-            String messageHash = this.requestId();
+            String messageHash = String.valueOf(this.requestId());
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "op", "mass-cancel" );
