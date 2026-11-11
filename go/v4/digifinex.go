@@ -4480,7 +4480,7 @@ func (this *Digifinex) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInter
 	//         "unrealized_pnl": "-0.049158102631998504"
 	//     }
 	//
-	var rows []any = SafeListTyped(response, "positions")
+	var rows []any = SafeListTypedDefault(response, "positions", []any{})
 	var interest any = this.ParseBorrowInterests(rows, market)
 
 	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterByCurrencySinceLimit(interest, code, since, limit))}

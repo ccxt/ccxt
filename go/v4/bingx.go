@@ -6671,7 +6671,7 @@ func (this *Bingx) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map[st
 	//         }
 	//     }
 	//
-	var data []any = SafeListTyped(this.SafeDict(response, "data"), "data")
+	var data []any = SafeListTypedDefault(this.SafeDict(response, "data"), "data", []any{})
 	var parsed []any = this.ParseDepositAddresses(data, []any{currency["code"]}, false)
 
 	ch <- AsyncResult[map[string]DepositAddress]{Value: DepositAddressMapFromMap(this.IndexBy(parsed, "network"))}

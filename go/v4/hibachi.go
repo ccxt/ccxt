@@ -451,7 +451,7 @@ func (this *Hibachi) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	//     "underlyingDecimals": 9,
 	//     "underlyingSymbol": "ETH"
 	// },
-	var rows []any = SafeListTyped(response, "futureContracts")
+	var rows []any = SafeListTypedDefault(response, "futureContracts", []any{})
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(rows))}
 	return nil

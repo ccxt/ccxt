@@ -958,7 +958,6 @@ func (this *Btcturk) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-
 	//
 	//    {
 	//        "s": "ok",
@@ -994,7 +993,25 @@ func (this *Btcturk) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	//        ]
 	//    }
 	//
-	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(response, market, timeframe, since, limitResolved))}
+	var timestamp []any = SafeListTyped(response, "t")
+	var high []any = SafeListTyped(response, "h")
+	var open []any = SafeListTyped(response, "o")
+	var low []any = SafeListTyped(response, "l")
+	var close []any = SafeListTyped(response, "c")
+	var volume []any = SafeListTyped(response, "v")
+	var rows []any = []any{}
+	for i := 0; i < len(timestamp); i++ {
+		rows = append(rows, map[string]any{
+			"timestamp": this.SafeInteger(timestamp, i),
+			"high":      this.SafeNumber(high, i),
+			"open":      this.SafeNumber(open, i),
+			"low":       this.SafeNumber(low, i),
+			"close":     this.SafeNumber(close, i),
+			"volume":    this.SafeNumber(volume, i),
+		})
+	}
+
+	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(rows, market, timeframe, since, limitResolved))}
 	return nil
 }
 func (this *Btcturk) ParseOHLCVs(ohlcvs any, optionalArgs ...any) []any {
@@ -1008,23 +1025,10 @@ func (this *Btcturk) ParseOHLCVs(ohlcvs any, optionalArgs ...any) []any {
 	_ = limit
 	var tail bool = GetArgBool(optionalArgs, 4, false)
 	_ = tail
+	var rows []any = this.ToArray(ohlcvs)
 	var results []any = []any{}
-	var timestamp []any = SafeListTyped(ohlcvs, "t")
-	var high []any = SafeListTyped(ohlcvs, "h")
-	var open []any = SafeListTyped(ohlcvs, "o")
-	var low []any = SafeListTyped(ohlcvs, "l")
-	var close []any = SafeListTyped(ohlcvs, "c")
-	var volume []any = SafeListTyped(ohlcvs, "v")
-	for i := 0; i < len(timestamp); i++ {
-		var ohlcv map[string]any = map[string]any{
-			"timestamp": this.SafeInteger(timestamp, i),
-			"high":      this.SafeNumber(high, i),
-			"open":      this.SafeNumber(open, i),
-			"low":       this.SafeNumber(low, i),
-			"close":     this.SafeNumber(close, i),
-			"volume":    this.SafeNumber(volume, i),
-		}
-		results = append(results, OHLCVToList(this.ParseOHLCV(ohlcv, market)))
+	for i := 0; i < len(rows); i++ {
+		results = append(results, OHLCVToList(this.ParseOHLCV(this.SafeDict(rows, i, map[string]any{}), market)))
 	}
 	var sorted []any = this.SortBy(results, 0)
 	return this.FilterBySinceLimit(sorted, since, limit, 0, tail)

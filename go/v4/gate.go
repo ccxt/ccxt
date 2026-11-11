@@ -9847,33 +9847,33 @@ func (this *Gate) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest],
 	if limit != nil {
 		requestUntil["limit"] = *limit
 	}
-	var response any = nil
+	var response []any = nil
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchBorrowInterest", paramsUntil, "cross")
 	if isUnifiedAccount {
 
-		r2 := <-this.PrivateUnifiedGetInterestRecords(this.Extend(requestUntil, paramsMarginMode))
-		if r2.Err != nil {
-			panic(r2.Err)
+		responseRecv := <-this.PrivateUnifiedGetInterestRecords(this.Extend(requestUntil, paramsMarginMode))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r2.Raw
+		response = responseRecv.Value
 	} else if marginMode != nil && *marginMode == "isolated" {
 		if market != nil {
 			requestUntil["currency_pair"] = market["id"]
 		}
 
-		r3 := <-this.PrivateMarginGetUniInterestRecords(this.Extend(requestUntil, paramsMarginMode))
-		if r3.Err != nil {
-			panic(r3.Err)
+		responseRecv := <-this.PrivateMarginGetUniInterestRecords(this.Extend(requestUntil, paramsMarginMode))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r3.Raw
-	} else if marginMode != nil && *marginMode == "cross" {
-		// deprecated and not present in the exchange's docs but still works
+		response = responseRecv.Value
+	} else {
+		// cross: deprecated and not present in the exchange's docs but still works
 
-		r4 := <-this.PrivateMarginGetCrossInterestRecords(this.Extend(requestUntil, paramsMarginMode))
-		if r4.Err != nil {
-			panic(r4.Err)
+		responseRecv := <-this.PrivateMarginGetCrossInterestRecords(this.Extend(requestUntil, paramsMarginMode))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response = r4.Raw
+		response = responseRecv.Value
 	}
 	var interest any = this.ParseBorrowInterests(response, market)
 

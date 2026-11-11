@@ -872,7 +872,7 @@ func (this *Paradex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	//         ]
 	//     }
 	//
-	var data []any = SafeListTyped(response, "results")
+	var data []any = SafeListTypedDefault(response, "results", []any{})
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(data))}
 	return nil

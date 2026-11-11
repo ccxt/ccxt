@@ -2452,7 +2452,7 @@ func (this *Bitvavo) HandleFetchCurrencies(client any, message map[string]any) {
 	//    }
 	//
 	var messageHash *string = this.SafeString(message, "requestId")
-	var response []any = ccxt.SafeListTyped(message, "response")
+	var response []any = ccxt.SafeListTypedDefault(message, "response", []any{})
 	var currencies map[string]any = this.ParseCurrencies(response)
 	client.(ccxt.ClientInterface).Resolve(currencies, messageHash)
 }

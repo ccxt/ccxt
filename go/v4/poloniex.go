@@ -1147,7 +1147,7 @@ func (this *Poloniex) fetchSwapMarketsBody(ch chan AsyncResult[[]MarketInterface
 	//                "limitMaxQty": "1000000"
 	//            },
 	//
-	var markets []any = SafeListTyped(response, "data")
+	var markets []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(markets))}
 	return nil

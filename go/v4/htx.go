@@ -10088,7 +10088,7 @@ func (this *Htx) fetchBorrowInterestBody(ch chan AsyncResult[[]BorrowInterest], 
 	//        ]
 	//    }
 	//
-	var data []any = SafeListTyped(response, "data")
+	var data []any = SafeListTypedDefault(response, "data", []any{})
 	var interest any = this.ParseBorrowInterests(data, market)
 
 	ch <- AsyncResult[[]BorrowInterest]{Value: BorrowInterestsFromList(this.FilterByCurrencySinceLimit(interest, code, since, limit))}

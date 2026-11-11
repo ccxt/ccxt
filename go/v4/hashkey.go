@@ -1336,7 +1336,7 @@ func (this *Hashkey) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], op
 		panic(r.Err)
 	}
 	var response map[string]any = r.Value
-	var coins []any = SafeListTyped(response, "coins")
+	var coins []any = SafeListTypedDefault(response, "coins", []any{})
 
 	//
 	//     {
