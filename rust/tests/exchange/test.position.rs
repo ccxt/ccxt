@@ -86,10 +86,10 @@ pub fn testPosition(mut exchange: Value, mut skippedProperties: Value, mut metho
     crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("markPrice".into()).clone(), Value::Str("0".into()).clone()]);
     crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("collateral".into()).clone(), Value::Str("0".into()).clone()]);
     // testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'percentage', '0'); // percentage might be < 0
-    let mut marginMode: Value = exchange.safe_string(entry.clone(), Value::Str("marginMode".into()), &[]);
-    if (marginMode.as_str() == Some("isolated")) {
+    let mut marginMode: Option<String> = exchange.safe_string(entry.clone(), Value::Str("marginMode".into()), &[]).as_str().map(str::to_owned);
+    if (marginMode.as_deref() == Some("isolated")) {
         let mut logText: Value = crate::tests_support::shared::log_template(exchange.clone(), method.clone(), entry.clone());
-        let mut side: Value = exchange.safe_string(entry.clone(), Value::Str("side".into()), &[]);
+        let mut side: Option<String> = exchange.safe_string(entry.clone(), Value::Str("side".into()), &[]).as_str().map(str::to_owned);
         let mut entryPriceString: Value = exchange.safe_string(entry.clone(), Value::Str("entryPrice".into()), &[]);
         let mut liquidationPriceString: Value = exchange.safe_string(entry.clone(), Value::Str("liquidationPrice".into()), &[]);
         let mut contractsString: Value = exchange.safe_string(entry.clone(), Value::Str("contracts".into()), &[]);
@@ -99,9 +99,9 @@ pub fn testPosition(mut exchange: Value, mut skippedProperties: Value, mut metho
         let mut initialMarginString: Value = exchange.safe_string(entry.clone(), Value::Str("initialMargin".into()), &[]);
         let mut unrealizedPnlString: Value = exchange.safe_string(entry.clone(), Value::Str("unrealizedPnl".into()), &[]);
         if (entryPriceString != Value::Null) && (liquidationPriceString != Value::Null) && is_true(&ccxt::precise::Precise::stringGt(&entryPriceString, &Value::Str("0".into()))) && is_true(&ccxt::precise::Precise::stringGt(&liquidationPriceString, &Value::Str("0".into()))) {
-            if (side.as_str() == Some("long")) {
+            if (side.as_deref() == Some("long")) {
                 crate::tests_support::shared::assert_less(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("liquidationPrice".into()).clone(), entryPriceString.clone()]);
-            }  else if (side.as_str() == Some("short")) {
+            }  else if (side.as_deref() == Some("short")) {
                 crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("liquidationPrice".into()).clone(), entryPriceString.clone()]);
             }
         }

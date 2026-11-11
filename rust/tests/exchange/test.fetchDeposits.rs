@@ -15,11 +15,10 @@ pub async fn testFetchDeposits(mut exchange: Value, mut skippedProperties: Value
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), transactions.clone(), code.clone()]);
     let mut now: Value = exchange.milliseconds();
     {
-                let mut i: Value = Value::Int(0);
+                let mut i: i64 = 0;
         let mut __for_first_1570: bool = true;
-        while { if !__for_first_1570 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-            } __for_first_1570 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(transactions.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-        testDepositWithdrawal(exchange.clone(), skippedProperties.clone(), method.clone(), transactions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), code.clone(), now.clone());
+        while { if !__for_first_1570 { i += 1; } __for_first_1570 = false; i < (transactions.len() as i64) } {
+        testDepositWithdrawal(exchange.clone(), skippedProperties.clone(), method.clone(), transactions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), code.clone(), now.clone());
     }
     }
     crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), code.clone(), transactions.clone()]);

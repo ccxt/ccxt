@@ -176,20 +176,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn check_if_specific_test_is_chosen(&self, mut methodArgv: Value) {
         if (methodArgv != Value::Null) {
-            let mut testFileNames: Value = object_keys(&self.testFiles);
+            let mut testFileNames: Vec<Value> = object_keys(&self.testFiles).as_array().cloned().unwrap_or_default();
             let mut possibleMethodNames: Value = split(&methodArgv, &Value::Str(",".into())); // i.e. `test.ts binance fetchBalance,fetchDeposits`
             if possibleMethodNames.as_array().map_or(Value::Int(0), |__a| Value::Int(__a.len() as i64)).as_f64().unwrap_or(f64::NAN) >= Value::Int(1).as_f64().unwrap_or(f64::NAN) {
                 {
-                                        let mut i: Value = Value::Int(0);
+                                        let mut i: i64 = 0;
                     let mut __for_first_1614: bool = true;
-                    while { if !__for_first_1614 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                        } __for_first_1614 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(testFileNames.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                    let mut testFileName: Value = testFileNames.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                    while { if !__for_first_1614 { i += 1; } __for_first_1614 = false; i < (testFileNames.len() as i64) } {
+                    let mut testFileName: Value = testFileNames.get(i as usize).cloned().unwrap_or(Value::Null);
                     {
                                                 let mut j: Value = Value::Int(0);
                         let mut __for_first_1613: bool = true;
-                        while { if !__for_first_1613 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                            } __for_first_1613 = false; j.as_f64().unwrap_or(f64::NAN) < possibleMethodNames.as_array().map_or(Value::Int(0), |__a| Value::Int(__a.len() as i64)).as_f64().unwrap_or(f64::NAN) } {
+                        while { if !__for_first_1613 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1613 = false; j.as_f64().unwrap_or(f64::NAN) < possibleMethodNames.as_array().map_or(Value::Int(0), |__a| Value::Int(__a.len() as i64)).as_f64().unwrap_or(f64::NAN) } {
                         let mut methodName: Value = get_value(&possibleMethodNames, &j);
                         methodName = replace_str(&methodName, &Value::Str("()".into()), &Value::Str("".into()));
                         if is_equal(&testFileName, &methodName) {
@@ -222,15 +220,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut reqCreds: Value = getExchangeProp(exchange.clone(), Value::Str(format!("{}{}", Value::Str("re".into()), Value::Str("quiredCredentials".into())).into()), &[]); // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
         let mut objkeys: Value = object_keys(&reqCreds);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1615: bool = true;
-            while { if !__for_first_1615 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1615 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(objkeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut credential: Value = objkeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1615 { i += 1; } __for_first_1615 = false; i < (objkeys.len() as i64) } {
+            let mut credential: Value = objkeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut isRequired: Value = get_value(&reqCreds, &credential);
             if (is_equal(&isRequired, &Value::Bool(true))) && (getExchangeProp(exchange.clone(), credential.clone(), &[]) == Value::Null) {
-                let mut fullKey: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", exchangeId, Value::Str("_".into())).into()), credential).into());
-                let mut credentialEnvName: Value = (if let Some(__s) = fullKey.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }); // example: KRAKEN_APIKEY
+                let mut fullKey: String = format!("{}{}", Value::Str(format!("{}{}", exchangeId, Value::Str("_".into())).into()), credential);
+                let mut credentialEnvName: Value = Value::from(fullKey.to_uppercase()); // example: KRAKEN_APIKEY
                 let mut envVars: Value = getEnvVars();
                 let mut credentialValue: Value = (if (in_op(&envVars, &credentialEnvName)) { envVars.as_map().and_then(|__m| credentialEnvName.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null) } else { Value::Null });
                 if (credentialValue != Value::Null) && (credentialValue.as_str() != Some("")) {
@@ -269,11 +266,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (exchangeSettings != Value::Null) {
             let mut settingKeys: Value = object_keys(&exchangeSettings);
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1616: bool = true;
-                while { if !__for_first_1616 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                    } __for_first_1616 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(settingKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut key: Value = settingKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                while { if !__for_first_1616 { i += 1; } __for_first_1616 = false; i < (settingKeys.len() as i64) } {
+                let mut key: Value = settingKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut settingValue: Value = get_value(&exchangeSettings, &key);
                 let mut settingIsEmpty: bool = (settingValue == Value::Null) || (settingValue == Value::Null) || (settingValue.as_str() == Some("")) || (is_equal(&settingValue, &Value::Bool(false))) || (is_equal(&settingValue, &Value::Int(0)));
                 if !settingIsEmpty {
@@ -327,7 +323,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn add_padding(&self, mut message: Value, mut size: Value) -> Value {
         // has to be transpilable
-        let mut res: Value = Value::Str("".into());
+        let mut res: String = "".to_string();
         let mut messageLength: Value = Value::Int(message.len() as i64); // avoid php transpilation issue
         let mut missingSpace: Value = (match (&((match (&(size), &(messageLength)) { (Value::Int(__x), Value::Int(__y)) => Value::Int(__x - __y), (__a, __b) => match ((match __a { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }),
             _ => None }), __b.as_f64()) { (Some(__x), Some(__y)) => Value::Float(__x - __y), _ => Value::Null } })), &(Value::Int(0))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
@@ -336,9 +332,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1617: bool = true;
-                while { if !__for_first_1617 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                    } __for_first_1617 = false; i.as_f64().unwrap_or(f64::NAN) < missingSpace.as_f64().unwrap_or(f64::NAN) } {
-                res = Value::Str(format!("{}{}", res, Value::Str(" ".into())).into());
+                while { if !__for_first_1617 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1617 = false; i.as_f64().unwrap_or(f64::NAN) < missingSpace.as_f64().unwrap_or(f64::NAN) } {
+                res.push_str(" ");
             }
             }
         }
@@ -418,11 +413,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
         let mut methodNames: Value = Value::from(vec![methodName.clone(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", methodName, Value::Str(".".into())).into()), self.ext.clone()).into())]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1618: bool = true;
-            while { if !__for_first_1618 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1618 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(methodNames.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut mName: Value = methodNames.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1618 { i += 1; } __for_first_1618 = false; i < (methodNames.len() as i64) } {
+            let mut mName: Value = methodNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if (in_op(&self.skippedMethods, &mName)) {
                 // if whole method is skipped, by assigning a string to it, i.e. "fetchOrders":"blabla"
                 if matches!(&get_value(&self.skippedMethods, &mName), Value::Str(_)) {
@@ -434,7 +428,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         }
         // get "object-specific" skips
-        let mut objectSkips: Value = Value::Map({
+        let mut objectSkips: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderBook".to_string(), Value::from(vec![Value::Str("fetchOrderBook".into()), Value::Str("fetchOrderBooks".into()), Value::Str("fetchL2OrderBook".into()), Value::Str("watchOrderBook".into()), Value::Str("watchOrderBookForSymbols".into())]));
                 m.insert("ticker".to_string(), Value::from(vec![Value::Str("fetchTicker".into()), Value::Str("fetchTickers".into()), Value::Str("watchTicker".into()), Value::Str("watchTickers".into())]));
@@ -445,14 +439,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("depositWithdrawFee".to_string(), Value::from(vec![Value::Str("fetchDepositWithdrawFee".into()), Value::Str("fetchDepositWithdrawFees".into())]));
             m
         });
-        let mut objectNames: Value = object_keys(&objectSkips);
+        let mut objectNames: Value = object_keys(&Value::Map(objectSkips.clone()));
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1619: bool = true;
-            while { if !__for_first_1619 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1619 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(objectNames.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut objectName: Value = objectNames.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut objectMethods: Value = objectSkips.as_map().and_then(|__m| objectName.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1619 { i += 1; } __for_first_1619 = false; i < (objectNames.len() as i64) } {
+            let mut objectName: Value = objectNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut objectMethods: Value = objectSkips.get(objectName.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
             if is_true(&exchange.in_array(methodName.clone(), objectMethods.clone())) {
                 // if whole object is skipped, by assigning a string to it, i.e. "orderBook":"blabla"
                 if (in_op(&self.skippedMethods, &objectName)) && (matches!(&get_value(&self.skippedMethods, &objectName), Value::Str(_))) {
@@ -496,8 +489,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1620: bool = true;
-            while { if !__for_first_1620 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1620 = false; i.as_f64().unwrap_or(f64::NAN) < maxRetries.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1620 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1620 = false; i.as_f64().unwrap_or(f64::NAN) < maxRetries.as_f64().unwrap_or(f64::NAN) } {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 self.test_method(methodName.clone(), exchange.clone(), args.clone(), isPublic.clone()).await;
                 return Value::Bool(true);
@@ -654,37 +646,35 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     pub async fn run_tests(&mut self, mut exchange: Value, mut tests: Value, mut isPublicTest: Value) -> Value {
         let mut testNames: Value = object_keys(&tests);
-        let mut promises: Value = Value::from(vec![]);
+        let mut promises: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1621: bool = true;
-            while { if !__for_first_1621 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1621 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(testNames.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut testName: Value = testNames.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1621 { i += 1; } __for_first_1621 = false; i < (testNames.len() as i64) } {
+            let mut testName: Value = testNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut testArgs: Value = get_value(&tests, &testName);
-            append_to_array(&mut promises, self.test_safe(testName.clone(), exchange.clone(), &[testArgs.clone(), isPublicTest.clone()]).await);
+            promises.push(self.test_safe(testName.clone(), exchange.clone(), &[testArgs.clone(), isPublicTest.clone()]).await);
         }
         }
         // todo - not yet ready in other langs too
         // promises.push (testThrottle ());
-        let mut results: Value = promise_all(&promises).await;
+        let mut results: Vec<Value> = promise_all(&Value::from(promises)).await.as_array().cloned().unwrap_or_default();
         // now count which test-methods retuned `false` from "testSafe" and dump that info below
-        let mut failedMethods: Value = Value::from(vec![]);
+        let mut failedMethods: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1622: bool = true;
-            while { if !__for_first_1622 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1622 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(testNames.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut testName: Value = testNames.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-            let mut testReturnedValue: Value = results.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1622 { i += 1; } __for_first_1622 = false; i < (testNames.len() as i64) } {
+            let mut testName: Value = testNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut testReturnedValue: Value = results.get(i as usize).cloned().unwrap_or(Value::Null);
             if !is_equal(&testReturnedValue, &Value::Bool(true)) {
-                append_to_array(&mut failedMethods, testName.clone());
+                failedMethods.push(testName.clone());
             }
         }
         }
         let mut testPrefixString: Value = (if isPublicTest.as_bool() == Some(true) { Value::Str("PUBLIC_TESTS".into()) } else { Value::Str("PRIVATE_TESTS".into()) });
         if Value::Int(failedMethods.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
-            let mut errorsString: Value = Value::Str(failedMethods.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into());
+            let mut errorsString: Value = Value::Str(failedMethods.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ").into());
             dump(&[Value::Str("[TEST_FAILURE]".into()), get_value(&exchange, &Value::Str("id".into())), testPrefixString.clone(), Value::Str(format!("{}{}", Value::Str("Failed methods : ".into()), errorsString).into())]);
         }
         if is_true(&self.info) {
@@ -719,8 +709,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1623: bool = true;
-            while { if !__for_first_1623 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1623 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&symbols).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1623 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1623 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&symbols).as_f64().unwrap_or(f64::NAN) } {
             let mut s: Value = get_value(&symbols, &i);
             let mut market: Value = exchange.safe_value(get_value(&exchange, &Value::Str("markets".into())), s.clone(), &[]);
             if (market != Value::Null) {
@@ -744,12 +733,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let mut code: Value = codes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1624: bool = true;
-            while { if !__for_first_1624 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1624 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(codes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            if (in_op(&get_value(&exchange, &Value::Str("currencies".into())), &codes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null))) {
-                return codes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1624 { i += 1; } __for_first_1624 = false; i < (codes.len() as i64) } {
+            if (in_op(&get_value(&exchange, &Value::Str("currencies".into())), &codes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null))) {
+                return codes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             }
         }
         }
@@ -760,27 +748,26 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     pub fn get_markets_from_exchange(&self, mut exchange: Value, optional_args: &[Value]) -> Value {
         let spot: bool = get_arg(optional_args, 0, Value::Bool(true)).is_truthy();
-        let mut res: Value = Value::Map({
+        let mut res: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut markets: Value = get_value(&exchange, &Value::Str("markets".into()));
         let mut keys: Value = object_keys(&markets);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1625: bool = true;
-            while { if !__for_first_1625 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1625 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1625 { i += 1; } __for_first_1625 = false; i < (keys.len() as i64) } {
+            let mut key: Value = keys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = get_value(&markets, &key);
             if spot && (is_equal(&get_value(&market, &Value::Str("spot".into())), &Value::Bool(true))) {
-                add_element_to_object(&mut res, &get_value(&market, &Value::Str("symbol".into())), market.clone());
+                res.insert(ccxt::runtime::stringify_param(&(get_value(&market, &Value::Str("symbol".into())))), market.clone());
             }  else if !spot && (!is_equal(&get_value(&market, &Value::Str("spot".into())), &Value::Bool(true))) {
-                add_element_to_object(&mut res, &get_value(&market, &Value::Str("symbol".into())), market.clone());
+                res.insert(ccxt::runtime::stringify_param(&(get_value(&market, &Value::Str("symbol".into())))), market.clone());
             }
         }
         }
-        return res;
+        return Value::Map(res);
 
     Value::Null
 }
@@ -800,11 +787,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
         if (symbol == Value::Null) {
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1626: bool = true;
-                while { if !__for_first_1626 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                    } __for_first_1626 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(codes.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut currentCode: Value = codes.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                while { if !__for_first_1626 { i += 1; } __for_first_1626 = false; i < (codes.len() as i64) } {
+                let mut currentCode: Value = codes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut marketsArrayForCurrentCode: Value = exchange.filter_by(currentTypeMarkets.clone(), Value::Str("base".into()), currentCode.clone(), &[]);
                 let mut indexedMkts: Value = exchange.index_by(marketsArrayForCurrentCode.clone(), Value::Str("symbol".into()));
                 let mut symbolsArrayForCurrentCode: Value = object_keys(&indexedMkts);
@@ -819,16 +805,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // if there wasn't found any symbol with our hardcoded 'base' code, then just try to find symbols that are 'active'
         if (symbol == Value::Null) {
             let mut activeMarkets: Value = exchange.filter_by(currentTypeMarkets.clone(), Value::Str("active".into()), Value::Bool(true), &[]);
-            let mut activeSymbols: Value = Value::from(vec![]);
+            let mut activeSymbols: Vec<Value> = Vec::new();
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1627: bool = true;
-                while { if !__for_first_1627 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                    } __for_first_1627 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&activeMarkets).as_f64().unwrap_or(f64::NAN) } {
-                append_to_array(&mut activeSymbols, get_value(&get_value(&activeMarkets, &i), &Value::Str("symbol".into())));
+                while { if !__for_first_1627 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1627 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&activeMarkets).as_f64().unwrap_or(f64::NAN) } {
+                activeSymbols.push(get_value(&get_value(&activeMarkets, &i), &Value::Str("symbol".into())));
             }
             }
-            symbol = self.get_test_symbol(exchange.clone(), spot.clone(), activeSymbols.clone());
+            symbol = self.get_test_symbol(exchange.clone(), spot.clone(), Value::from(activeSymbols));
         }
         if (symbol == Value::Null) {
             let mut values: Value = object_values(&currentTypeMarkets);
@@ -912,11 +897,10 @@ if _try_result.is_err() {
         let mut candidates: Value = Value::from(vec![]);
         let mut tickerSymbols: Value = object_keys(&tickers);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1628: bool = true;
-            while { if !__for_first_1628 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1628 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(tickerSymbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut tickerSymbol: Value = tickerSymbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1628 { i += 1; } __for_first_1628 = false; i < (tickerSymbols.len() as i64) } {
+            let mut tickerSymbol: Value = tickerSymbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = exchange.safe_dict(get_value(&exchange, &Value::Str("markets".into())), tickerSymbol.clone(), &[]);
             if (market != Value::Null) {
                 // exchanges keep returning tickers for delisted markets, and those
@@ -949,11 +933,11 @@ if _try_result.is_err() {
         if (rankedLength.as_f64() == Some(0.0)) {
             return defaultSymbols;
         }
-        let mut result: Value = Value::from(vec![exchange.safe_string(get_value(&ranked, &Value::Int(0)), Value::Str("symbol".into()), &[])]);
+        let mut result: Vec<Value> = vec![exchange.safe_string(get_value(&ranked, &Value::Int(0)), Value::Str("symbol".into()), &[])];
         if rankedLength.as_f64().unwrap_or(f64::NAN) > Value::Int(1).as_f64().unwrap_or(f64::NAN) {
-            append_to_array(&mut result, exchange.safe_string(get_value(&ranked, &Value::Int(1)), Value::Str("symbol".into()), &[]));
+            result.push(exchange.safe_string(get_value(&ranked, &Value::Int(1)), Value::Str("symbol".into()), &[]));
         }
-        return result;
+        return Value::from(result);
 
     Value::Null
 }
@@ -1059,44 +1043,41 @@ if _try_result.is_err() {
         if (outcomeSymbol != Value::Null) {
             // validate the pin against the live listing - venues can rotate ids/handles
             // (hyperliquid re-assigns outcome ids), which would strand a stale pin
-            let mut pinFound: Value = Value::Bool(false);
-            let mut pinnedKeys: Value = object_keys(&get_value(&exchange, &Value::Str("markets".into())));
+            let mut pinFound: bool = false;
+            let mut pinnedKeys: Vec<Value> = object_keys(&get_value(&exchange, &Value::Str("markets".into()))).as_array().cloned().unwrap_or_default();
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1630: bool = true;
-                while { if !__for_first_1630 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                    } __for_first_1630 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(pinnedKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut pinnedMarket: Value = get_value(&get_value(&exchange, &Value::Str("markets".into())), &pinnedKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+                while { if !__for_first_1630 { i += 1; } __for_first_1630 = false; i < (pinnedKeys.len() as i64) } {
+                let mut pinnedMarket: Value = get_value(&get_value(&exchange, &Value::Str("markets".into())), &pinnedKeys.get(i as usize).cloned().unwrap_or(Value::Null));
                 let mut pinnedOutcomes: Value = exchange.safe_list(pinnedMarket.clone(), Value::Str("outcomes".into()), &[Value::from(vec![])]);
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_1629: bool = true;
-                    while { if !__for_first_1629 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                        } __for_first_1629 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&pinnedOutcomes).as_f64().unwrap_or(f64::NAN) } {
+                    while { if !__for_first_1629 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1629 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&pinnedOutcomes).as_f64().unwrap_or(f64::NAN) } {
                     if is_equal(&exchange.safe_string(get_value(&pinnedOutcomes, &j), Value::Str("outcome".into()), &[]), &outcomeSymbol) {
-                        pinFound = Value::Bool(true);
+                        pinFound = true;
                         break;
                     }
                 }
                 }
-                if pinFound.as_bool() == Some(true) {
+                if pinFound {
                     break;
                 }
             }
             }
-            if !(pinFound.as_bool() == Some(true)) {
+            if !pinFound {
                 dump(&[Value::Str("[INFO:MAIN] preferredPredictionOutcome".into()), outcomeSymbol.clone(), Value::Str("not in the live listing (stale pin?) - falling back to market scan".into())]);
                 outcomeSymbol = Value::Null;
             }
         }
         if (outcomeSymbol == Value::Null) {
-            let mut marketKeys: Value = object_keys(&get_value(&exchange, &Value::Str("markets".into())));
+            let mut marketKeys: Vec<Value> = object_keys(&get_value(&exchange, &Value::Str("markets".into()))).as_array().cloned().unwrap_or_default();
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1631: bool = true;
-                while { if !__for_first_1631 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                    } __for_first_1631 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(marketKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut market: Value = get_value(&get_value(&exchange, &Value::Str("markets".into())), &marketKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+                while { if !__for_first_1631 { i += 1; } __for_first_1631 = false; i < (marketKeys.len() as i64) } {
+                let mut market: Value = get_value(&get_value(&exchange, &Value::Str("markets".into())), &marketKeys.get(i as usize).cloned().unwrap_or(Value::Null));
                 let mut outcomesList: Value = exchange.safe_list(market.clone(), Value::Str("outcomes".into()), &[Value::from(vec![])]);
                 let mut outcomesListLength: Value = get_array_length(&outcomesList);
                 if outcomesListLength.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN) {
@@ -1145,8 +1126,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if (eventQuery == Value::Null) {
                     // derive one from the selected outcome handle (the market words with
                     // separators as spaces) so the scoped contract holds even without a pin
-                    let mut handleParts: Value = split(&outcomeSymbol, &Value::Str(":".into()));
-                    let mut marketPart: Value = get_value(&handleParts, &Value::Int(0));
+                    let mut handleParts: Vec<Value> = split(&outcomeSymbol, &Value::Str(":".into())).as_array().cloned().unwrap_or_default();
+                    let mut marketPart: Value = handleParts.get(0).cloned().unwrap_or(Value::Null);
                     let mut lowerPart: Value = (if let Some(__s) = (marketPart).as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
                     let mut dedashed: Value = replace_all_str(&lowerPart, &Value::Str("-".into()), &Value::Str(" ".into()));
                     eventQuery = replace_all_str(&dedashed, &Value::Str("_".into()), &Value::Str(" ".into()));
@@ -1180,12 +1161,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // series filter) is a real bug that only surfaces if the path is actually asserted.
                 // build the scope list here (inline, not via a helper) so the callExchangeMethodDynamically
                 // calls stay inside this try/catch — Java can't propagate their checked exception otherwise
-                let mut scopesToTest: Value = Value::from(vec![]);
+                let mut scopesToTest: Vec<Value> = Vec::new();
                 if (eventId != Value::Null) {
                     // copy to a const so the dict capture is effectively-final (Java inner-class rule),
                     // since eventId is reassigned above. every venue must refetch an event by its own id
                     let mut eventIdScope: Value = eventId.clone();
-                    append_to_array(&mut scopesToTest, Value::Map({
+                    scopesToTest.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("eventId".to_string(), eventIdScope.clone());
                         m
@@ -1198,18 +1179,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 {
                                         let mut si: Value = Value::Int(0);
                     let mut __for_first_1632: bool = true;
-                    while { if !__for_first_1632 { si = (match (&(si), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                        } __for_first_1632 = false; si.as_f64().unwrap_or(f64::NAN) < extraScopesLength.as_f64().unwrap_or(f64::NAN) } {
-                    append_to_array(&mut scopesToTest, get_value(&extraScopes, &si));
+                    while { if !__for_first_1632 { if let Value::Int(n) = &mut si { *n += 1; } } __for_first_1632 = false; si.as_f64().unwrap_or(f64::NAN) < extraScopesLength.as_f64().unwrap_or(f64::NAN) } {
+                    scopesToTest.push(get_value(&extraScopes, &si));
                 }
                 }
                 let mut scopesToTestLength: Value = Value::Int(scopesToTest.len() as i64);
                 {
                                         let mut sj: Value = Value::Int(0);
                     let mut __for_first_1633: bool = true;
-                    while { if !__for_first_1633 { sj = (match (&(sj), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                        } __for_first_1633 = false; sj.as_f64().unwrap_or(f64::NAN) < scopesToTestLength.as_f64().unwrap_or(f64::NAN) } {
-                    let mut scope: Value = scopesToTest.as_array().and_then(|__arr| match &sj { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                    while { if !__for_first_1633 { if let Value::Int(n) = &mut sj { *n += 1; } } __for_first_1633 = false; sj.as_f64().unwrap_or(f64::NAN) < scopesToTestLength.as_f64().unwrap_or(f64::NAN) } {
+                    let mut scope: Value = scopesToTest.get((sj).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                     // fetchEvents scoped by a single parameter must return a non-empty, valid list
                     let mut scopedEvents: Value = callExchangeMethodDynamically(&mut exchange, Value::Str("fetchEvents".into()), Value::from(vec![scope.clone()])).await;
                     let mut scopedList: Value = exchange.safe_list(Value::Map({
@@ -1260,7 +1239,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         dump(&[Value::Str("[INFO:MAIN] Selected prediction OUTCOME:".into()), outcomeSymbol.clone(), Value::Str("| EVENT:".into()), exchange.json(eventId.clone())]);
-        let mut publicTests: Value = Value::Map({
+        let mut publicTests: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("fetchStatus".to_string(), Value::from(vec![]));
                 m.insert("fetchTime".to_string(), Value::from(vec![]));
@@ -1274,7 +1253,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if is_true(&self.wsTests) {
-            publicTests = Value::Map({
+            publicTests = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("watchTicker".to_string(), Value::from(vec![outcomeSymbol.clone()]));
                     m.insert("watchOrderBook".to_string(), Value::from(vec![outcomeSymbol.clone()]));
@@ -1283,10 +1262,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
         }
         if !is_true(&self.privateTestOnly) {
-            self.run_tests(exchange.clone(), publicTests.clone(), Value::Bool(true)).await;
+            self.run_tests(exchange.clone(), Value::Map(publicTests), Value::Bool(true)).await;
         }
         if (is_true(&self.privateTest) || is_true(&self.privateTestOnly)) && !is_true(&self.wsTests) {
-            let mut privateTests: Value = Value::Map({
+            let mut privateTests: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("fetchBalance".to_string(), Value::from(vec![]));
                     m.insert("fetchPositions".to_string(), Value::from(vec![outcomeSymbol.clone()]));
@@ -1297,7 +1276,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("fetchOrder".to_string(), Value::from(vec![outcomeSymbol.clone()]));
                 m
             });
-            self.run_tests(exchange.clone(), privateTests.clone(), Value::Bool(false)).await;
+            self.run_tests(exchange.clone(), Value::Map(privateTests), Value::Bool(false)).await;
             // order placement is real money — gated behind --fundedTests, like crypto createOrder
             if is_true(&getCliArgValue(Value::Str("--fundedTests".into()))) {
                 self.test_prediction_create_cancel_order(exchange.clone(), outcomeSymbol.clone()).await;
@@ -1314,8 +1293,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1634: bool = true;
-            while { if !__for_first_1634 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1634 = false; i.as_f64().unwrap_or(f64::NAN) < eventsLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1634 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1634 = false; i.as_f64().unwrap_or(f64::NAN) < eventsLength.as_f64().unwrap_or(f64::NAN) } {
             self.assert_prediction_event(exchange.clone(), events.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
         }
         }
@@ -1327,7 +1305,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     pub fn assert_prediction_event(&self, mut exchange: Value, mut event: Value) -> Value {
         // validates one PredictionEvent structure (id, event handle, markets each carrying an
         // outcomes list, and the optional typed fields when present)
-        let mut logText: Value = Value::Str(format!("{}{}", Value::Str(" event: ".into()), exchange.json(event.clone())).into());
+        let mut logText: String = format!("{}{}", Value::Str(" event: ".into()), exchange.json(event.clone()));
         assert(Value::Bool(is_equal(&exchange.is_dictionary(event.clone()), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event should be a dict".into())).into()), logText).into())]);
         assert((exchange.safe_string(event.clone(), Value::Str("id".into()), &[]) != Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event missing id".into())).into()), logText).into())]);
         assert((exchange.safe_string(event.clone(), Value::Str("event".into()), &[]) != Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event missing the unified event handle".into())).into()), logText).into())]);
@@ -1338,8 +1316,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1636: bool = true;
-            while { if !__for_first_1636 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1636 = false; i.as_f64().unwrap_or(f64::NAN) < marketsLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1636 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1636 = false; i.as_f64().unwrap_or(f64::NAN) < marketsLength.as_f64().unwrap_or(f64::NAN) } {
             let mut market: Value = get_value(&markets, &i);
             assert(Value::Bool(is_equal(&exchange.is_dictionary(market.clone()), &Value::Bool(true))), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event market should be a dict".into())).into()), logText).into())]);
             assert((exchange.safe_string(market.clone(), Value::Str("market".into()), &[]) != Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event market missing the unified market handle".into())).into()), logText).into())]);
@@ -1351,8 +1328,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_1635: bool = true;
-                while { if !__for_first_1635 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                    } __for_first_1635 = false; j.as_f64().unwrap_or(f64::NAN) < outcomesLength.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1635 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1635 = false; j.as_f64().unwrap_or(f64::NAN) < outcomesLength.as_f64().unwrap_or(f64::NAN) } {
                 assert((exchange.safe_string(get_value(&outcomes, &j), Value::Str("symbol".into()), &[]) == Value::Null), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" event outcome must not carry the deprecated symbol key".into())).into()), logText).into())]);
             }
             }
@@ -1480,7 +1456,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //     await test ('InvalidOrder', exchange, symbol);
         //     await test ('InsufficientFunds', exchange, symbol, balance); // danger zone - won't execute with non-empty balance
         // }
-        let mut tests: Value = Value::Map({
+        let mut tests: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("signIn".to_string(), Value::from(vec![]));
                 m.insert("fetchBalance".to_string(), Value::from(vec![]));
@@ -1513,10 +1489,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         if is_true(&getCliArgValue(Value::Str("--fundedTests".into()))) {
-            if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("createOrder".into(), Value::from(vec![symbol.clone()])); }
+            tests.insert("createOrder".into(), Value::from(vec![symbol.clone()]));
         }
         if is_true(&self.wsTests) {
-            tests = Value::Map({
+            tests = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("watchBalance".to_string(), Value::from(vec![code.clone()]));
                     m.insert("watchMyTrades".to_string(), Value::from(vec![symbol.clone()]));
@@ -1530,21 +1506,21 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isSpot: Value = get_value(&market, &Value::Str("spot".into()));
         if !is_true(&self.wsTests) {
             if is_equal(&isSpot, &Value::Bool(true)) {
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchCurrencies".into(), Value::from(vec![])); }
+                tests.insert("fetchCurrencies".into(), Value::from(vec![]));
             }  else {
                 // derivatives only
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchPositions".into(), Value::from(vec![symbol.clone()])); }; // this test fetches all positions for 1 symbol
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchPosition".into(), Value::from(vec![symbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchPositionRisk".into(), Value::from(vec![symbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("setPositionMode".into(), Value::from(vec![Value::Bool(false), symbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("setMarginMode".into(), Value::from(vec![symbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchOpenInterestHistory".into(), Value::from(vec![symbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchFundingRateHistory".into(), Value::from(vec![symbol.clone()])); }
-                if let Value::Dict(__d) = &mut tests { std::sync::Arc::make_mut(__d).insert("fetchFundingHistory".into(), Value::from(vec![symbol.clone()])); }
+                tests.insert("fetchPositions".into(), Value::from(vec![symbol.clone()])); // this test fetches all positions for 1 symbol
+                tests.insert("fetchPosition".into(), Value::from(vec![symbol.clone()]));
+                tests.insert("fetchPositionRisk".into(), Value::from(vec![symbol.clone()]));
+                tests.insert("setPositionMode".into(), Value::from(vec![Value::Bool(false), symbol.clone()]));
+                tests.insert("setMarginMode".into(), Value::from(vec![symbol.clone()]));
+                tests.insert("fetchOpenInterestHistory".into(), Value::from(vec![symbol.clone()]));
+                tests.insert("fetchFundingRateHistory".into(), Value::from(vec![symbol.clone()]));
+                tests.insert("fetchFundingHistory".into(), Value::from(vec![symbol.clone()]));
             }
         }
         // const combinedTests = exchange.deepExtend (this.publicTests, privateTests);
-        self.run_tests(exchange.clone(), tests.clone(), Value::Bool(false)).await;
+        self.run_tests(exchange.clone(), Value::Map(tests), Value::Bool(false)).await;
         return Value::Bool(true);
 
     Value::Null
@@ -1563,8 +1539,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut j: Value = Value::Int(0);
             let mut __for_first_1637: bool = true;
-            while { if !__for_first_1637 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1637 = false; j.as_f64().unwrap_or(f64::NAN) < maxRetries.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1637 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1637 = false; j.as_f64().unwrap_or(f64::NAN) < maxRetries.as_f64().unwrap_or(f64::NAN) } {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 self.test_method(proxyTestName.clone(), exchange.clone(), Value::from(vec![]), true).await;
                 return Value::Bool(true);
@@ -1577,7 +1552,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         // if exception was set, then throw it
         if (exceptionMessageString != Value::Null) {
-            let mut errorMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_FAILURE] Failed ".into()), proxyTestName).into()), Value::Str(" : ".into())).into()), exceptionMessageString).into());
+            let mut errorMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_FAILURE] Failed ".into()), proxyTestName).into()), Value::Str(" : ".into())).into()), exceptionMessageString);
             // temporary comment the below, because c# transpilation failure
             // throw new Exchange Error (errorMessage.toString ());
             dump(&[Value::Str(format!("{}{}", Value::Str("[TEST_WARNING]".into()), errorMessage).into())]);
@@ -1730,7 +1705,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     pub fn load_static_data(&self, mut folder: Value, optional_args: &[Value]) -> Value {
         let mut targetExchange = get_arg(optional_args, 0, Value::Null);
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1741,16 +1716,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 dump(&[Value::Str(format!("{}{}", Value::Str("[WARN] tests not found: ".into()), path).into())]);
                 return Value::Null;
             }
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(ccxt::runtime::stringify_param(&targetExchange), ioFileRead(path.clone(), &[])); }
-            return result;
+            result.insert(ccxt::runtime::stringify_param(&targetExchange), ioFileRead(path.clone(), &[]));
+            return Value::Map(result);
         }
         let mut files: Value = ioDirRead(folder.clone());
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1638: bool = true;
-            while { if !__for_first_1638 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1638 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(files.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut file: Value = files.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1638 { i += 1; } __for_first_1638 = false; i < (files.len() as i64) } {
+            let mut file: Value = files.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             // the only non-json entry in the static dirs is the prediction/ subfolder (prediction
             // fixtures live under static/<type>/prediction/). skip it by name — a string-equality
             // check the AST transpiler renders correctly in every language (indexOf/slice on this
@@ -1760,10 +1734,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             let mut exchangeName: Value = file.as_str().map(|__s| Value::Str(__s.replace(".json", "").into())).unwrap_or_else(|| file.clone());
             let mut content: Value = ioFileRead(Value::Str(format!("{}{}", folder, file).into()), &[]);
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(ccxt::runtime::stringify_param(&exchangeName), content.clone()); }
+            result.insert(ccxt::runtime::stringify_param(&exchangeName), content.clone());
         }
         }
-        return result;
+        return Value::Map(result);
 
     Value::Null
 }
@@ -1772,20 +1746,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (url == Value::Null) {
             return Value::Null;
         }
-        let mut urlParts: Value = Value::Array(if let Some(__s) = url.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() });
+        let mut urlParts: Vec<Value> = Value::Array(if let Some(__s) = url.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         let mut res: Value = Value::Str("".into());
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1639: bool = true;
-            while { if !__for_first_1639 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1639 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(urlParts.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1639 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1639 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(urlParts.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             if i.as_f64().unwrap_or(f64::NAN) > Value::Int(2).as_f64().unwrap_or(f64::NAN) {
-                let mut current: Value = urlParts.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                let mut current: Value = urlParts.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
                 if current.as_str().unwrap_or("").contains("?") {
                     // handle urls like this: /v1/account/accounts?AccessK
-                    let mut currentParts: Value = Value::Array(if let Some(__s) = current.as_str() { __s.split("?").map(Value::from).collect() } else { Vec::new() });
+                    let mut currentParts: Vec<Value> = Value::Array(if let Some(__s) = current.as_str() { __s.split("?").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
                     res = Value::Str(format!("{}{}", res, Value::Str("/".into())).into());
-                    res = Value::Str(format!("{}{}", res, currentParts.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).into());
+                    res = Value::Str(format!("{}{}", res, currentParts.get(0).cloned().unwrap_or(Value::Null)).into());
                     break;
                 }
                 res = Value::Str(format!("{}{}", res, Value::Str("/".into())).into());
@@ -1799,17 +1772,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     pub fn urlencoded_to_dict(&self, mut url: Value) -> Value {
-        let mut result: Value = Value::Map({
+        let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut parts: Value = Value::Array(if let Some(__s) = url.as_str() { __s.split("&").map(Value::from).collect() } else { Vec::new() });
+        let mut parts: Vec<Value> = Value::Array(if let Some(__s) = url.as_str() { __s.split("&").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1640: bool = true;
-            while { if !__for_first_1640 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1640 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(parts.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut part: Value = parts.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1640 { i += 1; } __for_first_1640 = false; i < (parts.len() as i64) } {
+            let mut part: Value = parts.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut keyValue: Value = Value::Array(if let Some(__s) = part.as_str() { __s.split("=").map(Value::from).collect() } else { Vec::new() });
             let mut keysLength: Value = Value::Int(keyValue.len() as i64);
             if (keysLength.as_f64() != Some(2.0)) {
@@ -1821,10 +1793,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 // some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
                 value = jsonParse(value.clone());
             }
-            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(ccxt::runtime::stringify_param(&key), value.clone()); }
+            result.insert(ccxt::runtime::stringify_param(&key), value.clone());
         }
         }
-        return result;
+        return Value::Map(result);
 
     Value::Null
 }
@@ -1862,11 +1834,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         if (matches!(&value, Value::Arr(_))) {
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1641: bool = true;
-                while { if !__for_first_1641 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                    } __for_first_1641 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(value.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                if !(self.is_vacant_value(exchange.clone(), value.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).as_bool() == Some(true)) {
+                while { if !__for_first_1641 { i += 1; } __for_first_1641 = false; i < (value.len() as i64) } {
+                if !(self.is_vacant_value(exchange.clone(), value.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_bool() == Some(true)) {
                     return Value::Bool(false);
                 }
             }
@@ -1876,11 +1847,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if is_true(&exchange.is_dictionary(value.clone())) {
             let mut keys: Value = object_keys(&value);
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1642: bool = true;
-                while { if !__for_first_1642 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                    } __for_first_1642 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                if !(self.is_vacant_value(exchange.clone(), get_value(&value, &keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null))).as_bool() == Some(true)) {
+                while { if !__for_first_1642 { i += 1; } __for_first_1642 = false; i < (keys.len() as i64) } {
+                if !(self.is_vacant_value(exchange.clone(), get_value(&value, &keys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null))).as_bool() == Some(true)) {
                     return Value::Bool(false);
                 }
             }
@@ -1896,20 +1866,19 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // count the keys of `target`, skipping those the other side does not have at
         // all and which carry no data here (see isVacantValue)
         let mut keys: Value = object_keys(&target);
-        let mut count: Value = Value::Int(0);
+        let mut count: i64 = 0;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1643: bool = true;
-            while { if !__for_first_1643 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1643 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1643 { i += 1; } __for_first_1643 = false; i < (keys.len() as i64) } {
+            let mut key: Value = keys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if !is_true(&(exchange.in_array(key.clone(), otherKeys.clone()))) && self.is_vacant_value(exchange.clone(), get_value(&target, &key)).as_bool() == Some(true) {
                 continue;
             }
-            count = (match (&(count), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+            count = (count + 1);
         }
         }
-        return count;
+        return Value::from(count);
 
     Value::Null
 }
@@ -1919,19 +1888,18 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // for the listed keys in this one entry, overriding the file-level 'skipKeys'
         let mut rawSkipKeys: Value = exchange.safe_list(exchangeData.clone(), Value::Str("skipKeys".into()), &[Value::from(vec![])]);
         let mut forceCheckKeys: Value = exchange.safe_list(entry.clone(), Value::Str("forceCheckKeys".into()), &[Value::from(vec![])]);
-        let mut skipKeys: Value = Value::from(vec![]);
+        let mut skipKeys: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1644: bool = true;
-            while { if !__for_first_1644 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1644 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(rawSkipKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut key: Value = rawSkipKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1644 { i += 1; } __for_first_1644 = false; i < (rawSkipKeys.len() as i64) } {
+            let mut key: Value = rawSkipKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if !is_true(&(exchange.in_array(key.clone(), forceCheckKeys.clone()))) {
-                append_to_array(&mut skipKeys, key.clone());
+                skipKeys.push(key.clone());
             }
         }
         }
-        return skipKeys;
+        return Value::from(skipKeys);
 
     Value::Null
 }
@@ -1975,11 +1943,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             self.assert_static_error(Value::Bool(storedKeysLength.as_f64() == newKeysLength.as_f64()), Value::Str("output length mismatch".into()), storedOutput.clone(), newOutput.clone(), &[]);
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1645: bool = true;
-                while { if !__for_first_1645 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                    } __for_first_1645 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(storedOutputKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut key: Value = storedOutputKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                while { if !__for_first_1645 { i += 1; } __for_first_1645 = false; i < (storedOutputKeys.len() as i64) } {
+                let mut key: Value = storedOutputKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 if !is_true(&(exchange.in_array(key.clone(), newOutputKeys.clone()))) {
                     if ((self.lang.as_str() == Some("C#")) || (self.lang.as_str() == Some("GO"))) && self.is_vacant_value(exchange.clone(), get_value(&storedOutput, &key)).as_bool() == Some(true) {
                         continue;
@@ -2006,12 +1973,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut newArrayLength: Value = Value::Int(newOutput.len() as i64);
             self.assert_static_error(Value::Bool(storedArrayLength.as_f64() == newArrayLength.as_f64()), Value::Str("output length mismatch".into()), storedOutput.clone(), newOutput.clone(), &[]);
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1646: bool = true;
-                while { if !__for_first_1646 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                    } __for_first_1646 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(storedOutput.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut storedItem: Value = storedOutput.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                let mut newItem: Value = newOutput.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                while { if !__for_first_1646 { i += 1; } __for_first_1646 = false; i < (storedOutput.len() as i64) } {
+                let mut storedItem: Value = storedOutput.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut newItem: Value = newOutput.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 self.assert_new_and_stored_output_inner(exchange.clone(), skipKeys.clone(), newItem.clone(), storedItem.clone(), &[strictTypeCheck.clone()]);
             }
             }
@@ -2122,7 +2088,7 @@ if _try_result.is_err() {
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if is_true(&self.info) {
-                let mut errorMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.var_to_string(&[newOutput.clone()]), Value::Str("(calculated)".into())).into()), Value::Str(" != ".into())).into()), self.var_to_string(&[storedOutput.clone()])).into()), Value::Str("(stored)".into())).into());
+                let mut errorMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.var_to_string(&[newOutput.clone()]), Value::Str("(calculated)".into())).into()), Value::Str(" != ".into())).into()), self.var_to_string(&[storedOutput.clone()])).into()), Value::Str("(stored)".into()));
                 dump(&[Value::Str(format!("{}{}", Value::Str("[TEST_FAILURE_DETAIL]".into()), errorMessage).into())]);
             }
             panic!("{}", e);
@@ -2200,11 +2166,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !is_true(&exchange.is_dictionary(entry.clone())) {
             return Value::Bool(true);
         }
-        let mut marginMode: Value = exchange.safe_string(entry.clone(), Value::Str("marginMode".into()), &[]);
-        if (marginMode.as_str() != Some("isolated")) {
+        let mut marginMode: Option<String> = exchange.safe_string(entry.clone(), Value::Str("marginMode".into()), &[]).as_str().map(str::to_owned);
+        if (marginMode.as_deref() != Some("isolated")) {
             return Value::Bool(true);
         }
-        let mut side: Value = exchange.safe_string(entry.clone(), Value::Str("side".into()), &[]);
+        let mut side: Option<String> = exchange.safe_string(entry.clone(), Value::Str("side".into()), &[]).as_str().map(str::to_owned);
         let mut entryPrice: Value = exchange.safe_number(entry.clone(), Value::Str("entryPrice".into()), &[]);
         let mut liquidationPrice: Value = exchange.safe_number(entry.clone(), Value::Str("liquidationPrice".into()), &[]);
         let mut contracts: Value = exchange.safe_number(entry.clone(), Value::Str("contracts".into()), &[]);
@@ -2214,9 +2180,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut initialMargin: Value = exchange.safe_number(entry.clone(), Value::Str("initialMargin".into()), &[]);
         let mut unrealizedPnl: Value = exchange.safe_number(entry.clone(), Value::Str("unrealizedPnl".into()), &[]);
         if (entryPrice != Value::Null) && (liquidationPrice != Value::Null) && (entryPrice.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)) && (liquidationPrice.as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)) {
-            if (side.as_str() == Some("long")) {
+            if (side.as_deref() == Some("long")) {
                 self.assert_static_error(Value::Bool(liquidationPrice.as_f64().unwrap_or(f64::NAN) < entryPrice.as_f64().unwrap_or(f64::NAN)), Value::Str("isolated long liquidationPrice should be less than entryPrice".into()), entryPrice.clone(), liquidationPrice.clone(), &[]);
-            }  else if (side.as_str() == Some("short")) {
+            }  else if (side.as_deref() == Some("short")) {
                 self.assert_static_error(Value::Bool(liquidationPrice.as_f64().unwrap_or(f64::NAN) > entryPrice.as_f64().unwrap_or(f64::NAN)), Value::Str("isolated short liquidationPrice should be greater than entryPrice".into()), entryPrice.clone(), liquidationPrice.clone(), &[]);
             }
         }
@@ -2270,8 +2236,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 {
                                         let mut i: Value = Value::Int(0);
                     let mut __for_first_1647: bool = true;
-                    while { if !__for_first_1647 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                        } __for_first_1647 = false; i.as_f64().unwrap_or(f64::NAN) < outputLength.as_f64().unwrap_or(f64::NAN) } {
+                    while { if !__for_first_1647 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1647 = false; i.as_f64().unwrap_or(f64::NAN) < outputLength.as_f64().unwrap_or(f64::NAN) } {
                     self.assert_static_isolated_position(exchange.clone(), output.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
                 }
                 }
@@ -2293,21 +2258,20 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (input == Value::Null) {
             return Value::Null;
         }
-        let mut newInput: Value = Value::from(vec![]);
+        let mut newInput: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1648: bool = true;
-            while { if !__for_first_1648 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1648 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&input).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1648 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1648 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&input).as_f64().unwrap_or(f64::NAN) } {
             let mut current: Value = get_value(&input, &i);
             if is_true(&isNullValue(current.clone())) {
-                append_to_array(&mut newInput, Value::Null);
+                newInput.push(Value::Null);
             }  else {
-                append_to_array(&mut newInput, current.clone());
+                newInput.push(current.clone());
             }
         }
         }
-        return newInput;
+        return Value::from(newInput);
 
     Value::Null
 }
@@ -2347,11 +2311,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }) });
                 let mut storedHeaderKeys: Value = object_keys(&storedHeaders);
                 {
-                                        let mut i: Value = Value::Int(0);
+                                        let mut i: i64 = 0;
                     let mut __for_first_1649: bool = true;
-                    while { if !__for_first_1649 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                        } __for_first_1649 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(storedHeaderKeys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                    let mut headerKey: Value = storedHeaderKeys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                    while { if !__for_first_1649 { i += 1; } __for_first_1649 = false; i < (storedHeaderKeys.len() as i64) } {
+                    let mut headerKey: Value = storedHeaderKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                     let mut storedHeaderValue: Value = get_value(&storedHeaders, &headerKey);
                     let mut sentHeaderValue: Value = exchange.safe_string(sentHeaders.clone(), headerKey.clone(), &[]);
                     self.assert_static_error(Value::Bool(is_equal(&sentHeaderValue, &storedHeaderValue)), Value::Str(format!("{}{}", Value::Str("header mismatch for ".into()), headerKey).into()), storedHeaderValue.clone(), sentHeaderValue.clone(), &[]);
@@ -2361,9 +2324,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.requestTestsFailed = Value::Bool(true);
-            let mut errorMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}",
-                Value::Str(format!("{}{}", Value::Str("[".into()), self.lang.clone()).into()), Value::Str("][STATIC_REQUEST]".into())).into()), Value::Str("[".into())).into()), get_value(&exchange, &Value::Str("id".into()))).into()), Value::Str("]".into())).into()), Value::Str("[".into())).into()), method).into()), Value::Str("]".into())).into()),
-                Value::Str("[".into())).into()), data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)).into()), Value::Str("]".into())).into()), exceptionMessage(e.clone())).into());
+            let mut errorMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}",
+                Value::Str("[".into()), self.lang.clone()).into()), Value::Str("][STATIC_REQUEST]".into())).into()), Value::Str("[".into())).into()), get_value(&exchange, &Value::Str("id".into()))).into()), Value::Str("]".into())).into()), Value::Str("[".into())).into()), method).into()), Value::Str("]".into())).into()), Value::Str("[".into())).into()),
+                data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)).into()), Value::Str("]".into())).into()), exceptionMessage(e.clone()));
             dump(&[Value::Str(format!("{}{}", Value::Str("[TEST_FAILURE]".into()), errorMessage).into())]);
         }
         return Value::Bool(true);
@@ -2399,9 +2362,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.responseTestsFailed = Value::Bool(true);
-            let mut errorMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}",
-                Value::Str(format!("{}{}", Value::Str("[".into()), self.lang.clone()).into()), Value::Str("][STATIC_RESPONSE]".into())).into()), Value::Str("[".into())).into()), get_value(&exchange, &Value::Str("id".into()))).into()), Value::Str("]".into())).into()), Value::Str("[".into())).into()), method).into()), Value::Str("]".into())).into()),
-                Value::Str("[".into())).into()), data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)).into()), Value::Str("]".into())).into()), exceptionMessage(e.clone())).into());
+            let mut errorMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}",
+                Value::Str("[".into()), self.lang.clone()).into()), Value::Str("][STATIC_RESPONSE]".into())).into()), Value::Str("[".into())).into()), get_value(&exchange, &Value::Str("id".into()))).into()), Value::Str("]".into())).into()), Value::Str("[".into())).into()), method).into()), Value::Str("]".into())).into()), Value::Str("[".into())).into()),
+                data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)).into()), Value::Str("]".into())).into()), exceptionMessage(e.clone()));
             dump(&[Value::Str(format!("{}{}", Value::Str("[TEST_FAILURE]".into()), errorMessage).into())]);
         }
         setFetchResponse(&mut exchange, Value::Null); // reset state
@@ -2415,8 +2378,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1650: bool = true;
-            while { if !__for_first_1650 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1650 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&sentMessages).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1650 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1650 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&sentMessages).as_f64().unwrap_or(f64::NAN) } {
             if is_equal(&exchange.safe_string(get_value(&sentMessages, &i), Value::Str("id".into()), &[]), &id) {
                 return Value::Bool(true);
             }
@@ -2432,24 +2394,23 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let __messages_empty = Vec::new();
         let messages = messages.as_array().unwrap_or(&__messages_empty);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1651: bool = true;
-            while { if !__for_first_1651 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1651 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(messages.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut waited: Value = Value::Int(0);
-            while !is_true(&wsClientHasPendingFutures(exchange.clone(), url.clone())) && (waited.as_f64().unwrap_or(f64::NAN) < Value::Int(5000).as_f64().unwrap_or(f64::NAN)) {
+            while { if !__for_first_1651 { i += 1; } __for_first_1651 = false; i < (messages.len() as i64) } {
+            let mut waited: i64 = 0;
+            while !is_true(&wsClientHasPendingFutures(exchange.clone(), url.clone())) && (waited < 5000) {
                 exchange.sleep(Value::Int(50)).await;
-                waited = (match (&(waited), &(Value::Int(50))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+                waited = (waited + 50);
             }
             // a reply frame must not arrive before its request was sent, or it is dropped
-            let mut frameId: Value = exchange.safe_string(messages.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), Value::Str("id".into()), &[]);
-            let mut waitedSent: Value = Value::Int(0);
-            while (frameId != Value::Null) && !(self.ws_request_was_sent(exchange.clone(), url.clone(), frameId.clone()).as_bool() == Some(true)) && (waitedSent.as_f64().unwrap_or(f64::NAN) < Value::Int(5000).as_f64().unwrap_or(f64::NAN)) {
+            let mut frameId: Value = exchange.safe_string(messages.get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("id".into()), &[]);
+            let mut waitedSent: i64 = 0;
+            while (frameId != Value::Null) && !(self.ws_request_was_sent(exchange.clone(), url.clone(), frameId.clone()).as_bool() == Some(true)) && (waitedSent < 5000) {
                 exchange.sleep(Value::Int(50)).await;
-                waitedSent = (match (&(waitedSent), &(Value::Int(50))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+                waitedSent = (waitedSent + 50);
             }
             // a frame given as { "binary": "<base16>" } is replayed as a binary frame (e.g. SBE)
-            let mut frame: Value = messages.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            let mut frame: Value = messages.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut binaryFrame: Value = exchange.safe_string(frame.clone(), Value::Str("binary".into()), &[]);
             if (binaryFrame != Value::Null) {
                 frame = exchange.base16_to_binary(binaryFrame.clone(), &[]);
@@ -2460,10 +2421,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // observe a stale future and burn the next frame early; frames
             // that resolve nothing (e.g. subscribe acks) fall through on the
             // timeout
-            let mut settled: Value = Value::Int(0);
-            while is_true(&wsClientHasPendingFutures(exchange.clone(), url.clone())) && (settled.as_f64().unwrap_or(f64::NAN) < Value::Int(500).as_f64().unwrap_or(f64::NAN)) {
+            let mut settled: i64 = 0;
+            while is_true(&wsClientHasPendingFutures(exchange.clone(), url.clone())) && (settled < 500) {
                 exchange.sleep(Value::Int(20)).await;
-                settled = (match (&(settled), &(Value::Int(20))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+                settled = (settled + 20);
             }
         }
         }
@@ -2476,11 +2437,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // executed inline on a stack that blocks the watch side (forkjoin
             // work stealing): give up eventually so the stack unwinds instead
             // of deadlocking
-            let mut waitedDone: Value = Value::Int(0);
-            while !is_true(&isWsTestCompleted(exchange.clone(), url.clone())) && (waitedDone.as_f64().unwrap_or(f64::NAN) < Value::Int(30000).as_f64().unwrap_or(f64::NAN)) {
+            let mut waitedDone: i64 = 0;
+            while !is_true(&isWsTestCompleted(exchange.clone(), url.clone())) && (waitedDone < 30000) {
                 rejectPendingWsFutures(exchange.clone(), url.clone());
                 exchange.sleep(Value::Int(50)).await;
-                waitedDone = (match (&(waitedDone), &(Value::Int(50))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+                waitedDone = (waitedDone + 50);
             }
         }
         // reject anything still pending so a wrong fixture fails fast
@@ -2496,16 +2457,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let expectedResults = expectedResults.as_array().unwrap_or(&__expectedResults_empty);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1652: bool = true;
-                while { if !__for_first_1652 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                    } __for_first_1652 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(expectedResults.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1652 { i += 1; } __for_first_1652 = false; i < (expectedResults.len() as i64) } {
                 let mut result: Value = callExchangeMethodDynamically(&mut exchange, method.clone(), input.clone()).await;
                 // ws structures can be live typed objects (e.g. orderbooks) in some
                 // runtimes — roundtrip through json so the deep-compare sees plain
                 // dicts in every language
                 let mut unifiedResult: Value = jsonParse(jsonStringify(result.clone()));
-                self.assert_static_response_output(exchange.clone(), skipKeys.clone(), unifiedResult.clone(), expectedResults.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
+                self.assert_static_response_output(exchange.clone(), skipKeys.clone(), unifiedResult.clone(), expectedResults.get(i as usize).cloned().unwrap_or(Value::Null));
             }
             }
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -2540,8 +2500,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1653: bool = true;
-            while { if !__for_first_1653 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1653 = false; i.as_f64().unwrap_or(f64::NAN) < expectedLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1653 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1653 = false; i.as_f64().unwrap_or(f64::NAN) < expectedLength.as_f64().unwrap_or(f64::NAN) } {
             let mut unifiedSent: Value = jsonParse(jsonStringify(get_value(&sentMessages, &i)));
             self.assert_static_response_output(exchange.clone(), sentSkipKeys.clone(), unifiedSent.clone(), get_value(&expectedSent, &i));
         }
@@ -2580,17 +2539,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // after the first resolution, so serialize only at the end
                 preloadWsMessages(exchange.clone(), url.clone(), messages.clone()); let mut __w = callExchangeMethodDynamically(&mut exchange, method.clone(), input.clone()).await; let mut __g = 0; if matches!(&method, Value::Str(__m) if __m.starts_with("unWatch")) { drainWsMessages(&mut exchange, url.clone()).await;
                     } else { while is_true(&wsHasQueuedMessages(exchange.clone(), url.clone())) && __g < 500 { __w = callExchangeMethodDynamically(&mut exchange, method.clone(), input.clone()).await; __g += 1; } } let mut promises: Value = Value::from(vec![__w, Value::Bool(true)]);
-                let mut results: Value = promise_all(&promises).await;
-                let mut unifiedResult: Value = jsonParse(jsonStringify(results.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)));
+                let mut results: Vec<Value> = promise_all(&promises).await.as_array().cloned().unwrap_or_default();
+                let mut unifiedResult: Value = jsonParse(jsonStringify(results.get(0).cloned().unwrap_or(Value::Null)));
                 self.assert_static_response_output(exchange.clone(), skipKeys.clone(), unifiedResult.clone(), data.as_map().and_then(|__m| __m.get("parsedResponse")).cloned().unwrap_or(Value::Null));
                 self.assert_ws_sent_messages(exchange.clone(), url.clone(), data.clone());
             }
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.staticWsTestsFailed = Value::Bool(true);
-            let mut errorMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}",
-                Value::Str(format!("{}{}", Value::Str("[".into()), self.lang.clone()).into()), Value::Str("][STATIC_WS]".into())).into()), Value::Str("[".into())).into()), get_value(&exchange, &Value::Str("id".into()))).into()), Value::Str("]".into())).into()), Value::Str("[".into())).into()), method).into()), Value::Str("]".into())).into()),
-                Value::Str("[".into())).into()), data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)).into()), Value::Str("]".into())).into()), exceptionMessage(e.clone())).into());
+            let mut errorMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}",
+                Value::Str("[".into()), self.lang.clone()).into()), Value::Str("][STATIC_WS]".into())).into()), Value::Str("[".into())).into()), get_value(&exchange, &Value::Str("id".into()))).into()), Value::Str("]".into())).into()), Value::Str("[".into())).into()), method).into()), Value::Str("]".into())).into()), Value::Str("[".into())).into()),
+                data.as_map().and_then(|__m| __m.get("description")).cloned().unwrap_or(Value::Null)).into()), Value::Str("]".into())).into()), exceptionMessage(e.clone()));
             dump(&[Value::Str(format!("{}{}", Value::Str("[TEST_FAILURE]".into()), errorMessage).into())]);
         }
         setFetchResponse(&mut exchange, Value::Null); // reset state
@@ -2611,17 +2570,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }) } else { exchangeData.as_map().and_then(|__m| __m.get("methods")).cloned().unwrap_or(Value::Null) });
         let mut methodsNames: Value = object_keys(&methods);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1655: bool = true;
-            while { if !__for_first_1655 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1655 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(methodsNames.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut method: Value = methodsNames.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1655 { i += 1; } __for_first_1655 = false; i < (methodsNames.len() as i64) } {
+            let mut method: Value = methodsNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut results: Value = get_value(&methods, &method);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_1654: bool = true;
-                while { if !__for_first_1654 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                    } __for_first_1654 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&results).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1654 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1654 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&results).as_f64().unwrap_or(f64::NAN) } {
                 let mut result: Value = get_value(&results, &j);
                 let mut description: Value = get_value(&result, &Value::Str("description".into()));
                 if (testName != Value::Null) && (!is_equal(&testName, &description)) {
@@ -2631,32 +2588,32 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // ohlcvs) and request-id counters survive between watch calls
                 // and would leak state across entries otherwise
                 let mut exchange: Value = self.init_offline_exchange(exchangeName.clone(), &[Value::Bool(true)]);
-                let mut isDisabled: Value = exchange.safe_bool(result.clone(), Value::Str("disabled".into()), &[Value::Bool(false)]);
-                if is_true(&isDisabled) {
+                let mut isDisabled: bool = exchange.safe_bool(result.clone(), Value::Str("disabled".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                if isDisabled {
                     continue;
                 }
-                let mut disabledString: Value = exchange.safe_string(result.clone(), Value::Str("disabled".into()), &[Value::Str("".into())]);
-                if (disabledString.as_str() != Some("")) {
+                let mut disabledString: String = exchange.safe_string(result.clone(), Value::Str("disabled".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                if (disabledString != "") {
                     continue;
                 }
-                let mut isDisabledCSharp: Value = exchange.safe_string(result.clone(), Value::Str("disabledCS".into()), &[]);
-                if (isDisabledCSharp != Value::Null) && (self.lang.as_str() == Some("C#")) {
+                let mut isDisabledCSharp: Option<String> = exchange.safe_string(result.clone(), Value::Str("disabledCS".into()), &[]).as_str().map(str::to_owned);
+                if (isDisabledCSharp.is_some()) && (self.lang.as_str() == Some("C#")) {
                     continue;
                 }
-                let mut isDisabledGo: Value = exchange.safe_string(result.clone(), Value::Str("disabledGO".into()), &[]);
-                if (isDisabledGo != Value::Null) && (self.lang.as_str() == Some("GO")) {
+                let mut isDisabledGo: Option<String> = exchange.safe_string(result.clone(), Value::Str("disabledGO".into()), &[]).as_str().map(str::to_owned);
+                if (isDisabledGo.is_some()) && (self.lang.as_str() == Some("GO")) {
                     continue;
                 }
-                let mut isDisabledJava: Value = exchange.safe_string(result.clone(), Value::Str("disabledJava".into()), &[]);
-                if (isDisabledJava != Value::Null) && (self.lang.as_str() == Some("java")) {
+                let mut isDisabledJava: Option<String> = exchange.safe_string(result.clone(), Value::Str("disabledJava".into()), &[]).as_str().map(str::to_owned);
+                if (isDisabledJava.is_some()) && (self.lang.as_str() == Some("java")) {
                     continue;
                 }
-                let mut isDisabledPhp: Value = exchange.safe_string(result.clone(), Value::Str("disabledPHP".into()), &[]);
-                if (isDisabledPhp != Value::Null) && (self.lang.as_str() == Some("PHP")) {
+                let mut isDisabledPhp: Option<String> = exchange.safe_string(result.clone(), Value::Str("disabledPHP".into()), &[]).as_str().map(str::to_owned);
+                if (isDisabledPhp.is_some()) && (self.lang.as_str() == Some("PHP")) {
                     continue;
                 }
-                let mut isDisabledRust: Value = exchange.safe_string(result.clone(), Value::Str("disabledRS".into()), &[]);
-                if (isDisabledRust != Value::Null) && (self.lang.as_str() == Some("RUST")) {
+                let mut isDisabledRust: Option<String> = exchange.safe_string(result.clone(), Value::Str("disabledRS".into()), &[]).as_str().map(str::to_owned);
+                if (isDisabledRust.is_some()) && (self.lang.as_str() == Some("RUST")) {
                     continue;
                 }
                 exchange.extend_exchange_options(globalOptions.clone());
@@ -2711,7 +2668,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter-signer.wasm';
         // const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
         // const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
-        let mut basePath: Value = Value::Str(format!("{}{}", getRootDir(), Value::Str("ts/src/test/static/binaries/".into())).into());
+        let mut basePath: String = format!("{}{}", getRootDir(), Value::Str("ts/src/test/static/binaries/".into()));
         if (exchangeName.as_str() == Some("lighter")) {
             if (self.lang.as_str() == Some("JS")) {
                 wasmExecPath = Some(format!("{}{}", basePath, Value::Str("wasm_exec.js".into())));
@@ -2795,17 +2752,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (predictionEvents != Value::Null) {
             let mut eventMarkets: Value = Value::from(vec![]);
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1657: bool = true;
-                while { if !__for_first_1657 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                    } __for_first_1657 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(predictionEvents.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut evMarkets: Value = exchange.safe_list(predictionEvents.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), Value::Str("markets".into()), &[Value::from(vec![])]);
+                while { if !__for_first_1657 { i += 1; } __for_first_1657 = false; i < (predictionEvents.len() as i64) } {
+                let mut evMarkets: Value = exchange.safe_list(predictionEvents.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), Value::Str("markets".into()), &[Value::from(vec![])]);
                 {
-                                        let mut j: Value = Value::Int(0);
+                                        let mut j: i64 = 0;
                     let mut __for_first_1656: bool = true;
-                    while { if !__for_first_1656 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                        } __for_first_1656 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(evMarkets.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                    let mut evMarket: Value = evMarkets.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                    while { if !__for_first_1656 { j += 1; } __for_first_1656 = false; j < (evMarkets.len() as i64) } {
+                    let mut evMarket: Value = evMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
                     // every market row must carry the unified market handle (PredictionMarket
                     // declares it required) — enforce it on the fixtures so a venue that stops
                     // setting it fails offline, not just in live tests. 'symbol' is deprecated
@@ -2868,17 +2823,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         })]);
         let mut methodsNames: Value = object_keys(&methods);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1659: bool = true;
-            while { if !__for_first_1659 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1659 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(methodsNames.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut method: Value = methodsNames.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1659 { i += 1; } __for_first_1659 = false; i < (methodsNames.len() as i64) } {
+            let mut method: Value = methodsNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut results: Value = get_value(&methods, &method);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_1658: bool = true;
-                while { if !__for_first_1658 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                    } __for_first_1658 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&results).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1658 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1658 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&results).as_f64().unwrap_or(f64::NAN) } {
                 let mut result: Value = get_value(&results, &j);
                 let mut oldExchangeOptions: Value = get_value(&exchange, &Value::Str("options".into())); // snapshot options;
                 let mut testExchangeOptions: Value = exchange.safe_value(result.clone(), Value::Str("options".into()), &[Value::Map({
@@ -2892,28 +2845,28 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if (testName != Value::Null) && (!is_equal(&testName, &description)) {
                     continue;
                 }
-                let mut isDisabled: Value = exchange.safe_bool(result.clone(), Value::Str("disabled".into()), &[Value::Bool(false)]);
-                if is_true(&isDisabled) {
+                let mut isDisabled: bool = exchange.safe_bool(result.clone(), Value::Str("disabled".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                if isDisabled {
                     continue;
                 }
-                let mut disabledString: Value = exchange.safe_string(result.clone(), Value::Str("disabled".into()), &[Value::Str("".into())]);
-                if (disabledString.as_str() != Some("")) {
+                let mut disabledString: String = exchange.safe_string(result.clone(), Value::Str("disabled".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                if (disabledString != "") {
                     continue;
                 }
-                let mut isDisabledCSharp: Value = exchange.safe_bool(result.clone(), Value::Str("disabledCS".into()), &[Value::Bool(false)]);
-                if is_true(&(isDisabledCSharp)) && (self.lang.as_str() == Some("C#")) {
+                let mut isDisabledCSharp: bool = exchange.safe_bool(result.clone(), Value::Str("disabledCS".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                if isDisabledCSharp && (self.lang.as_str() == Some("C#")) {
                     continue;
                 }
-                let mut isDisabledGo: Value = exchange.safe_bool(result.clone(), Value::Str("disabledGO".into()), &[Value::Bool(false)]);
-                if is_true(&(isDisabledGo)) && (self.lang.as_str() == Some("GO")) {
+                let mut isDisabledGo: bool = exchange.safe_bool(result.clone(), Value::Str("disabledGO".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                if isDisabledGo && (self.lang.as_str() == Some("GO")) {
                     continue;
                 }
-                let mut isDisabledRust: Value = exchange.safe_bool(result.clone(), Value::Str("disabledRS".into()), &[Value::Bool(false)]);
-                if is_true(&isDisabledRust) && (self.lang.as_str() == Some("RUST")) {
+                let mut isDisabledRust: bool = exchange.safe_bool(result.clone(), Value::Str("disabledRS".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                if isDisabledRust && (self.lang.as_str() == Some("RUST")) {
                     continue;
                 }
-                let mut isDisabledJava: Value = exchange.safe_bool(result.clone(), Value::Str("disabledJava".into()), &[Value::Bool(false)]);
-                if is_true(&(isDisabledJava)) && (self.lang.as_str() == Some("java")) {
+                let mut isDisabledJava: bool = exchange.safe_bool(result.clone(), Value::Str("disabledJava".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                if isDisabledJava && (self.lang.as_str() == Some("java")) {
                     continue;
                 }
                 let mut type_var: Value = exchange.safe_string(exchangeData.clone(), Value::Str("outputType".into()), &[]);
@@ -2980,17 +2933,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         exchange.extend_exchange_options(options.clone());
         let mut methodsNames: Value = object_keys(&methods);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1661: bool = true;
-            while { if !__for_first_1661 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1661 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(methodsNames.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut method: Value = methodsNames.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1661 { i += 1; } __for_first_1661 = false; i < (methodsNames.len() as i64) } {
+            let mut method: Value = methodsNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut results: Value = get_value(&methods, &method);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_1660: bool = true;
-                while { if !__for_first_1660 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                    } __for_first_1660 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&results).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1660 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1660 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&results).as_f64().unwrap_or(f64::NAN) } {
                 let mut result: Value = get_value(&results, &j);
                 let mut description: Value = exchange.safe_value(result.clone(), Value::Str("description".into()), &[]);
                 let mut oldExchangeOptions: Value = get_value(&exchange, &Value::Str("options".into())); // snapshot options;
@@ -3001,31 +2952,31 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 // exchange.options = exchange.deepExtend (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
                 let __eeo1 = exchange.deep_extend(oldExchangeOptions.clone(), &[testExchangeOptions.clone()]);
                 exchange.extend_exchange_options(__eeo1);
-                let mut isDisabled: Value = exchange.safe_bool(result.clone(), Value::Str("disabled".into()), &[Value::Bool(false)]);
-                if is_true(&isDisabled) {
+                let mut isDisabled: bool = exchange.safe_bool(result.clone(), Value::Str("disabled".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                if isDisabled {
                     continue;
                 }
-                let mut isDisabledCSharp: Value = exchange.safe_bool(result.clone(), Value::Str("disabledCS".into()), &[Value::Bool(false)]);
-                if is_true(&(isDisabledCSharp)) && (self.lang.as_str() == Some("C#")) {
+                let mut isDisabledCSharp: bool = exchange.safe_bool(result.clone(), Value::Str("disabledCS".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                if isDisabledCSharp && (self.lang.as_str() == Some("C#")) {
                     continue;
                 }
-                let mut isDisabledPHP: Value = exchange.safe_bool(result.clone(), Value::Str("disabledPHP".into()), &[Value::Bool(false)]);
-                if is_true(&(isDisabledPHP)) && (self.lang.as_str() == Some("PHP")) {
+                let mut isDisabledPHP: bool = exchange.safe_bool(result.clone(), Value::Str("disabledPHP".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                if isDisabledPHP && (self.lang.as_str() == Some("PHP")) {
                     continue;
                 }
                 if (testName != Value::Null) && (!is_equal(&testName, &description)) {
                     continue;
                 }
-                let mut isDisabledGO: Value = exchange.safe_bool(result.clone(), Value::Str("disabledGO".into()), &[Value::Bool(false)]);
-                if is_true(&(isDisabledGO)) && (self.lang.as_str() == Some("GO")) {
+                let mut isDisabledGO: bool = exchange.safe_bool(result.clone(), Value::Str("disabledGO".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                if isDisabledGO && (self.lang.as_str() == Some("GO")) {
                     continue;
                 }
-                let mut isDisabledRust: Value = exchange.safe_bool(result.clone(), Value::Str("disabledRS".into()), &[Value::Bool(false)]);
-                if is_true(&isDisabledRust) && (self.lang.as_str() == Some("RUST")) {
+                let mut isDisabledRust: bool = exchange.safe_bool(result.clone(), Value::Str("disabledRS".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                if isDisabledRust && (self.lang.as_str() == Some("RUST")) {
                     continue;
                 }
-                let mut isDisabledJava: Value = exchange.safe_bool(result.clone(), Value::Str("disabledJava".into()), &[Value::Bool(false)]);
-                if is_true(&(isDisabledJava)) && (self.lang.as_str() == Some("java")) {
+                let mut isDisabledJava: bool = exchange.safe_bool(result.clone(), Value::Str("disabledJava".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                if isDisabledJava && (self.lang.as_str() == Some("java")) {
                     continue;
                 }
                 let mut skipKeys: Value = self.effective_skip_keys(exchange.clone(), exchangeData.clone(), result.clone());
@@ -3068,11 +3019,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut methods: Value = exchangeData.get("methods").cloned().unwrap_or(Value::Null);
         let mut methodsNames: Value = object_keys(&methods);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1662: bool = true;
-            while { if !__for_first_1662 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1662 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(methodsNames.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut method: Value = methodsNames.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1662 { i += 1; } __for_first_1662 = false; i < (methodsNames.len() as i64) } {
+            let mut method: Value = methodsNames.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut results: Value = get_value(&methods, &method);
             let mut resultsLength: Value = get_array_length(&results);
             sum = exchange.sum(&[sum.clone(), resultsLength.clone()]);
@@ -3090,38 +3040,38 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         })]);
         // prediction-market exchanges exist only in the async namespaces in python/php,
         // so their fixtures declare asyncOnly and the sync harness skips them
-        let mut isAsyncOnly: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("asyncOnly".into()), &[Value::Bool(false)]);
-        if is_true(&(isAsyncOnly)) && is_true(&isSync()) {
+        let mut isAsyncOnly: bool = exchange.safe_bool(exchangeData.clone(), Value::Str("asyncOnly".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        if isAsyncOnly && is_true(&isSync()) {
             dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".into()), exchangeName).into()), Value::Str(" is async-only, skipped by the sync test harness".into())).into())]);
             return Value::Bool(true);
         }
-        let mut isDisabledPy: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledPy".into()), &[Value::Bool(false)]);
-        if is_true(&(isDisabledPy)) && (self.lang.as_str() == Some("PY")) {
+        let mut isDisabledPy: bool = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledPy".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        if isDisabledPy && (self.lang.as_str() == Some("PY")) {
             dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".into()), exchangeName).into()), Value::Str(" is disabled in python".into())).into())]);
             return Value::Bool(true);
         }
-        let mut isDisabledPHP: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledPHP".into()), &[Value::Bool(false)]);
-        if is_true(&(isDisabledPHP)) && (self.lang.as_str() == Some("PHP")) {
+        let mut isDisabledPHP: bool = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledPHP".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        if isDisabledPHP && (self.lang.as_str() == Some("PHP")) {
             dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".into()), exchangeName).into()), Value::Str(" is disabled in php".into())).into())]);
             return Value::Bool(true);
         }
-        let mut isDisabledCSharp: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledCS".into()), &[Value::Bool(false)]);
-        if is_true(&(isDisabledCSharp)) && (self.lang.as_str() == Some("C#")) {
+        let mut isDisabledCSharp: bool = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledCS".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        if isDisabledCSharp && (self.lang.as_str() == Some("C#")) {
             dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".into()), exchangeName).into()), Value::Str(" is disabled in c#".into())).into())]);
             return Value::Bool(true);
         }
-        let mut isDisabledGO: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledGO".into()), &[Value::Bool(false)]);
-        if is_true(&(isDisabledGO)) && (self.lang.as_str() == Some("GO")) {
+        let mut isDisabledGO: bool = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledGO".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        if isDisabledGO && (self.lang.as_str() == Some("GO")) {
             dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".into()), exchangeName).into()), Value::Str(" is disabled in go".into())).into())]);
             return Value::Bool(true);
         }
-        let mut isDisabledRust: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledRS".into()), &[Value::Bool(false)]);
-        if is_true(&isDisabledRust) && (self.lang.as_str() == Some("RUST")) {
+        let mut isDisabledRust: bool = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledRS".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        if isDisabledRust && (self.lang.as_str() == Some("RUST")) {
             dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".into()), exchangeName).into()), Value::Str(" is disabled in rust".into())).into())]);
             return Value::Bool(true);
         }
-        let mut isDisabledJava: Value = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledJava".into()), &[Value::Bool(false)]);
-        if is_true(&(isDisabledJava)) && (self.lang.as_str() == Some("java")) {
+        let mut isDisabledJava: bool = exchange.safe_bool(exchangeData.clone(), Value::Str("disabledJava".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        if isDisabledJava && (self.lang.as_str() == Some("java")) {
             dump(&[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[TEST_WARNING] Exchange ".into()), exchangeName).into()), Value::Str(" is disabled in java".into())).into())]);
             return Value::Bool(true);
         }
@@ -3144,11 +3094,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut testName = get_arg(optional_args, 1, Value::Null);
         // prediction-market exchanges keep their fixtures under static/<type>/prediction/ and are
         // run separately via the --prediction flag (npm run request-ts-prediction / response-ts-prediction)
-        let mut folder: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", getRootDir(), Value::Str("./ts/src/test/static/".into())).into()), type_var).into()), Value::Str("/".into())).into());
+        let mut folder: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", getRootDir(), Value::Str("./ts/src/test/static/".into())).into()), type_var).into()), Value::Str("/".into()));
         if is_true(&self.predictionTests) {
-            folder = Value::Str(format!("{}{}", folder, Value::Str("prediction/".into())).into());
+            folder = format!("{}{}", folder, Value::Str("prediction/".into()));
         }
-        let mut staticData: Value = self.load_static_data(folder.clone(), &[targetExchange.clone()]);
+        let mut staticData: Value = self.load_static_data(Value::from(folder), &[targetExchange.clone()]);
         if (staticData == Value::Null) {
             return Value::Bool(true);
         }
@@ -3157,7 +3107,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut m = indexmap::IndexMap::new();
             m
         })]); // tmp to do the calculations until we have the ast-transpiler transpiling this code
-        let mut promises: Value = Value::from(vec![]);
+        let mut promises: Vec<Value> = Vec::new();
         let mut sum: Value = Value::Int(0);
         if (targetExchange != Value::Null) && (targetExchange.as_str() != Some("")) {
             dump(&[Value::Str(format!("{}{}", Value::Str("[INFO:MAIN] Exchange to test: ".into()), targetExchange).into())]);
@@ -3166,11 +3116,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             dump(&[Value::Str(format!("{}{}", Value::Str("[INFO:MAIN] Testing only: ".into()), testName).into())]);
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1663: bool = true;
-            while { if !__for_first_1663 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1663 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(exchanges.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut exchangeName: Value = exchanges.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1663 { i += 1; } __for_first_1663 = false; i < (exchanges.len() as i64) } {
+            let mut exchangeName: Value = exchanges.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut exchangeData: Value = staticData.as_map().and_then(|__m| exchangeName.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
             let mut disabled: Value = self.check_if_exchange_is_disabled(exchangeName.clone(), exchangeData.clone());
             if disabled.as_bool() == Some(true) {
@@ -3179,16 +3128,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut numberOfTests: Value = self.get_number_of_tests_from_exchange(exchange.clone(), exchangeData.clone(), &[testName.clone()]);
             sum = exchange.sum(&[sum.clone(), numberOfTests.clone()]);
             if (type_var.as_str() == Some("request")) {
-                append_to_array(&mut promises, self.test_exchange_request_statically(exchangeName.clone(), exchangeData.clone(), &[testName.clone()]).await);
+                promises.push(self.test_exchange_request_statically(exchangeName.clone(), exchangeData.clone(), &[testName.clone()]).await);
             }  else if (type_var.as_str() == Some("ws")) {
-                append_to_array(&mut promises, self.test_exchange_ws_statically(exchangeName.clone(), exchangeData.clone(), &[testName.clone()]).await);
+                promises.push(self.test_exchange_ws_statically(exchangeName.clone(), exchangeData.clone(), &[testName.clone()]).await);
             }  else {
-                append_to_array(&mut promises, self.test_exchange_response_statically(exchangeName.clone(), exchangeData.clone(), &[testName.clone()]).await);
+                promises.push(self.test_exchange_response_statically(exchangeName.clone(), exchangeData.clone(), &[testName.clone()]).await);
             }
         }
         }
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            promise_all(&promises).await;
+            promise_all(&Value::from(promises)).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (type_var.as_str() == Some("request")) {
@@ -3198,15 +3147,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }  else {
                 self.responseTestsFailed = Value::Bool(true);
             }
-            let mut errorMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".into()), self.lang.clone()).into()), Value::Str("][STATIC_REQUEST]".into())).into()), exceptionMessage(e.clone())).into());
+            let mut errorMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".into()), self.lang.clone()).into()), Value::Str("][STATIC_REQUEST]".into())).into()), exceptionMessage(e.clone()));
             dump(&[Value::Str(format!("{}{}", Value::Str("[TEST_FAILURE]".into()), errorMessage).into())]);
         }
         if is_true(&self.requestTestsFailed) || is_true(&self.responseTestsFailed) || is_true(&self.staticWsTestsFailed) {
             exitScript(Value::Int(1));
         }  else {
-            let mut prefix: Value = (if is_true(&(isSync())) { Value::Str("[SYNC]".into()) } else { Value::Str("".into()) });
-            let mut successMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".into()), self.lang.clone()).into()), Value::Str("]".into())).into()),
-                prefix).into()), Value::Str("[TEST_SUCCESS] ".into())).into()), Value::Str(format!("{}", sum).into())).into()), Value::Str(" static ".into())).into()), type_var).into()), Value::Str(" tests passed.".into())).into());
+            let mut prefix: String = (if is_true(&(isSync())) { "[SYNC]".to_string() } else { "".to_string() });
+            let mut successMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".into()), self.lang.clone()).into()), Value::Str("]".into())).into()), prefix).into()),
+                Value::Str("[TEST_SUCCESS] ".into())).into()), Value::Str(format!("{}", sum).into())).into()), Value::Str(" static ".into())).into()), type_var).into()), Value::Str(" tests passed.".into()));
             dump(&[Value::Str(format!("{}{}", Value::Str("[INFO]".into()), successMessage).into())]);
         }
         return Value::Bool(true);
@@ -3249,7 +3198,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.test_blofin().await, self.test_coinbaseinternational().await, self.test_coinbase_advanced().await, self.test_woofi_pro().await, self.test_xt().await, Value::Null /* paradex broker-id skipped: starknetSign() not ported to Rust */, self.test_hashkey().await, self.test_cryptomus().await, self.test_derive().await, self.test_mode_trade().await,
             self.test_backpack().await, self.test_toobit().await, self.test_weex().await, self.test_foxbit().await, self.test_bithumb().await, self.test_extended().await]);
         promise_all(&promises).await;
-        let mut successMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".into()), self.lang.clone()).into()), Value::Str("][TEST_SUCCESS] brokerId tests passed.".into())).into());
+        let mut successMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str("[".into()), self.lang.clone()).into()), Value::Str("][TEST_SUCCESS] brokerId tests passed.".into()));
         dump(&[Value::Str(format!("{}{}", Value::Str("[INFO]".into()), successMessage).into())]);
         exitScript(Value::Int(0));
         return Value::Bool(true);
@@ -3428,8 +3377,7 @@ if _try_result.is_err() {
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1664: bool = true;
-            while { if !__for_first_1664 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1664 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&batchOrders).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1664 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1664 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&batchOrders).as_f64().unwrap_or(f64::NAN) } {
             let mut current: Value = get_value(&batchOrders, &i);
             let mut currentClientOrderId: Value = get_value(&current, &Value::Str("newClientOrderId".into()));
             assert((starts_with(&currentClientOrderId, &swapId)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("binance createOrders - clientOrderId: ".into()), currentClientOrderId).into()), Value::Str(" does not start with swapId".into())).into()), swapId).into())]);
@@ -4522,7 +4470,7 @@ if _try_result.is_err() {
     pub async fn test_htx(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("htx".into()), &[]);
         // spot test
-        let mut id: Value = Value::Str("AA03022abc".into());
+        let mut id: String = "AA03022abc".to_string();
         let mut spotOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4534,7 +4482,7 @@ if _try_result.is_err() {
             spotOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderId: Value = spotOrderRequest.as_map().and_then(|__m| __m.get("client-order-id")).cloned().unwrap_or(Value::Null);
-        let mut idString: Value = Value::Str(format!("{}", id).into());
+        let mut idString: Value = Value::from(id);
         assert((starts_with(&clientOrderId, &idString)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("htx - spot clientOrderId ".into()), clientOrderId).into()), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
         // swap test
         let mut swapOrderRequest: Value = Value::Map({
@@ -4572,7 +4520,7 @@ if _try_result.is_err() {
     pub async fn test_woo(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("woo".into()), &[]);
         // spot test
-        let mut id: Value = Value::Str("bc830de7-50f3-460b-9ee0-f430f83f9dad".into());
+        let mut id: String = "bc830de7-50f3-460b-9ee0-f430f83f9dad".to_string();
         let mut spotOrderRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4584,7 +4532,7 @@ if _try_result.is_err() {
             spotOrderRequest = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut brokerId: Value = spotOrderRequest.as_map().and_then(|__m| __m.get("broker_id")).cloned().unwrap_or(Value::Null);
-        let mut idString: Value = Value::Str(format!("{}", id).into());
+        let mut idString: Value = Value::from(id);
         assert((starts_with(&brokerId, &idString)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("woo - broker_id: ".into()), brokerId).into()), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
         // swap test
         let mut stopOrderRequest: Value = Value::Map({
@@ -4640,7 +4588,7 @@ if _try_result.is_err() {
 
     pub async fn test_phemex(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("phemex".into()), &[]);
-        let mut id: Value = Value::Str("CCXT123456".into());
+        let mut id: String = "CCXT123456".to_string();
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4652,7 +4600,7 @@ if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut clientOrderId: Value = request.as_map().and_then(|__m| __m.get("clOrdID")).cloned().unwrap_or(Value::Null);
-        let mut idString: Value = Value::Str(format!("{}", id).into());
+        let mut idString: Value = Value::from(id);
         assert((starts_with(&clientOrderId, &idString)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("phemex - clOrdID: ".into()), clientOrderId).into()), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
@@ -4664,7 +4612,7 @@ if _try_result.is_err() {
 
     pub async fn test_blofin(&mut self) -> Value {
         let mut exchange: Value = self.init_offline_exchange(Value::Str("blofin".into()), &[]);
-        let mut id: Value = Value::Str("ec6dd3a7dd982d0b".into());
+        let mut id: String = "ec6dd3a7dd982d0b".to_string();
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4676,7 +4624,7 @@ if _try_result.is_err() {
             request = jsonParse(get_value(&exchange, &Value::Str("last_request_body".into())));
         }
         let mut brokerId: Value = request.as_map().and_then(|__m| __m.get("brokerId")).cloned().unwrap_or(Value::Null);
-        let mut idString: Value = Value::Str(format!("{}", id).into());
+        let mut idString: Value = Value::from(id);
         assert((starts_with(&brokerId, &idString)), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("blofin - brokerId: ".into()), brokerId).into()), Value::Str(" does not start with id: ".into())).into()), idString).into())]);
         if !is_true(&isSync()) {
             close(exchange.clone()).await;
@@ -4721,9 +4669,9 @@ if _try_result.is_err() {
 if _try_result.is_err() {
             // buy/sell are GET endpoints, so the label is in the query string, not a JSON body
             let mut url: Value = get_value(&exchange, &Value::Str("last_request_url".into()));
-            let mut urlParts: Value = Value::Array(if let Some(__s) = url.as_str() { __s.split("?").map(Value::from).collect() } else { Vec::new() });
+            let mut urlParts: Vec<Value> = Value::Array(if let Some(__s) = url.as_str() { __s.split("?").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
             assert((Value::Int(urlParts.len() as i64).as_f64().unwrap_or(f64::NAN) > Value::Int(1).as_f64().unwrap_or(f64::NAN)), &[Value::Str(format!("{}{}", Value::Str("last_request_url has no query string: ".into()), url).into())]);
-            let mut query: Value = self.urlencoded_to_dict(urlParts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null));
+            let mut query: Value = self.urlencoded_to_dict(urlParts.get(1).cloned().unwrap_or(Value::Null));
             clientOrderId = query.as_map().and_then(|__m| __m.get("label")).cloned().unwrap_or(Value::Null);
         }
         // the label is built as "<brokerId>-<uuid22>", so assert the hyphenated prefix to ensure the uuid suffix was appended after the ccxt broker id

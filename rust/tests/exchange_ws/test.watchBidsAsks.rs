@@ -22,10 +22,10 @@ pub async fn testWatchBidsAsksHelper(mut exchange: Value, mut skippedProperties:
     let mut now: Value = exchange.milliseconds();
     let mut ends: Value = (match (&(now), &(Value::Int(15000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
     let mut maxIdleTime: Value = Value::Int(5000);
-    let mut idle: Value = Value::Bool(false);
-    while (now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN)) && !(idle.as_bool() == Some(true)) {
-        let mut success: Value = Value::Bool(true);
-        let mut shouldReturn: Value = Value::Bool(false);
+    let mut idle: bool = false;
+    while (now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN)) && !idle {
+        let mut success: bool = true;
+        let mut shouldReturn: bool = false;
         let mut response: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -41,17 +41,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (matches!(&e, Value::Str(__s) if __s.contains("[ArgumentsRequired]"))) && ((argSymbols == Value::Null) || (Value::Int(argSymbols.len() as i64).as_f64() == Some(0.0))) {
                 // todo: provide random symbols to try
                 // return false;
-                shouldReturn = Value::Bool(true);
+                shouldReturn = true;
             }  else if !is_true(&crate::tests_support::shared::is_temporary_failure(e.clone())) {
                 panic!("{}", e);
             }
-            success = Value::Bool(false);
+            success = false;
         }
         now = exchange.milliseconds();
-        if shouldReturn.as_bool() == Some(true) {
+        if shouldReturn {
             return Value::Bool(false);
         }
-        if success.as_bool() == Some(true) {
+        if success {
             assert!(ccxt::runtime::is_true(&(exchange.is_dictionary(response.clone()))));
             let mut values: Value = object_values(&response);
             let mut checkedSymbol: Value = Value::Null;
@@ -60,16 +60,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), values.clone(), checkedSymbol.clone()]);
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1602: bool = true;
-                while { if !__for_first_1602 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                    } __for_first_1602 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(values.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut ticker: Value = values.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+                while { if !__for_first_1602 { i += 1; } __for_first_1602 = false; i < (values.len() as i64) } {
+                let mut ticker: Value = values.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 testTicker(exchange.clone(), skippedProperties.clone(), method.clone(), ticker.clone(), checkedSymbol.clone());
             }
             }
             if ((match (&(now), &(startTime)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN) > maxIdleTime.as_f64().unwrap_or(f64::NAN) {
-                idle = Value::Bool(true);
+                idle = true;
             }
         }
     }

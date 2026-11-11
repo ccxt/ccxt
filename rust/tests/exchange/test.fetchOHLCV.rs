@@ -29,17 +29,15 @@ pub async fn testFetchOHLCV(mut exchange: Value, mut skippedProperties: Value, m
         Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })]); // eg, "since" was a date of 2800 bars back
     let mut limitsArray: Value = Value::from(vec![Value::Null, Value::Int(50), Value::Int(25000)]);
     {
-                let mut i: Value = Value::Int(0);
+                let mut i: i64 = 0;
         let mut __for_first_1584: bool = true;
-        while { if !__for_first_1584 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-            } __for_first_1584 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(sinceArray.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-        let mut sinceCurrent: Value = sinceArray.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+        while { if !__for_first_1584 { i += 1; } __for_first_1584 = false; i < (sinceArray.len() as i64) } {
+        let mut sinceCurrent: Value = sinceArray.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
         {
-                        let mut j: Value = Value::Int(0);
+                        let mut j: i64 = 0;
             let mut __for_first_1583: bool = true;
-            while { if !__for_first_1583 { j = (match (&(j), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1583 = false; j.as_f64().unwrap_or(f64::NAN) < Value::Int(limitsArray.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let mut limit: Value = limitsArray.as_array().and_then(|__arr| match &j { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1583 { j += 1; } __for_first_1583 = false; j < (limitsArray.len() as i64) } {
+            let mut limit: Value = limitsArray.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
             let mut ohlcvs: Value = crate::live_dispatch::dispatch(&mut exchange, "fetch_ohlcv", vec![symbol.clone(), chosenTimeframeKey.clone(), sinceCurrent.clone(), limit.clone()]).await;
             // we can't expect array to have values, because requested period might have zero bars for valid reason
             // testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, ohlcvs, symbol);
@@ -61,11 +59,10 @@ fn helperFetchOHLCVChecker(mut exchange: Value, mut skippedProperties: Value, mu
     assert!(ccxt::runtime::is_true(&((matches!(&ohlcvs, Value::Arr(_))))));
     let mut now: Value = exchange.milliseconds();
     {
-                let mut i: Value = Value::Int(0);
+                let mut i: i64 = 0;
         let mut __for_first_1585: bool = true;
-        while { if !__for_first_1585 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-            } __for_first_1585 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(ohlcvs.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-        testOHLCV(exchange.clone(), skippedProperties.clone(), method.clone(), ohlcvs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone());
+        while { if !__for_first_1585 { i += 1; } __for_first_1585 = false; i < (ohlcvs.len() as i64) } {
+        testOHLCV(exchange.clone(), skippedProperties.clone(), method.clone(), ohlcvs.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone());
     }
     }
     let mut durationMs: Value = (match (&(exchange.parse_timeframe(timeframe.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
@@ -87,8 +84,7 @@ fn helperFetchOHLCVChecker(mut exchange: Value, mut skippedProperties: Value, mu
     {
                 let mut i: Value = Value::Int(0);
         let mut __for_first_1586: bool = true;
-        while { if !__for_first_1586 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-            } __for_first_1586 = false; i.as_f64().unwrap_or(f64::NAN) < barsLength.as_f64().unwrap_or(f64::NAN) } {
+        while { if !__for_first_1586 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1586 = false; i.as_f64().unwrap_or(f64::NAN) < barsLength.as_f64().unwrap_or(f64::NAN) } {
         let mut ohlcv: Value = ohlcvs.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
         let mut barTs: Value = get_value(&ohlcv, &Value::Int(0));
         // if this is the first bar, then ensure its timestamp is not earlier than requested "since"

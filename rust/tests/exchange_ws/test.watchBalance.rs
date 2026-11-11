@@ -18,7 +18,7 @@ pub async fn testWatchBalance(mut exchange: Value, mut skippedProperties: Value,
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut success: Value = Value::Bool(true);
+        let mut success: bool = true;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             response = crate::live_dispatch::dispatch(&mut exchange, "watch_balance", vec![]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -28,9 +28,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             now = exchange.milliseconds();
             // continue;
-            success = Value::Bool(false);
+            success = false;
         }
-        if !(success.as_bool() == Some(true)) {
+        if !success {
             continue;
         }
         testBalance(exchange.clone(), skippedProperties.clone(), method.clone(), response.clone());

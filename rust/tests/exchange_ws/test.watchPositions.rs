@@ -15,7 +15,7 @@ pub async fn testWatchPositions(mut exchange: Value, mut skippedProperties: Valu
     let mut ends: Value = (match (&(now), &(Value::Int(15000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
     while now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN) {
         let mut response: Value = Value::Null;
-        let mut success: Value = Value::Bool(true);
+        let mut success: bool = true;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             response = crate::live_dispatch::dispatch(&mut exchange, "watch_positions", vec![Value::from(vec![symbol.clone()])]).await;
             if (response == Value::Null) {
@@ -28,9 +28,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             now = exchange.milliseconds();
             // continue;
-            success = Value::Bool(false);
+            success = false;
         }
-        if success.as_bool() == Some(true) {
+        if success {
             if (response == Value::Null) {
                 panic!("{}", Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" watch returned undefined response".into())).into()));
             }
@@ -39,8 +39,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1608: bool = true;
-                while { if !__for_first_1608 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                    } __for_first_1608 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1608 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1608 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
                 testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&response, &i), Value::Null, now.clone());
             }
             }
@@ -50,7 +49,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // Test with specific symbol
         //
         let mut positionsForSymbols: Value = Value::Null;
-        let mut success2: Value = Value::Bool(true);
+        let mut success2: bool = true;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             positionsForSymbols = crate::live_dispatch::dispatch(&mut exchange, "watch_positions", vec![Value::from(vec![symbol.clone()])]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
@@ -60,19 +59,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             now = exchange.milliseconds();
             // continue;
-            success2 = Value::Bool(false);
+            success2 = false;
         }
-        if success2.as_bool() == Some(true) {
+        if success2 {
             assert!(ccxt::runtime::is_true(&((matches!(&positionsForSymbols, Value::Arr(_))))));
             // max theoretical 4 positions: two for one-way-mode and two for two-way mode
             assert!(ccxt::runtime::is_true(&((Value::Int(positionsForSymbols.len() as i64).as_f64().unwrap_or(f64::NAN) <= Value::Int(4).as_f64().unwrap_or(f64::NAN)))));
             now = exchange.milliseconds();
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1609: bool = true;
-                while { if !__for_first_1609 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                    } __for_first_1609 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(positionsForSymbols.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), positionsForSymbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone());
+                while { if !__for_first_1609 { i += 1; } __for_first_1609 = false; i < (positionsForSymbols.len() as i64) } {
+                testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), positionsForSymbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone());
             }
             }
             crate::tests_support::shared::assert_timestamp_order(exchange.clone(), &[method.clone(), symbol.clone(), positionsForSymbols.clone()]);

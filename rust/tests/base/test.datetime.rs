@@ -176,8 +176,8 @@ pub fn testYymmdd() {
         m
     }));
     let mut testMs: Value = Value::Int(1750123456789); // 17 June 2025
-    let mut value: Value = exchange.yymmdd(testMs.clone(), &[Value::Str("_".into())]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(value.as_str() == Some("25_06_17")))));
+    let mut value: Option<String> = exchange.yymmdd(testMs.clone(), &[Value::Str("_".into())]).as_str().map(str::to_owned);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(value.as_deref() == Some("25_06_17")))));
     let mut value2: Value = exchange.yymmdd(exchange.milliseconds(), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(value2.len() as i64).as_f64() == Some(6.0)))));
     let mut intNum: Value = exchange.parse_to_int(value2.clone());
@@ -190,8 +190,8 @@ pub fn testYyyymmdd() {
         m
     }));
     let mut testMs: Value = Value::Int(1750123456789); // 17 June 2025
-    let mut value: Value = exchange.yyyymmdd(testMs.clone(), &[Value::Str("_".into())]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(value.as_str() == Some("2025_06_17")))));
+    let mut value: Option<String> = exchange.yyyymmdd(testMs.clone(), &[Value::Str("_".into())]).as_str().map(str::to_owned);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(value.as_deref() == Some("2025_06_17")))));
     let mut value2: Value = exchange.yyyymmdd(exchange.milliseconds(), &[]);
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::Int(value2.len() as i64).as_f64() == Some(10.0)))));
     let mut intNum: Value = exchange.parse_to_int(((value2.as_str().map(|__s| Value::Str(__s.replace("-", "").into())).unwrap_or_else(|| value2.clone()))).as_str().map(|__s| Value::Str(__s.replace("-", "").into())).unwrap_or_else(|| ((value2.as_str().map(|__s| Value::Str(__s.replace("-", "").into())).unwrap_or_else(|| value2.clone()))).clone()));
@@ -204,8 +204,8 @@ pub fn testYmd() {
         m
     }));
     let mut testMs: Value = Value::Int(1750123456789); // 17 June 2025
-    let mut value: Value = exchange.ymd(testMs.clone(), &[Value::Str("_".into())]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool(value.as_str() == Some("2025_06_17")))));
+    let mut value: Option<String> = exchange.ymd(testMs.clone(), &[Value::Str("_".into())]).as_str().map(str::to_owned);
+    assert!(ccxt::runtime::is_true(&(Value::Bool(value.as_deref() == Some("2025_06_17")))));
 }
 pub fn testYmdhms() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
@@ -214,8 +214,8 @@ pub fn testYmdhms() {
         m
     }));
     let mut testMs: Value = Value::Int(1750123456789); // 17 June 2025
-    let mut value: Value = exchange.ymdhms(testMs.clone(), &[Value::Str("_".into())]);
-    assert!(ccxt::runtime::is_true(&(Value::Bool((value.as_str() == Some("2025-06-17_01:24:16")) || (value.as_str() == Some("2025-06-17_01:24:17")))))); // todo: php/py rounds up to 17
+    let mut value: Option<String> = exchange.ymdhms(testMs.clone(), &[Value::Str("_".into())]).as_str().map(str::to_owned);
+    assert!(ccxt::runtime::is_true(&(Value::Bool((value.as_deref() == Some("2025-06-17_01:24:16")) || (value.as_deref() == Some("2025-06-17_01:24:17")))))); // todo: php/py rounds up to 17
 }
 pub fn testDatetime() {
     testIso8601();

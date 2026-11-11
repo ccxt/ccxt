@@ -39,8 +39,7 @@ pub async fn testFetchCurrencies(mut exchange: Value, mut skippedProperties: Val
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1567: bool = true;
-            while { if !__for_first_1567 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1567 = false; i.as_f64().unwrap_or(f64::NAN) < currenciesLength.as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1567 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1567 = false; i.as_f64().unwrap_or(f64::NAN) < currenciesLength.as_f64().unwrap_or(f64::NAN) } {
             let mut currency: Value = values.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
             testCurrency(exchange.clone(), skippedProperties.clone(), method.clone(), currency.clone());
             // detailed check for deposit/withdraw
@@ -77,11 +76,10 @@ fn detectCurrencyConflicts(mut exchange: Value, mut currencyValues: Value) -> Va
     });
     let mut keys: Value = object_keys(&currencyValues);
     {
-                let mut i: Value = Value::Int(0);
+                let mut i: i64 = 0;
         let mut __for_first_1568: bool = true;
-        while { if !__for_first_1568 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-            } __for_first_1568 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(keys.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-        let mut key: Value = keys.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+        while { if !__for_first_1568 { i += 1; } __for_first_1568 = false; i < (keys.len() as i64) } {
+        let mut key: Value = keys.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
         let mut currency: Value = get_value(&currencyValues, &key);
         let mut code: Value = get_value(&currency, &Value::Str("code".into()));
         if !(ids.as_map().is_some_and(|__m| code.as_str().is_some_and(|__k| __m.contains_key(__k)))) {

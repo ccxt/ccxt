@@ -19,10 +19,10 @@ pub async fn testWatchOrderBook(mut exchange: Value, mut skippedProperties: Valu
     let mut maxIdleTime: Value = Value::Int(5000);
     let mut now: Value = exchange.milliseconds();
     let mut ends: Value = (match (&(now), &(Value::Int(15000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-    let mut idle: Value = Value::Bool(false);
-    while (now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN)) && !(idle.as_bool() == Some(true)) {
+    let mut idle: bool = false;
+    while (now.as_f64().unwrap_or(f64::NAN) < ends.as_f64().unwrap_or(f64::NAN)) && !idle {
         let mut response: Value = Value::Null;
-        let mut success: Value = Value::Bool(true);
+        let mut success: bool = true;
         let mut startTime: Value = exchange.milliseconds();
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             response = crate::live_dispatch::dispatch(&mut exchange, "watch_order_book", vec![symbol.clone()]).await;
@@ -31,18 +31,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if !is_true(&crate::tests_support::shared::is_temporary_failure(e.clone())) && !(is_instance(&e, &Value::Str("InvalidNonce".into()))) {
                 panic!("{}", e);
             }
-            success = Value::Bool(false);
+            success = false;
         }
         // refresh the deadline on every path, otherwise a stream of temporary
         // failures would loop forever
         now = exchange.milliseconds();
-        if (success).as_bool() == Some(true) && (response != Value::Null) {
+        if success && (response != Value::Null) {
             testOrderBook(exchange.clone(), skippedProperties.clone(), method.clone(), response.clone(), symbol.clone());
             let mut elapsed: Value = (match (&(now), &(startTime)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             if elapsed.as_f64().unwrap_or(f64::NAN) > maxIdleTime.as_f64().unwrap_or(f64::NAN) {
                 // this market updates slower than the remaining test window, so
                 // awaiting another delta would only end in a harness timeout
-                idle = Value::Bool(true);
+                idle = true;
             }
         }
     }

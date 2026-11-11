@@ -423,16 +423,14 @@ pub fn testWsOrderBook() {
     // corruption produced rows holding only an amount
     let mut desyncSides: Value = Value::from(vec![get_value(&desyncBook, &Value::Str("bids".into())), get_value(&desyncBook, &Value::Str("asks".into()))]);
     {
-                let mut i: Value = Value::Int(0);
+                let mut i: i64 = 0;
         let mut __for_first_1547: bool = true;
-        while { if !__for_first_1547 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-            } __for_first_1547 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(desyncSides.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-        let mut side: Value = desyncSides.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+        while { if !__for_first_1547 { i += 1; } __for_first_1547 = false; i < (desyncSides.len() as i64) } {
+        let mut side: Value = desyncSides.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
         {
                         let mut k: Value = Value::Int(0);
             let mut __for_first_1546: bool = true;
-            while { if !__for_first_1546 { k = (match (&(k), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
-                } __for_first_1546 = false; k.as_f64().unwrap_or(f64::NAN) < get_array_length(&side).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_1546 { if let Value::Int(n) = &mut k { *n += 1; } } __for_first_1546 = false; k.as_f64().unwrap_or(f64::NAN) < get_array_length(&side).as_f64().unwrap_or(f64::NAN) } {
             let mut row: Value = get_value(&side, &k);
             assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&row).as_f64().unwrap_or(f64::NAN) >= Value::Int(2).as_f64().unwrap_or(f64::NAN)))));
             assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&row, &Value::Int(0)) != Value::Null))));
