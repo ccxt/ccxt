@@ -1543,7 +1543,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 m.insert("error".to_string(), Value::Str("handle_error_message".into()).clone());
             m
         });
-        let mut authenticated: bool = __ch.url.clone().as_str().unwrap_or("").ends_with("?");
+        let mut authenticated: bool = __ch.url.as_str().unwrap_or("").ends_with("?");
         let mut method: Value = self.safe_value(Value::Map(methods), type_var.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         if (method == Value::Null) {
             if (type_var.as_deref() == Some("match")) {

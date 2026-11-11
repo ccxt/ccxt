@@ -930,8 +930,8 @@ impl Phemex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
-        let mut first: Option<String> = symbolsNormalized.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
+        let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
+        let mut first: Option<String> = symbolsNormalized.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut market: crate::types::Market = (match self.market(first.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut isSwap: bool = (market).swap;
         let mut settleIsUSDT: bool = Value::from((market).settle.as_deref()).as_str() == Some("USDT");
@@ -947,7 +947,7 @@ impl Phemex {
                         let mut i: i64 = 0;
             let mut __for_first_611: bool = true;
             while { if !__for_first_611 { i += 1; } __for_first_611 = false; i < (symbolsNormalized.len() as i64) } {
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into())); }
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("ticker:".into()), symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).into())); }
         }
         }
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
@@ -970,7 +970,7 @@ impl Phemex {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsNormalized)]);
         Value::Null
         }).await?))
     }
@@ -2334,11 +2334,10 @@ impl Phemex {
 }));
         self.check_required_credentials(&[]);
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut client: Value = self.client(&[url.clone()]);
-        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
         let mut requestId: Value = self.request_id();
         let mut messageHash: Value = Value::Str("authenticated".into());
-        let mut future: Value = self.safe_value(__ch.subscriptions.clone(), messageHash.clone(), &[]);
+        let mut future: Value = self.safe_value((client).subscriptions.clone(), messageHash.clone(), &[]);
         if (future == Value::Null) {
             let mut expiryDelta: Value = self.safe_integer_k(self.options.clone(), "expires", &[Value::Int(120)]);
             let mut expiration: Value = (match (&(self.seconds()), &(expiryDelta)) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
@@ -2354,11 +2353,11 @@ impl Phemex {
             });
             let mut subscriptionHash: Value = Value::Str(format!("{}", requestId).into());
             let mut message: Value = self.extend(Value::Map(request), &[params]);
-            if !(__ch.has_subscription(&messageHash)) {
-                __ch.add_subscription(&subscriptionHash, Value::Str("handle_authenticate".into()).clone());
+            if !(client.has_subscription(&messageHash)) {
+                client.add_subscription(&subscriptionHash, Value::Str("handle_authenticate".into()).clone());
             }
             future = self.watch(url, messageHash.clone(), &[message, messageHash.clone()]).await;
-            __ch.add_subscription(&messageHash, future.clone());
+            client.add_subscription(&messageHash, future.clone());
         }
         return future;
 

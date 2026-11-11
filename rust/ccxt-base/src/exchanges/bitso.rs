@@ -2655,7 +2655,7 @@ impl Bitso {
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2682,7 +2682,7 @@ impl Bitso {
             m
         });
         let mut classMethod: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("privatePost".into()), method.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str("Withdrawal".into())).into());
-        let __ws_arg_16 = self.extend(Value::Map(request), &[paramsWithdrawTag]);
+        let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
         let mut response: Value = self.call_dynamic_checked(classMethod, vec![(__ws_arg_16).clone()]).await;
         //
         //     {
@@ -2875,11 +2875,11 @@ impl Bitso {
             let mut success: bool = self.safe_bool_k(response.clone(), "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if !success {
                 let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response));
-                let mut error: Value = self.safe_dict_k(response, "error", &[]);
-                if (error == Value::Null) {
+                let mut error: Option<crate::value::Dict> = self.safe_dict_k(response, "error", &[]).into_opt_dict();
+                if (error.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
                 }
-                let mut codeError: Option<String> = self.safe_string_k(error, "code", &[]).as_str().map(str::to_owned);
+                let mut codeError: Option<String> = self.safe_string_k(&error, "code", &[]).as_str().map(str::to_owned);
                 self.throw_exactly_matched_exception(self.exceptions.clone(), codeError.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }

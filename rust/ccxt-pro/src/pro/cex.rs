@@ -1246,10 +1246,10 @@ impl Cex {
         let mut remains: Value = self.safe_string_k(data.clone(), "remains", &[]);
         let mut baseId: Option<String> = self.safe_string_k(data.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut quoteId: Option<String> = self.safe_string_k(data.clone(), "symbol2", &[]).as_str().map(str::to_owned);
-        let mut pair: Value = self.safe_dict_k(data.clone(), "pair", &[]);
-        if (pair != Value::Null) {
-            baseId = self.safe_string_k(pair.clone(), "symbol1", &[]).as_str().map(str::to_owned);
-            quoteId = self.safe_string_k(pair, "symbol2", &[]).as_str().map(str::to_owned);
+        let mut pair: Option<crate::value::Dict> = self.safe_dict_k(data.clone(), "pair", &[]).into_opt_dict();
+        if (pair.is_some()) {
+            baseId = self.safe_string_k(&pair, "symbol1", &[]).as_str().map(str::to_owned);
+            quoteId = self.safe_string_k(&pair, "symbol2", &[]).as_str().map(str::to_owned);
         }
         let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -2297,7 +2297,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
 }
 
     pub fn handle_authentication_message(&self, mut client: Value, mut message: Value) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+        let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         //
         //     {
         //         "e": "auth",
@@ -2308,7 +2308,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         //         "timestamp":1448034593
         //     }
         //
-        let mut future: Value = self.safe_value(__ch.futures.clone(), Value::Str("authenticated".into()), &[]);
+        let mut future: Value = self.safe_value_k(__ch.futures.clone(), "authenticated", &[]);
         if (future != Value::Null) {
             future.resolve(&[Value::Bool(true)]);
         }
@@ -2320,11 +2320,10 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     m
 }));
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut client: Value = self.client(&[Value::from(url.clone())]);
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.clone())]));
         let mut messageHash: String = "authenticated".to_string();
         let mut future: Value = client.reusable_future(Value::Str("authenticated".into()));
-        let mut authenticated: Value = self.safe_value(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[]);
+        let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             self.check_required_credentials(&[]);
             let mut nonce: Value = Value::Str(format!("{}", self.seconds()).into());

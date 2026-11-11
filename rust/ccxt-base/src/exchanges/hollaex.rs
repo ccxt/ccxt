@@ -2585,7 +2585,7 @@ impl Hollaex {
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2595,7 +2595,7 @@ impl Hollaex {
         if (tagWithdrawTag != Value::Null) {
             addressWithTag = Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, Value::Str(":".into())).into()), tagWithdrawTag).into());
         }
-        let mut network: Option<String> = self.safe_string_k(paramsWithdrawTag.clone(), "network", &[]).as_str().map(str::to_owned);
+        let mut network: Option<String> = self.safe_string_k(&paramsWithdrawTag, "network", &[]).as_str().map(str::to_owned);
         if (network.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a network parameter".into()))));
         }
@@ -2607,7 +2607,7 @@ impl Hollaex {
                 m.insert("network".to_string(), self.network_code_to_id(network.clone().map(Value::from).unwrap_or(Value::Null), &[code]));
             m
         });
-        let __ws_arg_17 = self.extend(Value::Map(request), &[self.omit(paramsWithdrawTag, Value::Str("network".into()), &[])]);
+        let __ws_arg_17 = self.extend(Value::Map(request), &[self.omit(&paramsWithdrawTag, Value::Str("network".into()), &[])]);
         let mut response: Value = self.private_post_user_withdrawal(&[__ws_arg_17]).await;
         return self.parse_transaction(response, &[currency]);
         Value::Null

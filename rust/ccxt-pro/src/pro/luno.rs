@@ -682,9 +682,9 @@ impl Luno {
                 bidsOrderSide.store_array(bidAskArray);
             }
         }
-        let mut deleteUpdate: Value = self.safe_dict_k(message, "delete_update", &[]);
-        if (deleteUpdate != Value::Null) {
-            let mut orderId: Option<String> = self.safe_string_k(deleteUpdate, "order_id", &[]).as_str().map(str::to_owned);
+        let mut deleteUpdate: Option<crate::value::Dict> = self.safe_dict_k(message, "delete_update", &[]).into_opt_dict();
+        if (deleteUpdate.is_some()) {
+            let mut orderId: Option<String> = self.safe_string_k(&deleteUpdate, "order_id", &[]).as_str().map(str::to_owned);
             asksOrderSide.store_array(Value::from(vec![Value::Int(0), Value::Int(0), orderId.clone().map(Value::from).unwrap_or(Value::Null)]));
             bidsOrderSide.store_array(Value::from(vec![Value::Int(0), Value::Int(0), orderId.clone().map(Value::from).unwrap_or(Value::Null)]));
         }

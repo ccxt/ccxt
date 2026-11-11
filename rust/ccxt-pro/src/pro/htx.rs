@@ -2270,9 +2270,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }  else {
             let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchPositions".into()), &[market.clone(), params.clone()]).as_array().cloned().unwrap_or_default();
             let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-            let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+            let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             type_var = (if (marketType.as_str() == Some("spot")) { Value::Str("future".into()) } else { marketType });
-            { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(paramsMarketType, Value::Str("watchPositions".into()), Value::Str("subType".into()), &[subType.clone()]).as_array().cloned().unwrap_or_default(); subType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsSubType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(&paramsMarketType, Value::Str("watchPositions".into()), Value::Str("subType".into()), &[subType.clone()]).as_array().cloned().unwrap_or_default(); subType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsSubType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut paramsPositions: Value = (if (market != Value::Null) { params } else { paramsSubType });
@@ -2801,8 +2801,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             })]).into_dict();
             let mut splitTopic: Value = Value::Array(if let Some(__s) = topic.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
             let mut messageHash: Value = self.safe_string(splitTopic, Value::Int(0), &[]);
-            let mut subscription: Value = self.safe_dict2(__ch.subscriptions.clone(), messageHash.clone(), Value::Str(format!("{}{}", messageHash, Value::Str(".*".into())).into()), &[]);
-            if (subscription == Value::Null) {
+            let mut subscription: Option<crate::value::Dict> = self.safe_dict2(__ch.subscriptions.clone(), messageHash.clone(), Value::Str(format!("{}{}", messageHash, Value::Str(".*".into())).into()), &[]).into_opt_dict();
+            if (subscription.is_none()) {
                 // if subscription not found means that we subscribed to a specific currency/symbol
                 // and we use the first data entry to find it
                 // Example: topic = 'accounts'
@@ -2813,9 +2813,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     return;
                 }
                 messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(".".into()), (if let Some(__s) = currencyId.as_deref() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).into())).into());
-                subscription = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[]);
+                subscription = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[]).into_opt_dict();
             }
-            let mut subType: Option<String> = self.safe_string_k(subscription.clone(), "subType", &[]).as_str().map(str::to_owned);
+            let mut subType: Option<String> = self.safe_string_k(&subscription, "subType", &[]).as_str().map(str::to_owned);
             if (topic.as_str() == Some("accounts_unify")) {
                 // {
                 //     "margin_asset": "USDT",
@@ -2842,7 +2842,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
                 client.resolve(&[self.balance.clone(), Value::Str("accounts_unify".into())]);
             }  else if (subType.as_deref() == Some("linear")) {
-                let mut margin: Option<String> = self.safe_string_k(subscription, "margin", &[]).as_str().map(str::to_owned);
+                let mut margin: Option<String> = self.safe_string_k(&subscription, "margin", &[]).as_str().map(str::to_owned);
                 if (margin.as_deref() == Some("cross")) {
                     // the cross account is one shared margin balance, keyed by the settle currency
                     let mut currencyId: Option<String> = self.safe_string2_opt(&first, Value::Str("margin_asset".into()), Value::Str("margin_account".into()), &[]);
@@ -3151,7 +3151,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     pub fn handle_authenticate(&self, mut client: Value, mut message: Value) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+        let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         //
         // spot
         //
@@ -3222,15 +3222,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 return Value::Bool(false);
             }
             let mut subscriptionsById: Value = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
-            let mut subscription: Value = self.safe_dict(subscriptionsById, id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            if (subscription != Value::Null) {
+            let mut subscription: Option<crate::value::Dict> = self.safe_dict(subscriptionsById, id.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
+            if (subscription.is_some()) {
                 let mut errorCode: Option<String> = (match __pro_message.get("err-code").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
                 let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                     self.throw_exactly_matched_exception(wsExceptions.get("exact").cloned().unwrap_or(Value::Null), errorCode.clone().map(Value::from).unwrap_or(Value::Null), json_stringify(&message));
                     panic!("{}", crate::exchange_errors::exchange_error(json_stringify(&message)));
                  #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-                    let mut messageHash: Option<String> = self.safe_string_k_opt(subscription, "messageHash", &[]);
+                    let mut messageHash: Option<String> = self.safe_string_k_opt(&subscription, "messageHash", &[]);
                     client.reject(&[e.clone(), messageHash.clone().map(Value::from).unwrap_or(Value::Null)]);
                     client.reject(&[e.clone(), id.clone().map(Value::from).unwrap_or(Value::Null)]);
                     if (__ch.has_subscription(&id.clone().map(Value::from).unwrap_or(Value::Null))) {
@@ -3843,10 +3843,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         self.check_required_credentials(&[]);
         let mut messageHash: String = "auth".to_string();
         let mut relativePath: Value = url.as_str().zip((Value::Str(format!("{}{}", Value::Str("wss://".into()), hostname.clone().map(Value::from).unwrap_or(Value::Null)).into())).as_str()).map(|(__s, __p)| Value::Str(__s.replace(__p, "").into())).unwrap_or_else(|| url.clone());
-        let mut client: Value = self.client(&[url.clone()]);
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
         let mut future: Value = client.reusable_future(Value::from(messageHash.clone()));
-        let mut authenticated: Value = self.safe_value(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[]);
+        let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             let mut timestamp: Value = self.ymdhms(self.milliseconds(), &[Value::Str("T".into())]);
             let mut signatureParams: Value = Value::Null;

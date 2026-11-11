@@ -4270,9 +4270,9 @@ impl Bybit {
         let mut promisesUnresolved: Vec<Value> = Vec::new();
         let mut types: Value = Value::Null;
         let mut defaultTypes: Value = Value::from(vec![Value::Str("spot".into()), Value::Str("linear".into()), Value::Str("inverse".into()), Value::Str("option".into())]);
-        let mut fetchMarketsOptions: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]);
-        if (fetchMarketsOptions != Value::Null) {
-            types = self.safe_list_k(fetchMarketsOptions.clone(), "types", &[defaultTypes.clone()]);
+        let mut fetchMarketsOptions: Option<crate::value::Dict> = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]).into_opt_dict();
+        if (fetchMarketsOptions.is_some()) {
+            types = self.safe_list_k(&fetchMarketsOptions, "types", &[defaultTypes.clone()]);
         }  else {
             // for backward-compatibility
             types = self.safe_list_k(self.options.clone(), "fetchMarkets", &[defaultTypes]);
@@ -4297,7 +4297,7 @@ impl Bybit {
     m
 })]).await);
             }  else if (marketType.as_deref() == Some("option")) {
-                let mut optionsCurrencies: Vec<Value> = self.safe_list_k(fetchMarketsOptions.clone(), "options", &[Value::from(vec![Value::Str("BTC".into()), Value::Str("ETH".into()), Value::Str("SOL".into())])]).as_array().cloned().unwrap_or_default();
+                let mut optionsCurrencies: Vec<Value> = self.safe_list_k(&fetchMarketsOptions, "options", &[Value::from(vec![Value::Str("BTC".into()), Value::Str("ETH".into()), Value::Str("SOL".into())])]).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_499: bool = true;
@@ -6690,8 +6690,8 @@ impl Bybit {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut feeCoins: Value = Value::Array(cumFeeDetail.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
-        let mut feeCoinId: Option<String> = self.safe_string(feeCoins, Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut feeCoins: crate::value::List = Value::Array(cumFeeDetail.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).into_list();
+        let mut feeCoinId: Option<String> = self.safe_string(&feeCoins, Value::Int(0), &[]).as_str().map(str::to_owned);
         if (feeCoinId.is_some()) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -7293,8 +7293,8 @@ impl Bybit {
             ordersRequests.push(orderRequest);
         }
         }
-        let mut symbols: Value = self.market_symbols(&[Value::from(orderSymbols), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
+        let mut symbols: crate::value::List = self.market_symbols(&[Value::from(orderSymbols), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]).into_list();
+        let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbols.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
         let mut unifiedMarginStatus: i64 = self.safe_integer_k(self.options.clone(), "unifiedMarginStatus", &[Value::Int(6)]).as_i64().unwrap_or(6);
         let categoryparamsValueVariable: Vec<Value> = self.get_bybit_type(Value::Str("createOrders".into()), &[market, params]).as_array().cloned().unwrap_or_default();
         let mut category: Value = categoryparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -7538,8 +7538,8 @@ impl Bybit {
             ordersRequests.push(orderRequest);
         }
         }
-        let mut symbols: Value = self.market_symbols(&[Value::from(orderSymbols), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
+        let mut symbols: crate::value::List = self.market_symbols(&[Value::from(orderSymbols), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]).into_list();
+        let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbols.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
         let mut unifiedMarginStatus: i64 = self.safe_integer_k(self.options.clone(), "unifiedMarginStatus", &[Value::Int(6)]).as_i64().unwrap_or(6);
         let categoryparamsValueVariable: Vec<Value> = self.get_bybit_type(Value::Str("editOrders".into()), &[market, params]).as_array().cloned().unwrap_or_default();
         let mut category: Value = categoryparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -8156,11 +8156,11 @@ impl Bybit {
         });
         let isTriggerparamsTriggerVariable: Vec<Value> = self.handle_param_bool2(paramsValue, Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut isTrigger: Value = isTriggerparamsTriggerVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsTrigger: Value = isTriggerparamsTriggerVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsTrigger: crate::value::Dict = isTriggerparamsTriggerVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (isTrigger.as_bool() == Some(true)) {
             request.insert("orderFilter".into(), Value::Str("StopOrder".into()));
         }
-        let __ws_arg_30 = self.extend(Value::Map(request), &[paramsTrigger]);
+        let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsTrigger]);
         let mut response: crate::value::Dict = self.private_get_v5_order_realtime(&[__ws_arg_30]).await.into_dict();
         //
         //     {
@@ -8946,8 +8946,8 @@ impl Bybit {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), paramsValue, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_39 = self.extend(requestUntil, &[paramsUntil]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_39 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.private_get_v5_execution_list(&[__ws_arg_39]).await;
         //
         //     {
@@ -9185,8 +9185,8 @@ impl Bybit {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_41 = self.extend(requestUntil, &[paramsUntil]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_41 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.private_get_v5_asset_deposit_query_record(&[__ws_arg_41]).await;
         //
         //     {
@@ -9273,8 +9273,8 @@ impl Bybit {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_42 = self.extend(requestUntil, &[paramsUntil]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_42 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.private_get_v5_asset_withdraw_query_record(&[__ws_arg_42]).await;
         //
         //     {
@@ -9768,12 +9768,12 @@ impl Bybit {
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut accounts: Value = self.is_unified_enabled(&[]).await;
         let mut isUta: Value = accounts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        let accountTypeOptionparamsAccountTypeVariable: Vec<Value> = self.handle_option_string_and_params(paramsWithdrawTag, Value::Str("withdraw".into()), Value::Str("accountType".into()), &[]).as_array().cloned().unwrap_or_default();
+        let accountTypeOptionparamsAccountTypeVariable: Vec<Value> = self.handle_option_string_and_params(&paramsWithdrawTag, Value::Str("withdraw".into()), Value::Str("accountType".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut accountTypeOption: Value = accountTypeOptionparamsAccountTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsAccountType: Value = accountTypeOptionparamsAccountTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsAccountType: crate::value::Dict = accountTypeOptionparamsAccountTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut defaultAccountType: Value = (if (isUta.as_bool() == Some(true)) { Value::Str("UTA".into()) } else { Value::Str("SPOT".into()) });
         let mut accountType: Value = (if (accountTypeOption == Value::Null) { defaultAccountType } else { accountTypeOption });
         if (self.markets.clone() == Value::Null) {
@@ -9793,7 +9793,7 @@ impl Bybit {
         if (tagWithdrawTag != Value::Null) {
             request.insert("tag".into(), tagWithdrawTag);
         }
-        let networkCodequeryVariable: Vec<Value> = self.handle_network_code_and_params(paramsAccountType).as_array().cloned().unwrap_or_default();
+        let networkCodequeryVariable: Vec<Value> = self.handle_network_code_and_params(&paramsAccountType).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodequeryVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut query: crate::value::Dict = networkCodequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut networkId: Option<String> = self.network_code_to_id(networkCode, &[code]).as_str().map(str::to_owned);
@@ -11287,8 +11287,8 @@ impl Bybit {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_63 = self.extend(requestUntil, &[paramsUntil]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_63 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.private_get_v5_asset_transfer_query_inter_transfer_list(&[__ws_arg_63]).await;
         //
         //     {
@@ -12544,8 +12544,8 @@ impl Bybit {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), paramsValue, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_74 = self.extend(requestUntil, &[paramsUntil]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_74 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.private_get_v5_execution_list(&[__ws_arg_74]).await;
         //
         //     {
@@ -12900,8 +12900,8 @@ impl Bybit {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), paramsValue, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_77 = self.extend(requestUntil, &[paramsUntil]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_77 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.private_get_v5_execution_list(&[__ws_arg_77]).await;
         let mut fundings: Value = self.add_pagination_cursor_to_result(response);
         return self.parse_incomes(fundings, &[market, since, limit]);

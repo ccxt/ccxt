@@ -2784,8 +2784,8 @@ impl Upbit {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_time".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_18 = self.extend(requestUntil, &[paramsUntil]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_18 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.private_get_orders_closed(&[__ws_arg_18]).await;
         return self.parse_orders(response, &[market, since, limit]);
         Value::Null
@@ -2839,8 +2839,8 @@ impl Upbit {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_time".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_19 = self.extend(requestUntil, &[paramsUntil]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_19 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.private_get_orders_closed(&[__ws_arg_19]).await;
         return self.parse_orders(response, &[market, since, limit]);
         Value::Null
@@ -3203,10 +3203,10 @@ impl Upbit {
         //   { 'error': { 'message': "잘못된 엑세스 키입니다.", 'name': "invalid_access_key" } },
         //   { 'error': { 'message': "Jwt 토큰 검증에 실패했습니다.", 'name': "jwt_verification" } }
         //
-        let mut error: Value = self.safe_dict_k(response, "error", &[]);
-        if (error != Value::Null) {
-            let mut message: Option<String> = self.safe_string_k(error.clone(), "message", &[]).as_str().map(str::to_owned);
-            let mut name: Option<String> = self.safe_string_k(error, "name", &[]).as_str().map(str::to_owned);
+        let mut error: Option<crate::value::Dict> = self.safe_dict_k(response, "error", &[]).into_opt_dict();
+        if (error.is_some()) {
+            let mut message: Option<String> = self.safe_string_k(&error, "message", &[]).as_str().map(str::to_owned);
+            let mut name: Option<String> = self.safe_string_k(&error, "name", &[]).as_str().map(str::to_owned);
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), name.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));

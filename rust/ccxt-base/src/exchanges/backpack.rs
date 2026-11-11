@@ -1609,9 +1609,9 @@ impl Backpack {
         let mut type_var: Option<String> = None;
         let mut rawType: Option<String> = self.safe_string_k(market.clone(), "marketType", &[]).as_str().map(str::to_owned);
         let mut rfq: Value = Value::Bool(rawType.as_deref() == Some("RFQ"));
-        let mut security: Value = self.safe_dict_k(market.clone(), "security", &[]);
+        let mut security: Option<crate::value::Dict> = self.safe_dict_k(market.clone(), "security", &[]).into_opt_dict();
         let mut baseSymbol: String = self.safe_string_k(market.clone(), "baseSymbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut stock: Value = Value::Bool((self.safe_string_k(market.clone(), "rwaMarketType", &[]).as_str() == Some("STOCK")) || (security != Value::Null) || (baseSymbol.ends_with(".US")) || (baseSymbol.ends_with(".HK")));
+        let mut stock: Value = Value::Bool((self.safe_string_k(market.clone(), "rwaMarketType", &[]).as_str() == Some("STOCK")) || (security.is_some()) || (baseSymbol.ends_with(".US")) || (baseSymbol.ends_with(".HK")));
         let mut typeOfMarket: Option<String> = self.parse_market_type(rawType.clone().map(Value::from).unwrap_or(Value::Null));
         let mut linear: Option<bool> = None;
         let mut inverse: Option<bool> = None;
@@ -1622,7 +1622,7 @@ impl Backpack {
             type_var = Some("spot".to_string());
             if matches!(&rfq, Value::Bool(true)) {
                 symbol = format!("{}{}", Value::Str(format!("{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(".RFQ/".into())).into()), quote.clone().map(Value::from).unwrap_or(Value::Null));
-                let mut sessions: Vec<Value> = self.safe_list_k(security.clone(), "sessions", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                let mut sessions: Vec<Value> = self.safe_list_k(&security, "sessions", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                 let mut stepSize: Option<String> = None;
                 let mut minimum: Option<String> = None;
                 let mut maximum: Option<String> = None;
@@ -1667,7 +1667,7 @@ impl Backpack {
         }
         let mut orderBookState: Option<String> = self.safe_string_k(market.clone(), "orderBookState", &[]).as_str().map(str::to_owned);
         // RFQ active means listed, not currently in session; an explicit order book state takes precedence.
-        let mut active: Value = (if (matches!(&rfq, Value::Bool(true)) && (orderBookState.is_none())) { (Value::Bool((id.is_some()) || (self.safe_string_k(security, "asset", &[]) != Value::Null))) } else { (Value::Bool(orderBookState.as_deref() == Some("Open"))) });
+        let mut active: Value = (if (matches!(&rfq, Value::Bool(true)) && (orderBookState.is_none())) { (Value::Bool((id.is_some()) || (self.safe_string_k(&security, "asset", &[]) != Value::Null))) } else { (Value::Bool(orderBookState.as_deref() == Some("Open"))) });
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
@@ -3467,7 +3467,7 @@ impl Backpack {
 }));
         let tagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tag: Value = tagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsWithdrawTag: Value = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: crate::value::Dict = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3482,7 +3482,7 @@ impl Backpack {
         if (tag != Value::Null) {
             request.insert("clientId".into(), tag); // memo or tag
         }
-        let networkCodequeryVariable: Vec<Value> = self.handle_network_code_and_params(paramsWithdrawTag).as_array().cloned().unwrap_or_default();
+        let networkCodequeryVariable: Vec<Value> = self.handle_network_code_and_params(&paramsWithdrawTag).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodequeryVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut query: crate::value::Dict = networkCodequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut networkId: Option<String> = self.network_code_to_id(networkCode, &[self.safe_string_k(currency.clone(), "code", &[])]).as_str().map(str::to_owned);
@@ -4099,25 +4099,25 @@ impl Backpack {
             add_element_to_object(&mut paramsPostOnly, &Value::Str("postOnly".into()), Value::Bool(true));
         }
         let mut bracketKeys: Vec<Value> = Vec::new();
-        let mut takeProfit: Value = self.safe_dict_k(paramsPostOnly.clone(), "takeProfit", &[]);
-        if (takeProfit != Value::Null) {
-            let mut takeProfitTriggerPrice: Option<String> = self.safe_string_k(takeProfit.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
+        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(paramsPostOnly.clone(), "takeProfit", &[]).into_opt_dict();
+        if (takeProfit.is_some()) {
+            let mut takeProfitTriggerPrice: Option<String> = self.safe_string_k(&takeProfit, "triggerPrice", &[]).as_str().map(str::to_owned);
             if (takeProfitTriggerPrice.is_some()) {
                 request.insert("takeProfitTriggerPrice".into(), self.price_to_precision(symbol.clone(), takeProfitTriggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
             }
-            let mut takeProfitPrice: Option<String> = self.safe_string_k(takeProfit, "price", &[]).as_str().map(str::to_owned);
+            let mut takeProfitPrice: Option<String> = self.safe_string_k(&takeProfit, "price", &[]).as_str().map(str::to_owned);
             if (takeProfitPrice.is_some()) {
                 request.insert("takeProfitLimitPrice".into(), self.price_to_precision(symbol.clone(), takeProfitPrice.clone().map(Value::from).unwrap_or(Value::Null)));
             }
             bracketKeys.push(Value::Str("takeProfit".into()));
         }
-        let mut stopLoss: Value = self.safe_dict_k(paramsPostOnly.clone(), "stopLoss", &[]);
-        if (stopLoss != Value::Null) {
-            let mut stopLossTriggerPrice: Option<String> = self.safe_string_k(stopLoss.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
+        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(paramsPostOnly.clone(), "stopLoss", &[]).into_opt_dict();
+        if (stopLoss.is_some()) {
+            let mut stopLossTriggerPrice: Option<String> = self.safe_string_k(&stopLoss, "triggerPrice", &[]).as_str().map(str::to_owned);
             if (stopLossTriggerPrice.is_some()) {
                 request.insert("stopLossTriggerPrice".into(), self.price_to_precision(symbol.clone(), stopLossTriggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
             }
-            let mut stopLossPrice: Option<String> = self.safe_string_k(stopLoss, "price", &[]).as_str().map(str::to_owned);
+            let mut stopLossPrice: Option<String> = self.safe_string_k(&stopLoss, "price", &[]).as_str().map(str::to_owned);
             if (stopLossPrice.is_some()) {
                 request.insert("stopLossLimitPrice".into(), self.price_to_precision(symbol, stopLossPrice.clone().map(Value::from).unwrap_or(Value::Null)));
             }

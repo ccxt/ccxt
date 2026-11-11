@@ -1501,9 +1501,8 @@ impl Bitstamp {
             // client.resolve / client.reject, so every mutation of that map
             // goes through the client's own accessors in the ported languages
             let mut messageHash: Value = Value::Str("authenticateFlight".into());
-            let mut client: Value = self.client(&[Value::Str("authenticationFlights".into())]);
-            let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-            if (__ch.has_future(&messageHash)) {
+            let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::Str("authenticationFlights".into())]));
+            if (client.has_future(&messageHash)) {
                 // a flight is already in progress - wake when the leader
                 // settles it: the token is then in this.options
                 crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;

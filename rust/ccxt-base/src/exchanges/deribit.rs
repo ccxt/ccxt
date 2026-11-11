@@ -4692,7 +4692,7 @@ impl Deribit {
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         self.check_address(&[address.clone(), code.clone(), tagWithdrawTag]);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -4708,7 +4708,7 @@ impl Deribit {
         if (self.twofa.clone() != Value::Null) {
             request.insert("tfa".into(), totp(self.twofa.clone()));
         }
-        let __ws_arg_39 = self.extend(Value::Map(request), &[paramsWithdrawTag]);
+        let __ws_arg_39 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
         let mut response: Value = self.private_get_withdraw(&[__ws_arg_39]).await;
         return self.parse_transaction(response, &[currency]);
         Value::Null
@@ -5800,9 +5800,9 @@ impl Deribit {
         //         "usDiff": 36
         //     }
         //
-        let mut error: Value = self.safe_dict_k(response, "error", &[]);
-        if (error != Value::Null) {
-            let mut errorCode: Option<String> = self.safe_string_k(error, "code", &[]).as_str().map(str::to_owned);
+        let mut error: Option<crate::value::Dict> = self.safe_dict_k(response, "error", &[]).into_opt_dict();
+        if (error.is_some()) {
+            let mut errorCode: Option<String> = self.safe_string_k(&error, "code", &[]).as_str().map(str::to_owned);
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body);
             self.throw_exactly_matched_exception(self.exceptions.clone(), errorCode.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));

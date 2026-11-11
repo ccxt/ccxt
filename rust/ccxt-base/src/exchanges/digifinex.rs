@@ -4660,7 +4660,7 @@ impl Digifinex {
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -4676,7 +4676,7 @@ impl Digifinex {
         if (tagWithdrawTag != Value::Null) {
             request.insert("memo".into(), tagWithdrawTag);
         }
-        let __ws_arg_36 = self.extend(Value::Map(request), &[paramsWithdrawTag]);
+        let __ws_arg_36 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
         let mut response: Value = self.private_spot_post_withdraw_new(&[__ws_arg_36]).await;
         return self.parse_transaction(response, &[currency]);
         Value::Null
@@ -6306,7 +6306,7 @@ impl Digifinex {
         });
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_timestamp".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut market: Value = Value::Null;
         if (symbol != Value::Null) {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
@@ -6318,7 +6318,7 @@ impl Digifinex {
         if (since != Value::Null) {
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("start_timestamp".into(), since.clone()); }
         }
-        let __ws_arg_51 = self.extend(requestUntil, &[paramsUntil]);
+        let __ws_arg_51 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_swap_get_account_funding_fee(&[__ws_arg_51]).await.into_dict();
         //
         //     {

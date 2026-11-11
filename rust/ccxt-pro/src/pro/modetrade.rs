@@ -1101,7 +1101,7 @@ impl Modetrade {
         let mut success: bool = (match __pro_message.get("success").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) }).as_bool().unwrap_or(false);
         if success {
             // client.resolve (message, messageHash);
-            let mut future: Value = self.safe_value(__ch.futures.clone(), Value::Str("authenticated".into()), &[]);
+            let mut future: Value = self.safe_value_k(__ch.futures.clone(), "authenticated", &[]);
             future.resolve(&[Value::Bool(true)]);
         }  else {
             let mut error = Value::from(crate::exchange_errors::authentication_error(json_stringify(&message)));
@@ -1132,12 +1132,11 @@ impl Modetrade {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" authenticate() has no private websocket url".into()))));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", wsUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.accountId.clone());
-        let mut client: Value = self.client(&[Value::from(url.clone())]);
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.clone())]));
         let mut messageHash: String = "authenticated".to_string();
         let mut event: String = "auth".to_string();
         let mut future: Value = client.reusable_future(Value::from(messageHash.clone()));
-        let mut authenticated: Value = self.safe_value(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[]);
+        let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             let mut ts: Value = Value::Str(format!("{}", self.nonce()).into());
             let mut auth: Value = ts.clone();
@@ -1671,8 +1670,8 @@ impl Modetrade {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" watchPositions() has no private websocket url".into()))));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", wsUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("/".into())).into()), self.accountId.clone());
-        let mut client: Value = self.client(&[Value::from(url)]);
-        self.set_positions_cache(client.clone(), &[symbolsNormalized.clone()]);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url)]));
+        self.set_positions_cache(client.as_value(), &[symbolsNormalized.clone()]);
         let mut fetchPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]);
         let mut awaitPositionsSnapshot: Value = self.handle_option(Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(true)]);
         if (fetchPositionsSnapshot.as_bool() == Some(true)) && (awaitPositionsSnapshot.as_bool() == Some(true)) && (self.positions.clone() == Value::Null) {
@@ -1702,7 +1701,7 @@ impl Modetrade {
             let mut messageHash: Value = Value::Str("fetchPositionsSnapshot".into());
             if !(__ch.has_future(&messageHash)) {
                 client.future(&[messageHash.clone()]);
-                self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client.clone(), messageHash.clone()]);
+                self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client, messageHash.clone()]);
             }
         }  else {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);

@@ -2572,8 +2572,8 @@ impl Bitfinex {
         request.insert("sort".into(), Value::from(sort));
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_5 = self.extend(requestUntil, &[paramsUntil]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_5 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.public_get_trades_symbol_hist(&[__ws_arg_5]).await;
         //
         //     [
@@ -2656,8 +2656,8 @@ impl Bitfinex {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_6 = self.extend(requestUntil, &[paramsUntil]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_6 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.public_get_candles_trade_timeframe_symbol_hist(&[__ws_arg_6]).await;
         return self.parse_ohlc_vs(self.to_array(response), &[(market).raw.clone(), timeframe, since, limitResolved]);
         Value::Null
@@ -3557,16 +3557,16 @@ impl Bitfinex {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut market: Value = Value::Null;
         let mut response: Value = Value::Null;
         if (symbol == Value::Null) {
-            let __ws_arg_14 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
+            let __ws_arg_14 = self.extend(requestUntil.clone(), &[&paramsUntil]);
             response = self.private_post_auth_r_orders_hist(&[__ws_arg_14]).await;
         }  else {
             market = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("symbol".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
-            let __ws_arg_15 = self.extend(requestUntil, &[paramsUntil]);
+            let __ws_arg_15 = self.extend(requestUntil, &[&paramsUntil]);
             response = self.private_post_auth_r_orders_symbol_hist(&[__ws_arg_15]).await;
         }
         //
@@ -4259,16 +4259,16 @@ impl Bitfinex {
 }));
         let tagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tag: Value = tagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsWithdrawTag: Value = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: crate::value::Dict = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         self.check_address(&[address.clone()]);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: Value = self.currency(code.clone());
         // if not provided explicitly we will try to match using the currency name
-        let mut networkParam: Value = self.safe_string_k(paramsWithdrawTag.clone(), "network", &[code.clone()]);
+        let mut networkParam: Value = self.safe_string_k(&paramsWithdrawTag, "network", &[code.clone()]);
         let mut network: Value = self.safe_string(self.networkAliases.clone(), networkParam.clone(), &[networkParam.clone()]);
-        let mut paramsOmitted: Value = self.omit(paramsWithdrawTag, Value::Str("network".into()), &[]);
+        let mut paramsOmitted: Value = self.omit(&paramsWithdrawTag, Value::Str("network".into()), &[]);
         let mut currencyNetworks: Value = self.safe_dict_k(currency.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4725,15 +4725,15 @@ impl Bitfinex {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if (code != Value::Null) {
             currency = self.currency(code);
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null)); }
-            let __ws_arg_24 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
+            let __ws_arg_24 = self.extend(requestUntil.clone(), &[&paramsUntil]);
             response = self.private_post_auth_r_ledgers_currency_hist(&[__ws_arg_24]).await;
         }  else {
-            let __ws_arg_25 = self.extend(requestUntil, &[paramsUntil]);
+            let __ws_arg_25 = self.extend(requestUntil, &[&paramsUntil]);
             response = self.private_post_auth_r_ledgers_hist(&[__ws_arg_25]).await;
         }
         //
@@ -4856,8 +4856,8 @@ impl Bitfinex {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_27 = self.extend(requestUntil, &[paramsUntil]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_27 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.public_get_status_deriv_symbol_hist(&[__ws_arg_27]).await;
         //
         //   [
@@ -5178,8 +5178,8 @@ impl Bitfinex {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_30 = self.extend(requestUntil, &[paramsUntil]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_30 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.public_get_status_deriv_symbol_hist(&[__ws_arg_30]).await;
         return self.parse_open_interests_history(response, &[(market).raw.clone(), since, limit]);
         Value::Null
@@ -5312,8 +5312,8 @@ impl Bitfinex {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_31 = self.extend(requestUntil, &[paramsUntil]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_31 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.public_get_liquidations_hist(&[__ws_arg_31]).await;
         return self.parse_liquidations(self.to_array(response), &[market, since, limit]);
         Value::Null

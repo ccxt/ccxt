@@ -1673,7 +1673,7 @@ impl Krakenfutures {
         });
         let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(paramsPaginate, Value::Str("fetchTrades".into()), Value::Str("method".into()), &[Value::Str("historyGetMarketSymbolExecutions".into())]).as_array().cloned().unwrap_or_default();
         let mut method: Option<String> = methodparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMethod: Value = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMethod: crate::value::Dict = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut rawTrades: Value = Value::from(vec![]);
         let mut isFullHistoryEndpoint: bool = method.as_deref() == Some("historyGetMarketSymbolExecutions");
         if isFullHistoryEndpoint {
@@ -1686,7 +1686,7 @@ impl Krakenfutures {
             if (limit != Value::Null) {
                 request.insert("count".into(), limit.clone());
             }
-            let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("before".into()), Value::Map(request.clone()), paramsMethod.clone(), &[]).as_array().cloned().unwrap_or_default();
+            let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("before".into()), Value::Map(request.clone()), &paramsMethod, &[]).as_array().cloned().unwrap_or_default();
             let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
             let __ws_arg_3 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
@@ -1767,7 +1767,7 @@ impl Krakenfutures {
             }
             }
         }  else {
-            let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("lastTime".into()), Value::Map(request), paramsMethod, &[]).as_array().cloned().unwrap_or_default();
+            let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("lastTime".into()), Value::Map(request), &paramsMethod, &[]).as_array().cloned().unwrap_or_default();
             let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
             let __ws_arg_4 = self.extend(requestUntil, &[paramsUntil]);
@@ -1875,18 +1875,18 @@ impl Krakenfutures {
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "symbol", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
         let mut rawType: Option<String> = None;
-        let mut priorEdit: Value = self.safe_dict_k(trade.clone(), "orderPriorEdit", &[]);
-        let mut priorExecution: Value = self.safe_dict_k(trade.clone(), "orderPriorExecution", &[]);
-        if (priorExecution != Value::Null) {
-            order = self.safe_string_k(priorExecution.clone(), "orderId", &[]).as_str().map(str::to_owned);
-            marketId = self.safe_string_k(priorExecution.clone(), "symbol", &[]).as_str().map(str::to_owned);
-            side = self.safe_string_k(priorExecution.clone(), "side", &[]).as_str().map(str::to_owned);
-            rawType = self.safe_string_k(priorExecution, "type", &[]).as_str().map(str::to_owned);
-        }  else if (priorEdit != Value::Null) {
-            order = self.safe_string_k(priorEdit.clone(), "orderId", &[]).as_str().map(str::to_owned);
-            marketId = self.safe_string_k(priorEdit.clone(), "symbol", &[]).as_str().map(str::to_owned);
-            side = self.safe_string_k(priorEdit.clone(), "type", &[]).as_str().map(str::to_owned);
-            rawType = self.safe_string_k(priorEdit, "type", &[]).as_str().map(str::to_owned);
+        let mut priorEdit: Option<crate::value::Dict> = self.safe_dict_k(trade.clone(), "orderPriorEdit", &[]).into_opt_dict();
+        let mut priorExecution: Option<crate::value::Dict> = self.safe_dict_k(trade.clone(), "orderPriorExecution", &[]).into_opt_dict();
+        if (priorExecution.is_some()) {
+            order = self.safe_string_k(&priorExecution, "orderId", &[]).as_str().map(str::to_owned);
+            marketId = self.safe_string_k(&priorExecution, "symbol", &[]).as_str().map(str::to_owned);
+            side = self.safe_string_k(&priorExecution, "side", &[]).as_str().map(str::to_owned);
+            rawType = self.safe_string_k(&priorExecution, "type", &[]).as_str().map(str::to_owned);
+        }  else if (priorEdit.is_some()) {
+            order = self.safe_string_k(&priorEdit, "orderId", &[]).as_str().map(str::to_owned);
+            marketId = self.safe_string_k(&priorEdit, "symbol", &[]).as_str().map(str::to_owned);
+            side = self.safe_string_k(&priorEdit, "type", &[]).as_str().map(str::to_owned);
+            rawType = self.safe_string_k(&priorEdit, "type", &[]).as_str().map(str::to_owned);
         }
         let mut type_var: Value = self.parse_order_type(rawType.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null); // undefined stays undefined
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market]);
@@ -1913,12 +1913,12 @@ impl Krakenfutures {
         let mut isHistoricalExecution: bool = matches!(&trade, Value::Dict(__d) if __d.contains_key("takerOrder"));
         if isHistoricalExecution {
             timestamp = self.safe_integer_k(trade.clone(), "timestamp", &[]);
-            let mut taker: Value = self.safe_dict_k(trade.clone(), "takerOrder", &[Value::Map({
+            let mut taker: Option<crate::value::Dict> = self.safe_dict_k(trade.clone(), "takerOrder", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            if (taker != Value::Null) {
-                side = self.safe_string_lower_k(taker, "direction", &[]).as_str().map(str::to_owned);
+})]).into_opt_dict();
+            if (taker.is_some()) {
+                side = self.safe_string_lower_k(&taker, "direction", &[]).as_str().map(str::to_owned);
                 takerOrMaker = Some("taker".to_string());
             }
         }
@@ -2737,25 +2737,25 @@ impl Krakenfutures {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut orderPlaced: Value = self.safe_dict2(event.clone(), Value::Str("OrderPlaced".into()), Value::Str("OrderTriggerActivated".into()), &[]);
-            let mut orderUpdated: Value = self.safe_dict_k(event, "OrderUpdated", &[]);
-            if (orderPlaced != Value::Null) {
-                let mut innerOrder: Value = self.safe_dict_k(orderPlaced, "order", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            let mut orderPlaced: Option<crate::value::Dict> = self.safe_dict2(event.clone(), Value::Str("OrderPlaced".into()), Value::Str("OrderTriggerActivated".into()), &[]).into_opt_dict();
+            let mut orderUpdated: Option<crate::value::Dict> = self.safe_dict_k(event, "OrderUpdated", &[]).into_opt_dict();
+            if (orderPlaced.is_some()) {
+                let mut innerOrder: Value = self.safe_dict_k(&orderPlaced, "order", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                })]);
                 let mut filled: Option<String> = self.safe_string_k(innerOrder.clone(), "filled", &[]).as_str().map(str::to_owned);
                 if (filled.as_deref() != Some("0")) {
                     if let Value::Dict(__d) = &mut innerOrder { std::sync::Arc::make_mut(__d).insert("status".into(), Value::Str("closed".into())); }; // status not available in the response
                     closedOrders.push(innerOrder);
                 }
-            }  else if (orderUpdated != Value::Null) {
-                let mut reason: Option<String> = self.safe_string_k(orderUpdated.clone(), "reason", &[]).as_str().map(str::to_owned);
+            }  else if (orderUpdated.is_some()) {
+                let mut reason: Option<String> = self.safe_string_k(&orderUpdated, "reason", &[]).as_str().map(str::to_owned);
                 if (reason.as_deref() == Some("full_fill")) {
-                    let mut newOrder: Value = self.safe_dict_k(orderUpdated, "newOrder", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+                    let mut newOrder: Value = self.safe_dict_k(&orderUpdated, "newOrder", &[Value::Map({
+                        let mut m = indexmap::IndexMap::new();
+                        m
+                    })]);
                     if let Value::Dict(__d) = &mut newOrder { std::sync::Arc::make_mut(__d).insert("status".into(), Value::Str("closed".into())); }
                     closedOrders.push(newOrder);
                 }
@@ -2831,33 +2831,33 @@ impl Krakenfutures {
                 m
             })]);
             let mut isCancelledTriggerOrder: bool = matches!(&event, Value::Dict(__d) if __d.contains_key("OrderTriggerCancelled"));
-            let mut orderPlaced: Value = self.safe_dict2(event.clone(), Value::Str("OrderPlaced".into()), Value::Str("OrderTriggerCancelled".into()), &[]);
-            if (orderPlaced != Value::Null) {
-                let mut innerOrder: Value = self.safe_dict_k(orderPlaced, "order", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            let mut orderPlaced: Option<crate::value::Dict> = self.safe_dict2(event.clone(), Value::Str("OrderPlaced".into()), Value::Str("OrderTriggerCancelled".into()), &[]).into_opt_dict();
+            if (orderPlaced.is_some()) {
+                let mut innerOrder: Value = self.safe_dict_k(&orderPlaced, "order", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                })]);
                 let mut filled: Option<String> = self.safe_string_k(innerOrder.clone(), "filled", &[]).as_str().map(str::to_owned);
                 if (filled.as_deref() == Some("0")) || isCancelledTriggerOrder {
                     if let Value::Dict(__d) = &mut innerOrder { std::sync::Arc::make_mut(__d).insert("status".into(), Value::Str("canceled".into())); }; // status not available in the response
                     canceledAndRejected.push(innerOrder.clone());
                 }
             }
-            let mut orderCanceled: Value = self.safe_dict_k(event.clone(), "OrderCancelled", &[]);
-            if (orderCanceled != Value::Null) {
-                let mut innerOrder: Value = self.safe_dict_k(orderCanceled, "order", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            let mut orderCanceled: Option<crate::value::Dict> = self.safe_dict_k(event.clone(), "OrderCancelled", &[]).into_opt_dict();
+            if (orderCanceled.is_some()) {
+                let mut innerOrder: Value = self.safe_dict_k(&orderCanceled, "order", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                })]);
                 if let Value::Dict(__d) = &mut innerOrder { std::sync::Arc::make_mut(__d).insert("status".into(), Value::Str("canceled".into())); }; // status not available in the response
                 canceledAndRejected.push(innerOrder.clone());
             }
-            let mut orderRejected: Value = self.safe_dict_k(event, "OrderRejected", &[]);
-            if (orderRejected != Value::Null) {
-                let mut innerOrder: Value = self.safe_dict_k(orderRejected, "order", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]);
+            let mut orderRejected: Option<crate::value::Dict> = self.safe_dict_k(event, "OrderRejected", &[]).into_opt_dict();
+            if (orderRejected.is_some()) {
+                let mut innerOrder: Value = self.safe_dict_k(&orderRejected, "order", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                })]);
                 if let Value::Dict(__d) = &mut innerOrder { std::sync::Arc::make_mut(__d).insert("status".into(), Value::Str("rejected".into())); }; // status not available in the response
                 canceledAndRejected.push(innerOrder);
             }
@@ -3236,8 +3236,8 @@ impl Krakenfutures {
         //     error: null
         // }
         //
-        let mut orderDictFromFetchOrder: Value = self.safe_dict_k(order.clone(), "order", &[]);
-        if (orderDictFromFetchOrder != Value::Null) {
+        let mut orderDictFromFetchOrder: Option<crate::value::Dict> = self.safe_dict_k(order.clone(), "order", &[]).into_opt_dict();
+        if (orderDictFromFetchOrder.is_some()) {
             // order: {
             //     type: 'ORDER',
             //     orderId: 'a111f276-95fd-47fc-b77b-709c5ab2e9e1',
@@ -3255,36 +3255,36 @@ impl Krakenfutures {
             //     updateReason: null,
             //     error: null
             //
-            let mut datetime: Option<String> = self.safe_string_k(orderDictFromFetchOrder.clone(), "timestamp", &[]).as_str().map(str::to_owned);
+            let mut datetime: Option<String> = self.safe_string_k(&orderDictFromFetchOrder, "timestamp", &[]).as_str().map(str::to_owned);
             let mut innerStatus: Option<String> = self.safe_string_k(order.clone(), "status", &[]).as_str().map(str::to_owned);
-            let mut fetchOrderPriceTriggerOptions: crate::value::Dict = self.safe_dict_k(orderDictFromFetchOrder.clone(), "priceTriggerOptions", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut fetchOrderPriceTriggerOptions: crate::value::Dict = self.safe_dict_k(&orderDictFromFetchOrder, "priceTriggerOptions", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
             let mut fetchOrderTriggerPrice: Option<String> = self.safe_string_k(&fetchOrderPriceTriggerOptions, "triggerPrice", &[]).as_str().map(str::to_owned);
-            let mut unifiedSymbol: Option<String> = self.safe_symbol(self.safe_string_k(orderDictFromFetchOrder.clone(), "symbol", &[]), &[market.clone()]).as_str().map(str::to_owned);
+            let mut unifiedSymbol: Option<String> = self.safe_symbol(self.safe_string_k(&orderDictFromFetchOrder, "symbol", &[]), &[market.clone()]).as_str().map(str::to_owned);
             return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
-        m.insert("id".to_string(), self.safe_string_k(orderDictFromFetchOrder.clone(), "orderId", &[]));
-        m.insert("clientOrderId".to_string(), self.safe_string_k(orderDictFromFetchOrder.clone(), "cliOrdId", &[]));
+        m.insert("id".to_string(), self.safe_string_k(&orderDictFromFetchOrder, "orderId", &[]));
+        m.insert("clientOrderId".to_string(), self.safe_string_k(&orderDictFromFetchOrder, "cliOrdId", &[]));
         m.insert("timestamp".to_string(), self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null)));
         m.insert("datetime".to_string(), datetime.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("lastUpdateTimestamp".to_string(), self.parse8601(self.safe_string_k(orderDictFromFetchOrder.clone(), "lastUpdateTimestamp", &[])));
+        m.insert("lastUpdateTimestamp".to_string(), self.parse8601(self.safe_string_k(&orderDictFromFetchOrder, "lastUpdateTimestamp", &[])));
         m.insert("symbol".to_string(), unifiedSymbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
-        m.insert("reduceOnly".to_string(), self.safe_bool_k(orderDictFromFetchOrder.clone(), "reduceOnly", &[]));
-        m.insert("side".to_string(), self.safe_string_k(orderDictFromFetchOrder.clone(), "side", &[]));
+        m.insert("reduceOnly".to_string(), self.safe_bool_k(&orderDictFromFetchOrder, "reduceOnly", &[]));
+        m.insert("side".to_string(), self.safe_string_k(&orderDictFromFetchOrder, "side", &[]));
         m.insert("price".to_string(), Value::Null);
         m.insert("triggerPrice".to_string(), fetchOrderTriggerPrice.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("stopPrice".to_string(), fetchOrderTriggerPrice.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), self.safe_string_k(orderDictFromFetchOrder.clone(), "quantity", &[]));
+        m.insert("amount".to_string(), self.safe_string_k(&orderDictFromFetchOrder, "quantity", &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
-        m.insert("filled".to_string(), self.safe_string_k(orderDictFromFetchOrder, "filled", &[]));
+        m.insert("filled".to_string(), self.safe_string_k(&orderDictFromFetchOrder, "filled", &[]));
         m.insert("remaining".to_string(), Value::Null);
         m.insert("status".to_string(), self.parse_order_status(innerStatus.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Null);

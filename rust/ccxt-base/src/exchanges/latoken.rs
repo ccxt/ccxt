@@ -902,11 +902,11 @@ impl Latoken {
             let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "quoteCurrency", &[]).as_str().map(str::to_owned);
             let mut baseCurrency: crate::value::Dict = self.safe_dict(currenciesById.clone(), baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
             let mut quoteCurrency: crate::value::Dict = self.safe_dict(currenciesById.clone(), quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
-            let mut baseCurrencyInfo: Value = self.safe_dict_k(&baseCurrency, "info", &[]);
-            let mut quoteCurrencyInfo: Value = self.safe_dict_k(&quoteCurrency, "info", &[]);
-            if (baseCurrencyInfo != Value::Null) && (quoteCurrencyInfo != Value::Null) {
-                let mut base: Option<String> = self.safe_currency_code(self.safe_string_k(baseCurrencyInfo, "tag", &[]), &[]).as_str().map(str::to_owned);
-                let mut quote: Option<String> = self.safe_currency_code(self.safe_string_k(quoteCurrencyInfo, "tag", &[]), &[]).as_str().map(str::to_owned);
+            let mut baseCurrencyInfo: Option<crate::value::Dict> = self.safe_dict_k(&baseCurrency, "info", &[]).into_opt_dict();
+            let mut quoteCurrencyInfo: Option<crate::value::Dict> = self.safe_dict_k(&quoteCurrency, "info", &[]).into_opt_dict();
+            if (baseCurrencyInfo.is_some()) && (quoteCurrencyInfo.is_some()) {
+                let mut base: Option<String> = self.safe_currency_code(self.safe_string_k(&baseCurrencyInfo, "tag", &[]), &[]).as_str().map(str::to_owned);
+                let mut quote: Option<String> = self.safe_currency_code(self.safe_string_k(&quoteCurrencyInfo, "tag", &[]), &[]).as_str().map(str::to_owned);
                 if (base.is_none()) || (quote.is_none()) {
                     continue;
                 }

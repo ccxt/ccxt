@@ -2574,12 +2574,12 @@ impl Polymarket {
         if (tif.is_some()) {
             type_var = (if (price.is_none()) { Value::Str("market".into()) } else { Value::Str("limit".into()) });
         }
-        let mut tpsl: Value = self.safe_dict_k(order.clone(), "tpsl", &[]);
+        let mut tpsl: Option<crate::value::Dict> = self.safe_dict_k(order.clone(), "tpsl", &[]).into_opt_dict();
         let mut stopLossPrice: Value = Value::Null;
         let mut takeProfitPrice: Value = Value::Null;
-        if (tpsl != Value::Null) {
-            let mut kind: Option<String> = self.safe_string_k(tpsl.clone(), "kind", &[]).as_str().map(str::to_owned);
-            let mut triggerValue: Option<String> = self.safe_string_k(tpsl, "trp", &[]).as_str().map(str::to_owned);
+        if (tpsl.is_some()) {
+            let mut kind: Option<String> = self.safe_string_k(&tpsl, "kind", &[]).as_str().map(str::to_owned);
+            let mut triggerValue: Option<String> = self.safe_string_k(&tpsl, "trp", &[]).as_str().map(str::to_owned);
             if (kind.as_deref() == Some("sl")) {
                 stopLossPrice = triggerValue.clone().map(Value::from).unwrap_or(Value::Null);
             }  else if (kind.as_deref() == Some("tp")) {

@@ -1678,12 +1678,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut chainConfig: Value = self.safe_dict(chains, networkId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-        if (chainConfig == Value::Null) {
+        let mut chainConfig: Option<crate::value::Dict> = self.safe_dict(chains, networkId.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
+        if (chainConfig.is_none()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() has no on-chain config for network ".into())).into()), networkId.clone().map(Value::from).unwrap_or(Value::Null))));
         }
-        let mut rpcUrl: Value = self.safe_string2(params.clone(), Value::Str("rpcUrl".into()), Value::Str("rpc".into()), &[self.safe_string_k(chainConfig.clone(), "rpcUrl", &[])]);
-        let mut predictionMarket: Option<String> = self.safe_string_k(chainConfig, "predictionMarket", &[]).as_str().map(str::to_owned);
+        let mut rpcUrl: Value = self.safe_string2(params.clone(), Value::Str("rpcUrl".into()), Value::Str("rpc".into()), &[self.safe_string_k(&chainConfig, "rpcUrl", &[])]);
+        let mut predictionMarket: Option<String> = self.safe_string_k(&chainConfig, "predictionMarket", &[]).as_str().map(str::to_owned);
         let mut tokenAddress: Value = self.safe_string2(params.clone(), Value::Str("token".into()), Value::Str("tokenAddress".into()), &[self.safe_string_k(&info, "tokenAddress", &[])]);
         let mut gasLimit: String = self.safe_string_k(params.clone(), "gasLimit", &[Value::Str("0xaae60".into())]).as_str().unwrap_or("0xaae60").to_string();
         let mut sideStr: Value = sideLower;
@@ -4453,9 +4453,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // Centrifugo requires an anonymous connect command before any subscribe. This sends it once per
         // connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
         // clears client.subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
-        let mut client: Value = self.client(&[url.clone()]);
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        if !(matches!(&__ch.subscriptions.clone(), Value::Dict(__d) if __d.contains_key("connect"))) {
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        if !(client.has_subscription(&Value::Str("connect".into()))) {
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsConnected".into(), Value::Bool(false)); }
             let mut requestId: Value = self.request_id(url.clone());
             // give the anonymous connect a name so the params object is non-empty (PHP serialises an
@@ -4550,18 +4549,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             client.resolve(&[Value::Bool(true), Value::Str("centrifugoConnected".into())]);
             return;
         }
-        let mut push: Value = (match __pro_message.get("push").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-        if (push == Value::Null) {
+        let mut push: Option<crate::value::Dict> = (match __pro_message.get("push").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_opt_dict();
+        if (push.is_none()) {
             return;
         }
-        let mut channel: Option<String> = self.safe_string_k_opt(push.clone(), "channel", &[]);
+        let mut channel: Option<String> = self.safe_string_k_opt(&push, "channel", &[]);
         if (channel.is_none()) {
             return;
         }
-        let mut pub_val: crate::value::Dict = self.safe_dict_k(push, "pub", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut pub_val: crate::value::Dict = self.safe_dict_k(&push, "pub", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut data: Value = self.safe_dict_k(&pub_val, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4616,9 +4615,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         // finish the connect handshake first so the client exists and the subscribe follows the connect reply
         self.connect_centrifugo(url.clone().map(Value::from).unwrap_or(Value::Null)).await;
-        let mut client: Value = self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut isNewSubscription: bool = !(__ch.has_subscription(&channel));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
+        let mut isNewSubscription: bool = !(client.has_subscription(&channel));
         if isNewSubscription {
             // the channel only streams deltas, so (re)seed the live book from the REST snapshot on a
             // fresh subscription (first call or after a reconnect that cleared client.subscriptions)
@@ -4997,7 +4995,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         self.connect_centrifugo(url.clone().map(Value::from).unwrap_or(Value::Null)).await;
         self.load_outcomes(&[outcomes.clone()]).await;
-        let mut client: Value = self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
         let mut seenChannels: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -5273,9 +5271,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHash: String = "positions".to_string();
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         self.connect_centrifugo(url.clone().map(Value::from).unwrap_or(Value::Null)).await;
-        let mut client: Value = self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut isNewSubscription: bool = !(__ch.has_subscription(&channel));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
+        let mut isNewSubscription: bool = !(client.has_subscription(&channel));
         if isNewSubscription {
             // the channel pushes only signed deltas; seed absolute share balances from REST so
             // handlePosition can maintain a running contracts figure

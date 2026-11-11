@@ -2719,20 +2719,20 @@ impl Toobit {
         }
         let isPostOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[paramsReduceOnly]).as_array().cloned().unwrap_or_default();
         let mut isPostOnly: bool = isPostOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPostOnly: Value = isPostOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPostOnly: crate::value::Dict = isPostOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if isPostOnly {
             request.insert("timeInForce".into(), Value::Str("LIMIT_MAKER".into()));
         }
-        let mut values: Vec<Value> = self.handle_trigger_prices_and_params(symbol.clone(), paramsPostOnly, &[]).as_array().cloned().unwrap_or_default();
+        let mut values: Vec<Value> = self.handle_trigger_prices_and_params(symbol.clone(), &paramsPostOnly, &[]).as_array().cloned().unwrap_or_default();
         let mut triggerPrice: Value = values.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsTrigger: Value = values.get(3).cloned().unwrap_or(Value::Null);
         if (triggerPrice != Value::Null) {
             request.insert("stopPrice".into(), triggerPrice);
         }
-        let mut stopLoss: Value = self.safe_dict_k(paramsTrigger.clone(), "stopLoss", &[]);
-        let mut takeProfit: Value = self.safe_dict_k(paramsTrigger.clone(), "takeProfit", &[]);
-        let mut hasStopLoss: bool = stopLoss != Value::Null;
-        let mut hasTakeProfit: bool = takeProfit != Value::Null;
+        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(paramsTrigger.clone(), "stopLoss", &[]).into_opt_dict();
+        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(paramsTrigger.clone(), "takeProfit", &[]).into_opt_dict();
+        let mut hasStopLoss: bool = stopLoss.is_some();
+        let mut hasTakeProfit: bool = takeProfit.is_some();
         let mut triggerPriceTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("mark".to_string(), Value::Str("MARK_PRICE".into()));
@@ -2740,25 +2740,25 @@ impl Toobit {
             m
         });
         if hasStopLoss {
-            request.insert("stopLoss".into(), self.safe_value_k(stopLoss.clone(), "triggerPrice", &[]));
-            let mut limitPrice: Option<String> = self.safe_string_k_opt(stopLoss.clone(), "price", &[]);
+            request.insert("stopLoss".into(), self.safe_value_k(&stopLoss, "triggerPrice", &[]));
+            let mut limitPrice: Option<String> = self.safe_string_k_opt(&stopLoss, "price", &[]);
             if (limitPrice.is_some()) {
                 request.insert("slOrderType".into(), Value::Str("LIMIT".into()));
                 request.insert("slLimitPrice".into(), self.price_to_precision(symbol.clone(), limitPrice.map(Value::from).unwrap_or(Value::Null)));
             }
-            let mut triggerPriceType: Option<String> = self.safe_string_k_opt(stopLoss, "triggerPriceType", &[]);
+            let mut triggerPriceType: Option<String> = self.safe_string_k_opt(&stopLoss, "triggerPriceType", &[]);
             if (triggerPriceType.is_some()) {
                 request.insert("slTriggerBy".into(), self.safe_string(Value::Map(triggerPriceTypes.clone()), triggerPriceType.clone().map(Value::from).unwrap_or(Value::Null), &[triggerPriceType.map(Value::from).unwrap_or(Value::Null)]));
             }
         }
         if hasTakeProfit {
-            request.insert("takeProfit".into(), self.safe_value_k(takeProfit.clone(), "triggerPrice", &[]));
-            let mut limitPrice: Option<String> = self.safe_string_k_opt(takeProfit.clone(), "price", &[]);
+            request.insert("takeProfit".into(), self.safe_value_k(&takeProfit, "triggerPrice", &[]));
+            let mut limitPrice: Option<String> = self.safe_string_k_opt(&takeProfit, "price", &[]);
             if (limitPrice.is_some()) {
                 request.insert("tpOrderType".into(), Value::Str("LIMIT".into()));
                 request.insert("tpLimitPrice".into(), self.price_to_precision(symbol, limitPrice.map(Value::from).unwrap_or(Value::Null)));
             }
-            let mut triggerPriceType: Option<String> = self.safe_string_k_opt(takeProfit, "triggerPriceType", &[]);
+            let mut triggerPriceType: Option<String> = self.safe_string_k_opt(&takeProfit, "triggerPriceType", &[]);
             if (triggerPriceType.is_some()) {
                 request.insert("tpTriggerBy".into(), self.safe_string(Value::Map(triggerPriceTypes), triggerPriceType.clone().map(Value::from).unwrap_or(Value::Null), &[triggerPriceType.map(Value::from).unwrap_or(Value::Null)]));
             }
@@ -3371,13 +3371,13 @@ impl Toobit {
         request.insert("symbol".into(), Value::from((market).id.clone()));
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMyTrades".into()), &[(market).raw.clone(), params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), paramsMarketType, &[]).as_array().cloned().unwrap_or_default();
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsMarketType, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::from(vec![]);
         if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_23 = self.extend(requestUntil.clone(), &[paramsUntil]);
+            let __ws_arg_23 = self.extend(requestUntil.clone(), &[&paramsUntil]);
             response = self.private_get_api_v1_account_trades(&[__ws_arg_23]).await;
         }  else {
             response = self.private_get_api_v1_futures_user_trades(&[requestUntil]).await;
@@ -3590,13 +3590,13 @@ impl Toobit {
         let mut market: Value = Value::Null;
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTradingFees".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.as_str() == Some("spot")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFees(): does not support ".into())).into()), marketType).into()), Value::Str(" markets".into()))));
         }  else if self.in_array(marketType, Value::from(vec![Value::Str("swap".into()), Value::Str("future".into())])).as_bool() == Some(true) {
-            let symbolparamsSymbolVariable: Vec<Value> = self.handle_param_string(paramsMarketType, Value::Str("symbol".into()), &[]).as_array().cloned().unwrap_or_default();
+            let symbolparamsSymbolVariable: Vec<Value> = self.handle_param_string(&paramsMarketType, Value::Str("symbol".into()), &[]).as_array().cloned().unwrap_or_default();
             let mut symbol: Value = symbolparamsSymbolVariable.get(0).cloned().unwrap_or(Value::Null);
-            let mut paramsSymbol: Value = symbolparamsSymbolVariable.get(1).cloned().unwrap_or(Value::Null);
+            let mut paramsSymbol: crate::value::Dict = symbolparamsSymbolVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchTradingFees requires a params[\"symbol\"]".into()))));
             }
@@ -3607,7 +3607,7 @@ impl Toobit {
                     m.insert("symbol".to_string(), symbolMarket.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                 m
             });
-            let __ws_arg_27 = self.extend(Value::Map(request), &[paramsSymbol]);
+            let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsSymbol]);
             response = self.private_get_api_v1_futures_commission_rate(&[__ws_arg_27]).await;
         }
         //
@@ -3731,13 +3731,13 @@ impl Toobit {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::from(vec![]);
         if (type_var.as_str() == Some("deposits")) {
-            let __ws_arg_28 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
+            let __ws_arg_28 = self.extend(requestUntil.clone(), &[&paramsUntil]);
             response = self.private_get_api_v1_account_deposit_orders(&[__ws_arg_28]).await;
         }  else if (type_var.as_str() == Some("withdrawals")) {
-            let __ws_arg_29 = self.extend(requestUntil, &[paramsUntil.clone()]);
+            let __ws_arg_29 = self.extend(requestUntil, &[&paramsUntil]);
             response = self.private_get_api_v1_account_withdraw_orders(&[__ws_arg_29]).await;
         }
         let mut transactType: Value = (if (type_var.as_str() == Some("deposits")) { Value::Str("deposit".into()) } else { Value::Str("withdrawal".into()) });
@@ -3747,7 +3747,7 @@ impl Toobit {
             let mut __for_first_1136: bool = true;
             while { if !__for_first_1136 { i += 1; } __for_first_1136 = false; i < (response.len() as i64) } {
             let __ws_arg_30 = self.parse_transaction_with_type(response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[currency.clone(), transactType.clone()]);
-            results.push(self.extend(__ws_arg_30, &[paramsUntil.clone()]));
+            results.push(self.extend(__ws_arg_30, &[&paramsUntil]));
         }
         }
         let mut sorted: Value = self.sort_by(Value::from(results), Value::Str("timestamp".into()), &[]);
@@ -3987,9 +3987,9 @@ impl Toobit {
 }));
         let tagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tag: Value = tagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsWithdrawTag: Value = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: crate::value::Dict = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         self.check_address(&[address.clone()]);
-        let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(paramsWithdrawTag).as_array().cloned().unwrap_or_default();
+        let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(&paramsWithdrawTag).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (networkCode == Value::Null) {

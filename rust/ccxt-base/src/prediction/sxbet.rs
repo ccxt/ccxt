@@ -1583,21 +1583,21 @@ impl Sxbet {
         //     "outcome": { "state": "FULLY_FILLED", "fillAmount": "2000000", "remainingAmount": "0", "matchIds": [...] }
         // documented states: RESTED, FULLY_FILLED, PARTIAL_FILL_DONE, PARTIAL_FILL_RESTED, TIMEOUT and
         // CANCELLED with cancelReason NO_LIQUIDITY, INTERNAL_ERROR, ENGINE_SHUTDOWN, EXPIRED or INSUFFICIENT_BALANCE
-        let mut matchOutcome: Value = self.safe_dict_k(&first, "outcome", &[]);
+        let mut matchOutcome: Option<crate::value::Dict> = self.safe_dict_k(&first, "outcome", &[]).into_opt_dict();
         let mut usdcDecimals: String = "1000000".to_string();
         let mut filled: Value = Value::Null;
         let mut remaining: Value = Value::Null;
         let mut orderStatus: Option<String> = None;
-        if (matchOutcome != Value::Null) {
-            let mut fillAmountRaw: Option<String> = self.safe_string_k(matchOutcome.clone(), "fillAmount", &[]).as_str().map(str::to_owned);
-            let mut remainingRaw: Option<String> = self.safe_string_k(matchOutcome.clone(), "remainingAmount", &[]).as_str().map(str::to_owned);
+        if (matchOutcome.is_some()) {
+            let mut fillAmountRaw: Option<String> = self.safe_string_k(&matchOutcome, "fillAmount", &[]).as_str().map(str::to_owned);
+            let mut remainingRaw: Option<String> = self.safe_string_k(&matchOutcome, "remainingAmount", &[]).as_str().map(str::to_owned);
             if (fillAmountRaw.is_some()) {
                 filled = self.parse_number(crate::precise::Precise::stringDivPrec(&fillAmountRaw.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(usdcDecimals.clone()), &Value::Int(6)), &[]);
             }
             if (remainingRaw.is_some()) {
                 remaining = self.parse_number(crate::precise::Precise::stringDivPrec(&remainingRaw.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(usdcDecimals), &Value::Int(6)), &[]);
             }
-            let mut state: Option<String> = self.safe_string_upper_k(matchOutcome.clone(), "state", &[]).as_str().map(str::to_owned);
+            let mut state: Option<String> = self.safe_string_upper_k(&matchOutcome, "state", &[]).as_str().map(str::to_owned);
             if (state.as_deref() == Some("RESTED")) || (state.as_deref() == Some("PARTIAL_FILL_RESTED")) {
                 orderStatus = Some("open".to_string());
             }  else if (state.as_deref() == Some("FULLY_FILLED")) {
@@ -1607,7 +1607,7 @@ impl Sxbet {
                 orderStatus = Some("canceled".to_string());
             }  else if (state.as_deref() == Some("CANCELLED")) {
                 // the documented field is cancelReason; 'reason' is kept for older responses
-                let mut reason: Value = self.safe_string_upper2(matchOutcome, Value::Str("cancelReason".into()), Value::Str("reason".into()), &[]);
+                let mut reason: Value = self.safe_string_upper2(&matchOutcome, Value::Str("cancelReason".into()), Value::Str("reason".into()), &[]);
                 orderStatus = (if (reason.as_str() == Some("EXPIRED")) { Some("expired".to_string()) } else { Some("canceled".to_string()) });
             }
         }
@@ -3260,9 +3260,8 @@ impl Sxbet {
         // Centrifugo requires a token-carrying connect command before any subscribe. This sends it once
         // per connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
         // clears client.subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
-        let mut client: Value = self.client(&[url.clone()]);
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut connectSent: Value = self.safe_value(__ch.subscriptions.clone(), Value::Str("connect".into()), &[]);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        let mut connectSent: Value = self.safe_value_k((client).subscriptions.clone(), "connect", &[]);
         if (connectSent == Value::Null) {
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsConnected".into(), Value::Bool(false)); }
             let mut token: Value = self.fetch_sxbet_realtime_token().await;
@@ -3355,7 +3354,7 @@ impl Sxbet {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut pendingEntry: Value = self.safe_dict(pendingRequests.clone(), requestIdString.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+        let mut pendingEntry: Option<crate::value::Dict> = self.safe_dict(pendingRequests.clone(), requestIdString.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
         let mut errorReply: Value = (match __pro_message.get("error").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
         if (errorReply != Value::Null) {
             // a rejected connect (bad or expired realtime token) or subscribe (unauthorized or
@@ -3363,9 +3362,9 @@ impl Sxbet {
             // watch() registered at send time, so the next call re-sends the command instead
             // of waiting forever behind a marker that will never be served
             let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&msg))));
-            if (pendingEntry != Value::Null) {
-                let mut failedHash: Option<String> = self.safe_string_k_opt(pendingEntry.clone(), "messageHash", &[]);
-                let mut subscription: Option<String> = self.safe_string_k_opt(pendingEntry.clone(), "subscription", &[]);
+            if (pendingEntry.is_some()) {
+                let mut failedHash: Option<String> = self.safe_string_k_opt(&pendingEntry, "messageHash", &[]);
+                let mut subscription: Option<String> = self.safe_string_k_opt(&pendingEntry, "subscription", &[]);
                 if (subscription.as_deref() == Some("connect")) {
                     if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsConnected".into(), Value::Bool(false)); }
                 }
@@ -3380,7 +3379,7 @@ impl Sxbet {
             }
             return;
         }
-        if (pendingEntry != Value::Null) {
+        if (pendingEntry.is_some()) {
             // a successful command ack - the tracked request has served its purpose
             { let __be_tmp = self.omit(pendingRequests, requestIdString.map(Value::from).unwrap_or(Value::Null), &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPendingRequests".into(), __be_tmp); } }
         }
@@ -3391,18 +3390,18 @@ impl Sxbet {
             client.resolve(&[Value::Bool(true), Value::Str("centrifugoConnected".into())]);
             return;
         }
-        let mut push: Value = (match __pro_message.get("push").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-        if (push == Value::Null) {
+        let mut push: Option<crate::value::Dict> = (match __pro_message.get("push").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_opt_dict();
+        if (push.is_none()) {
             return;
         }
-        let mut channel: Option<String> = self.safe_string_k_opt(push.clone(), "channel", &[]);
+        let mut channel: Option<String> = self.safe_string_k_opt(&push, "channel", &[]);
         if (channel.is_none()) {
             return;
         }
-        let mut pub_val: crate::value::Dict = self.safe_dict_k(push, "pub", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut pub_val: crate::value::Dict = self.safe_dict_k(&push, "pub", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut data: Value = self.safe_value_k(&pub_val, "data", &[]);
         if (data == Value::Null) {
             return;
@@ -3462,9 +3461,8 @@ impl Sxbet {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), sym).into());
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         self.connect_sxbet_centrifugo(url.clone().map(Value::from).unwrap_or(Value::Null)).await;
-        let mut client: Value = self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut isNewSubscription: bool = self.safe_value(__ch.subscriptions.clone(), Value::from(channel.clone()), &[]) == Value::Null;
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
+        let mut isNewSubscription: bool = self.safe_value((client).subscriptions.clone(), Value::from(channel.clone()), &[]) == Value::Null;
         if (self.safe_value(self.orderbooks.clone(), sym.clone(), &[]) == Value::Null) {
             // seed from the REST snapshot so the book is served before the first publication
             self.set_ws_option(Value::Str("wsWatchedBooks".into()), sym.clone(), Value::from(marketHash.clone()));
@@ -3628,7 +3626,7 @@ impl Sxbet {
         self.set_ws_option(Value::Str("wsWatchedTickers".into()), Value::from(sym.clone()), marketHash.clone().map(Value::from).unwrap_or(Value::Null));
         let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
         self.connect_sxbet_centrifugo(url.clone().map(Value::from).unwrap_or(Value::Null)).await;
-        let mut client: Value = self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone().map(Value::from).unwrap_or(Value::Null)]));
         let mut channel: String = "best_odds_v3:global".to_string();
         let mut hydrated: bool = false;
         if (self.safe_dict(self.safe_dict_k(self.options.clone(), "wsTickers", &[Value::Map({

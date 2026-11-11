@@ -2018,7 +2018,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("createdAtDatetime[lte]".into()), Value::Map(request.clone()), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut untilParam: Value = self.safe_integer_k(requestUntil, "createdAtDatetime[lte]", &[]);
         let mut until: Value = Value::Null;
         if (untilParam != Value::Null) {
@@ -2040,7 +2040,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         request.insert("createdAtDatetime[gte]".into(), self.iso8601(startTime));
         request.insert("createdAtDatetime[lte]".into(), self.iso8601(until));
-        let __ws_arg_5 = self.extend(Value::Map(request), &[paramsUntil]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsUntil]);
         let mut response: Value = self.public_get_v1_markets_symbol_candle(&[__ws_arg_5]).await;
         return self.parse_ohlc_vs(self.to_array(response), &[(market).raw.clone(), timeframe, since, limit]);
         Value::Null
@@ -2572,12 +2572,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut isMarketOrder: Value = (Value::Bool((type_var.as_str() == Some("market")) || (type_var.as_str() == Some("MARKET"))));
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(isMarketOrder.clone(), Value::Bool(type_var.as_str() == Some("POST_ONLY")), &[params]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut orderType: Value = type_var;
         if postOnly {
             orderType = Value::Str("POST_ONLY".into());
         }
-        let timeInForceparamsTimeInForceRawVariable: Vec<Value> = self.handle_option_string_and_params(paramsPostOnly, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[Value::Str("GTC".into())]).as_array().cloned().unwrap_or_default();
+        let timeInForceparamsTimeInForceRawVariable: Vec<Value> = self.handle_option_string_and_params(&paramsPostOnly, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[Value::Str("GTC".into())]).as_array().cloned().unwrap_or_default();
         let mut timeInForce: Value = timeInForceparamsTimeInForceRawVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsTimeInForceRaw: Value = timeInForceparamsTimeInForceRawVariable.get(1).cloned().unwrap_or(Value::Null); // is mandatory
         let mut paramsTimeInForce: Value = self.extend(paramsTimeInForceRaw, &[Value::Map({
@@ -2933,7 +2933,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         });
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("createdAtDatetime[lte]".into()), Value::Map(request.clone()), params, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut until: Option<i64> = self.safe_integer_k(requestUntil, "createdAtDatetime[lte]", &[]).as_i64();
         if (until.is_some()) {
             request.insert("createdAtDatetime[lte]".into(), self.iso8601(Value::from(until)));
@@ -2941,7 +2941,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (since != Value::Null) {
             request.insert("createdAtDatetime[gte]".into(), self.iso8601(since.clone()));
         }
-        let __ws_arg_18 = self.extend(Value::Map(request), &[paramsUntil]);
+        let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_get_v1_wallets_transactions(&[__ws_arg_18]).await.into_dict();
         //
         //     {
@@ -3746,7 +3746,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut startTimestamp: Value = since.clone();
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("createdAtDatetime[lte]".into()), Value::Map(request.clone()), params, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut until: Value = self.safe_integer_k(requestUntil, "createdAtDatetime[lte]", &[]);
         // current endpoint requires both since and until parameters
         if (since == Value::Null) {
@@ -3761,7 +3761,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         request.insert("createdAtDatetime[gte]".into(), self.iso8601(startTimestamp));
         request.insert("createdAtDatetime[lte]".into(), self.iso8601(until));
-        let __ws_arg_27 = self.extend(Value::Map(request), &[paramsUntil]);
+        let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsUntil]);
         let mut response: Value = self.private_get_v1_history_borrow_interest(&[__ws_arg_27]).await;
         return self.parse_borrow_rate_history(response, code, since, limit);
 

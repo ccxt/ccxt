@@ -5167,7 +5167,7 @@ impl Htx {
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMyTrades".into()), &[market.clone(), paramsPaginate]).as_array().cloned().unwrap_or_default();
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: Value = Value::Null;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5185,7 +5185,7 @@ impl Htx {
             if (since != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start-time".into(), since.clone()); }; // a date within 120 days from today
             }
-            { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("end-time".into()), request.clone(), paramsMarketType.clone(), &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsUntil = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("end-time".into()), request.clone(), &paramsMarketType, &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsUntil = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
             let __ws_arg_19 = self.extend(request.clone(), &[paramsUntil.clone()]);
             response = self.spot_private_get_v1_order_matchresults(&[__ws_arg_19]).await;
         }  else {
@@ -5195,7 +5195,7 @@ impl Htx {
             if (since != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_time".into(), since.clone()); }
             }
-            { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("end_time".into()), request.clone(), paramsMarketType, &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsUntil = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("end_time".into()), request.clone(), &paramsMarketType, &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsUntil = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
             if matches!(self.safe_bool_k(market.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("contract_code".into(), self.safe_string_k(market.clone(), "id", &[])); }
                 if (limit != Value::Null) {
@@ -5493,11 +5493,11 @@ impl Htx {
             m
         });
         let mut priceType: Option<String> = self.safe_string2(paramsPaginate.clone(), Value::Str("priceType".into()), Value::Str("price".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(paramsPaginate, Value::from(vec![Value::Str("priceType".into()), Value::Str("price".into())]), &[]);
-        let untilParamparamsUntilVariable: Vec<Value> = self.handle_param_integer(paramsOmitted.clone(), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPaginate, Value::from(vec![Value::Str("priceType".into()), Value::Str("price".into())]), &[]).into_dict();
+        let untilParamparamsUntilVariable: Vec<Value> = self.handle_param_integer(&paramsOmitted, Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut untilParam: Value = untilParamparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = untilParamparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut until: Value = self.safe_integer_k(paramsOmitted, "until", &[untilParam]);
+        let mut paramsUntil: crate::value::Dict = untilParamparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut until: Value = self.safe_integer_k(&paramsOmitted, "until", &[untilParam]);
         let mut untilSeconds: Value = Value::Null;
         if (until != Value::Null) {
             untilSeconds = self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
@@ -5536,31 +5536,31 @@ impl Htx {
             if ((market).inverse == Some(true)) {
                 request.insert("symbol".into(), Value::from((market).id.clone()));
                 if (priceType.as_deref() == Some("mark")) {
-                    let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[paramsUntil.clone()]);
+                    let __ws_arg_28 = self.extend(Value::Map(request.clone()), &[&paramsUntil]);
                     response = self.contract_public_get_index_market_history_mark_price_kline(&[__ws_arg_28]).await;
                 }  else if (priceType.as_deref() == Some("index")) {
-                    let __ws_arg_29 = self.extend(Value::Map(request.clone()), &[paramsUntil.clone()]);
+                    let __ws_arg_29 = self.extend(Value::Map(request.clone()), &[&paramsUntil]);
                     response = self.contract_public_get_index_market_history_index(&[__ws_arg_29]).await;
                 }  else if (priceType.as_deref() == Some("premiumIndex")) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), marketType).into()), Value::Str(" has no api endpoint for ".into())).into()),
                         priceType.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" kline data".into()))));
                 }  else {
-                    let __ws_arg_30 = self.extend(Value::Map(request.clone()), &[paramsUntil.clone()]);
+                    let __ws_arg_30 = self.extend(Value::Map(request.clone()), &[&paramsUntil]);
                     response = self.contract_public_get_market_history_kline(&[__ws_arg_30]).await;
                 }
             }  else if ((market).linear == Some(true)) {
                 request.insert("contract_code".into(), Value::from((market).id.clone()));
                 if (priceType.as_deref() == Some("mark")) {
-                    let __ws_arg_31 = self.extend(Value::Map(request.clone()), &[paramsUntil.clone()]);
+                    let __ws_arg_31 = self.extend(Value::Map(request.clone()), &[&paramsUntil]);
                     response = self.contract_public_get_index_market_history_linear_swap_mark_price_kline(&[__ws_arg_31]).await;
                 }  else if (priceType.as_deref() == Some("index")) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), marketType).into()), Value::Str(" has no api endpoint for ".into())).into()),
                         priceType.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" kline data".into()))));
                 }  else if (priceType.as_deref() == Some("premiumIndex")) {
-                    let __ws_arg_32 = self.extend(Value::Map(request.clone()), &[paramsUntil.clone()]);
+                    let __ws_arg_32 = self.extend(Value::Map(request.clone()), &[&paramsUntil]);
                     response = self.contract_public_get_index_market_history_linear_swap_premium_index_kline(&[__ws_arg_32]).await;
                 }  else {
-                    let __ws_arg_33 = self.extend(Value::Map(request.clone()), &[paramsUntil.clone()]);
+                    let __ws_arg_33 = self.extend(Value::Map(request.clone()), &[&paramsUntil]);
                     response = self.contract_public_get_linear_swap_ex_market_history_kline(&[__ws_arg_33]).await;
                 }
             }
@@ -5568,36 +5568,36 @@ impl Htx {
             request.insert("contract_code".into(), Value::from((market).id.clone()));
             if ((market).inverse == Some(true)) {
                 if (priceType.as_deref() == Some("mark")) {
-                    let __ws_arg_34 = self.extend(Value::Map(request.clone()), &[paramsUntil.clone()]);
+                    let __ws_arg_34 = self.extend(Value::Map(request.clone()), &[&paramsUntil]);
                     response = self.contract_public_get_index_market_history_swap_mark_price_kline(&[__ws_arg_34]).await;
                 }  else if (priceType.as_deref() == Some("index")) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), marketType).into()), Value::Str(" has no api endpoint for ".into())).into()),
                         priceType.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" kline data".into()))));
                 }  else if (priceType.as_deref() == Some("premiumIndex")) {
-                    let __ws_arg_35 = self.extend(Value::Map(request.clone()), &[paramsUntil.clone()]);
+                    let __ws_arg_35 = self.extend(Value::Map(request.clone()), &[&paramsUntil]);
                     response = self.contract_public_get_index_market_history_swap_premium_index_kline(&[__ws_arg_35]).await;
                 }  else {
-                    let __ws_arg_36 = self.extend(Value::Map(request.clone()), &[paramsUntil.clone()]);
+                    let __ws_arg_36 = self.extend(Value::Map(request.clone()), &[&paramsUntil]);
                     response = self.contract_public_get_swap_ex_market_history_kline(&[__ws_arg_36]).await;
                 }
             }  else if ((market).linear == Some(true)) {
                 if (priceType.as_deref() == Some("mark")) {
-                    let __ws_arg_37 = self.extend(Value::Map(request.clone()), &[paramsUntil.clone()]);
+                    let __ws_arg_37 = self.extend(Value::Map(request.clone()), &[&paramsUntil]);
                     response = self.contract_public_get_index_market_history_linear_swap_mark_price_kline(&[__ws_arg_37]).await;
                 }  else if (priceType.as_deref() == Some("index")) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), marketType).into()), Value::Str(" has no api endpoint for ".into())).into()),
                         priceType.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" kline data".into()))));
                 }  else if (priceType.as_deref() == Some("premiumIndex")) {
-                    let __ws_arg_38 = self.extend(Value::Map(request.clone()), &[paramsUntil.clone()]);
+                    let __ws_arg_38 = self.extend(Value::Map(request.clone()), &[&paramsUntil]);
                     response = self.contract_public_get_index_market_history_linear_swap_premium_index_kline(&[__ws_arg_38]).await;
                 }  else {
-                    let __ws_arg_39 = self.extend(Value::Map(request.clone()), &[paramsUntil.clone()]);
+                    let __ws_arg_39 = self.extend(Value::Map(request.clone()), &[&paramsUntil]);
                     response = self.contract_public_get_linear_swap_ex_market_history_kline(&[__ws_arg_39]).await;
                 }
             }
         }  else {
             request.insert("symbol".into(), Value::from((market).id.clone()));
-            let useHistoricalparamsHistoricalVariable: Vec<Value> = self.handle_option_bool_and_params(paramsUntil, Value::Str("fetchOHLCV".into()), Value::Str("useHistoricalEndpointForSpot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
+            let useHistoricalparamsHistoricalVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsUntil, Value::Str("fetchOHLCV".into()), Value::Str("useHistoricalEndpointForSpot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
             let mut useHistorical: bool = useHistoricalparamsHistoricalVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsHistorical: crate::value::Dict = useHistoricalparamsHistoricalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             if !useHistorical {
@@ -6036,11 +6036,11 @@ impl Htx {
         }
         let type_varparamsTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), &[Value::Null, paramsUnified]).as_array().cloned().unwrap_or_default();
         let mut type_var: Value = type_varparamsTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsType: Value = type_varparamsTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let subTypeOptionparamsSubTypeVariable: Vec<Value> = self.handle_option_string_and_params2(paramsType, Value::Str("fetchBalance".into()), Value::Str("defaultSubType".into()), Value::Str("subType".into()), &[]).as_array().cloned().unwrap_or_default();
+        let mut paramsType: crate::value::Dict = type_varparamsTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let subTypeOptionparamsSubTypeVariable: Vec<Value> = self.handle_option_string_and_params2(&paramsType, Value::Str("fetchBalance".into()), Value::Str("defaultSubType".into()), Value::Str("subType".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut subTypeOption: Option<String> = subTypeOptionparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsSubType: Value = subTypeOptionparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let isMultiAssetModeparamsMultiAssetVariable: Vec<Value> = self.handle_option_bool_and_params(paramsSubType, Value::Str("fetchBalance".into()), Value::Str("multiAssetMode".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
+        let mut paramsSubType: crate::value::Dict = subTypeOptionparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let isMultiAssetModeparamsMultiAssetVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsSubType, Value::Str("fetchBalance".into()), Value::Str("multiAssetMode".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut isMultiAssetMode: bool = isMultiAssetModeparamsMultiAssetVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsMultiAsset: Value = isMultiAssetModeparamsMultiAssetVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -6615,16 +6615,16 @@ impl Htx {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end-time".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("size".into(), limit.clone()); }
         }
         let mut response: Value = Value::Null;
         if (method.as_deref() == Some("spot_private_get_v1_order_orders")) {
-            let __ws_arg_54 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
+            let __ws_arg_54 = self.extend(requestUntil.clone(), &[&paramsUntil]);
             response = self.spot_private_get_v1_order_orders(&[__ws_arg_54]).await;
         }  else {
-            let __ws_arg_55 = self.extend(requestUntil, &[paramsUntil]);
+            let __ws_arg_55 = self.extend(requestUntil, &[&paramsUntil]);
             response = self.spot_private_get_v1_order_history(&[__ws_arg_55]).await;
         }
         //
@@ -6712,11 +6712,11 @@ impl Htx {
         let mut takeProfit: Value = self.safe_bool_k(params.clone(), "takeProfit", &[Value::Bool(false)]);
         let mut trailing: bool = self.safe_bool_k_opt(params.clone(), "trailing", &[Value::Bool(false)]).unwrap_or(false);
         let mut isAlgo: bool = (trigger == Some(true)) || stopLoss.as_bool() == Some(true) || takeProfit.as_bool() == Some(true) || stopLossTakeProfit.as_bool() == Some(true) || trailing;
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("stopLossTakeProfit".into()), Value::Str("trailing".into()), Value::Str("trigger".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("stop".into()), Value::Str("stopLossTakeProfit".into()), Value::Str("trailing".into()), Value::Str("trigger".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]).into_dict();
         if (since != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("start_time".into(), since.clone()); }
         }
-        { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("end_time".into()), request.clone(), paramsOmitted, &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsUntil = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("end_time".into()), request.clone(), &paramsOmitted, &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsUntil = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         if ((market).linear == Some(true)) {
             if (limit != Value::Null) {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
@@ -8072,16 +8072,16 @@ impl Htx {
             if (timeInForce != Value::Null) {
                 request.insert("time_in_force".into(), (if let Some(__s) = timeInForce.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }));
             }
-            let mut stopLoss: Value = self.safe_dict_k(query.clone(), "stopLoss", &[]);
-            let mut takeProfit: Value = self.safe_dict_k(query.clone(), "takeProfit", &[]);
-            let mut stopLossTriggerPriceAttached: Option<f64> = self.safe_number_k(stopLoss.clone(), "triggerPrice", &[]).as_f64();
-            let mut stopLossOrderPrice: Option<f64> = self.safe_number_k(stopLoss.clone(), "price", &[]).as_f64();
-            let mut stopLossType: Option<String> = self.safe_string_k(stopLoss.clone(), "type", &[]).as_str().map(str::to_owned);
-            let mut takeProfitTriggerPriceAttached: Option<f64> = self.safe_number_k(takeProfit.clone(), "triggerPrice", &[]).as_f64();
-            let mut takeProfitOrderPrice: Option<f64> = self.safe_number_k(takeProfit.clone(), "price", &[]).as_f64();
-            let mut takeProfitType: Option<String> = self.safe_string_k(takeProfit.clone(), "type", &[]).as_str().map(str::to_owned);
+            let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(query.clone(), "stopLoss", &[]).into_opt_dict();
+            let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(query.clone(), "takeProfit", &[]).into_opt_dict();
+            let mut stopLossTriggerPriceAttached: Option<f64> = self.safe_number_k(&stopLoss, "triggerPrice", &[]).as_f64();
+            let mut stopLossOrderPrice: Option<f64> = self.safe_number_k(&stopLoss, "price", &[]).as_f64();
+            let mut stopLossType: Option<String> = self.safe_string_k(&stopLoss, "type", &[]).as_str().map(str::to_owned);
+            let mut takeProfitTriggerPriceAttached: Option<f64> = self.safe_number_k(&takeProfit, "triggerPrice", &[]).as_f64();
+            let mut takeProfitOrderPrice: Option<f64> = self.safe_number_k(&takeProfit, "price", &[]).as_f64();
+            let mut takeProfitType: Option<String> = self.safe_string_k(&takeProfit, "type", &[]).as_str().map(str::to_owned);
             // on htx for attached tpsl orders sl_order_price or tp_order_price need to be filled and the sl_trigger_price or tp_trigger_price are optional
-            if (stopLoss != Value::Null) {
+            if (stopLoss.is_some()) {
                 if (stopLossTriggerPriceAttached.is_some()) {
                     request.insert("sl_trigger_price".into(), self.price_to_precision(symbol.clone(), Value::from(stopLossTriggerPriceAttached)));
                 }
@@ -8093,7 +8093,7 @@ impl Htx {
                 }
                 query = self.omit(query.clone(), Value::Str("stopLoss".into()), &[]);
             }
-            if (takeProfit != Value::Null) {
+            if (takeProfit.is_some()) {
                 if (takeProfitTriggerPriceAttached.is_some()) {
                     request.insert("tp_trigger_price".into(), self.price_to_precision(symbol.clone(), Value::from(takeProfitTriggerPriceAttached)));
                 }
@@ -9811,7 +9811,7 @@ impl Htx {
 }));
         let tagValueparamsTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tagValue: Value = tagValueparamsTagVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsTag: Value = tagValueparamsTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsTag: crate::value::Dict = tagValueparamsTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -9826,7 +9826,7 @@ impl Htx {
         if (tagValue != Value::Null) {
             request.insert("addr-tag".into(), tagValue); // only for XRP?
         }
-        let networkCodeparamsNetworkVariable: Vec<Value> = self.handle_network_code_and_params(paramsTag).as_array().cloned().unwrap_or_default();
+        let networkCodeparamsNetworkVariable: Vec<Value> = self.handle_network_code_and_params(&paramsTag).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodeparamsNetworkVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsNetwork: Value = networkCodeparamsNetworkVariable.get(1).cloned().unwrap_or(Value::Null);
         if (networkCode != Value::Null) {
@@ -11033,13 +11033,13 @@ impl Htx {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchFundingHistory".into()), &[(market).raw.clone(), params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut initialRequest: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("30,31".into()));
             m
         });
-        let requestparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_time".into()), Value::Map(initialRequest), paramsMarketType, &[]).as_array().cloned().unwrap_or_default();
+        let requestparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_time".into()), Value::Map(initialRequest), &paramsMarketType, &[]).as_array().cloned().unwrap_or_default();
         let mut request: Value = requestparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         if (since != Value::Null) {
@@ -11669,8 +11669,8 @@ impl Htx {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_141 = self.extend(requestUntil, &[paramsUntil]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_141 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.spot_private_get_v2_account_ledger(&[__ws_arg_141]).await.into_dict();
         //
         //     {
@@ -12529,18 +12529,18 @@ impl Htx {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_time".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if (market).swap {
             if ((market).linear == Some(true)) {
-                let __ws_arg_156 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
+                let __ws_arg_156 = self.extend(requestUntil.clone(), &[&paramsUntil]);
                 response = self.contract_public_get_v5_market_settlement_history(&[__ws_arg_156]).await;
             }  else {
-                let __ws_arg_157 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
+                let __ws_arg_157 = self.extend(requestUntil.clone(), &[&paramsUntil]);
                 response = self.contract_public_get_swap_api_v1_swap_settlement_records(&[__ws_arg_157]).await;
             }
         }  else {
-            let __ws_arg_158 = self.extend(requestUntil, &[paramsUntil]);
+            let __ws_arg_158 = self.extend(requestUntil, &[&paramsUntil]);
             response = self.contract_public_get_api_v1_contract_settlement_records(&[__ws_arg_158]).await;
         }
         //
@@ -12950,13 +12950,13 @@ impl Htx {
         if !((market).linear == Some(true)) {
             request.insert("trade_type".into(), Value::from(tradeType));
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("trade_type".into()), Value::Str("tradeType".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("trade_type".into()), Value::Str("tradeType".into())]), &[]).into_dict();
         if (since != Value::Null) {
             request.insert("start_time".into(), since.clone());
         }
-        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_time".into()), Value::Map(request), paramsOmitted, &[]).as_array().cloned().unwrap_or_default();
+        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_time".into()), Value::Map(request), &paramsOmitted, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if (market).swap {
             if ((market).linear == Some(true)) {
@@ -12964,16 +12964,16 @@ impl Htx {
                 if (limit != Value::Null) {
                     if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
                 }
-                let __ws_arg_159 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
+                let __ws_arg_159 = self.extend(requestUntil.clone(), &[&paramsUntil]);
                 response = self.contract_public_get_v5_market_liquidation_orders(&[__ws_arg_159]).await;
             }  else {
                 if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("contract".into(), Value::from((market).id.clone())); }
-                let __ws_arg_160 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
+                let __ws_arg_160 = self.extend(requestUntil.clone(), &[&paramsUntil]);
                 response = self.contract_public_get_swap_api_v3_swap_liquidation_orders(&[__ws_arg_160]).await;
             }
         }  else if (market).future {
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("symbol".into(), Value::from((market).id.clone())); }
-            let __ws_arg_161 = self.extend(requestUntil, &[paramsUntil]);
+            let __ws_arg_161 = self.extend(requestUntil, &[&paramsUntil]);
             response = self.contract_public_get_api_v3_contract_liquidation_orders(&[__ws_arg_161]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLiquidations() does not support ".into())).into()), self.safe_string_k((market).raw.clone(), "type", &[Value::Str("".into())])).into()), Value::Str(" orders".into()))));

@@ -2364,7 +2364,7 @@ impl Tokocrypto {
         let mut isPostOnlyTimeInForce: Value = (Value::Bool(requestedTimeInForce.as_deref() == Some("GTX")));
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(isMarketOrder.clone(), isPostOnlyTimeInForce, &[params.clone()]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // only supported for spot/margin api
         let mut typeResolved: Value = type_var.clone();
         if postOnly {
@@ -2378,7 +2378,7 @@ impl Tokocrypto {
         let mut initialUppercaseType: Value = (if let Some(__s) = typeResolved.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
         let mut uppercaseType: Value = initialUppercaseType.clone();
         let mut triggerPrice: Value = self.safe_value2(params, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
-        let mut paramsRequest: Value = self.omit(paramsPostOnly, Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("timeInForce".into())]), &[]);
+        let mut paramsRequest: Value = self.omit(&paramsPostOnly, Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("timeInForce".into())]), &[]);
         if (triggerPrice != Value::Null) {
             paramsRequest = self.omit(paramsRequest.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into())]), &[]);
             if postOnly {
@@ -2423,9 +2423,9 @@ impl Tokocrypto {
             request.insert("side".into(), Value::Int(1));
         }
         if (clientOrderId.is_none()) {
-            let mut broker: Value = self.safe_dict_k(self.options.clone(), "broker", &[]);
-            if (broker != Value::Null) {
-                let mut brokerId: Option<String> = self.safe_string_k(broker, "marketType", &[]).as_str().map(str::to_owned);
+            let mut broker: Option<crate::value::Dict> = self.safe_dict_k(self.options.clone(), "broker", &[]).into_opt_dict();
+            if (broker.is_some()) {
+                let mut brokerId: Option<String> = self.safe_string_k(&broker, "marketType", &[]).as_str().map(str::to_owned);
                 if (brokerId.is_some()) {
                     request.insert("clientId".into(), Value::Str(format!("{}{}", brokerId.clone().map(Value::from).unwrap_or(Value::Null), self.uuid22(&[])).into()));
                 }
@@ -3392,7 +3392,7 @@ impl Tokocrypto {
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3408,7 +3408,7 @@ impl Tokocrypto {
         if (tagWithdrawTag != Value::Null) {
             request.insert("addressTag".into(), tagWithdrawTag);
         }
-        let networkCodequeryVariable: Vec<Value> = self.handle_network_code_and_params(paramsWithdrawTag).as_array().cloned().unwrap_or_default();
+        let networkCodequeryVariable: Vec<Value> = self.handle_network_code_and_params(&paramsWithdrawTag).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodequeryVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut query: crate::value::Dict = networkCodequeryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut networkId: Option<String> = self.network_code_to_id(networkCode, &[code]).as_str().map(str::to_owned);

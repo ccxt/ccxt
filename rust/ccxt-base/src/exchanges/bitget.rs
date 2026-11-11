@@ -5869,10 +5869,10 @@ if _try_result.is_err() {
 
     pub async fn fetch_default_markets(&mut self, mut params: Value) -> Value {
         let mut types: Value = Value::Null;
-        let mut fetchMarketsOptions: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]);
+        let mut fetchMarketsOptions: Option<crate::value::Dict> = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]).into_opt_dict();
         let mut defaultMarkets: Value = Value::from(vec![Value::Str("spot".into()), Value::Str("swap".into())]);
-        if (fetchMarketsOptions != Value::Null) {
-            types = self.safe_list_k(fetchMarketsOptions, "types", &[defaultMarkets.clone()]);
+        if (fetchMarketsOptions.is_some()) {
+            types = self.safe_list_k(&fetchMarketsOptions, "types", &[defaultMarkets.clone()]);
         }  else {
             // for backward-compatibility
             types = self.safe_list_k(self.options.clone(), "fetchMarkets", &[defaultMarkets]);
@@ -6050,11 +6050,11 @@ if _try_result.is_err() {
             let mut parsedMarket: Value = self.parse_market(market);
             if (parsedMarket != Value::Null) && matches!(parsedMarket.as_map().and_then(|__m| __m.get("spot")).cloned().unwrap_or(Value::Null), Value::Bool(true)) {
                 let mut marketId: Value = parsedMarket.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null);
-                let mut instrument: Value = self.safe_dict(spotInstruments.clone(), marketId, &[]);
-                if (instrument != Value::Null) {
+                let mut instrument: Option<crate::value::Dict> = self.safe_dict(spotInstruments.clone(), marketId, &[]).into_opt_dict();
+                if (instrument.is_some()) {
                     // only the stock flag is needed, read it directly instead of re-parsing the whole instrument
-                    let mut assetType: Option<String> = self.safe_string_lower_k(instrument.clone(), "symbolType", &[]).as_str().map(str::to_owned);
-                    let mut isReality: bool = self.safe_string_lower_k(instrument, "isReality", &[]).as_str() == Some("yes");
+                    let mut assetType: Option<String> = self.safe_string_lower_k(&instrument, "symbolType", &[]).as_str().map(str::to_owned);
+                    let mut isReality: bool = self.safe_string_lower_k(&instrument, "isReality", &[]).as_str() == Some("yes");
                     if let Value::Dict(__rda) = &mut parsedMarket { std::sync::Arc::make_mut(__rda).insert("stock".to_string(), Value::Bool((assetType.as_deref() == Some("stock")) || ((assetType.is_none()) && isReality))); }
                 }
             }
@@ -7049,13 +7049,13 @@ if _try_result.is_err() {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if (uta.as_bool() == Some(true)) {
-            let __ws_arg_6 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
+            let __ws_arg_6 = self.extend(requestUntil.clone(), &[&paramsUntil]);
             response = self.private_uta_get_v3_account_deposit_records(&[__ws_arg_6]).await;
         }  else {
-            let __ws_arg_7 = self.extend(requestUntil, &[paramsUntil]);
+            let __ws_arg_7 = self.extend(requestUntil, &[&paramsUntil]);
             response = self.private_spot_get_v2_spot_wallet_deposit_records(&[__ws_arg_7]).await;
         }
         //
@@ -7175,9 +7175,9 @@ if _try_result.is_err() {
 }));
         let tagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tag: Value = tagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsWithdrawTag: Value = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: crate::value::Dict = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         self.check_address(&[address.clone()]);
-        let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(paramsWithdrawTag).as_array().cloned().unwrap_or_default();
+        let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(&paramsWithdrawTag).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsNetworkCode: Value = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null);
         if (networkCode == Value::Null) {
@@ -7311,16 +7311,16 @@ if _try_result.is_err() {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
         let mut response: Value = Value::Null;
         if (uta.as_bool() == Some(true)) {
-            let __ws_arg_11 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
+            let __ws_arg_11 = self.extend(requestUntil.clone(), &[&paramsUntil]);
             response = self.private_uta_get_v3_account_withdrawal_records(&[__ws_arg_11]).await;
         }  else {
-            let __ws_arg_12 = self.extend(requestUntil, &[paramsUntil]);
+            let __ws_arg_12 = self.extend(requestUntil, &[&paramsUntil]);
             response = self.private_spot_get_v2_spot_wallet_withdrawal_records(&[__ws_arg_12]).await;
         }
         //
@@ -8187,8 +8187,8 @@ if _try_result.is_err() {
         let mut passedSubType: Option<String> = self.safe_string_k(paramsMarketType.clone(), "subType", &[]).as_str().map(str::to_owned);
         let productTypeparamsProductTypeVariable: Vec<Value> = self.handle_product_type_and_params(&[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), paramsMarketType]).as_array().cloned().unwrap_or_default();
         let mut productType: Value = productTypeparamsProductTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsProductType: Value = productTypeparamsProductTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let stockparamsStockVariable: Vec<Value> = self.handle_option_bool_and_params(paramsProductType, Value::Str("fetchTickers".into()), Value::Str("stock".into()), &[stockDefault.map(Value::from).unwrap_or(Value::Null)]).as_array().cloned().unwrap_or_default();
+        let mut paramsProductType: crate::value::Dict = productTypeparamsProductTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let stockparamsStockVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsProductType, Value::Str("fetchTickers".into()), Value::Str("stock".into()), &[stockDefault.map(Value::from).unwrap_or(Value::Null)]).as_array().cloned().unwrap_or_default();
         let mut stock: Value = stockparamsStockVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsStock: Value = stockparamsStockVariable.get(1).cloned().unwrap_or(Value::Null);
         // only if passedSubType && productType is undefined, then use spot
@@ -9123,16 +9123,16 @@ if _try_result.is_err() {
         let mut isStockSpot: bool = isStock.as_bool() == Some(true) && ((market).spot);
         let mut paramsStock: crate::value::Dict = self.omit(paramsUTA, Value::Str("stock".into()), &[]).into_dict();
         let mut marketType: Value = Value::Null;
-        let mut timeframes: Value = Value::Null;
+        let mut timeframes: Option<crate::value::Dict> = None;
         let mut timeframesOption: Value = self.handle_option(Value::Str("fetchOHLCV".into()), Value::Str("timeframes".into()), &[]);
         let mut isStockOrUta: bool = isStockSpot || (uta.as_bool() == Some(true));
         if isStockOrUta {
-            timeframes = self.safe_dict_k(timeframesOption.clone(), "uta", &[]);
-            request.insert("interval".into(), self.safe_string(timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
+            timeframes = self.safe_dict_k(timeframesOption.clone(), "uta", &[]).into_opt_dict();
+            request.insert("interval".into(), self.safe_string(&timeframes, timeframe.clone(), &[timeframe.clone()]));
         }  else {
             marketType = (if matches!((self.safe_bool_k((market).raw.clone(), "spot", &[Value::Bool(false)])), Value::Bool(true)) { Value::Str("spot".into()) } else { Value::Str("swap".into()) });
-            timeframes = self.safe_dict(timeframesOption, marketType, &[]);
-            request.insert("granularity".into(), self.safe_string(timeframes, timeframe.clone(), &[timeframe.clone()]));
+            timeframes = self.safe_dict(timeframesOption, marketType, &[]).into_opt_dict();
+            request.insert("granularity".into(), self.safe_string(&timeframes, timeframe.clone(), &[timeframe.clone()]));
         }
         let mut msInDay: Value = Value::Int(86400000);
         let mut now: Value = self.milliseconds();
@@ -9140,7 +9140,7 @@ if _try_result.is_err() {
         let mut duration: Value = (match (&(timeframeSeconds), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         let mut until: Value = self.safe_integer_k(&paramsStock, "until", &[]);
         let mut limitDefined: bool = limit != Value::Null;
-        let mut paramsOmitted: Value = self.omit(&paramsStock, Value::from(vec![Value::Str("until".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsStock, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
         // retrievable periods listed here:
         // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
         // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
@@ -9227,7 +9227,7 @@ if _try_result.is_err() {
         request.insert("limit".into(), limitResolved.clone());
         // make request
         let mut response: Value = Value::Null;
-        let priceTypeparamsPriceVariable: Vec<Value> = self.handle_param_string(paramsOmitted, Value::Str("price".into()), &[]).as_array().cloned().unwrap_or_default();
+        let priceTypeparamsPriceVariable: Vec<Value> = self.handle_param_string(&paramsOmitted, Value::Str("price".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut priceType: Value = priceTypeparamsPriceVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsPrice: Value = priceTypeparamsPriceVariable.get(1).cloned().unwrap_or(Value::Null);
         let productTypeparamsProductTypeVariable: Vec<Value> = self.handle_product_type_and_params(&[(market).raw.clone(), paramsPrice]).as_array().cloned().unwrap_or_default();
@@ -14588,14 +14588,14 @@ if _try_result.is_err() {
         }
         let productTypeparamsProductTypeVariable: Vec<Value> = self.handle_product_type_and_params(&[(market).raw.clone(), paramsPaginate]).as_array().cloned().unwrap_or_default();
         let mut productType: Value = productTypeparamsProductTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsProductType: Value = productTypeparamsProductTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsProductType: crate::value::Dict = productTypeparamsProductTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), paramsProductType, &[]).as_array().cloned().unwrap_or_default();
+        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsProductType, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (since != Value::Null) {
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
         }
@@ -14606,14 +14606,14 @@ if _try_result.is_err() {
         if (uta.as_bool() == Some(true)) {
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("coin".into(), (market).raw.as_map().and_then(|__m| __m.get("settleId")).cloned().unwrap_or(Value::Null)); }
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("category".into(), productType.clone()); }
-            let __ws_arg_120 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
+            let __ws_arg_120 = self.extend(requestUntil.clone(), &[&paramsUntil]);
             response = self.private_uta_get_v3_account_financial_records(&[__ws_arg_120]).await;
         }  else {
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("symbol".into(), Value::from((market).id.clone())); }
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("marginCoin".into(), (market).raw.as_map().and_then(|__m| __m.get("settleId")).cloned().unwrap_or(Value::Null)); }
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("businessType".into(), Value::Str("contract_settle_fee".into())); }
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("productType".into(), productType); }
-            let __ws_arg_121 = self.extend(requestUntil, &[paramsUntil]);
+            let __ws_arg_121 = self.extend(requestUntil, &[&paramsUntil]);
             response = self.private_mix_get_v2_mix_account_bill(&[__ws_arg_121]).await;
         }
         let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
@@ -15949,7 +15949,7 @@ if _try_result.is_err() {
         }
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMyLiquidations".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), paramsPaginate]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (type_var.as_deref() != Some("spot")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchMyLiquidations() supports spot margin markets only".into()))));
         }
@@ -15957,7 +15957,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), paramsMarketType, &[]).as_array().cloned().unwrap_or_default();
+        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsMarketType, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         if (since != Value::Null) {

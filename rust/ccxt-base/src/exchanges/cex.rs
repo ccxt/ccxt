@@ -1128,14 +1128,14 @@ impl Cex {
         }
         let untilparamsUntilVariable: Vec<Value> = self.handle_param_integer2(params, Value::Str("until".into()), Value::Str("till".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (until != Value::Null) {
             request.insert("toDateISO".into(), self.iso8601(until));
         }
         if (limit != Value::Null) {
             request.insert("pageSize".into(), crate::runtime::Math::min(&limit, &Value::Int(10000))); // has a bug, still returns more trades
         }
-        let __ws_arg_1 = self.extend(Value::Map(request), &[paramsUntil]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsUntil]);
         let mut response: crate::value::Dict = self.public_post_get_trade_history(&[__ws_arg_1]).await.into_dict();
         //
         //    {
@@ -1289,7 +1289,7 @@ impl Cex {
 }));
         let dataTypeparamsDataTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("dataType".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut dataType: Value = dataTypeparamsDataTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsDataType: Value = dataTypeparamsDataTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsDataType: crate::value::Dict = dataTypeparamsDataTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (dataType == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"".into()))));
         }
@@ -1307,9 +1307,9 @@ impl Cex {
         if (since != Value::Null) {
             request.insert("fromISO".into(), self.iso8601(since.clone()));
         }
-        let untilparamsUntilVariable: Vec<Value> = self.handle_param_integer2(paramsDataType, Value::Str("until".into()), Value::Str("till".into()), &[]).as_array().cloned().unwrap_or_default();
+        let untilparamsUntilVariable: Vec<Value> = self.handle_param_integer2(&paramsDataType, Value::Str("until".into()), Value::Str("till".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (until != Value::Null) {
             request.insert("toISO".into(), self.iso8601(until.clone()));
         }  else if (since == Value::Null) {
@@ -1324,7 +1324,7 @@ impl Cex {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let __ws_arg_3 = self.extend(Value::Map(request), &[paramsUntil]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsUntil]);
         let mut response: crate::value::Dict = self.public_post_get_candles(&[__ws_arg_3]).await.into_dict();
         //
         //    {
@@ -1540,8 +1540,8 @@ impl Cex {
 }));
         let accountNameparamsAccountVariable: Vec<Value> = self.handle_param_string(params, Value::Str("account".into()), &[Value::Str("".into())]).as_array().cloned().unwrap_or_default();
         let mut accountName: Value = accountNameparamsAccountVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsAccount: Value = accountNameparamsAccountVariable.get(1).cloned().unwrap_or(Value::Null); // default is empty string
-        let methodparamsMethodVariable: Vec<Value> = self.handle_param_string(paramsAccount, Value::Str("method".into()), &[Value::Str("privatePostGetMyWalletBalance".into())]).as_array().cloned().unwrap_or_default();
+        let mut paramsAccount: crate::value::Dict = accountNameparamsAccountVariable.get(1).cloned().unwrap_or(Value::Null).into_dict(); // default is empty string
+        let methodparamsMethodVariable: Vec<Value> = self.handle_param_string(&paramsAccount, Value::Str("method".into()), &[Value::Str("privatePostGetMyWalletBalance".into())]).as_array().cloned().unwrap_or_default();
         let mut method: Option<String> = methodparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: Value = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut accountBalance: Value = Value::Null;
@@ -1681,11 +1681,11 @@ impl Cex {
         }
         let untilparamsUntilVariable: Vec<Value> = self.handle_param_integer2(params, Value::Str("until".into()), Value::Str("till".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (until != Value::Null) {
             request.insert("serverCreateTimestampTo".into(), until);
         }
-        let __ws_arg_4 = self.extend(Value::Map(request), &[paramsUntil]);
+        let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_post_get_my_orders(&[__ws_arg_4]).await.into_dict();
         //
         // if called without `pair`
@@ -2004,7 +2004,7 @@ impl Cex {
 }));
         let accountIdparamsAccountIdVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("accountId".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut accountId: Value = accountIdparamsAccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsAccountId: Value = accountIdparamsAccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsAccountId: crate::value::Dict = accountIdparamsAccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (accountId == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account".into()))));
         }
@@ -2025,21 +2025,21 @@ impl Cex {
                 m.insert("amountCcy1".to_string(), self.amount_to_precision(symbol.clone(), amount));
             m
         });
-        let timeInForceparamsTimeInForceVariable: Vec<Value> = self.handle_option_string_and_params(paramsAccountId, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[Value::Str("GTC".into())]).as_array().cloned().unwrap_or_default();
+        let timeInForceparamsTimeInForceVariable: Vec<Value> = self.handle_option_string_and_params(&paramsAccountId, Value::Str("createOrder".into()), Value::Str("timeInForce".into()), &[Value::Str("GTC".into())]).as_array().cloned().unwrap_or_default();
         let mut timeInForce: Value = timeInForceparamsTimeInForceVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsTimeInForce: Value = timeInForceparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsTimeInForce: crate::value::Dict = timeInForceparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (type_var.as_str() == Some("limit")) {
             request.insert("price".into(), self.price_to_precision(symbol, price));
             request.insert("timeInForce".into(), timeInForce);
         }
-        let triggerPriceparamsTriggerPriceVariable: Vec<Value> = self.handle_param_string(paramsTimeInForce, Value::Str("triggerPrice".into()), &[]).as_array().cloned().unwrap_or_default();
+        let triggerPriceparamsTriggerPriceVariable: Vec<Value> = self.handle_param_string(&paramsTimeInForce, Value::Str("triggerPrice".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut triggerPrice: Value = triggerPriceparamsTriggerPriceVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsTriggerPrice: Value = triggerPriceparamsTriggerPriceVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsTriggerPrice: crate::value::Dict = triggerPriceparamsTriggerPriceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (triggerPrice != Value::Null) {
             request.insert("type".into(), Value::Str("Stop Limit".into()));
             request.insert("stopPrice".into(), triggerPrice);
         }
-        let __ws_arg_7 = self.extend(Value::Map(request), &[paramsTriggerPrice]);
+        let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsTriggerPrice]);
         let mut response: crate::value::Dict = self.private_post_do_my_new_order(&[__ws_arg_7]).await.into_dict();
         //
         // on success
@@ -2246,11 +2246,11 @@ impl Cex {
         }
         let untilparamsUntilVariable: Vec<Value> = self.handle_param_integer2(params, Value::Str("until".into()), Value::Str("till".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (until != Value::Null) {
             request.insert("dateTo".into(), until);
         }
-        let __ws_arg_9 = self.extend(Value::Map(request), &[paramsUntil]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_post_get_my_transaction_history(&[__ws_arg_9]).await.into_dict();
         //
         //    {
@@ -2366,11 +2366,11 @@ impl Cex {
         }
         let untilparamsUntilVariable: Vec<Value> = self.handle_param_integer2(params, Value::Str("until".into()), Value::Str("till".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (until != Value::Null) {
             request.insert("dateTo".into(), until);
         }
-        let __ws_arg_10 = self.extend(Value::Map(request), &[paramsUntil]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_post_get_my_funding_history(&[__ws_arg_10]).await.into_dict();
         //
         //    {
@@ -2652,14 +2652,14 @@ impl Cex {
 }));
         let accountIdparamsAccountIdVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("createOrder".into()), Value::Str("accountId".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut accountId: Value = accountIdparamsAccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsAccountId: Value = accountIdparamsAccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsAccountId: crate::value::Dict = accountIdparamsAccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (accountId == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account".into()))));
         }
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(paramsAccountId).as_array().cloned().unwrap_or_default();
+        let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(&paramsAccountId).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut currency: Value = self.currency(code);

@@ -470,13 +470,12 @@ impl Deepcoin {
         let mut marketType: String = self.safe_string_k(market.clone(), "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut url: String = self.safe_string(crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public"), Value::from(marketType), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut requestId: Value = self.request_id();
-        let mut client: Value = self.client(&[Value::from(url.clone())]);
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut existingSubscription: Value = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[]);
-        if (existingSubscription == Value::Null) {
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.clone())]));
+        let mut existingSubscription: Option<crate::value::Dict> = self.safe_dict((client).subscriptions.clone(), messageHash.clone(), &[]).into_opt_dict();
+        if (existingSubscription.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" no subscription for ".into())).into()), messageHash)));
         }
-        let mut subId: Option<i64> = self.safe_integer_k(existingSubscription, "id", &[]).as_i64();
+        let mut subId: Option<i64> = self.safe_integer_k(&existingSubscription, "id", &[]).as_i64();
         let mut request: Value = self.create_public_request(market.clone(), Value::from(subId), topicID, &[suffix, Value::Bool(true)]); // unsubscribe message uses the same id as the original subscribe message
         let mut unsubHash: String = format!("{}{}", Value::Str("unsubscribe::".into()), messageHash);
         let mut subscriptionExtended: Value = self.extend(subscription, &[Value::Map({
@@ -518,9 +517,8 @@ impl Deepcoin {
         // check-then-fetch (acquire vs extend) is the critical section; the flight IS the client.futures entry,
         // settled through client.resolve / client.reject so the registry is only mutated inside the client (one lock in go)
         let mut messageHash: Value = Value::Str("authenticate".into());
-        let mut client: Value = self.client(&[Value::Str("authenticationFlights".into())]);
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        if (__ch.has_future(&messageHash)) {
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::Str("authenticationFlights".into())]));
+        if (client.has_future(&messageHash)) {
             // a flight is already in progress - wake when the leader
             // settles it: the listenKey is then in the bucket
             crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;

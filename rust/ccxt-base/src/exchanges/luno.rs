@@ -2113,11 +2113,11 @@ impl Luno {
             }
             currency = self.currency(code.clone());
             let mut accountsByCurrencyCode: Value = self.index_by(self.accounts.clone(), Value::Str("currency".into()));
-            let mut account: Value = self.safe_dict(accountsByCurrencyCode, code.clone(), &[]);
-            if (account == Value::Null) {
+            let mut account: Option<crate::value::Dict> = self.safe_dict(accountsByCurrencyCode, code.clone(), &[]).into_opt_dict();
+            if (account.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() could not find account id for ".into())).into()), code)));
             }
-            id = self.safe_string_k(account, "id", &[]).as_str().map(str::to_owned);
+            id = self.safe_string_k(&account, "id", &[]).as_str().map(str::to_owned);
         }
         if ((minRowParam.is_none()) || (maxRowParam.is_none())) && ((minRowParam.is_some()) || (maxRowParam.is_some())) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined".into()))));

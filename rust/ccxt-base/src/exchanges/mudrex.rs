@@ -1281,15 +1281,15 @@ impl Mudrex {
             m
         });
         // mudrex only supports take-profit / stop-loss orders attached to the position-opening order
-        let mut takeProfit: Value = self.safe_dict_k(params.clone(), "takeProfit", &[]);
-        let mut stopLoss: Value = self.safe_dict_k(params.clone(), "stopLoss", &[]);
-        if (takeProfit != Value::Null) {
+        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(params.clone(), "takeProfit", &[]).into_opt_dict();
+        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(params.clone(), "stopLoss", &[]).into_opt_dict();
+        if (takeProfit.is_some()) {
             request.insert("is_takeprofit".into(), Value::Bool(true));
-            request.insert("takeprofit_price".into(), self.price_to_precision(symbol.clone(), self.safe_string_n(takeProfit, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("price".into())]), &[])));
+            request.insert("takeprofit_price".into(), self.price_to_precision(symbol.clone(), self.safe_string_n(&takeProfit, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("price".into())]), &[])));
         }
-        if (stopLoss != Value::Null) {
+        if (stopLoss.is_some()) {
             request.insert("is_stoploss".into(), Value::Bool(true));
-            request.insert("stoploss_price".into(), self.price_to_precision(symbol, self.safe_string_n(stopLoss, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("price".into())]), &[])));
+            request.insert("stoploss_price".into(), self.price_to_precision(symbol, self.safe_string_n(&stopLoss, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("price".into())]), &[])));
         }
         let mut orderParams: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("leverage".into()), Value::Str("reduceOnly".into()), Value::Str("takeProfit".into()), Value::Str("stopLoss".into())]), &[]).into_dict();
         let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[&orderParams]);

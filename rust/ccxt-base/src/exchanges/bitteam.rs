@@ -1917,14 +1917,14 @@ impl Bitteam {
         let mut status: Value = self.parse_order_status(self.safe_string_k(order.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null);
         let mut type_var: Value = self.parse_order_type(self.safe_string_k(order.clone(), "type", &[])).map(Value::from).unwrap_or(Value::Null);
         let mut side: Option<String> = self.safe_string_k(order.clone(), "side", &[]).as_str().map(str::to_owned);
-        let mut feeRaw: Value = self.safe_dict_k(order.clone(), "fee", &[]);
+        let mut feeRaw: Option<crate::value::Dict> = self.safe_dict_k(order.clone(), "fee", &[]).into_opt_dict();
         let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
         let mut amount: Option<String> = self.safe_string_k(order.clone(), "quantity", &[]).as_str().map(str::to_owned);
         let mut filled: Option<String> = self.safe_string_k(order.clone(), "executed", &[]).as_str().map(str::to_owned);
         let mut fee: Value = Value::Null;
-        if (feeRaw != Value::Null) {
-            let mut feeCost: Option<String> = self.safe_string_k(feeRaw.clone(), "amount", &[]).as_str().map(str::to_owned);
-            let mut feeCurrencyId: Option<String> = self.safe_string_k(feeRaw, "symbol", &[]).as_str().map(str::to_owned);
+        if (feeRaw.is_some()) {
+            let mut feeCost: Option<String> = self.safe_string_k(&feeRaw, "amount", &[]).as_str().map(str::to_owned);
+            let mut feeCurrencyId: Option<String> = self.safe_string_k(&feeRaw, "symbol", &[]).as_str().map(str::to_owned);
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), self.safe_currency_code(feeCurrencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]));
@@ -2733,7 +2733,7 @@ impl Bitteam {
         }
         // the exchange returns the side of the taker
         let mut side: Option<String> = self.safe_string2(trade.clone(), Value::Str("side".into()), Value::Str("type".into()), &[]).as_str().map(str::to_owned);
-        let mut feeInfo: Value = Value::Null;
+        let mut feeInfo: Option<crate::value::Dict> = None;
         let mut order: Option<String> = None;
         if (takerOrMaker.as_deref() == Some("maker")) {
             if (side.as_deref() == Some("sell")) {
@@ -2745,16 +2745,16 @@ impl Bitteam {
             feeInfo = self.safe_dict_k(trade.clone(), "feeMaker", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_opt_dict();
         }  else if (takerOrMaker.as_deref() == Some("taker")) {
             order = self.safe_string_k(trade.clone(), "takerOrderId", &[]).as_str().map(str::to_owned);
             feeInfo = self.safe_dict_k(trade.clone(), "feeTaker", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_opt_dict();
         }
-        let mut feeCurrencyId: Option<String> = self.safe_string_k(feeInfo.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut feeCost: Option<String> = self.safe_string_k(feeInfo, "amount", &[]).as_str().map(str::to_owned);
+        let mut feeCurrencyId: Option<String> = self.safe_string_k(&feeInfo, "symbol", &[]).as_str().map(str::to_owned);
+        let mut feeCost: Option<String> = self.safe_string_k(&feeInfo, "amount", &[]).as_str().map(str::to_owned);
         let mut fee: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), self.safe_currency_code(feeCurrencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]));

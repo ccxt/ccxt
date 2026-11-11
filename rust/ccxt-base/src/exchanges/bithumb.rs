@@ -1188,8 +1188,8 @@ impl Bithumb {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut balances: Value = self.safe_dict_k(response.clone(), "data", &[]);
-        if (balances != Value::Null) {
+        let mut balances: Option<crate::value::Dict> = self.safe_dict_k(response.clone(), "data", &[]).into_opt_dict();
+        if (balances.is_some()) {
             let mut codes: Vec<Value> = Value::Array(self.currencies.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
@@ -1199,9 +1199,9 @@ impl Bithumb {
                 let mut account: Value = self.account();
                 let mut currency: Value = self.currency(code.clone());
                 let mut lowerCurrencyId: String = self.safe_string_lower_k(currency, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string(balances.clone(), Value::Str(format!("{}{}", Value::Str("total_".into()), lowerCurrencyId).into()), &[])); }
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string(balances.clone(), Value::Str(format!("{}{}", Value::Str("in_use_".into()), lowerCurrencyId).into()), &[])); }
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string(balances.clone(), Value::Str(format!("{}{}", Value::Str("available_".into()), lowerCurrencyId).into()), &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string(&balances, Value::Str(format!("{}{}", Value::Str("total_".into()), lowerCurrencyId).into()), &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string(&balances, Value::Str(format!("{}{}", Value::Str("in_use_".into()), lowerCurrencyId).into()), &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string(&balances, Value::Str(format!("{}{}", Value::Str("available_".into()), lowerCurrencyId).into()), &[])); }
                 result.insert(crate::runtime::stringify_param(&code), account.clone());
             }
             }
@@ -2362,8 +2362,8 @@ impl Bithumb {
             ordersRequests.push(orderRequest);
         }
         }
-        let mut symbols: Value = self.market_symbols(&[Value::from(orderSymbols), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
+        let mut symbols: crate::value::List = self.market_symbols(&[Value::from(orderSymbols), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]).into_list();
+        let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbols.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("batch_orders".to_string(), Value::from(ordersRequests));
@@ -4398,10 +4398,10 @@ impl Bithumb {
         //
         //     {"error":{"name":400,"message":"Missing request parameter error. Check the required parameters!"}}
         //
-        let mut error: Value = self.safe_dict_k(response.clone(), "error", &[]);
-        if (error != Value::Null) {
-            let mut errorName: Option<String> = self.safe_string_k(error.clone(), "name", &[]).as_str().map(str::to_owned);
-            let mut message: Option<String> = self.safe_string_k_opt(error, "message", &[]);
+        let mut error: Option<crate::value::Dict> = self.safe_dict_k(response.clone(), "error", &[]).into_opt_dict();
+        if (error.is_some()) {
+            let mut errorName: Option<String> = self.safe_string_k(&error, "name", &[]).as_str().map(str::to_owned);
+            let mut message: Option<String> = self.safe_string_k_opt(&error, "message", &[]);
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), message.clone().map(Value::from).unwrap_or(Value::Null)).into());
             if (errorName.is_some()) {
                 self.throw_exactly_matched_exception(self.exceptions.clone(), errorName.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());

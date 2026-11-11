@@ -607,14 +607,14 @@ impl Extended {
     m
 }) });
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), data.clone()); }
-        let mut balance: Value = self.safe_dict_k(data.clone(), "balance", &[]);
-        if (balance != Value::Null) {
-            let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "collateralName", &[]);
+        let mut balance: Option<crate::value::Dict> = self.safe_dict_k(data.clone(), "balance", &[]).into_opt_dict();
+        if (balance.is_some()) {
+            let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "collateralName", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             if (code != Value::Null) {
                 let mut account: Value = self.account();
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(balance.clone(), "availableForWithdrawal", &[])); }
-                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(balance.clone(), "balance", &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string_k(&balance, "availableForWithdrawal", &[])); }
+                if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(&balance, "balance", &[])); }
                 if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), account.clone()); }
             }
         }
@@ -1240,11 +1240,11 @@ impl Extended {
         //     }
         //
         let mut data: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
-        let mut first: Value = self.safe_dict(data.clone().into(), Value::Int(0), &[]);
-        if (first == Value::Null) {
+        let mut first: Option<crate::value::Dict> = self.safe_dict(data.clone().into(), Value::Int(0), &[]).into_opt_dict();
+        if (first.is_none()) {
             return;
         }
-        let mut marketId: Option<String> = self.safe_string_k(first, "m", &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_k(&first, "m", &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
         let mut messageHash: String = format!("{}{}", Value::Str("trades:".into()), symbol);
@@ -1413,7 +1413,7 @@ impl Extended {
 }
 
     pub fn find_subscription(&self, mut client: Value, mut name: Value) -> Value {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+        let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let mut keys: Vec<Value> = __ch.subscription_keys();
         {
                         let mut i: i64 = 0;
@@ -1438,14 +1438,14 @@ impl Extended {
         //
         //     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
         //
-        let mut error: Value = (match __pro_message.get("error").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-        if (error == Value::Null) {
+        let mut error: Option<crate::value::Dict> = (match __pro_message.get("error").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_opt_dict();
+        if (error.is_none()) {
             return Value::Bool(false);
         }
         let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message));
-        let mut errorCode: Option<String> = self.safe_string_k(error.clone(), "code", &[]).as_str().map(str::to_owned);
+        let mut errorCode: Option<String> = self.safe_string_k(&error, "code", &[]).as_str().map(str::to_owned);
         self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
-        let mut errorMessage: Option<String> = self.safe_string_k(error, "message", &[]).as_str().map(str::to_owned);
+        let mut errorMessage: Option<String> = self.safe_string_k(&error, "message", &[]).as_str().map(str::to_owned);
         self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorMessage.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
         panic!("{}", crate::exchange_errors::exchange_error(feedback));
 

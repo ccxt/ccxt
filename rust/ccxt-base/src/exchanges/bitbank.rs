@@ -1755,8 +1755,8 @@ impl Bitbank {
             return Value::Null;
         }
         let mut success: Option<i64> = self.safe_integer_k(response.clone(), "success", &[]).as_i64();
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
-        if ((success.is_none()) || (success == Some(0))) || (data == Value::Null) {
+        let mut data: Option<crate::value::Dict> = self.safe_dict_k(response.clone(), "data", &[]).into_opt_dict();
+        if ((success.is_none()) || (success == Some(0))) || (data.is_none()) {
             let mut errorMessages: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("10000".to_string(), Value::Str("URL does not exist".into()));
@@ -1821,7 +1821,7 @@ impl Bitbank {
                     m.insert("70010".to_string(), Value::Str("We are temporarily raising the minimum order quantity as the system load is now rising.".into()));
                 m
             });
-            let mut codeError: Option<String> = self.safe_string_k(data, "code", &[]).as_str().map(str::to_owned);
+            let mut codeError: Option<String> = self.safe_string_k(&data, "code", &[]).as_str().map(str::to_owned);
             let mut message: String = self.safe_string(errorMessages, codeError.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Str("Error".into())]).as_str().unwrap_or("Error").to_string();
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), codeError.clone().map(Value::from).unwrap_or(Value::Null), Value::from(message));
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&response))));

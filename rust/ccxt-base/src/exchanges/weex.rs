@@ -2881,8 +2881,8 @@ impl Weex {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_14 = self.extend(requestUntil, &[paramsUntil]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_14 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.contract_get_capi_v3_market_funding_rate(&[__ws_arg_14]).await;
         return self.parse_funding_rate_histories(response, &[(market).raw.clone(), since, limit]);
         Value::Null
@@ -3084,8 +3084,8 @@ impl Weex {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("before".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_15 = self.extend(requestUntil, &[paramsUntil]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_15 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.private_get_api_v3_account_transfer_records(&[__ws_arg_15]).await;
         return self.parse_transfers(response, &[currency, since, limit]);
         Value::Null
@@ -3848,9 +3848,9 @@ impl Weex {
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOpenOrders".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isSpot: bool = marketType.as_deref() == Some("spot");
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(paramsMarketType, Value::Str("fetchOpenOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
+        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsMarketType, Value::Str("fetchOpenOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut maxLimit: i64 = 100;
@@ -3900,10 +3900,10 @@ impl Weex {
             }
             let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
             let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-            let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-            let mut trigger: bool = self.safe_bool_k(paramsUntil.clone(), "trigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+            let mut trigger: bool = self.safe_bool_k(&paramsUntil, "trigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if trigger {
-                let mut paramsOmitted: crate::value::Dict = self.omit(paramsUntil.clone(), Value::Str("trigger".into()), &[]).into_dict();
+                let mut paramsOmitted: crate::value::Dict = self.omit(&paramsUntil, Value::Str("trigger".into()), &[]).into_dict();
                 //
                 //     [
                 //         {
@@ -3962,7 +3962,7 @@ impl Weex {
                 //         }
                 //     ]
                 //
-                let __ws_arg_28 = self.extend(requestUntil, &[paramsUntil]);
+                let __ws_arg_28 = self.extend(requestUntil, &[&paramsUntil]);
                 response = self.contract_private_get_capi_v3_open_orders(&[__ws_arg_28]).await;
             }
         }
@@ -4136,8 +4136,8 @@ impl Weex {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_29 = self.extend(requestUntil, &[paramsUntil]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_29 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.private_get_api_v3_all_orders(&[__ws_arg_29]).await;
         return self.parse_orders(response, &[(market).raw.clone(), since, limit]);
         Value::Null
@@ -4181,11 +4181,11 @@ impl Weex {
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchCanceledAndClosedOrders".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.as_deref() == Some("spot")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status \"canceled\" or \"closed\"".into()))));
         }
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(paramsMarketType, Value::Str("fetchCanceledAndClosedOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
+        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsMarketType, Value::Str("fetchCanceledAndClosedOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut maxLimit: i64 = 1000;
@@ -4207,14 +4207,14 @@ impl Weex {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut response: Value = Value::Null;
         if sandboxMode {
-            let __ws_arg_30 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
+            let __ws_arg_30 = self.extend(requestUntil.clone(), &[&paramsUntil]);
             response = self.contract_private_get_capi_v3_sim_order_history(&[__ws_arg_30]).await;
         }  else {
-            let __ws_arg_31 = self.extend(requestUntil, &[paramsUntil]);
+            let __ws_arg_31 = self.extend(requestUntil, &[&paramsUntil]);
             response = self.contract_private_get_capi_v3_order_history(&[__ws_arg_31]).await;
         }
         return self.parse_orders(response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limit]);
@@ -4514,12 +4514,12 @@ impl Weex {
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMyTrades".into()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isSpot: bool = marketType.as_deref() == Some("spot");
         if isSpot && (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchMyTrades() requires a symbol argument for spot markets".into()))));
         }
-        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(paramsMarketType, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
+        let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsMarketType, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut maxLimit: i64 = 100;
@@ -4541,7 +4541,7 @@ impl Weex {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if isSpot {
             //
@@ -4559,7 +4559,7 @@ impl Weex {
             //         }
             //     ]
             //
-            let __ws_arg_33 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
+            let __ws_arg_33 = self.extend(requestUntil.clone(), &[&paramsUntil]);
             response = self.private_get_api_v3_my_trades(&[__ws_arg_33]).await;
         }  else {
             //
@@ -4582,7 +4582,7 @@ impl Weex {
             //         }
             //     ]
             //
-            let __ws_arg_34 = self.extend(requestUntil, &[paramsUntil]);
+            let __ws_arg_34 = self.extend(requestUntil, &[&paramsUntil]);
             response = self.contract_private_get_capi_v3_user_trades(&[__ws_arg_34]).await;
         }
         let mut responseList: Value = Value::from(vec![]);
@@ -4635,7 +4635,7 @@ impl Weex {
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchLedger".into()), &[Value::Null, paramsPaginate]).as_array().cloned().unwrap_or_default();
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4660,7 +4660,7 @@ impl Weex {
             if (limit != Value::Null) {
                 request.insert("limit".into(), limit.clone());
             }
-            let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request.clone()), paramsMarketType.clone(), &[]).as_array().cloned().unwrap_or_default();
+            let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request.clone()), &paramsMarketType, &[]).as_array().cloned().unwrap_or_default();
             let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
             let __ws_arg_35 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
@@ -4673,7 +4673,7 @@ impl Weex {
             if (limit != Value::Null) {
                 request.insert("pageSize".into(), limit.clone());
             }
-            let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request.clone()), paramsMarketType.clone(), &[]).as_array().cloned().unwrap_or_default();
+            let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request.clone()), &paramsMarketType, &[]).as_array().cloned().unwrap_or_default();
             let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
             let __ws_arg_36 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
@@ -4686,7 +4686,7 @@ impl Weex {
             if (limit != Value::Null) {
                 request.insert("limit".into(), limit.clone());
             }
-            let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("before".into()), Value::Map(request), paramsMarketType, &[]).as_array().cloned().unwrap_or_default();
+            let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("before".into()), Value::Map(request), &paramsMarketType, &[]).as_array().cloned().unwrap_or_default();
             let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
             let __ws_arg_37 = self.extend(requestUntil, &[paramsUntil]);
@@ -4867,7 +4867,7 @@ impl Weex {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), paramsPaginate.clone(), &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         // the exchange rejects startTime and endTime when either is sent alone, they only work as a pair
         let mut hasSince: bool = since != Value::Null;
         let mut until: Option<i64> = self.safe_integer2(paramsPaginate, Value::Str("until".into()), Value::Str("till".into()), &[]).as_i64();
@@ -4877,7 +4877,7 @@ impl Weex {
         }  else if hasUntil && !hasSince {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchFundingHistory() requires since to be set when until is used".into()))));
         }
-        let __ws_arg_38 = self.extend(requestUntil, &[paramsUntil]);
+        let __ws_arg_38 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.contract_private_post_capi_v3_account_income(&[__ws_arg_38]).await.into_dict();
         //
         //     {

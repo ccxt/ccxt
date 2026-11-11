@@ -1268,7 +1268,7 @@ impl Pacifica {
 }));
         let userAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.parent.handle_origin_and_single_address(Value::Str("watchMyTrades".into()), params).as_array().cloned().unwrap_or_default();
         let mut userAddress: Value = userAddressparamsOriginAndSingleAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsOriginAndSingleAddress: Value = userAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsOriginAndSingleAddress: crate::value::Dict = userAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1306,7 +1306,7 @@ impl Pacifica {
 }));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[paramsOriginAndSingleAddress]);
+        let mut message: Value = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
         let mut trades: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[message, Value::from(messageHash)]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -1346,7 +1346,7 @@ impl Pacifica {
         }
         let userAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.parent.handle_origin_and_single_address(Value::Str("unWatchMyTrades".into()), params).as_array().cloned().unwrap_or_default();
         let mut userAddress: Value = userAddressparamsOriginAndSingleAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsOriginAndSingleAddress: Value = userAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsOriginAndSingleAddress: crate::value::Dict = userAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageHash: String = "unsubscribe:myTrades".to_string();
         let mut isTestnet: Value = self.isSandboxModeEnabled.clone();
         let mut urlKey: String = "api".to_string();
@@ -1376,7 +1376,7 @@ impl Pacifica {
 }));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[paramsOriginAndSingleAddress]);
+        let mut message: Value = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
         return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[message, Value::from(messageHash)]).await;
         Value::Null
         }).await?))
@@ -1992,7 +1992,7 @@ impl Pacifica {
         }
         let userAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.parent.handle_origin_and_single_address(Value::Str("watchOrders".into()), params).as_array().cloned().unwrap_or_default();
         let mut userAddress: Value = userAddressparamsOriginAndSingleAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsOriginAndSingleAddress: Value = userAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsOriginAndSingleAddress: crate::value::Dict = userAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut market: Option<crate::types::Market> = None;
         let mut messageHash: String = "order".to_string();
         let mut symbolResolved: Value = Value::Null;
@@ -2029,7 +2029,7 @@ impl Pacifica {
 }));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[paramsOriginAndSingleAddress]);
+        let mut message: Value = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
         let mut orders: Value = self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[message, Value::from(messageHash)]).await;
         let mut limitResolved: Value = limit.clone();
         if self.newUpdates.as_bool() == Some(true) {
@@ -2087,7 +2087,7 @@ impl Pacifica {
         }
         let userAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.parent.handle_origin_and_single_address(Value::Str("unWatchOrders".into()), params).as_array().cloned().unwrap_or_default();
         let mut userAddress: Value = userAddressparamsOriginAndSingleAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsOriginAndSingleAddress: Value = userAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsOriginAndSingleAddress: crate::value::Dict = userAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("unsubscribe".into()));
@@ -2099,7 +2099,7 @@ impl Pacifica {
 }));
             m
         });
-        let mut message: Value = self.extend(Value::Map(request), &[paramsOriginAndSingleAddress]);
+        let mut message: Value = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
         return self.watch(url.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()), &[message, Value::from(messageHash)]).await;
         Value::Null
         }).await?))

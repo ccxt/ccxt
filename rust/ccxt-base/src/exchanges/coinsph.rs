@@ -2797,13 +2797,13 @@ impl Coinsph {
 }));
         let tagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tag: Value = tagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsWithdrawTag: Value = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "withdraw", &[]).into_dict();
-        let mut warning: bool = self.safe_bool_k(&options, "warning", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut paramsWithdrawTag: crate::value::Dict = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut options: Value = self.safe_dict_k(self.options.clone(), "withdraw", &[]);
+        let mut warning: bool = self.safe_bool_k(options, "warning", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         if warning {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", self.id.clone(), Value::Str(" withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account".into()))));
         }
-        let mut networkCode: Option<String> = self.safe_string_k(paramsWithdrawTag.clone(), "network", &[]).as_str().map(str::to_owned);
+        let mut networkCode: Option<String> = self.safe_string_k(&paramsWithdrawTag, "network", &[]).as_str().map(str::to_owned);
         let mut networkId: Option<String> = (if (networkCode.is_none()) { None } else { self.network_code_to_id(networkCode.clone().map(Value::from).unwrap_or(Value::Null), &[code.clone()]).as_str().map(str::to_owned) });
         if (networkId.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" withdraw() require network parameter".into()))));
@@ -2823,7 +2823,7 @@ impl Coinsph {
         if (tag != Value::Null) {
             request.insert("withdrawOrderId".into(), tag);
         }
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsWithdrawTag, Value::Str("network".into()), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsWithdrawTag, Value::Str("network".into()), &[]).into_dict();
         let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_post_openapi_wallet_v1_withdraw_apply(&[__ws_arg_19]).await;
         return self.parse_transaction(response, &[currency]);

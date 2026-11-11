@@ -1420,8 +1420,8 @@ impl Dydx {
     pub fn handle_public_address(&self, mut methodName: Value, mut params: Value) -> Value {
         let userAuxparamsUserVariable: Vec<Value> = self.handle_option_string_and_params(params, methodName.clone(), Value::Str("user".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut userAux: Value = userAuxparamsUserVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUser: Value = userAuxparamsUserVariable.get(1).cloned().unwrap_or(Value::Null);
-        let userparamsAddressVariable: Vec<Value> = self.handle_option_string_and_params(paramsUser, methodName.clone(), Value::Str("address".into()), &[userAux]).as_array().cloned().unwrap_or_default();
+        let mut paramsUser: crate::value::Dict = userAuxparamsUserVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let userparamsAddressVariable: Vec<Value> = self.handle_option_string_and_params(&paramsUser, methodName.clone(), Value::Str("address".into()), &[userAux]).as_array().cloned().unwrap_or_default();
         let mut user: Value = userparamsAddressVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsAddress: Value = userparamsAddressVariable.get(1).cloned().unwrap_or(Value::Null);
         if (user != Value::Null) && (user.as_str() != Some("")) {
@@ -1596,8 +1596,8 @@ impl Dydx {
 }));
         let userAddressparamsPublicAddressVariable: Vec<Value> = self.handle_public_address(Value::Str("fetchOrders".into()), params).as_array().cloned().unwrap_or_default();
         let mut userAddress: Value = userAddressparamsPublicAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPublicAddress: Value = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null);
-        let subAccountNumberparamsSubAccountNumberVariable: Vec<Value> = self.handle_option_string_and_params(paramsPublicAddress, Value::Str("fetchOrders".into()), Value::Str("subAccountNumber".into()), &[Value::Str("0".into())]).as_array().cloned().unwrap_or_default();
+        let mut paramsPublicAddress: crate::value::Dict = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let subAccountNumberparamsSubAccountNumberVariable: Vec<Value> = self.handle_option_string_and_params(&paramsPublicAddress, Value::Str("fetchOrders".into()), Value::Str("subAccountNumber".into()), &[Value::Str("0".into())]).as_array().cloned().unwrap_or_default();
         let mut subAccountNumber: Value = subAccountNumberparamsSubAccountNumberVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSubAccountNumber: crate::value::Dict = subAccountNumberparamsSubAccountNumberVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
@@ -1814,8 +1814,8 @@ impl Dydx {
 }));
         let userAddressparamsPublicAddressVariable: Vec<Value> = self.handle_public_address(Value::Str("fetchPositions".into()), params).as_array().cloned().unwrap_or_default();
         let mut userAddress: Value = userAddressparamsPublicAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPublicAddress: Value = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null);
-        let subAccountNumberparamsSubAccountNumberVariable: Vec<Value> = self.handle_option_string_and_params(paramsPublicAddress, Value::Str("fetchPositions".into()), Value::Str("subAccountNumber".into()), &[Value::Str("0".into())]).as_array().cloned().unwrap_or_default();
+        let mut paramsPublicAddress: crate::value::Dict = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let subAccountNumberparamsSubAccountNumberVariable: Vec<Value> = self.handle_option_string_and_params(&paramsPublicAddress, Value::Str("fetchPositions".into()), Value::Str("subAccountNumber".into()), &[Value::Str("0".into())]).as_array().cloned().unwrap_or_default();
         let mut subAccountNumber: Value = subAccountNumberparamsSubAccountNumberVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSubAccountNumber: crate::value::Dict = subAccountNumberparamsSubAccountNumberVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
@@ -2392,12 +2392,12 @@ impl Dydx {
         // default is 30 days
         let goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable: Vec<Value> = self.handle_option_integer_and_params(paramsOmitted, Value::Str("cancelOrder".into()), Value::Str("goodTillBlockTimeInSeconds".into()), &[Value::from(goodTillBlockTimeInSeconds)]).as_array().cloned().unwrap_or_default();
         let mut goodTillBlockTimeInSecondsOption: Value = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsGoodTillBlockTimeInSeconds: Value = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsGoodTillBlockTimeInSeconds: crate::value::Dict = goodTillBlockTimeInSecondsOptionparamsGoodTillBlockTimeInSecondsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut goodTillBlockTime: Value = Value::Null;
         let mut defaultOrderFlags: Value = (if isTrigger { Value::Int(32) } else { Value::Int(64) });
-        let mut orderFlags: Value = self.safe_integer_k(paramsGoodTillBlockTimeInSeconds.clone(), "orderFlags", &[defaultOrderFlags]);
+        let mut orderFlags: Value = self.safe_integer_k(&paramsGoodTillBlockTimeInSeconds, "orderFlags", &[defaultOrderFlags]);
         let mut subAccountId: i64 = 0;
-        let subAccountIdOptionVariable: Vec<Value> = self.handle_option_integer_and_params(paramsGoodTillBlockTimeInSeconds, Value::Str("cancelOrder".into()), Value::Str("subAccountId".into()), &[Value::from(subAccountId)]).as_array().cloned().unwrap_or_default();
+        let subAccountIdOptionVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsGoodTillBlockTimeInSeconds, Value::Str("cancelOrder".into()), Value::Str("subAccountId".into()), &[Value::from(subAccountId)]).as_array().cloned().unwrap_or_default();
         let mut subAccountIdOption: Value = subAccountIdOptionVariable.get(0).cloned().unwrap_or(Value::Null);
         if (orderFlags.as_f64() != Some(0.0)) && (orderFlags.as_f64() != Some(64.0)) && (orderFlags.as_f64() != Some(32.0)) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" invalid orderFlags, allowed values are (0, 64, 32).".into()))));
@@ -2752,11 +2752,11 @@ impl Dydx {
         //     }
         // }
         //
-        let mut gasInfo: Value = self.safe_dict_k(&response, "gas_info", &[]);
-        if (gasInfo == Value::Null) {
+        let mut gasInfo: Option<crate::value::Dict> = self.safe_dict_k(&response, "gas_info", &[]).into_opt_dict();
+        if (gasInfo.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" failed to simulate transaction.".into()))));
         }
-        let mut gasUsed: Option<String> = self.safe_string_k(gasInfo, "gas_used", &[]).as_str().map(str::to_owned);
+        let mut gasUsed: Option<String> = self.safe_string_k(&gasInfo, "gas_used", &[]).as_str().map(str::to_owned);
         if (gasUsed.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" failed to simulate transaction.".into()))));
         }
@@ -3094,7 +3094,7 @@ impl Dydx {
 }));
         let tagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tag: Value = tagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsWithdrawTag: Value = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: crate::value::Dict = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (code.as_str() != Some("USDC")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" withdraw() only support USDC".into()))));
         }
@@ -3102,7 +3102,7 @@ impl Dydx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.check_address(&[address.clone()]);
-        let mut subaccountId: Option<i64> = self.safe_integer_k(paramsWithdrawTag, "subaccountId", &[]).as_i64();
+        let mut subaccountId: Option<i64> = self.safe_integer_k(&paramsWithdrawTag, "subaccountId", &[]).as_i64();
         if (subaccountId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw requires subaccountId.".into()))));
         }
@@ -3293,8 +3293,8 @@ impl Dydx {
 }));
         let userAddressparamsPublicAddressVariable: Vec<Value> = self.handle_public_address(methodName.clone(), params).as_array().cloned().unwrap_or_default();
         let mut userAddress: Value = userAddressparamsPublicAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPublicAddress: Value = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null);
-        let subAccountNumberparamsSubAccountNumberVariable: Vec<Value> = self.handle_option_string_and_params(paramsPublicAddress, methodName, Value::Str("subAccountNumber".into()), &[Value::Str("0".into())]).as_array().cloned().unwrap_or_default();
+        let mut paramsPublicAddress: crate::value::Dict = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let subAccountNumberparamsSubAccountNumberVariable: Vec<Value> = self.handle_option_string_and_params(&paramsPublicAddress, methodName, Value::Str("subAccountNumber".into()), &[Value::Str("0".into())]).as_array().cloned().unwrap_or_default();
         let mut subAccountNumber: Value = subAccountNumberparamsSubAccountNumberVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSubAccountNumber: crate::value::Dict = subAccountNumberparamsSubAccountNumberVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3355,13 +3355,13 @@ impl Dydx {
 }));
         let userAddressparamsPublicAddressVariable: Vec<Value> = self.handle_public_address(Value::Str("fetchAccounts".into()), params).as_array().cloned().unwrap_or_default();
         let mut userAddress: Value = userAddressparamsPublicAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPublicAddress: Value = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPublicAddress: crate::value::Dict = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("address".to_string(), userAddress);
             m
         });
-        let __ws_arg_11 = self.extend(Value::Map(request), &[paramsPublicAddress]);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsPublicAddress]);
         let mut response: crate::value::Dict = self.indexer_get_addresses_address(&[__ws_arg_11]).await.into_dict();
         //
         // {
@@ -3454,8 +3454,8 @@ impl Dydx {
         }
         let userAddressparamsPublicAddressVariable: Vec<Value> = self.handle_public_address(Value::Str("fetchBalance".into()), params).as_array().cloned().unwrap_or_default();
         let mut userAddress: Value = userAddressparamsPublicAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPublicAddress: Value = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null);
-        let subaccountNumberparamsSubaccountNumberVariable: Vec<Value> = self.handle_option_integer_and_params(paramsPublicAddress, Value::Str("fetchBalance".into()), Value::Str("subaccountNumber".into()), &[Value::Int(0)]).as_array().cloned().unwrap_or_default();
+        let mut paramsPublicAddress: crate::value::Dict = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let subaccountNumberparamsSubaccountNumberVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsPublicAddress, Value::Str("fetchBalance".into()), Value::Str("subaccountNumber".into()), &[Value::Int(0)]).as_array().cloned().unwrap_or_default();
         let mut subaccountNumber: Value = subaccountNumberparamsSubaccountNumberVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSubaccountNumber: crate::value::Dict = subaccountNumberparamsSubaccountNumberVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3563,10 +3563,10 @@ impl Dydx {
         if (self.walletAddress.clone() != Value::Null) && (self.walletAddress.as_str() != Some("")) {
             return self.walletAddress.clone();
         }
-        let mut dydxAccount: Value = self.safe_dict_k(self.options.clone(), "dydxAccount", &[]);
-        if (dydxAccount != Value::Null) {
+        let mut dydxAccount: Option<crate::value::Dict> = self.safe_dict_k(self.options.clone(), "dydxAccount", &[]).into_opt_dict();
+        if (dydxAccount.is_some()) {
             // return dydxAccount;
-            let mut wallet: Option<String> = self.safe_string_k(dydxAccount, "address", &[]).as_str().map(str::to_owned);
+            let mut wallet: Option<String> = self.safe_string_k(&dydxAccount, "address", &[]).as_str().map(str::to_owned);
             if (wallet.is_some()) {
                 return wallet.map(Value::from).unwrap_or(Value::Null);
             }

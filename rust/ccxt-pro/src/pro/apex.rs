@@ -614,14 +614,13 @@ impl Apex {
         // connection is now reused across watch* calls, filter to only the
         // topics whose messageHash isn't yet tracked on this client; if all
         // are already subscribed, skip the subscribe entirely.
-        let mut client: Value = self.client(&[url.clone()]);
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
         let mut newTopics: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (topics.len() as i64) } {
-            if !(in_op(&__ch.subscriptions.clone(), &messageHashes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null))) {
+            if !(client.has_subscription(&messageHashes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null))) {
                 newTopics.push(topics.get(i as usize).cloned().unwrap_or(Value::Null));
             }
         }
@@ -812,7 +811,7 @@ impl Apex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
+        let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut url: Value = self.get_ws_public_url();
         let mut topics: Vec<Value> = Vec::new();
@@ -820,7 +819,7 @@ impl Apex {
                         let mut i: i64 = 0;
             let mut __for_first_6: bool = true;
             while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut symbol: Option<String> = symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut symbol: Option<String> = symbolsNormalized.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
             let mut marketId: String = self.safe_string_k(market, "id2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("instrumentInfo".into()), Value::Str(".H.".into())).into()), marketId).into()));
@@ -840,7 +839,7 @@ impl Apex {
             }
             return Value::Map(result);
         }
-        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized]);
+        return self.filter_by_array(self.tickers.clone(), Value::Str("symbol".into()), &[Value::Arr(symbolsNormalized)]);
         Value::Null
         }).await?))
     }
@@ -1031,7 +1030,7 @@ impl Apex {
         let mut timeframe: Value = self.find_timeframe(timeframeId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut marketId: Option<String> = self.safe_string(topicParts, (match (&(topicLength), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
             _ => Value::Null }), &[]).as_str().map(str::to_owned);
-        let mut isSpot: bool = __ch.url.clone().as_str().unwrap_or("").contains("spot");
+        let mut isSpot: bool = __ch.url.as_str().unwrap_or("").contains("spot");
         let mut marketType: String = "contract".to_string();
         if isSpot {
             marketType = "spot".to_string();
@@ -1153,9 +1152,9 @@ impl Apex {
         }
         let mut url: Value = self.get_ws_private_url();
         messageHash = format!("{}{}", Value::Str("positions".into()), messageHash);
-        let mut client: Value = self.client(&[url.clone()]);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
         self.authenticate(url.clone(), &[]).await;
-        self.set_positions_cache(client.clone(), &[symbolsNormalized2.clone()]);
+        self.set_positions_cache(client.as_value(), &[symbolsNormalized2.clone()]);
         let mut cache: Value = self.positions.clone();
         if (cache == Value::Null) {
             let mut snapshot: Value = crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str("fetchPositionsSnapshot".into())])).await;
@@ -1348,7 +1347,7 @@ impl Apex {
         let mut messageHash: Value = Value::Str("fetchPositionsSnapshot".into());
         if !(__ch.has_future(&messageHash)) {
             client.future(&[messageHash.clone()]);
-            self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client.clone(), messageHash.clone()]);
+            self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client, messageHash.clone()]);
         }
 }
 
@@ -1468,10 +1467,9 @@ impl Apex {
         let mut messageString: String = format!("{}{}", Value::Str(format!("{}{}", timestamp, http_method).into()), request_path);
         let mut signature: Value = self.hmac(self.encode(Value::from(messageString)), self.encode(self.string_to_base64(self.secret.clone(), &[])), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
         let mut messageHash: String = "authenticated".to_string();
-        let mut client: Value = self.client(&[url.clone()]);
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
         let mut future: Value = client.reusable_future(Value::from(messageHash.clone()));
-        let mut authenticated: Value = self.safe_value(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[]);
+        let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             // auth sign
             let mut request: Value = Value::Map({

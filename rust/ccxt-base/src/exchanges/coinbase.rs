@@ -1966,29 +1966,29 @@ impl Coinbase {
         //    }
         //
         let mut transactionType: Option<String> = self.safe_string_k(transaction.clone(), "type", &[]).as_str().map(str::to_owned);
-        let mut amountAndCurrencyObject: Value = Value::Null;
-        let mut feeObject: Value = Value::Null;
+        let mut amountAndCurrencyObject: Option<crate::value::Dict> = None;
+        let mut feeObject: Option<crate::value::Dict> = None;
         let mut network: crate::value::Dict = self.safe_dict_k(transaction.clone(), "network", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
         if (transactionType.as_deref() == Some("send")) {
-            amountAndCurrencyObject = self.safe_dict_k(&network, "transaction_amount", &[]);
+            amountAndCurrencyObject = self.safe_dict_k(&network, "transaction_amount", &[]).into_opt_dict();
             feeObject = self.safe_dict_k(&network, "transaction_fee", &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                m
-            })]);
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).into_opt_dict();
         }  else {
-            amountAndCurrencyObject = self.safe_dict_k(transaction.clone(), "subtotal", &[]);
+            amountAndCurrencyObject = self.safe_dict_k(transaction.clone(), "subtotal", &[]).into_opt_dict();
             feeObject = self.safe_dict_k(transaction.clone(), "fee", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_opt_dict();
         }
-        if (amountAndCurrencyObject == Value::Null) {
-            amountAndCurrencyObject = self.safe_dict_k(transaction.clone(), "amount", &[]);
+        if (amountAndCurrencyObject.is_none()) {
+            amountAndCurrencyObject = self.safe_dict_k(transaction.clone(), "amount", &[]).into_opt_dict();
         }
-        let mut amountString: Option<String> = self.safe_string_k(amountAndCurrencyObject.clone(), "amount", &[]).as_str().map(str::to_owned);
+        let mut amountString: Option<String> = self.safe_string_k(&amountAndCurrencyObject, "amount", &[]).as_str().map(str::to_owned);
         let mut amountStringAbs: Value = crate::precise::Precise::stringAbs(&amountString.clone().map(Value::from).unwrap_or(Value::Null));
         let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[])).map(Value::from).unwrap_or(Value::Null);
         if (status == Value::Null) {
@@ -1996,8 +1996,8 @@ impl Coinbase {
             status = (if committed { Value::Str("ok".into()) } else { Value::Str("pending".into()) });
         }
         let mut id: Option<String> = self.safe_string_k(transaction.clone(), "id", &[]).as_str().map(str::to_owned);
-        let mut currencyId: Option<String> = self.safe_string_k(amountAndCurrencyObject, "currency", &[]).as_str().map(str::to_owned);
-        let mut feeCurrencyId: Option<String> = self.safe_string_k(feeObject.clone(), "currency", &[]).as_str().map(str::to_owned);
+        let mut currencyId: Option<String> = self.safe_string_k(&amountAndCurrencyObject, "currency", &[]).as_str().map(str::to_owned);
+        let mut feeCurrencyId: Option<String> = self.safe_string_k(&feeObject, "currency", &[]).as_str().map(str::to_owned);
         let mut datetime: Option<String> = self.safe_string_k(transaction.clone(), "created_at", &[]).as_str().map(str::to_owned);
         let mut resource: Option<String> = self.safe_string_k_opt(transaction.clone(), "resource", &[]);
         let mut type_var: Value = resource.map(Value::from).unwrap_or(Value::Null);
@@ -2033,7 +2033,7 @@ impl Coinbase {
         m.insert("updated".to_string(), self.parse8601(self.safe_string_k(transaction, "updated_at", &[])));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), self.safe_number_k(feeObject, "amount", &[]));
+        m.insert("cost".to_string(), self.safe_number_k(&feeObject, "amount", &[]));
         m.insert("currency".to_string(), self.safe_currency_code(feeCurrencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]));
     m
 }));
@@ -3289,12 +3289,12 @@ if _try_result.is_err() {
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), &[self.get_market_from_symbols(&[symbolsNormalized.clone()]), params, Value::Str("default".into())]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketType.is_some()) && (marketType.as_deref() != Some("default")) {
             request.insert("product_type".into(), (if (marketType.as_deref() == Some("swap")) { Value::Str("FUTURE".into()) } else { Value::Str("SPOT".into()) }));
         }
         let mut response: Value = Value::Null;
-        let usePrivateparamsUsePrivateVariable: Vec<Value> = self.handle_option_bool_and_params(paramsMarketType, Value::Str("fetchTickers".into()), Value::Str("usePrivate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
+        let usePrivateparamsUsePrivateVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsMarketType, Value::Str("fetchTickers".into()), Value::Str("usePrivate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut usePrivate: bool = usePrivateparamsUsePrivateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUsePrivate: crate::value::Dict = usePrivateparamsUsePrivateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if usePrivate {
@@ -3699,11 +3699,11 @@ if _try_result.is_err() {
             let mut balance: crate::value::Dict = self.safe_dict(balances.clone(), Value::Int(b), &[]).into_dict();
             let mut type_var: Option<String> = self.safe_string_k(&balance, "type", &[]).as_str().map(str::to_owned);
             if self.in_array(type_var.clone().map(Value::from).unwrap_or(Value::Null), accounts.clone()).as_bool() == Some(true) {
-                let mut value: Value = self.safe_dict_k(&balance, "balance", &[]);
-                if (value != Value::Null) {
-                    let mut currencyId: Option<String> = self.safe_string_k_opt(value.clone(), "currency", &[]);
+                let mut value: Option<crate::value::Dict> = self.safe_dict_k(&balance, "balance", &[]).into_opt_dict();
+                if (value.is_some()) {
+                    let mut currencyId: Option<String> = self.safe_string_k_opt(&value, "currency", &[]);
                     let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
-                    let mut total: Option<String> = self.safe_string_k_opt(value, "amount", &[]);
+                    let mut total: Option<String> = self.safe_string_k_opt(&value, "amount", &[]);
                     let mut free: Value = total.clone().map(Value::from).unwrap_or(Value::Null);
                     let mut account: Value = self.safe_dict(Value::Map(result.clone()), code.clone(), &[]);
                     if (account == Value::Null) {
@@ -3729,13 +3729,13 @@ if _try_result.is_err() {
                     }
                 }
             }  else if self.in_array(type_var.clone().map(Value::from).unwrap_or(Value::Null), v3Accounts.clone()).as_bool() == Some(true) {
-                let mut available: Value = self.safe_dict_k(&balance, "available_balance", &[]);
-                let mut hold: Value = self.safe_dict_k(&balance, "hold", &[]);
-                if (available != Value::Null) && (hold != Value::Null) {
-                    let mut currencyId: Option<String> = self.safe_string_k_opt(available.clone(), "currency", &[]);
+                let mut available: Option<crate::value::Dict> = self.safe_dict_k(&balance, "available_balance", &[]).into_opt_dict();
+                let mut hold: Option<crate::value::Dict> = self.safe_dict_k(&balance, "hold", &[]).into_opt_dict();
+                if (available.is_some()) && (hold.is_some()) {
+                    let mut currencyId: Option<String> = self.safe_string_k_opt(&available, "currency", &[]);
                     let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
-                    let mut used: Option<String> = self.safe_string_k_opt(hold, "value", &[]);
-                    let mut free: Option<String> = self.safe_string_k_opt(available, "value", &[]);
+                    let mut used: Option<String> = self.safe_string_k_opt(&hold, "value", &[]);
+                    let mut free: Option<String> = self.safe_string_k_opt(&available, "value", &[]);
                     let mut total: Value = crate::precise::Precise::stringAdd(&used.clone().map(Value::from).unwrap_or(Value::Null), &free.clone().map(Value::from).unwrap_or(Value::Null));
                     let mut account: Value = self.safe_dict(Value::Map(result.clone()), code.clone(), &[]);
                     if (account == Value::Null) {
@@ -4224,11 +4224,11 @@ if _try_result.is_err() {
     m
 })]).into_dict();
         // txid = network['hash']; // txid does not belong to the unified ledger structure
-        let mut feeInfo: Value = self.safe_dict_k(&networkInfo, "transaction_fee", &[]);
-        if (feeInfo != Value::Null) {
-            let mut feeCurrencyId: Option<String> = self.safe_string_k(feeInfo.clone(), "currency", &[]).as_str().map(str::to_owned);
+        let mut feeInfo: Option<crate::value::Dict> = self.safe_dict_k(&networkInfo, "transaction_fee", &[]).into_opt_dict();
+        if (feeInfo.is_some()) {
+            let mut feeCurrencyId: Option<String> = self.safe_string_k(&feeInfo, "currency", &[]).as_str().map(str::to_owned);
             let mut feeCurrencyCode: Option<String> = self.safe_currency_code(feeCurrencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currencyResolved.clone()]).as_str().map(str::to_owned);
-            let mut feeAmount: Option<f64> = self.safe_number_k(feeInfo, "amount", &[]).as_f64();
+            let mut feeAmount: Option<f64> = self.safe_number_k(&feeInfo, "amount", &[]).as_f64();
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), Value::from(feeAmount));
@@ -4687,10 +4687,10 @@ if _try_result.is_err() {
         //
         let mut success: bool = self.safe_bool_k(response.clone(), "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if !success {
-            let mut errorResponse: Value = self.safe_dict_k(response.clone(), "error_response", &[]);
-            let mut errorTitle: Option<String> = self.safe_string_k(errorResponse.clone(), "error", &[]).as_str().map(str::to_owned);
-            let mut errorMessage: Option<String> = self.safe_string_k(errorResponse.clone(), "message", &[]).as_str().map(str::to_owned);
-            if (errorResponse != Value::Null) {
+            let mut errorResponse: Option<crate::value::Dict> = self.safe_dict_k(response.clone(), "error_response", &[]).into_opt_dict();
+            let mut errorTitle: Option<String> = self.safe_string_k(&errorResponse, "error", &[]).as_str().map(str::to_owned);
+            let mut errorMessage: Option<String> = self.safe_string_k(&errorResponse, "message", &[]).as_str().map(str::to_owned);
+            if (errorResponse.is_some()) {
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorTitle.clone().map(Value::from).unwrap_or(Value::Null), errorMessage.clone().map(Value::from).unwrap_or(Value::Null));
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorTitle.clone().map(Value::from).unwrap_or(Value::Null), errorMessage.clone().map(Value::from).unwrap_or(Value::Null));
                 panic!("{}", crate::exchange_errors::exchange_error(errorMessage.clone().map(Value::from).unwrap_or(Value::Null)));
@@ -5508,7 +5508,7 @@ if _try_result.is_err() {
             m
         });
         let mut until: Value = self.safe_integer2(paramsPaginate.clone(), Value::Str("until".into()), Value::Str("end".into()), &[]);
-        let mut paramsOmitted: Value = self.omit(paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(paramsPaginate, Value::from(vec![Value::Str("until".into())]), &[]).into_dict();
         let mut duration: Value = self.parse_timeframe(timeframe.clone());
         let mut requestedDuration: Value = (match (&(limitValue), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         let mut sinceString: Value = Value::Null;
@@ -5531,7 +5531,7 @@ if _try_result.is_err() {
             request.insert("end".into(), windowEnd.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let mut response: Value = Value::Null;
-        let usePrivateparamsUsePrivateVariable: Vec<Value> = self.handle_option_bool_and_params(paramsOmitted, Value::Str("fetchOHLCV".into()), Value::Str("usePrivate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
+        let usePrivateparamsUsePrivateVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsOmitted, Value::Str("fetchOHLCV".into()), Value::Str("usePrivate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut usePrivate: bool = usePrivateparamsUsePrivateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUsePrivate: crate::value::Dict = usePrivateparamsUsePrivateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if usePrivate {
@@ -5611,14 +5611,14 @@ if _try_result.is_err() {
         }
         let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchTrades".into()), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (until != Value::Null) {
             request.insert("end".into(), self.number_to_string(self.parse_to_int((match ((until).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }  else if (since != Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchTrades() requires a `until` parameter when you use `since` argument".into()))));
         }
         let mut response: Value = Value::Null;
-        let usePrivateparamsUsePrivateVariable: Vec<Value> = self.handle_option_bool_and_params(paramsUntil, Value::Str("fetchTrades".into()), Value::Str("usePrivate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
+        let usePrivateparamsUsePrivateVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsUntil, Value::Str("fetchTrades".into()), Value::Str("usePrivate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut usePrivate: bool = usePrivateparamsUsePrivateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUsePrivate: crate::value::Dict = usePrivateparamsUsePrivateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if usePrivate {
@@ -7421,9 +7421,9 @@ if _try_result.is_err() {
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorMessage.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
         }
-        let mut errorResponse: Value = self.safe_dict_k(response.clone(), "error_response", &[]);
-        if (errorResponse != Value::Null) {
-            let mut errorMessageInner: Option<String> = self.safe_string2(errorResponse, Value::Str("preview_failure_reason".into()), Value::Str("preview_failure_reason".into()), &[]).as_str().map(str::to_owned);
+        let mut errorResponse: Option<crate::value::Dict> = self.safe_dict_k(response.clone(), "error_response", &[]).into_opt_dict();
+        if (errorResponse.is_some()) {
+            let mut errorMessageInner: Option<String> = self.safe_string2(&errorResponse, Value::Str("preview_failure_reason".into()), Value::Str("preview_failure_reason".into()), &[]).as_str().map(str::to_owned);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorMessageInner.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorMessageInner.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));

@@ -1850,7 +1850,7 @@ impl Blofin {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         // the endpoint returns the latest trades only and ignores 'after' / 'before', so there is no cursor to paginate with
-        let mut paramsNoPaginate: Value = self.omit(params, Value::Str("paginate".into()), &[]);
+        let mut paramsNoPaginate: crate::value::Dict = self.omit(params, Value::Str("paginate".into()), &[]).into_dict();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1861,7 +1861,7 @@ impl Blofin {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone()); // default 100
         }
-        let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(paramsNoPaginate, Value::Str("fetchTrades".into()), Value::Str("method".into()), &[Value::Str("publicGetMarketTrades".into())]).as_array().cloned().unwrap_or_default();
+        let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(&paramsNoPaginate, Value::Str("fetchTrades".into()), Value::Str("method".into()), &[Value::Str("publicGetMarketTrades".into())]).as_array().cloned().unwrap_or_default();
         let mut method: Option<String> = methodparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: crate::value::Dict = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (method.as_deref() == Some("publicGetMarketTrades")) {
@@ -2372,22 +2372,22 @@ impl Blofin {
         if postOnly.as_bool() == Some(true) {
             request.insert("type".into(), Value::Str("post_only".into()));
         }
-        let mut stopLoss: Value = self.safe_dict_k(query.clone(), "stopLoss", &[]);
-        let mut takeProfit: Value = self.safe_dict_k(query.clone(), "takeProfit", &[]);
+        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(query.clone(), "stopLoss", &[]).into_opt_dict();
+        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(query.clone(), "takeProfit", &[]).into_opt_dict();
         query = self.omit(query.clone(), Value::from(vec![Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("hedged".into())]), &[]);
-        let mut hasStopLoss: bool = stopLoss != Value::Null;
-        let mut hasTakeProfit: bool = takeProfit != Value::Null;
+        let mut hasStopLoss: bool = stopLoss.is_some();
+        let mut hasTakeProfit: bool = takeProfit.is_some();
         if hasStopLoss || hasTakeProfit {
             if hasStopLoss {
-                let mut slTriggerPrice: Option<String> = self.safe_string2(stopLoss.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
+                let mut slTriggerPrice: Option<String> = self.safe_string2(&stopLoss, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
                 request.insert("slTriggerPrice".into(), self.price_to_precision(symbol.clone(), slTriggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
-                let mut slOrderPrice: String = self.safe_string_k(stopLoss, "price", &[Value::Str("-1".into())]).as_str().unwrap_or("-1").to_string();
+                let mut slOrderPrice: String = self.safe_string_k(&stopLoss, "price", &[Value::Str("-1".into())]).as_str().unwrap_or("-1").to_string();
                 request.insert("slOrderPrice".into(), self.price_to_precision(symbol.clone(), Value::from(slOrderPrice)));
             }
             if hasTakeProfit {
-                let mut tpTriggerPrice: Option<String> = self.safe_string2(takeProfit.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
+                let mut tpTriggerPrice: Option<String> = self.safe_string2(&takeProfit, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_str().map(str::to_owned);
                 request.insert("tpTriggerPrice".into(), self.price_to_precision(symbol.clone(), tpTriggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
-                let mut tpPrice: String = self.safe_string_k(takeProfit, "price", &[Value::Str("-1".into())]).as_str().unwrap_or("-1").to_string();
+                let mut tpPrice: String = self.safe_string_k(&takeProfit, "price", &[Value::Str("-1".into())]).as_str().unwrap_or("-1").to_string();
                 request.insert("tpOrderPrice".into(), self.price_to_precision(symbol.clone(), Value::from(tpPrice)));
             }
         }  else if (triggerPriceAny.is_some()) {
@@ -3569,8 +3569,8 @@ impl Blofin {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut networkKeys: Value = Value::Array(networks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
-            let mut onlyNetwork: Option<String> = self.safe_string(networkKeys, Value::Int(0), &[]).as_str().map(str::to_owned);
+            let mut networkKeys: crate::value::List = Value::Array(networks.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).into_list();
+            let mut onlyNetwork: Option<String> = self.safe_string(&networkKeys, Value::Int(0), &[]).as_str().map(str::to_owned);
             if (onlyNetwork.is_some()) {
                 let mut networkResolved: indexmap::IndexMap<String, Value> = self.safe_dict(networks, onlyNetwork.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3845,8 +3845,8 @@ impl Blofin {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_26 = self.extend(requestUntil, &[paramsUntil]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_26 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_get_asset_bills(&[__ws_arg_26]).await.into_dict();
         let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         return self.parse_ledger(data, &[currency, since, limit]);

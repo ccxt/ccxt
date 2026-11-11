@@ -2929,8 +2929,8 @@ impl Kraken {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut orderDescriptionObj: Value = self.safe_dict_k(orderOmitted.clone(), "descr", &[]); // can be null
-        let mut orderDescription: Value = (if (orderDescriptionObj != Value::Null) { self.safe_string_k(orderDescriptionObj, "order", &[]) } else { self.safe_string_k(orderOmitted.clone(), "descr", &[]) });
+        let mut orderDescriptionObj: Option<crate::value::Dict> = self.safe_dict_k(orderOmitted.clone(), "descr", &[]).into_opt_dict(); // can be null
+        let mut orderDescription: Value = (if (orderDescriptionObj.is_some()) { self.safe_string_k(&orderDescriptionObj, "order", &[]) } else { self.safe_string_k(orderOmitted.clone(), "descr", &[]) });
         let mut side: Value = Value::Null;
         let mut descriptionType: Option<String> = None;
         let mut marketId: Value = Value::Null;
@@ -3234,7 +3234,7 @@ impl Kraken {
         let mut isMarket: Value = (Value::Bool(type_var.as_str() == Some("market")));
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(isMarket, Value::Bool(false), &[paramsOmitted2]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if postOnly {
             let mut extendedPostFlags: String = "post".to_string();
             if (flags.is_some()) {
@@ -3245,7 +3245,7 @@ impl Kraken {
         if (flags.is_some()) && !(matches!(&request, Value::Dict(__d) if __d.contains_key("oflags"))) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("oflags".into(), flags.clone().map(Value::from).unwrap_or(Value::Null)); }
         }
-        let mut paramsOmitted3: Value = self.omit(paramsPostOnly, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("reduceOnly".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("trailingAmount".into()), Value::Str("trailingPercent".into()), Value::Str("trailingLimitAmount".into()),
+        let mut paramsOmitted3: Value = self.omit(&paramsPostOnly, Value::from(vec![Value::Str("timeInForce".into()), Value::Str("reduceOnly".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("trailingAmount".into()), Value::Str("trailingPercent".into()), Value::Str("trailingLimitAmount".into()),
             Value::Str("trailingLimitPercent".into()), Value::Str("offset".into())]), &[]);
         return Value::from(vec![request, paramsOmitted3]);
 

@@ -1642,13 +1642,13 @@ impl Limitless {
         //
         // ticker is either a plain raw market object, or a composite dict { 'market': rawMarket, 'book': rawOrderbook }
         let mut raw: Value = ticker.clone();
-        let mut book: Value = Value::Null;
+        let mut book: Option<crate::value::Dict> = None;
         if (matches!(&ticker, Value::Dict(__d) if __d.contains_key("market"))) {
             raw = self.safe_dict_k(ticker.clone(), "market", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            book = self.safe_dict_k(ticker.clone(), "book", &[]);
+            book = self.safe_dict_k(ticker.clone(), "book", &[]).into_opt_dict();
         }
         let mut rawLabel: Value = (if (market != Value::Null) { self.safe_string_k(market.clone(), "label", &[self.safe_string(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("outcomeLabel".into()), &[Value::Str("yes".into())])]) } else { Value::Str("yes".into()) });
         let mut isYes: bool = (if let Some(__s) = rawLabel.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }).as_str() != Some("no");
@@ -1658,10 +1658,10 @@ impl Limitless {
         let mut askSizeStr: Option<String> = None;
         let mut lastStr: Option<String> = None;
         let mut midStr: Value = Value::Null;
-        if (book != Value::Null) {
+        if (book.is_some()) {
             // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price
-            let mut rawBids: Vec<Value> = self.safe_list_k(book.clone(), "bids", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
-            let mut rawAsks: Vec<Value> = self.safe_list_k(book.clone(), "asks", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut rawBids: Vec<Value> = self.safe_list_k(&book, "bids", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+            let mut rawAsks: Vec<Value> = self.safe_list_k(&book, "asks", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             let mut rawBidsLength: f64 = ((rawBids.len() as i64) as f64);
             let mut rawAsksLength: f64 = ((rawAsks.len() as i64) as f64);
             let mut yesBestBid: Value = (if (rawBidsLength > ((0i64) as f64)) { rawBids.get(0).cloned().unwrap_or(Value::Null) } else { Value::Null });
@@ -1670,8 +1670,8 @@ impl Limitless {
             let mut yesBidSize: Option<String> = self.safe_string_k(yesBestBid, "size", &[]).as_str().map(str::to_owned);
             let mut yesAskPrice: Option<String> = self.safe_string_k(yesBestAsk.clone(), "price", &[]).as_str().map(str::to_owned);
             let mut yesAskSize: Option<String> = self.safe_string_k(yesBestAsk, "size", &[]).as_str().map(str::to_owned);
-            let mut yesLast: Option<String> = self.safe_string_k(book.clone(), "lastTradePrice", &[]).as_str().map(str::to_owned);
-            let mut yesMid: Option<String> = self.safe_string_k(book, "midpoint", &[]).as_str().map(str::to_owned);
+            let mut yesLast: Option<String> = self.safe_string_k(&book, "lastTradePrice", &[]).as_str().map(str::to_owned);
+            let mut yesMid: Option<String> = self.safe_string_k(&book, "midpoint", &[]).as_str().map(str::to_owned);
             if isYes {
                 bidStr = yesBidPrice.clone().map(Value::from).unwrap_or(Value::Null);
                 bidSizeStr = yesBidSize.clone();
@@ -2717,13 +2717,13 @@ impl Limitless {
             type_var = Some("market".to_string());
         }
         let mut rawStatus: Option<String> = self.safe_string_k(rawOrder, "status", &[]).as_str().map(str::to_owned);
-        let mut execution: Value = self.safe_dict_k(&data, "execution", &[]);
+        let mut execution: Option<crate::value::Dict> = self.safe_dict_k(&data, "execution", &[]).into_opt_dict();
         let mut fee: Value = Value::Null;
         let mut filled: Option<String> = None;
         let mut cost: Option<String> = None;
-        if (execution != Value::Null) {
-            rawStatus = self.safe_string_k(execution.clone(), "settlementStatus", &[]).as_str().map(str::to_owned);
-            let mut totals: crate::value::Dict = self.safe_dict_k(execution, "totalsRaw", &[]).into_dict();
+        if (execution.is_some()) {
+            rawStatus = self.safe_string_k(&execution, "settlementStatus", &[]).as_str().map(str::to_owned);
+            let mut totals: crate::value::Dict = self.safe_dict_k(&execution, "totalsRaw", &[]).into_dict();
             cost = self.safe_string_k(&totals, "usdGross", &[]).as_str().map(str::to_owned);
             filled = self.safe_string_k(&totals, "contractsGross", &[]).as_str().map(str::to_owned);
             let mut feeCurrency: Option<String> = Some("USDC".to_string());

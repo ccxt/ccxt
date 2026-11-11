@@ -361,10 +361,9 @@ impl Krakenfutures {
         // Base64-encode the result of step 3
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         let mut messageHash: String = "challenge".to_string();
-        let mut client: Value = self.client(&[url.clone()]);
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
         let mut future: Value = client.reusable_future(Value::from(messageHash.clone()));
-        let mut authenticated: Value = self.safe_value(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[]);
+        let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -2054,7 +2053,7 @@ impl Krakenfutures {
         // (same class of bug as kraken issue #26773)
         let mut holding: Value = (match __pro_message.get("holding").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
         let mut futures: Value = self.safe_dict_k(message.clone(), "futures", &[]);
-        let mut flexFutures: Value = (match __pro_message.get("flex_futures").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
+        let mut flexFutures: Option<crate::value::Dict> = (match __pro_message.get("flex_futures").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_opt_dict();
         let mut messageHash: String = "balances".to_string();
         let mut timestamp: Option<i64> = self.safe_integer_k(message.clone(), "timestamp", &[]).as_i64();
         if (self.balance.clone() == Value::Null) {
@@ -2139,8 +2138,8 @@ impl Krakenfutures {
                 updatedBalance = self.balance.as_map().and_then(|__m| __m.get("margin")).cloned().unwrap_or(Value::Null);
             }
         }
-        if (flexFutures != Value::Null) {
-            let mut flexFutureCurrencies: Value = self.safe_dict_k(flexFutures, "currencies", &[Value::Map({
+        if (flexFutures.is_some()) {
+            let mut flexFutureCurrencies: Value = self.safe_dict_k(&flexFutures, "currencies", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -2346,16 +2345,16 @@ impl Krakenfutures {
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
         // symbols are required
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(false)]);
+        let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(false)]).into_list();
         let mut messageHashes: Value = Value::from(vec![]);
         let mut rawSubs: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_447: bool = true;
             while { if !__for_first_447 { i += 1; } __for_first_447 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut messageHash: Value = self.get_message_hash(unifiedName.clone(), &[Value::Null, self.symbol(symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null))]).map(Value::from).unwrap_or(Value::Null);
+            let mut messageHash: Value = self.get_message_hash(unifiedName.clone(), &[Value::Null, self.symbol(symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null))]).map(Value::from).unwrap_or(Value::Null);
             if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(messageHash.clone()); }
-            let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if !(self.subscription_exists_for_hash(url.clone(), messageHash).as_bool() == Some(true)) {
                 rawSubs.push(Value::from((market).id.clone()));
             }
@@ -2382,9 +2381,8 @@ impl Krakenfutures {
 }
 
     pub fn subscription_exists_for_hash(&mut self, mut url: Value, mut hash: Value) -> Value {
-        let mut client: Value = self.client(&[url]);
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        return (Value::Bool(__ch.has_subscription(&hash)));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url]));
+        return (Value::Bool(client.has_subscription(&hash)));
 
     Value::Null
 }

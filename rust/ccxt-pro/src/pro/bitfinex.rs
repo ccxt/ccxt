@@ -330,8 +330,7 @@ impl Bitfinex {
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut marketId: String = self.safe_string_k(market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
-        let mut client: Value = self.client(&[url.clone()]);
-        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), marketId).into());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -348,10 +347,10 @@ impl Bitfinex {
         })]).await;
         let mut checksum: bool = self.safe_bool_k(self.options.clone(), "checksum", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         if checksum && (channel.as_str() == Some("book")) {
-            let mut sub: Value = __ch.get_subscription(&messageHash);
+            let mut sub: Value = client.get_subscription(&messageHash);
             let mut subChecksum: bool = self.safe_bool_k(sub.clone(), "checksum", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if (sub != Value::Null) && !subChecksum {
-                add_element_to_object(get_value_mut(&mut __ch.subscriptions, &messageHash), &Value::Str("checksum".into()), Value::Bool(true));
+                add_element_to_object(get_value_mut(&mut (client).subscriptions, &messageHash), &Value::Str("checksum".into()), Value::Bool(true));
                 client.send(&[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("event".to_string(), Value::Str("conf".into()));
@@ -376,12 +375,11 @@ impl Bitfinex {
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut marketId: String = self.safe_string_k(market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
-        let mut client: Value = self.client(&[url.clone()]);
-        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), marketId).into());
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), channel).into()), Value::Str(":".into())).into()), marketId);
         let mut unSubTopic: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe".into()), Value::Str(":".into())).into()), topic).into()), Value::Str(":".into())).into()), symbol);
-        let mut channelId: String = self.safe_string(__ch.subscriptions.clone(), Value::from(unSubTopic), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut channelId: String = self.safe_string((client).subscriptions.clone(), Value::from(unSubTopic), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("unsubscribe".into()));
@@ -389,7 +387,7 @@ impl Bitfinex {
             m
         });
         let mut unSubChanMsg: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), channelId).into());
-        __ch.add_subscription(&unSubChanMsg, subMessageHash.clone());
+        client.add_subscription(&unSubChanMsg, subMessageHash.clone());
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.clone())]));
@@ -503,10 +501,9 @@ impl Bitfinex {
         let mut subMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), interval).into()), Value::Str(":".into())).into()), marketId).into());
         let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subMessageHash);
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public");
-        let mut client: Value = self.client(&[url.clone()]);
-        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
         let mut subId: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:trade:".into()), interval).into()), Value::Str(":".into())).into()), marketId); // trade here because we use the key
-        let mut channelId: String = self.safe_string(__ch.subscriptions.clone(), Value::from(subId), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut channelId: String = self.safe_string((client).subscriptions.clone(), Value::from(subId), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("unsubscribe".into()));
@@ -514,7 +511,7 @@ impl Bitfinex {
             m
         });
         let mut unSubChanMsg: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), channelId).into());
-        __ch.add_subscription(&unSubChanMsg, subMessageHash.clone());
+        client.add_subscription(&unSubChanMsg, subMessageHash.clone());
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("messageHashes".to_string(), Value::from(vec![Value::from(messageHash.clone())]));
@@ -1509,7 +1506,7 @@ impl Bitfinex {
 }
 
     pub fn handle_subscription_status(&self, mut client: Value, mut message: Value) -> Value {
-        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -1567,11 +1564,10 @@ impl Bitfinex {
     m
 }));
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private");
-        let mut client: Value = self.client(&[url.clone()]);
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
         let mut messageHash: String = "authenticated".to_string();
         let mut future: Value = client.reusable_future(Value::from(messageHash.clone()));
-        let mut authenticated: Value = self.safe_value(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[]);
+        let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             // the auth nonce shares the increasing-nonce requirement (and the counter) with REST requests signed by the same key
             let mut nonce: Value = self.incrementing_nonce();

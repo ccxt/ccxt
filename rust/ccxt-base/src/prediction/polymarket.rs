@@ -5246,9 +5246,9 @@ if _try_result.is_err() {
         }
         // outcome tokens are keyed in outcomes_by_id (populated by fetchEvents/loadMarkets);
         // fall back to markets_by_id for the standard market lookup
-        let mut outcomeObj: Value = self.safe_dict(self.exchange.outcomes_by_id.clone(), tokenId.clone(), &[]);
-        if (outcomeObj != Value::Null) {
-            return self.safe_string_k(outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
+        let mut outcomeObj: Option<crate::value::Dict> = self.safe_dict(self.exchange.outcomes_by_id.clone(), tokenId.clone(), &[]).into_opt_dict();
+        if (outcomeObj.is_some()) {
+            return self.safe_string_k(&outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
         }
         // safe dict/string access: a bare marketsById[tokenId] / market['market'] is undefined in JS
         // but raises KeyError in Python when the token isn't a market id (the ws trade path hits this)

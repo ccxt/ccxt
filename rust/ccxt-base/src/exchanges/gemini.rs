@@ -2791,7 +2791,7 @@ impl Gemini {
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         self.check_address(&[address.clone(), code.clone(), tagWithdrawTag]);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2804,7 +2804,7 @@ impl Gemini {
                 m.insert("address".to_string(), address);
             m
         });
-        let __ws_arg_10 = self.extend(Value::Map(request), &[paramsWithdrawTag]);
+        let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
         let mut response: Value = self.private_post_v1_withdraw_currency(&[__ws_arg_10]).await;
         //
         //   for BTC

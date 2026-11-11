@@ -1406,20 +1406,20 @@ impl Bittrade {
         let mut bidVolume: Option<String> = None;
         let mut ask: Option<String> = None;
         let mut askVolume: Option<String> = None;
-        let mut bidList: Value = self.safe_list_k(ticker.clone(), "bid", &[]);
-        if (bidList != Value::Null) {
-            bid = self.safe_string(bidList.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-            bidVolume = self.safe_string(bidList, Value::Int(1), &[]).as_str().map(str::to_owned);
+        let mut bidList: Option<crate::value::List> = self.safe_list_k(ticker.clone(), "bid", &[]).into_opt_list();
+        if (bidList.is_some()) {
+            bid = self.safe_string(&bidList, Value::Int(0), &[]).as_str().map(str::to_owned);
+            bidVolume = self.safe_string(&bidList, Value::Int(1), &[]).as_str().map(str::to_owned);
         }  else {
             bid = self.safe_string_k(ticker.clone(), "bid", &[]).as_str().map(str::to_owned);
             if (bid.is_some()) {
                 bidVolume = self.safe_string_k(ticker.clone(), "bidSize", &[]).as_str().map(str::to_owned);
             }
         }
-        let mut askList: Value = self.safe_list_k(ticker.clone(), "ask", &[]);
-        if (askList != Value::Null) {
-            ask = self.safe_string(askList.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-            askVolume = self.safe_string(askList, Value::Int(1), &[]).as_str().map(str::to_owned);
+        let mut askList: Option<crate::value::List> = self.safe_list_k(ticker.clone(), "ask", &[]).into_opt_list();
+        if (askList.is_some()) {
+            ask = self.safe_string(&askList, Value::Int(0), &[]).as_str().map(str::to_owned);
+            askVolume = self.safe_string(&askList, Value::Int(1), &[]).as_str().map(str::to_owned);
         }  else {
             ask = self.safe_string_k(ticker.clone(), "ask", &[]).as_str().map(str::to_owned);
             if (ask.is_some()) {

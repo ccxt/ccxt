@@ -2075,13 +2075,13 @@ impl Whitebit {
             }
             // Extract trading limits
             let mut limits: crate::value::Dict = self.safe_dict_k(market.clone(), "limits", &[]).into_dict();
-            let mut amountLimits: Value = self.safe_dict_k(&limits, "amount", &[]);
-            let mut priceLimits: Value = self.safe_dict_k(&limits, "price", &[]);
-            let mut costLimits: Value = self.safe_dict_k(&limits, "cost", &[]);
+            let mut amountLimits: Option<crate::value::Dict> = self.safe_dict_k(&limits, "amount", &[]).into_opt_dict();
+            let mut priceLimits: Option<crate::value::Dict> = self.safe_dict_k(&limits, "price", &[]).into_opt_dict();
+            let mut costLimits: Option<crate::value::Dict> = self.safe_dict_k(&limits, "cost", &[]).into_opt_dict();
             // Validate that all required limits exist and are valid numbers
-            let mut hasAmountLimits: bool = (amountLimits != Value::Null) && (amountLimits != Value::Null) && (self.safe_number_k(amountLimits.clone(), "min", &[]) != Value::Null) && (self.safe_number_k(amountLimits.clone(), "max", &[]) != Value::Null);
-            let mut hasPriceLimits: bool = (priceLimits != Value::Null) && (priceLimits != Value::Null) && (self.safe_number_k(priceLimits.clone(), "min", &[]) != Value::Null) && (self.safe_number_k(priceLimits.clone(), "max", &[]) != Value::Null);
-            let mut hasCostLimits: bool = (costLimits != Value::Null) && (costLimits != Value::Null) && (self.safe_number_k(costLimits.clone(), "min", &[]) != Value::Null) && (self.safe_number_k(costLimits.clone(), "max", &[]) != Value::Null);
+            let mut hasAmountLimits: bool = (amountLimits.is_some()) && (amountLimits.is_some()) && (self.safe_number_k(&amountLimits, "min", &[]) != Value::Null) && (self.safe_number_k(&amountLimits, "max", &[]) != Value::Null);
+            let mut hasPriceLimits: bool = (priceLimits.is_some()) && (priceLimits.is_some()) && (self.safe_number_k(&priceLimits, "min", &[]) != Value::Null) && (self.safe_number_k(&priceLimits, "max", &[]) != Value::Null);
+            let mut hasCostLimits: bool = (costLimits.is_some()) && (costLimits.is_some()) && (self.safe_number_k(&costLimits, "min", &[]) != Value::Null) && (self.safe_number_k(&costLimits, "max", &[]) != Value::Null);
             if (hasAmountLimits) && (hasPriceLimits) && (hasCostLimits) {
                 result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2090,20 +2090,20 @@ impl Whitebit {
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(amountLimits.clone(), "min", &[]));
-        m.insert("max".to_string(), self.safe_number_k(amountLimits, "max", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&amountLimits, "min", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&amountLimits, "max", &[]));
     m
 }));
         m.insert("price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(priceLimits.clone(), "min", &[]));
-        m.insert("max".to_string(), self.safe_number_k(priceLimits, "max", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&priceLimits, "min", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&priceLimits, "max", &[]));
     m
 }));
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(costLimits.clone(), "min", &[]));
-        m.insert("max".to_string(), self.safe_number_k(costLimits, "max", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&costLimits, "min", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&costLimits, "max", &[]));
     m
 }));
     m
@@ -2262,39 +2262,39 @@ impl Whitebit {
             });
             // Add fee information if available
             if (feeData != Value::Null) {
-                let mut depositFee: Value = self.safe_dict_k(feeData.clone(), "deposit", &[]);
-                let mut withdrawFee: Value = self.safe_dict_k(feeData, "withdraw", &[]);
-                if (depositFee != Value::Null) && (depositFee != Value::Null) {
+                let mut depositFee: Option<crate::value::Dict> = self.safe_dict_k(feeData.clone(), "deposit", &[]).into_opt_dict();
+                let mut withdrawFee: Option<crate::value::Dict> = self.safe_dict_k(feeData, "withdraw", &[]).into_opt_dict();
+                if (depositFee.is_some()) && (depositFee.is_some()) {
                     let mut depositFeeData: indexmap::IndexMap<String, Value> = ({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("fixed".to_string(), self.safe_number_k(depositFee.clone(), "fixed", &[]));
+                            m.insert("fixed".to_string(), self.safe_number_k(&depositFee, "fixed", &[]));
                         m
                     });
-                    let mut depositFlex: Value = self.safe_dict_k(depositFee, "flex", &[]);
-                    if (depositFlex != Value::Null) {
+                    let mut depositFlex: Option<crate::value::Dict> = self.safe_dict_k(&depositFee, "flex", &[]).into_opt_dict();
+                    if (depositFlex.is_some()) {
                         depositFeeData.insert("flex".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(depositFlex.clone(), "min_fee", &[]));
-        m.insert("max".to_string(), self.safe_number_k(depositFlex.clone(), "max_fee", &[]));
-        m.insert("percent".to_string(), self.safe_number_k(depositFlex, "percent", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&depositFlex, "min_fee", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&depositFlex, "max_fee", &[]));
+        m.insert("percent".to_string(), self.safe_number_k(&depositFlex, "percent", &[]));
     m
 }));
                     }
                     depositLimitsResult.insert("fee".into(), Value::Map(depositFeeData));
                 }
-                if (withdrawFee != Value::Null) && (withdrawFee != Value::Null) {
+                if (withdrawFee.is_some()) && (withdrawFee.is_some()) {
                     let mut withdrawFeeData: indexmap::IndexMap<String, Value> = ({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("fixed".to_string(), self.safe_number_k(withdrawFee.clone(), "fixed", &[]));
+                            m.insert("fixed".to_string(), self.safe_number_k(&withdrawFee, "fixed", &[]));
                         m
                     });
-                    let mut withdrawFlex: Value = self.safe_dict_k(withdrawFee, "flex", &[]);
-                    if (withdrawFlex != Value::Null) {
+                    let mut withdrawFlex: Option<crate::value::Dict> = self.safe_dict_k(&withdrawFee, "flex", &[]).into_opt_dict();
+                    if (withdrawFlex.is_some()) {
                         withdrawFeeData.insert("flex".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(withdrawFlex.clone(), "min_fee", &[]));
-        m.insert("max".to_string(), self.safe_number_k(withdrawFlex.clone(), "max_fee", &[]));
-        m.insert("percent".to_string(), self.safe_number_k(withdrawFlex, "percent", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&withdrawFlex, "min_fee", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&withdrawFlex, "max_fee", &[]));
+        m.insert("percent".to_string(), self.safe_number_k(&withdrawFlex, "percent", &[]));
     m
 }));
                     }
@@ -2656,8 +2656,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
-        let methodOptionparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(paramsMarketType, Value::Str("fetchTickers".into()), Value::Str("method".into()), &[]).as_array().cloned().unwrap_or_default();
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let methodOptionparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(&paramsMarketType, Value::Str("fetchTickers".into()), Value::Str("method".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut methodOption: Value = methodOptionparamsMethodVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMethod: Value = methodOptionparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut method: Value = methodOption;
@@ -4622,7 +4622,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         let tagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tag: Value = tagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsWithdrawTag: Value = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: crate::value::Dict = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4634,20 +4634,20 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("address".to_string(), address);
             m
         });
-        let mut uniqueIdParam: Value = self.safe_value_k(paramsWithdrawTag.clone(), "uniqueId", &[]);
+        let mut uniqueIdParam: Value = self.safe_value_k(&paramsWithdrawTag, "uniqueId", &[]);
         let mut uniqueId: Value = (if (uniqueIdParam == Value::Null) { self.uuid22(&[]) } else { uniqueIdParam });
         request.insert("uniqueId".into(), uniqueId.clone());
         if (tag != Value::Null) {
             request.insert("memo".into(), tag);
         }
         if self.is_fiat(code).as_bool() == Some(true) {
-            let mut provider: Value = self.safe_value_k(paramsWithdrawTag.clone(), "provider", &[]);
+            let mut provider: Value = self.safe_value_k(&paramsWithdrawTag, "provider", &[]);
             if (provider == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw() requires a provider when the ticker is fiat".into()))));
             }
             request.insert("provider".into(), provider);
         }
-        let __ws_arg_30 = self.extend(Value::Map(request), &[paramsWithdrawTag]);
+        let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
         let mut response: Value = self.v4_private_post_main_account_withdraw(&[__ws_arg_30]).await;
         let __ws_arg_31 = self.parse_transaction(response, &[currency]);
         return self.extend(__ws_arg_31, &[Value::Map({
@@ -5252,8 +5252,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endDate".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_35 = self.extend(requestUntil, &[paramsUntil]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_35 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.v4_private_post_collateral_account_funding_history(&[__ws_arg_35]).await.into_dict();
         //
         //     {
@@ -5558,8 +5558,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("to".into()), Value::Map(request), params, &[Value::Float(0.001)]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_39 = self.extend(requestUntil, &[paramsUntil]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_39 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.v4_private_post_convert_history(&[__ws_arg_39]).await.into_dict();
         //
         //     {
@@ -5702,8 +5702,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endDate".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_40 = self.extend(requestUntil, &[paramsUntil]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_40 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.v4_private_post_collateral_account_positions_history(&[__ws_arg_40]).await;
         //
         //     [
@@ -5972,11 +5972,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("until_timestamp".into()), Value::Map(request), paramsPaginate, &[Value::Float(0.001)]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
-        let __ws_arg_42 = self.extend(requestUntil, &[paramsUntil]);
+        let __ws_arg_42 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.v4_public_get_funding_history_market(&[__ws_arg_42]).await;
         return self.parse_funding_rate_histories(response, &[(market).raw.clone(), since, limit]);
         Value::Null

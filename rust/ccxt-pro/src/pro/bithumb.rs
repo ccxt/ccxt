@@ -818,9 +818,9 @@ impl Bithumb {
         //         "stream_type": "SNAPSHOT"
         //     }
         //
-        let mut content: Value = (match __pro_message.get("content").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-        if (content != Value::Null) {
-            let mut list: Value = self.safe_list_k(content.clone(), "list", &[Value::from(vec![])]);
+        let mut content: Option<crate::value::Dict> = (match __pro_message.get("content").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_opt_dict();
+        if (content.is_some()) {
+            let mut list: Value = self.safe_list_k(&content, "list", &[Value::from(vec![])]);
             let mut first: crate::value::Dict = self.safe_dict(list.clone(), Value::Int(0), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -830,7 +830,7 @@ impl Bithumb {
                 return;
             }
             let mut legacySymbol: Value = self.safe_symbol(legacyMarketId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("_".into())]);
-            let mut timestampStr: Option<String> = self.safe_string_k_opt(content, "datetime", &[]);
+            let mut timestampStr: Option<String> = self.safe_string_k_opt(&content, "datetime", &[]);
             if (timestampStr.is_none()) {
                 return;
             }
@@ -1156,10 +1156,10 @@ impl Bithumb {
         //        "resmsg" : "Invalid Filter Syntax"
         //    }
         //
-        let mut error: Value = (match message.get("error") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
-        if (error != Value::Null) {
-            let mut errorName: String = self.safe_string_k(error.clone(), "name", &[Value::Str("Error".into())]).as_str().unwrap_or("Error").to_string();
-            let mut errorMessage: String = self.safe_string_k(error, "message", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut error: Option<crate::value::Dict> = (match message.get("error") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null }).into_opt_dict();
+        if (error.is_some()) {
+            let mut errorName: String = self.safe_string_k(&error, "name", &[Value::Str("Error".into())]).as_str().unwrap_or("Error").to_string();
+            let mut errorMessage: String = self.safe_string_k(&error, "message", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut addedMessage: Value = Value::Null;
             if (((errorMessage.chars().count() as i64)) > 0) {
                 addedMessage = (Value::Str(format!("{}{}", Value::Str(" ".into()), errorMessage).into()));
@@ -1370,8 +1370,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         })]).into_dict();
         let mut url: String = self.safe_string_k(&wsUrls, "privateGen2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut client: Value = self.client(&[Value::from(url)]);
-        return client;
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url)]));
+        return client.as_value();
 
     Value::Null
 }

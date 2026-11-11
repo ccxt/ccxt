@@ -3624,11 +3624,11 @@ impl Bitstamp {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("until_timestamp".into()), Value::Map(request), paramsPaginate, &[Value::Float(0.001)]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
-        let __ws_arg_19 = self.extend(requestUntil, &[paramsUntil]);
+        let __ws_arg_19 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.public_get_funding_rate_history_pair(&[__ws_arg_19]).await.into_dict();
         //
         //     {
@@ -4409,7 +4409,7 @@ impl Bitstamp {
         // Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4435,13 +4435,13 @@ impl Bitstamp {
             // the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
             // route through request(), called here directly to avoid dynamic dispatch
             let __ws_arg_24 = self.get_currency_name(code.clone());
-            let __ws_arg_25 = self.extend(Value::Map(request.clone()), &[paramsWithdrawTag.clone()]);
+            let __ws_arg_25 = self.extend(Value::Map(request.clone()), &[&paramsWithdrawTag]);
             response = self.request(Value::Str(format!("{}{}", __ws_arg_24.map(Value::from).unwrap_or(Value::Null), Value::Str("_withdrawal/".into())).into()), &[Value::from(vec![Value::Str("private".into())]), Value::Str("POST".into()), __ws_arg_25]).await;
         }  else {
             currency = self.currency(code);
             request.insert("iban".into(), address);
             request.insert("account_currency".into(), currency.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-            let __ws_arg_26 = self.extend(Value::Map(request), &[paramsWithdrawTag]);
+            let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
             response = self.private_post_withdrawal_open(&[__ws_arg_26]).await;
         }
         return self.parse_transaction(response, &[currency]);

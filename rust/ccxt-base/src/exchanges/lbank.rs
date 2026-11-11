@@ -3407,13 +3407,13 @@ impl Lbank {
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut fee: Option<String> = self.safe_string_k(paramsWithdrawTag.clone(), "fee", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(paramsWithdrawTag, Value::Str("fee".into()), &[]);
+        let mut fee: Option<String> = self.safe_string_k(&paramsWithdrawTag, "fee", &[]).as_str().map(str::to_owned);
+        let mut paramsOmitted: Value = self.omit(&paramsWithdrawTag, Value::Str("fee".into()), &[]);
         // The relevant coin network fee can be found by calling fetchDepositWithdrawFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchDepositWithdrawFees ().
         self.check_required_argument(Value::Str("withdraw".into()), fee.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("fee".into()), &[]);
         let mut currency: indexmap::IndexMap<String, Value> = self.currency(code).as_map().cloned().unwrap_or_default();

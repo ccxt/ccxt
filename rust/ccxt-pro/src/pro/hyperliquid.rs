@@ -1427,18 +1427,18 @@ impl Hyperliquid {
         //         "method": "market"
         //     }
         //
-        let mut entry: crate::value::Dict = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
+        let mut entry: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}) }).into_dict();
+}) });
         // every subscription starts with a snapshot, a resubscribe replays it
-        let mut isSnapshot: bool = self.safe_bool_k(&entry, "isSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isSnapshot: bool = self.safe_bool_k(entry.clone(), "isSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if isSnapshot || (self.myLiquidations.clone() == Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "myLiquidationsLimit", &[Value::Int(1000)]);
             self.myLiquidations = ArrayCache::new(limit);
         }
         let mut user: Option<String> = self.safe_string_lower_k_opt(&entry, "user", &[]);
-        let mut fills: Vec<Value> = self.safe_list_k(&entry, "fills", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut fills: Vec<Value> = self.safe_list_k(entry, "fills", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut newLiquidations: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
@@ -2235,8 +2235,8 @@ impl Hyperliquid {
         // the swap watchBalance, so a pending unWatchBalance delays this watch
         // too - its ack tears the shared stream down and sweeps both futures
         self.wait_for_pending_unsubscribe(url.clone(), Value::from(topic.clone())).await;
-        let mut client: Value = self.client(&[url.clone()]);
-        self.set_positions_cache(client, &[symbolsNormalized.clone()]);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
+        self.set_positions_cache(client.as_value(), &[symbolsNormalized.clone()]);
         let mut cache: Value = self.positions.clone();
         let mut newPositions: Value = self.watch(url, Value::from(messageHash), &[message, Value::from(topic)]).await;
         if self.newUpdates.as_bool() == Some(true) {
@@ -2673,7 +2673,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (__ch.has_subscription(&unsubHash)) {
             let mut error = Value::from(crate::exchange_errors::request_timeout(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unsubscribe ".into())).into()), subHash).into()), Value::Str(" was not acknowledged".into()))));
             client.reject(&[Value::from(error), unsubHash.clone()]);
-            self.clean_unsubscription(client.clone(), subHash, unsubHash.clone(), &[]);
+            self.clean_unsubscription(client, subHash, unsubHash.clone(), &[]);
         }
 
     Value::Null
@@ -2768,7 +2768,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut subHash: String = "order".to_string();
         let mut unSubHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subHash);
-        self.clean_unsubscription(client.clone(), Value::from(subHash), Value::from(unSubHash), &[Value::Bool(true)]);
+        self.clean_unsubscription(client, Value::from(subHash), Value::from(unSubHash), &[Value::Bool(true)]);
         // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
         // clear it for the user echoed in the ack so a later watch re-subscribes
         let mut user: Option<String> = self.safe_string_lower_k(subscription, "user", &[]).as_str().map(str::to_owned);
@@ -2792,7 +2792,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut unSubHash: String = format!("{}{}", Value::Str("unsubscribe:".into()), subHash);
         self.clean_unsubscription(client.clone(), Value::from(subHash), Value::from(unSubHash.clone()), &[Value::Bool(true)]);
         // userFills also feeds watchMyLiquidations
-        self.clean_unsubscription(client.clone(), Value::Str("myLiquidations".into()), Value::from(unSubHash), &[Value::Bool(true)]);
+        self.clean_unsubscription(client, Value::Str("myLiquidations".into()), Value::from(unSubHash), &[Value::Bool(true)]);
         self.myLiquidations = Value::Null;
         // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
         // clear it for the user echoed in the ack so a later watch re-subscribes

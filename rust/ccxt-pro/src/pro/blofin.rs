@@ -602,8 +602,8 @@ impl Blofin {
         }
         let callerMethodNameparamsCallerMethodNameVariable: Vec<Value> = self.handle_param_string(params, Value::Str("callerMethodName".into()), &[Value::Str("watchOrderBookForSymbols".into())]).as_array().cloned().unwrap_or_default();
         let mut callerMethodName: Value = callerMethodNameparamsCallerMethodNameVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsCallerMethodName: Value = callerMethodNameparamsCallerMethodNameVariable.get(1).cloned().unwrap_or(Value::Null);
-        let channelNameparamsChannelVariable: Vec<Value> = self.handle_option_string_and_params(paramsCallerMethodName, callerMethodName.clone(), Value::Str("channel".into()), &[Value::Str("books".into())]).as_array().cloned().unwrap_or_default();
+        let mut paramsCallerMethodName: crate::value::Dict = callerMethodNameparamsCallerMethodNameVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let channelNameparamsChannelVariable: Vec<Value> = self.handle_option_string_and_params(&paramsCallerMethodName, callerMethodName.clone(), Value::Str("channel".into()), &[Value::Str("books".into())]).as_array().cloned().unwrap_or_default();
         let mut channelName: Value = channelNameparamsChannelVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsChannel: Value = channelNameparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null);
         // due to some problem, temporarily disable other channels
@@ -1692,7 +1692,7 @@ impl Blofin {
             self.handle_unsubscription(client.clone(), message.clone());
             return;
         }  else if (event.as_deref() == Some("login")) {
-            let mut future: Value = self.safe_value(__ch.futures.clone(), Value::Str("authenticate_hash".into()), &[]);
+            let mut future: Value = self.safe_value_k(__ch.futures.clone(), "authenticate_hash", &[]);
             future.resolve(&[Value::Bool(true)]);
             return;
         }  else if (event.as_deref() == Some("error")) {

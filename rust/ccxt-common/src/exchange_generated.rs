@@ -4835,7 +4835,8 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn handle_network_code_and_params(&self, mut params: Value) -> Value {
+    fn handle_network_code_and_params(&self, params: impl Into<crate::Value>) -> Value {
+        let mut params: Value = params.into();
         let mut networkCodeInParams: Option<String> = self.safe_string2(params.clone(), Value::Str("networkCode".into()), Value::Str("network".into()), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: Value = (if (networkCodeInParams.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("networkCode".into()), Value::Str("network".into())]), &[]) } else { params });
         return Value::from(vec![networkCodeInParams.clone().map(Value::from).unwrap_or(Value::Null), paramsOmitted]);
@@ -5679,7 +5680,8 @@ pub trait ExchangeBase:
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
-    fn handle_param_string(&self, mut params: Value, mut paramName: Value, optional_args: &[Value]) -> Value {
+    fn handle_param_string(&self, params: impl Into<crate::Value>, mut paramName: Value, optional_args: &[Value]) -> Value {
+        let mut params: Value = params.into();
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut value: Value = self.safe_string(params.clone(), paramName.clone(), &[defaultValue]);
         let mut paramsOmitted: Value = params.clone();
@@ -5693,7 +5695,8 @@ pub trait ExchangeBase:
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
-    fn handle_param_string2(&self, mut params: Value, mut paramName1: Value, mut paramName2: Value, optional_args: &[Value]) -> Value {
+    fn handle_param_string2(&self, params: impl Into<crate::Value>, mut paramName1: Value, mut paramName2: Value, optional_args: &[Value]) -> Value {
+        let mut params: Value = params.into();
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut value: Value = self.safe_string2(params.clone(), paramName1.clone(), paramName2.clone(), &[defaultValue]);
         let mut paramsOmitted: Value = params.clone();
@@ -5705,7 +5708,8 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn handle_param_integer(&self, mut params: Value, mut paramName: Value, optional_args: &[Value]) -> Value {
+    fn handle_param_integer(&self, params: impl Into<crate::Value>, mut paramName: Value, optional_args: &[Value]) -> Value {
+        let mut params: Value = params.into();
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut value: Value = self.safe_integer(params.clone(), paramName.clone(), &[defaultValue]);
         let mut paramsOmitted: Value = params.clone();
@@ -5717,7 +5721,8 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn handle_param_integer2(&self, mut params: Value, mut paramName1: Value, mut paramName2: Value, optional_args: &[Value]) -> Value {
+    fn handle_param_integer2(&self, params: impl Into<crate::Value>, mut paramName1: Value, mut paramName2: Value, optional_args: &[Value]) -> Value {
+        let mut params: Value = params.into();
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut value: Value = self.safe_integer2(params.clone(), paramName1.clone(), paramName2.clone(), &[defaultValue]);
         let mut paramsOmitted: Value = params.clone();
@@ -5729,7 +5734,8 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn handle_param_bool(&self, mut params: Value, mut paramName: Value, optional_args: &[Value]) -> Value {
+    fn handle_param_bool(&self, params: impl Into<crate::Value>, mut paramName: Value, optional_args: &[Value]) -> Value {
+        let mut params: Value = params.into();
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut value: Value = self.safe_bool(params.clone(), paramName.clone(), &[defaultValue]);
         let mut paramsOmitted: Value = params.clone();
@@ -5741,7 +5747,8 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn handle_param_bool2(&self, mut params: Value, mut paramName1: Value, mut paramName2: Value, optional_args: &[Value]) -> Value {
+    fn handle_param_bool2(&self, params: impl Into<crate::Value>, mut paramName1: Value, mut paramName2: Value, optional_args: &[Value]) -> Value {
+        let mut params: Value = params.into();
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let mut value: Value = self.safe_bool2(params.clone(), paramName1.clone(), paramName2.clone(), &[defaultValue]);
         let mut paramsOmitted: Value = params.clone();
@@ -5886,9 +5893,9 @@ pub trait ExchangeBase:
         let mut requestParams: Value = params;
         let retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable: Vec<Value> = self.handle_option_integer_and_params(requestParams, path.clone(), Value::Str("maxRetriesOnFailure".into()), &[Value::from(retries)]).as_array().cloned().unwrap_or_default();
         let mut retriesMaxRetriesOnFailure: Value = retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMaxRetriesOnFailure: Value = retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMaxRetriesOnFailure: crate::value::Dict = retriesMaxRetriesOnFailureparamsMaxRetriesOnFailureVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut retryDelay: i64 = 0;
-        let retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable: Vec<Value> = self.handle_option_integer_and_params(paramsMaxRetriesOnFailure, path.clone(), Value::Str("maxRetriesOnFailureDelay".into()), &[Value::from(retryDelay)]).as_array().cloned().unwrap_or_default();
+        let retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsMaxRetriesOnFailure, path.clone(), Value::Str("maxRetriesOnFailureDelay".into()), &[Value::from(retryDelay)]).as_array().cloned().unwrap_or_default();
         let mut retryDelayMaxRetriesOnFailureDelay: Value = retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMaxRetriesOnFailureDelay: Value = retryDelayMaxRetriesOnFailureDelayparamsMaxRetriesOnFailureDelayVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut fetchDataCacheEnabled: bool = self.fetchHistoryCacheSize.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64);
@@ -6620,7 +6627,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
-    fn handle_option_and_params(&self, mut params: Value, mut methodName: Value, mut optionName: Value, optional_args: &[Value]) -> Value {
+    fn handle_option_and_params(&self, params: impl Into<crate::Value>, mut methodName: Value, mut optionName: Value, optional_args: &[Value]) -> Value {
+        let mut params: Value = params.into();
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
         let mut defaultOptionName: String = format!("{}{}", Value::Str("default".into()), self.capitalize(optionName.clone())); // we also need to check the 'defaultXyzWhatever'
@@ -6656,24 +6664,26 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
-    fn handle_option_and_params2(&self, mut params: Value, mut methodName1: Value, mut optionName1: Value, mut optionName2: Value, optional_args: &[Value]) -> Value {
+    fn handle_option_and_params2(&self, params: impl Into<crate::Value>, mut methodName1: Value, mut optionName1: Value, mut optionName2: Value, optional_args: &[Value]) -> Value {
+        let mut params: Value = params.into();
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let valueparamsOption1Variable: Vec<Value> = self.handle_option_and_params(params, methodName1.clone(), optionName1, &[]).as_array().cloned().unwrap_or_default();
         let mut value: Value = valueparamsOption1Variable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsOption1: Value = valueparamsOption1Variable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsOption1: crate::value::Dict = valueparamsOption1Variable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (value != Value::Null) {
             // omit optionName2 too from params
-            let mut paramsOmitted: Value = self.omit(paramsOption1.clone(), optionName2.clone(), &[]);
+            let mut paramsOmitted: Value = self.omit(&paramsOption1, optionName2.clone(), &[]);
             return Value::from(vec![value, paramsOmitted]);
         }
-        return self.handle_option_and_params(paramsOption1, methodName1, optionName2, &[defaultValue]);
+        return self.handle_option_and_params(&paramsOption1, methodName1, optionName2, &[defaultValue]);
 
     Value::Null
 }
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
-    fn handle_option_string_and_params(&self, mut params: Value, mut methodName: Value, mut optionName: Value, optional_args: &[Value]) -> Value {
+    fn handle_option_string_and_params(&self, params: impl Into<crate::Value>, mut methodName: Value, mut optionName: Value, optional_args: &[Value]) -> Value {
+        let mut params: Value = params.into();
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         // handleOptionAndParams read as a string; the statically typed ports throw on another type
         let valuenewParamsVariable: Vec<Value> = self.handle_option_and_params(params, methodName.clone(), optionName.clone(), &[defaultValue]).as_array().cloned().unwrap_or_default();
@@ -6686,7 +6696,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
-    fn handle_option_string_and_params2(&self, mut params: Value, mut methodName: Value, mut optionName1: Value, mut optionName2: Value, optional_args: &[Value]) -> Value {
+    fn handle_option_string_and_params2(&self, params: impl Into<crate::Value>, mut methodName: Value, mut optionName1: Value, mut optionName2: Value, optional_args: &[Value]) -> Value {
+        let mut params: Value = params.into();
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let valuenewParamsVariable: Vec<Value> = self.handle_option_and_params2(params, methodName.clone(), optionName1.clone(), optionName2, &[defaultValue]).as_array().cloned().unwrap_or_default();
         let mut value: Value = valuenewParamsVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -6698,7 +6709,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
-    fn handle_option_bool_and_params(&self, mut params: Value, mut methodName: Value, mut optionName: Value, optional_args: &[Value]) -> Value {
+    fn handle_option_bool_and_params(&self, params: impl Into<crate::Value>, mut methodName: Value, mut optionName: Value, optional_args: &[Value]) -> Value {
+        let mut params: Value = params.into();
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         // handleOptionAndParams read as a boolean (see checkOptionBool)
         let valuenewParamsVariable: Vec<Value> = self.handle_option_and_params(params, methodName.clone(), optionName.clone(), &[defaultValue]).as_array().cloned().unwrap_or_default();
@@ -6711,7 +6723,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
-    fn handle_option_bool_and_params2(&self, mut params: Value, mut methodName: Value, mut optionName1: Value, mut optionName2: Value, optional_args: &[Value]) -> Value {
+    fn handle_option_bool_and_params2(&self, params: impl Into<crate::Value>, mut methodName: Value, mut optionName1: Value, mut optionName2: Value, optional_args: &[Value]) -> Value {
+        let mut params: Value = params.into();
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let valuenewParamsVariable: Vec<Value> = self.handle_option_and_params2(params, methodName.clone(), optionName1.clone(), optionName2, &[defaultValue]).as_array().cloned().unwrap_or_default();
         let mut value: Value = valuenewParamsVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -6723,7 +6736,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
-    fn handle_option_integer_and_params(&self, mut params: Value, mut methodName: Value, mut optionName: Value, optional_args: &[Value]) -> Value {
+    fn handle_option_integer_and_params(&self, params: impl Into<crate::Value>, mut methodName: Value, mut optionName: Value, optional_args: &[Value]) -> Value {
+        let mut params: Value = params.into();
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         // handleOptionAndParams read as an integer; the statically typed ports throw on another type
         let valuenewParamsVariable: Vec<Value> = self.handle_option_and_params(params, methodName.clone(), optionName.clone(), &[defaultValue]).as_array().cloned().unwrap_or_default();
@@ -6736,7 +6750,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
 /* eslint-disable no-unused-vars */
 /* eslint-enable no-unused-vars */
-    fn handle_option_integer_and_params2(&self, mut params: Value, mut methodName: Value, mut optionName1: Value, mut optionName2: Value, optional_args: &[Value]) -> Value {
+    fn handle_option_integer_and_params2(&self, params: impl Into<crate::Value>, mut methodName: Value, mut optionName1: Value, mut optionName2: Value, optional_args: &[Value]) -> Value {
+        let mut params: Value = params.into();
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
         let valuenewParamsVariable: Vec<Value> = self.handle_option_and_params2(params, methodName.clone(), optionName1.clone(), optionName2, &[defaultValue]).as_array().cloned().unwrap_or_default();
         let mut value: Value = valuenewParamsVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -8422,7 +8437,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn handle_trigger_prices_and_params(&self, mut symbol: Value, mut params: Value, optional_args: &[Value]) -> Value {
+    fn handle_trigger_prices_and_params(&self, mut symbol: Value, params: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut params: Value = params.into();
         let mut omitParams = get_arg(optional_args, 0, Value::Bool(true));
         //
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
@@ -8459,7 +8475,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn handle_trigger_direction_and_params(&self, mut params: Value, optional_args: &[Value]) -> Value {
+    fn handle_trigger_direction_and_params(&self, params: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut params: Value = params.into();
         let mut exchangeSpecificKey = get_arg(optional_args, 0, Value::Null);
         let mut allowEmpty = get_arg(optional_args, 1, Value::Bool(false));
         /*
@@ -8487,7 +8504,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn handle_trigger_and_params(&self, mut params: Value) -> Value {
+    fn handle_trigger_and_params(&self, params: impl Into<crate::Value>) -> Value {
+        let mut params: Value = params.into();
         let mut isTrigger: Value = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
         let mut paramsOmitted: Value = (if (isTrigger.as_bool() == Some(true)) { self.omit(params.clone(), Value::from(vec![Value::Str("trigger".into()), Value::Str("stop".into())]), &[]) } else { params });
         return Value::from(vec![isTrigger, paramsOmitted]);
@@ -9265,14 +9283,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut removeRepeated = get_arg(optional_args, 5, Value::Bool(true));
         let maxCallsPaginationCallsparamsPaginationCallsVariable: Vec<Value> = self.handle_option_integer_and_params(params, method.clone(), Value::Str("paginationCalls".into()), &[Value::Int(10)]).as_array().cloned().unwrap_or_default();
         let mut maxCallsPaginationCalls: Value = maxCallsPaginationCallsparamsPaginationCallsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPaginationCalls: Value = maxCallsPaginationCallsparamsPaginationCallsVariable.get(1).cloned().unwrap_or(Value::Null);
-        let maxRetriesOptionparamsMaxRetriesVariable: Vec<Value> = self.handle_option_integer_and_params(paramsPaginationCalls, method.clone(), Value::Str("maxRetries".into()), &[Value::Int(3)]).as_array().cloned().unwrap_or_default();
+        let mut paramsPaginationCalls: crate::value::Dict = maxCallsPaginationCallsparamsPaginationCallsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let maxRetriesOptionparamsMaxRetriesVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsPaginationCalls, method.clone(), Value::Str("maxRetries".into()), &[Value::Int(3)]).as_array().cloned().unwrap_or_default();
         let mut maxRetriesOption: Value = maxRetriesOptionparamsMaxRetriesVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMaxRetries: Value = maxRetriesOptionparamsMaxRetriesVariable.get(1).cloned().unwrap_or(Value::Null);
-        let removeRepeatedOptionparamsRemoveRepeatedVariable: Vec<Value> = self.handle_option_and_params(paramsMaxRetries, method.clone(), Value::Str("removeRepeated".into()), &[removeRepeated]).as_array().cloned().unwrap_or_default();
+        let mut paramsMaxRetries: crate::value::Dict = maxRetriesOptionparamsMaxRetriesVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let removeRepeatedOptionparamsRemoveRepeatedVariable: Vec<Value> = self.handle_option_and_params(&paramsMaxRetries, method.clone(), Value::Str("removeRepeated".into()), &[removeRepeated]).as_array().cloned().unwrap_or_default();
         let mut removeRepeatedOption: Value = removeRepeatedOptionparamsRemoveRepeatedVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsRemoveRepeated: Value = removeRepeatedOptionparamsRemoveRepeatedVariable.get(1).cloned().unwrap_or(Value::Null);
-        let paginationDirectionparamsPaginationDirectionVariable: Vec<Value> = self.handle_option_string_and_params(paramsRemoveRepeated, method.clone(), Value::Str("paginationDirection".into()), &[Value::Str("backward".into())]).as_array().cloned().unwrap_or_default();
+        let mut paramsRemoveRepeated: crate::value::Dict = removeRepeatedOptionparamsRemoveRepeatedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let paginationDirectionparamsPaginationDirectionVariable: Vec<Value> = self.handle_option_string_and_params(&paramsRemoveRepeated, method.clone(), Value::Str("paginationDirection".into()), &[Value::Str("backward".into())]).as_array().cloned().unwrap_or_default();
         let mut paginationDirection: Option<String> = paginationDirectionparamsPaginationDirectionVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsPaginationDirection: Value = paginationDirectionparamsPaginationDirectionVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut paginationTimestamp: Value = Value::Null;
@@ -9516,9 +9534,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut maxCalls: i64 = 10;
         let maxCallsPaginationCallsparamsPaginationCallsVariable: Vec<Value> = self.handle_option_integer_and_params(params, method.clone(), Value::Str("paginationCalls".into()), &[Value::from(maxCalls)]).as_array().cloned().unwrap_or_default();
         let mut maxCallsPaginationCalls: Value = maxCallsPaginationCallsparamsPaginationCallsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPaginationCalls: Value = maxCallsPaginationCallsparamsPaginationCallsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginationCalls: crate::value::Dict = maxCallsPaginationCallsparamsPaginationCallsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut maxRetries: i64 = 3;
-        let maxRetriesOptionparamsMaxRetriesVariable: Vec<Value> = self.handle_option_integer_and_params(paramsPaginationCalls, method.clone(), Value::Str("maxRetries".into()), &[Value::from(maxRetries)]).as_array().cloned().unwrap_or_default();
+        let maxRetriesOptionparamsMaxRetriesVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsPaginationCalls, method.clone(), Value::Str("maxRetries".into()), &[Value::from(maxRetries)]).as_array().cloned().unwrap_or_default();
         let mut maxRetriesOption: Value = maxRetriesOptionparamsMaxRetriesVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMaxRetries: Value = maxRetriesOptionparamsMaxRetriesVariable.get(1).cloned().unwrap_or(Value::Null);
         let maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_max_entries_per_request_and_params(method.clone(), &[maxEntriesPerRequest, paramsMaxRetries]).as_array().cloned().unwrap_or_default();
@@ -9634,10 +9652,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut maxCalls: i64 = 10;
         let maxCallsPaginationCallsparamsPaginationCallsVariable: Vec<Value> = self.handle_option_integer_and_params(params, method.clone(), Value::Str("paginationCalls".into()), &[Value::from(maxCalls)]).as_array().cloned().unwrap_or_default();
         let mut maxCallsPaginationCalls: Value = maxCallsPaginationCallsparamsPaginationCallsVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsPaginationCalls: Value = maxCallsPaginationCallsparamsPaginationCallsVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPaginationCalls: crate::value::Dict = maxCallsPaginationCallsparamsPaginationCallsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut maxCallsLimit: Value = self.parse_to_int(maxCallsPaginationCalls);
         let mut maxRetries: i64 = 3;
-        let maxRetriesOptionparamsMaxRetriesVariable: Vec<Value> = self.handle_option_integer_and_params(paramsPaginationCalls, method.clone(), Value::Str("maxRetries".into()), &[Value::from(maxRetries)]).as_array().cloned().unwrap_or_default();
+        let maxRetriesOptionparamsMaxRetriesVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsPaginationCalls, method.clone(), Value::Str("maxRetries".into()), &[Value::from(maxRetries)]).as_array().cloned().unwrap_or_default();
         let mut maxRetriesOption: Value = maxRetriesOptionparamsMaxRetriesVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMaxRetries: Value = maxRetriesOptionparamsMaxRetriesVariable.get(1).cloned().unwrap_or(Value::Null);
         let maxEntriesPerRequestOptionparamsMaxEntriesPerRequestVariable: Vec<Value> = self.handle_max_entries_per_request_and_params(method.clone(), &[maxEntriesPerRequest, paramsMaxRetries]).as_array().cloned().unwrap_or_default();
@@ -9782,7 +9800,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn handle_until_option(&self, mut key: Value, mut request: Value, mut params: Value, optional_args: &[Value]) -> Value {
+    fn handle_until_option(&self, mut key: Value, mut request: Value, params: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut params: Value = params.into();
         let mut multiplier = get_arg(optional_args, 0, Value::Int(1));
         let mut until: Value = self.safe_integer2(params.clone(), Value::Str("until".into()), Value::Str("till".into()), &[]);
         if (until != Value::Null) {

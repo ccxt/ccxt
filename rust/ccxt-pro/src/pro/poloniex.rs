@@ -396,9 +396,8 @@ impl Poloniex {
         let mut timestamp: Option<String> = self.number_to_string(self.milliseconds()).as_str().map(str::to_owned);
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: Value = Value::Str("authenticated".into());
-        let mut client: Value = self.client(&[Value::from(url.clone())]);
-        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut future: Value = self.safe_value(__ch.subscriptions.clone(), messageHash.clone(), &[]);
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.clone())]));
+        let mut future: Value = self.safe_value((client).subscriptions.clone(), messageHash.clone(), &[]);
         if (future == Value::Null) {
             let mut accessPath: String = "/ws".to_string();
             let mut requestString: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("GET\n".into()), accessPath).into()), Value::Str("\nsignTimestamp=".into())).into()), timestamp.clone().map(Value::from).unwrap_or(Value::Null));
@@ -440,7 +439,7 @@ impl Poloniex {
             //        "channel": "auth"
             //    }
             //
-            __ch.add_subscription(&messageHash, future.clone());
+            client.add_subscription(&messageHash, future.clone());
         }
         return future;
 
@@ -1075,17 +1074,17 @@ impl Poloniex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
+        let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]).into_list();
         let mut name: String = "trades".to_string();
         let mut messageHashes: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_622: bool = true;
             while { if !__for_first_622 { i += 1; } __for_first_622 = false; i < (symbolsNormalized.len() as i64) } {
-            messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), name).into()), Value::Str("::".into())).into()), symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into()));
+            messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), name).into()), Value::Str("::".into())).into()), symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).into()));
         }
         }
-        return self.un_subscribe(Value::from(name), symbolsNormalized, Value::from(messageHashes), &[params]).await;
+        return self.un_subscribe(Value::from(name), Value::Arr(symbolsNormalized), Value::from(messageHashes), &[params]).await;
         Value::Null
         }).await?))
     }
@@ -1237,8 +1236,8 @@ impl Poloniex {
         // first resolves would only list the currencies that changed since
         // subscribing
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("private".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut client: Value = self.client(&[Value::from(url)]);
-        self.set_balance_cache(client.clone(), Value::from(name.clone()));
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url)]));
+        self.set_balance_cache(client.as_value(), Value::from(name.clone()));
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBalance", &[]).into_dict();
         let mut fetchBalanceSnapshot: bool = self.safe_bool_k(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut awaitBalanceSnapshot: bool = self.safe_bool_k(&options, "awaitBalanceSnapshot", &[Value::Bool(true)]).as_bool().unwrap_or(true);
@@ -1255,13 +1254,13 @@ impl Poloniex {
         if (__ch.has_subscription(&type_var)) {
             return;
         }
-        let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBalance", &[]).into_dict();
-        let mut fetchBalanceSnapshot: bool = self.safe_bool_k(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut options: Value = self.safe_dict_k(self.options.clone(), "watchBalance", &[]);
+        let mut fetchBalanceSnapshot: bool = self.safe_bool_k(options, "fetchBalanceSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if fetchBalanceSnapshot {
             let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into());
             if !(__ch.has_future(&messageHash)) {
                 client.future(&[messageHash.clone()]);
-                self.spawn(&[Value::Str("load_balance_snapshot".into()).clone(), client.clone(), messageHash.clone(), type_var]);
+                self.spawn(&[Value::Str("load_balance_snapshot".into()).clone(), client, messageHash.clone(), type_var]);
             }
         }
 }
@@ -2257,8 +2256,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //        "conn_id": "ce3dpomvha7dha97tvp0-2xh"
         //    }
         //
-        let mut data: crate::value::Dict = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_dict();
-        let mut success: bool = self.safe_bool_k(&data, "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
+        let mut success: bool = self.safe_bool_k(data, "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut messageHash: Value = Value::Str("authenticated".into());
         if success {
             client.resolve(&[message.clone(), messageHash.clone()]);

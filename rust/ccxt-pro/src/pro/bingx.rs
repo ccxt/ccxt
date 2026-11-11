@@ -613,7 +613,7 @@ impl Bingx {
 }) });
         let mut marketId: Option<String> = self.safe_string_k(data.clone(), "s", &[]).as_str().map(str::to_owned);
         // const marketId = messageHash.split('@')[0];
-        let mut isSwap: bool = __ch.url.clone().as_str().unwrap_or("").contains("swap");
+        let mut isSwap: bool = __ch.url.as_str().unwrap_or("").contains("swap");
         let mut marketType: String = "spot".to_string();
         if isSwap {
             marketType = "swap".to_string();
@@ -623,7 +623,7 @@ impl Bingx {
         // the Coin-M stream is a distinct endpoint, so it identifies an inverse
         // ticker even when the market id could not be resolved
         let mut inverseUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("inverse".into()), &[]);
-        let mut isInverse: Value = Value::Bool((inverseUrl.is_some()) && (Value::Int(__ch.url.clone().as_str().zip(inverseUrl.as_deref()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)));
+        let mut isInverse: Value = Value::Bool((inverseUrl.is_some()) && (Value::Int(__ch.url.as_str().zip(inverseUrl.as_deref()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)));
         let mut ticker: Value = self.parse_ws_ticker(data, &[market, isInverse]);
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
         client.resolve(&[ticker.clone(), self.get_message_hash(Value::Str("ticker".into()), &[symbol]).map(Value::from).unwrap_or(Value::Null)]);
@@ -928,7 +928,7 @@ impl Bingx {
         let mut rawHash: Value = (match message.get("dataType") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
         let mut hashParts: Value = Value::Array(if let Some(__s) = rawHash.as_str() { __s.split("@").map(Value::from).collect() } else { Vec::new() });
         let mut marketId: Option<String> = self.safe_string(hashParts, Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut isSwap: bool = __ch.url.clone().as_str().unwrap_or("").contains("swap");
+        let mut isSwap: bool = __ch.url.as_str().unwrap_or("").contains("swap");
         let mut marketType: String = "spot".to_string();
         if isSwap {
             marketType = "swap".to_string();
@@ -1171,7 +1171,7 @@ impl Bingx {
         let mut firstPart: Option<String> = self.safe_string(parts, Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut isAllEndpoint: bool = firstPart.as_deref() == Some("all");
         let mut marketId: Value = self.safe_string_k(data.clone(), "symbol", &[firstPart.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut isSwap: bool = __ch.url.clone().as_str().unwrap_or("").contains("swap");
+        let mut isSwap: bool = __ch.url.as_str().unwrap_or("").contains("swap");
         let mut marketType: String = "spot".to_string();
         if isSwap {
             marketType = "swap".to_string();
@@ -1311,7 +1311,7 @@ impl Bingx {
         //         }
         //     }
         //
-        let mut isSwap: bool = __ch.url.clone().as_str().unwrap_or("").contains("swap");
+        let mut isSwap: bool = __ch.url.as_str().unwrap_or("").contains("swap");
         let mut dataType: Value = (match message.get("dataType") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) });
         let mut parts: Value = Value::Array(if let Some(__s) = dataType.as_str() { __s.split("@").map(Value::from).collect() } else { Vec::new() });
         let mut firstPart: Option<String> = self.safe_string(parts, Value::Int(0), &[]).as_str().map(str::to_owned);
@@ -1785,12 +1785,12 @@ impl Bingx {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" watchBalance() requires a websocket URL and a listen key".into()))));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl, Value::Str("?listenKey=".into())).into()), userStreamKey.clone().map(Value::from).unwrap_or(Value::Null));
-        let mut client: Value = self.client(&[Value::from(url.clone())]);
-        self.set_balance_cache(client.clone(), type_var.clone(), subType, subscriptionHash.clone(), paramsSubType.clone());
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.clone())]));
+        self.set_balance_cache(client.as_value(), type_var.clone(), subType, subscriptionHash.clone(), paramsSubType.clone());
         let fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(paramsSubType, Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
         let mut fetchBalanceSnapshot: bool = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsFetchBalanceSnapshot: Value = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.get(1).cloned().unwrap_or(Value::Null);
-        let awaitBalanceSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(paramsFetchBalanceSnapshot, Value::Str("watchBalance".into()), Value::Str("awaitBalanceSnapshot".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
+        let mut paramsFetchBalanceSnapshot: crate::value::Dict = fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let awaitBalanceSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsFetchBalanceSnapshot, Value::Str("watchBalance".into()), Value::Str("awaitBalanceSnapshot".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut awaitBalanceSnapshot: bool = awaitBalanceSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
         if fetchBalanceSnapshot && awaitBalanceSnapshot {
             crate::exchange_stubs::ws_await_flight(&client.future(&[Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into())])).await;
@@ -1817,7 +1817,7 @@ impl Bingx {
             let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":fetchBalanceSnapshot".into())).into());
             if !(__ch.has_future(&messageHash)) {
                 client.future(&[messageHash.clone()]);
-                self.spawn(&[Value::Str("load_balance_snapshot".into()).clone(), client.clone(), messageHash.clone(), type_var.clone(), subType]);
+                self.spawn(&[Value::Str("load_balance_snapshot".into()).clone(), client, messageHash.clone(), type_var.clone(), subType]);
             }
         }  else {
             if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&type_var), Value::Map({
@@ -1890,7 +1890,7 @@ impl Bingx {
         let mut paramsMarketType: Value = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("watchPositions".into()), &[market, paramsMarketType, Value::Str("linear".into())]).as_array().cloned().unwrap_or_default();
         let mut subType: Value = subTypeparamsSubTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsSubType: Value = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (type_var.as_str() == Some("spot")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchPositions is not supported for spot markets".into()))));
         }
@@ -1905,12 +1905,12 @@ impl Bingx {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" watchPositions() requires a websocket URL and a listen key".into()))));
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("?listenKey=".into())).into()), userStreamKey.clone().map(Value::from).unwrap_or(Value::Null));
-        let mut client: Value = self.client(&[Value::from(url.clone())]);
-        self.set_positions_cache(client.clone(), type_var.clone(), &[symbolsNormalized.clone()]);
-        let fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(paramsSubType, Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url.clone())]));
+        self.set_positions_cache(client.as_value(), type_var.clone(), &[symbolsNormalized.clone()]);
+        let fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsSubType, Value::Str("watchPositions".into()), Value::Str("fetchPositionsSnapshot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
         let mut fetchPositionsSnapshot: bool = fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsFetchPositionsSnapshot: Value = fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable.get(1).cloned().unwrap_or(Value::Null);
-        let awaitPositionsSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(paramsFetchPositionsSnapshot, Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
+        let mut paramsFetchPositionsSnapshot: crate::value::Dict = fetchPositionsSnapshotparamsFetchPositionsSnapshotVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let awaitPositionsSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsFetchPositionsSnapshot, Value::Str("watchPositions".into()), Value::Str("awaitPositionsSnapshot".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut awaitPositionsSnapshot: bool = awaitPositionsSnapshotVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut uuid: Value = self.uuid(&[]);
         let mut subscription: indexmap::IndexMap<String, Value> = ({
@@ -1943,7 +1943,7 @@ impl Bingx {
             let mut messageHash: Value = Value::Str(format!("{}{}", type_var, Value::Str(":fetchPositionsSnapshot".into())).into());
             if !(__ch.has_future(&messageHash)) {
                 client.future(&[messageHash.clone()]);
-                self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client.clone(), messageHash.clone(), type_var]);
+                self.spawn(&[Value::Str("load_positions_snapshot".into()).clone(), client, messageHash.clone(), type_var]);
             }
         }  else {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
@@ -2169,9 +2169,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                     continue;
                 }
                 let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("?listenKey=".into())).into()), listenKey.clone().map(Value::from).unwrap_or(Value::Null));
-                let mut client: Value = self.client(&[Value::from(url)]);
-                let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-                let mut messageHashes: Vec<Value> = Value::Array(__ch.futures.clone().as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+                let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::from(url)]));
+                let mut messageHashes: Vec<Value> = client.future_keys();
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_96: bool = true;
@@ -2211,9 +2210,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             // and client.resolve () / client.reject () settle and remove the
             // entry under the same lock in every port
             let mut messageHash: Value = Value::Str("authenticate".into());
-            let mut client: Value = self.client(&[Value::Str("authenticationFlights".into())]);
-            let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-            if (__ch.has_future(&messageHash)) {
+            let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[Value::Str("authenticationFlights".into())]));
+            if (client.has_future(&messageHash)) {
                 // a flight is already in progress - wake when the leader
                 // settles it: the listenKey is then in the bucket
                 crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;
@@ -2543,7 +2541,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut data: Value = self.safe_list_k(&a, "B", &[Value::from(vec![])]);
         let mut timestamp: Option<i64> = self.safe_integer2(message.clone(), Value::Str("T".into()), Value::Str("E".into()), &[]).as_i64();
         let mut spotUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("spot".into()), &[]);
-        let mut isSpot: bool = (spotUrl.is_some()) && (Value::Int(__ch.url.clone().as_str().zip(spotUrl.as_deref()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0));
+        let mut isSpot: bool = (spotUrl.is_some()) && (Value::Int(__ch.url.as_str().zip(spotUrl.as_deref()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0));
         let mut type_var: Value = Value::Str("swap".into());
         if isSpot {
             type_var = Value::Str("spot".into());

@@ -2205,8 +2205,8 @@ impl Lighter {
         //         }
         //     }
         //
-        let mut error: Value = (match __pro_message.get("error").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-        let mut errorCode: Option<String> = self.safe_string_k(error.clone(), "code", &[]).as_str().map(str::to_owned);
+        let mut error: Option<crate::value::Dict> = (match __pro_message.get("error").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_opt_dict();
+        let mut errorCode: Option<String> = self.safe_string_k(&error, "code", &[]).as_str().map(str::to_owned);
         if (errorCode.as_deref() == Some("30003")) {
             return Value::Bool(true);
         }
@@ -2214,7 +2214,7 @@ impl Lighter {
             // the requested state is already reached, so the unWatch call resolves and only
             // its own channel gets cleaned up. The channel is available solely inside the
             // message text, a changed text format falls through to the generic reject below
-            let mut notSubscribedMessage: Value = self.safe_string_k(error.clone(), "message", &[Value::Str("".into())]);
+            let mut notSubscribedMessage: Value = self.safe_string_k(&error, "message", &[Value::Str("".into())]);
             let mut messageParts: Value = Value::Array(if let Some(__s) = notSubscribedMessage.as_str() { __s.split(" : ").map(Value::from).collect() } else { Vec::new() });
             let mut notSubscribedChannel: Option<String> = self.safe_string(messageParts, Value::Int(1), &[]).as_str().map(str::to_owned);
             if (notSubscribedChannel.is_some()) {
@@ -2228,9 +2228,9 @@ impl Lighter {
             }
         }
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            if (error != Value::Null) {
-                let mut code: Option<String> = self.safe_string_k(error.clone(), "code", &[]).as_str().map(str::to_owned);
-                let mut errorMessage: Option<String> = self.safe_string_k(error.clone(), "message", &[]).as_str().map(str::to_owned);
+            if (error.is_some()) {
+                let mut code: Option<String> = self.safe_string_k(&error, "code", &[]).as_str().map(str::to_owned);
+                let mut errorMessage: Option<String> = self.safe_string_k(&error, "message", &[]).as_str().map(str::to_owned);
                 let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message));
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorMessage.clone().map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
@@ -2247,8 +2247,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut __for_first_478: bool = true;
                     while { if !__for_first_478 { i += 1; } __for_first_478 = false; i < (subscriptionKeys.len() as i64) } {
                     let mut subscriptionHash: Value = subscriptionKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-                    let mut subscriptionId: Option<String> = self.safe_string(__ch.get_subscription(&subscriptionHash), Value::Str("id".into()), &[]).as_str().map(str::to_owned);
-                    let mut subscription: Option<String> = self.safe_string_opt(__ch.get_subscription(&subscriptionHash), Value::Str("subscription".into()), &[]);
+                    let mut subscriptionId: Option<String> = self.safe_string_k(__ch.get_subscription(&subscriptionHash), "id", &[]).as_str().map(str::to_owned);
+                    let mut subscription: Option<String> = self.safe_string_k_opt(__ch.get_subscription(&subscriptionHash), "subscription", &[]);
                     if (id == subscriptionId) {
                         client.reject(&[e.clone(), subscriptionHash]);
                         handled = true;

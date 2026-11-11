@@ -3120,9 +3120,9 @@ impl Extended {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut currencyByNumericId: Value = self.safe_dict(currenciesByNumericId, assetId.clone(), &[]);
-        if (currencyByNumericId != Value::Null) {
-            return self.safe_string_k(currencyByNumericId, "code", &[]);
+        let mut currencyByNumericId: Option<crate::value::Dict> = self.safe_dict(currenciesByNumericId, assetId.clone(), &[]).into_opt_dict();
+        if (currencyByNumericId.is_some()) {
+            return self.safe_string_k(&currencyByNumericId, "code", &[]);
         }
         if (currency != Value::Null) {
             return self.safe_string_k(currency, "code", &[]);
@@ -4082,17 +4082,17 @@ impl Extended {
         let mut takeProfitTriggerPrice: Option<String> = self.safe_string_k(paramsBuilder.clone(), "takeProfitPrice", &[]).as_str().map(str::to_owned);
         let mut isStopLossOrder: bool = stopLossTriggerPrice.is_some();
         let mut isTakeProfitOrder: bool = takeProfitTriggerPrice.is_some();
-        let mut stopLoss: Value = self.safe_dict_k(paramsBuilder.clone(), "stopLoss", &[]);
-        let mut takeProfit: Value = self.safe_dict_k(paramsBuilder.clone(), "takeProfit", &[]);
-        let mut hasStopLoss: bool = stopLoss != Value::Null;
-        let mut hasTakeProfit: bool = takeProfit != Value::Null;
+        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(paramsBuilder.clone(), "stopLoss", &[]).into_opt_dict();
+        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(paramsBuilder.clone(), "takeProfit", &[]).into_opt_dict();
+        let mut hasStopLoss: bool = stopLoss.is_some();
+        let mut hasTakeProfit: bool = takeProfit.is_some();
         if hasStopLoss || hasTakeProfit {
             request.insert("tpSlType".into(), Value::Str("ORDER".into()));
             if hasStopLoss {
-                let mut stopLossTrigger: Option<String> = self.safe_string_k(stopLoss.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
-                let mut stopLossTriggerPriceType: Option<String> = self.safe_string_k(stopLoss.clone(), "triggerPriceType", &[]).as_str().map(str::to_owned);
-                let mut stopLossExecutionPrice: Option<String> = self.safe_string_k(stopLoss.clone(), "price", &[]).as_str().map(str::to_owned);
-                let mut stopLossType: Option<String> = self.safe_string_k(stopLoss, "type", &[]).as_str().map(str::to_owned);
+                let mut stopLossTrigger: Option<String> = self.safe_string_k(&stopLoss, "triggerPrice", &[]).as_str().map(str::to_owned);
+                let mut stopLossTriggerPriceType: Option<String> = self.safe_string_k(&stopLoss, "triggerPriceType", &[]).as_str().map(str::to_owned);
+                let mut stopLossExecutionPrice: Option<String> = self.safe_string_k(&stopLoss, "price", &[]).as_str().map(str::to_owned);
+                let mut stopLossType: Option<String> = self.safe_string_k(&stopLoss, "type", &[]).as_str().map(str::to_owned);
                 let mut stopLossSettlement: indexmap::IndexMap<String, Value> = self.create_order_settlement_data(Value::Bool(!(matches!(&isBuy, Value::Bool(true)))), amountString.clone(), stopLossExecutionPrice.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map(settlementParams.clone())]).as_map().cloned().unwrap_or_default();
                 let mut requestStopLoss: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
@@ -4121,10 +4121,10 @@ impl Extended {
                 request.insert("stopLoss".into(), Value::Map(requestStopLoss));
             }
             if hasTakeProfit {
-                let mut takeProfitTrigger: Option<String> = self.safe_string_k(takeProfit.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
-                let mut takeProfitTriggerPriceType: Option<String> = self.safe_string_k(takeProfit.clone(), "triggerPriceType", &[]).as_str().map(str::to_owned);
-                let mut takeProfitExecutionPrice: Option<String> = self.safe_string_k(takeProfit.clone(), "price", &[]).as_str().map(str::to_owned);
-                let mut takeProfitType: Option<String> = self.safe_string_k(takeProfit, "type", &[]).as_str().map(str::to_owned);
+                let mut takeProfitTrigger: Option<String> = self.safe_string_k(&takeProfit, "triggerPrice", &[]).as_str().map(str::to_owned);
+                let mut takeProfitTriggerPriceType: Option<String> = self.safe_string_k(&takeProfit, "triggerPriceType", &[]).as_str().map(str::to_owned);
+                let mut takeProfitExecutionPrice: Option<String> = self.safe_string_k(&takeProfit, "price", &[]).as_str().map(str::to_owned);
+                let mut takeProfitType: Option<String> = self.safe_string_k(&takeProfit, "type", &[]).as_str().map(str::to_owned);
                 let mut takeProfitSettlement: indexmap::IndexMap<String, Value> = self.create_order_settlement_data(Value::Bool(!(matches!(&isBuy, Value::Bool(true)))), amountString.clone(), takeProfitExecutionPrice.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map(settlementParams)]).as_map().cloned().unwrap_or_default();
                 let mut requestTakeProfit: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();

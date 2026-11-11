@@ -2075,7 +2075,7 @@ impl Aster {
         let mut filtersByType: Value = self.index_by(filters, Value::Str("filterType".into()));
         let mut filterNotional: Value = self.safe_dict2(filtersByType.clone(), Value::Str("MIN_NOTIONAL".into()), Value::Str("NOTIONAL".into()), &[]);
         let mut filterPrice: crate::value::Dict = self.safe_dict_k(filtersByType.clone(), "PRICE_FILTER", &[]).into_dict();
-        let mut filterLotSize: Value = self.safe_dict_k(filtersByType.clone(), "LOT_SIZE", &[]);
+        let mut filterLotSize: Option<crate::value::Dict> = self.safe_dict_k(filtersByType.clone(), "LOT_SIZE", &[]).into_opt_dict();
         let mut filterMarketLotSize: crate::value::Dict = self.safe_dict_k(filtersByType, "MARKET_LOT_SIZE", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2084,7 +2084,7 @@ impl Aster {
         if (pricePrecision == Value::Null) {
             pricePrecision = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "pricePrecision", &[])]), &[]);
         }
-        let mut amountPrecision: Value = (if (filterLotSize != Value::Null) { self.safe_number_k(filterLotSize.clone(), "stepSize", &[]) } else { self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "quantityPrecision", &[])]), &[]) });
+        let mut amountPrecision: Value = (if (filterLotSize.is_some()) { self.safe_number_k(&filterLotSize, "stepSize", &[]) } else { self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "quantityPrecision", &[])]), &[]) });
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2130,8 +2130,8 @@ impl Aster {
 }));
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(filterLotSize.clone(), "minQty", &[]));
-        m.insert("max".to_string(), self.safe_number_k(filterLotSize, "maxQty", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&filterLotSize, "minQty", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&filterLotSize, "maxQty", &[]));
     m
 }));
         m.insert("price".to_string(), Value::Map({
@@ -2249,12 +2249,12 @@ impl Aster {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("interval".into(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()])); }
-        let mut price: Option<String> = self.safe_string_k(paramsUntil.clone(), "price", &[]).as_str().map(str::to_owned);
+        let mut price: Option<String> = self.safe_string_k(&paramsUntil, "price", &[]).as_str().map(str::to_owned);
         let mut isMark: bool = price.as_deref() == Some("mark");
         let mut isIndex: bool = price.as_deref() == Some("index");
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsUntil, Value::Str("price".into()), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsUntil, Value::Str("price".into()), &[]).into_dict();
         let mut response: Value = Value::Null;
         if isMark {
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())])); }
@@ -2494,14 +2494,14 @@ impl Aster {
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMyTrades".into()), &[market.clone(), params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (since != Value::Null) {
             request.insert("startTime".into(), since.clone());
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
         }
-        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), paramsMarketType, &[]).as_array().cloned().unwrap_or_default();
+        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsMarketType, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut response: Value = Value::Null;
@@ -3106,8 +3106,8 @@ impl Aster {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_17 = self.extend(requestUntil, &[paramsUntil]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_17 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.fapi_public_get_v3_funding_rate(&[__ws_arg_17]).await;
         return self.parse_funding_rate_histories(response, &[market]);
         Value::Null
@@ -3649,13 +3649,13 @@ impl Aster {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if (market).swap {
-            let __ws_arg_26 = self.extend(requestUntil.clone(), &[paramsUntil.clone()]);
+            let __ws_arg_26 = self.extend(requestUntil.clone(), &[&paramsUntil]);
             response = self.fapi_private_get_v3_all_orders(&[__ws_arg_26]).await;
         }  else {
-            let __ws_arg_27 = self.extend(requestUntil, &[paramsUntil]);
+            let __ws_arg_27 = self.extend(requestUntil, &[&paramsUntil]);
             response = self.sapi_private_get_v3_all_orders(&[__ws_arg_27]).await;
         }
         return self.parse_orders(response, &[(market).raw.clone(), since, limit]);
@@ -3826,8 +3826,8 @@ impl Aster {
             ordersRequests.push(orderRequest);
         }
         }
-        let mut orderSymbolsResolved: Value = self.market_symbols(&[Value::from(orderSymbols), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]);
-        let mut market: crate::types::Market = (match self.market((orderSymbolsResolved.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut orderSymbolsResolved: crate::value::List = self.market_symbols(&[Value::from(orderSymbols), Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(true)]).into_list();
+        let mut market: crate::types::Market = (match self.market((orderSymbolsResolved.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if (market).spot {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrders() does not support ".into())).into()), self.safe_string_k((market).raw.clone(), "type", &[Value::Str("".into())])).into()), Value::Str(" orders".into()))));
         }
@@ -4647,8 +4647,8 @@ impl Aster {
         }
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_41 = self.extend(requestUntil, &[paramsUntil]);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_41 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.fapi_private_get_v3_income(&[__ws_arg_41]).await;
         return self.parse_incomes(response, &[market, since, limit]);
         Value::Null
@@ -5119,12 +5119,12 @@ impl Aster {
             let mut isPositionOpen: bool = (maintenanceMargin.as_deref() != Some("0")) && (maintenanceMargin.as_deref() != Some("0.00000000"));
             if !filterClosed || isPositionOpen {
                 // sometimes not all the codes are correctly returned...
-                let mut balance: Value = self.safe_dict(Value::Map(balances.clone()), code, &[]);
-                if (balance != Value::Null) {
+                let mut balance: Option<crate::value::Dict> = self.safe_dict(Value::Map(balances.clone()), code, &[]).into_opt_dict();
+                if (balance.is_some()) {
                     let __ws_arg_44 = self.extend(position, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("crossMargin".to_string(), self.safe_string_k(balance.clone(), "crossMargin", &[]));
-        m.insert("crossWalletBalance".to_string(), self.safe_string_k(balance, "crossWalletBalance", &[]));
+        m.insert("crossMargin".to_string(), self.safe_string_k(&balance, "crossMargin", &[]));
+        m.insert("crossWalletBalance".to_string(), self.safe_string_k(&balance, "crossWalletBalance", &[]));
     m
 })]);
                     let mut parsed: Value = self.parse_account_position(__ws_arg_44, &[market]);
@@ -5530,7 +5530,7 @@ impl Aster {
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         self.check_address(&[address.clone(), code.clone(), tagWithdrawTag]);
         self.load_markets_and_sign_in().await;
         let mut currency: Value = self.currency(code.clone());
@@ -5542,13 +5542,13 @@ impl Aster {
                 m.insert("userNonce".to_string(), Value::Str(format!("{}", nonce).into()));
             m
         });
-        let mut chainId: Option<i64> = self.safe_integer_k(paramsWithdrawTag.clone(), "chainId", &[]).as_i64();
+        let mut chainId: Option<i64> = self.safe_integer_k(&paramsWithdrawTag, "chainId", &[]).as_i64();
         // TODO: check how ARBI signature would work
         let mut networks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut network: Value = self.safe_string_upper_k(paramsWithdrawTag.clone(), "network", &[]);
+        let mut network: Value = self.safe_string_upper_k(&paramsWithdrawTag, "network", &[]);
         if (network != Value::Null) {
             network = self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]); // accepts aliases like ETH for ERC20
         }
@@ -5564,12 +5564,12 @@ impl Aster {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw require chainId or network parameter".into()))));
         }
         request.insert("chainId".into(), Value::from(chainId));
-        let mut fee: Option<String> = self.safe_string_k(paramsWithdrawTag.clone(), "fee", &[]).as_str().map(str::to_owned);
+        let mut fee: Option<String> = self.safe_string_k(&paramsWithdrawTag, "fee", &[]).as_str().map(str::to_owned);
         if (fee.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" withdraw require fee parameter".into()))));
         }
         request.insert("fee".into(), fee.clone().map(Value::from).unwrap_or(Value::Null));
-        let mut paramsOmitted: crate::value::Dict = self.omit(paramsWithdrawTag, Value::from(vec![Value::Str("chainId".into()), Value::Str("network".into()), Value::Str("fee".into())]), &[]).into_dict();
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsWithdrawTag, Value::from(vec![Value::Str("chainId".into()), Value::Str("network".into()), Value::Str("fee".into())]), &[]).into_dict();
         request.insert("amount".into(), self.currency_to_precision(code, amount, &[network.clone()]));
         { let __be_tmp = self.sign_withdraw_payload(Value::Map(request.clone()), network).map(Value::from).unwrap_or(Value::Null); request.insert("userSignature".into(), __be_tmp); }
         let __ws_arg_45 = self.extend(Value::Map(request), &[&paramsOmitted]);

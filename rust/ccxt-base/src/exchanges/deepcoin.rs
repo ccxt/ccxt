@@ -967,9 +967,9 @@ impl Deepcoin {
     m
 }));
         let mut types: Value = Value::from(vec![Value::Str("spot".into()), Value::Str("swap".into())]);
-        let mut fetchMarketsOption: Value = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]);
-        if (fetchMarketsOption != Value::Null) {
-            types = self.safe_list_k(fetchMarketsOption, "types", &[types.clone()]);
+        let mut fetchMarketsOption: Option<crate::value::Dict> = self.safe_dict_k(self.options.clone(), "fetchMarkets", &[]).into_opt_dict();
+        if (fetchMarketsOption.is_some()) {
+            types = self.safe_list_k(&fetchMarketsOption, "types", &[types.clone()]);
         }  else {
             types = self.safe_list_k(self.options.clone(), "fetchMarkets", &[types.clone()]); // backward-support
         }
@@ -2553,7 +2553,7 @@ impl Deepcoin {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let orderTypeparamsOrderTypeVariable: Vec<Value> = self.handle_type_post_only_and_time_in_force(type_var.clone(), params).as_array().cloned().unwrap_or_default();
         let mut orderType: Value = orderTypeparamsOrderTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsOrderType: Value = orderTypeparamsOrderTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsOrderType: crate::value::Dict = orderTypeparamsOrderTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instId".to_string(), Value::from((market).id.clone()));
@@ -2562,24 +2562,24 @@ impl Deepcoin {
             m
         });
         let mut keysToOmit: Vec<Value> = Vec::new();
-        let mut clientOrderId: Option<String> = self.safe_string_k(paramsOrderType.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
+        let mut clientOrderId: Option<String> = self.safe_string_k(&paramsOrderType, "clientOrderId", &[]).as_str().map(str::to_owned);
         if (clientOrderId.is_some()) {
             request.insert("clOrdId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
             keysToOmit.push(Value::Str("clientOrderId".into()));
         }
-        let mut stopLoss: crate::value::Dict = self.safe_dict_k(paramsOrderType.clone(), "stopLoss", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut stopLoss: crate::value::Dict = self.safe_dict_k(&paramsOrderType, "stopLoss", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut stopLossPrice: Option<String> = self.safe_string_k(&stopLoss, "triggerPrice", &[]).as_str().map(str::to_owned);
         if (stopLossPrice.is_some()) {
             keysToOmit.push(Value::Str("stopLoss".into()));
             request.insert("slTriggerPx".into(), self.price_to_precision(symbol.clone(), stopLossPrice.clone().map(Value::from).unwrap_or(Value::Null)));
         }
-        let mut takeProfit: crate::value::Dict = self.safe_dict_k(paramsOrderType.clone(), "takeProfit", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut takeProfit: crate::value::Dict = self.safe_dict_k(&paramsOrderType, "takeProfit", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut takeProfitPrice: Option<String> = self.safe_string_k(&takeProfit, "triggerPrice", &[]).as_str().map(str::to_owned);
         if (takeProfitPrice.is_some()) {
             keysToOmit.push(Value::Str("takeProfit".into()));
@@ -2596,7 +2596,7 @@ impl Deepcoin {
         }
         let mut paramsRequest: Value = Value::Null;
         if (market).spot {
-            let mut cost: Option<String> = self.safe_string_k(paramsOrderType.clone(), "cost", &[]).as_str().map(str::to_owned);
+            let mut cost: Option<String> = self.safe_string_k(&paramsOrderType, "cost", &[]).as_str().map(str::to_owned);
             if (cost.is_some()) {
                 if !isMarketOrder {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" createOrder() accepts a cost parameter for spot market orders only".into()))));
@@ -2610,15 +2610,15 @@ impl Deepcoin {
             }
             request.insert("side".into(), side.clone());
             request.insert("tdMode".into(), Value::Str("cash".into()));
-            paramsRequest = self.omit(paramsOrderType.clone(), Value::from(keysToOmit.clone()), &[]);
+            paramsRequest = self.omit(&paramsOrderType, Value::from(keysToOmit.clone()), &[]);
         }  else {
             request.insert("sz".into(), self.amount_to_precision(symbol, amount));
-            let mut paramsOmitted: Value = self.omit(paramsOrderType, Value::from(keysToOmit), &[]);
+            let mut paramsOmitted: Value = self.omit(&paramsOrderType, Value::from(keysToOmit), &[]);
             let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[paramsOmitted, Value::Str("cross".into())]).as_array().cloned().unwrap_or_default();
             let mut marginMode: Value = marginModeparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
-            let mut paramsMarginMode: Value = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
+            let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             request.insert("tdMode".into(), marginMode);
-            let mrgPositionparamsMrgPositionVariable: Vec<Value> = self.handle_option_string_and_params(paramsMarginMode, Value::Str("createOrder".into()), Value::Str("mrgPosition".into()), &[Value::Str("merge".into())]).as_array().cloned().unwrap_or_default();
+            let mrgPositionparamsMrgPositionVariable: Vec<Value> = self.handle_option_string_and_params(&paramsMarginMode, Value::Str("createOrder".into()), Value::Str("mrgPosition".into()), &[Value::Str("merge".into())]).as_array().cloned().unwrap_or_default();
             let mut mrgPosition: Value = mrgPositionparamsMrgPositionVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsMrgPosition: Value = mrgPositionparamsMrgPositionVariable.get(1).cloned().unwrap_or(Value::Null);
             paramsRequest = paramsMrgPosition.clone();
@@ -2708,7 +2708,7 @@ impl Deepcoin {
             isCrossMargin = 0;
         }
         let mut reduceOnly: bool = self.safe_bool_k(&paramsMarginMode, "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsOmitted: Value = self.omit(&paramsMarginMode, Value::Str("reduceOnly".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, Value::Str("reduceOnly".into()), &[]).into_dict();
         request.insert("isCrossMargin".into(), Value::from(isCrossMargin));
         request.insert("tdMode".into(), marginModeOption);
         if (market).swap {
@@ -2727,7 +2727,7 @@ impl Deepcoin {
             }
         }
         let mut mrgPosition: String = "merge".to_string();
-        let mrgPositionOptionparamsMrgPositionVariable: Vec<Value> = self.handle_option_string_and_params(paramsOmitted, Value::Str("createOrder".into()), Value::Str("mrgPosition".into()), &[Value::from(mrgPosition)]).as_array().cloned().unwrap_or_default();
+        let mrgPositionOptionparamsMrgPositionVariable: Vec<Value> = self.handle_option_string_and_params(&paramsOmitted, Value::Str("createOrder".into()), Value::Str("mrgPosition".into()), &[Value::from(mrgPosition)]).as_array().cloned().unwrap_or_default();
         let mut mrgPositionOption: Value = mrgPositionOptionparamsMrgPositionVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMrgPosition: crate::value::Dict = mrgPositionOptionparamsMrgPositionVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         request.insert("mrgPosition".into(), mrgPositionOption);
@@ -4000,12 +4000,12 @@ impl Deepcoin {
         let mut marginMode: String = "cross".to_string();
         let marginModeOptionparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("setLeverage".into()), &[params, Value::from(marginMode)]).as_array().cloned().unwrap_or_default();
         let mut marginModeOption: Value = marginModeOptionparamsMarginModeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMarginMode: Value = marginModeOptionparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarginMode: crate::value::Dict = marginModeOptionparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marginModeOption.as_str() != Some("cross")) && (marginModeOption.as_str() != Some("isolated")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a marginMode parameter that must be either cross or isolated".into()))));
         }
         let mut mrgPosition: String = "merge".to_string();
-        let mrgPositionOptionparamsMrgPositionVariable: Vec<Value> = self.handle_option_string_and_params(paramsMarginMode, Value::Str("setLeverage".into()), Value::Str("mrgPosition".into()), &[Value::from(mrgPosition)]).as_array().cloned().unwrap_or_default();
+        let mrgPositionOptionparamsMrgPositionVariable: Vec<Value> = self.handle_option_string_and_params(&paramsMarginMode, Value::Str("setLeverage".into()), Value::Str("mrgPosition".into()), &[Value::from(mrgPosition)]).as_array().cloned().unwrap_or_default();
         let mut mrgPositionOption: Value = mrgPositionOptionparamsMrgPositionVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsMrgPosition: crate::value::Dict = mrgPositionOptionparamsMrgPositionVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (mrgPositionOption.as_str() != Some("merge")) && (mrgPositionOption.as_str() != Some("split")) {

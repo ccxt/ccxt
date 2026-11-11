@@ -1354,7 +1354,7 @@ impl Coinmate {
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1382,7 +1382,7 @@ impl Coinmate {
         if (tagWithdrawTag != Value::Null) {
             request.insert("destinationTag".into(), tagWithdrawTag.clone());
         }
-        let mut requestParams: Value = self.extend(Value::Map(request), &[paramsWithdrawTag]);
+        let mut requestParams: Value = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
         let mut response: Value = Value::Null;
         if (method.as_deref() == Some("privatePostBitcoinWithdrawal")) {
             response = self.private_post_bitcoin_withdrawal(&[requestParams.clone()]).await;

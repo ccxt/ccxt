@@ -363,9 +363,8 @@ impl Lbank {
     m
 }));
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);
-        let mut client: Value = self.client(&[url]);
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        if (__ch.has_subscription(&subHash)) {
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url]));
+        if (client.has_subscription(&subHash)) {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 client.send(&[self.deep_extend(request, &[params])]);
              #[allow(unreachable_code)] { Value::Null }})).await;
@@ -376,7 +375,7 @@ if _try_result.is_err() {
         // lbank does not acknowledge an unsubscribe, it just stops streaming the channel,
         // so the subscription is cleaned up as soon as the request is sent
         self.clean_cache(subscription);
-        self.clean_unsubscription(client, subHash.clone(), Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subHash).into()), &[]);
+        self.clean_unsubscription(client.as_value(), subHash.clone(), Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subHash).into()), &[]);
         return Value::Bool(true);
 
     Value::Null
@@ -1633,12 +1632,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // a flight is already in progress - wake when the leader settles
             // it: the subscribeKey is then in the bucket
             crate::exchange_stubs::ws_await_flight(&client.future(&[messageHash.clone()])).await;
-            let __ws_arg_0 = self.safe_dict(__ch.subscriptions.clone(), Value::Str("authenticated".into()), &[]);
-            return self.safe_string_k(__ws_arg_0, "key", &[]);
+            return self.safe_string(self.safe_dict_k(__ch.subscriptions.clone(), "authenticated", &[]), Value::Str("key".into()), &[]);
         }
         let mut future: Value = client.reusable_future(messageHash.clone());
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            let mut authenticated: Value = self.safe_dict(__ch.subscriptions.clone(), Value::Str("authenticated".into()), &[]);
+            let mut authenticated: Value = self.safe_dict_k(__ch.subscriptions.clone(), "authenticated", &[]);
             if (authenticated == Value::Null) {
                 let mut response: Value = self.parent.spot_private_post_subscribe_get_key(&[params.clone()]).await;
                 //
@@ -1662,8 +1660,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                             m.insert("subscribeKey".to_string(), authenticated.as_map().and_then(|__m| __m.get("key")).cloned().unwrap_or(Value::Null));
                         m
                     });
-                    let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-                    let mut response: Value = self.parent.spot_private_post_subscribe_refresh_key(&[__ws_arg_1]).await;
+                    let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
+                    let mut response: Value = self.parent.spot_private_post_subscribe_refresh_key(&[__ws_arg_0]).await;
                     //
                     //    {"result": "true"}
                     //
@@ -1676,8 +1674,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             // settle the flight through the client so that every write to the
             // futures map happens inside the base class
-            let __ws_arg_2 = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::Str("authenticated".into()), &[]);
-            client.resolve(&[self.safe_string_k(__ws_arg_2, "key", &[]), messageHash.clone()]);
+            let __ws_arg_1 = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::Str("authenticated".into()), &[]);
+            client.resolve(&[self.safe_string_k(__ws_arg_1, "key", &[]), messageHash.clone()]);
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // reject the flight - all waiters throw and the next caller
@@ -1687,8 +1685,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // rethrows a rejected flight to the leader and attaches the handler
         // that keeps an alone leader from crashing on an unhandled rejection
         crate::exchange_stubs::ws_await_flight(&future).await;
-        let __ws_arg_3 = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::Str("authenticated".into()), &[]);
-        return self.safe_string_k(__ws_arg_3, "key", &[]);
+        let __ws_arg_2 = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::Str("authenticated".into()), &[]);
+        return self.safe_string_k(__ws_arg_2, "key", &[]);
 
     Value::Null
 }

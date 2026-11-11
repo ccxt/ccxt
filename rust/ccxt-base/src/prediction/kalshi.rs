@@ -1033,9 +1033,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (response == Value::Null) || (response == Value::Null) {
             return Value::Null;
         }
-        let mut error: Value = self.safe_dict_k(response, "error", &[]);
-        if (error != Value::Null) {
-            let mut errorCode: Option<String> = self.safe_string_k(error, "code", &[]).as_str().map(str::to_owned);
+        let mut error: Option<crate::value::Dict> = self.safe_dict_k(response, "error", &[]).into_opt_dict();
+        if (error.is_some()) {
+            let mut errorCode: Option<String> = self.safe_string_k(&error, "code", &[]).as_str().map(str::to_owned);
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorCode.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
@@ -3032,7 +3032,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
         // `time_in_force` param (handled below) still overrides
         let mut unifiedTif: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("timeInForce".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("timeInForce".into()), &[]).into_dict();
         let mut defaultTif: String = "good_till_canceled".to_string();
         if isMarket {
             defaultTif = "immediate_or_cancel".to_string();
@@ -3046,10 +3046,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else if (unifiedTif.as_deref() == Some("GTC")) {
             defaultTif = "good_till_canceled".to_string();
         }
-        let timeInForceparamsTimeInForceVariable: Vec<Value> = self.handle_option_string_and_params(paramsOmitted, Value::Str("createOrder".into()), Value::Str("time_in_force".into()), &[Value::from(defaultTif)]).as_array().cloned().unwrap_or_default();
+        let timeInForceparamsTimeInForceVariable: Vec<Value> = self.handle_option_string_and_params(&paramsOmitted, Value::Str("createOrder".into()), Value::Str("time_in_force".into()), &[Value::from(defaultTif)]).as_array().cloned().unwrap_or_default();
         let mut timeInForce: Value = timeInForceparamsTimeInForceVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsTimeInForce: Value = timeInForceparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null);
-        let stpparamsSelfTradePreventionTypeVariable: Vec<Value> = self.handle_option_string_and_params(paramsTimeInForce, Value::Str("createOrder".into()), Value::Str("self_trade_prevention_type".into()), &[Value::Str("taker_at_cross".into())]).as_array().cloned().unwrap_or_default();
+        let mut paramsTimeInForce: crate::value::Dict = timeInForceparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let stpparamsSelfTradePreventionTypeVariable: Vec<Value> = self.handle_option_string_and_params(&paramsTimeInForce, Value::Str("createOrder".into()), Value::Str("self_trade_prevention_type".into()), &[Value::Str("taker_at_cross".into())]).as_array().cloned().unwrap_or_default();
         let mut stp: Value = stpparamsSelfTradePreventionTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsSelfTradePreventionType: crate::value::Dict = stpparamsSelfTradePreventionTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({

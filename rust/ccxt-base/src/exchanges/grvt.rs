@@ -1951,8 +1951,8 @@ if _try_result.is_err() {
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string(Value::Str("end_time".into()), Value::Map(request), &[params, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
         let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_5 = self.extend(requestUntilOptionString, &[paramsUntilOptionString]);
+        let mut paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_5 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);
         let mut response: crate::value::Dict = self.public_market_post_full_v1_trade_history(&[__ws_arg_5]).await.into_dict();
         //
         //    {
@@ -2134,8 +2134,8 @@ if _try_result.is_err() {
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string(Value::Str("end_time".into()), Value::Map(request), &[paramsPaginate, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
         let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_6 = self.extend(requestUntilOptionString, &[paramsUntilOptionString]);
+        let mut paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_6 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);
         let mut response: crate::value::Dict = self.public_market_post_full_v1_kline(&[__ws_arg_6]).await.into_dict();
         //
         //    {
@@ -2221,8 +2221,8 @@ if _try_result.is_err() {
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string(Value::Str("end_time".into()), Value::Map(request), &[paramsPaginate, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
         let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_7 = self.extend(requestUntilOptionString, &[paramsUntilOptionString]);
+        let mut paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_7 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);
         let mut response: crate::value::Dict = self.public_market_post_full_v1_funding(&[__ws_arg_7]).await.into_dict();
         //
         //    {
@@ -2447,15 +2447,15 @@ if _try_result.is_err() {
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string(Value::Str("end_time".into()), Value::Map(request), &[params, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
         let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut useTransfersEndpoint: bool = self.safe_bool_k(self.options.clone(), "useTransfersEndpointForDepositsWithdrawals", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         if useTransfersEndpoint {
-            let __ws_arg_9 = self.extend(requestUntilOptionString.clone(), &[paramsUntilOptionString.clone()]);
+            let __ws_arg_9 = self.extend(requestUntilOptionString.clone(), &[&paramsUntilOptionString]);
             let mut transfers: Value = self.internal_fetch_transfers(__ws_arg_9, &[currency.clone(), since.clone(), limit.clone()]).await;
             let mut transactions: Value = self.get_list_from_object_values(self.safe_list(self.filter_transfers_by_type(transfers, Value::Str("deposit".into()), &[Value::Bool(true)]), Value::Int(0), &[Value::from(vec![])]), Value::Str("info".into()));
             return self.parse_transactions(transactions, &[currency.clone(), since.clone(), limit.clone()]);
         }  else {
-            let __ws_arg_10 = self.extend(requestUntilOptionString, &[paramsUntilOptionString]);
+            let __ws_arg_10 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);
             let mut response: crate::value::Dict = self.private_trading_post_full_v1_deposit_history(&[__ws_arg_10]).await.into_dict();
             //
             // {
@@ -2524,15 +2524,15 @@ if _try_result.is_err() {
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string(Value::Str("end_time".into()), Value::Map(request), &[params, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
         let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut useTransfersEndpoint: bool = self.safe_bool_k(self.options.clone(), "useTransfersEndpointForDepositsWithdrawals", &[Value::Bool(true)]).as_bool().unwrap_or(true);
         if useTransfersEndpoint {
-            let __ws_arg_11 = self.extend(requestUntilOptionString.clone(), &[paramsUntilOptionString.clone()]);
+            let __ws_arg_11 = self.extend(requestUntilOptionString.clone(), &[&paramsUntilOptionString]);
             let mut transfers: Value = self.internal_fetch_transfers(__ws_arg_11, &[currency.clone(), since.clone(), limit.clone()]).await;
             let mut transactions: Value = self.get_list_from_object_values(self.safe_list(self.filter_transfers_by_type(transfers, Value::Str("withdrawal".into()), &[Value::Bool(true)]), Value::Int(0), &[Value::from(vec![])]), Value::Str("info".into()));
             return self.parse_transactions(transactions, &[currency.clone(), since.clone(), limit.clone()]);
         }  else {
-            let __ws_arg_12 = self.extend(requestUntilOptionString, &[paramsUntilOptionString]);
+            let __ws_arg_12 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);
             let mut response: crate::value::Dict = self.private_trading_post_full_v1_withdrawal_history(&[__ws_arg_12]).await.into_dict();
             //
             // {
@@ -2772,8 +2772,8 @@ if _try_result.is_err() {
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string(Value::Str("end_time".into()), Value::Map(request), &[paramsPaginate, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
         let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_13 = self.extend(requestUntilOptionString, &[paramsUntilOptionString]);
+        let mut paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_13 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);
         let mut response: crate::value::Dict = self.private_trading_post_full_v1_transfer_history(&[__ws_arg_13]).await.into_dict();
         //
         //    {
@@ -2878,8 +2878,8 @@ if _try_result.is_err() {
         if isInternal {
             let tradingAccountIdparamsTradingAccountIdVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("transfer".into()), Value::Str("tradingAccountId".into()), &[]).as_array().cloned().unwrap_or_default();
             let mut tradingAccountId: Value = tradingAccountIdparamsTradingAccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
-            let mut paramsTradingAccountId: Value = tradingAccountIdparamsTradingAccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
-            let fundingAccountIdparamsFundingVariable: Vec<Value> = self.handle_option_string_and_params(paramsTradingAccountId, Value::Str("transfer".into()), Value::Str("fundingAccountId".into()), &[]).as_array().cloned().unwrap_or_default();
+            let mut paramsTradingAccountId: crate::value::Dict = tradingAccountIdparamsTradingAccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+            let fundingAccountIdparamsFundingVariable: Vec<Value> = self.handle_option_string_and_params(&paramsTradingAccountId, Value::Str("transfer".into()), Value::Str("fundingAccountId".into()), &[]).as_array().cloned().unwrap_or_default();
             let mut fundingAccountId: Value = fundingAccountIdparamsFundingVariable.get(0).cloned().unwrap_or(Value::Null);
             let mut paramsFunding: Value = fundingAccountIdparamsFundingVariable.get(1).cloned().unwrap_or(Value::Null);
             if (tradingAccountId == Value::Null) || (fundingAccountId == Value::Null) {
@@ -3219,9 +3219,9 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
                 timeInForce = Value::Str("IMMEDIATE_OR_CANCEL".into());
             }
         }
-        let mut paramsOmitted2: Value = self.omit(paramsOmitted3, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into())]), &[]);
+        let mut paramsOmitted2: crate::value::Dict = self.omit(paramsOmitted3, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into())]), &[]).into_dict();
         // Trigger & SL & TP
-        let triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable: Vec<Value> = self.handle_trigger_prices_and_params(symbol, paramsOmitted2, &[]).as_array().cloned().unwrap_or_default();
+        let triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable: Vec<Value> = self.handle_trigger_prices_and_params(symbol, &paramsOmitted2, &[]).as_array().cloned().unwrap_or_default();
         let mut triggerPrice: Value = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut stopLossPrice: Value = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut takeProfitPrice: Value = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.get(2).cloned().unwrap_or(Value::Null);
@@ -3495,8 +3495,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string(Value::Str("end_time".into()), Value::Map(request), &[paramsPaginate, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
         let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_17 = self.extend(requestUntilOptionString, &[paramsUntilOptionString]);
+        let mut paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_17 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);
         let mut response: crate::value::Dict = self.private_trading_post_full_v1_fill_history(&[__ws_arg_17]).await.into_dict();
         //
         //    {
@@ -3930,8 +3930,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string(Value::Str("end_time".into()), Value::Map(request), &[paramsPaginate, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
         let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_22 = self.extend(requestUntilOptionString, &[paramsUntilOptionString]);
+        let mut paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_22 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);
         let mut response: crate::value::Dict = self.private_trading_post_full_v1_funding_payment_history(&[__ws_arg_22]).await.into_dict();
         //
         //    {
@@ -4031,8 +4031,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string(Value::Str("end_time".into()), Value::Map(request), &[params, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
         let mut requestUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntilOptionString: Value = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_23 = self.extend(requestUntilOptionString, &[paramsUntilOptionString]);
+        let mut paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let __ws_arg_23 = self.extend(requestUntilOptionString, &[&paramsUntilOptionString]);
         let mut response: crate::value::Dict = self.private_trading_post_full_v1_order_history(&[__ws_arg_23]).await.into_dict();
         //
         //    {
@@ -4408,14 +4408,14 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut filledAmounts: crate::value::List = self.safe_list_k(&stateObj, "traded_size", &[Value::from(vec![])]).into_list();
         let mut avgPrices: crate::value::List = self.safe_list_k(&stateObj, "avg_fill_price", &[Value::from(vec![])]).into_list();
         let mut primaryOrderIndex: i64 = 0;
-        let mut firstLeg: Value = self.safe_dict(legs, Value::from(primaryOrderIndex), &[]);
-        let mut legMarketId: Option<String> = self.safe_string_k(firstLeg.clone(), "instrument", &[]).as_str().map(str::to_owned);
-        let mut marketResolved: Value = (if (firstLeg != Value::Null) { self.safe_market(&[legMarketId.clone().map(Value::from).unwrap_or(Value::Null), market.clone()]) } else { market });
-        if (firstLeg != Value::Null) {
-            size = self.safe_string_k(firstLeg.clone(), "size", &[]).as_str().map(str::to_owned);
-            let mut isBuyingAsset: bool = self.safe_bool_k(firstLeg.clone(), "is_buying_asset", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut firstLeg: Option<crate::value::Dict> = self.safe_dict(legs, Value::from(primaryOrderIndex), &[]).into_opt_dict();
+        let mut legMarketId: Option<String> = self.safe_string_k(&firstLeg, "instrument", &[]).as_str().map(str::to_owned);
+        let mut marketResolved: Value = (if (firstLeg.is_some()) { self.safe_market(&[legMarketId.clone().map(Value::from).unwrap_or(Value::Null), market.clone()]) } else { market });
+        if (firstLeg.is_some()) {
+            size = self.safe_string_k(&firstLeg, "size", &[]).as_str().map(str::to_owned);
+            let mut isBuyingAsset: bool = self.safe_bool_k(&firstLeg, "is_buying_asset", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             side = (if isBuyingAsset { Value::Str("buy".into()) } else { Value::Str("sell".into()) });
-            price = self.safe_string_k(firstLeg, "limit_price", &[]).as_str().map(str::to_owned);
+            price = self.safe_string_k(&firstLeg, "limit_price", &[]).as_str().map(str::to_owned);
             filled = self.safe_string(&filledAmounts, Value::from(primaryOrderIndex), &[]).as_str().map(str::to_owned);
             avgPrice = self.safe_string(&avgPrices, Value::from(primaryOrderIndex), &[]).as_str().map(str::to_owned);
         }

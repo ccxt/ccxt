@@ -2777,8 +2777,7 @@ if _try_result.is_err() {
         let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orderbook::".into()), sym).into());
         self.load_api_key().await;
         let mut url: Value = self.opinion_ws_url().map(Value::from).unwrap_or(Value::Null);
-        let mut client: Value = self.client(&[url.clone()]);
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+        let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&[url.clone()]));
         let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("SUBSCRIBE".into()));
@@ -2787,7 +2786,7 @@ if _try_result.is_err() {
             m
         });
         let mut subscriptionKey: String = format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), self.safe_string(Value::Map(subscribeMsg.clone()), Value::Str("marketId".into()), &[Value::Str("".into())]));
-        let mut isNewSubscription: bool = self.safe_value(__ch.subscriptions.clone(), Value::from(subscriptionKey.clone()), &[]) == Value::Null;
+        let mut isNewSubscription: bool = self.safe_value((client).subscriptions.clone(), Value::from(subscriptionKey.clone()), &[]) == Value::Null;
         if isNewSubscription {
             self.seed_order_book(outcome, sym.clone(), &[limit.clone()]).await;
         }

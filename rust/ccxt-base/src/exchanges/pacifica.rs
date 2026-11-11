@@ -1483,13 +1483,13 @@ if _try_result.is_err() {
 }));
         let userAccountparamsOriginAndSingleAddressVariable: Vec<Value> = self.handle_origin_and_single_address(Value::Str("fetchBalance".into()), params).as_array().cloned().unwrap_or_default();
         let mut userAccount: Value = userAccountparamsOriginAndSingleAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsOriginAndSingleAddress: Value = userAccountparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsOriginAndSingleAddress: crate::value::Dict = userAccountparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("account".to_string(), userAccount);
             m
         });
-        let __ws_arg_0 = self.extend(Value::Map(request), &[paramsOriginAndSingleAddress]);
+        let __ws_arg_0 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
         let mut response: crate::value::Dict = self.public_get_account(&[__ws_arg_0]).await.into_dict();
         // {
         //   "success": true,
@@ -1593,7 +1593,7 @@ if _try_result.is_err() {
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let userAccountparamsOriginAndSingleAddressVariable: Vec<Value> = self.handle_origin_and_single_address(Value::Str("fetchLeverage".into()), params).as_array().cloned().unwrap_or_default();
         let mut userAccount: Value = userAccountparamsOriginAndSingleAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsOriginAndSingleAddress: Value = userAccountparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsOriginAndSingleAddress: crate::value::Dict = userAccountparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut settings: Value = Value::Null;
         if (userAccount.as_str() == self.walletAddress.as_str()) {
             settings = self.handle_option(Value::Str("fetchLeverage".into()), Value::Str("settings".into()), &[]);
@@ -1603,7 +1603,7 @@ if _try_result.is_err() {
                     m.insert("account".to_string(), userAccount);
                 m
             });
-            let __ws_arg_1 = self.extend(Value::Map(request), &[paramsOriginAndSingleAddress]);
+            let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
             settings = self.fetch_account_settings(&[__ws_arg_1]).await;
         }
         let mut setting: Value = self.safe_dict(settings, symbol.clone(), &[]);
@@ -1683,13 +1683,13 @@ if _try_result.is_err() {
 }));
         let userAccountparamsOriginAndSingleAddressVariable: Vec<Value> = self.handle_origin_and_single_address(Value::Str("fetchAccountSettings".into()), params).as_array().cloned().unwrap_or_default();
         let mut userAccount: Value = userAccountparamsOriginAndSingleAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsOriginAndSingleAddress: Value = userAccountparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsOriginAndSingleAddress: crate::value::Dict = userAccountparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("account".to_string(), userAccount);
             m
         });
-        let __ws_arg_2 = self.extend(Value::Map(request), &[paramsOriginAndSingleAddress]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
         let mut response: crate::value::Dict = self.public_get_account_settings(&[__ws_arg_2]).await.into_dict();
         return self.parse_account_settings(self.safe_list_k(&response, "data", &[Value::from(vec![])]));
 
@@ -1766,7 +1766,7 @@ if _try_result.is_err() {
         self.load_account_settings(&[]).await;
         let userAccountparamsOriginAndSingleAddressVariable: Vec<Value> = self.handle_origin_and_single_address(Value::Str("fetchMarginMode".into()), params).as_array().cloned().unwrap_or_default();
         let mut userAccount: Value = userAccountparamsOriginAndSingleAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsOriginAndSingleAddress: Value = userAccountparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsOriginAndSingleAddress: crate::value::Dict = userAccountparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut settings: Value = Value::Null;
         if (userAccount.as_str() == self.walletAddress.as_str()) {
             settings = self.handle_option(Value::Str("fetchMarginMode".into()), Value::Str("settings".into()), &[]);
@@ -1776,7 +1776,7 @@ if _try_result.is_err() {
                     m.insert("account".to_string(), userAccount);
                 m
             });
-            let __ws_arg_3 = self.extend(Value::Map(request), &[paramsOriginAndSingleAddress]);
+            let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
             settings = self.fetch_account_settings(&[__ws_arg_3]).await;
         }
         // {
@@ -2074,7 +2074,7 @@ if _try_result.is_err() {
         let mut sinceValue: Value = since.clone();
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_time".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.safe_integer_k(requestUntil.clone(), "end_time", &[]) == Value::Null) {
             if (sinceValue == Value::Null) {
                 sinceValue = (match (&(nowMs), &((match (&(limitValue), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
@@ -2092,7 +2092,7 @@ if _try_result.is_err() {
             }
         }
         if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("start_time".into(), sinceValue); }
-        let __ws_arg_5 = self.extend(requestUntil, &[paramsUntil]);
+        let __ws_arg_5 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: crate::value::Dict = self.public_get_kline(&[__ws_arg_5]).await.into_dict();
         //
         // {
@@ -2238,7 +2238,7 @@ if _try_result.is_err() {
         });
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_time".into()), Value::Map(request), paramsOriginAndSingleAddress, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("account".into(), userAddress); }
         if (symbol != Value::Null) {
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[])); }
@@ -2249,7 +2249,7 @@ if _try_result.is_err() {
         if (since != Value::Null) {
             if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("start_time".into(), since.clone()); }
         }
-        let __ws_arg_7 = self.extend(requestUntil, &[paramsUntil]);
+        let __ws_arg_7 = self.extend(requestUntil, &[&paramsUntil]);
         let mut response: Value = self.public_get_trades_history(&[__ws_arg_7]).await;
         //
         // {
@@ -3494,7 +3494,7 @@ if _try_result.is_err() {
         }
         let userAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.handle_origin_and_single_address(Value::Str("fetchOpenOrders".into()), params).as_array().cloned().unwrap_or_default();
         let mut userAddress: Value = userAddressparamsOriginAndSingleAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsOriginAndSingleAddress: Value = userAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsOriginAndSingleAddress: crate::value::Dict = userAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("account".to_string(), userAddress);
@@ -3504,7 +3504,7 @@ if _try_result.is_err() {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let __ws_arg_20 = self.extend(Value::Map(request), &[paramsOriginAndSingleAddress]);
+        let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
         let mut response: crate::value::Dict = self.public_get_orders(&[__ws_arg_20]).await.into_dict();
         //
         // {
@@ -3577,7 +3577,7 @@ if _try_result.is_err() {
         }
         let userAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.handle_origin_and_single_address(Value::Str("fetchOrders".into()), paramsPaginate).as_array().cloned().unwrap_or_default();
         let mut userAddress: Value = userAddressparamsOriginAndSingleAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsOriginAndSingleAddress: Value = userAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsOriginAndSingleAddress: crate::value::Dict = userAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3590,7 +3590,7 @@ if _try_result.is_err() {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let __ws_arg_21 = self.extend(Value::Map(request), &[paramsOriginAndSingleAddress]);
+        let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
         let mut response: Value = self.public_get_orders_history(&[__ws_arg_21]).await;
         //
         // {
@@ -3992,14 +3992,14 @@ if _try_result.is_err() {
         }
         let userAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.handle_origin_and_single_address(Value::Str("fetchPositions".into()), params).as_array().cloned().unwrap_or_default();
         let mut userAddress: Value = userAddressparamsOriginAndSingleAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsOriginAndSingleAddress: Value = userAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsOriginAndSingleAddress: crate::value::Dict = userAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("account".to_string(), userAddress);
             m
         });
-        let __ws_arg_23 = self.extend(Value::Map(request), &[paramsOriginAndSingleAddress]);
+        let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
         let mut response: crate::value::Dict = self.public_get_positions(&[__ws_arg_23]).await.into_dict();
         // {
         //   "success": true,
@@ -4259,14 +4259,14 @@ if _try_result.is_err() {
         }
         let userAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.handle_origin_and_single_address(Value::Str("fetchTradingFee".into()), params).as_array().cloned().unwrap_or_default();
         let mut userAddress: Value = userAddressparamsOriginAndSingleAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsOriginAndSingleAddress: Value = userAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsOriginAndSingleAddress: crate::value::Dict = userAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("account".to_string(), userAddress);
             m
         });
-        let __ws_arg_25 = self.extend(Value::Map(request), &[paramsOriginAndSingleAddress]);
+        let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
         let mut response: crate::value::Dict = self.public_get_account(&[__ws_arg_25]).await.into_dict();
         // {
         //   "success": true,
@@ -4323,13 +4323,13 @@ if _try_result.is_err() {
         }
         let userAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.handle_origin_and_single_address(Value::Str("fetchTradingFees".into()), params).as_array().cloned().unwrap_or_default();
         let mut userAddress: Value = userAddressparamsOriginAndSingleAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsOriginAndSingleAddress: Value = userAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsOriginAndSingleAddress: crate::value::Dict = userAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("account".to_string(), userAddress);
             m
         });
-        let __ws_arg_26 = self.extend(Value::Map(request), &[paramsOriginAndSingleAddress]);
+        let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsOriginAndSingleAddress]);
         let mut response: crate::value::Dict = self.public_get_account(&[__ws_arg_26]).await.into_dict();
         let mut data: Value = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4669,13 +4669,13 @@ if _try_result.is_err() {
         }
         let userAddressparamsAddressVariable: Vec<Value> = self.handle_origin_and_single_address(Value::Str("fetchDeposits".into()), params).as_array().cloned().unwrap_or_default();
         let mut userAddress: Value = userAddressparamsAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsAddress: Value = userAddressparamsAddressVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsAddress: crate::value::Dict = userAddressparamsAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("account".to_string(), userAddress);
             m
         });
-        let __ws_arg_28 = self.extend(Value::Map(request), &[paramsAddress]);
+        let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsAddress]);
         let mut response: crate::value::Dict = self.public_get_account_balance_history(&[__ws_arg_28]).await.into_dict();
         let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         let mut transactions: Value = self.parse_transactions(data, &[self.safe_currency(code, &[])]);
@@ -4715,13 +4715,13 @@ if _try_result.is_err() {
         }
         let userAddressparamsAddressVariable: Vec<Value> = self.handle_origin_and_single_address(Value::Str("fetchWithdrawals".into()), params).as_array().cloned().unwrap_or_default();
         let mut userAddress: Value = userAddressparamsAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsAddress: Value = userAddressparamsAddressVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsAddress: crate::value::Dict = userAddressparamsAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("account".to_string(), userAddress);
             m
         });
-        let __ws_arg_29 = self.extend(Value::Map(request), &[paramsAddress]);
+        let __ws_arg_29 = self.extend(Value::Map(request), &[&paramsAddress]);
         let mut response: crate::value::Dict = self.public_get_account_balance_history(&[__ws_arg_29]).await.into_dict();
         let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         let mut transactions: Value = self.parse_transactions(data, &[self.safe_currency(code, &[])]);
@@ -5024,29 +5024,29 @@ if _try_result.is_err() {
         let mut paramsAgentAddress: Value = agentAddressparamsAgentAddressVariable.get(1).cloned().unwrap_or(Value::Null);
         let originAddressparamsOriginAndSingleAddressVariable: Vec<Value> = self.handle_origin_and_single_address(Value::Str("createSubAccount".into()), paramsAgentAddress).as_array().cloned().unwrap_or_default();
         let mut originAddress: Value = originAddressparamsOriginAndSingleAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsOriginAndSingleAddress: Value = originAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsOriginAndSingleAddress: crate::value::Dict = originAddressparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (originAddress == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createSubAccount() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials".into()))));
         }
         if (agentAddress != Value::Null) {
             if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("agent_wallet".into(), agentAddress); }
         }
-        let subAccountAddressparamsSubAccountAddressVariable: Vec<Value> = self.handle_option_string_and_params(paramsOriginAndSingleAddress, Value::Str("createSubAccount".into()), Value::Str("subAccountAddress".into()), &[]).as_array().cloned().unwrap_or_default();
+        let subAccountAddressparamsSubAccountAddressVariable: Vec<Value> = self.handle_option_string_and_params(&paramsOriginAndSingleAddress, Value::Str("createSubAccount".into()), Value::Str("subAccountAddress".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut subAccountAddress: Value = subAccountAddressparamsSubAccountAddressVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsSubAccountAddress: Value = subAccountAddressparamsSubAccountAddressVariable.get(1).cloned().unwrap_or(Value::Null);
-        let subAccountPrivateKeyparamsSubAccountPrivateKeyVariable: Vec<Value> = self.handle_option_string_and_params(paramsSubAccountAddress, Value::Str("createSubAccount".into()), Value::Str("subAccountPrivateKey".into()), &[]).as_array().cloned().unwrap_or_default();
+        let mut paramsSubAccountAddress: crate::value::Dict = subAccountAddressparamsSubAccountAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let subAccountPrivateKeyparamsSubAccountPrivateKeyVariable: Vec<Value> = self.handle_option_string_and_params(&paramsSubAccountAddress, Value::Str("createSubAccount".into()), Value::Str("subAccountPrivateKey".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut subAccountPrivateKey: Value = subAccountPrivateKeyparamsSubAccountPrivateKeyVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsSubAccountPrivateKey: Value = subAccountPrivateKeyparamsSubAccountPrivateKeyVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsSubAccountPrivateKey: crate::value::Dict = subAccountPrivateKeyparamsSubAccountPrivateKeyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (subAccountAddress == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createSubAccount() requires a \"subAccountAddress\"!".into()))));
         }
         if (subAccountPrivateKey == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createSubAccount() requires a \"subAccountPrivateKey\"!".into()))));
         }
-        let timestampparamsTimestampVariable: Vec<Value> = self.handle_param_integer(paramsSubAccountPrivateKey, Value::Str("timestamp".into()), &[self.milliseconds()]).as_array().cloned().unwrap_or_default();
+        let timestampparamsTimestampVariable: Vec<Value> = self.handle_param_integer(&paramsSubAccountPrivateKey, Value::Str("timestamp".into()), &[self.milliseconds()]).as_array().cloned().unwrap_or_default();
         let mut timestamp: Value = timestampparamsTimestampVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsTimestamp: Value = timestampparamsTimestampVariable.get(1).cloned().unwrap_or(Value::Null);
-        let expiryWindowparamsExpiryWindowVariable: Vec<Value> = self.handle_option_integer_and_params2(paramsTimestamp, Value::Str("createSubAccount".into()), Value::Str("expiryWindow".into()), Value::Str("expiry_window".into()), &[Value::Int(5000)]).as_array().cloned().unwrap_or_default();
+        let mut paramsTimestamp: crate::value::Dict = timestampparamsTimestampVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let expiryWindowparamsExpiryWindowVariable: Vec<Value> = self.handle_option_integer_and_params2(&paramsTimestamp, Value::Str("createSubAccount".into()), Value::Str("expiryWindow".into()), Value::Str("expiry_window".into()), &[Value::Int(5000)]).as_array().cloned().unwrap_or_default();
         let mut expiryWindow: Value = expiryWindowparamsExpiryWindowVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsExpiryWindow: crate::value::Dict = expiryWindowparamsExpiryWindowVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut subaccountSignatureHeader: indexmap::IndexMap<String, Value> = ({
@@ -5474,8 +5474,8 @@ if _try_result.is_err() {
         }
         let expiryWindowparamsExpiryWindowVariable: Vec<Value> = self.handle_option_integer_and_params2(params, Value::Str("postActionRequest".into()), Value::Str("expiryWindow".into()), Value::Str("expiry_window".into()), &[Value::Int(5000)]).as_array().cloned().unwrap_or_default();
         let mut expiryWindow: Value = expiryWindowparamsExpiryWindowVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsExpiryWindow: Value = expiryWindowparamsExpiryWindowVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut timestamp: Value = self.safe_integer_k(paramsExpiryWindow.clone(), "timestamp", &[self.milliseconds()]);
+        let mut paramsExpiryWindow: crate::value::Dict = expiryWindowparamsExpiryWindowVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
+        let mut timestamp: Value = self.safe_integer_k(&paramsExpiryWindow, "timestamp", &[self.milliseconds()]);
         let mut signatureHeader: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("timestamp".to_string(), timestamp);
@@ -5488,7 +5488,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let agentAddressparamsAgentAddressVariable: Vec<Value> = self.handle_option_string_and_params(paramsExpiryWindow, Value::Str("postActionRequest".into()), Value::Str("agentAddress".into()), &[]).as_array().cloned().unwrap_or_default();
+        let agentAddressparamsAgentAddressVariable: Vec<Value> = self.handle_option_string_and_params(&paramsExpiryWindow, Value::Str("postActionRequest".into()), Value::Str("agentAddress".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut agentAddress: Value = agentAddressparamsAgentAddressVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsAgentAddress: Value = agentAddressparamsAgentAddressVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut originAddress: Value = self.handle_origin_and_single_address(Value::Str("postActionRequest".into()), paramsAgentAddress).as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);

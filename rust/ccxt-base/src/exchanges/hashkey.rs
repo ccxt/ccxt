@@ -1695,11 +1695,11 @@ impl Hashkey {
             }
         }
         let mut tradingFees: crate::value::Dict = self.safe_dict_k(self.fees.clone(), "trading", &[]).into_dict();
-        let mut fees: Value = Value::Null;
+        let mut fees: Option<crate::value::Dict> = None;
         if isSpot {
-            fees = self.safe_dict_k(&tradingFees, "spot", &[]);
+            fees = self.safe_dict_k(&tradingFees, "spot", &[]).into_opt_dict();
         }  else {
-            fees = self.safe_dict_k(&tradingFees, "swap", &[]);
+            fees = self.safe_dict_k(&tradingFees, "swap", &[]).into_opt_dict();
         }
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1723,11 +1723,11 @@ impl Hashkey {
         m.insert("contractSize".to_string(), self.parse_number(contractSizeString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("linear".to_string(), isLinear.map(Value::from).unwrap_or(Value::Null));
         m.insert("inverse".to_string(), isInverse.map(Value::Bool).unwrap_or(Value::Null));
-        m.insert("taker".to_string(), self.safe_number_k(fees.clone(), "taker", &[]));
-        m.insert("maker".to_string(), self.safe_number_k(fees.clone(), "maker", &[]));
-        m.insert("percentage".to_string(), self.safe_bool_k(fees.clone(), "percentage", &[]));
-        m.insert("tierBased".to_string(), self.safe_bool_k(fees.clone(), "tierBased", &[]));
-        m.insert("feeSide".to_string(), self.safe_string_k(fees, "feeSide", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(&fees, "taker", &[]));
+        m.insert("maker".to_string(), self.safe_number_k(&fees, "maker", &[]));
+        m.insert("percentage".to_string(), self.safe_bool_k(&fees, "percentage", &[]));
+        m.insert("tierBased".to_string(), self.safe_bool_k(&fees, "tierBased", &[]));
+        m.insert("feeSide".to_string(), self.safe_string_k(&fees, "feeSide", &[]));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
         m.insert("strike".to_string(), Value::Null);
@@ -2032,20 +2032,20 @@ impl Hashkey {
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::from(methodName.clone()), &[market.clone(), params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (since != Value::Null) {
             request.insert("startTime".into(), since.clone());
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let untilparamsUntilVariable: Vec<Value> = self.handle_option_and_params(paramsMarketType, Value::from(methodName.clone()), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
+        let untilparamsUntilVariable: Vec<Value> = self.handle_option_and_params(&paramsMarketType, Value::from(methodName.clone()), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (until != Value::Null) {
             request.insert("endTime".into(), until);
         }
-        let accountIdparamsAccountIdVariable: Vec<Value> = self.handle_option_string_and_params(paramsUntil, Value::from(methodName.clone()), Value::Str("accountId".into()), &[]).as_array().cloned().unwrap_or_default();
+        let accountIdparamsAccountIdVariable: Vec<Value> = self.handle_option_string_and_params(&paramsUntil, Value::from(methodName.clone()), Value::Str("accountId".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut accountId: Value = accountIdparamsAccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsAccountId: crate::value::Dict = accountIdparamsAccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
@@ -2158,11 +2158,11 @@ impl Hashkey {
         }
         let mut feeCost: Option<String> = self.safe_string_k(trade.clone(), "commission", &[]).as_str().map(str::to_owned);
         let mut feeCurrncyId: Option<String> = self.safe_string_k(trade.clone(), "commissionAsset", &[]).as_str().map(str::to_owned);
-        let mut feeInfo: Value = self.safe_dict_k(trade.clone(), "fee", &[]);
+        let mut feeInfo: Option<crate::value::Dict> = self.safe_dict_k(trade.clone(), "fee", &[]).into_opt_dict();
         let mut fee: Value = Value::Null;
-        if (feeInfo != Value::Null) {
-            feeCost = self.safe_string_k(feeInfo.clone(), "fee", &[]).as_str().map(str::to_owned);
-            feeCurrncyId = self.safe_string_k(feeInfo, "feeCoinId", &[]).as_str().map(str::to_owned);
+        if (feeInfo.is_some()) {
+            feeCost = self.safe_string_k(&feeInfo, "fee", &[]).as_str().map(str::to_owned);
+            feeCurrncyId = self.safe_string_k(&feeInfo, "feeCoinId", &[]).as_str().map(str::to_owned);
         }
         if (feeCost.is_some()) {
             fee = Value::Map({
@@ -2861,7 +2861,7 @@ impl Hashkey {
 }));
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tagWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsWithdrawTag: Value = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         self.check_address(&[address.clone(), code.clone(), tagWithdrawTag.clone()]);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -2877,7 +2877,7 @@ impl Hashkey {
         if (tagWithdrawTag != Value::Null) {
             request.insert("addressExt".into(), tagWithdrawTag);
         }
-        let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(paramsWithdrawTag).as_array().cloned().unwrap_or_default();
+        let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(&paramsWithdrawTag).as_array().cloned().unwrap_or_default();
         let mut networkCode: Value = networkCodeparamsNetworkCodeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (networkCode != Value::Null) {
@@ -3204,7 +3204,7 @@ impl Hashkey {
         }
         let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::from(methodName.clone()), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (until == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() requires an until argument".into()))));
         }
@@ -3221,13 +3221,13 @@ impl Hashkey {
             request.insert("limit".into(), limit.clone());
         }
         request.insert("endTime".into(), until);
-        let flowTypeparamsFlowTypeVariable: Vec<Value> = self.handle_option_string_and_params(paramsUntil, Value::from(methodName.clone()), Value::Str("flowType".into()), &[]).as_array().cloned().unwrap_or_default();
+        let flowTypeparamsFlowTypeVariable: Vec<Value> = self.handle_option_string_and_params(&paramsUntil, Value::from(methodName.clone()), Value::Str("flowType".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut flowType: Value = flowTypeparamsFlowTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsFlowType: Value = flowTypeparamsFlowTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsFlowType: crate::value::Dict = flowTypeparamsFlowTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (flowType != Value::Null) {
             request.insert("flowType".into(), self.encode_flow_type(flowType));
         }
-        let accountTypeparamsAccountTypeVariable: Vec<Value> = self.handle_option_string_and_params(paramsFlowType, Value::from(methodName), Value::Str("accountType".into()), &[]).as_array().cloned().unwrap_or_default();
+        let accountTypeparamsAccountTypeVariable: Vec<Value> = self.handle_option_string_and_params(&paramsFlowType, Value::from(methodName), Value::Str("accountType".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut accountType: Value = accountTypeparamsAccountTypeVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsAccountType: crate::value::Dict = accountTypeparamsAccountTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (accountType != Value::Null) {
@@ -3535,7 +3535,7 @@ impl Hashkey {
         let mut isMarketOrder: Value = Value::Bool(typeValue.as_str() == Some("MARKET"));
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(isMarketOrder, Value::Bool(typeValue.as_str() == Some("LIMIT_MAKER")), &[paramsCost]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsPostOnly: Value = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if postOnly && (typeValue.as_str() == Some("LIMIT")) {
             request.insert("type".into(), Value::Str("LIMIT_MAKER".into()));
         }
@@ -3544,7 +3544,7 @@ impl Hashkey {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        { let __destr_tmp: Vec<Value> = self.handle_param_string(paramsPostOnly, Value::Str("clientOrderId".into()), &[]).as_array().cloned().unwrap_or_default(); clientOrderId = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsClientOrderId = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_param_string(&paramsPostOnly, Value::Str("clientOrderId".into()), &[]).as_array().cloned().unwrap_or_default(); clientOrderId = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsClientOrderId = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         if (clientOrderId.is_some()) {
             if let Value::Dict(__d) = &mut paramsClientOrderId { std::sync::Arc::make_mut(__d).insert("newClientOrderId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null)); }
         }
@@ -3595,13 +3595,13 @@ impl Hashkey {
         }
         let reduceOnlyparamsReduceOnlyVariable: Vec<Value> = self.handle_param_bool(params, Value::Str("reduceOnly".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut reduceOnly: Value = reduceOnlyparamsReduceOnlyVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsReduceOnly: Value = reduceOnlyparamsReduceOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsReduceOnly: crate::value::Dict = reduceOnlyparamsReduceOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut suffix: String = "_OPEN".to_string();
         if (reduceOnly.as_bool() == Some(true)) {
             suffix = "_CLOSE".to_string();
         }
         request.insert("side".into(), Value::Str(format!("{}{}", (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }), suffix).into()));
-        let timeInForceParamparamsTimeInForceVariable: Vec<Value> = self.handle_param_string(paramsReduceOnly, Value::Str("timeInForce".into()), &[]).as_array().cloned().unwrap_or_default();
+        let timeInForceParamparamsTimeInForceVariable: Vec<Value> = self.handle_param_string(&paramsReduceOnly, Value::Str("timeInForce".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut timeInForceParam: Value = timeInForceParamparamsTimeInForceVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsTimeInForce: Value = timeInForceParamparamsTimeInForceVariable.get(1).cloned().unwrap_or(Value::Null);
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(timeInForceParam.as_str() == Some("LIMIT_MAKER")), &[paramsTimeInForce]).as_array().cloned().unwrap_or_default();
@@ -3799,13 +3799,13 @@ impl Hashkey {
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::from(methodName.clone()), &[market.clone(), params, Value::Str("spot".into())]).as_array().cloned().unwrap_or_default();
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if (marketType.as_str() == Some("spot")) {
-            let __ws_arg_20 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
+            let __ws_arg_20 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
             response = self.private_delete_api_v1_spot_order(&[__ws_arg_20]).await;
         }  else if (marketType.as_str() == Some("swap")) {
-            let isTriggerparamsTriggerVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsMarketType, Value::from(methodName.clone()), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
+            let isTriggerparamsTriggerVariable: Vec<Value> = self.handle_option_bool_and_params2(&paramsMarketType, Value::from(methodName.clone()), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
             let mut isTrigger: bool = isTriggerparamsTriggerVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsTrigger: crate::value::Dict = isTriggerparamsTriggerVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             if isTrigger {
@@ -3989,16 +3989,16 @@ impl Hashkey {
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::from(methodName.clone()), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), paramsClientOrderId, Value::Str("spot".into())]).as_array().cloned().unwrap_or_default();
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if (marketType.as_str() == Some("spot")) {
             if (clientOrderId != Value::Null) {
                 request.insert("origClientOrderId".into(), clientOrderId);
             }
-            let __ws_arg_24 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
+            let __ws_arg_24 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
             response = self.private_get_api_v1_spot_order(&[__ws_arg_24]).await;
         }  else if (marketType.as_str() == Some("swap")) {
-            let isTriggerparamsTriggerVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsMarketType, Value::from(methodName.clone()), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
+            let isTriggerparamsTriggerVariable: Vec<Value> = self.handle_option_bool_and_params2(&paramsMarketType, Value::from(methodName.clone()), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
             let mut isTrigger: bool = isTriggerparamsTriggerVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsTrigger: crate::value::Dict = isTriggerparamsTriggerVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             if isTrigger {
@@ -4106,14 +4106,14 @@ impl Hashkey {
         }
         let mut methodName: String = "fetchOpenSpotOrders".to_string();
         let mut methodNameOption: Value = self.safe_string_k(params.clone(), "methodName", &[Value::from(methodName)]);
-        let mut paramsMethodName: Value = self.omit(params, Value::Str("methodName".into()), &[]);
+        let mut paramsMethodName: crate::value::Dict = self.omit(params, Value::Str("methodName".into()), &[]).into_dict();
         let mut market: Value = Value::Null;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
         let mut response: Value = Value::Null;
-        let accountIdparamsAccountIdVariable: Vec<Value> = self.handle_option_string_and_params(paramsMethodName, methodNameOption, Value::Str("accountId".into()), &[]).as_array().cloned().unwrap_or_default();
+        let accountIdparamsAccountIdVariable: Vec<Value> = self.handle_option_string_and_params(&paramsMethodName, methodNameOption, Value::Str("accountId".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut accountId: Value = accountIdparamsAccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsAccountId: crate::value::Dict = accountIdparamsAccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (accountId != Value::Null) {
@@ -4163,7 +4163,7 @@ impl Hashkey {
 }));
         let mut methodName: String = "fetchOpenSwapOrders".to_string();
         let mut methodNameOption: Value = self.safe_string_k(params.clone(), "methodName", &[Value::from(methodName)]);
-        let mut paramsMethodName: Value = self.omit(params, Value::Str("methodName".into()), &[]);
+        let mut paramsMethodName: crate::value::Dict = self.omit(params, Value::Str("methodName".into()), &[]).into_dict();
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodNameOption).into()), Value::Str("() requires a symbol argument for swap market orders".into()))));
         }
@@ -4174,9 +4174,9 @@ impl Hashkey {
             m
         });
         let mut isTrigger: bool = false;
-        let isTriggerTriggerparamsTriggerVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsMethodName, methodNameOption.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(isTrigger)]).as_array().cloned().unwrap_or_default();
+        let isTriggerTriggerparamsTriggerVariable: Vec<Value> = self.handle_option_bool_and_params2(&paramsMethodName, methodNameOption.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(isTrigger)]).as_array().cloned().unwrap_or_default();
         let mut isTriggerTrigger: bool = isTriggerTriggerparamsTriggerVariable.get(0).and_then(Value::as_bool) == Some(true);
-        let mut paramsTrigger: Value = isTriggerTriggerparamsTriggerVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsTrigger: crate::value::Dict = isTriggerTriggerparamsTriggerVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if isTriggerTrigger {
             request.insert("type".into(), Value::Str("STOP".into()));
         }  else {
@@ -4186,7 +4186,7 @@ impl Hashkey {
             request.insert("limit".into(), limit.clone());
         }
         let mut response: Value = Value::Null;
-        let accountIdparamsAccountIdVariable: Vec<Value> = self.handle_option_string_and_params(paramsTrigger, methodNameOption, Value::Str("accountId".into()), &[]).as_array().cloned().unwrap_or_default();
+        let accountIdparamsAccountIdVariable: Vec<Value> = self.handle_option_string_and_params(&paramsTrigger, methodNameOption, Value::Str("accountId".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut accountId: Value = accountIdparamsAccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsAccountId: crate::value::Dict = accountIdparamsAccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (accountId != Value::Null) {
@@ -4253,11 +4253,11 @@ impl Hashkey {
         }
         let untilparamsUntilVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::from(methodName.clone()), Value::Str("until".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsUntil: Value = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsUntil: crate::value::Dict = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (until != Value::Null) {
             request.insert("endTime".into(), until);
         }
-        let accountIdparamsAccountIdVariable: Vec<Value> = self.handle_option_string_and_params(paramsUntil, Value::from(methodName.clone()), Value::Str("accountId".into()), &[]).as_array().cloned().unwrap_or_default();
+        let accountIdparamsAccountIdVariable: Vec<Value> = self.handle_option_string_and_params(&paramsUntil, Value::from(methodName.clone()), Value::Str("accountId".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut accountId: Value = accountIdparamsAccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsAccountId: Value = accountIdparamsAccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut market: Value = Value::Null;
@@ -4266,7 +4266,7 @@ impl Hashkey {
         }
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::from(methodName.clone()), &[market.clone(), paramsAccountId, Value::Str("spot".into())]).as_array().cloned().unwrap_or_default();
         let mut marketType: Value = marketTypeparamsMarketTypeVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsMarketType: Value = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut response: Value = Value::Null;
         if (marketType.as_str() == Some("spot")) {
             if (market != Value::Null) {
@@ -4275,14 +4275,14 @@ impl Hashkey {
             if (accountId != Value::Null) {
                 request.insert("accountId".into(), accountId.clone());
             }
-            let __ws_arg_30 = self.extend(Value::Map(request.clone()), &[paramsMarketType.clone()]);
+            let __ws_arg_30 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
             response = self.private_get_api_v1_spot_trade_orders(&[__ws_arg_30]).await;
         }  else if (marketType.as_str() == Some("swap")) {
             if (symbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() requires a symbol argument for swap markets".into()))));
             }
             request.insert("symbol".into(), self.safe_string_k(market.clone(), "id", &[]));
-            let isTriggerparamsTriggerVariable: Vec<Value> = self.handle_option_bool_and_params2(paramsMarketType, Value::from(methodName.clone()), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
+            let isTriggerparamsTriggerVariable: Vec<Value> = self.handle_option_bool_and_params2(&paramsMarketType, Value::from(methodName.clone()), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
             let mut isTrigger: bool = isTriggerparamsTriggerVariable.get(0).and_then(Value::as_bool) == Some(true);
             let mut paramsTrigger: crate::value::Dict = isTriggerparamsTriggerVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             if isTrigger {

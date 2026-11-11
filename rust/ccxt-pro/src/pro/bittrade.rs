@@ -991,7 +991,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (subscription != Value::Null) {
             let mut method: Value = self.safe_value_k(subscription.clone(), "method", &[]);
             if (method != Value::Null) {
-                return self.dispatch_ws_handler(&method, &[client.clone(), message.clone(), subscription]);
+                return self.dispatch_ws_handler(&method, &[client, message.clone(), subscription]);
             }
             // clean up
             if (__ch.has_subscription(&id.clone().map(Value::from).unwrap_or(Value::Null))) {
@@ -1094,8 +1094,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 return Value::Bool(false);
             }
             let mut subscriptionsById: Value = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
-            let mut subscription: Value = self.safe_dict(subscriptionsById, id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            if (subscription != Value::Null) {
+            let mut subscription: Option<crate::value::Dict> = self.safe_dict(subscriptionsById, id.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
+            if (subscription.is_some()) {
                 let mut errorCode: Option<String> = (match __pro_message.get("err-code").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
                 let mut errorMessage: Option<String> = (match __pro_message.get("err-msg").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
                 let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), json_stringify(&message));
@@ -1105,7 +1105,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
                  #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-                    let mut messageHash: Option<String> = self.safe_string_k_opt(subscription, "messageHash", &[]);
+                    let mut messageHash: Option<String> = self.safe_string_k_opt(&subscription, "messageHash", &[]);
                     client.reject(&[e.clone(), messageHash.map(Value::from).unwrap_or(Value::Null)]);
                     client.reject(&[e, id.clone().map(Value::from).unwrap_or(Value::Null)]);
                     if (__ch.has_subscription(&id.clone().map(Value::from).unwrap_or(Value::Null))) {
