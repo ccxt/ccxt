@@ -1499,7 +1499,7 @@ class bitvavo extends bitvavo$1["default"] {
         //    }
         //
         const messageHash = this.safeString(message, 'requestId');
-        const response = this.safeList(message, 'response');
+        const response = this.safeList(message, 'response', []);
         const currencies = this.parseCurrencies(response);
         client.resolve(currencies, messageHash);
     }

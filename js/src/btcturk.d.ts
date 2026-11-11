@@ -1,5 +1,5 @@
 import Exchange from './abstract/btcturk.js';
-import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, NullableDict } from './base/types.js';
+import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int, NullableDict, NullableList } from './base/types.js';
 /**
  * @class btcturk
  * @augments Exchange
@@ -86,7 +86,7 @@ export default class btcturk extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
-    parseOHLCVs(ohlcvs: any, market?: any, timeframe?: string, since?: Int, limit?: Int, tail?: Bool): OHLCV[];
+    parseOHLCVs(ohlcvs: NullableList, market?: any, timeframe?: string, since?: Int, limit?: Int, tail?: Bool): OHLCV[];
     /**
      * @method
      * @name btcturk#createOrder

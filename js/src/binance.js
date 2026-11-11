@@ -14349,7 +14349,7 @@ export default class binance extends Exchange {
         //         ]
         //     }
         //
-        const rows = this.safeList(response, 'rows');
+        const rows = this.safeList(response, 'rows', []);
         const interest = this.parseBorrowInterests(rows, market);
         return this.filterByCurrencySinceLimit(interest, code, since, limit);
     }

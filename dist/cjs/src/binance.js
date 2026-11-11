@@ -14344,7 +14344,7 @@ class binance extends binance$1["default"] {
         //         ]
         //     }
         //
-        const rows = this.safeList(response, 'rows');
+        const rows = this.safeList(response, 'rows', []);
         const interest = this.parseBorrowInterests(rows, market);
         return this.filterByCurrencySinceLimit(interest, code, since, limit);
     }

@@ -5642,7 +5642,7 @@ class bingx extends bingx$1["default"] {
         //         }
         //     }
         //
-        const data = this.safeList(this.safeDict(response, 'data'), 'data');
+        const data = this.safeList(this.safeDict(response, 'data'), 'data', []);
         const parsed = this.parseDepositAddresses(data, [currency['code']], false);
         return this.indexBy(parsed, 'network');
     }

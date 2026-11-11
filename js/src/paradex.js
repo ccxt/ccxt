@@ -573,7 +573,7 @@ export default class paradex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList(response, 'results');
+        const data = this.safeList(response, 'results', []);
         return this.parseMarkets(data);
     }
     parseMarket(market) {

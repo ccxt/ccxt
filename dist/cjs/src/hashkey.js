@@ -1162,7 +1162,7 @@ class hashkey extends hashkey$1["default"] {
      */
     async fetchCurrencies(params = {}) {
         const response = await this.publicGetApiV1ExchangeInfo(params);
-        const coins = this.safeList(response, 'coins');
+        const coins = this.safeList(response, 'coins', []);
         //
         //     {
         //         ...

@@ -215857,7 +215857,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         //         ]
         //     }
         //
-        const rows = this.safeList(response, 'rows');
+        const rows = this.safeList(response, 'rows', []);
         const interest = this.parseBorrowInterests(rows, market);
         return this.filterByCurrencySinceLimit(interest, code, since, limit);
     }
@@ -224349,7 +224349,7 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         //         }
         //     }
         //
-        const data = this.safeList(this.safeDict(response, 'data'), 'data');
+        const data = this.safeList(this.safeDict(response, 'data'), 'data', []);
         const parsed = this.parseDepositAddresses(data, [
             currency['code']
         ], false);
@@ -280952,26 +280952,30 @@ class btcturk extends _abstract_btcturk_js__rspack_import_0/* ["default"] */.A {
         //        ]
         //    }
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limitResolved);
-    }
-    parseOHLCVs(ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined, tail = false) {
-        const results = [];
-        const timestamp = this.safeList(ohlcvs, 't', []);
-        const high = this.safeList(ohlcvs, 'h', []);
-        const open = this.safeList(ohlcvs, 'o', []);
-        const low = this.safeList(ohlcvs, 'l', []);
-        const close = this.safeList(ohlcvs, 'c', []);
-        const volume = this.safeList(ohlcvs, 'v', []);
+        const timestamp = this.safeList(response, 't', []);
+        const high = this.safeList(response, 'h', []);
+        const open = this.safeList(response, 'o', []);
+        const low = this.safeList(response, 'l', []);
+        const close = this.safeList(response, 'c', []);
+        const volume = this.safeList(response, 'v', []);
+        const rows = [];
         for(let i = 0; i < timestamp.length; i++){
-            const ohlcv = {
+            rows.push({
                 'timestamp': this.safeInteger(timestamp, i),
                 'high': this.safeNumber(high, i),
                 'open': this.safeNumber(open, i),
                 'low': this.safeNumber(low, i),
                 'close': this.safeNumber(close, i),
                 'volume': this.safeNumber(volume, i)
-            };
-            results.push(this.parseOHLCV(ohlcv, market));
+            });
+        }
+        return this.parseOHLCVs(rows, market, timeframe, since, limitResolved);
+    }
+    parseOHLCVs(ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined, tail = false) {
+        const rows = this.toArray(ohlcvs);
+        const results = [];
+        for(let i = 0; i < rows.length; i++){
+            results.push(this.parseOHLCV(this.safeDict(rows, i, {}), market));
         }
         const sorted = this.sortBy(results, 0);
         return this.filterBySinceLimit(sorted, since, limit, 0, tail);
@@ -346731,7 +346735,7 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
         //         "unrealized_pnl": "-0.049158102631998504"
         //     }
         //
-        const rows = this.safeList(response, 'positions');
+        const rows = this.safeList(response, 'positions', []);
         const interest = this.parseBorrowInterests(rows, market);
         return this.filterByCurrencySinceLimit(interest, code, since, limit);
     }
@@ -364835,7 +364839,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         if (limit !== undefined) {
             requestUntil['limit'] = limit;
         }
-        let response = undefined;
+        let response;
         const [marginMode, paramsMarginMode] = this.handleMarginModeAndParams('fetchBorrowInterest', paramsUntil, 'cross');
         if (isUnifiedAccount) {
             response = await this.privateUnifiedGetInterestRecords(this.extend(requestUntil, paramsMarginMode));
@@ -364844,8 +364848,8 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
                 requestUntil['currency_pair'] = market['id'];
             }
             response = await this.privateMarginGetUniInterestRecords(this.extend(requestUntil, paramsMarginMode));
-        } else if (marginMode === 'cross') {
-            // deprecated and not present in the exchange's docs but still works
+        } else {
+            // cross: deprecated and not present in the exchange's docs but still works
             response = await this.privateMarginGetCrossInterestRecords(this.extend(requestUntil, paramsMarginMode));
         }
         const interest = this.parseBorrowInterests(response, market);
@@ -374126,7 +374130,7 @@ class hashkey extends _abstract_hashkey_js__rspack_import_0/* ["default"] */.A {
      * @returns {object} an associative dictionary of currencies
      */ async fetchCurrencies(params = {}) {
         const response = await this.publicGetApiV1ExchangeInfo(params);
-        const coins = this.safeList(response, 'coins');
+        const coins = this.safeList(response, 'coins', []);
         //
         //     {
         //         ...
@@ -377974,7 +377978,7 @@ class hibachi extends _abstract_hibachi_js__rspack_import_0/* ["default"] */.A {
         //     "underlyingDecimals": 9,
         //     "underlyingSymbol": "ETH"
         // },
-        const rows = this.safeList(response, 'futureContracts');
+        const rows = this.safeList(response, 'futureContracts', []);
         return this.parseMarkets(rows);
     }
     hardcodedCurrencies() {
@@ -394729,7 +394733,7 @@ class htx extends _abstract_htx_js__rspack_import_0/* ["default"] */.A {
         //        ]
         //    }
         //
-        const data = this.safeList(response, 'data');
+        const data = this.safeList(response, 'data', []);
         const interest = this.parseBorrowInterests(data, market);
         return this.filterByCurrencySinceLimit(interest, code, since, limit);
     }
@@ -476450,7 +476454,7 @@ class paradex extends _abstract_paradex_js__rspack_import_0/* ["default"] */.A {
         //         ]
         //     }
         //
-        const data = this.safeList(response, 'results');
+        const data = this.safeList(response, 'results', []);
         return this.parseMarkets(data);
     }
     parseMarket(market) {
@@ -487574,7 +487578,7 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
         //                "limitMaxQty": "1000000"
         //            },
         //
-        const markets = this.safeList(response, 'data');
+        const markets = this.safeList(response, 'data', []);
         return this.parseMarkets(markets);
     }
     parseMarket(market) {
@@ -546433,7 +546437,7 @@ class bitvavo extends _bitvavo_js__rspack_import_0/* ["default"] */.A {
         //    }
         //
         const messageHash = this.safeString(message, 'requestId');
-        const response = this.safeList(message, 'response');
+        const response = this.safeList(message, 'response', []);
         const currencies = this.parseCurrencies(response);
         client.resolve(currencies, messageHash);
     }

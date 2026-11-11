@@ -858,7 +858,7 @@ export default class poloniex extends Exchange {
         //                "limitMaxQty": "1000000"
         //            },
         //
-        const markets = this.safeList(response, 'data');
+        const markets = this.safeList(response, 'data', []);
         return this.parseMarkets(markets);
     }
     parseMarket(market) {
