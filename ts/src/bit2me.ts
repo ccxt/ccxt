@@ -1167,6 +1167,36 @@ export default class bit2me extends Exchange {
 
     /**
      * @method
+     * @name bit2me#createMarketBuyOrderWithCost
+     * @description create a market buy order by providing the symbol and cost
+     * @see https://api.bit2me.com/docs/pro/api-reference/trading/v1/trading/order/post
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params: Dict = {}): Promise<Order> {
+        const query = this.extend ({ 'cost': cost }, params);
+        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, query);
+    }
+
+    /**
+     * @method
+     * @name bit2me#createMarketSellOrderWithCost
+     * @description create a market sell order by providing the symbol and cost
+     * @see https://api.bit2me.com/docs/pro/api-reference/trading/v1/trading/order/post
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {float} cost how much you want to trade in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+     */
+    override async createMarketSellOrderWithCost (symbol: string, cost: number, params: Dict = {}): Promise<Order> {
+        const query = this.extend ({ 'cost': cost }, params);
+        return await this.createOrder (symbol, 'market', 'sell', cost, undefined, query);
+    }
+
+    /**
+     * @method
      * @name bit2me#cancelOrder
      * @description cancels an open order
      * @see https://api.bit2me.com/docs/pro/api-reference/trading/v1/trading/order/id/delete

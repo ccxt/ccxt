@@ -3,6 +3,18 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "createMarketSellOrderWithCost": [
+            {
+                "description": "market sell with cost",
+                "method": "createMarketSellOrderWithCost",
+                "url": "https://gateway.bit2me.com/v1/trading/order",
+                "input": [
+                    "BTC/USDC",
+                    5
+                ],
+                "output": "{\"symbol\":\"BTC/USDC\",\"side\":\"sell\",\"orderType\":\"market\",\"amount\":\"5\",\"amountInQuote\":true}"
+            }
+        ],
         "fetchTransfers": [
             {
                 "description": "movements of the trading wallet",
