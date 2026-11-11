@@ -38,6 +38,8 @@ async function example () {
     console.log ('Placed order', orderId, order['status'], '-', order['side'], order['amount'], symbol, '@', order['price']);
     const fetched = await exchange.fetchOrder (orderId, symbol);
     console.log ('Order status:', fetched['status']);
+    await exchange.cancelOrder (orderId, symbol);
+    console.log ('Cancelled order', orderId);
 }
 
 await example ();
