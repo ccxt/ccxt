@@ -328,10 +328,10 @@
         "percentage": true,
         "feeSide": "get"
     },
-    "ETH.COINDERIV/USD:USD": {
+    "ETH.NANO.COINDERIV/USD:USD": {
         "id": "805366682",
         "lowercaseId": null,
-        "symbol": "ETH.COINDERIV/USD:USD",
+        "symbol": "ETH.NANO.COINDERIV/USD:USD",
         "base": "ETH",
         "quote": "USD",
         "settle": "USD",
