@@ -1194,7 +1194,7 @@ class xt extends Exchange {
         return $this->parse_markets($swapAndFutureMarkets);
     }
 
-    public function parse_markets(mixed $markets) {
+    public function parse_markets(array $markets) {
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $parsed = $this->parse_market($this->safe_value($markets, $i));

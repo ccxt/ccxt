@@ -466,7 +466,7 @@ class bitvavo extends Exchange {
         return $this->parse_markets($response);
     }
 
-    public function parse_markets(mixed $markets) {
+    public function parse_markets(array $markets) {
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $this->safe_dict($markets, $i);

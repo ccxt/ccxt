@@ -14406,7 +14406,7 @@ class binance extends Exchange {
         //         ]
         //     }
         //
-        $rows = $this->safe_list($response, 'rows');
+        $rows = $this->safe_list($response, 'rows', array());
         $interest = $this->parse_borrow_interests($rows, $market);
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }

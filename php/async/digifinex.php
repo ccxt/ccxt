@@ -3520,7 +3520,7 @@ class digifinex extends Exchange {
         //         "unrealized_pnl": "-0.049158102631998504"
         //     }
         //
-        $rows = $this->safe_list($response, 'positions');
+        $rows = $this->safe_list($response, 'positions', array());
         $interest = $this->parse_borrow_interests($rows, $market);
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }

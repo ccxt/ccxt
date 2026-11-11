@@ -741,17 +741,17 @@ class btcturk extends Exchange {
 
     private function do_fetch_ohlcv(string $symbol, string $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array()) {
         /**
-         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * fetches historical candlestick data containing the $open, $high, $low, and $close price, and the $volume of a $market
          *
          * @see https://docs.btcturk.com/public-endpoints/get-kline-data
          *
          * @param {string} $symbol unified $symbol of the $market $to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
-         * @param {int} [$since] timestamp in ms of the earliest candle $to fetch
+         * @param {int} [$since] $timestamp in ms of the earliest candle $to fetch
          * @param {int} [$limit] the maximum amount of candles $to fetch
          * @param {array} [$params] extra parameters specific $to the exchange API endpoint
-         * @param {int} [$params->until] timestamp in ms of the latest candle $to fetch
-         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         * @param {int} [$params->until] $timestamp in ms of the latest candle $to fetch
+         * @return {int[][]} A list of candles ordered as $timestamp, $open, $high, $low, $close, $volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -829,19 +829,15 @@ class btcturk extends Exchange {
         //        ]
         //    }
         //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limitResolved);
-    }
-
-    public function parse_ohlcvs(mixed $ohlcvs, mixed $market = null, $timeframe = '1m', ?int $since = null, ?int $limit = null, ?bool $tail = false) {
-        $results = array();
-        $timestamp = $this->safe_list($ohlcvs, 't', array());
-        $high = $this->safe_list($ohlcvs, 'h', array());
-        $open = $this->safe_list($ohlcvs, 'o', array());
-        $low = $this->safe_list($ohlcvs, 'l', array());
-        $close = $this->safe_list($ohlcvs, 'c', array());
-        $volume = $this->safe_list($ohlcvs, 'v', array());
+        $timestamp = $this->safe_list($response, 't', array());
+        $high = $this->safe_list($response, 'h', array());
+        $open = $this->safe_list($response, 'o', array());
+        $low = $this->safe_list($response, 'l', array());
+        $close = $this->safe_list($response, 'c', array());
+        $volume = $this->safe_list($response, 'v', array());
+        $rows = array();
         for ($i = 0; $i < count($timestamp); $i++) {
-            $ohlcv = array(
+            $rows[] = array(
                 'timestamp' => $this->safe_integer($timestamp, $i),
                 'high' => $this->safe_number($high, $i),
                 'open' => $this->safe_number($open, $i),
@@ -849,7 +845,15 @@ class btcturk extends Exchange {
                 'close' => $this->safe_number($close, $i),
                 'volume' => $this->safe_number($volume, $i),
             );
-            $results[] = $this->parse_ohlcv($ohlcv, $market);
+        }
+        return $this->parse_ohlcvs($rows, $market, $timeframe, $since, $limitResolved);
+    }
+
+    public function parse_ohlcvs(?array $ohlcvs, mixed $market = null, $timeframe = '1m', ?int $since = null, ?int $limit = null, ?bool $tail = false) {
+        $rows = $this->to_array($ohlcvs);
+        $results = array();
+        for ($i = 0; $i < count($rows); $i++) {
+            $results[] = $this->parse_ohlcv($this->safe_dict($rows, $i, array()), $market);
         }
         $sorted = $this->sort_by($results, 0);
         return $this->filter_by_since_limit($sorted, $since, $limit, 0, $tail);

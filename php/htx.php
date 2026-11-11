@@ -7519,7 +7519,7 @@ class htx extends Exchange {
         //        ]
         //    }
         //
-        $data = $this->safe_list($response, 'data');
+        $data = $this->safe_list($response, 'data', array());
         $interest = $this->parse_borrow_interests($data, $market);
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }

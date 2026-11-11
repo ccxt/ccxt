@@ -1690,7 +1690,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         //    }
         //
         $messageHash = $this->safe_string($message, 'requestId');
-        $response = $this->safe_list($message, 'response');
+        $response = $this->safe_list($message, 'response', array());
         $currencies = $this->parse_currencies($response);
         $client->resolve($currencies, $messageHash);
     }

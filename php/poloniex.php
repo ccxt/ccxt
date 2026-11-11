@@ -858,7 +858,7 @@ class poloniex extends Exchange {
         //                "limitMaxQty": "1000000"
         //            },
         //
-        $markets = $this->safe_list($response, 'data');
+        $markets = $this->safe_list($response, 'data', array());
         return $this->parse_markets($markets);
     }
 

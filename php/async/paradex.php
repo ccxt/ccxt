@@ -590,7 +590,7 @@ class paradex extends Exchange {
         //         ]
         //     }
         //
-        $data = $this->safe_list($response, 'results');
+        $data = $this->safe_list($response, 'results', array());
         return $this->parse_markets($data);
     }
 

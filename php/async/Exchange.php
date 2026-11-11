@@ -1438,7 +1438,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         throw new NotSupported($this->id . ' parseCurrency() is not supported yet');
     }
 
-    public function parse_currencies(mixed $rawCurrencies) {
+    public function parse_currencies(array $rawCurrencies) {
         $result = array();
         $arr = $this->to_array($rawCurrencies);
         for ($i = 0; $i < count($arr); $i++) {
@@ -1456,7 +1456,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         throw new NotSupported($this->id . ' parseMarket() is not supported yet');
     }
 
-    public function parse_markets(mixed $markets) {
+    public function parse_markets(array $markets) {
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $this->parse_market($markets[$i]);
@@ -3642,7 +3642,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         );
     }
 
-    public function parse_ohlcvs(mixed $ohlcvs, mixed $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null, ?bool $tail = false) {
+    public function parse_ohlcvs(?array $ohlcvs, mixed $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null, ?bool $tail = false) {
         if ($ohlcvs === null) {
             return array();
         }
@@ -5643,7 +5643,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $this->filter_by_array_tickers($results, 'symbol', $this->market_symbols($symbols));
     }
 
-    public function parse_deposit_addresses(mixed $addresses, ?array $codes = null, $indexed = true, $params = array()) {
+    public function parse_deposit_addresses(array $addresses, ?array $codes = null, $indexed = true, $params = array()) {
         $result = array();
         for ($i = 0; $i < count($addresses); $i++) {
             $address = $this->extend($this->parse_deposit_address($addresses[$i]), $params);
@@ -5658,7 +5658,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $result;
     }
 
-    public function parse_borrow_interests(mixed $response, ?array $market = null) {
+    public function parse_borrow_interests(array $response, ?array $market = null) {
         $interests = array();
         for ($i = 0; $i < count($response); $i++) {
             $row = $this->safe_value($response, $i);
@@ -5682,7 +5682,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $this->filter_by_currency_since_limit($sorted, $code, $since, $limit);
     }
 
-    public function parse_isolated_borrow_rates(mixed $info) {
+    public function parse_isolated_borrow_rates(array $info) {
         $result = array();
         for ($i = 0; $i < count($info); $i++) {
             $item = $this->safe_value($info, $i);
@@ -5693,7 +5693,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $result;
     }
 
-    public function parse_funding_rate_histories(mixed $response, ?array $market = null, ?int $since = null, ?int $limit = null) {
+    public function parse_funding_rate_histories(array $response, ?array $market = null, ?int $since = null, ?int $limit = null) {
         $rates = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
@@ -5729,7 +5729,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         throw new NotSupported($this->id . ' parseLongShortRatio() is not supported yet');
     }
 
-    public function parse_long_short_ratio_history(mixed $response, ?array $market = null, ?int $since = null, ?int $limit = null) {
+    public function parse_long_short_ratio_history(array $response, ?array $market = null, ?int $since = null, ?int $limit = null) {
         $rates = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
@@ -5887,7 +5887,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         throw new NotSupported($this->id . ' parseOpenInterest () is not supported yet');
     }
 
-    public function parse_open_interests(mixed $response, ?array $symbols = null) {
+    public function parse_open_interests(array $response, ?array $symbols = null) {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
