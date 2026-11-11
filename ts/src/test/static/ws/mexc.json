@@ -75,6 +75,101 @@
                 "disabledJava": "same protobuf gap the exchange-level skipJava entry already records",
                 "disabledRS": "the rust base has no protobuf decoder"
             }
+        ],
+        "watchOrderBook": [
+            {
+                "description": "spot orderbook with buffered delta straddling rest snapshot (issue 30637)",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://wbs-api.mexc.com/ws",
+                "options": {
+                    "watchOrderBook": {
+                        "snapshotDelay": 0
+                    }
+                },
+                "httpResponse": {
+                    "lastUpdateId": 1012,
+                    "timestamp": 1792786957244,
+                    "bids": [
+                        [
+                            "99.00",
+                            "8.000000"
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            "100.00",
+                            "5.000000"
+                        ]
+                    ]
+                },
+                "sentMessages": [
+                    {
+                        "method": "SUBSCRIPTION",
+                        "params": [
+                            "spot@public.aggre.depth.v3.api.pb@100ms@BTCUSDT"
+                        ]
+                    }
+                ],
+                "messages": [
+                    {
+                        "id": 0,
+                        "code": 0,
+                        "msg": "spot@public.aggre.depth.v3.api.pb@100ms@BTCUSDT"
+                    },
+                    {
+                        "c": "spot@public.increase.depth.v3.api@BTCUSDT",
+                        "d": {
+                            "fromVersion": 1010,
+                            "toVersion": 1011,
+                            "asks": [
+                                {
+                                    "p": "100.00",
+                                    "v": "7.000000"
+                                }
+                            ],
+                            "bids": []
+                        },
+                        "s": "BTCUSDT",
+                        "t": 1792786957240
+                    },
+                    {
+                        "c": "spot@public.increase.depth.v3.api@BTCUSDT",
+                        "d": {
+                            "fromVersion": 1011,
+                            "toVersion": 1014,
+                            "asks": [
+                                {
+                                    "p": "100.00",
+                                    "v": "0.000000"
+                                }
+                            ],
+                            "bids": [
+                                {
+                                    "p": "99.00",
+                                    "v": "9.000000"
+                                }
+                            ]
+                        },
+                        "s": "BTCUSDT",
+                        "t": 1792786957244
+                    }
+                ],
+                "parsedResponse": {
+                    "bids": [
+                        [
+                            99.0,
+                            9.0
+                        ]
+                    ],
+                    "asks": [],
+                    "timestamp": 1792786957244,
+                    "datetime": "2026-10-23T20:22:37.244Z",
+                    "nonce": 1014,
+                    "symbol": "BTC/USDT"
+                }
+            }
         ]
     }
 }
