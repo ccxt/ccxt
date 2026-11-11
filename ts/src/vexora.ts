@@ -82,6 +82,35 @@ export default class vexora extends Exchange {
                     },
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': false,
+                    'createOrder': {
+                        'marginMode': undefined,
+                        'triggerPrice': undefined,
+                        'triggerPriceType': undefined,
+                        'stopLossPrice': undefined,
+                        'takeProfitPrice': undefined,
+                        'attachedStopLossTakeProfit': undefined,
+                        'timeInForce': {
+                            'GTC': true,
+                            'IOC': false,
+                            'FOK': false,
+                            'PO': false,
+                            'GTD': false,
+                        },
+                        'hedged': false,
+                        'trailing': false,
+                    },
+                    'createOrders': undefined,
+                    'fetchMyTrades': undefined,
+                    'fetchOrder': undefined,
+                    'fetchOpenOrders': undefined,
+                    'fetchOrders': undefined,
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': undefined,
+                },
+            },
             'exceptions': {
                 'exact': {
                     '429': RateLimitExceeded,
@@ -227,8 +256,8 @@ export default class vexora extends Exchange {
         const marketId = this.safeString (trade, 'productId');
         const symbol = (marketId !== undefined) ? this.safeSymbol (marketId, market, '-') : this.safeSymbol (undefined, market);
         const timestamp = this.parse8601 (this.safeString (trade, 'time'));
-        const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString (trade, 'size');
+        const price = this.parseNumber (this.safeString (trade, 'price'));
+        const amount = this.parseNumber (this.safeString (trade, 'size'));
         const side = this.safeStringLower (trade, 'side');
         const id = this.safeString (trade, 'sequence');
         return {
@@ -241,10 +270,11 @@ export default class vexora extends Exchange {
             'type': undefined,
             'side': side as any,
             'takerOrMaker': 'taker',
-            'price': priceString,
-            'amount': amountString,
-            'cost': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': price * amount,
             'fee': undefined,
+            'fees': [],
         };
     }
 
@@ -273,13 +303,14 @@ export default class vexora extends Exchange {
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         // the API returns unix timestamps in seconds; ccxt expects milliseconds
+        // the raw bars are ordered as: time, low, high, open, close, volume
         return [
             this.safeIntegerProduct (ohlcv, 0, 1000),
-            this.safeNumber (ohlcv, 1),
-            this.safeNumber (ohlcv, 2),
-            this.safeNumber (ohlcv, 3),
-            this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, 5),
+            this.safeNumber (ohlcv, 3), // open
+            this.safeNumber (ohlcv, 2), // high
+            this.safeNumber (ohlcv, 1), // low
+            this.safeNumber (ohlcv, 4), // close
+            this.safeNumber (ohlcv, 5), // volume
         ] as OHLCV;
     }
 

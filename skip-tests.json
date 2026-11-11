@@ -2792,4 +2792,12 @@
     "predictfun": {
         "skip": "requires apiKeys"
     }
+,
+    "vexora": {
+        "skipMethods": {
+            "fetchTrades": {
+                "sideSequence": "venue data: the public trades feed is not taker-directional; live SMC/USDT showed seq 507/508 same-millisecond fills, both side=buy at decreasing prices, so price direction cannot imply side"
+            }
+        }
+    }
 }

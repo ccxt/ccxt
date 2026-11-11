@@ -93,6 +93,7 @@
                 "parsedResponse": [
                     {
                         "id": "ETH-USDT",
+                        "lowercaseId": null,
                         "symbol": "ETH/USDT",
                         "base": "ETH",
                         "quote": "USDT",
@@ -106,10 +107,14 @@
                         "swap": false,
                         "future": false,
                         "option": false,
+                        "index": false,
                         "active": true,
                         "contract": false,
                         "linear": null,
                         "inverse": null,
+                        "subType": null,
+                        "taker": 0.002,
+                        "maker": 0.001,
                         "contractSize": null,
                         "expiry": null,
                         "expiryDatetime": null,
@@ -137,6 +142,10 @@
                                 "max": null
                             }
                         },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
                         "created": null,
                         "info": {
                             "id": "ETH-USDT",
@@ -147,10 +156,12 @@
                             "quoteIncrement": "0.01",
                             "baseScale": 4,
                             "quoteScale": 2
-                        }
+                        },
+                        "takerOrMaker": "taker"
                     },
                     {
                         "id": "OCTA-USDT",
+                        "lowercaseId": null,
                         "symbol": "OCTA/USDT",
                         "base": "OCTA",
                         "quote": "USDT",
@@ -164,10 +175,14 @@
                         "swap": false,
                         "future": false,
                         "option": false,
+                        "index": false,
                         "active": true,
                         "contract": false,
                         "linear": null,
                         "inverse": null,
+                        "subType": null,
+                        "taker": 0.002,
+                        "maker": 0.001,
                         "contractSize": null,
                         "expiry": null,
                         "expiryDatetime": null,
@@ -195,6 +210,10 @@
                                 "max": null
                             }
                         },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
                         "created": null,
                         "info": {
                             "id": "OCTA-USDT",
@@ -205,10 +224,12 @@
                             "quoteIncrement": "1.0E-4",
                             "baseScale": 4,
                             "quoteScale": 6
-                        }
+                        },
+                        "takerOrMaker": "taker"
                     },
                     {
                         "id": "ETC-USDT",
+                        "lowercaseId": null,
                         "symbol": "ETC/USDT",
                         "base": "ETC",
                         "quote": "USDT",
@@ -222,10 +243,14 @@
                         "swap": false,
                         "future": false,
                         "option": false,
+                        "index": false,
                         "active": true,
                         "contract": false,
                         "linear": null,
                         "inverse": null,
+                        "subType": null,
+                        "taker": 0.002,
+                        "maker": 0.001,
                         "contractSize": null,
                         "expiry": null,
                         "expiryDatetime": null,
@@ -253,6 +278,10 @@
                                 "max": null
                             }
                         },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
                         "created": null,
                         "info": {
                             "id": "ETC-USDT",
@@ -263,10 +292,12 @@
                             "quoteIncrement": "0.01",
                             "baseScale": 4,
                             "quoteScale": 2
-                        }
+                        },
+                        "takerOrMaker": "taker"
                     },
                     {
                         "id": "BNB-USDT",
+                        "lowercaseId": null,
                         "symbol": "BNB/USDT",
                         "base": "BNB",
                         "quote": "USDT",
@@ -280,10 +311,14 @@
                         "swap": false,
                         "future": false,
                         "option": false,
+                        "index": false,
                         "active": true,
                         "contract": false,
                         "linear": null,
                         "inverse": null,
+                        "subType": null,
+                        "taker": 0.002,
+                        "maker": 0.001,
                         "contractSize": null,
                         "expiry": null,
                         "expiryDatetime": null,
@@ -311,6 +346,10 @@
                                 "max": null
                             }
                         },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
                         "created": null,
                         "info": {
                             "id": "BNB-USDT",
@@ -321,10 +360,12 @@
                             "quoteIncrement": "0.01",
                             "baseScale": 4,
                             "quoteScale": 2
-                        }
+                        },
+                        "takerOrMaker": "taker"
                     },
                     {
                         "id": "TRX-USDT",
+                        "lowercaseId": null,
                         "symbol": "TRX/USDT",
                         "base": "TRX",
                         "quote": "USDT",
@@ -338,10 +379,14 @@
                         "swap": false,
                         "future": false,
                         "option": false,
+                        "index": false,
                         "active": true,
                         "contract": false,
                         "linear": null,
                         "inverse": null,
+                        "subType": null,
+                        "taker": 0.002,
+                        "maker": 0.001,
                         "contractSize": null,
                         "expiry": null,
                         "expiryDatetime": null,
@@ -369,6 +414,10 @@
                                 "max": null
                             }
                         },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
                         "created": null,
                         "info": {
                             "id": "TRX-USDT",
@@ -379,10 +428,12 @@
                             "quoteIncrement": "0.01",
                             "baseScale": 4,
                             "quoteScale": 2
-                        }
+                        },
+                        "takerOrMaker": "taker"
                     },
                     {
                         "id": "AVAX-USDT",
+                        "lowercaseId": null,
                         "symbol": "AVAX/USDT",
                         "base": "AVAX",
                         "quote": "USDT",
@@ -396,10 +447,14 @@
                         "swap": false,
                         "future": false,
                         "option": false,
+                        "index": false,
                         "active": true,
                         "contract": false,
                         "linear": null,
                         "inverse": null,
+                        "subType": null,
+                        "taker": 0.002,
+                        "maker": 0.001,
                         "contractSize": null,
                         "expiry": null,
                         "expiryDatetime": null,
@@ -427,6 +482,10 @@
                                 "max": null
                             }
                         },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
                         "created": null,
                         "info": {
                             "id": "AVAX-USDT",
@@ -437,10 +496,12 @@
                             "quoteIncrement": "0.01",
                             "baseScale": 4,
                             "quoteScale": 2
-                        }
+                        },
+                        "takerOrMaker": "taker"
                     },
                     {
                         "id": "POL-USDT",
+                        "lowercaseId": null,
                         "symbol": "POL/USDT",
                         "base": "POL",
                         "quote": "USDT",
@@ -454,10 +515,14 @@
                         "swap": false,
                         "future": false,
                         "option": false,
+                        "index": false,
                         "active": true,
                         "contract": false,
                         "linear": null,
                         "inverse": null,
+                        "subType": null,
+                        "taker": 0.002,
+                        "maker": 0.001,
                         "contractSize": null,
                         "expiry": null,
                         "expiryDatetime": null,
@@ -485,6 +550,10 @@
                                 "max": null
                             }
                         },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
                         "created": null,
                         "info": {
                             "id": "POL-USDT",
@@ -495,10 +564,12 @@
                             "quoteIncrement": "0.01",
                             "baseScale": 4,
                             "quoteScale": 2
-                        }
+                        },
+                        "takerOrMaker": "taker"
                     },
                     {
                         "id": "SMC-USDT",
+                        "lowercaseId": null,
                         "symbol": "SMC/USDT",
                         "base": "SMC",
                         "quote": "USDT",
@@ -512,10 +583,14 @@
                         "swap": false,
                         "future": false,
                         "option": false,
+                        "index": false,
                         "active": true,
                         "contract": false,
                         "linear": null,
                         "inverse": null,
+                        "subType": null,
+                        "taker": 0.002,
+                        "maker": 0.001,
                         "contractSize": null,
                         "expiry": null,
                         "expiryDatetime": null,
@@ -543,6 +618,10 @@
                                 "max": null
                             }
                         },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
                         "created": null,
                         "info": {
                             "id": "SMC-USDT",
@@ -553,7 +632,8 @@
                             "quoteIncrement": "1.0E-4",
                             "baseScale": 2,
                             "quoteScale": 4
-                        }
+                        },
+                        "takerOrMaker": "taker"
                     }
                 ]
             }
@@ -710,10 +790,11 @@
                         "type": null,
                         "side": "sell",
                         "takerOrMaker": "taker",
-                        "price": "0.1000",
-                        "amount": "100.00",
-                        "cost": null,
-                        "fee": null
+                        "price": 0.1,
+                        "amount": 100,
+                        "cost": 10,
+                        "fee": null,
+                        "fees": []
                     },
                     {
                         "info": {
@@ -731,10 +812,11 @@
                         "type": null,
                         "side": "sell",
                         "takerOrMaker": "taker",
-                        "price": "0.0990",
-                        "amount": "4.00",
-                        "cost": null,
-                        "fee": null
+                        "price": 0.099,
+                        "amount": 4,
+                        "cost": 0.396,
+                        "fee": null,
+                        "fees": []
                     },
                     {
                         "info": {
@@ -752,10 +834,11 @@
                         "type": null,
                         "side": "buy",
                         "takerOrMaker": "taker",
-                        "price": "0.0990",
-                        "amount": "2050.10",
-                        "cost": null,
-                        "fee": null
+                        "price": 0.099,
+                        "amount": 2050.1,
+                        "cost": 202.9599,
+                        "fee": null,
+                        "fees": []
                     },
                     {
                         "info": {
@@ -773,10 +856,11 @@
                         "type": null,
                         "side": "buy",
                         "takerOrMaker": "taker",
-                        "price": "0.0989",
-                        "amount": "12.00",
-                        "cost": null,
-                        "fee": null
+                        "price": 0.0989,
+                        "amount": 12,
+                        "cost": 1.1868,
+                        "fee": null,
+                        "fees": []
                     }
                 ]
             }
@@ -834,9 +918,9 @@
                     ],
                     [
                         1793188800000,
+                        0.099,
+                        0.099,
                         0.0989,
-                        0.099,
-                        0.099,
                         0.0989,
                         2066.1
                     ]

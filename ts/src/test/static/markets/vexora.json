@@ -15,14 +15,14 @@
         "swap": false,
         "future": false,
         "option": false,
-        "index": null,
+        "index": false,
         "active": true,
         "contract": false,
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": null,
-        "maker": null,
+        "taker": 0.002,
+        "maker": 0.001,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -65,8 +65,7 @@
             "baseScale": 4,
             "quoteScale": 2
         },
-        "tierBased": null,
-        "percentage": null
+        "takerOrMaker": "taker"
     },
     "OCTA/USDT": {
         "id": "OCTA-USDT",
@@ -84,14 +83,14 @@
         "swap": false,
         "future": false,
         "option": false,
-        "index": null,
+        "index": false,
         "active": true,
         "contract": false,
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": null,
-        "maker": null,
+        "taker": 0.002,
+        "maker": 0.001,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -134,8 +133,7 @@
             "baseScale": 4,
             "quoteScale": 6
         },
-        "tierBased": null,
-        "percentage": null
+        "takerOrMaker": "taker"
     },
     "ETC/USDT": {
         "id": "ETC-USDT",
@@ -153,14 +151,14 @@
         "swap": false,
         "future": false,
         "option": false,
-        "index": null,
+        "index": false,
         "active": true,
         "contract": false,
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": null,
-        "maker": null,
+        "taker": 0.002,
+        "maker": 0.001,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -203,8 +201,7 @@
             "baseScale": 4,
             "quoteScale": 2
         },
-        "tierBased": null,
-        "percentage": null
+        "takerOrMaker": "taker"
     },
     "BNB/USDT": {
         "id": "BNB-USDT",
@@ -222,14 +219,14 @@
         "swap": false,
         "future": false,
         "option": false,
-        "index": null,
+        "index": false,
         "active": true,
         "contract": false,
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": null,
-        "maker": null,
+        "taker": 0.002,
+        "maker": 0.001,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -272,8 +269,7 @@
             "baseScale": 4,
             "quoteScale": 2
         },
-        "tierBased": null,
-        "percentage": null
+        "takerOrMaker": "taker"
     },
     "TRX/USDT": {
         "id": "TRX-USDT",
@@ -291,14 +287,14 @@
         "swap": false,
         "future": false,
         "option": false,
-        "index": null,
+        "index": false,
         "active": true,
         "contract": false,
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": null,
-        "maker": null,
+        "taker": 0.002,
+        "maker": 0.001,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -341,8 +337,7 @@
             "baseScale": 4,
             "quoteScale": 2
         },
-        "tierBased": null,
-        "percentage": null
+        "takerOrMaker": "taker"
     },
     "AVAX/USDT": {
         "id": "AVAX-USDT",
@@ -360,14 +355,14 @@
         "swap": false,
         "future": false,
         "option": false,
-        "index": null,
+        "index": false,
         "active": true,
         "contract": false,
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": null,
-        "maker": null,
+        "taker": 0.002,
+        "maker": 0.001,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -410,8 +405,7 @@
             "baseScale": 4,
             "quoteScale": 2
         },
-        "tierBased": null,
-        "percentage": null
+        "takerOrMaker": "taker"
     },
     "POL/USDT": {
         "id": "POL-USDT",
@@ -429,14 +423,14 @@
         "swap": false,
         "future": false,
         "option": false,
-        "index": null,
+        "index": false,
         "active": true,
         "contract": false,
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": null,
-        "maker": null,
+        "taker": 0.002,
+        "maker": 0.001,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -479,8 +473,7 @@
             "baseScale": 4,
             "quoteScale": 2
         },
-        "tierBased": null,
-        "percentage": null
+        "takerOrMaker": "taker"
     },
     "SMC/USDT": {
         "id": "SMC-USDT",
@@ -498,14 +491,14 @@
         "swap": false,
         "future": false,
         "option": false,
-        "index": null,
+        "index": false,
         "active": true,
         "contract": false,
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": null,
-        "maker": null,
+        "taker": 0.002,
+        "maker": 0.001,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -548,7 +541,6 @@
             "baseScale": 2,
             "quoteScale": 4
         },
-        "tierBased": null,
-        "percentage": null
+        "takerOrMaker": "taker"
     }
 }
