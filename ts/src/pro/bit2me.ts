@@ -153,11 +153,11 @@ export default class bit2me extends bit2meRest {
         const market = this.market (symbol);
         const messageHash = 'trades:' + market['symbol'];
         const trades = await this.subscribePublic ('public-trades', symbol, messageHash, params);
-        let tradesLimit = limit;
+        let finalLimit = limit;
         if (this.newUpdates) {
-            tradesLimit = trades.getLimit (market['symbol'], limit);
+            finalLimit = trades.getLimit (market['symbol'], limit);
         }
-        return this.filterBySinceLimit (trades, since, tradesLimit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, finalLimit, 'timestamp', true);
     }
 
     handleTrades (client: Client, message: Dict) {
@@ -276,11 +276,11 @@ export default class bit2me extends bit2meRest {
             messageHash = messageHash + ':' + unifiedSymbol;
         }
         const orders = await this.subscribePrivate ('my-orders', messageHash, params);
-        let ordersLimit = limit;
+        let finalLimit = limit;
         if (this.newUpdates) {
-            ordersLimit = orders.getLimit (unifiedSymbol, limit);
+            finalLimit = orders.getLimit (unifiedSymbol, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, unifiedSymbol, since, ordersLimit, true);
+        return this.filterBySymbolSinceLimit (orders, unifiedSymbol, since, finalLimit, true);
     }
 
     handleOrder (client: Client, message: Dict) {
@@ -405,11 +405,11 @@ export default class bit2me extends bit2meRest {
             messageHash = messageHash + ':' + unifiedSymbol;
         }
         const trades = await this.subscribePrivate ('my-trades', messageHash, params);
-        let tradesLimit = limit;
+        let finalLimit = limit;
         if (this.newUpdates) {
-            tradesLimit = trades.getLimit (unifiedSymbol, limit);
+            finalLimit = trades.getLimit (unifiedSymbol, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, unifiedSymbol, since, tradesLimit, true);
+        return this.filterBySymbolSinceLimit (trades, unifiedSymbol, since, finalLimit, true);
     }
 
     handleMyTrade (client: Client, message: Dict) {
@@ -835,7 +835,28 @@ export default class bit2me extends bit2meRest {
         } else if (event === 'canceled-all-orders') {
             this.settleRequest (client, 'canceled-all-orders:' + this.safeString (message, 'symbol'), undefined, exception);
         } else if (event === 'subscribe') {
-            throw exception;
+            // a refused subscription names the channel and the symbol it was asked for
+            const subscription = this.safeDict (message, 'subscription', {});
+            const name = this.safeString (subscription, 'name');
+            const marketId = this.safeString (message, 'symbol');
+            const symbol = this.safeSymbol (marketId);
+            const hashes: Dict = {
+                'order-book': 'orderbook:' + symbol,
+                'public-trades': 'trades:' + symbol,
+                'my-orders': 'orders',
+                'my-trades': 'myTrades',
+                'my-balance': 'balance',
+            };
+            const messageHash = this.safeString (hashes, name);
+            if (messageHash !== undefined) {
+                client.reject (exception, messageHash);
+                if ((name !== undefined) && (name in client.subscriptions)) {
+                    delete client.subscriptions[name];
+                }
+                if (messageHash in client.subscriptions) {
+                    delete client.subscriptions[messageHash];
+                }
+            }
         }
     }
 

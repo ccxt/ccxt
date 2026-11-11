@@ -1810,10 +1810,9 @@ export default class bit2me extends Exchange {
             const nonce = this.nonce ().toString ();
             let message = nonce + ':' + url;
             if (!isGetOrDelete) {
-                if (Object.keys (query).length > 0) {
-                    requestBody = this.json (query);
-                    message += ':' + requestBody;
-                }
+                // always send a json body, some http clients label an empty body as octet-stream and the gateway rejects it
+                requestBody = this.json (query);
+                message += ':' + requestBody;
             }
             const digest = this.hash (this.encode (message), sha256, 'binary');
             const signature = this.hmac (digest, this.encode (this.secret), sha512, 'base64');
