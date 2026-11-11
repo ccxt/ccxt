@@ -3248,7 +3248,7 @@ impl Phemex {
                     response = self.private_get_accounts_account_positions(&[__ws_arg_12]).await;
                 }
             }  else {
-                let mut currency: Option<String> = self.safe_string_k_opt(&paramsSettle, "currency", &[]);
+                let mut currency: Option<String> = self.safe_string_k(&paramsSettle, "currency", &[]).as_str().map(str::to_owned);
                 if (currency.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchBalance() requires a code parameter or a currency or settle parameter for ".into())).into()), type_var.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(" type".into()))));
                 }

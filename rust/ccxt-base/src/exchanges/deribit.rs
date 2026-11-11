@@ -2035,13 +2035,13 @@ impl Deribit {
             while { if !__for_first_622 { i += 1; } __for_first_622 = false; i < (summaries.len() as i64) } {
             let mut data: crate::value::Dict = self.safe_dict(summaries.clone(), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&data, "currency", &[]).as_str().map(str::to_owned);
-            let mut currencyCode: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string_k(&data, "available_funds", &[]));
             account.insert("used".into(), self.safe_string_k(&data, "maintenance_margin", &[]));
             account.insert("total".into(), self.safe_string_k(&data, "equity", &[]));
-            if (currencyCode != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&currencyCode), Value::Map(account));
+            if (currencyCode.is_some()) {
+                result.insert(currencyCode.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }
@@ -2779,16 +2779,16 @@ impl Deribit {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("count".into(), crate::runtime::Math::min(&limit, &Value::Int(1000))); }; // default 10
         }
         let mut until: Option<i64> = self.safe_integer2(params.clone(), Value::Str("until".into()), Value::Str("end_timestamp".into()), &[]).as_i64();
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("until".into())]), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("until".into())]), &[]) } else { params }).into_dict();
         if (until.is_some()) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end_timestamp".into(), Value::from(until)); }
         }
         let mut response: Option<crate::value::Dict> = None;
         if (since == Value::Null) && !(matches!(&request, Value::Dict(__d) if __d.contains_key("end_timestamp"))) {
-            let __ws_arg_7 = self.extend(request.clone(), &[paramsOmitted.clone()]);
+            let __ws_arg_7 = self.extend(request.clone(), &[&paramsOmitted]);
             response = self.public_get_get_last_trades_by_instrument(&[__ws_arg_7]).await.into_opt_dict();
         }  else {
-            let __ws_arg_8 = self.extend(request, &[paramsOmitted]);
+            let __ws_arg_8 = self.extend(request, &[&paramsOmitted]);
             response = self.public_get_get_last_trades_by_instrument_and_time(&[__ws_arg_8]).await.into_opt_dict();
         }
         //
@@ -4339,12 +4339,12 @@ impl Deribit {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut paramsOmitted: Value = (if (code.is_some()) { self.omit(params.clone(), Value::Str("currency".into()), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (code.is_some()) { self.omit(params.clone(), Value::Str("currency".into()), &[]) } else { params }).into_dict();
         if (code.is_some()) {
             let mut currency: indexmap::IndexMap<String, Value> = self.currency(code.clone().map(Value::from).unwrap_or(Value::Null)).as_map().cloned().unwrap_or_default();
             request.insert("currency".into(), currency.get("id").cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_34 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_34 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_get_positions(&[__ws_arg_34]).await.into_dict();
         //
         //     {

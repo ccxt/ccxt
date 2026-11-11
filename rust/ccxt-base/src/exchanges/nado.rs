@@ -2465,7 +2465,7 @@ impl Nado {
             let mut __for_first_987: bool = true;
             while { if !__for_first_987 { i += 1; } __for_first_987 = false; i < (pairs.len() as i64) } {
             let mut rawPair: Value = pairs.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut pairProductId: Option<String> = self.safe_string_k_opt(rawPair.clone(), "product_id", &[]);
+            let mut pairProductId: Option<String> = self.safe_string_k(rawPair.clone(), "product_id", &[]).as_str().map(str::to_owned);
             if (pairProductId.is_some()) {
                 pairsById.insert(pairProductId.as_deref().unwrap_or("null").to_string(), rawPair);
             }
@@ -2480,7 +2480,7 @@ impl Nado {
             let mut __for_first_988: bool = true;
             while { if !__for_first_988 { i += 1; } __for_first_988 = false; i < (assets.len() as i64) } {
             let mut rawAsset: Value = assets.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut assetProductId: Option<String> = self.safe_string_k_opt(rawAsset.clone(), "product_id", &[]);
+            let mut assetProductId: Option<String> = self.safe_string_k(rawAsset.clone(), "product_id", &[]).as_str().map(str::to_owned);
             if (assetProductId.is_some()) {
                 assetsById.insert(assetProductId.as_deref().unwrap_or("null").to_string(), rawAsset.clone());
             }

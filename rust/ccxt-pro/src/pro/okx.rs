@@ -1300,7 +1300,7 @@ impl Okx {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut newTickersSymbol: Option<String> = self.safe_string_k_opt(newTickers.clone(), "symbol", &[]);
+            let mut newTickersSymbol: Option<String> = self.safe_string_k(newTickers.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (newTickersSymbol.is_some()) {
                 tickers.insert(newTickersSymbol.as_deref().unwrap_or("null").to_string(), newTickers);
             }
@@ -2532,8 +2532,8 @@ impl Okx {
                     let mut __for_first_548: bool = true;
                     while { if !__for_first_548 { i += 1; } __for_first_548 = false; i < (data.len() as i64) } {
                     let mut update: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
-                    let mut timestamp: Value = self.safe_integer_k(update.clone(), "ts", &[]);
-                    let mut snapshot: Value = self.parse_order_book(update, symbol.clone(), &[timestamp, Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
+                    let mut timestamp: Option<i64> = self.safe_integer_k(update.clone(), "ts", &[]).as_i64();
+                    let mut snapshot: Value = self.parse_order_book(update, symbol.clone(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1)]);
                     bboBook.reset(snapshot);
                     client.resolve(&[bboBook.clone(), messageHash.clone()]);
                 }
@@ -3630,10 +3630,10 @@ impl Okx {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_556: bool = true;
-            while { if !__for_first_556 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_556 = false; i.as_f64().unwrap_or(f64::NAN) < idsLength } {
-            let __ws_arg_5 = self.safe_string(ids.clone(), i.clone(), &[]);
+            while { if !__for_first_556 { i += 1; } __for_first_556 = false; (i as f64) < idsLength } {
+            let __ws_arg_5 = self.safe_string(ids.clone(), Value::Int(i), &[]);
             let mut arg: Value = self.extend(Value::Map(instParams.clone()), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ordId".to_string(), __ws_arg_5);

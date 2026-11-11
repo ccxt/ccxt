@@ -2863,13 +2863,13 @@ impl Bitstamp {
             while { if !__for_first_433 { i += 1; } __for_first_433 = false; i < (responseEntries.len() as i64) } {
             let mut currencyBalance: crate::value::Dict = self.safe_dict(responseEntries.clone(), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&currencyBalance, "currency", &[]).as_str().map(str::to_owned);
-            let mut currencyCode: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string_k(&currencyBalance, "available", &[]));
             account.insert("used".into(), self.safe_string_k(&currencyBalance, "reserved", &[]));
             account.insert("total".into(), self.safe_string_k(&currencyBalance, "total", &[]));
-            if (currencyCode != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&currencyCode), Value::Map(account));
+            if (currencyCode.is_some()) {
+                result.insert(currencyCode.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }
@@ -3231,32 +3231,32 @@ impl Bitstamp {
         if (clientOrderId.is_some()) {
             request.insert("client_order_id".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut paramsOmitted: Value = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into())]), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into())]), &[]) } else { params }).into_dict();
         let mut response: Value = Value::Null;
         let mut capitalizedSide: Option<String> = self.capitalize(side).as_str().map(str::to_owned);
         if (type_var.as_str() == Some("market")) {
             if (capitalizedSide.as_deref() == Some("Buy")) {
-                let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_post_buy_market_pair(&[__ws_arg_5]).await;
             }  else {
-                let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                let __ws_arg_6 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_post_sell_market_pair(&[__ws_arg_6]).await;
             }
         }  else if (type_var.as_str() == Some("instant")) {
             if (capitalizedSide.as_deref() == Some("Buy")) {
-                let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_post_buy_instant_pair(&[__ws_arg_7]).await;
             }  else {
-                let __ws_arg_8 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                let __ws_arg_8 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_post_sell_instant_pair(&[__ws_arg_8]).await;
             }
         }  else {
             request.insert("price".into(), self.price_to_precision(symbol, price));
             if (capitalizedSide.as_deref() == Some("Buy")) {
-                let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+                let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
                 response = self.private_post_buy_pair(&[__ws_arg_9]).await;
             }  else {
-                let __ws_arg_10 = self.extend(Value::Map(request), &[paramsOmitted]);
+                let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
                 response = self.private_post_sell_pair(&[__ws_arg_10]).await;
             }
         }
@@ -3320,8 +3320,8 @@ impl Bitstamp {
         }  else {
             request.insert("id".into(), id);
         }
-        let mut paramsOmitted: Value = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into())]), &[]) } else { params });
-        let __ws_arg_11 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("clientOrderId".into())]), &[]) } else { params }).into_dict();
+        let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_post_replace_order(&[__ws_arg_11]).await;
         let mut order: indexmap::IndexMap<String, Value> = self.parse_order(response, &[market]).as_map().cloned().unwrap_or_default();
         order.insert("type".into(), type_var);
@@ -3465,8 +3465,8 @@ impl Bitstamp {
         }  else {
             request.insert("id".into(), id);
         }
-        let mut paramsOmitted: Value = (if (clientOrderId != Value::Null) { self.omit(params.clone(), Value::from(vec![Value::Str("client_order_id".into()), Value::Str("clientOrderId".into())]), &[]) } else { params });
-        let __ws_arg_15 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId != Value::Null) { self.omit(params.clone(), Value::from(vec![Value::Str("client_order_id".into()), Value::Str("clientOrderId".into())]), &[]) } else { params }).into_dict();
+        let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_order_status(&[__ws_arg_15]).await.into_dict();
         return self.parse_order_status(self.safe_string_k(&response, "status", &[])).map(Value::from).unwrap_or(Value::Null);
         Value::Null
@@ -3512,8 +3512,8 @@ impl Bitstamp {
         }  else {
             request.insert("id".into(), id);
         }
-        let mut paramsOmitted: Value = (if (clientOrderId != Value::Null) { self.omit(params.clone(), Value::from(vec![Value::Str("client_order_id".into()), Value::Str("clientOrderId".into())]), &[]) } else { params });
-        let __ws_arg_16 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId != Value::Null) { self.omit(params.clone(), Value::from(vec![Value::Str("client_order_id".into()), Value::Str("clientOrderId".into())]), &[]) } else { params }).into_dict();
+        let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_post_order_status(&[__ws_arg_16]).await;
         return self.parse_order(response, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]);
         Value::Null

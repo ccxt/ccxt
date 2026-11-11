@@ -552,7 +552,7 @@ impl Krakenfutures {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut tickerSymbol: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
+            let mut tickerSymbol: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (tickerSymbol.is_some()) {
                 result.insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), ticker);
             }
@@ -589,7 +589,7 @@ impl Krakenfutures {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut tickerSymbol: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
+            let mut tickerSymbol: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (tickerSymbol.is_some()) {
                 result.insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), ticker);
             }
@@ -1280,7 +1280,7 @@ impl Krakenfutures {
         let mut order: Value = (match __pro_message.get("order").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
         if (order != Value::Null) {
             let mut marketId: Option<String> = self.safe_string_k(order.clone(), "instrument", &[]).as_str().map(str::to_owned);
-            let mut feed: Option<String> = match __pro_message.get("feed").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
+            let mut feed: Option<String> = (match __pro_message.get("feed").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
             let mut messageHash: String = "orders".to_string();
             if (feed.as_deref() == Some("open_orders_verbose")) {
                 messageHash = "orders:verbose".to_string();
@@ -1292,7 +1292,7 @@ impl Krakenfutures {
                 m
             })]);
             let mut previousOrder: Value = self.safe_dict(previousOrders, orderId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            let mut reason: Option<String> = match __pro_message.get("reason").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
+            let mut reason: Option<String> = (match __pro_message.get("reason").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
             if (previousOrder == Value::Null) || (reason.as_deref() == Some("edited_by_user")) {
                 let mut parsed: Value = self.parse_ws_order(order.clone(), &[]);
                 orders.append(parsed);
@@ -1363,7 +1363,7 @@ impl Krakenfutures {
                 if (reason.as_deref() == Some("full_fill")) {
                     status = "closed".to_string();
                 }
-                let mut feed: Option<String> = match __pro_message.get("feed").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
+                let mut feed: Option<String> = (match __pro_message.get("feed").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
                 let mut messageHash: String = "orders".to_string();
                 if (feed.as_deref() == Some("open_orders_verbose")) {
                     messageHash = "orders:verbose".to_string();
@@ -1486,7 +1486,7 @@ impl Krakenfutures {
             if (symbol.is_some()) {
                 if let Value::Dict(__d) = &mut symbols { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
             }
-            let mut parsedId: Option<String> = self.safe_string_k_opt(parsed.clone(), "id", &[]);
+            let mut parsedId: Option<String> = self.safe_string_k(parsed.clone(), "id", &[]).as_str().map(str::to_owned);
             if (parsedId.is_some()) {
                 snapshotIds.insert(parsedId.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }

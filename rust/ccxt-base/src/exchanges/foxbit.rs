@@ -1325,7 +1325,7 @@ impl Foxbit {
             while { if !__for_first_677 { i += 1; } __for_first_677 = false; i < (accounts.len() as i64) } {
             let mut account: crate::value::Dict = self.safe_dict(accounts.clone().into(), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&account, "currency_symbol", &[]).as_str().map(str::to_owned);
-            let mut currencyCode: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut total: Option<String> = self.safe_string_k(&account, "balance", &[]).as_str().map(str::to_owned);
             let mut used: Option<String> = self.safe_string_k(&account, "balance_locked", &[]).as_str().map(str::to_owned);
             let mut free: Option<String> = self.safe_string_k(&account, "balance_available", &[]).as_str().map(str::to_owned);
@@ -1336,8 +1336,8 @@ impl Foxbit {
                     m.insert("total".to_string(), total.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             });
-            if (currencyCode != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&currencyCode), Value::Map(balanceObj));
+            if (currencyCode.is_some()) {
+                result.insert(currencyCode.as_deref().unwrap_or("null").to_string(), Value::Map(balanceObj));
             }
         }
         }

@@ -952,7 +952,7 @@ impl Revolutx {
             m
         })]).into_dict();
         let mut timestamp: Option<i64> = self.safe_integer_k(&metadata, "timestamp", &[]).as_i64();
-        let mut result: indexmap::IndexMap<String, Value> = ({
+        let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -970,7 +970,7 @@ impl Revolutx {
             if (symbol.as_str() == Some("")) {
                 continue;
             }
-            result.insert(crate::runtime::stringify_param(&symbol), ticker);
+            if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker); }
         }
         }
         if (symbols != Value::Null) {
@@ -983,14 +983,14 @@ impl Revolutx {
                 let mut __for_first_1119: bool = true;
                 while { if !__for_first_1119 { i += 1; } __for_first_1119 = false; i < (symbols.len() as i64) } {
                 let mut s: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                if (matches!(&s, Value::Str(__k) if result.contains_key(__k.as_ref()))) {
-                    filtered.insert(crate::runtime::stringify_param(&s), result.get(s.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
+                if (matches!((&result, &s), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                    filtered.insert(crate::runtime::stringify_param(&s), (if let (Some(__m), Some(__k)) = (result.as_map(), s.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
                 }
             }
             }
             return Value::Map(filtered);
         }
-        return Value::Map(result);
+        return result;
         Value::Null
         }).await?))
     }
@@ -1369,8 +1369,8 @@ impl Revolutx {
     m
 })]).into_dict();
             let mut currency: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currency.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-            if (code == Value::Null) {
+            let mut code: Option<String> = self.safe_currency_code(currency.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            if (code.is_none()) {
                 continue;
             }
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -1383,7 +1383,7 @@ impl Revolutx {
             }
             account.insert("used".into(), used.clone().map(Value::from).unwrap_or(Value::Null));
             account.insert("total".into(), self.safe_string_k(&balance, "total", &[]));
-            result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
         }
         }
         return self.safe_balance(Value::Map(result));

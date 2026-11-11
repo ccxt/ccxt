@@ -977,12 +977,12 @@ impl Coinone {
             while { if !__for_first_571 { i += 1; } __for_first_571 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Value = currencyIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut balance: crate::value::Dict = self.safe_dict(balances.clone(), currencyId.clone(), &[]).into_dict();
-            let mut code: Value = self.safe_currency_code(currencyId, &[]);
+            let mut code: Option<String> = self.safe_currency_code(currencyId, &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string_k(&balance, "avail", &[]));
             account.insert("total".into(), self.safe_string_k(&balance, "balance", &[]));
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }

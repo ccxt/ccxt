@@ -939,9 +939,9 @@ impl Bitbns {
                 if (currencyId.as_deref() == Some("Money")) {
                     currencyId = Some("INR".to_string());
                 }
-                let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
-                if (code != Value::Null) {
-                    result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+                let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+                if (code.is_some()) {
+                    result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
                 }
             }
         }

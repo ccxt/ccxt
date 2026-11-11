@@ -2596,9 +2596,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("stopPrice".into(), self.price_to_precision(symbol, triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)));
             orderType = Value::Str("STOP_LIMIT".into());
         }
-        let mut paramsOmitted: Value = (if (triggerPrice.is_some()) { self.omit(paramsTimeInForce.clone(), Value::Str("triggerPrice".into()), &[]) } else { paramsTimeInForce });
+        let mut paramsOmitted: crate::value::Dict = (if (triggerPrice.is_some()) { self.omit(paramsTimeInForce.clone(), Value::Str("triggerPrice".into()), &[]) } else { paramsTimeInForce }).into_dict();
         request.insert("type".into(), (if let Some(__s) = orderType.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
-        let __ws_arg_14 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_post_v2_orders(&[__ws_arg_14]).await;
         return self.parse_order(response, &[(market).raw.clone()]);
         Value::Null
@@ -2665,8 +2665,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (price != Value::Null) {
             request.insert("price".into(), self.price_to_precision(symbol, price));
         }
-        let mut paramsOmitted: Value = (if postOnly { self.omit(params.clone(), Value::Str("postOnly".into()), &[]) } else { params });
-        let __ws_arg_15 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = (if postOnly { self.omit(params.clone(), Value::Str("postOnly".into()), &[]) } else { params }).into_dict();
+        let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_post_v2_command(&[__ws_arg_15]).await;
         return self.parse_order(response, &[(market).raw.clone()]);
         Value::Null
@@ -3402,12 +3402,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             while { if !__for_first_496 { i += 1; } __for_first_496 = false; i < (rows.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(rows.clone(), Value::Int(i), &[]).into_dict();
             let mut symbol: Option<String> = self.safe_string_k(&balance, "assetSymbol", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut code: Option<String> = self.safe_currency_code(symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string_k(&balance, "availableQuantity", &[]));
             account.insert("used".into(), self.safe_string_k(&balance, "lockedQuantity", &[]));
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }

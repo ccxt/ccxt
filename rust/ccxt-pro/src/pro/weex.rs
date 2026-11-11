@@ -635,7 +635,7 @@ impl Weex {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut newTickerSymbol: Option<String> = self.safe_string_k_opt(newTicker.clone(), "symbol", &[]);
+            let mut newTickerSymbol: Option<String> = self.safe_string_k(newTicker.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (newTickerSymbol.is_some()) {
                 result.insert(newTickerSymbol.as_deref().unwrap_or("null").to_string(), newTicker);
             }
@@ -1690,8 +1690,8 @@ impl Weex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]).into_list();
-        let mut firstMarket: Value = self.get_market_from_symbols(&[Value::Arr(symbolsNormalized.clone())]);
-        if matches!(self.safe_bool_k(firstMarket, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
+        let mut firstMarket: crate::value::Dict = self.get_market_from_symbols(&[Value::Arr(symbolsNormalized.clone())]).into_dict();
+        if matches!(self.safe_bool_k(&firstMarket, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" watchBidsAsks is supported for spot markets only".into()))));
         }
         let mut messageHashes: Vec<Value> = Vec::new();
@@ -1715,7 +1715,7 @@ impl Weex {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut newTickerSymbol: Option<String> = self.safe_string_k_opt(newTicker.clone(), "symbol", &[]);
+            let mut newTickerSymbol: Option<String> = self.safe_string_k(newTicker.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (newTickerSymbol.is_some()) {
                 result.insert(newTickerSymbol.as_deref().unwrap_or("null").to_string(), newTicker);
             }
@@ -1750,8 +1750,8 @@ impl Weex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]);
-        let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
-        if matches!(self.safe_bool_k(firstMarket, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
+        let mut firstMarket: crate::value::Dict = self.get_market_from_symbols(&[symbolsNormalized.clone()]).into_dict();
+        if matches!(self.safe_bool_k(&firstMarket, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchBidsAsks is supported for spot markets only".into()))));
         }
         let mut subHashes: Vec<Value> = Vec::new();
@@ -2020,8 +2020,8 @@ impl Weex {
         }
         let mut messageHash: String = "myTrades".to_string();
         let mut symbolKeys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-        let mut market: Value = self.get_market_from_symbols(&[symbolKeys.clone().into()]);
-        if matches!(self.safe_bool_k(market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
+        let mut market: crate::value::Dict = self.get_market_from_symbols(&[symbolKeys.clone().into()]).into_dict();
+        if matches!(self.safe_bool_k(&market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             messageHash = "myContractTrades".to_string();
         }
         {
@@ -2287,8 +2287,8 @@ impl Weex {
         }
         let mut messageHash: String = "orders".to_string();
         let mut symbolKeys: Vec<Value> = Value::Array(symbols.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
-        let mut market: Value = self.get_market_from_symbols(&[symbolKeys.clone().into()]);
-        if matches!(self.safe_bool_k(market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
+        let mut market: crate::value::Dict = self.get_market_from_symbols(&[symbolKeys.clone().into()]).into_dict();
+        if matches!(self.safe_bool_k(&market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             messageHash = "contractOrders".to_string();
         }
         {

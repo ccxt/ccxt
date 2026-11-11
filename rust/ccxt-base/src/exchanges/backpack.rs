@@ -3311,7 +3311,7 @@ impl Backpack {
             let mut __for_first_257: bool = true;
             while { if !__for_first_257 { i += 1; } __for_first_257 = false; i < (balanceKeys.len() as i64) } {
             let mut id: Value = balanceKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut code: Value = self.safe_currency_code(id.clone(), &[]);
+            let mut code: Option<String> = self.safe_currency_code(id.clone(), &[]).as_str().map(str::to_owned);
             let mut balance: crate::value::Dict = self.safe_dict(response.clone(), id, &[]).into_dict();
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             let mut locked: Option<String> = self.safe_string_k(&balance, "locked", &[]).as_str().map(str::to_owned);
@@ -3319,8 +3319,8 @@ impl Backpack {
             let mut used: Value = crate::precise::Precise::stringAdd(&locked.clone().map(Value::from).unwrap_or(Value::Null), &staked.clone().map(Value::from).unwrap_or(Value::Null));
             account.insert("free".into(), self.safe_string_k(&balance, "available", &[]));
             account.insert("used".into(), used);
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }

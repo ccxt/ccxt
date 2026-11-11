@@ -1291,10 +1291,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         assert((matches!(&events, Value::Arr(_))), &[Value::Str(format!("{}{}", get_value(&exchange, &Value::Str("id".into())), Value::Str(" fetchEvents/fetchEvent should return a list".into())).into())]);
         let mut eventsLength: Value = Value::Int(events.len() as i64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1634: bool = true;
-            while { if !__for_first_1634 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1634 = false; i.as_f64().unwrap_or(f64::NAN) < eventsLength.as_f64().unwrap_or(f64::NAN) } {
-            self.assert_prediction_event(exchange.clone(), events.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+            while { if !__for_first_1634 { i += 1; } __for_first_1634 = false; (i as f64) < eventsLength.as_f64().unwrap_or(f64::NAN) } {
+            self.assert_prediction_event(exchange.clone(), events.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
         return Value::Bool(true);
@@ -2014,7 +2014,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     // STRING side needs parsing - parseToNumeric round-trips a double through
                     // numberToString/decimal and drops its last significant digit, so a real
                     // 81003.30644700001 stopped matching the stored "81003.306447000009".
-                    let mut isNumber: Value = Value::Bool(false);
+                    let mut isNumber: bool = false;
                     let mut computedNumeric: Value = sanitizedNewOutput.clone();
                     let mut storedNumeric: Value = sanitizedStoredOutput.clone();
                     let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -2024,12 +2024,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         if isStoredString.as_bool() == Some(true) {
                             storedNumeric = exchange.parse_to_numeric(sanitizedStoredOutput.clone());
                         }
-                        isNumber = Value::Bool(true);
+                        isNumber = true;
                      #[allow(unreachable_code)] { Value::Null }}));
 if _try_result.is_err() {
-                        isNumber = Value::Bool(false);
+                        isNumber = false;
                     }
-                    if isNumber.as_bool() == Some(true) {
+                    if isNumber {
                         self.assert_static_error(Value::Bool(is_equal(&computedNumeric, &storedNumeric)), messageError.clone(), storedOutput.clone(), newOutput.clone(), &[assertingKey.clone()]);
                         return Value::Bool(true);
                     }
@@ -2041,16 +2041,16 @@ if _try_result.is_err() {
                 if isBoolean || isString || isUndefined {
                     if (self.lang.as_str() == Some("C#")) || (self.lang.as_str() == Some("GO")) {
                         // tmp c# number comparsion
-                        let mut isNumber: Value = Value::Bool(false);
+                        let mut isNumber: bool = false;
                         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                             exchange.parse_to_numeric(sanitizedNewOutput.clone());
-                            isNumber = Value::Bool(true);
+                            isNumber = true;
                          #[allow(unreachable_code)] { Value::Null }}));
 if _try_result.is_err() {
                             // if we can't parse it to number, then it's not a number
-                            isNumber = Value::Bool(false);
+                            isNumber = false;
                         }
-                        if isNumber.as_bool() == Some(true) {
+                        if isNumber {
                             self.assert_static_error(Value::Bool(exchange.parse_to_numeric(sanitizedNewOutput.clone()).as_f64() == exchange.parse_to_numeric(sanitizedStoredOutput.clone()).as_f64()), messageError.clone(), storedOutput.clone(), newOutput.clone(), &[assertingKey.clone()]);
                             return Value::Bool(true);
                         }  else {
@@ -2234,10 +2234,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if (matches!(&output, Value::Arr(_))) {
                 let mut outputLength: Value = Value::Int(output.len() as i64);
                 {
-                                        let mut i: Value = Value::Int(0);
+                                        let mut i: i64 = 0;
                     let mut __for_first_1647: bool = true;
-                    while { if !__for_first_1647 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1647 = false; i.as_f64().unwrap_or(f64::NAN) < outputLength.as_f64().unwrap_or(f64::NAN) } {
-                    self.assert_static_isolated_position(exchange.clone(), output.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+                    while { if !__for_first_1647 { i += 1; } __for_first_1647 = false; (i as f64) < outputLength.as_f64().unwrap_or(f64::NAN) } {
+                    self.assert_static_isolated_position(exchange.clone(), output.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
                 }
                 }
             }  else if is_true(&exchange.is_dictionary(output.clone())) {

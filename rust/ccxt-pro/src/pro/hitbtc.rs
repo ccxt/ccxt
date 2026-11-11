@@ -886,7 +886,7 @@ impl Hitbtc {
                     let mut m = indexmap::IndexMap::new();
                     m
                 });
-                let mut newTickersSymbol: Option<String> = self.safe_string_k_opt(newTickers.clone(), "symbol", &[]);
+                let mut newTickersSymbol: Option<String> = self.safe_string_k(newTickers.clone(), "symbol", &[]).as_str().map(str::to_owned);
                 if (newTickersSymbol.is_some()) {
                     tickers.insert(newTickersSymbol.as_deref().unwrap_or("null").to_string(), newTickers.clone());
                 }
@@ -950,10 +950,10 @@ impl Hitbtc {
                         let mut i: i64 = 0;
             let mut __for_first_365: bool = true;
             while { if !__for_first_365 { i += 1; } __for_first_365 = false; i < (marketIds.len() as i64) } {
-            let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: Value = self.safe_market(&[marketId.clone()]);
-            let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
-            let mut ticker: Value = self.parse_ws_ticker(data.get(marketId.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), &[market]);
+            let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone()]);
+            let mut ticker: Value = self.parse_ws_ticker(data.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), &[market]);
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
             result.push(ticker.clone());
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str("::".into())).into()), symbol).into());
@@ -1077,7 +1077,7 @@ impl Hitbtc {
                     let mut m = indexmap::IndexMap::new();
                     m
                 });
-                let mut newTickersSymbol: Option<String> = self.safe_string_k_opt(newTickers.clone(), "symbol", &[]);
+                let mut newTickersSymbol: Option<String> = self.safe_string_k(newTickers.clone(), "symbol", &[]).as_str().map(str::to_owned);
                 if (newTickersSymbol.is_some()) {
                     tickers.insert(newTickersSymbol.as_deref().unwrap_or("null").to_string(), newTickers.clone());
                 }
@@ -1117,10 +1117,10 @@ impl Hitbtc {
                         let mut i: i64 = 0;
             let mut __for_first_366: bool = true;
             while { if !__for_first_366 { i += 1; } __for_first_366 = false; i < (marketIds.len() as i64) } {
-            let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: Value = self.safe_market(&[marketId.clone()]);
-            let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
-            let mut ticker: Value = self.parse_ws_bid_ask(data.get(marketId.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), &[market]);
+            let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone()]);
+            let mut ticker: Value = self.parse_ws_bid_ask(data.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), &[market]);
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
             result.push(ticker.clone());
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", topic, Value::Str("::".into())).into()), symbol).into());
@@ -1286,16 +1286,16 @@ impl Hitbtc {
                         let mut i: i64 = 0;
             let mut __for_first_368: bool = true;
             while { if !__for_first_368 { i += 1; } __for_first_368 = false; i < (marketIds.len() as i64) } {
-            let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: Value = self.safe_market(&[marketId.clone()]);
+            let mut marketId: Option<String> = marketIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut tradesLimit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
-            let mut symbol: Value = self.safe_symbol(marketId.clone(), &[market.clone()]);
+            let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[market.clone()]);
             let mut stored: Value = self.safe_value(self.trades.clone(), symbol.clone(), &[]);
             if (stored == Value::Null) {
                 stored = ArrayCache::new(tradesLimit);
                 if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), stored.clone()); }
             }
-            let mut trades: Value = self.parse_ws_trades((if let (Some(__m), Some(__k)) = (data.as_map(), marketId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[market]);
+            let mut trades: Value = self.parse_ws_trades((if let (Some(__m), Some(__k)) = (data.as_map(), marketId.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[market]);
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_367: bool = true;

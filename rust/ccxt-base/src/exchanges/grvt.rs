@@ -1388,10 +1388,10 @@ impl Grvt {
         let mut found: bool = false;
         let mut builderId: Option<String> = self.safe_string_k(self.options.clone(), "builder", &[]).as_str().map(str::to_owned);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_721: bool = true;
-            while { if !__for_first_721 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_721 = false; i.as_f64().unwrap_or(f64::NAN) < length } {
-            let mut builderInfo: crate::value::Dict = self.safe_dict(approvedBuilder.clone().into(), i.clone(), &[Value::Map({
+            while { if !__for_first_721 { i += 1; } __for_first_721 = false; (i as f64) < length } {
+            let mut builderInfo: crate::value::Dict = self.safe_dict(approvedBuilder.clone().into(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -2390,12 +2390,12 @@ if _try_result.is_err() {
             while { if !__for_first_722 { i += 1; } __for_first_722 = false; i < (spotBalances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(spotBalances.clone().into(), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string_k(&balance, "balance", &[]));
             account.insert("free".into(), availableBalance.clone().map(Value::from).unwrap_or(Value::Null)); // todo: revise after API team clarification
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }
@@ -4236,8 +4236,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }  else {
             request.insert("order_id".into(), id);
         }
-        let mut paramsOmitted: Value = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::Str("clientOrderId".into()), &[Value::Str("client_order_id".into())]) } else { params });
-        let __ws_arg_25 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::Str("clientOrderId".into()), &[Value::Str("client_order_id".into())]) } else { params }).into_dict();
+        let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_trading_post_full_v1_order(&[__ws_arg_25]).await.into_dict();
         //
         //    {
@@ -4577,8 +4577,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         }  else {
             request.insert("order_id".into(), id);
         }
-        let mut paramsOmitted: Value = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::Str("clientOrderId".into()), &[]) } else { params });
-        let __ws_arg_27 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::Str("clientOrderId".into()), &[]) } else { params }).into_dict();
+        let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_trading_post_full_v1_cancel_order(&[__ws_arg_27]).await.into_dict();
         //
         //    {

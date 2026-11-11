@@ -3391,11 +3391,11 @@ impl Btse {
         }  else {
             request.insert("orderId".into(), id.clone());
         }
-        let mut paramsOmitted: Value = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::Str("clientOrderId".into()), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(params.clone(), Value::Str("clientOrderId".into()), &[]) } else { params }).into_dict();
         let mut response: Value = Value::Null;
         if (market).spot {
             request.insert("symbol".into(), Value::from((market).id.clone()));
-            let __ws_arg_20 = self.extend(Value::Map(request.clone()), &[paramsOmitted.clone()]);
+            let __ws_arg_20 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_delete_spot_api_v4_trade_orders(&[__ws_arg_20]).await;
         }  else {
             //
@@ -3415,7 +3415,7 @@ impl Btse {
             //     ]
             //
             request.insert("symbol".into(), self.futures_request_id((market).raw.clone()));
-            let __ws_arg_21 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_delete_futures_api_v3_trade_orders(&[__ws_arg_21]).await;
         }
         let mut order: Value = self.safe_dict(response, Value::Int(0), &[Value::Map({

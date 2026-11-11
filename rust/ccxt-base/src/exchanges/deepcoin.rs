@@ -3462,8 +3462,8 @@ impl Deepcoin {
         let mut productGroup: Value = self.get_product_group_from_market((market).raw.clone());
         let mut marginMode: Option<String> = self.safe_string_k(params.clone(), "marginMode", &[]).as_str().map(str::to_owned);
         let mut encodedMarginMode: Value = (if (marginMode.as_deref() == Some("isolated")) { Value::Int(0) } else { Value::Int(1) });
-        let mut paramsOmitted: Value = (if (marginMode.is_some()) { self.omit(params.clone(), Value::Str("marginMode".into()), &[]) } else { params });
-        let mergedparamsMergedVariable: Vec<Value> = self.handle_option_bool_and_params(paramsOmitted, Value::Str("cancelAllOrders".into()), Value::Str("merged".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
+        let mut paramsOmitted: crate::value::Dict = (if (marginMode.is_some()) { self.omit(params.clone(), Value::Str("marginMode".into()), &[]) } else { params }).into_dict();
+        let mergedparamsMergedVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsOmitted, Value::Str("cancelAllOrders".into()), Value::Str("merged".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
         let mut merged: bool = mergedparamsMergedVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsMerged: crate::value::Dict = mergedparamsMergedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isMergedMode: Value = (if merged { Value::Int(1) } else { Value::Int(0) });
@@ -4485,8 +4485,8 @@ impl Deepcoin {
             if (positionId.is_some()) {
                 request.insert("positionIds".into(), Value::from(vec![positionId.clone().map(Value::from).unwrap_or(Value::Null)]));
             }
-            let mut paramsOmitted: Value = (if (positionId.is_some()) { self.omit(params.clone(), Value::Str("positionId".into()), &[]) } else { params });
-            let __ws_arg_39 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let mut paramsOmitted: crate::value::Dict = (if (positionId.is_some()) { self.omit(params.clone(), Value::Str("positionId".into()), &[]) } else { params }).into_dict();
+            let __ws_arg_39 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_post_deepcoin_trade_close_position_by_ids(&[__ws_arg_39]).await.into_opt_dict();
         }
         let mut data: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);

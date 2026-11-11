@@ -673,7 +673,7 @@ impl Zaif {
             let mut __for_first_1200: bool = true;
             while { if !__for_first_1200 { i += 1; } __for_first_1200 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Value = currencyIds.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), &[]).as_str().map(str::to_owned);
             let mut balance: Option<String> = self.safe_string(funds.clone(), currencyId.clone(), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), balance.clone().map(Value::from).unwrap_or(Value::Null));
@@ -683,8 +683,8 @@ impl Zaif {
                     account.insert("total".into(), self.safe_string(deposit.clone(), currencyId.clone(), &[]));
                 }
             }
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }

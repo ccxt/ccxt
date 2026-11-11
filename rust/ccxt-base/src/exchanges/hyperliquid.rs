@@ -1402,7 +1402,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut tokenIndex: Option<String> = self.safe_string_k_opt(token.clone(), "index", &[]);
+            let mut tokenIndex: Option<String> = self.safe_string_k(token.clone(), "index", &[]).as_str().map(str::to_owned);
             if (tokenIndex.is_some()) {
                 tokensByIndex.insert(tokenIndex.as_deref().unwrap_or("null").to_string(), token);
             }
@@ -3479,15 +3479,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut hasClientOrderId: bool = false;
         let mut ordersLength: f64 = ((orders.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_811: bool = true;
-            while { if !__for_first_811 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_811 = false; i.as_f64().unwrap_or(f64::NAN) < ordersLength } {
-            let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
+            while { if !__for_first_811 { i += 1; } __for_first_811 = false; (i as f64) < ordersLength } {
+            let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut clientOrderId: Option<String> = self.safe_string2_opt(orderParams.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
+            let mut clientOrderId: Option<String> = self.safe_string2(orderParams.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]).as_str().map(str::to_owned);
             if (clientOrderId.is_some()) {
                 hasClientOrderId = true;
             }
@@ -3495,15 +3495,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         if hasClientOrderId {
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_812: bool = true;
-                while { if !__for_first_812 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_812 = false; i.as_f64().unwrap_or(f64::NAN) < ordersLength } {
-                let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
+                while { if !__for_first_812 { i += 1; } __for_first_812 = false; (i as f64) < ordersLength } {
+                let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
                 let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                let mut clientOrderId: Option<String> = self.safe_string2_opt(orderParams.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
+                let mut clientOrderId: Option<String> = self.safe_string2(orderParams.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]).as_str().map(str::to_owned);
                 if (clientOrderId.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrders() all orders must have clientOrderId if at least one has a clientOrderId".into()))));
                 }
@@ -3515,10 +3515,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut orderReq: Vec<Value> = Vec::new();
         let mut grouping: String = "na".to_string();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_813: bool = true;
-            while { if !__for_first_813 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_813 = false; i.as_f64().unwrap_or(f64::NAN) < ordersLength } {
-            let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
+            while { if !__for_first_813 { i += 1; } __for_first_813 = false; (i as f64) < ordersLength } {
+            let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut marketId: Option<String> = self.safe_string_k(rawOrder.clone(), "symbol", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut symbol: Value = Value::from((market).symbol.clone());
@@ -3868,13 +3868,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             cancelAction.insert("type".into(), Value::Str("cancelByCloid".into()));
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_815: bool = true;
-                while { if !__for_first_815 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_815 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(clientOrderId.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_815 { i += 1; } __for_first_815 = false; (i as f64) < Value::Int(clientOrderId.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 cancelReq.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("asset".to_string(), baseId.clone());
-                        m.insert("cloid".to_string(), self.safe_string(clientOrderId.clone(), i.clone(), &[]));
+                        m.insert("cloid".to_string(), self.safe_string(clientOrderId.clone(), Value::Int(i), &[]));
                     m
                 }));
             }
@@ -4070,15 +4070,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut hasClientOrderId: bool = false;
         let mut ordersLength: f64 = ((orders.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_818: bool = true;
-            while { if !__for_first_818 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_818 = false; i.as_f64().unwrap_or(f64::NAN) < ordersLength } {
-            let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
+            while { if !__for_first_818 { i += 1; } __for_first_818 = false; (i as f64) < ordersLength } {
+            let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut clientOrderId: Option<String> = self.safe_string2_opt(orderParams.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
+            let mut clientOrderId: Option<String> = self.safe_string2(orderParams.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]).as_str().map(str::to_owned);
             if (clientOrderId.is_some()) {
                 hasClientOrderId = true;
             }
@@ -4086,15 +4086,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         if hasClientOrderId {
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_819: bool = true;
-                while { if !__for_first_819 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_819 = false; i.as_f64().unwrap_or(f64::NAN) < ordersLength } {
-                let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
+                while { if !__for_first_819 { i += 1; } __for_first_819 = false; (i as f64) < ordersLength } {
+                let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
                 let mut orderParams: Value = self.safe_dict_k(rawOrder.clone(), "params", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-                let mut clientOrderId: Option<String> = self.safe_string2_opt(orderParams.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
+                let mut clientOrderId: Option<String> = self.safe_string2(orderParams.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]).as_str().map(str::to_owned);
                 if (clientOrderId.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrders() all orders must have clientOrderId if at least one has a clientOrderId".into()))));
                 }
@@ -4104,10 +4104,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut params2: Value = self.omit(params, Value::from(vec![Value::Str("slippage".into()), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), Value::Str("slippage".into()), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("timeInForce".into())]), &[]);
         let mut modifies: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_820: bool = true;
-            while { if !__for_first_820 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_820 = false; i.as_f64().unwrap_or(f64::NAN) < ordersLength } {
-            let mut rawOrder: Value = self.safe_dict(orders.clone(), i.clone(), &[]);
+            while { if !__for_first_820 { i += 1; } __for_first_820 = false; (i as f64) < ordersLength } {
+            let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut id: Option<String> = self.safe_string_k(rawOrder.clone(), "id", &[]).as_str().map(str::to_owned);
             let mut marketId: Option<String> = self.safe_string_k(rawOrder.clone(), "symbol", &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -5460,10 +5460,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut firstMarket: Value = crate::types::IntoRaw::into_raw(self.market((symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
         let mut dexName: Value = self.get_dex_from_hip3_symbol(firstMarket).map(Value::from).unwrap_or(Value::Null);
         {
-                        let mut i: Value = Value::Int(1);
+                        let mut i: i64 = 1;
             let mut __for_first_825: bool = true;
-            while { if !__for_first_825 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_825 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbols.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
+            while { if !__for_first_825 { i += 1; } __for_first_825 = false; (i as f64) < symbolsLength } {
+            let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
             let mut currentDexName: Value = self.get_dex_from_hip3_symbol(market).map(Value::from).unwrap_or(Value::Null);
             if (currentDexName != dexName) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str(" only supports symbols from one DEX at a time for HIP3 markets".into()))));

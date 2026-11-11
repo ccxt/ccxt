@@ -907,7 +907,7 @@ impl Bybit {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut tickerSymbol: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
+            let mut tickerSymbol: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (tickerSymbol.is_some()) {
                 result.insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), ticker);
             }
@@ -3448,10 +3448,10 @@ impl Bybit {
                 let mut recordedTopics: Vec<Value> = self.safe_list_k(&existing, "topics", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                 let mut recordedLength: f64 = ((recordedTopics.len() as i64) as f64);
                 {
-                                        let mut j: Value = Value::Int(0);
+                                        let mut j: i64 = 0;
                     let mut __for_first_209: bool = true;
-                    while { if !__for_first_209 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_209 = false; j.as_f64().unwrap_or(f64::NAN) < recordedLength } {
-                    subscribedTopics.insert(crate::runtime::stringify_param(&(recordedTopics.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null))), Value::Bool(true));
+                    while { if !__for_first_209 { j += 1; } __for_first_209 = false; (j as f64) < recordedLength } {
+                    subscribedTopics.insert(crate::runtime::stringify_param(&(recordedTopics.get(j as usize).cloned().unwrap_or(Value::Null))), Value::Bool(true));
                 }
                 }
             }
@@ -3618,7 +3618,7 @@ impl Bybit {
     let mut m = indexmap::IndexMap::new();
     m
 }) }).into_dict();
-                let mut op: Option<String> = self.safe_string_k_opt(&request, "op", &[]);
+                let mut op: Option<String> = self.safe_string_k(&request, "op", &[]).as_str().map(str::to_owned);
                 if (op.as_deref() == Some("auth")) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", Value::Str("Authentication failed: ".into()), ret_msg)));
                 }  else {
@@ -3659,7 +3659,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &authenticatedHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                         __ch.remove_subscription(&authenticatedHash);
                     }
-                    let mut op: Option<String> = match __pro_message.get("op").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };
+                    let mut op: Option<String> = (match __pro_message.get("op").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
                     if (op.is_some()) && (op.as_deref() != Some("auth")) {
                         // an operation response that carries no reqId, e.g. bybit
                         // omits it on some permission rejections of trade ops,

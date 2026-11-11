@@ -854,12 +854,12 @@ impl Hibachi {
             m
         });
         // Hibachi only supports USDT on Arbitrum at this time
-        let mut code: Value = self.safe_currency_code(Value::Str("USDT".into()), &[]);
+        let mut code: Option<String> = self.safe_currency_code(Value::Str("USDT".into()), &[]).as_str().map(str::to_owned);
         let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
         account.insert("total".into(), self.safe_string_k(response.clone(), "balance", &[]));
         account.insert("free".into(), self.safe_string_k(response, "maximalWithdraw", &[]));
-        if (code != Value::Null) {
-            result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+        if (code.is_some()) {
+            result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
         }
         return self.safe_balance(Value::Map(result));
 

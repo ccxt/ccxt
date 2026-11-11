@@ -810,10 +810,10 @@ impl Nado {
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut subscriptionParams: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_507: bool = true;
-            while { if !__for_first_507 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_507 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
-            let mut symbolAndTimeframe: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]).into_list();
+            while { if !__for_first_507 { i += 1; } __for_first_507 = false; (i as f64) < symbolsLength } {
+            let mut symbolAndTimeframe: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]).into_list();
             let mut marketSymbol: Option<String> = self.safe_string(&symbolAndTimeframe, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut timeframe: String = self.safe_string(&symbolAndTimeframe, Value::Int(1), &[Value::Str("1m".into())]).as_str().unwrap_or("1m").to_string();
             let mut market: crate::types::Market = (match self.market(marketSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -898,10 +898,10 @@ impl Nado {
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut subscriptionParams: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_508: bool = true;
-            while { if !__for_first_508 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_508 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
-            let mut symbolAndTimeframe: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]).into_list();
+            while { if !__for_first_508 { i += 1; } __for_first_508 = false; (i as f64) < symbolsLength } {
+            let mut symbolAndTimeframe: crate::value::List = self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]).into_list();
             let mut marketSymbol: Option<String> = self.safe_string(&symbolAndTimeframe, Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut timeframe: String = self.safe_string(&symbolAndTimeframe, Value::Int(1), &[Value::Str("1m".into())]).as_str().unwrap_or("1m").to_string();
             let mut market: crate::types::Market = (match self.market(marketSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1017,7 +1017,7 @@ impl Nado {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut tickerSymbol: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
+            let mut tickerSymbol: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (tickerSymbol.is_some()) {
                 tickers.insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), ticker);
             }
@@ -1110,7 +1110,7 @@ impl Nado {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut tickerSymbol: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
+            let mut tickerSymbol: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (tickerSymbol.is_some()) {
                 tickers.insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), ticker);
             }

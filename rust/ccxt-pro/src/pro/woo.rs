@@ -475,11 +475,11 @@ impl Woo {
             m
         });
         let mut symbolsAndTimeframes: Value = self.safe_list_k(params.clone(), "symbolsAndTimeframes", &[]);
-        let mut paramsOmitted: Value = (if (symbolsAndTimeframes != Value::Null) { self.omit(params.clone(), Value::Str("symbolsAndTimeframes".into()), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (symbolsAndTimeframes != Value::Null) { self.omit(params.clone(), Value::Str("symbolsAndTimeframes".into()), &[]) } else { params }).into_dict();
         if (symbolsAndTimeframes != Value::Null) {
             subscription.insert("symbolsAndTimeframes".into(), symbolsAndTimeframes);
         }
-        let __ws_arg_1 = self.extend(Value::Map(message), &[paramsOmitted]);
+        let __ws_arg_1 = self.extend(Value::Map(message), &[&paramsOmitted]);
         return self.watch(Value::from(url), Value::from(unsubHash.clone()), &[__ws_arg_1, Value::from(unsubHash), Value::Map(subscription)]).await;
 
     Value::Null
@@ -665,13 +665,9 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
 }), limit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
             }
             let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-            let mut timestamp: Value = (match __pro_message.get("ts").cloned() {
-                Some(Value::Int(__n)) => Value::Int(__n),
-                Some(Value::Float(__f)) => Value::Int(__f as i64),
-                Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } },
-                _ => Value::Null
-            });
-            let mut snapshot: Value = self.parse_order_book(data, symbol, &[timestamp.clone(), Value::Str("bids".into()), Value::Str("asks".into())]);
+            let mut timestamp: Option<i64> = (match __pro_message.get("ts").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
+                Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
+            let mut snapshot: Value = self.parse_order_book(data, symbol, &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into())]);
             orderbook.reset(snapshot);
             client.resolve(&[orderbook.clone(), topic.map(Value::from).unwrap_or(Value::Null)]);
         }
@@ -1898,8 +1894,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 let mut __for_first_702: bool = true;
                 while { if !__for_first_702 { i += 1; } __for_first_702 = false; i < (data.len() as i64) } {
                 let mut order: Value = data.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut tradeId: Value = self.omit_zero(self.safe_string_k(data.clone(), "tradeId", &[]));
-                if (tradeId != Value::Null) {
+                let mut tradeId: Option<String> = self.omit_zero(self.safe_string_k(data.clone(), "tradeId", &[])).as_str().map(str::to_owned);
+                if (tradeId.is_some()) {
                     self.handle_my_trade(client.clone(), order.clone());
                 }
                 self.handle_order(client.clone(), order, topic.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1907,8 +1903,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             }
         }  else {
             // executionreport
-            let mut tradeId: Value = self.omit_zero(self.safe_string_k(data.clone(), "tradeId", &[]));
-            if (tradeId != Value::Null) {
+            let mut tradeId: Option<String> = self.omit_zero(self.safe_string_k(data.clone(), "tradeId", &[])).as_str().map(str::to_owned);
+            if (tradeId.is_some()) {
                 self.handle_my_trade(client.clone(), data.clone());
             }
             self.handle_order(client.clone(), data, topic.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2156,9 +2152,9 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                         let mut i: i64 = 0;
             let mut __for_first_705: bool = true;
             while { if !__for_first_705 { i += 1; } __for_first_705 = false; i < (postitionsIds.len() as i64) } {
-            let mut marketId: Value = postitionsIds.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: Value = self.safe_market(&[marketId.clone()]);
-            let mut rawPosition: Value = rawPositions.get(marketId.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
+            let mut marketId: Option<String> = postitionsIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut rawPosition: Value = rawPositions.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let mut position: Value = self.parse_position(rawPosition, &[market.clone()]);
             newPositions.push(position.clone());
             cache.append(position.clone());

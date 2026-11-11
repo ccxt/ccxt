@@ -3329,10 +3329,10 @@ impl Blofin {
         });
         let mut chainsLength: f64 = ((chains.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_464: bool = true;
-            while { if !__for_first_464 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_464 = false; i.as_f64().unwrap_or(f64::NAN) < chainsLength } {
-            let mut chain: Value = self.safe_dict(chains.clone(), i.clone(), &[]);
+            while { if !__for_first_464 { i += 1; } __for_first_464 = false; (i as f64) < chainsLength } {
+            let mut chain: Value = self.safe_dict(chains.clone(), Value::Int(i), &[]);
             let mut networkId: Option<String> = self.safe_string_k(chain.clone(), "chain", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.chain_id_to_network_code(networkId.clone().map(Value::from).unwrap_or(Value::Null));
             if (networkCode == Value::Null) {
@@ -3537,10 +3537,10 @@ impl Blofin {
         let mut result: indexmap::IndexMap<String, Value> = self.deposit_withdraw_fee(fee.clone()).as_map().cloned().unwrap_or_default();
         let mut chainsLength: f64 = ((fee.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_465: bool = true;
-            while { if !__for_first_465 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_465 = false; i.as_f64().unwrap_or(f64::NAN) < chainsLength } {
-            let mut chain: crate::value::Dict = self.safe_dict(fee.clone(), i.clone(), &[]).into_dict();
+            while { if !__for_first_465 { i += 1; } __for_first_465 = false; (i as f64) < chainsLength } {
+            let mut chain: crate::value::Dict = self.safe_dict(fee.clone(), Value::Int(i), &[]).into_dict();
             let mut networkCode: Value = self.chain_id_to_network_code(self.safe_string_k(&chain, "chain", &[]));
             if (networkCode == Value::Null) {
                 continue;
@@ -3618,10 +3618,10 @@ impl Blofin {
         // venue ignores the filter and returns the latest records instead
         let mut dataLength: f64 = ((data.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_466: bool = true;
-            while { if !__for_first_466 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_466 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength } {
-            let mut entry: Value = self.safe_value(data.clone(), i.clone(), &[]);
+            while { if !__for_first_466 { i += 1; } __for_first_466 = false; (i as f64) < dataLength } {
+            let mut entry: Value = self.safe_value(data.clone(), Value::Int(i), &[]);
             if (self.safe_string_k(entry.clone(), "depositId", &[]).as_str() == id.as_str()) {
                 return self.parse_transaction(entry, &[currency.clone()]);
             }
@@ -3673,10 +3673,10 @@ impl Blofin {
         // case the venue ignores the filter and returns the latest records
         let mut dataLength: f64 = ((data.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_467: bool = true;
-            while { if !__for_first_467 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_467 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength } {
-            let mut entry: Value = self.safe_value(data.clone(), i.clone(), &[]);
+            while { if !__for_first_467 { i += 1; } __for_first_467 = false; (i as f64) < dataLength } {
+            let mut entry: Value = self.safe_value(data.clone(), Value::Int(i), &[]);
             let mut matches: bool = false;
             if (id != Value::Null) {
                 matches = self.safe_string_k(entry.clone(), "withdrawId", &[]).as_str() == id.as_str();

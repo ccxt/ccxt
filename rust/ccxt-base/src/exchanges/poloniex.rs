@@ -2041,10 +2041,10 @@ impl Poloniex {
         let mut chains: Vec<Value> = self.safe_list_k(entry.clone(), "networkList", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
         let mut chainsLength: f64 = ((chains.len() as i64) as f64);
         {
-                        let mut j: Value = Value::Int(0);
+                        let mut j: i64 = 0;
             let mut __for_first_1084: bool = true;
-            while { if !__for_first_1084 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1084 = false; j.as_f64().unwrap_or(f64::NAN) < chainsLength } {
-            let mut chain: Value = self.safe_dict(chains.clone().into(), j.clone(), &[]);
+            while { if !__for_first_1084 { j += 1; } __for_first_1084 = false; (j as f64) < chainsLength } {
+            let mut chain: Value = self.safe_dict(chains.clone().into(), Value::Int(j), &[]);
             let mut chainId: Option<String> = self.safe_string_k(chain.clone(), "blockchain", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[chainId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             if (networkCode != Value::Null) {
@@ -4610,15 +4610,15 @@ impl Poloniex {
                         while { if !__for_first_1095 { j += 1; } __for_first_1095 = false; j < (childChains.len() as i64) } {
                         let mut rawNetworkId: Value = self.safe_string(&childChains, Value::Int(j), &[Value::Str("".into())]);
                         let mut networkId: Value = rawNetworkId.as_str().zip(code.as_str()).map(|(__s, __p)| Value::Str(__s.replace(__p, "").into())).unwrap_or_else(|| rawNetworkId.clone());
-                        let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), self.safe_string_k(currency.clone(), "code", &[])]);
+                        let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.clone(), self.safe_string_k(currency.clone(), "code", &[])]).as_str().map(str::to_owned);
                         let mut networkInfo: crate::value::Dict = self.safe_dict(response.clone(), networkId, &[]).into_dict();
                         let mut networkObject: indexmap::IndexMap<String, Value> = ({
                             let mut m = indexmap::IndexMap::new();
                             m
                         });
                         let mut withdrawFee: Option<f64> = self.safe_number_k(&networkInfo, "withdrawalFee", &[]).as_f64();
-                        if (networkCode != Value::Null) {
-                            networkObject.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
+                        if (networkCode.is_some()) {
+                            networkObject.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();

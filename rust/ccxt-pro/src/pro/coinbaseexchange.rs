@@ -481,7 +481,7 @@ impl Coinbaseexchange {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut tickerSymbol: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
+            let mut tickerSymbol: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (tickerSymbol.is_some()) {
                 result.insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), ticker);
             }
@@ -781,10 +781,10 @@ impl Coinbaseexchange {
         let mut marketIds: Value = self.market_ids(&[symbolsNormalized.clone()]);
         let mut messageHashes: Value = Value::from(vec![]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_238: bool = true;
-            while { if !__for_first_238 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_238 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
-            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), self.safe_string(marketIds.clone(), i.clone(), &[Value::Str("".into())])).into())); }
+            while { if !__for_first_238 { i += 1; } __for_first_238 = false; (i as f64) < symbolsLength } {
+            if let Value::Arr(__a) = &mut messageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, Value::Str(":".into())).into()), self.safe_string(marketIds.clone(), Value::Int(i), &[Value::Str("".into())])).into())); }
         }
         }
         let mut url: Value = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null);

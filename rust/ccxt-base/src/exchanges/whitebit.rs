@@ -1729,20 +1729,20 @@ impl Whitebit {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut code: Value = self.safe_currency_code(currency, &[]);
+            let mut code: Option<String> = self.safe_currency_code(currency, &[]).as_str().map(str::to_owned);
             let mut withdraw: crate::value::Dict = self.safe_dict_k(&data, "withdraw", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            if (code != Value::Null) {
-                withdrawFees.insert(crate::runtime::stringify_param(&code), self.safe_string_k(&withdraw, "fixed", &[]));
+            if (code.is_some()) {
+                withdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), self.safe_string_k(&withdraw, "fixed", &[]));
             }
             let mut deposit: crate::value::Dict = self.safe_dict_k(&data, "deposit", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            if (code != Value::Null) {
-                depositFees.insert(crate::runtime::stringify_param(&code), self.safe_string_k(&deposit, "fixed", &[]));
+            if (code.is_some()) {
+                depositFees.insert(code.as_deref().unwrap_or("null").to_string(), self.safe_string_k(&deposit, "fixed", &[]));
             }
         }
         }
@@ -1957,8 +1957,8 @@ impl Whitebit {
                         let mut i: i64 = 0;
             let mut __for_first_1152: bool = true;
             while { if !__for_first_1152 { i += 1; } __for_first_1152 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut symbol: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut fee: Value = self.safe_dict(response.clone(), Value::from((market).base_id.clone()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1967,7 +1967,7 @@ impl Whitebit {
             let mut takerFee: Option<String> = self.safe_string_k(fee.clone(), "taker_fee", &[]).as_str().map(str::to_owned);
             makerFee = crate::precise::Precise::stringDiv(&makerFee.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
             takerFee = crate::precise::Precise::stringDiv(&takerFee.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
-            result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fee);
         m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
@@ -2643,8 +2643,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                 let mut i: i64 = 0;
                 let mut __for_first_1159: bool = true;
                 while { if !__for_first_1159 { i += 1; } __for_first_1159 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                let mut symbol: Value = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+                let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
                 if !matches!(self.safe_bool_k(market.clone(), "contract", &[Value::Bool(false)]), Value::Bool(true)) {
                     onlyContractSymbols = false;
                     break;
@@ -3695,21 +3695,21 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut __for_first_1162: bool = true;
             while { if !__for_first_1162 { i += 1; } __for_first_1162 = false; i < (balanceKeys.len() as i64) } {
             let mut id: Value = balanceKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut code: Value = self.safe_currency_code(id.clone(), &[]);
+            let mut code: Option<String> = self.safe_currency_code(id.clone(), &[]).as_str().map(str::to_owned);
             let mut balance: Value = self.safe_value(response.clone(), id, &[]);
             if (balance != Value::Null) && self.is_dictionary(balance.clone()).as_bool() == Some(true) {
                 let mut account: Value = self.account();
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string2(balance.clone(), Value::Str("available".into()), Value::Str("main_balance".into()), &[])); }
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(balance.clone(), "freeze", &[])); }
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(balance.clone(), "main_balance", &[])); }
-                if (code != Value::Null) {
-                    result.insert(crate::runtime::stringify_param(&code), account.clone());
+                if (code.is_some()) {
+                    result.insert(code.as_deref().unwrap_or("null").to_string(), account.clone());
                 }
             }  else {
                 let mut account: Value = self.account();
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), balance); }
-                if (code != Value::Null) {
-                    result.insert(crate::runtime::stringify_param(&code), account);
+                if (code.is_some()) {
+                    result.insert(code.as_deref().unwrap_or("null").to_string(), account);
                 }
             }
         }

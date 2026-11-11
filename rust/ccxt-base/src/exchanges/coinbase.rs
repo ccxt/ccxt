@@ -5284,8 +5284,8 @@ if _try_result.is_err() {
         if (until.is_some()) {
             request.insert("end_date".into(), self.iso8601(Value::from(until)));
         }
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("until".into())]), &[]) } else { params });
-        let __ws_arg_43 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("until".into())]), &[]) } else { params }).into_dict();
+        let __ws_arg_43 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.v3_private_get_brokerage_orders_historical_batch(&[__ws_arg_43]).await.into_dict();
         //
         //     {

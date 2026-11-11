@@ -1354,10 +1354,10 @@ impl Ndax {
         let mut bids: Vec<Value> = Vec::new();
         let mut asks: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_996: bool = true;
-            while { if !__for_first_996 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_996 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&orderbook).as_f64().unwrap_or(f64::NAN) } {
-            let mut level: Value = self.safe_value(orderbook.clone(), i.clone(), &[]);
+            while { if !__for_first_996 { i += 1; } __for_first_996 = false; (i as f64) < get_array_length(&orderbook).as_f64().unwrap_or(f64::NAN) } {
+            let mut level: Value = self.safe_value(orderbook.clone(), Value::Int(i), &[]);
             let mut newTimestamp: Value = self.safe_integer(level.clone(), Value::Int(2), &[]);
             if (newTimestamp != Value::Null) && ((latestTimestamp == Value::Null) || (newTimestamp.as_f64().unwrap_or(f64::NAN) > latestTimestamp.as_f64().unwrap_or(f64::NAN))) {
                 latestTimestamp = newTimestamp;
@@ -1978,12 +1978,12 @@ impl Ndax {
             let mut balance: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "ProductId", &[]);
             if (currencyId.is_some()) && (self.currencies_by_id.clone() != Value::Null) && (matches!((&self.currencies_by_id, &currencyId.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
+                let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                 let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
                 account.insert("total".into(), self.safe_string_k(&balance, "Amount", &[]));
                 account.insert("used".into(), self.safe_string_k(&balance, "Hold", &[]));
-                if (code != Value::Null) {
-                    result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+                if (code.is_some()) {
+                    result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
                 }
             }
         }

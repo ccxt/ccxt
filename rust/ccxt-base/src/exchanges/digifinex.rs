@@ -1621,15 +1621,15 @@ impl Digifinex {
             let mut __for_first_641: bool = true;
             while { if !__for_first_641 { i += 1; } __for_first_641 = false; i < (rows.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(rows.clone(), Value::Int(i), &[]).into_dict();
-            let mut code: Value = self.safe_currency_code(self.safe_string_k(&balance, "currency", &[]), &[]);
+            let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(&balance, "currency", &[]), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             let mut free: Option<String> = self.safe_string2(&balance, Value::Str("free".into()), Value::Str("avail_balance".into()), &[]).as_str().map(str::to_owned);
             let mut total: Option<String> = self.safe_string2(&balance, Value::Str("total".into()), Value::Str("equity".into()), &[]).as_str().map(str::to_owned);
             account.insert("free".into(), free.clone().map(Value::from).unwrap_or(Value::Null));
             account.insert("used".into(), crate::precise::Precise::stringSub(&total.clone().map(Value::from).unwrap_or(Value::Null), &free.clone().map(Value::from).unwrap_or(Value::Null)));
             account.insert("total".into(), total.clone().map(Value::from).unwrap_or(Value::Null));
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }
@@ -4933,10 +4933,10 @@ impl Digifinex {
             while { if !__for_first_652 { i += 1; } __for_first_652 = false; i < (info.len() as i64) } {
             let mut item: Value = info.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currency: Option<String> = self.safe_string(item.clone(), codeKey.clone(), &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currency.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut code: Option<String> = self.safe_currency_code(currency.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut borrowRate: indexmap::IndexMap<String, Value> = self.parse_borrow_rate(item, &[]).as_map().cloned().unwrap_or_default();
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(borrowRate));
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(borrowRate));
             }
         }
         }

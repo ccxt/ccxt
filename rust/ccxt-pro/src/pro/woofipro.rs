@@ -1473,8 +1473,8 @@ impl Woofipro {
                 let mut __for_first_710: bool = true;
                 while { if !__for_first_710 { i += 1; } __for_first_710 = false; i < (data.len() as i64) } {
                 let mut order: Value = data.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut tradeId: Value = self.omit_zero(self.safe_string_k(data.clone(), "tradeId", &[]));
-                if (tradeId != Value::Null) {
+                let mut tradeId: Option<String> = self.omit_zero(self.safe_string_k(data.clone(), "tradeId", &[])).as_str().map(str::to_owned);
+                if (tradeId.is_some()) {
                     self.handle_my_trade(client.clone(), order.clone());
                 }
                 self.handle_order(client.clone(), order, topic.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1482,8 +1482,8 @@ impl Woofipro {
             }
         }  else {
             // executionreport
-            let mut tradeId: Value = self.omit_zero(self.safe_string_k(data.clone(), "tradeId", &[]));
-            if (tradeId != Value::Null) {
+            let mut tradeId: Option<String> = self.omit_zero(self.safe_string_k(data.clone(), "tradeId", &[])).as_str().map(str::to_owned);
+            if (tradeId.is_some()) {
                 self.handle_my_trade(client.clone(), data.clone());
             }
             self.handle_order(client, data, topic.clone().map(Value::from).unwrap_or(Value::Null));

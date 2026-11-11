@@ -2033,8 +2033,8 @@ impl Toobit {
             m
         });
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
-        let endpointparamsPriceVariable: Vec<Value> = self.handle_option_string_and_params(paramsOmitted, Value::Str("fetchOHLCV".into()), Value::Str("price".into()), &[]).as_array().cloned().unwrap_or_default();
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params }).into_dict();
+        let endpointparamsPriceVariable: Vec<Value> = self.handle_option_string_and_params(&paramsOmitted, Value::Str("fetchOHLCV".into()), Value::Str("price".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut endpoint: Option<String> = endpointparamsPriceVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsPrice: crate::value::Dict = endpointparamsPriceVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isPriceKlines: bool = (endpoint.as_deref() == Some("index")) || (endpoint.as_deref() == Some("mark"));
@@ -2560,13 +2560,13 @@ impl Toobit {
             let mut __for_first_1134: bool = true;
             while { if !__for_first_1134 { i += 1; } __for_first_1134 = false; i < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(balances.clone(), Value::Int(i), &[]).into_dict();
-            let mut code: Value = self.safe_currency_code(self.safe_string_k(&balance, "asset", &[]), &[]);
+            let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(&balance, "asset", &[]), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string2(&balance, Value::Str("free".into()), Value::Str("availableBalance".into()), &[]));
             account.insert("total".into(), self.safe_string2(&balance, Value::Str("total".into()), Value::Str("balance".into()), &[]));
             account.insert("used".into(), self.safe_string_k(&balance, "locked", &[]));
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }

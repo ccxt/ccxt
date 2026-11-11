@@ -1538,7 +1538,7 @@ impl Gate {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut tickerOrBidAskSymbol: Option<String> = self.safe_string_k_opt(tickerOrBidAsk.clone(), "symbol", &[]);
+            let mut tickerOrBidAskSymbol: Option<String> = self.safe_string_k(tickerOrBidAsk.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (tickerOrBidAskSymbol.is_some()) {
                 items.insert(tickerOrBidAskSymbol.as_deref().unwrap_or("null").to_string(), tickerOrBidAsk);
             }

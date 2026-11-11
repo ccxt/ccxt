@@ -3796,11 +3796,11 @@ impl Paradex {
     m
 })]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "token", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string_k(&balance, "size", &[]));
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }
@@ -5248,11 +5248,11 @@ impl Paradex {
             request.insert("start_at".into(), since.clone());
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params }).into_dict();
         if (until.is_some()) {
             request.insert("end_at".into(), Value::from(until));
         }
-        let __ws_arg_30 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.public_get_funding_data(&[__ws_arg_30]).await.into_dict();
         //
         // {

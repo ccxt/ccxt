@@ -2615,7 +2615,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-            let mut type_var: Option<String> = self.safe_string_k_opt(data.clone(), "x", &[]);
+            let mut type_var: Option<String> = self.safe_string_k(data.clone(), "x", &[]).as_str().map(str::to_owned);
             if (type_var.as_deref() == Some("TRADE")) {
                 self.handle_my_trades(client.clone(), message.clone());
             }
@@ -2633,7 +2633,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-            let mut type_var: Option<String> = self.safe_string_k_opt(data.clone(), "x", &[]);
+            let mut type_var: Option<String> = self.safe_string_k(data.clone(), "x", &[]).as_str().map(str::to_owned);
             let mut status: Option<String> = self.safe_string_k(data.clone(), "X", &[]).as_str().map(str::to_owned);
             let mut isExecution: bool = status.as_deref() == Some("FILLED");
             if (type_var.as_deref() == Some("TRADE")) && (status.as_deref() == Some("PARTIALLY_FILLED")) {

@@ -340,8 +340,8 @@ impl Upbit {
                         let mut i: i64 = 0;
             let mut __for_first_664: bool = true;
             while { if !__for_first_664 { i += 1; } __for_first_664 = false; i < (channelKeys.len() as i64) } {
-            let mut key: Value = channelKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-            finalMessage.push((if let (Some(__m), Some(__k)) = (subscriptions.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
+            let mut key: Option<String> = channelKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            finalMessage.push((if let (Some(__m), Some(__k)) = (subscriptions.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
         }
         }
         return self.watch_multiple(url, messageHashes.clone(), &[Value::from(finalMessage), messageHashes]).await;
@@ -400,7 +400,7 @@ impl Upbit {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut newTickersSymbol: Option<String> = self.safe_string_k_opt(newTickers.clone(), "symbol", &[]);
+            let mut newTickersSymbol: Option<String> = self.safe_string_k(newTickers.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (newTickersSymbol.is_some()) {
                 tickers.insert(newTickersSymbol.as_deref().unwrap_or("null").to_string(), newTickers);
             }

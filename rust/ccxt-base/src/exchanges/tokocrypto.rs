@@ -2100,12 +2100,12 @@ impl Tokocrypto {
             while { if !__for_first_1127 { i += 1; } __for_first_1127 = false; i < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(balances.clone().into(), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "asset", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string_k(&balance, "free", &[]));
             account.insert("used".into(), self.safe_string_k(&balance, "locked", &[]));
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }
@@ -2918,14 +2918,14 @@ impl Tokocrypto {
         if (since != Value::Null) {
             request.insert("startTime".into(), since.clone());
         }
-        let mut paramsOmitted: Value = (if (endTime.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("endTime".into()), Value::Str("until".into())]), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (endTime.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("endTime".into()), Value::Str("until".into())]), &[]) } else { params }).into_dict();
         if (endTime.is_some()) {
             request.insert("endTime".into(), Value::from(endTime));
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let __ws_arg_15 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_open_v1_orders_trades(&[__ws_arg_15]).await.into_dict();
         //
         //     {
@@ -2997,13 +2997,13 @@ impl Tokocrypto {
 })]).into_dict();
         let mut network: Value = self.safe_string_upper_k(params.clone(), "network", &[]); // this line allows the user to specify either ERC20 or ETH
         network = self.safe_string(&networks, network.clone(), &[network.clone()]); // handle ERC20>ETH alias
-        let mut paramsOmitted: Value = (if (network != Value::Null) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (network != Value::Null) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params }).into_dict();
         if (network != Value::Null) {
             request.insert("network".into(), network);
         }
         // has support for the 'network' parameter
         // https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
-        let __ws_arg_16 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.private_get_open_v1_deposits_address(&[__ws_arg_16]).await;
         //
         //     {

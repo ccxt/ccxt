@@ -602,7 +602,7 @@ impl Bitget {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut tickersSymbol: Option<String> = self.safe_string_k_opt(tickers.clone(), "symbol", &[]);
+            let mut tickersSymbol: Option<String> = self.safe_string_k(tickers.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (tickersSymbol.is_some()) {
                 result.insert(tickersSymbol.as_deref().unwrap_or("null").to_string(), tickers.clone());
             }
@@ -894,7 +894,7 @@ impl Bitget {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut tickersSymbol: Option<String> = self.safe_string_k_opt(tickers.clone(), "symbol", &[]);
+            let mut tickersSymbol: Option<String> = self.safe_string_k(tickers.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (tickersSymbol.is_some()) {
                 result.insert(tickersSymbol.as_deref().unwrap_or("null").to_string(), tickers);
             }
@@ -1456,10 +1456,10 @@ impl Bitget {
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut paramsCursor: Value = paramsUta;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_114: bool = true;
-            while { if !__for_first_114 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_114 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
-            let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i.as_i64().unwrap_or(-1) as usize).and_then(Value::as_str).map(str::to_owned);
+            while { if !__for_first_114 { i += 1; } __for_first_114 = false; (i as f64) < symbolsLength } {
+            let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
             let instTypeparamsInstTypeVariable: Vec<Value> = self.get_inst_type(Value::Str("watchOrderBookForSymbols".into()), market.clone(), &[Value::Bool(isStockOrUta.clone()), paramsCursor.clone()]).as_array().cloned().unwrap_or_default();
             let mut instType: Value = instTypeparamsInstTypeVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -3197,10 +3197,10 @@ impl Bitget {
 }) }).into_dict();
         let mut instType: Option<String> = self.safe_string_lower_k(&arg, "instType", &[]).as_str().map(str::to_owned);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_123: bool = true;
-            while { if !__for_first_123 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_123 = false; i.as_f64().unwrap_or(f64::NAN) < length } {
-            let mut trade: Value = data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_123 { i += 1; } __for_first_123 = false; (i as f64) < length } {
+            let mut trade: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = Value::Null;
             if (instType.as_deref() == Some("uta")) {
                 // UTA fills carry the product in 'category'; resolve the matching

@@ -1513,13 +1513,13 @@ impl Modetrade {
             let mut dataList: Vec<Value> = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).as_array().cloned().unwrap_or_default();
             let mut dataListLength: f64 = ((dataList.len() as i64) as f64);
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_496: bool = true;
-                while { if !__for_first_496 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_496 = false; i.as_f64().unwrap_or(f64::NAN) < dataListLength } {
-                let mut order: Value = dataList.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                while { if !__for_first_496 { i += 1; } __for_first_496 = false; (i as f64) < dataListLength } {
+                let mut order: Value = dataList.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut tradeIdStr: Option<String> = self.safe_string_k_opt(data.clone(), "tradeId", &[]);
-                let mut tradeId: Value = (if (tradeIdStr.is_none()) { Value::Null } else { self.omit_zero(tradeIdStr.map(Value::from).unwrap_or(Value::Null)) });
-                if (tradeId != Value::Null) {
+                let mut tradeId: Option<String> = (if (tradeIdStr.is_none()) { None } else { self.omit_zero(tradeIdStr.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned) });
+                if (tradeId.is_some()) {
                     self.handle_my_trade(client.clone(), order.clone());
                 }
                 self.handle_order(client.clone(), order, topic.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1528,8 +1528,8 @@ impl Modetrade {
         }  else {
             // executionreport
             let mut tradeIdStr: Option<String> = self.safe_string_k_opt(data.clone(), "tradeId", &[]);
-            let mut tradeId: Value = (if (tradeIdStr.is_none()) { Value::Null } else { self.omit_zero(tradeIdStr.map(Value::from).unwrap_or(Value::Null)) });
-            if (tradeId != Value::Null) {
+            let mut tradeId: Option<String> = (if (tradeIdStr.is_none()) { None } else { self.omit_zero(tradeIdStr.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned) });
+            if (tradeId.is_some()) {
                 self.handle_my_trade(client.clone(), data.clone());
             }
             self.handle_order(client, data, topic.clone().map(Value::from).unwrap_or(Value::Null));

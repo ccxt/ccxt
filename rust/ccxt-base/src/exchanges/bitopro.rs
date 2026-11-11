@@ -1383,7 +1383,7 @@ impl Bitopro {
             while { if !__for_first_410 { i += 1; } __for_first_410 = false; i < (rows.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(rows.clone(), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut amount: Option<String> = self.safe_string_k(&balance, "amount", &[]).as_str().map(str::to_owned);
             let mut available: Option<String> = self.safe_string_k(&balance, "available", &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = ({
@@ -1392,8 +1392,8 @@ impl Bitopro {
                     m.insert("total".to_string(), amount.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             });
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }
@@ -1717,7 +1717,7 @@ impl Bitopro {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut id: Option<String> = self.safe_string_k_opt(market, "uppercaseId", &[]);
+        let mut id: Option<String> = self.safe_string_k(market, "uppercaseId", &[]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m

@@ -1700,10 +1700,10 @@ impl Binance {
             let mut messages: Value = orderbook.book_field("cache");
             crate::set_value(&mut orderbook, &Value::Str("cache".into()), Value::from(vec![]));
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_59: bool = true;
-                while { if !__for_first_59 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_59 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&messages).as_f64().unwrap_or(f64::NAN) } {
-                let mut messageItem: Value = self.safe_value(messages.clone(), i.clone(), &[]);
+                while { if !__for_first_59 { i += 1; } __for_first_59 = false; (i as f64) < get_array_length(&messages).as_f64().unwrap_or(f64::NAN) } {
+                let mut messageItem: Value = self.safe_value(messages.clone(), Value::Int(i), &[]);
                 let mut U: Value = self.safe_integer_k(messageItem.clone(), "U", &[]);
                 let mut u: Value = self.safe_integer_k(messageItem.clone(), "u", &[]);
                 if (U == Value::Null) || (u == Value::Null) {
@@ -3622,8 +3622,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 }
                 if isOptionMarkPrice {
                     // subscribe per underlying, not per contract
-                    let baseIdLower: String = self.safe_string_lower_k_opt(market.clone(), "baseId", &[Value::Str("".into())]).unwrap_or_default();
-                    let quoteIdLower: String = self.safe_string_lower_k_opt(market.clone(), "quoteId", &[Value::Str("".into())]).unwrap_or_default();
+                    let mut baseIdLower: String = self.safe_string_lower_k(market.clone(), "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                    let mut quoteIdLower: String = self.safe_string_lower_k(market.clone(), "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                     let mut underlying: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseIdLower, Value::Str("".into())).into()), quoteIdLower).into());
                     if !(matches!(&underlying, Value::Str(__k) if seenUnderlyings.contains_key(__k.as_ref()))) {
                         seenUnderlyings.insert(crate::runtime::stringify_param(&underlying), Value::Bool(true));
@@ -3635,9 +3635,9 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                     let mut marketId: Value = self.safe_string_k(market.clone(), "id", &[Value::Str("".into())]);
                     let mut parts: Value = Value::Array(if let Some(__s) = marketId.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
                     let mut expiryDate: String = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                    let baseIdLower: String = self.safe_string_lower_k_opt(market.clone(), "baseId", &[Value::Str("".into())]).unwrap_or_default();
-                    let quoteIdLower: String = self.safe_string_lower_k_opt(market.clone(), "quoteId", &[Value::Str("".into())]).unwrap_or_default();
-                    let mut underlying: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseIdLower, Value::Str("".into())).into()), quoteIdLower).into());
+                    let mut baseIdLower: String = self.safe_string_lower_k(market.clone(), "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                    let mut quoteIdLower: String = self.safe_string_lower_k(market.clone(), "quoteId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                    let mut underlying: String = format!("{}{}", Value::Str(format!("{}{}", baseIdLower, Value::Str("".into())).into()), quoteIdLower);
                     let mut subscriptionArg: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", underlying, Value::Str("@optionTicker@".into())).into()), expiryDate).into());
                     if !(matches!(&subscriptionArg, Value::Str(__k) if seenUnderlyings.contains_key(__k.as_ref()))) {
                         seenUnderlyings.insert(crate::runtime::stringify_param(&subscriptionArg), Value::Bool(true));
@@ -3737,7 +3737,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut resultSymbol: Option<String> = self.safe_string_k_opt(result.clone(), "symbol", &[]);
+            let mut resultSymbol: Option<String> = self.safe_string_k(result.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (resultSymbol.is_some()) {
                 newDict.insert(resultSymbol.as_deref().unwrap_or("null").to_string(), result);
             }

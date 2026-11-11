@@ -617,10 +617,10 @@ impl Coinbaseinternational {
         let mut unWatchMessageHashes: Value = Value::from(vec![]);
         let mut channelsLength: f64 = ((channels.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_243: bool = true;
-            while { if !__for_first_243 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_243 = false; i.as_f64().unwrap_or(f64::NAN) < channelsLength } {
-            if let Value::Arr(__a) = &mut unWatchMessageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), self.safe_string(channels.clone(), i.clone(), &[Value::Str("".into())])).into())); }
+            while { if !__for_first_243 { i += 1; } __for_first_243 = false; (i as f64) < channelsLength } {
+            if let Value::Arr(__a) = &mut unWatchMessageHashes { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), self.safe_string(channels.clone(), Value::Int(i), &[Value::Str("".into())])).into())); }
         }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -639,11 +639,11 @@ impl Coinbaseinternational {
         let __ws_arg_2 = self.deep_extend(Value::Map(request), &[paramsResolved]);
         self.watch_multiple(url, unWatchMessageHashes.clone(), &[__ws_arg_2, unWatchMessageHashes.clone()]).await;
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_244: bool = true;
-            while { if !__for_first_244 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_244 = false; i.as_f64().unwrap_or(f64::NAN) < channelsLength } {
-            let __ws_arg_3 = self.safe_string(channels.clone(), i.clone(), &[Value::Str("".into())]);
-            let __ws_arg_4 = self.safe_string(unWatchMessageHashes.clone(), i.clone(), &[Value::Str("".into())]);
+            while { if !__for_first_244 { i += 1; } __for_first_244 = false; (i as f64) < channelsLength } {
+            let __ws_arg_3 = self.safe_string(channels.clone(), Value::Int(i), &[Value::Str("".into())]);
+            let __ws_arg_4 = self.safe_string(unWatchMessageHashes.clone(), Value::Int(i), &[Value::Str("".into())]);
             self.clean_unsubscription(client.as_value(), __ws_arg_3, __ws_arg_4, &[]);
         }
         }
@@ -800,10 +800,10 @@ impl Coinbaseinternational {
         let mut trades: Value = self.parse_trades(data, &[]);
         let mut tradesLength: f64 = ((trades.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_245: bool = true;
-            while { if !__for_first_245 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_245 = false; i.as_f64().unwrap_or(f64::NAN) < tradesLength } {
-            self.myTrades.append(trades.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+            while { if !__for_first_245 { i += 1; } __for_first_245 = false; (i as f64) < tradesLength } {
+            self.myTrades.append(trades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
         client.resolve(&[self.myTrades.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -897,10 +897,10 @@ impl Coinbaseinternational {
         let mut channels: Value = Value::from(vec![]);
         let mut symbolsLength: f64 = ((symbolsResolved.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_246: bool = true;
-            while { if !__for_first_246 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_246 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
-            if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("user.orders.".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market((self.safe_string(&symbolsResolved, i.clone(),
+            while { if !__for_first_246 { i += 1; } __for_first_246 = false; (i as f64) < symbolsLength } {
+            if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("user.orders.".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market((self.safe_string(&symbolsResolved, Value::Int(i),
                 &[Value::Str("".into())])).as_str().unwrap_or_default())), Value::Str("id".into()), &[Value::Str("".into())])).into()), Value::Str(".".into())).into()), interval).into())); }
         }
         }
@@ -977,10 +977,10 @@ impl Coinbaseinternational {
         }
         let mut ordersLength: f64 = ((orders.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_247: bool = true;
-            while { if !__for_first_247 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_247 = false; i.as_f64().unwrap_or(f64::NAN) < ordersLength } {
-            self.orders.append(orders.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+            while { if !__for_first_247 { i += 1; } __for_first_247 = false; (i as f64) < ordersLength } {
+            self.orders.append(orders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
         client.resolve(&[self.orders.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -1028,10 +1028,10 @@ impl Coinbaseinternational {
         }
         if (symbolsResolved.is_some()) && ((symbolsLength as f64) > ((0i64) as f64)) {
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_248: bool = true;
-                while { if !__for_first_248 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_248 = false; i.as_f64().unwrap_or(f64::NAN) < (symbolsLength as f64) } {
-                if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("user.changes.".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market((self.safe_string(&symbolsResolved, i.clone(),
+                while { if !__for_first_248 { i += 1; } __for_first_248 = false; (i as f64) < (symbolsLength as f64) } {
+                if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("user.changes.".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market((self.safe_string(&symbolsResolved, Value::Int(i),
                     &[Value::Str("".into())])).as_str().unwrap_or_default())), Value::Str("id".into()), &[Value::Str("".into())])).into()), Value::Str(".".into())).into()), interval).into())); }
             }
             }
@@ -1084,10 +1084,10 @@ impl Coinbaseinternational {
         }
         if (symbolsResolved.is_some()) && ((symbolsLength as f64) > ((0i64) as f64)) {
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_249: bool = true;
-                while { if !__for_first_249 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_249 = false; i.as_f64().unwrap_or(f64::NAN) < (symbolsLength as f64) } {
-                channels.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("user.changes.".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market((self.safe_string(&symbolsResolved, i.clone(), &[Value::Str("".into())])).as_str().unwrap_or_default())), Value::Str("id".into()),
+                while { if !__for_first_249 { i += 1; } __for_first_249 = false; (i as f64) < (symbolsLength as f64) } {
+                channels.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("user.changes.".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market((self.safe_string(&symbolsResolved, Value::Int(i), &[Value::Str("".into())])).as_str().unwrap_or_default())), Value::Str("id".into()),
                     &[Value::Str("".into())])).into()), Value::Str(".".into())).into()), interval).into()));
             }
             }
@@ -1118,10 +1118,10 @@ impl Coinbaseinternational {
         let mut positions: Value = self.parse_positions(rawPositions, &[]);
         let mut positionsLength: f64 = ((positions.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_250: bool = true;
-            while { if !__for_first_250 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_250 = false; i.as_f64().unwrap_or(f64::NAN) < positionsLength } {
-            self.positions.append(positions.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+            while { if !__for_first_250 { i += 1; } __for_first_250 = false; (i as f64) < positionsLength } {
+            self.positions.append(positions.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
         }
         }
         client.resolve(&[self.positions.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -1193,12 +1193,12 @@ impl Coinbaseinternational {
         let mut tickerSymbols: Vec<Value> = object_keys(&tickers).as_array().cloned().unwrap_or_default();
         let mut tickerSymbolsLength: f64 = ((tickerSymbols.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_251: bool = true;
-            while { if !__for_first_251 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_251 = false; i.as_f64().unwrap_or(f64::NAN) < tickerSymbolsLength } {
-            let mut symbol: Value = tickerSymbols.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut ticker: indexmap::IndexMap<String, Value> = get_value(&tickers, &symbol).as_map().cloned().unwrap_or_default();
-            result.insert(crate::runtime::stringify_param(&symbol), self.parse_funding_rate(ticker.get("info").cloned().unwrap_or(Value::Null), &[crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()))]));
+            while { if !__for_first_251 { i += 1; } __for_first_251 = false; (i as f64) < tickerSymbolsLength } {
+            let mut symbol: Option<String> = tickerSymbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut ticker: indexmap::IndexMap<String, Value> = (if let (Some(__m), Some(__k)) = (tickers.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().cloned().unwrap_or_default();
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_funding_rate(ticker.get("info").cloned().unwrap_or(Value::Null), &[crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()))]));
         }
         }
         return Value::Map(result);
@@ -1363,10 +1363,10 @@ impl Coinbaseinternational {
         let mut channels: Value = Value::from(vec![]);
         let mut symbolsLength: f64 = ((symbolsResolved.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_252: bool = true;
-            while { if !__for_first_252 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_252 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market((self.safe_string(&symbolsResolved, i.clone(), &[Value::Str("".into())])).as_str().unwrap_or_default()));
+            while { if !__for_first_252 { i += 1; } __for_first_252 = false; (i as f64) < symbolsLength } {
+            let mut market: Value = crate::types::IntoRaw::into_raw(self.market((self.safe_string(&symbolsResolved, Value::Int(i), &[Value::Str("".into())])).as_str().unwrap_or_default()));
             if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()), Value::Str(".".into())).into()), interval).into())); }
         }
         }
@@ -1376,7 +1376,7 @@ impl Coinbaseinternational {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut tickerSymbol: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
+            let mut tickerSymbol: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (tickerSymbol.is_some()) {
                 result.insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), ticker);
             }
@@ -1420,10 +1420,10 @@ impl Coinbaseinternational {
         let mut channels: Vec<Value> = Vec::new();
         let mut symbolsLength: f64 = ((symbolsResolved.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_253: bool = true;
-            while { if !__for_first_253 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_253 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
-            channels.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market((self.safe_string(&symbolsResolved, i.clone(), &[Value::Str("".into())])).as_str().unwrap_or_default())), Value::Str("id".into()),
+            while { if !__for_first_253 { i += 1; } __for_first_253 = false; (i as f64) < symbolsLength } {
+            channels.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ticker.".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market((self.safe_string(&symbolsResolved, Value::Int(i), &[Value::Str("".into())])).as_str().unwrap_or_default())), Value::Str("id".into()),
                 &[Value::Str("".into())])).into()), Value::Str(".".into())).into()), interval).into()));
         }
         }
@@ -1576,10 +1576,10 @@ impl Coinbaseinternational {
         let mut channels: Value = Value::from(vec![]);
         let mut symbolsLength: f64 = ((symbolsResolved.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_254: bool = true;
-            while { if !__for_first_254 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_254 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market((self.safe_string(&symbolsResolved, i.clone(), &[Value::Str("".into())])).as_str().unwrap_or_default()));
+            while { if !__for_first_254 { i += 1; } __for_first_254 = false; (i as f64) < symbolsLength } {
+            let mut market: Value = crate::types::IntoRaw::into_raw(self.market((self.safe_string(&symbolsResolved, Value::Int(i), &[Value::Str("".into())])).as_str().unwrap_or_default()));
             if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("quote.".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into())); }
         }
         }
@@ -1627,10 +1627,10 @@ impl Coinbaseinternational {
         let mut channels: Vec<Value> = Vec::new();
         let mut symbolsLength: f64 = ((symbolsResolved.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_255: bool = true;
-            while { if !__for_first_255 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_255 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
-            channels.push(Value::Str(format!("{}{}", Value::Str("quote.".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market((self.safe_string(&symbolsResolved, i.clone(), &[Value::Str("".into())])).as_str().unwrap_or_default())), Value::Str("id".into()), &[Value::Str("".into())])).into()));
+            while { if !__for_first_255 { i += 1; } __for_first_255 = false; (i as f64) < symbolsLength } {
+            channels.push(Value::Str(format!("{}{}", Value::Str("quote.".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market((self.safe_string(&symbolsResolved, Value::Int(i), &[Value::Str("".into())])).as_str().unwrap_or_default())), Value::Str("id".into()), &[Value::Str("".into())])).into()));
         }
         }
         return self.un_subscribe(Value::from(channels), &[Value::Bool(false), paramsResolved]).await;
@@ -1772,10 +1772,10 @@ impl Coinbaseinternational {
         }
         let mut channels: Value = Value::from(vec![]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_256: bool = true;
-            while { if !__for_first_256 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_256 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsAndTimeframesLength } {
-            let mut current: Value = symbolsAndTimeframes.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_256 { i += 1; } __for_first_256 = false; (i as f64) < symbolsAndTimeframesLength } {
+            let mut current: Value = symbolsAndTimeframes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currentTimeframe: Option<String> = self.safe_string(current.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
             let mut resolution: Value = self.safe_string(self.timeframes.clone(), currentTimeframe.clone().map(Value::from).unwrap_or(Value::Null), &[currentTimeframe.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market((self.safe_string(current, Value::Int(0), &[])).as_str().unwrap_or_default()));
@@ -1857,10 +1857,10 @@ impl Coinbaseinternational {
         let mut channels: Vec<Value> = Vec::new();
         let mut symbolsAndTimeframesLength: f64 = ((symbolsAndTimeframes.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_257: bool = true;
-            while { if !__for_first_257 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_257 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsAndTimeframesLength } {
-            let mut current: Value = symbolsAndTimeframes.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_257 { i += 1; } __for_first_257 = false; (i as f64) < symbolsAndTimeframesLength } {
+            let mut current: Value = symbolsAndTimeframes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timeframe: Option<String> = self.safe_string(current.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
             let mut resolution: Value = self.safe_string(self.timeframes.clone(), timeframe.clone().map(Value::from).unwrap_or(Value::Null), &[timeframe.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut market: Value = crate::types::IntoRaw::into_raw(self.market((self.safe_string(current, Value::Int(0), &[])).as_str().unwrap_or_default()));
@@ -1990,10 +1990,10 @@ impl Coinbaseinternational {
         let mut channels: Value = Value::from(vec![]);
         let mut symbolsLength: f64 = ((symbolsResolved.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_258: bool = true;
-            while { if !__for_first_258 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_258 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market((self.safe_string(&symbolsResolved, i.clone(), &[Value::Str("".into())])).as_str().unwrap_or_default()));
+            while { if !__for_first_258 { i += 1; } __for_first_258 = false; (i as f64) < symbolsLength } {
+            let mut market: Value = crate::types::IntoRaw::into_raw(self.market((self.safe_string(&symbolsResolved, Value::Int(i), &[Value::Str("".into())])).as_str().unwrap_or_default()));
             if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trades.".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()), Value::Str(".".into())).into()), interval).into())); }
         }
         }
@@ -2070,10 +2070,10 @@ impl Coinbaseinternational {
         let mut channels: Vec<Value> = Vec::new();
         let mut symbolsLength: f64 = ((symbolsResolved.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_259: bool = true;
-            while { if !__for_first_259 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_259 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
-            channels.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trades.".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market((self.safe_string(&symbolsResolved, i.clone(), &[Value::Str("".into())])).as_str().unwrap_or_default())), Value::Str("id".into()),
+            while { if !__for_first_259 { i += 1; } __for_first_259 = false; (i as f64) < symbolsLength } {
+            channels.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trades.".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market((self.safe_string(&symbolsResolved, Value::Int(i), &[Value::Str("".into())])).as_str().unwrap_or_default())), Value::Str("id".into()),
                 &[Value::Str("".into())])).into()), Value::Str(".".into())).into()), interval).into()));
         }
         }
@@ -2103,10 +2103,10 @@ impl Coinbaseinternational {
         let mut tradesArray: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         let mut dataLength: f64 = ((data.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_260: bool = true;
-            while { if !__for_first_260 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_260 = false; i.as_f64().unwrap_or(f64::NAN) < dataLength } {
-            let mut trade: Value = self.parse_trade(data.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
+            while { if !__for_first_260 { i += 1; } __for_first_260 = false; (i as f64) < dataLength } {
+            let mut trade: Value = self.parse_trade(data.get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
             tradesArray.append(trade);
         }
         }
@@ -2199,10 +2199,10 @@ impl Coinbaseinternational {
         let mut channels: Value = Value::from(vec![]);
         let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_261: bool = true;
-            while { if !__for_first_261 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_261 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market((self.safe_string(symbols.clone(), i.clone(), &[Value::Str("".into())])).as_str().unwrap_or_default()));
+            while { if !__for_first_261 { i += 1; } __for_first_261 = false; (i as f64) < symbolsLength } {
+            let mut market: Value = crate::types::IntoRaw::into_raw(self.market((self.safe_string(symbols.clone(), Value::Int(i), &[Value::Str("".into())])).as_str().unwrap_or_default()));
             if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("book.".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()), descriptor).into())); }
         }
         }
@@ -2287,10 +2287,10 @@ impl Coinbaseinternational {
         let mut channels: Vec<Value> = Vec::new();
         let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_262: bool = true;
-            while { if !__for_first_262 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_262 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
-            channels.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("book.".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market((self.safe_string(symbols.clone(), i.clone(), &[Value::Str("".into())])).as_str().unwrap_or_default())), Value::Str("id".into()), &[Value::Str("".into())])).into()), descriptor).into()));
+            while { if !__for_first_262 { i += 1; } __for_first_262 = false; (i as f64) < symbolsLength } {
+            channels.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("book.".into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market((self.safe_string(symbols.clone(), Value::Int(i), &[Value::Str("".into())])).as_str().unwrap_or_default())), Value::Str("id".into()), &[Value::Str("".into())])).into()), descriptor).into()));
         }
         }
         return self.un_subscribe(Value::from(channels), &[Value::Bool(interval.as_str() == Some("raw")), paramsChannel]).await;
@@ -2408,10 +2408,10 @@ impl Coinbaseinternational {
     pub fn handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         let mut deltasLength: f64 = ((deltas.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_263: bool = true;
-            while { if !__for_first_263 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_263 = false; i.as_f64().unwrap_or(f64::NAN) < deltasLength } {
-            self.handle_delta(bookside.clone(), self.safe_value(deltas.clone(), i.clone(), &[]));
+            while { if !__for_first_263 { i += 1; } __for_first_263 = false; (i as f64) < deltasLength } {
+            self.handle_delta(bookside.clone(), self.safe_value(deltas.clone(), Value::Int(i), &[]));
         }
         }
 }
@@ -3093,10 +3093,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         let mut summariesLength: f64 = ((summaries.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_264: bool = true;
-            while { if !__for_first_264 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_264 = false; i.as_f64().unwrap_or(f64::NAN) < summariesLength } {
-            balance = self.deep_extend(balance.clone(), &[self.parent.parse_balance_list(summaries.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null))]);
+            while { if !__for_first_264 { i += 1; } __for_first_264 = false; (i as f64) < summariesLength } {
+            balance = self.deep_extend(balance.clone(), &[self.parent.parse_balance_list(summaries.get(i as usize).cloned().unwrap_or(Value::Null))]);
         }
         }
         return self.safe_balance(balance);

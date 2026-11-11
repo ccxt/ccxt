@@ -1727,10 +1727,10 @@ if _try_result.is_err() {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1044: bool = true;
-            while { if !__for_first_1044 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1044 = false; i.as_f64().unwrap_or(f64::NAN) < settingsLen } {
-            let mut setting: Value = settings.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_1044 { i += 1; } __for_first_1044 = false; (i as f64) < settingsLen } {
+            let mut setting: Value = settings.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k(setting.clone(), "symbol", &[]).as_str().map(str::to_owned);
             let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
@@ -3311,7 +3311,7 @@ if _try_result.is_err() {
             while { if !__for_first_1051 { i += 1; } __for_first_1051 = false; i < (data.len() as i64) } {
             let mut info: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut ticker: Value = self.parse_ticker(info, &[]);
-            let mut symbol: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
+            let mut symbol: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (symbol.is_some()) {
                 result.insert(symbol.as_deref().unwrap_or("null").to_string(), ticker);
             }
@@ -4344,8 +4344,8 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_1053: bool = true;
             while { if !__for_first_1053 { i += 1; } __for_first_1053 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            result.insert(crate::runtime::stringify_param(&symbol), self.parse_trading_fee(data.clone(), &[crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()))]));
+            let mut symbol: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_trading_fee(data.clone(), &[crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()))]));
         }
         }
         return Value::Map(result);

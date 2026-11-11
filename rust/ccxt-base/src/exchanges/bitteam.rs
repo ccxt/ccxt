@@ -2874,9 +2874,9 @@ impl Bitteam {
             let mut free: Option<String> = self.safe_string_k(&currencyBalance, "free", &[]).as_str().map(str::to_owned);
             let mut used: Option<String> = self.safe_string_k(&currencyBalance, "used", &[]).as_str().map(str::to_owned);
             let mut total: Option<String> = self.safe_string_k(&currencyBalance, "total", &[]).as_str().map(str::to_owned);
-            let mut currencyCode: Value = self.safe_currency_code(rawCurrencyId.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null), &[]);
-            if (currencyCode != Value::Null) {
-                balance.insert(crate::runtime::stringify_param(&currencyCode), Value::Map({
+            let mut currencyCode: Option<String> = self.safe_currency_code(rawCurrencyId.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            if (currencyCode.is_some()) {
+                balance.insert(currencyCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("free".to_string(), free.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("used".to_string(), used.clone().map(Value::from).unwrap_or(Value::Null));

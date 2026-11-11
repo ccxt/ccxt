@@ -584,7 +584,7 @@ impl Deribit {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut newTickersSymbol: Option<String> = self.safe_string_k_opt(newTickers.clone(), "symbol", &[]);
+            let mut newTickersSymbol: Option<String> = self.safe_string_k(newTickers.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (newTickersSymbol.is_some()) {
                 tickers.insert(newTickersSymbol.as_deref().unwrap_or("null").to_string(), newTickers);
             }
@@ -696,7 +696,7 @@ impl Deribit {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut newTickersSymbol: Option<String> = self.safe_string_k_opt(newTickers.clone(), "symbol", &[]);
+            let mut newTickersSymbol: Option<String> = self.safe_string_k(newTickers.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (newTickersSymbol.is_some()) {
                 tickers.insert(newTickersSymbol.as_deref().unwrap_or("null").to_string(), newTickers);
             }
@@ -1519,21 +1519,21 @@ impl Deribit {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchMultipleWrapper() symbolsArray is required".into()))));
         }
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_297: bool = true;
-            while { if !__for_first_297 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_297 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(symbolsArray.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_297 { i += 1; } __for_first_297 = false; (i as f64) < Value::Int(symbolsArray.len() as i64).as_f64().unwrap_or(f64::NAN) } {
             if (symbolsArray == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" watchMultipleWrapper() symbolsArray is required".into()))));
             }
             let mut market: Option<crate::types::Market> = None;
             let mut currentDescriptor: Value = Value::Null;
             if isOHLCV {
-                let mut currentPair: crate::value::List = self.safe_list(symbolsArray.clone(), i.clone(), &[Value::from(vec![])]).into_list();
+                let mut currentPair: crate::value::List = self.safe_list(symbolsArray.clone(), Value::Int(i), &[Value::from(vec![])]).into_list();
                 market = Some(match self.market((self.safe_string(&currentPair, Value::Int(0), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 let mut unifiedTf: Option<String> = self.safe_string(&currentPair, Value::Int(1), &[]).as_str().map(str::to_owned);
                 currentDescriptor = self.safe_string(self.timeframes.clone(), unifiedTf.clone().map(Value::from).unwrap_or(Value::Null), &[unifiedTf.clone().map(Value::from).unwrap_or(Value::Null)]);
             }  else {
-                market = Some(match self.market((self.safe_string(symbolsArray.clone(), i.clone(), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                market = Some(match self.market((self.safe_string(symbolsArray.clone(), Value::Int(i), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 currentDescriptor = channelDescriptor.clone();
             }
             let mut message: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName, Value::Str(".".into())).into()), self.safe_string_k(market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), "id", &[Value::Str("".into())])).into()), Value::Str(".".into())).into()), currentDescriptor).into());

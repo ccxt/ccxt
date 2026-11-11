@@ -1117,10 +1117,10 @@ impl Kraken {
         }
         let mut ohlcvsLength: f64 = ((data.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_418: bool = true;
-            while { if !__for_first_418 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_418 = false; i.as_f64().unwrap_or(f64::NAN) < ohlcvsLength } {
-            let mut candle: crate::value::Dict = self.safe_dict(data.clone().into(), i.clone(), &[]).into_dict();
+            while { if !__for_first_418 { i += 1; } __for_first_418 = false; (i as f64) < ohlcvsLength } {
+            let mut candle: crate::value::Dict = self.safe_dict(data.clone().into(), Value::Int(i), &[]).into_dict();
             let mut datetime: Option<String> = self.safe_string_k(&candle, "interval_begin", &[]).as_str().map(str::to_owned);
             let mut timestamp: Value = self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null));
             let mut parsed: Value = Value::from(vec![timestamp, self.safe_number_k(&candle, "open", &[]), self.safe_number_k(&candle, "high", &[]), self.safe_number_k(&candle, "low", &[]), self.safe_number_k(&candle, "close", &[]), self.safe_number_k(&candle, "volume", &[])]);
@@ -1197,7 +1197,7 @@ impl Kraken {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut tickerSymbol: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
+            let mut tickerSymbol: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (tickerSymbol.is_some()) {
                 result.insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), ticker);
             }
@@ -1237,7 +1237,7 @@ impl Kraken {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut tickerSymbol: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
+            let mut tickerSymbol: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (tickerSymbol.is_some()) {
                 result.insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), ticker);
             }
@@ -1795,10 +1795,10 @@ impl Kraken {
                 let mut checkAsks: Value = orderbook.book_field("asks");
                 let mut checkBids: Value = orderbook.book_field("bids");
                 {
-                                        let mut i: Value = Value::Int(0);
+                                        let mut i: i64 = 0;
                     let mut __for_first_422: bool = true;
-                    while { if !__for_first_422 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_422 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
-                    let mut currentAsk: Vec<Value> = self.safe_list(checkAsks.clone(), i.clone(), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                    while { if !__for_first_422 { i += 1; } __for_first_422 = false; (i as f64) < ((10i64) as f64) } {
+                    let mut currentAsk: Vec<Value> = self.safe_list(checkAsks.clone(), Value::Int(i), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                     let mut currentAskLength: f64 = ((currentAsk.len() as i64) as f64);
                     let mut formattedAsk: String = "".to_string();
                     if currentAskLength > ((1i64) as f64) {
@@ -1808,10 +1808,10 @@ impl Kraken {
                 }
                 }
                 {
-                                        let mut i: Value = Value::Int(0);
+                                        let mut i: i64 = 0;
                     let mut __for_first_423: bool = true;
-                    while { if !__for_first_423 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_423 = false; i.as_f64().unwrap_or(f64::NAN) < ((10i64) as f64) } {
-                    let mut currentBid: Vec<Value> = self.safe_list(checkBids.clone(), i.clone(), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+                    while { if !__for_first_423 { i += 1; } __for_first_423 = false; (i as f64) < ((10i64) as f64) } {
+                    let mut currentBid: Vec<Value> = self.safe_list(checkBids.clone(), Value::Int(i), &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                     let mut currentBidLength: f64 = ((currentBid.len() as i64) as f64);
                     let mut formattedBid: String = "".to_string();
                     if currentBidLength > ((1i64) as f64) {

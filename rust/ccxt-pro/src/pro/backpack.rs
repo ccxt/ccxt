@@ -496,16 +496,16 @@ impl Backpack {
                 if ((market).raw.as_map().and_then(|__m| __m.get("stock")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
                     panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() stock quote channels require a stock market".into()))));
                 }
-                let mut baseId: Value = self.safe_string_k((market).raw.clone(), "baseId", &[Value::Str("".into())]);
-                let mut ticker: Value = baseId.as_str().map(|__s| Value::Str(__s.replace(".US", "").into())).unwrap_or_else(|| baseId.clone());
+                let mut baseId: String = self.safe_string_k((market).raw.clone(), "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                let mut ticker: Value = Value::from(baseId.replace(".US", ""));
                 topic = format!("{}{}", Value::Str(format!("{}{}", channel.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(".".into())).into()), ticker);
             }  else if bidAsk.as_bool() == Some(true) {
                 if (source.as_deref() == Some("External")) || (self.safe_string_k((market).raw.clone(), "executionModel", &[]).as_str() == Some("rfq")) || isRfq {
                     if ((market).raw.as_map().and_then(|__m| __m.get("stock")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
                         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), methodName).into()), Value::Str("() RFQ quote streams require a stock market".into()))));
                     }
-                    let mut baseId: Value = self.safe_string_k((market).raw.clone(), "baseId", &[Value::Str("".into())]);
-                    let mut ticker: Value = baseId.as_str().map(|__s| Value::Str(__s.replace(".US", "").into())).unwrap_or_else(|| baseId.clone());
+                    let mut baseId: String = self.safe_string_k((market).raw.clone(), "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                    let mut ticker: Value = Value::from(baseId.replace(".US", ""));
                     let mut quoteChannel: String = (if (source.as_deref() == Some("External")) { "stockPrice".to_string() } else { "stockIndicativeQuote".to_string() });
                     topic = format!("{}{}", Value::Str(format!("{}{}", quoteChannel, Value::Str(".".into())).into()), ticker);
                 }  else {
@@ -899,10 +899,10 @@ impl Backpack {
         let mut hashes: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
         let mut hashesLength: f64 = ((hashes.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_41: bool = true;
-            while { if !__for_first_41 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_41 = false; i.as_f64().unwrap_or(f64::NAN) < hashesLength } {
-            let mut messageHash: Value = hashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_41 { i += 1; } __for_first_41 = false; (i as f64) < hashesLength } {
+            let mut messageHash: Value = hashes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut subscription: crate::value::Dict = self.safe_dict(subscriptions.clone(), messageHash.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1011,10 +1011,10 @@ impl Backpack {
         let mut hashes: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
         let mut hashesLength: f64 = ((hashes.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_42: bool = true;
-            while { if !__for_first_42 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_42 = false; i.as_f64().unwrap_or(f64::NAN) < hashesLength } {
-            let mut messageHash: Value = hashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_42 { i += 1; } __for_first_42 = false; (i as f64) < hashesLength } {
+            let mut messageHash: Value = hashes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut subscription: crate::value::Dict = self.safe_dict(subscriptions.clone(), messageHash.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1137,10 +1137,10 @@ impl Backpack {
         let mut hashes: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
         let mut hashesLength: f64 = ((hashes.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_43: bool = true;
-            while { if !__for_first_43 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_43 = false; i.as_f64().unwrap_or(f64::NAN) < hashesLength } {
-            let mut messageHash: Value = hashes.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_43 { i += 1; } __for_first_43 = false; (i as f64) < hashesLength } {
+            let mut messageHash: Value = hashes.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut subscription: crate::value::Dict = self.safe_dict(subscriptions.clone(), messageHash.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1309,12 +1309,12 @@ impl Backpack {
         let mut topics: Vec<Value> = Vec::new();
         let mut messageHashes: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_44: bool = true;
-            while { if !__for_first_44 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_44 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
-            let mut marketId: Option<String> = self.safe_string(self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]), Value::Int(0), &[]).as_str().map(str::to_owned);
+            while { if !__for_first_44 { i += 1; } __for_first_44 = false; (i as f64) < symbolsLength } {
+            let mut marketId: Option<String> = self.safe_string(self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]), Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut tf: String = self.safe_string(self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut tf: String = self.safe_string(self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut interval: Value = self.safe_string(self.timeframes.clone(), Value::from(tf.clone()), &[Value::from(tf)]);
             self.ws_venue_market_id(Value::Str("watchOHLCVForSymbols".into()), (market).raw.clone(), query.clone()).map(Value::from).unwrap_or(Value::Null);
             topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kline.".into()), interval).into()), Value::Str(".".into())).into()), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())])).into()));
@@ -1368,12 +1368,12 @@ impl Backpack {
         let mut topics: Vec<Value> = Vec::new();
         let mut messageHashes: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_45: bool = true;
-            while { if !__for_first_45 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_45 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
-            let mut marketId: Option<String> = self.safe_string(self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]), Value::Int(0), &[]).as_str().map(str::to_owned);
+            while { if !__for_first_45 { i += 1; } __for_first_45 = false; (i as f64) < symbolsLength } {
+            let mut marketId: Option<String> = self.safe_string(self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]), Value::Int(0), &[]).as_str().map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut tf: String = self.safe_string(self.safe_list(symbolsAndTimeframes.clone(), i.clone(), &[]), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut tf: String = self.safe_string(self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut interval: Value = self.safe_string(self.timeframes.clone(), Value::from(tf.clone()), &[Value::from(tf)]);
             self.ws_venue_market_id(Value::Str("watchOHLCVForSymbols".into()), (market).raw.clone(), query.clone()).map(Value::from).unwrap_or(Value::Null);
             topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("kline.".into()), interval).into()), Value::Str(".".into())).into()), self.safe_string_k((market).raw.clone(), "id", &[Value::Str("".into())])).into()));
@@ -2309,7 +2309,7 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
     m
 }) }).into_dict();
-        let mut assetId: Option<String> = self.safe_string_k_opt(&data, "a", &[]);
+        let mut assetId: Option<String> = self.safe_string_k(&data, "a", &[]).as_str().map(str::to_owned);
         if (assetId.is_none()) {
             return Value::Bool(false);
         }

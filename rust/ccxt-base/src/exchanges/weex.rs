@@ -2789,8 +2789,8 @@ impl Weex {
             m
         });
         if (((symbolsLength as f64) == 1.0)) {
-            let mut market: Value = self.get_market_from_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
-            request.insert("symbol".into(), self.safe_string_k(market, "id", &[]));
+            let mut market: crate::value::Dict = self.get_market_from_symbols(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_dict();
+            request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
         }
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         let mut response: Value = self.contract_get_capi_v3_market_premium_index(&[__ws_arg_13]).await;
@@ -3018,13 +3018,13 @@ impl Weex {
             if sandboxMode && (currencyId.as_deref() == Some("SUSDT")) {
                 currencyId = Some("USDT".to_string()); // demo trading balances are denominated in the demo asset SUSDT
             }
-            let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string2(&entry, Value::Str("availableBalance".into()), Value::Str("free".into()), &[]));
             account.insert("used".into(), self.safe_string2(&entry, Value::Str("frozen".into()), Value::Str("locked".into()), &[]));
             account.insert("total".into(), self.safe_string_k(&entry, "balance", &[]));
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }

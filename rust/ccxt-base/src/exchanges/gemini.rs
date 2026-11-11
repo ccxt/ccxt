@@ -1313,10 +1313,10 @@ impl Gemini {
         }
         let mut result: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(1);
+                        let mut i: i64 = 1;
             let mut __for_first_711: bool = true;
-            while { if !__for_first_711 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_711 = false; i.as_f64().unwrap_or(f64::NAN) < numRows } {
-            let mut row: Value = rows.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_711 { i += 1; } __for_first_711 = false; (i as f64) < numRows } {
+            let mut row: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut cells: Value = Value::Array(if let Some(__s) = row.as_str() { __s.split("</td>\n").map(Value::from).collect() } else { Vec::new() }); // eslint-disable-line quotes
             let mut numCells: f64 = ((cells.len() as i64) as f64);
             if numCells < ((5i64) as f64) {
@@ -1662,10 +1662,10 @@ impl Gemini {
             }  else {
                 let mut quoteCurrencies: Value = self.handle_option(Value::Str("fetchMarketsFromAPI".into()), Value::Str("quoteCurrencies".into()), &[Value::from(vec![])]);
                 {
-                                        let mut i: Value = Value::Int(0);
+                                        let mut i: i64 = 0;
                     let mut __for_first_718: bool = true;
-                    while { if !__for_first_718 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_718 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&quoteCurrencies).as_f64().unwrap_or(f64::NAN) } {
-                    let mut quoteCurrency: Value = self.safe_string(quoteCurrencies.clone(), i.clone(), &[Value::Str("".into())]);
+                    while { if !__for_first_718 { i += 1; } __for_first_718 = false; (i as f64) < get_array_length(&quoteCurrencies).as_f64().unwrap_or(f64::NAN) } {
+                    let mut quoteCurrency: Value = self.safe_string(quoteCurrencies.clone(), Value::Int(i), &[Value::Str("".into())]);
                     if (marketIdWithoutPerp.as_str().zip(quoteCurrency.as_str()).is_some_and(|(__s, __p)| __s.ends_with(__p))) {
                         let mut quoteLength: Value = self.parse_to_int((match (&(Value::Int(-1)), &(Value::Int(quoteCurrency.len() as i64))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
                             Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
@@ -2190,12 +2190,12 @@ impl Gemini {
             while { if !__for_first_719 { i += 1; } __for_first_719 = false; i < (response.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string_k(&balance, "available", &[]));
             account.insert("total".into(), self.safe_string_k(&balance, "amount", &[]));
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }

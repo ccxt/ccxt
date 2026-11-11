@@ -1944,7 +1944,7 @@ impl Coinbaseinternational {
                         let mut i: i64 = 0;
             let mut __for_first_559: bool = true;
             while { if !__for_first_559 { i += 1; } __for_first_559 = false; i < (symbolsResolved.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            let mut symbol: Option<String> = self.safe_string_opt(&symbolsResolved, Value::Int(i), &[]);
+            let mut symbol: Option<String> = self.safe_string(&symbolsResolved, Value::Int(i), &[]).as_str().map(str::to_owned);
             if (symbol.is_none()) {
                 continue;
             }
@@ -2529,15 +2529,15 @@ impl Coinbaseinternational {
             while { if !__for_first_561 { i += 1; } __for_first_561 = false; i < (summaries.len() as i64) } {
             let mut data: crate::value::Dict = self.safe_dict(summaries.clone(), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&data, "currency", &[]).as_str().map(str::to_owned);
-            let mut currencyCode: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string_k(&data, "available_funds", &[]));
             // available_funds is max(0, margin_balance - initial_margin), so using
             // margin_balance as total lets safeBalance derive the used collateral
             // consistently (and avoids reporting maintenance_margin as used funds).
             account.insert("total".into(), self.safe_string2(&data, Value::Str("margin_balance".into()), Value::Str("equity".into()), &[]));
-            if (currencyCode != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&currencyCode), Value::Map(account));
+            if (currencyCode.is_some()) {
+                result.insert(currencyCode.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }

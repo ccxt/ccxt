@@ -1705,9 +1705,9 @@ impl Poloniex {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_627: bool = true;
             while { if !__for_first_627 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_627 = false; i.as_f64().unwrap_or(f64::NAN) < ((marketIds.len() as i64) as f64) } {
-            let mut marketId: Value = marketIds.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(marketId.as_str().unwrap_or_default()));
-            let symbol: String = self.safe_string_k_opt(market, "symbol", &[Value::Str("".into())]).unwrap_or_default();
+            let mut marketId: Option<String> = marketIds.get((i).as_i64().unwrap_or(-1) as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(marketId.as_deref().unwrap_or_default()));
+            let mut symbol: String = self.safe_string_k(market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("orders::".into()), symbol).into());
             client.resolve(&[orders.clone(), messageHash]);
         }

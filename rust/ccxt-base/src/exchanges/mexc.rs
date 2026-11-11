@@ -6683,8 +6683,8 @@ impl Mexc {
             }
             request.insert("limit".into(), limit.clone());
         }
-        let mut paramsOmitted: Value = (if (rawNetwork != Value::Null) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params });
-        let __ws_arg_51 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = (if (rawNetwork != Value::Null) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params }).into_dict();
+        let __ws_arg_51 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.spot_private_get_capital_deposit_hisrec(&[__ws_arg_51]).await;
         return self.parse_transactions(response, &[currency, since, limit]);
         Value::Null

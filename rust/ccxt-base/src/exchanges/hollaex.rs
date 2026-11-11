@@ -1534,12 +1534,12 @@ impl Hollaex {
             let mut __for_first_764: bool = true;
             while { if !__for_first_764 { i += 1; } __for_first_764 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: String = self.safe_string(&currencyIds, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut code: Value = self.safe_currency_code(Value::from(currencyId.clone()), &[]);
+            let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.clone()), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string(response.clone(), Value::Str(format!("{}{}", currencyId, Value::Str("_available".into())).into()), &[]));
             account.insert("total".into(), self.safe_string(response.clone(), Value::Str(format!("{}{}", currencyId, Value::Str("_balance".into())).into()), &[]));
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }
@@ -2681,10 +2681,10 @@ impl Hollaex {
             let mut keys: Vec<Value> = Value::Array(withdrawalFees.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             let mut keysLength: f64 = ((keys.len() as i64) as f64);
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_765: bool = true;
-                while { if !__for_first_765 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_765 = false; i.as_f64().unwrap_or(f64::NAN) < keysLength } {
-                let mut key: Value = keys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+                while { if !__for_first_765 { i += 1; } __for_first_765 = false; (i as f64) < keysLength } {
+                let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut value: crate::value::Dict = self.safe_dict(withdrawalFees.clone(), key.clone(), &[]).into_dict();
                 let mut currencyId: Option<String> = self.safe_string_k(&value, "symbol", &[]).as_str().map(str::to_owned);
                 let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -2692,9 +2692,9 @@ impl Hollaex {
                 if (networkCode.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" requires a networkCode argument".into()))));
                 }
-                let mut networkCodeUpper: Value = networkCode.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null); // default to the upper case network code
+                let mut networkCodeUpper: Option<String> = networkCode.as_deref().map(str::to_uppercase); // default to the upper case network code
                 let mut withdrawalFee: Option<f64> = self.safe_number_k(&value, "value", &[]).as_f64();
-                networks.insert(crate::runtime::stringify_param(&networkCodeUpper), Value::Map({
+                networks.insert(networkCodeUpper.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::from(withdrawalFee));

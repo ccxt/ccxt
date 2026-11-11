@@ -2772,10 +2772,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut details: Vec<Value> = self.safe_list_k(&accountData, "details", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
                 let mut detailsLength: f64 = ((details.len() as i64) as f64);
                 {
-                                        let mut i: Value = Value::Int(0);
+                                        let mut i: i64 = 0;
                     let mut __for_first_392: bool = true;
-                    while { if !__for_first_392 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_392 = false; i.as_f64().unwrap_or(f64::NAN) < detailsLength } {
-                    let mut detail: crate::value::Dict = self.safe_dict(details.clone().into(), i.clone(), &[]).into_dict();
+                    while { if !__for_first_392 { i += 1; } __for_first_392 = false; (i as f64) < detailsLength } {
+                    let mut detail: crate::value::Dict = self.safe_dict(details.clone().into(), Value::Int(i), &[]).into_dict();
                     let mut currencyId: Option<String> = self.safe_string_k_opt(&detail, "currency", &[]);
                     let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
                     if (code == Value::Null) {
@@ -2808,11 +2808,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 // Example: topic = 'accounts'
                 // client.subscription hash = 'accounts.usdt'
                 // we do 'accounts' + '.' + data[0]]['margin_asset'] to get it
-                let mut currencyId: Option<String> = self.safe_string2_opt(&first, Value::Str("margin_asset".into()), Value::Str("symbol".into()), &[]);
+                let mut currencyId: Option<String> = self.safe_string2(&first, Value::Str("margin_asset".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
                 if (currencyId.is_none()) {
                     return;
                 }
-                messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(".".into()), (if let Some(__s) = currencyId.as_deref() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })).into())).into());
+                messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", Value::Str(".".into()), currencyId.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null)).into())).into());
                 subscription = self.safe_dict(__ch.subscriptions.clone(), messageHash.clone(), &[]).into_opt_dict();
             }
             let mut subType: Option<String> = self.safe_string_k(&subscription, "subType", &[]).as_str().map(str::to_owned);
@@ -3129,11 +3129,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             }
             let mut op: Option<String> = (match message.get("op") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
             if (op.as_deref() == Some("ping")) {
-                let mut pingTs: Value = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
+                let mut pingTs: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
                 client.send(&[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("op".to_string(), Value::Str("pong".into()));
-                        m.insert("ts".to_string(), pingTs);
+                        m.insert("ts".to_string(), Value::from(pingTs));
                     m
                 })]);
             }
@@ -3476,7 +3476,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut __for_first_396: bool = true;
                         while { if !__for_first_396 { i += 1; } __for_first_396 = false; i < (dataList.len() as i64) } {
                         let mut parsed: Value = self.parse_ws_trade(dataList.get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]);
-                        let mut symbol: Option<String> = self.safe_string_k_opt(parsed.clone(), "symbol", &[]);
+                        let mut symbol: Option<String> = self.safe_string_k(parsed.clone(), "symbol", &[]).as_str().map(str::to_owned);
                         if (symbol.is_some()) {
                             cachedTrades.append(parsed.clone());
                         }
@@ -3484,7 +3484,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     }
                 }  else {
                     let mut parsed: Value = self.parse_ws_trade(data, &[market.clone()]);
-                    let mut symbol: Option<String> = self.safe_string_k_opt(parsed.clone(), "symbol", &[]);
+                    let mut symbol: Option<String> = self.safe_string_k(parsed.clone(), "symbol", &[]).as_str().map(str::to_owned);
                     if (symbol.is_some()) {
                         cachedTrades.append(parsed);
                     }
@@ -3757,11 +3757,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut symbolsAndTimeframes: Value = self.safe_list_k(params.clone(), "symbolsAndTimeframes", &[]);
-        let mut paramsOmitted: Value = (if (symbolsAndTimeframes != Value::Null) { self.omit(params.clone(), Value::Str("symbolsAndTimeframes".into()), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (symbolsAndTimeframes != Value::Null) { self.omit(params.clone(), Value::Str("symbolsAndTimeframes".into()), &[]) } else { params }).into_dict();
         if (symbolsAndTimeframes != Value::Null) {
             subscription.insert("symbolsAndTimeframes".into(), symbolsAndTimeframes);
         }
-        let __ws_arg_1 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_1 = self.extend(Value::Map(request), &[&paramsOmitted]);
         return self.watch(url, Value::from(messageHash.clone()), &[__ws_arg_1, Value::from(messageHash), Value::Map(subscription)]).await;
 
     Value::Null

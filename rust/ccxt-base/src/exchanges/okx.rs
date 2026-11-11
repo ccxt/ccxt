@@ -4547,10 +4547,10 @@ impl Okx {
         let mut type_var: String = "crypto".to_string();
         let mut chainsLength: f64 = ((chains.len() as i64) as f64);
         {
-                        let mut j: Value = Value::Int(0);
+                        let mut j: i64 = 0;
             let mut __for_first_1006: bool = true;
-            while { if !__for_first_1006 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1006 = false; j.as_f64().unwrap_or(f64::NAN) < chainsLength } {
-            let mut chain: Value = self.safe_dict(chains.clone(), j.clone(), &[]);
+            while { if !__for_first_1006 { j += 1; } __for_first_1006 = false; (j as f64) < chainsLength } {
+            let mut chain: Value = self.safe_dict(chains.clone(), Value::Int(j), &[]);
             // allow empty string for rare fiat-currencies, e.g. TRY
             let mut networkId: Value = self.safe_string_k(chain.clone(), "chain", &[Value::Str("".into())]); // USDT-BEP20, USDT-Avalance-C, etc
             if (networkId.as_str() == Some("")) {
@@ -5355,10 +5355,10 @@ impl Okx {
         if (until.is_some()) {
             request.insert("after".into(), Value::from(until));
         }
-        let mut paramsUntil: Value = (if (until.is_some()) { self.omit(paramsPrice.clone(), Value::Str("until".into()), &[]) } else { paramsPrice });
+        let mut paramsUntil: crate::value::Dict = (if (until.is_some()) { self.omit(paramsPrice.clone(), Value::Str("until".into()), &[]) } else { paramsPrice }).into_dict();
         defaultType = self.safe_string_k(&options, "type", &[defaultType.clone()]); // Candles or HistoryCandles
-        let mut type_var: Option<String> = self.safe_string_k(paramsUntil.clone(), "type", &[defaultType]).as_str().map(str::to_owned);
-        let mut paramsType: crate::value::Dict = self.omit(paramsUntil, Value::Str("type".into()), &[]).into_dict();
+        let mut type_var: Option<String> = self.safe_string_k(&paramsUntil, "type", &[defaultType]).as_str().map(str::to_owned);
+        let mut paramsType: crate::value::Dict = self.omit(&paramsUntil, Value::Str("type".into()), &[]).into_dict();
         let mut isHistoryCandles: bool = type_var.as_deref() == Some("HistoryCandles");
         let mut response: Option<crate::value::Dict> = None;
         if (priceType.as_deref() == Some("mark")) {
@@ -5539,7 +5539,7 @@ impl Okx {
             while { if !__for_first_1008 { i += 1; } __for_first_1008 = false; i < (details.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(details.clone().into(), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "ccy", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             // it may be incorrect to use total, free and used for swap accounts
             let mut eq: Option<String> = self.safe_string_k(&balance, "eq", &[]).as_str().map(str::to_owned);
@@ -5551,8 +5551,8 @@ impl Okx {
             }  else {
                 account.insert("free".into(), availEq.clone().map(Value::from).unwrap_or(Value::Null));
             }
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }
@@ -5576,14 +5576,14 @@ impl Okx {
             while { if !__for_first_1009 { i += 1; } __for_first_1009 = false; i < (data.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(data.clone().into(), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "ccy", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             // it may be incorrect to use total, free and used for swap accounts
             account.insert("total".into(), self.safe_string_k(&balance, "bal", &[]));
             account.insert("free".into(), self.safe_string_k(&balance, "availBal", &[]));
             account.insert("used".into(), self.safe_string_k(&balance, "frozenBal", &[]));
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }
@@ -6726,12 +6726,12 @@ impl Okx {
             let mut orderIds: Value = self.parse_ids(ids);
             if (algoIds != Value::Null) {
                 {
-                                        let mut i: Value = Value::Int(0);
+                                        let mut i: i64 = 0;
                     let mut __for_first_1012: bool = true;
-                    while { if !__for_first_1012 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1012 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(algoIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                    while { if !__for_first_1012 { i += 1; } __for_first_1012 = false; (i as f64) < Value::Int(algoIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("algoId".to_string(), self.safe_string(algoIds.clone(), i.clone(), &[]));
+                            m.insert("algoId".to_string(), self.safe_string(algoIds.clone(), Value::Int(i), &[]));
                             m.insert("instId".to_string(), Value::from((market).id.clone()));
                         m
                     }));
@@ -6739,20 +6739,20 @@ impl Okx {
                 }
             }
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1013: bool = true;
-                while { if !__for_first_1013 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1013 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(orderIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1013 { i += 1; } __for_first_1013 = false; (i as f64) < Value::Int(orderIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 if trailing || isTrigger {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("algoId".to_string(), self.safe_string(orderIds.clone(), i.clone(), &[]));
+                            m.insert("algoId".to_string(), self.safe_string(orderIds.clone(), Value::Int(i), &[]));
                             m.insert("instId".to_string(), Value::from((market).id.clone()));
                         m
                     }));
                 }  else {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("ordId".to_string(), self.safe_string(orderIds.clone(), i.clone(), &[]));
+                            m.insert("ordId".to_string(), self.safe_string(orderIds.clone(), Value::Int(i), &[]));
                             m.insert("instId".to_string(), Value::from((market).id.clone()));
                         m
                     }));
@@ -6761,21 +6761,21 @@ impl Okx {
             }
         }  else {
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_1014: bool = true;
-                while { if !__for_first_1014 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1014 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(clientOrderIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1014 { i += 1; } __for_first_1014 = false; (i as f64) < Value::Int(clientOrderIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
                 if trailing || isTrigger {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("instId".to_string(), Value::from((market).id.clone()));
-                            m.insert("algoClOrdId".to_string(), self.safe_string(clientOrderIds.clone(), i.clone(), &[]));
+                            m.insert("algoClOrdId".to_string(), self.safe_string(clientOrderIds.clone(), Value::Int(i), &[]));
                         m
                     }));
                 }  else {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("instId".to_string(), Value::from((market).id.clone()));
-                            m.insert("clOrdId".to_string(), self.safe_string(clientOrderIds.clone(), i.clone(), &[]));
+                            m.insert("clOrdId".to_string(), self.safe_string(clientOrderIds.clone(), Value::Int(i), &[]));
                         m
                     }));
                 }
@@ -10086,7 +10086,7 @@ impl Okx {
                         let mut __for_first_1020: bool = true;
                         while { if !__for_first_1020 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1020 = false; i.as_f64().unwrap_or(f64::NAN) < ((params.len() as i64) as f64) } {
                         let mut entry: Value = params.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
-                        let mut clientOrderId: Option<String> = self.safe_string_k_opt(entry.clone(), "clOrdId", &[]);
+                        let mut clientOrderId: Option<String> = self.safe_string_k(entry.clone(), "clOrdId", &[]).as_str().map(str::to_owned);
                         if (clientOrderId.is_none()) {
                             add_element_to_object(&mut entry, &Value::Str("clOrdId".into()), Value::Str(format!("{}{}", brokerId, self.uuid16(&[])).into()));
                             add_element_to_object(&mut entry, &Value::Str("tag".into()), Value::from(brokerId.clone()));
@@ -10095,7 +10095,7 @@ impl Okx {
                     }
                     }
                 }  else {
-                    let mut clientOrderId: Option<String> = self.safe_string_k_opt(params.clone(), "clOrdId", &[]);
+                    let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clOrdId", &[]).as_str().map(str::to_owned);
                     if (clientOrderId.is_none()) {
                         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("clOrdId".into(), Value::Str(format!("{}{}", brokerId, self.uuid16(&[])).into())); }
                         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("tag".into(), Value::from(brokerId)); }
@@ -10765,7 +10765,7 @@ impl Okx {
             let mut __for_first_1023: bool = true;
             while { if !__for_first_1023 { i += 1; } __for_first_1023 = false; i < (data.len() as i64) } {
             let mut rate: Value = self.parse_borrow_rate(data.get(i as usize).cloned().unwrap_or(Value::Null), &[]);
-            let mut code: Option<String> = self.safe_string_k_opt(rate.clone(), "currency", &[]);
+            let mut code: Option<String> = self.safe_string_k(rate.clone(), "currency", &[]).as_str().map(str::to_owned);
             if (code.is_some()) {
                 rates.insert(code.as_deref().unwrap_or("null").to_string(), rate);
             }
@@ -11305,10 +11305,10 @@ impl Okx {
         //
         let mut tiers: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_1026: bool = true;
-            while { if !__for_first_1026 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1026 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
-            let mut tier: Value = self.safe_dict(info.clone(), i.clone(), &[]);
+            while { if !__for_first_1026 { i += 1; } __for_first_1026 = false; (i as f64) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
+            let mut tier: Value = self.safe_dict(info.clone(), Value::Int(i), &[]);
             let mut marketId: Option<String> = self.safe_string_k(tier.clone(), "instId", &[]).as_str().map(str::to_owned);
             tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();

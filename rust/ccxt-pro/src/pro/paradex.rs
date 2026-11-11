@@ -748,10 +748,10 @@ impl Paradex {
         }
         let mut channels: Value = Value::from(vec![]);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_585: bool = true;
-            while { if !__for_first_585 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_585 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
-            let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            while { if !__for_first_585 { i += 1; } __for_first_585 = false; (i as f64) < symbolsLength } {
+            let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if let Value::Arr(__a) = &mut channels { std::sync::Arc::make_mut(__a).push(Value::Str(format!("{}{}", Value::Str("trades.".into()), Value::from((market).id.clone())).into())); }
         }
         }
@@ -982,10 +982,10 @@ impl Paradex {
         let mut channels: Vec<Value> = Vec::new();
         let mut messageHashes: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_586: bool = true;
-            while { if !__for_first_586 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_586 = false; i.as_f64().unwrap_or(f64::NAN) < symbolsLength } {
-            let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            while { if !__for_first_586 { i += 1; } __for_first_586 = false; (i as f64) < symbolsLength } {
+            let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut deltasChannel: Value = self.get_order_book_channel(Value::from((market).id.clone()), &[Value::Bool(true)]).map(Value::from).unwrap_or(Value::Null);
             let mut snapshotChannel: Value = self.get_order_book_channel(Value::from((market).id.clone()), &[Value::Bool(false)]).map(Value::from).unwrap_or(Value::Null);
             // one feed per market on a connection: both send BookEvent frames, which do not name their channel,
@@ -1273,10 +1273,10 @@ impl Paradex {
         let mut newTicker: Value = Value::Null;
         if (symbolsLength as f64) > ((0i64) as f64) {
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_590: bool = true;
-                while { if !__for_first_590 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_590 = false; i.as_f64().unwrap_or(f64::NAN) < (symbolsLength as f64) } {
-                messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".into())).into()), symbolsNormalized.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null)).into()));
+                while { if !__for_first_590 { i += 1; } __for_first_590 = false; (i as f64) < (symbolsLength as f64) } {
+                messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(".".into())).into()), symbolsNormalized.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into()));
             }
             }
             newTicker = self.subscribe_markets_summary(symbolsNormalized.clone(), Value::from(messageHashes), &[params.clone()]).await;
@@ -1319,7 +1319,7 @@ impl Paradex {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut newTickerSymbol: Option<String> = self.safe_string_k_opt(newTicker.clone(), "symbol", &[]);
+            let mut newTickerSymbol: Option<String> = self.safe_string_k(newTicker.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (newTickerSymbol.is_some()) {
                 result.insert(newTickerSymbol.as_deref().unwrap_or("null").to_string(), newTicker);
             }
@@ -1494,10 +1494,10 @@ impl Paradex {
         let mut messageHashes: Vec<Value> = Vec::new();
         if (symbolsLength as f64) > ((0i64) as f64) {
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_593: bool = true;
-                while { if !__for_first_593 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_593 = false; i.as_f64().unwrap_or(f64::NAN) < (symbolsLength as f64) } {
-                let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                while { if !__for_first_593 { i += 1; } __for_first_593 = false; (i as f64) < (symbolsLength as f64) } {
+                let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 channels.push(Value::Str(format!("{}{}", Value::Str("bbo.".into()), Value::from((market).id.clone())).into()));
                 messageHashes.push(Value::Str(format!("{}{}", Value::Str("bidask:".into()), Value::from((market).symbol.clone())).into()));
             }
@@ -1832,10 +1832,10 @@ impl Paradex {
             messageHashes.push(Value::from(channel.clone()));
         }  else {
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_594: bool = true;
-                while { if !__for_first_594 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_594 = false; i.as_f64().unwrap_or(f64::NAN) < (symbolsLength as f64) } {
-                messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null)).into()));
+                while { if !__for_first_594 { i += 1; } __for_first_594 = false; (i as f64) < (symbolsLength as f64) } {
+                messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", channel, Value::Str(":".into())).into()), symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).into()));
             }
             }
         }
@@ -2044,13 +2044,13 @@ impl Paradex {
                 m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
             m
         });
-        let mut code: Value = self.safe_currency_code(self.safe_string_k(data.clone(), "settlement_asset", &[]), &[]);
+        let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(data.clone(), "settlement_asset", &[]), &[]).as_str().map(str::to_owned);
         let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
         account.insert("total".into(), self.safe_string_k(data.clone(), "account_value", &[]));
         account.insert("free".into(), self.safe_string_k(data.clone(), "free_collateral", &[]));
         account.insert("used".into(), self.safe_string_k(data, "initial_margin_requirement", &[]));
-        if (code != Value::Null) {
-            result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+        if (code.is_some()) {
+            result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
         }
         return self.safe_balance(Value::Map(result));
 
@@ -2197,7 +2197,7 @@ impl Paradex {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut newFundingRatesSymbol: Option<String> = self.safe_string_k_opt(newFundingRates.clone(), "symbol", &[]);
+            let mut newFundingRatesSymbol: Option<String> = self.safe_string_k(newFundingRates.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (newFundingRatesSymbol.is_some()) {
                 result.insert(newFundingRatesSymbol.as_deref().unwrap_or("null").to_string(), newFundingRates);
             }

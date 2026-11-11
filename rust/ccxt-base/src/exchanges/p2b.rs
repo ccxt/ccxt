@@ -1770,8 +1770,8 @@ impl P2b {
                         let mut i: i64 = 0;
             let mut __for_first_1042: bool = true;
             while { if !__for_first_1042 { i += 1; } __for_first_1042 = false; i < (keys.len() as i64) } {
-            let mut marketId: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut marketOrders: Value = result.get(marketId.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
+            let mut marketId: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut marketOrders: Value = result.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let mut parsedOrders: Value = self.parse_orders(marketOrders, &[market.clone(), sinceResolved.clone(), limit.clone()]);
             orders = self.array_concat(orders.clone(), parsedOrders);
         }

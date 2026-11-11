@@ -4213,12 +4213,12 @@ impl Woofipro {
             let mut __for_first_1183: bool = true;
             while { if !__for_first_1183 { i += 1; } __for_first_1183 = false; i < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(balances.clone().into(), Value::Int(i), &[]).into_dict();
-            let mut code: Value = self.safe_currency_code(self.safe_string_k(&balance, "token", &[]), &[]);
+            let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(&balance, "token", &[]), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string_k(&balance, "holding", &[]));
             account.insert("used".into(), self.safe_string_k(&balance, "frozen", &[]));
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }

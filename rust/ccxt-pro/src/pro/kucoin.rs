@@ -982,7 +982,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     let mut m = indexmap::IndexMap::new();
                     m
                 });
-                let mut tickersSymbol: Option<String> = self.safe_string_k_opt(tickers.clone(), "symbol", &[]);
+                let mut tickersSymbol: Option<String> = self.safe_string_k(tickers.clone(), "symbol", &[]).as_str().map(str::to_owned);
                 if (tickersSymbol.is_some()) {
                     newDict.insert(tickersSymbol.as_deref().unwrap_or("null").to_string(), tickers.clone());
                 }
@@ -1001,8 +1001,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let mut subscription = get_arg(optional_args, 1, Value::Null);
         let mut requestId: Value = Value::Str(format!("{}", self.request_id()).into());
-        let mut market: Value = self.get_market_from_symbols(&[symbols.clone()]);
-        let mut isContract: bool = self.safe_bool_k(market, "contract", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut market: crate::value::Dict = self.get_market_from_symbols(&[symbols.clone()]).into_dict();
+        let mut isContract: bool = self.safe_bool_k(&market, "contract", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut urlType: String = "spot".to_string();
         if isContract {
             urlType = "futures".to_string();
@@ -1320,8 +1320,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true), Value::Bool(false)]);
-        let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
-        let mut isFuturesMethod: bool = self.safe_bool_k(firstMarket, "contract", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut firstMarket: crate::value::Dict = self.get_market_from_symbols(&[symbolsNormalized.clone()]).into_dict();
+        let mut isFuturesMethod: bool = self.safe_bool_k(&firstMarket, "contract", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut channelName: String = "/spotMarket/level1:".to_string();
         if isFuturesMethod {
             channelName = "/contractMarket/tickerV2:".to_string();
@@ -1332,7 +1332,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut tickerSymbol: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
+            let mut tickerSymbol: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (tickerSymbol.is_some()) {
                 tickers.insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), ticker);
             }
@@ -1829,8 +1829,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]).into_list();
-        let mut firstMarket: Value = self.get_market_from_symbols(&[Value::Arr(symbolsNormalized.clone())]);
-        let mut isFuturesMethod: bool = self.safe_bool_k(firstMarket, "contract", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut firstMarket: crate::value::Dict = self.get_market_from_symbols(&[Value::Arr(symbolsNormalized.clone())]).into_dict();
+        let mut isFuturesMethod: bool = self.safe_bool_k(&firstMarket, "contract", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut marketIds: Value = self.market_ids(&[Value::Arr(symbolsNormalized.clone())]);
         let mut url: Value = self.negotiate(Value::Bool(false), &[Value::Bool(isFuturesMethod)]).await;
         let mut messageHashes: Vec<Value> = Vec::new();
@@ -1888,8 +1888,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]);
         let mut marketIds: Value = self.market_ids(&[symbolsNormalized.clone()]);
-        let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
-        let mut isFuturesMethod: bool = self.safe_bool_k(firstMarket, "contract", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut firstMarket: crate::value::Dict = self.get_market_from_symbols(&[symbolsNormalized.clone()]).into_dict();
+        let mut isFuturesMethod: bool = self.safe_bool_k(&firstMarket, "contract", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut url: Value = self.negotiate(Value::Bool(false), &[Value::Bool(isFuturesMethod)]).await;
         let mut messageHashes: Value = Value::from(vec![]);
         let mut subscriptionHashes: Vec<Value> = Vec::new();
@@ -2295,8 +2295,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
         let mut marketIds: Value = self.market_ids(&[symbolsNormalized.clone()]);
-        let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
-        let mut isFuturesMethod: bool = self.safe_bool_k(firstMarket, "contract", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut firstMarket: crate::value::Dict = self.get_market_from_symbols(&[symbolsNormalized.clone()]).into_dict();
+        let mut isFuturesMethod: bool = self.safe_bool_k(&firstMarket, "contract", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut url: Value = self.negotiate(Value::Bool(false), &[Value::Bool(isFuturesMethod)]).await;
         let mut defaultMethod: String = "/market/level2".to_string();
         if isFuturesMethod {
@@ -2383,8 +2383,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false), Value::Bool(true)]);
         let mut marketIds: Value = self.market_ids(&[symbolsNormalized.clone()]);
-        let mut firstMarket: Value = self.get_market_from_symbols(&[symbolsNormalized.clone()]);
-        let mut isFuturesMethod: bool = self.safe_bool_k(firstMarket, "contract", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut firstMarket: crate::value::Dict = self.get_market_from_symbols(&[symbolsNormalized.clone()]).into_dict();
+        let mut isFuturesMethod: bool = self.safe_bool_k(&firstMarket, "contract", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut url: Value = self.negotiate(Value::Bool(false), &[Value::Bool(isFuturesMethod)]).await;
         let mut defaultMethod: String = "/market/level2".to_string();
         if isFuturesMethod {

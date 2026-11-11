@@ -1178,7 +1178,7 @@ impl Bit2c {
                 status = Some("closed".to_string());
             }
         }  else {
-            let mut tempStatus: Option<String> = self.safe_string_k_opt(orderUnified.clone(), "status", &[]);
+            let mut tempStatus: Option<String> = self.safe_string_k(orderUnified.clone(), "status", &[]).as_str().map(str::to_owned);
             if (tempStatus.as_deref() == Some("New")) || (tempStatus.as_deref() == Some("Open")) {
                 status = Some("open".to_string());
             }  else if (tempStatus.as_deref() == Some("Completed")) {

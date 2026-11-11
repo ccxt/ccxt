@@ -932,10 +932,10 @@ impl Polymarket {
         }
         let mut trades: Value = (if let (Some(__m), Some(__k)) = (self.trades.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_638: bool = true;
-            while { if !__for_first_638 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_638 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
-            let mut row: Value = self.safe_dict(rows.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_638 { i += 1; } __for_first_638 = false; (i as f64) < rowsLength } {
+            let mut row: Value = self.safe_dict(rows.clone(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -1296,10 +1296,10 @@ impl Polymarket {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_640: bool = true;
-            while { if !__for_first_640 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_640 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
-            let mut row: Value = self.safe_dict(rows.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_640 { i += 1; } __for_first_640 = false; (i as f64) < rowsLength } {
+            let mut row: Value = self.safe_dict(rows.clone(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -1317,7 +1317,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_641: bool = true;
             while { if !__for_first_641 { i += 1; } __for_first_641 = false; i < (symbolKeys.len() as i64) } {
-            let symbol: String = self.safe_string_opt(&symbolKeys, Value::Int(i), &[Value::Str("".into())]).unwrap_or_default();
+            let mut symbol: String = self.safe_string(&symbolKeys, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             client.resolve(&[stored.clone(), Value::Str(format!("{}{}", Value::Str("orders:".into()), symbol).into())]);
         }
         }
@@ -1423,10 +1423,10 @@ impl Polymarket {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_642: bool = true;
-            while { if !__for_first_642 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_642 = false; i.as_f64().unwrap_or(f64::NAN) < rowsLength } {
-            let mut row: Value = self.safe_dict(rows.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_642 { i += 1; } __for_first_642 = false; (i as f64) < rowsLength } {
+            let mut row: Value = self.safe_dict(rows.clone(), Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -1444,7 +1444,7 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_643: bool = true;
             while { if !__for_first_643 { i += 1; } __for_first_643 = false; i < (symbolKeys.len() as i64) } {
-            let symbol: String = self.safe_string_opt(&symbolKeys, Value::Int(i), &[Value::Str("".into())]).unwrap_or_default();
+            let mut symbol: String = self.safe_string(&symbolKeys, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             client.resolve(&[stored.clone(), Value::Str(format!("{}{}", Value::Str("myTrades:".into()), symbol).into())]);
         }
         }

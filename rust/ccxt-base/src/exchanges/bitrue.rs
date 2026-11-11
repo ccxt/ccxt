@@ -1725,12 +1725,12 @@ impl Bitrue {
             while { if !__for_first_415 { i += 1; } __for_first_415 = false; i < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(balances.clone(), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string2(&balance, Value::Str("asset".into()), Value::Str("marginCoin".into()), &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string2(&balance, Value::Str("free".into()), Value::Str("accountNormal".into()), &[]));
             account.insert("used".into(), self.safe_string2(&balance, Value::Str("locked".into()), Value::Str("accountLock".into()), &[]));
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }
@@ -2109,8 +2109,8 @@ impl Bitrue {
             if (until.is_some()) {
                 request.insert("fromIdx".into(), Value::from(until));
             }
-            let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
-            let __ws_arg_8 = self.extend(Value::Map(request), &[paramsOmitted]);
+            let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params }).into_dict();
+            let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.spot_v1_public_get_market_kline(&[__ws_arg_8]).await;
             data = self.safe_list_k(response, "data", &[Value::from(vec![])]);
         }  else {
@@ -3663,15 +3663,15 @@ impl Bitrue {
         });
         if (chainDetailLength != 0.0) {
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_417: bool = true;
-                while { if !__for_first_417 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_417 = false; i.as_f64().unwrap_or(f64::NAN) < chainDetailLength } {
-                let mut chainDetail: crate::value::Dict = self.safe_dict(chainDetails.clone().into(), i.clone(), &[]).into_dict();
+                while { if !__for_first_417 { i += 1; } __for_first_417 = false; (i as f64) < chainDetailLength } {
+                let mut chainDetail: crate::value::Dict = self.safe_dict(chainDetails.clone().into(), Value::Int(i), &[]).into_dict();
                 let mut networkId: Option<String> = self.safe_string_k(&chainDetail, "chain", &[]).as_str().map(str::to_owned);
                 let mut currencyCode: Option<String> = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-                let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), currencyCode.clone().map(Value::from).unwrap_or(Value::Null)]);
-                if (networkCode != Value::Null) {
-                    networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
+                let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), currencyCode.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+                if (networkCode.is_some()) {
+                    networks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3833,8 +3833,8 @@ impl Bitrue {
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
-        let __ws_arg_36 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params }).into_dict();
+        let __ws_arg_36 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.fapi_v2_private_get_futures_transfer_history(&[__ws_arg_36]).await.into_dict();
         //
         //     {

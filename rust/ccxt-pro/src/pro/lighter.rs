@@ -852,7 +852,7 @@ impl Lighter {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut newTickerSymbol: Option<String> = self.safe_string_k_opt(newTicker.clone(), "symbol", &[]);
+            let mut newTickerSymbol: Option<String> = self.safe_string_k(newTicker.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (newTickerSymbol.is_some()) {
                 result.insert(newTickerSymbol.as_deref().unwrap_or("null").to_string(), newTicker);
             }
@@ -1788,12 +1788,12 @@ impl Lighter {
                 let mut assetId: Value = assetIds.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut asset: crate::value::Dict = self.safe_dict(assets.clone(), assetId, &[]).into_dict();
                 let mut codeId: Option<String> = self.safe_string_k(&asset, "symbol", &[]).as_str().map(str::to_owned);
-                let mut code: Value = self.safe_currency_code(codeId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+                let mut code: Option<String> = self.safe_currency_code(codeId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                 let mut account: Value = self.account();
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string_k(&asset, "locked_balance", &[])); }
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string_k(&asset, "balance", &[])); }
-                if (code != Value::Null) {
-                    balance.insert(crate::runtime::stringify_param(&code), account.clone());
+                if (code.is_some()) {
+                    balance.insert(code.as_deref().unwrap_or("null").to_string(), account.clone());
                 }
             }
             }

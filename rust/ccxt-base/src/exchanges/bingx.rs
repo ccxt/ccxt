@@ -8049,10 +8049,10 @@ impl Bingx {
         });
         if (networksLength != 0.0) {
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_323: bool = true;
-                while { if !__for_first_323 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_323 = false; i.as_f64().unwrap_or(f64::NAN) < networksLength } {
-                let mut networkCode: Value = self.safe_string(&networkCodes, i.clone(), &[Value::Str("".into())]);
+                while { if !__for_first_323 { i += 1; } __for_first_323 = false; (i as f64) < networksLength } {
+                let mut networkCode: Value = self.safe_string(&networkCodes, Value::Int(i), &[Value::Str("".into())]);
                 let mut network: crate::value::Dict = self.safe_dict(networks.clone(), networkCode.clone(), &[]).into_dict();
                 if let Value::Dict(__d) = result.entry("networks".into()).or_default() { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -8209,10 +8209,10 @@ impl Bingx {
         let mut rawKeys: Vec<Value> = Value::Array(sortedParams.keys().map(|__k| Value::Str(__k.clone().into())).collect()).as_array().cloned().unwrap_or_default();
         let mut rawKeysLength: f64 = ((rawKeys.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_326: bool = true;
-            while { if !__for_first_326 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_326 = false; i.as_f64().unwrap_or(f64::NAN) < rawKeysLength } {
-            let mut key: Value = rawKeys.get(i.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_326 { i += 1; } __for_first_326 = false; (i as f64) < rawKeysLength } {
+            let mut key: Value = rawKeys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut value: Value = sortedParams.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
             if (matches!(&value, Value::Arr(_))) {
                 let mut arrStr: Value = Value::Str("[".into());
@@ -9041,10 +9041,10 @@ impl Bingx {
         //
         let mut tiers: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_330: bool = true;
-            while { if !__for_first_330 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_330 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
-            let mut tier: Value = self.safe_dict(info.clone(), i.clone(), &[]);
+            while { if !__for_first_330 { i += 1; } __for_first_330 = false; (i as f64) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
+            let mut tier: Value = self.safe_dict(info.clone(), Value::Int(i), &[]);
             let mut tierString: Option<String> = self.safe_string_k_opt(tier.clone(), "tier", &[]);
             let mut tierParts: Value = Value::Array(if let Some(__s) = tierString.as_deref() { __s.split(" ").map(Value::from).collect() } else { Vec::new() });
             let mut marketId: Option<String> = self.safe_string_k(tier.clone(), "symbol", &[]).as_str().map(str::to_owned);

@@ -4852,9 +4852,9 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_692: bool = true;
             while { if !__for_first_692 { i += 1; } __for_first_692 = false; i < (symbols.len() as i64) } {
-            let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-            result.insert(crate::runtime::stringify_param(&symbol), self.parse_trading_fee(response.clone(), &[market]));
+            let mut symbol: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.parse_trading_fee(response.clone(), &[market]));
         }
         }
         return Value::Map(result);
@@ -4981,10 +4981,10 @@ if _try_result.is_err() {
                                         let mut j: i64 = 0;
                     let mut __for_first_693: bool = true;
                     while { if !__for_first_693 { j += 1; } __for_first_693 = false; j < (networkIds.len() as i64) } {
-                    let mut networkId: Value = networkIds.get(j as usize).cloned().unwrap_or(Value::Null);
-                    let mut networkCode: Value = self.network_id_to_code(&[networkId.clone(), code.clone()]);
+                    let mut networkId: Option<String> = networkIds.get(j as usize).and_then(Value::as_str).map(str::to_owned);
+                    let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
                     if (networkCode != Value::Null) {
-                        add_element_to_object(&mut withdrawFees, &networkCode, self.parse_number((if let (Some(__m), Some(__k)) = (withdrawFixOnChains.as_map(), networkId.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[]));
+                        add_element_to_object(&mut withdrawFees, &networkCode, self.parse_number((if let (Some(__m), Some(__k)) = (withdrawFixOnChains.as_map(), networkId.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &[]));
                     }
                 }
                 }
@@ -8522,10 +8522,10 @@ if _try_result.is_err() {
         if openSpotOrders {
             let mut spotResult: Value = Value::from(vec![]);
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_702: bool = true;
-                while { if !__for_first_702 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_702 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
-                let mut responseEntry: crate::value::Dict = self.safe_dict(response.clone(), i.clone(), &[Value::Map({
+                while { if !__for_first_702 { i += 1; } __for_first_702 = false; (i as f64) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
+                let mut responseEntry: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();

@@ -931,10 +931,10 @@ impl Coinspot {
             let mut rows: Value = self.to_array(balances.clone());
             let mut numRows: f64 = ((rows.len() as i64) as f64);
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_582: bool = true;
-                while { if !__for_first_582 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_582 = false; i.as_f64().unwrap_or(f64::NAN) < numRows } {
-                let mut currencies: Value = self.safe_dict(rows.clone(), i.clone(), &[Value::Map({
+                while { if !__for_first_582 { i += 1; } __for_first_582 = false; (i as f64) < numRows } {
+                let mut currencies: Value = self.safe_dict(rows.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -1194,11 +1194,11 @@ impl Coinspot {
                         let mut i: i64 = 0;
             let mut __for_first_584: bool = true;
             while { if !__for_first_584 { i += 1; } __for_first_584 = false; i < (ids.len() as i64) } {
-            let mut id: Value = ids.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: Value = self.safe_market(&[id.clone()]);
+            let mut id: Option<String> = ids.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut market: Value = self.safe_market(&[id.clone().map(Value::from).unwrap_or(Value::Null)]);
             if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
                 let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-                let mut ticker: Value = prices.get(id.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
+                let mut ticker: Value = prices.get(id.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
                 result.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(ticker, &[market]));
             }
         }

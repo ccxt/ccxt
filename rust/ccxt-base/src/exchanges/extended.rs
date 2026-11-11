@@ -913,7 +913,7 @@ impl Extended {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut numericIdString: Option<String> = self.safe_string_k_opt(item.clone(), "numericId", &[]);
+            let mut numericIdString: Option<String> = self.safe_string_k(item.clone(), "numericId", &[]).as_str().map(str::to_owned);
             if (numericIdString.is_none()) {
                 continue;
             }
@@ -2387,12 +2387,12 @@ impl Extended {
     m
 })]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "asset", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string_k(&balance, "availableToWithdraw", &[]));
             account.insert("total".into(), self.safe_string_k(&balance, "balance", &[]));
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }
@@ -3322,7 +3322,7 @@ impl Extended {
     m
 })]);
             let mut parsed: Value = self.parse_trading_fee(fee, &[]);
-            let mut symbol: Option<String> = self.safe_string_k_opt(parsed.clone(), "symbol", &[]);
+            let mut symbol: Option<String> = self.safe_string_k(parsed.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (symbol.is_some()) {
                 result.insert(symbol.as_deref().unwrap_or("null").to_string(), parsed);
             }

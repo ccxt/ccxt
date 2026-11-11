@@ -2144,10 +2144,10 @@ impl Apex {
         }
         let mut numAssets: f64 = ((assets.len() as i64) as f64);
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_228: bool = true;
-            while { if !__for_first_228 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_228 = false; i.as_f64().unwrap_or(f64::NAN) < numAssets } {
-            let mut asset: Value = self.safe_dict(assets.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_228 { i += 1; } __for_first_228 = false; (i as f64) < numAssets } {
+            let mut asset: Value = self.safe_dict(assets.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -2204,13 +2204,13 @@ impl Apex {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut currentTime: Value = self.milliseconds();
+            let mut currentTime: Option<i64> = self.milliseconds().as_i64();
             let mut parsedAmount: Value = self.parse_number(amount.clone(), &[]);
             let __ws_arg_8 = self.parse_transfer(data.clone(), &[self.currency(code.clone())]);
-            let __ws_arg_9 = self.iso8601(currentTime.clone());
+            let __ws_arg_9 = self.iso8601(Value::from(currentTime));
             return self.extend(__ws_arg_8, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("timestamp".to_string(), currentTime.clone());
+        m.insert("timestamp".to_string(), Value::from(currentTime));
         m.insert("datetime".to_string(), __ws_arg_9);
         m.insert("amount".to_string(), parsedAmount);
         m.insert("fromAccount".to_string(), Value::Str("contract".into()));
@@ -2257,13 +2257,13 @@ impl Apex {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut currentTime: Value = self.milliseconds();
+            let mut currentTime: Option<i64> = self.milliseconds().as_i64();
             let __ws_arg_11 = self.parse_transfer(data, &[self.currency(code)]);
-            let __ws_arg_12 = self.iso8601(currentTime.clone());
+            let __ws_arg_12 = self.iso8601(Value::from(currentTime));
             let __ws_arg_13 = self.parse_number(amount, &[]);
             return self.extend(__ws_arg_11, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("timestamp".to_string(), currentTime);
+        m.insert("timestamp".to_string(), Value::from(currentTime));
         m.insert("datetime".to_string(), __ws_arg_12);
         m.insert("amount".to_string(), __ws_arg_13);
         m.insert("fromAccount".to_string(), Value::Str("spot".into()));
@@ -2524,8 +2524,8 @@ impl Apex {
         if (endTimeExclusive.is_some()) {
             request.insert("endTimeExclusive".into(), Value::from(endTimeExclusive));
         }
-        let mut paramsOmitted: Value = (if (endTimeExclusive.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("endTime".into()), Value::Str("endTimeExclusive".into()), Value::Str("until".into())]), &[]) } else { params });
-        let __ws_arg_19 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = (if (endTimeExclusive.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("endTime".into()), Value::Str("endTimeExclusive".into()), Value::Str("until".into())]), &[]) } else { params }).into_dict();
+        let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_v3_history_orders(&[__ws_arg_19]).await.into_dict();
         let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2639,8 +2639,8 @@ impl Apex {
         if (endTimeExclusive.is_some()) {
             request.insert("endTimeExclusive".into(), Value::from(endTimeExclusive));
         }
-        let mut paramsOmitted: Value = (if (endTimeExclusive.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("endTime".into()), Value::Str("endTimeExclusive".into()), Value::Str("until".into())]), &[]) } else { params });
-        let __ws_arg_21 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = (if (endTimeExclusive.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("endTime".into()), Value::Str("endTimeExclusive".into()), Value::Str("until".into())]), &[]) } else { params }).into_dict();
+        let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_v3_fills(&[__ws_arg_21]).await.into_dict();
         let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2701,8 +2701,8 @@ impl Apex {
         if (endTimeExclusive.is_some()) {
             request.insert("endTimeExclusive".into(), Value::from(endTimeExclusive));
         }
-        let mut paramsOmitted: Value = (if (endTimeExclusive.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("endTime".into()), Value::Str("endTimeExclusive".into()), Value::Str("until".into())]), &[]) } else { params });
-        let __ws_arg_22 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = (if (endTimeExclusive.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("endTime".into()), Value::Str("endTimeExclusive".into()), Value::Str("until".into())]), &[]) } else { params }).into_dict();
+        let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_v3_funding(&[__ws_arg_22]).await.into_dict();
         let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();

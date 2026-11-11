@@ -903,10 +903,10 @@ impl Mudrex {
                 break;
             }
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_970: bool = true;
-                while { if !__for_first_970 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_970 = false; i.as_f64().unwrap_or(f64::NAN) < numItems } {
-                aggregated.push(items.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null));
+                while { if !__for_first_970 { i += 1; } __for_first_970 = false; (i as f64) < numItems } {
+                aggregated.push(items.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             }
             }
             if numItems < (pageLimit as f64) {

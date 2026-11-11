@@ -4228,10 +4228,10 @@ impl Kucoin {
         let mut chains: Value = self.safe_list2(entry.clone(), Value::Str("chains".into()), Value::Str("items".into()), &[Value::from(vec![])]);
         let mut chainsLength: f64 = ((chains.len() as i64) as f64);
         {
-                        let mut j: Value = Value::Int(0);
+                        let mut j: i64 = 0;
             let mut __for_first_889: bool = true;
-            while { if !__for_first_889 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_889 = false; j.as_f64().unwrap_or(f64::NAN) < chainsLength } {
-            let mut chain: Value = self.safe_dict(chains.clone(), j.clone(), &[]);
+            while { if !__for_first_889 { j += 1; } __for_first_889 = false; (j as f64) < chainsLength } {
+            let mut chain: Value = self.safe_dict(chains.clone(), Value::Int(j), &[]);
             let mut chainId: Option<String> = self.safe_string_k(chain.clone(), "chainId", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[chainId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             if (networkCode != Value::Null) {
@@ -5029,7 +5029,7 @@ impl Kucoin {
             while { if !__for_first_892 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_892 = false; i.as_f64().unwrap_or(f64::NAN) < ((tickers.len() as i64) as f64) } {
             add_element_to_object(get_value_mut(&mut tickers, &i), &Value::Str("time".into()), Value::from(time));
             let mut ticker: Value = self.parse_spot_or_uta_ticker(tickers.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null), &[]);
-            let mut symbol: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
+            let mut symbol: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
             if (symbol.is_some()) {
                 result.insert(symbol.as_deref().unwrap_or("null").to_string(), ticker);
             }
@@ -11479,9 +11479,9 @@ impl Kucoin {
                 while { if !__for_first_897 { i += 1; } __for_first_897 = false; i < (accounts.len() as i64) } {
                 let mut balance: Value = accounts.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "currency", &[]);
-                let mut codeInner: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
-                if (codeInner != Value::Null) {
-                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&codeInner), self.parse_balance_helper(balance.clone())); }
+                let mut codeInner: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+                if (codeInner.is_some()) {
+                    if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(codeInner.as_deref().unwrap_or("null").to_string(), self.parse_balance_helper(balance.clone())); }
                 }
             }
             }
@@ -11495,13 +11495,13 @@ impl Kucoin {
                 let mut balanceType: Option<String> = self.safe_string_k_opt(balance.clone(), "type", &[]);
                 if (balanceType.as_deref() == type_var.as_str()) {
                     let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "currency", &[]);
-                    let mut codeInner2: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
+                    let mut codeInner2: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                     let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
                     account.insert("total".into(), self.safe_string_k(balance.clone(), "balance", &[]));
                     account.insert("free".into(), self.safe_string_k(balance.clone(), "available", &[]));
                     account.insert("used".into(), self.safe_string_k(balance, "holds", &[]));
-                    if (codeInner2 != Value::Null) {
-                        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&codeInner2), Value::Map(account)); }
+                    if (codeInner2.is_some()) {
+                        if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(codeInner2.as_deref().unwrap_or("null").to_string(), Value::Map(account)); }
                     }
                 }
             }
@@ -11572,12 +11572,12 @@ impl Kucoin {
         });
         let mut data: crate::value::Dict = self.safe_dict_k(response, "data", &[]).into_dict();
         let mut currencyId: Option<String> = self.safe_string_k(&data, "currency", &[]).as_str().map(str::to_owned);
-        let mut currencyCode: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]);
+        let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[currency]).as_str().map(str::to_owned);
         let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
         account.insert("free".into(), self.safe_string_k(&data, "availableBalance", &[]));
         account.insert("total".into(), self.safe_string_k(&data, "accountEquity", &[]));
-        if (currencyCode != Value::Null) {
-            result.insert(crate::runtime::stringify_param(&currencyCode), Value::Map(account));
+        if (currencyCode.is_some()) {
+            result.insert(currencyCode.as_deref().unwrap_or("null").to_string(), Value::Map(account));
         }
         return self.safe_balance(Value::Map(result));
 
@@ -15466,10 +15466,10 @@ if _try_result.is_err() {
         let mut marketCursor: Value = market.clone();
         let mut tiers: Vec<Value> = Vec::new();
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_908: bool = true;
-            while { if !__for_first_908 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_908 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
-            let mut tier: Value = self.safe_dict(info.clone(), i.clone(), &[Value::Map({
+            while { if !__for_first_908 { i += 1; } __for_first_908 = false; (i as f64) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
+            let mut tier: Value = self.safe_dict(info.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);

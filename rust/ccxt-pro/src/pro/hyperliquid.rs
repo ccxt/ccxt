@@ -957,7 +957,7 @@ impl Hyperliquid {
                 defaultDex = dexName.clone().map(Value::from).unwrap_or(Value::Null);
             }
         }
-        let mut paramsOmitted: Value = (if (defaultDex != Value::Null) { self.omit(params.clone(), Value::Str("dex".into()), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (defaultDex != Value::Null) { self.omit(params.clone(), Value::Str("dex".into()), &[]) } else { params }).into_dict();
         if (defaultDex != Value::Null) {
             messageHash = format!("{}{}", Value::Str("tickers:".into()), defaultDex);
             if let Value::Dict(__d) = request.entry("subscription".into()).or_default() { std::sync::Arc::make_mut(__d).insert("type".into(), Value::Str("allMids".into())); }
@@ -965,7 +965,7 @@ impl Hyperliquid {
         }
         // unWatchTickers always registers the bare 'unsubscribe:tickers' hash, dex-scoped or not
         self.wait_for_pending_unsubscribe(url.clone(), Value::Str("tickers".into())).await;
-        let __ws_arg_2 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut tickers: Value = self.watch(url, Value::from(messageHash.clone()), &[__ws_arg_2, Value::from(messageHash)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return self.filter_by_array_tickers(tickers.clone(), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
@@ -1465,10 +1465,10 @@ impl Hyperliquid {
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_404: bool = true;
-            while { if !__for_first_404 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_404 = false; i.as_f64().unwrap_or(f64::NAN) < newLiquidationsLength } {
-            let mut liquidation: Value = newLiquidations.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
+            while { if !__for_first_404 { i += 1; } __for_first_404 = false; (i as f64) < newLiquidationsLength } {
+            let mut liquidation: Value = newLiquidations.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             cache.append(liquidation.clone());
             symbols.insert(crate::runtime::stringify_param(&(liquidation.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null))), Value::Bool(true));
         }
@@ -2950,12 +2950,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_413: bool = true;
             while { if !__for_first_413 { i += 1; } __for_first_413 = false; i < (keys.len() as i64) } {
-            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (match (&(topic), &(keys.get(i as usize).cloned().unwrap_or(Value::Null))) { (Value::Arr(__a), __nd) => Value::Int(__a.iter().position(|__it| match (__it, __nd) { (Value::Null, Value::Null) => true, (Value::Bool(__x), Value::Bool(__y)) => __x == __y, (Value::Str(__x), Value::Str(__y)) => __x == __y, (Value::Int(__x),
                 Value::Int(__y)) => __x == __y, (Value::Float(__x), Value::Float(__y)) => __x == __y, (__p, __q) => match ((match __p { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }),
                 (match __q { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None })) { (Some(__x), Some(__y)) => __x == __y, _ => false } }).map(|__i| __i as i64).unwrap_or(-1)), (Value::Str(__s),
                 Value::Str(__nd)) => Value::Int(__s.find(&**__nd).map(|__i| __i as i64).unwrap_or(-1)), _ => Value::Int(-1) }).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-                let mut method: Value = methods.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
+                let mut method: Value = methods.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
                 return;
             }

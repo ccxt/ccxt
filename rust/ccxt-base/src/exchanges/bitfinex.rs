@@ -1956,11 +1956,11 @@ impl Bitfinex {
             // this will only filter the derivative codes if the requestedType is 'derivatives'
             let mut derivativeCondition: bool = !isDerivative || isDerivativeCode;
             if (accountType.as_str() == type_var.as_deref()) && derivativeCondition {
-                let mut code: Value = self.safe_currency_code(currencyId, &[]);
+                let mut code: Option<String> = self.safe_currency_code(currencyId, &[]).as_str().map(str::to_owned);
                 account.insert("total".into(), self.safe_string(&balance, Value::Int(2), &[]));
                 account.insert("free".into(), self.safe_string(&balance, Value::Int(4), &[]));
-                if (code != Value::Null) {
-                    result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+                if (code.is_some()) {
+                    result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
                 }
             }
         }
@@ -3205,8 +3205,8 @@ impl Bitfinex {
                 m
             });
         }
-        let mut paramsOmitted: Value = (if (cid.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("cid".into()), Value::Str("clientOrderId".into())]), &[]) } else { params });
-        let __ws_arg_8 = self.extend(request, &[paramsOmitted]);
+        let mut paramsOmitted: crate::value::Dict = (if (cid.is_some()) { self.omit(params.clone(), Value::from(vec![Value::Str("cid".into()), Value::Str("clientOrderId".into())]), &[]) } else { params }).into_dict();
+        let __ws_arg_8 = self.extend(request, &[&paramsOmitted]);
         let mut response: Value = self.private_post_auth_w_order_cancel(&[__ws_arg_8]).await;
         let mut order: Value = self.safe_value(response, Value::Int(4), &[]);
         let mut newOrder: indexmap::IndexMap<String, Value> = ({

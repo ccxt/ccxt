@@ -1998,12 +1998,12 @@ impl Lbank {
                 let mut __for_first_919: bool = true;
                 while { if !__for_first_919 { i += 1; } __for_first_919 = false; i < (currencies.len() as i64) } {
                 let mut currencyId: Value = currencies.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
+                let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), &[]).as_str().map(str::to_owned);
                 let mut account: Value = self.account();
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), self.safe_string(&used, currencyId.clone(), &[])); }
                 if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), self.safe_string(free.clone(), currencyId.clone(), &[])); }
-                if (code != Value::Null) {
-                    result.insert(crate::runtime::stringify_param(&code), account.clone());
+                if (code.is_some()) {
+                    result.insert(code.as_deref().unwrap_or("null").to_string(), account.clone());
                 }
             }
             }
@@ -3290,11 +3290,11 @@ impl Lbank {
             m
         });
         let mut network: Value = self.get_network_code_for_currency(code.clone(), params.clone()).map(Value::from).unwrap_or(Value::Null);
-        let mut paramsOmitted: Value = (if (network != Value::Null) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (network != Value::Null) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params }).into_dict();
         if (network != Value::Null) {
             request.insert("netWork".into(), network); // ... yes, really lol
         }
-        let __ws_arg_21 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.spot_private_post_get_deposit_address(&[__ws_arg_21]).await;
         //
         //      {
@@ -3346,11 +3346,11 @@ impl Lbank {
             network = self.safe_string(self.networkAliases.clone(), network.clone(), &[network.clone()]);
         }
         network = self.safe_string(&networks, network.clone(), &[network.clone()]);
-        let mut paramsOmitted: Value = (if (network != Value::Null) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (network != Value::Null) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params }).into_dict();
         if (network != Value::Null) {
             request.insert("networkName".into(), network);
         }
-        let __ws_arg_22 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: Value = self.spot_private_post_supplement_get_deposit_address(&[__ws_arg_22]).await;
         //
         //      {
@@ -3838,14 +3838,14 @@ impl Lbank {
                 let mut networkEntry: crate::value::Dict = self.safe_dict(networkList.clone().into(), Value::Int(j), &[]).into_dict();
                 let mut fee: Option<f64> = self.safe_number_k(&networkEntry, "withdrawFee", &[]).as_f64();
                 if (fee.is_some()) {
-                    let mut networkCode: Value = self.network_id_to_code(&[self.safe_string_k(&networkEntry, "name", &[]), code.clone()]);
-                    if (networkCode != Value::Null) {
-                        if (code != Value::Null) && (networkCode != Value::Null) {
+                    let mut networkCode: Option<String> = self.network_id_to_code(&[self.safe_string_k(&networkEntry, "name", &[]), code.clone()]).as_str().map(str::to_owned);
+                    if (networkCode.is_some()) {
+                        if (code != Value::Null) && (networkCode.is_some()) {
                             let mut feesForCode: indexmap::IndexMap<String, Value> = ({
                                 let mut m = indexmap::IndexMap::new();
                                 m
                             });
-                            feesForCode.insert(crate::runtime::stringify_param(&networkCode), Value::from(fee));
+                            feesForCode.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::from(fee));
                             let __ws_arg_26 = self.safe_dict(Value::Map(withdrawFees.clone()), code.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4143,13 +4143,13 @@ impl Lbank {
     m
 })]));
                         }
-                        let mut networkCode: Value = self.network_id_to_code(&[self.safe_string_k(fee, "chain", &[]), code.clone()]);
-                        if (networkCode != Value::Null) {
+                        let mut networkCode: Option<String> = self.network_id_to_code(&[self.safe_string_k(fee, "chain", &[]), code.clone()]).as_str().map(str::to_owned);
+                        if (networkCode.is_some()) {
                             let mut networkFees: indexmap::IndexMap<String, Value> = ({
                                 let mut m = indexmap::IndexMap::new();
                                 m
                             });
-                            networkFees.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
+                            networkFees.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4246,7 +4246,7 @@ impl Lbank {
             let mut __for_first_927: bool = true;
             while { if !__for_first_927 { j += 1; } __for_first_927 = false; j < (networkList.len() as i64) } {
             let mut networkEntry: crate::value::Dict = self.safe_dict(networkList.clone().into(), Value::Int(j), &[]).into_dict();
-            let mut networkCode: Value = self.network_id_to_code(&[self.safe_string_k(&networkEntry, "name", &[]), code.clone().map(Value::from).unwrap_or(Value::Null)]);
+            let mut networkCode: Option<String> = self.network_id_to_code(&[self.safe_string_k(&networkEntry, "name", &[]), code.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             let mut withdrawFee: Option<f64> = self.safe_number_k(&networkEntry, "withdrawFee", &[]).as_f64();
             let mut isDefault: bool = self.safe_bool_k(&networkEntry, "isDefault", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if (withdrawFee.is_some()) {
@@ -4258,12 +4258,12 @@ impl Lbank {
     m
 }));
                 }
-                if (networkCode != Value::Null) {
+                if (networkCode.is_some()) {
                     let mut networkFees: indexmap::IndexMap<String, Value> = ({
                         let mut m = indexmap::IndexMap::new();
                         m
                     });
-                    networkFees.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
+                    networkFees.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();

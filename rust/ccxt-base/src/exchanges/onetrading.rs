@@ -1727,12 +1727,12 @@ impl Onetrading {
             while { if !__for_first_1040 { i += 1; } __for_first_1040 = false; i < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(balances.clone().into(), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "currency_code", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string_k(&balance, "available", &[]));
             account.insert("used".into(), self.safe_string_k(&balance, "locked", &[]));
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }
@@ -2206,14 +2206,14 @@ impl Onetrading {
             request.insert("from".into(), self.iso8601(since.clone()));
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params }).into_dict();
         if (until.is_some()) {
             request.insert("to".into(), self.iso8601(Value::from(until)));
         }
         if (limit != Value::Null) {
             request.insert("max_page_size".into(), limit.clone());
         }
-        let __ws_arg_9 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_account_orders(&[__ws_arg_9]).await.into_dict();
         //
         //     {
@@ -2456,14 +2456,14 @@ impl Onetrading {
             request.insert("from".into(), self.iso8601(since.clone()));
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(params.clone(), Value::Str("until".into()), &[]) } else { params }).into_dict();
         if (until.is_some()) {
             request.insert("to".into(), self.iso8601(Value::from(until)));
         }
         if (limit != Value::Null) {
             request.insert("max_page_size".into(), limit.clone());
         }
-        let __ws_arg_12 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_account_trades(&[__ws_arg_12]).await.into_dict();
         //
         //     {

@@ -767,12 +767,12 @@ impl Indodax {
             let mut __for_first_839: bool = true;
             while { if !__for_first_839 { i += 1; } __for_first_839 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Value = currencyIds.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), self.safe_string(free.clone(), currencyId.clone(), &[]));
             account.insert("used".into(), self.safe_string(&used, currencyId, &[]));
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }

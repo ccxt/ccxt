@@ -2269,12 +2269,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             while { if !__for_first_589 { i += 1; } __for_first_589 = false; i < (positionBalances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(positionBalances.clone().into(), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k(&balance, "instrument_name", &[]).as_str().map(str::to_owned);
-            let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string_k(&balance, "quantity", &[]));
             account.insert("used".into(), self.safe_string_k(&balance, "reserved_qty", &[]));
-            if (code != Value::Null) {
-                result.insert(crate::runtime::stringify_param(&code), Value::Map(account));
+            if (code.is_some()) {
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }
         }
@@ -2861,13 +2861,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 request.insert("orig_client_oid".into(), originalClientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
             }
         }
-        let mut paramsOmitted: Value = (if (id == Value::Null) { self.omit(params.clone(), Value::from(vec![Value::Str("orig_client_oid".into()), Value::Str("clientOrderId".into())]), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (id == Value::Null) { self.omit(params.clone(), Value::from(vec![Value::Str("orig_client_oid".into()), Value::Str("clientOrderId".into())]), &[]) } else { params }).into_dict();
         if (amount == Value::Null) || (price == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires both amount and price arguments. If you do not want to change the amount or price, you should pass the original values".into()))));
         }
         request.insert("new_quantity".into(), self.amount_to_precision(symbol.clone(), amount));
         request.insert("new_price".into(), self.price_to_precision(symbol, price));
-        return self.extend(Value::Map(request), &[paramsOmitted]);
+        return self.extend(Value::Map(request), &[&paramsOmitted]);
 
     Value::Null
 }
@@ -3417,10 +3417,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         {
-                        let mut i: Value = Value::Int(0);
+                        let mut i: i64 = 0;
             let mut __for_first_593: bool = true;
-            while { if !__for_first_593 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_593 = false; i.as_f64().unwrap_or(f64::NAN) < addressesLength } {
-            let mut value: Value = self.safe_dict(addresses.clone().into(), i.clone(), &[]);
+            while { if !__for_first_593 { i += 1; } __for_first_593 = false; (i as f64) < addressesLength } {
+            let mut value: Value = self.safe_dict(addresses.clone().into(), Value::Int(i), &[]);
             let mut addressString: Option<String> = self.safe_string_k(value.clone(), "address", &[]).as_str().map(str::to_owned);
             let mut currencyId: Option<String> = self.safe_string_k(value.clone(), "currency", &[]).as_str().map(str::to_owned);
             let mut responseCode: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
@@ -4121,15 +4121,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         if (networkList != Value::Null) {
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_595: bool = true;
-                while { if !__for_first_595 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_595 = false; i.as_f64().unwrap_or(f64::NAN) < networkListLength } {
-                let mut networkInfo: crate::value::Dict = self.safe_dict(networkList.clone(), i.clone(), &[]).into_dict();
+                while { if !__for_first_595 { i += 1; } __for_first_595 = false; (i as f64) < networkListLength } {
+                let mut networkInfo: crate::value::Dict = self.safe_dict(networkList.clone(), Value::Int(i), &[]).into_dict();
                 let mut networkId: Option<String> = self.safe_string_k(&networkInfo, "network_id", &[]).as_str().map(str::to_owned);
                 let mut currencyCode: Option<String> = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-                let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), currencyCode.clone().map(Value::from).unwrap_or(Value::Null)]);
-                if (networkCode != Value::Null) {
-                    networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
+                let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), currencyCode.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+                if (networkCode.is_some()) {
+                    networks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();

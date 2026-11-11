@@ -1547,10 +1547,10 @@ impl Luno {
                         let mut i: i64 = 0;
             let mut __for_first_942: bool = true;
             while { if !__for_first_942 { i += 1; } __for_first_942 = false; i < (ids.len() as i64) } {
-            let mut id: Value = ids.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut market: Value = self.safe_market(&[id.clone()]);
+            let mut id: Option<String> = ids.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut market: Value = self.safe_market(&[id.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            let mut ticker: Value = (if let (Some(__m), Some(__k)) = (tickers.as_map(), id.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut ticker: Value = (if let (Some(__m), Some(__k)) = (tickers.as_map(), id.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             result.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(ticker, &[market]));
         }
         }

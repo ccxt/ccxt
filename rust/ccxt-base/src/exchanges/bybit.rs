@@ -11826,10 +11826,10 @@ impl Bybit {
         });
         if (chainsLength != 0.0) {
             {
-                                let mut i: Value = Value::Int(0);
+                                let mut i: i64 = 0;
                 let mut __for_first_520: bool = true;
-                while { if !__for_first_520 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_520 = false; i.as_f64().unwrap_or(f64::NAN) < chainsLength } {
-                let mut chain: crate::value::Dict = self.safe_dict(chains.clone().into(), i.clone(), &[]).into_dict();
+                while { if !__for_first_520 { i += 1; } __for_first_520 = false; (i as f64) < chainsLength } {
+                let mut chain: crate::value::Dict = self.safe_dict(chains.clone().into(), Value::Int(i), &[]).into_dict();
                 let mut networkId: Option<String> = self.safe_string_k(&chain, "chain", &[]).as_str().map(str::to_owned);
                 let mut currencyCode: Option<String> = (match currency.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
                 let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), currencyCode.clone().map(Value::from).unwrap_or(Value::Null)]);
