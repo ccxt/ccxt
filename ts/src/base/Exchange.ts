@@ -1552,7 +1552,7 @@ export class BaseExchange {
             this.reloadingMarkets = true;
             this.marketsLoading = (async () => {
                 try {
-                    await this.initFileSystem();
+                    await functions.initFileSystem();
                     return await this.loadMarketsHelper(reload, params);
                 } finally {
                     // This ensures the flag is reset whether it resolves successfully or throws an error
