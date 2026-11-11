@@ -5,24 +5,24 @@
 
 // -------------------------------------------------------------------------------
 
-import { Dict } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 abstract class Exchange extends _Exchange {
-    publicGetProducts (params = {}): Promise<Dict> {
+    publicGetProducts (params = {}): Promise<Dict | List> {
         return this.request ('products', [ 'public' ], 'GET', params, { 'cost': 1 });
     }
 
-    publicGetProductsIdBook (id: string, params = {}): Promise<Dict> {
-        return this.request ('products' + '/' + id + '/book', [ 'public' ], 'GET', params, { 'cost': 1 });
+    publicGetProductsIdBook (params = {}): Promise<Dict | List> {
+        return this.request ('products/{id}/book', [ 'public' ], 'GET', params, { 'cost': 1 });
     }
 
-    publicGetProductsIdTrades (id: string, params = {}): Promise<Dict> {
-        return this.request ('products' + '/' + id + '/trades', [ 'public' ], 'GET', params, { 'cost': 1 });
+    publicGetProductsIdTrades (params = {}): Promise<Dict | List> {
+        return this.request ('products/{id}/trades', [ 'public' ], 'GET', params, { 'cost': 1 });
     }
 
-    publicGetProductsIdCandles (id: string, params = {}): Promise<Dict> {
-        return this.request ('products' + '/' + id + '/candles', [ 'public' ], 'GET', params, { 'cost': 1 });
+    publicGetProductsIdCandles (params = {}): Promise<Dict | List> {
+        return this.request ('products/{id}/candles', [ 'public' ], 'GET', params, { 'cost': 1 });
     }
 }
 

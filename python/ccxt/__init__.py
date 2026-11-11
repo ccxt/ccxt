@@ -181,6 +181,7 @@ from ccxt.revolutx import revolutx                                    # noqa: F4
 from ccxt.tokocrypto import tokocrypto                                # noqa: F401
 from ccxt.toobit import toobit                                        # noqa: F401
 from ccxt.upbit import upbit                                          # noqa: F401
+from ccxt.vexora import vexora                                        # noqa: F401
 from ccxt.weex import weex                                            # noqa: F401
 from ccxt.whitebit import whitebit                                    # noqa: F401
 from ccxt.woo import woo                                              # noqa: F401
@@ -286,6 +287,7 @@ exchanges = [
     'tokocrypto',
     'toobit',
     'upbit',
+    'vexora',
     'weex',
     'whitebit',
     'woo',

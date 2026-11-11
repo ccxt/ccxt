@@ -455,6 +455,7 @@ class BaseExchange {
         'tokocrypto',
         'toobit',
         'upbit',
+        'vexora',
         'weex',
         'whitebit',
         'woo',

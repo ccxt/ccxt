@@ -160,6 +160,7 @@ from ccxt.async_support.revolutx import revolutx                                
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
 from ccxt.async_support.toobit import toobit                                    # noqa: F401
 from ccxt.async_support.upbit import upbit                                      # noqa: F401
+from ccxt.async_support.vexora import vexora                                    # noqa: F401
 from ccxt.async_support.weex import weex                                        # noqa: F401
 from ccxt.async_support.whitebit import whitebit                                # noqa: F401
 from ccxt.async_support.woo import woo                                          # noqa: F401
@@ -265,6 +266,7 @@ exchanges = [
     'tokocrypto',
     'toobit',
     'upbit',
+    'vexora',
     'weex',
     'whitebit',
     'woo',
