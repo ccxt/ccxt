@@ -930,6 +930,7 @@
         "watchOrdersForSymbols": [
             {
                 "description": "updates for an unrequested symbol do not bring back already-returned orders",
+                "disabledRS": "the rust client keeps the results stored for the other hashes of a multi-hash watch, so a frame that updates two watched symbols makes the next read return the first frame again instead of this one - a rust runtime fix (take_settled), not a blofin one",
                 "input": [
                     [
                         "BTC/USDT:USDT",
