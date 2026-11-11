@@ -46,8 +46,8 @@
                 "url": "https://localhost:5000/v1/api/iserver/marketdata/snapshot?conids=805366682%2C805366677&fields=31%2C7697%2C7638",
                 "input": [
                     [
-                        "ETH/USD.COINDERIV:USD",
-                        "BTC/USD.COINDERIV:USD"
+                        "ETH/.COINDERIV/USD:USD",
+                        "BTC/.COINDERIV/USD:USD"
                     ]
                 ],
                 "output": null

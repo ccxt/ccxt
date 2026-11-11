@@ -328,10 +328,10 @@
         "percentage": true,
         "feeSide": "get"
     },
-    "ETH/USD.COINDERIV:USD": {
+    "ETH/.COINDERIV/USD:USD": {
         "id": "805366682",
         "lowercaseId": null,
-        "symbol": "ETH/USD.COINDERIV:USD",
+        "symbol": "ETH/.COINDERIV/USD:USD",
         "base": "ETH",
         "quote": "USD",
         "settle": "USD",
@@ -439,10 +439,10 @@
         "feeSide": "get",
         "underlyingSymbol": "ETH/USD"
     },
-    "BTC/USD.COINDERIV:USD": {
+    "BTC/.COINDERIV/USD:USD": {
         "id": "805366677",
         "lowercaseId": null,
-        "symbol": "BTC/USD.COINDERIV:USD",
+        "symbol": "BTC/.COINDERIV/USD:USD",
         "base": "BTC",
         "quote": "USD",
         "settle": "USD",

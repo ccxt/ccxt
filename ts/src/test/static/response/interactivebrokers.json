@@ -190,8 +190,8 @@
                 "method": "fetchOpenInterests",
                 "input": [
                     [
-                        "ETH/USD.COINDERIV:USD",
-                        "BTC/USD.COINDERIV:USD"
+                        "ETH/.COINDERIV/USD:USD",
+                        "BTC/.COINDERIV/USD:USD"
                     ]
                 ],
                 "httpResponse": [
@@ -221,8 +221,8 @@
                     }
                 ],
                 "parsedResponse": {
-                    "BTC/USD.COINDERIV:USD": {
-                        "symbol": "BTC/USD.COINDERIV:USD",
+                    "BTC/.COINDERIV/USD:USD": {
+                        "symbol": "BTC/.COINDERIV/USD:USD",
                         "openInterestAmount": 195000,
                         "openInterestValue": 143120250,
                         "timestamp": 1794325155440,
@@ -240,8 +240,8 @@
                         "baseVolume": null,
                         "quoteVolume": null
                     },
-                    "ETH/USD.COINDERIV:USD": {
-                        "symbol": "ETH/USD.COINDERIV:USD",
+                    "ETH/.COINDERIV/USD:USD": {
+                        "symbol": "ETH/.COINDERIV/USD:USD",
                         "openInterestAmount": 237000,
                         "openInterestValue": 48312450,
                         "timestamp": 1794325154939,
