@@ -2094,11 +2094,11 @@ class okx(ccxt.async_support.okx):
                 symbolMessageHash = messageHash + '::' + tradeSymbols[i]
                 client.resolve(self.myTrades, symbolMessageHash)
 
-    def request_id(self) -> str:
+    def request_id(self) -> int:
+        # millisecond timestamp plus 3 random digits stays a safe integer
         ts = str(self.milliseconds())
-        randomNumber = self.rand_number(4)
-        randomPart = str(randomNumber)
-        return ts + randomPart
+        randomPart = str(self.rand_number(3))
+        return self.parse_to_int(ts + randomPart)
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
@@ -2119,7 +2119,7 @@ class okx(ccxt.async_support.okx):
             await self.load_markets()
         await self.authenticate()
         url = self.get_url('private', 'private')
-        messageHash = self.request_id()
+        messageHash = str(self.request_id())
         op, paramsOp = self.handle_option_string_and_params(params, 'createOrderWs', 'op', 'batch-orders')
         args = self.create_order_request(symbol, type, side, amount, price, paramsOp)
         market = self.market(symbol)
@@ -2191,7 +2191,7 @@ class okx(ccxt.async_support.okx):
             await self.load_markets()
         await self.authenticate()
         url = self.get_url('private', 'private')
-        messageHash = self.request_id()
+        messageHash = str(self.request_id())
         op, paramsOp = self.handle_option_string_and_params(params, 'editOrderWs', 'op', 'amend-order')
         args = self.edit_order_request(id, symbol, type, side, amount, price, paramsOp)
         market = self.market(symbol)
@@ -2224,7 +2224,7 @@ class okx(ccxt.async_support.okx):
             await self.load_markets()
         await self.authenticate()
         url = self.get_url('private', 'private')
-        messageHash = self.request_id()
+        messageHash = str(self.request_id())
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
         paramsOmitted = self.omit(params, ['clientOrderId', 'clOrdId'])
         market = self.market(symbol)
@@ -2263,7 +2263,7 @@ class okx(ccxt.async_support.okx):
             await self.load_markets()
         await self.authenticate()
         url = self.get_url('private', 'private')
-        messageHash = self.request_id()
+        messageHash = str(self.request_id())
         args = []
         market = self.market(symbol)
         instIdCode = self.safe_integer(market, 'instIdCode')
@@ -2301,7 +2301,7 @@ class okx(ccxt.async_support.okx):
         if market['type'] != 'option':
             raise BadRequest(self.id + ' cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.')
         url = self.get_url('private', 'private')
-        messageHash = self.request_id()
+        messageHash = str(self.request_id())
         request = {
             'id': messageHash,
             'op': 'mass-cancel',

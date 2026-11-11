@@ -37,7 +37,7 @@ class ndax(ccxt.async_support.ndax):
             # },
         })
 
-    def request_id(self) -> float:
+    def request_id(self) -> int:
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
         return requestId

@@ -1795,7 +1795,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         client.lastPong = self.safe_integer(message, 'pong', self.milliseconds())
         return message
 
-    def request_id(self) -> float:
+    def request_id(self) -> int:
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
         return requestId

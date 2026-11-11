@@ -1938,7 +1938,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         entry[key] = value
         self.options[group] = self.extend(self.safe_dict(self.options, group, {}), entry)
 
-    def request_id(self, url: Str) -> float:
+    def request_id(self, url: Str) -> int:
         existing = self.safe_value(self.options, 'requestId')
         if existing is None:
             self.options['requestId'] = self.create_safe_dictionary()

@@ -179,7 +179,7 @@ class bybit(ccxt.async_support.bybit):
             },
         }
 
-    def request_id(self) -> float:
+    def request_id(self) -> int:
         self.lock_id()
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId

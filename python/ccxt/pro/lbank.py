@@ -62,7 +62,7 @@ class lbank(ccxt.async_support.lbank):
             },
         })
 
-    def request_id(self) -> float:
+    def request_id(self) -> int:
         self.lock_id()
         previousValue = self.safe_integer(self.options, 'requestId', 0)
         newValue = self.sum(previousValue, 1)

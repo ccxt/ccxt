@@ -51,7 +51,7 @@ class bullish(ccxt.async_support.bullish):
             },
         })
 
-    def request_id(self) -> float:
+    def request_id(self) -> int:
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
         return requestId

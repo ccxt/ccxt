@@ -2155,7 +2155,7 @@ class gate(ccxt.async_support.gate):
                 return value
         return 'spot'
 
-    def request_id(self) -> float:
+    def request_id(self) -> int:
         # their support said that reqid must be an int32, not documented
         self.lock_id()
         reqid = self.sum(self.safe_integer(self.options, 'reqid', 0), 1)

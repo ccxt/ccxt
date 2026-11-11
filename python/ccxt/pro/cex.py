@@ -57,12 +57,12 @@ class cex(ccxt.async_support.cex):
             },
         })
 
-    def request_id(self) -> str:
+    def request_id(self) -> int:
         self.lock_id()
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
         self.unlock_id()
-        return str(requestId)
+        return requestId
 
     async def watch_balance(self, params: dict = {}) -> Balances:
         """
@@ -74,7 +74,7 @@ class cex(ccxt.async_support.cex):
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.authenticate(params)
-        messageHash = self.request_id()
+        messageHash = str(self.request_id())
         url = self.safe_string(self.urls['api'], 'ws', '')
         subscribe = {
             'e': 'get-balance',
@@ -281,7 +281,7 @@ class cex(ccxt.async_support.cex):
                 'data': [
                     market['baseId'], market['quoteId'],
                 ],
-                'oid': self.request_id(),
+                'oid': str(self.request_id()),
             }
             subscriptionHash = 'ticker:' + symbolValue
         request = self.deep_extend(message, params)
@@ -334,7 +334,7 @@ class cex(ccxt.async_support.cex):
             await self.load_markets()
         market = self.market(symbol)
         url = self.safe_string(self.urls['api'], 'ws', '')
-        messageHash = self.request_id()
+        messageHash = str(self.request_id())
         request = self.extend({
             'e': 'ticker',
             'oid': messageHash,
@@ -441,7 +441,7 @@ class cex(ccxt.async_support.cex):
             await self.load_markets()
         await self.authenticate()
         url = self.safe_string(self.urls['api'], 'ws', '')
-        messageHash = self.request_id()
+        messageHash = str(self.request_id())
         request = self.extend({
             'e': 'get-balance',
             'oid': messageHash,
@@ -939,7 +939,7 @@ class cex(ccxt.async_support.cex):
                 'subscribe': True,
                 'depth': depth,
             },
-            'oid': self.request_id(),
+            'oid': str(self.request_id()),
         }
         request = self.deep_extend(subscribe, params)
         orderbook = await self.watch(url, messageHash, request, messageHash)
@@ -1227,7 +1227,7 @@ class cex(ccxt.async_support.cex):
             'order_id': str(id),
         }, params)
         url = self.safe_string(self.urls['api'], 'ws', '')
-        messageHash = self.request_id()
+        messageHash = str(self.request_id())
         request = {
             'e': 'get-order',
             'oid': messageHash,
@@ -1255,7 +1255,7 @@ class cex(ccxt.async_support.cex):
         await self.authenticate()
         market = self.market(symbol)
         url = self.safe_string(self.urls['api'], 'ws', '')
-        messageHash = self.request_id()
+        messageHash = str(self.request_id())
         data = self.extend({
             'pair': [market['baseId'], market['quoteId']],
         }, params)
@@ -1289,7 +1289,7 @@ class cex(ccxt.async_support.cex):
         await self.authenticate()
         market = self.market(symbol)
         url = self.safe_string(self.urls['api'], 'ws', '')
-        messageHash = self.request_id()
+        messageHash = str(self.request_id())
         data = self.extend({
             'pair': [market['baseId'], market['quoteId']],
             'amount': amount,
@@ -1334,7 +1334,7 @@ class cex(ccxt.async_support.cex):
             'price': price,
             'order_id': id,
         }, params)
-        messageHash = self.request_id()
+        messageHash = str(self.request_id())
         url = self.safe_string(self.urls['api'], 'ws', '')
         request = {
             'e': 'cancel-replace-order',
@@ -1364,7 +1364,7 @@ class cex(ccxt.async_support.cex):
         data = self.extend({
             'order_id': id,
         }, params)
-        messageHash = self.request_id()
+        messageHash = str(self.request_id())
         url = self.safe_string(self.urls['api'], 'ws', '')
         request = {
             'e': 'cancel-order',
@@ -1390,7 +1390,7 @@ class cex(ccxt.async_support.cex):
         if self.markets is None:
             await self.load_markets()
         await self.authenticate()
-        messageHash = self.request_id()
+        messageHash = str(self.request_id())
         data = self.extend({
             'cancel-orders': ids,
         }, params)

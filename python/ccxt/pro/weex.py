@@ -86,12 +86,12 @@ class weex(ccxt.async_support.weex):
             'streaming': {},
         })
 
-    def request_id(self) -> Str:
+    def request_id(self) -> int:
         self.lock_id()
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
         self.unlock_id()
-        return self.number_to_string(requestId)
+        return requestId
 
     async def subscribe_public(self, messageHashes: list[str], channels: Strings, isContract: bool = False, params: dict = {}, subscription: dict = {}):
         id = self.request_id()
@@ -104,7 +104,7 @@ class weex(ccxt.async_support.weex):
             'method': method,
             'params': channels,
         }
-        subscriptionExtended = self.extend(subscription, {'id': id})
+        subscriptionExtended = self.extend(subscription, {'id': str(id)})
         type = 'spot'
         if isContract:
             type = 'contract'
@@ -127,7 +127,7 @@ class weex(ccxt.async_support.weex):
             'method': method,
             'params': [channel],
         }
-        subscriptionExtended = self.extend(subscription, {'id': id})
+        subscriptionExtended = self.extend(subscription, {'id': str(id)})
         return await self.watch(url, messageHash, self.deep_extend(message, params), subscribeHash, subscriptionExtended)
 
     def authenticate(self, url: str):

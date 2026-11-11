@@ -89,7 +89,7 @@ class paradex(ccxt.async_support.paradex):
             return 'order_book.' + marketId + '.deltas'
         return 'order_book.' + marketId + '.snapshot@15@100ms'
 
-    def request_id(self) -> float:
+    def request_id(self) -> int:
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
         return requestId

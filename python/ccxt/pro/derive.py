@@ -54,7 +54,7 @@ class derive(ccxt.async_support.derive):
             },
         })
 
-    def request_id(self, url: str) -> float:
+    def request_id(self, url: str) -> int:
         options = self.safe_dict(self.options, 'requestId', {})
         previousValue = self.safe_integer(options, url, 0)
         newValue = self.sum(previousValue, 1)

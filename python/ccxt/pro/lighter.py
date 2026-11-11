@@ -1101,12 +1101,12 @@ class lighter(ccxt.async_support.lighter):
         messageHash = 'unsubscribe:' + subMessageHash
         return await self.unsubscribe(messageHash, self.extend(request, paramsAccountIndex))
 
-    def request_id(self, url: str) -> str:
+    def request_id(self, url: str) -> int:
         options = self.safe_dict(self.options, 'requestId', self.create_safe_dictionary())
         previousValue = self.safe_integer(options, url, 0)
         newValue = self.sum(previousValue, 1)
         self.options['requestId'][url] = newValue
-        return self.number_to_string(newValue)
+        return newValue
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
@@ -1131,7 +1131,9 @@ class lighter(ccxt.async_support.lighter):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         url = self.urls['api']['ws']
-        requestId = self.request_id(url)
+        nextId = self.request_id(url)
+        # the venue takes a string request id
+        requestId = str(nextId)
         messageHash = 'jsonapi/sendtx:' + requestId
         txType, txInfo, order = await self.signAndCreateOrder('createOrderWs', symbol, type, side, amount, price, params)
         market = self.market(symbol)
@@ -1164,7 +1166,9 @@ class lighter(ccxt.async_support.lighter):
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         url = self.urls['api']['ws']
-        requestId = self.request_id(url)
+        nextId = self.request_id(url)
+        # the venue takes a string request id
+        requestId = str(nextId)
         messageHash = 'jsonapi/sendtx:' + requestId
         txType, txInfo = await self.signAndCancelOrder('cancelOrderWs', id, symbol, params)
         market = self.market(symbol)
@@ -1196,7 +1200,9 @@ class lighter(ccxt.async_support.lighter):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         url = self.urls['api']['ws']
-        requestId = self.request_id(url)
+        nextId = self.request_id(url)
+        # the venue takes a string request id
+        requestId = str(nextId)
         messageHash = 'jsonapi/sendtx:' + requestId
         txType, txInfo = await self.signAndCancelAllOrders('cancelAllOrdersWs', symbol, params)
         parsedTx = self.parse_json(txInfo)

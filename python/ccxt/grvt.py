@@ -3140,7 +3140,7 @@ class grvt(Exchange, ImplicitAPI):
             return [request, self.omit(params, ['until', 'till'])]
         return [request, params]
 
-    def request_id(self) -> float:
+    def request_id(self) -> int:
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
         return requestId

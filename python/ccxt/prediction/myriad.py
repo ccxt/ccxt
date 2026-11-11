@@ -2880,7 +2880,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             'info': rawEvent,
         })
 
-    def request_id(self, url: Str) -> float:
+    def request_id(self, url: Str) -> int:
         existing = self.safe_value(self.options, 'requestId')
         if existing is None:
             self.options['requestId'] = self.create_safe_dictionary()

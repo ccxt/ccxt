@@ -122,7 +122,7 @@ class grvt(ccxt.async_support.grvt):
             apiPart = 'publicMarket'
         return await self.watch_multiple(self.urls['api']['ws'][apiPart], messageHashes, payload, rawHashes)
 
-    def request_id(self) -> float:
+    def request_id(self) -> int:
         self.lock_id()
         newValue = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = newValue
