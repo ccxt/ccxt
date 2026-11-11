@@ -2835,10 +2835,10 @@ class binance(Exchange, ImplicitAPI):
             'rollingWindowSize': 60000.0,
         })
 
-    def is_inverse(self, type: str, subType: Str = None) -> bool:
+    def is_inverse(self, type: Str, subType: Str = None) -> bool:
         return subType == 'inverse'
 
-    def is_linear(self, type: str, subType: Str = None) -> bool:
+    def is_linear(self, type: Str, subType: Str = None) -> bool:
         if subType is None:
             return(type == 'future') or (type == 'swap')
         else:
