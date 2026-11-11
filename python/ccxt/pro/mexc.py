@@ -812,10 +812,10 @@ class mexc(ccxt.async_support.mexc):
             return -1
         for i in range(0, len(cache)):
             delta = self.safe_dict(cache, i)
-            deltaNonce = self.safe_integer_n(delta, ['r', 'version', 'fromVersion'])
-            if deltaNonce is None:
+            deltaEnd = self.safe_integer_n(delta, ['toVersion', 'version', 'r'])
+            if deltaEnd is None:
                 continue
-            if deltaNonce >= nonce:
+            if deltaEnd > nonce:
                 return i
         return len(cache)
 
@@ -937,12 +937,12 @@ class mexc(ccxt.async_support.mexc):
 
     def handle_book_delta(self, orderbook: object, delta: object):
         existingNonce = self.safe_integer(orderbook, 'nonce')
-        deltaNonce = self.safe_integer_n(delta, ['r', 'version', 'fromVersion'])
-        if (deltaNonce is not None) and (existingNonce is not None) and (deltaNonce < existingNonce):
+        deltaEnd = self.safe_integer_n(delta, ['toVersion', 'version', 'r'])
+        if (deltaEnd is not None) and (existingNonce is not None) and (deltaEnd <= existingNonce):
             # even when doing < comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
             # so, we just skip old updates
             return
-        orderbook['nonce'] = deltaNonce
+        orderbook['nonce'] = deltaEnd
         asks = self.safe_list(delta, 'asks', [])
         bids = self.safe_list(delta, 'bids', [])
         asksOrderSide = orderbook['asks']
