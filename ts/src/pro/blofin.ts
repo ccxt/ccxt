@@ -1018,27 +1018,33 @@ export default class blofin extends blofinRest {
 
     async authenticate (params: Dict = {}) {
         this.checkRequiredCredentials ();
-        const milliseconds = this.milliseconds ();
         const messageHash = 'authenticate_hash';
-        const timestamp = milliseconds.toString ();
-        const nonce = 'n_' + timestamp;
-        const auth = '/users/self/verify' + 'GET' + timestamp + '' + nonce;
-        const signature = this.stringToBase64 (this.hmac (this.encode (auth), this.encode (this.secret), sha256));
-        const request: Dict = {
-            'op': 'login',
-            'args': [
-                {
-                    'apiKey': this.apiKey,
-                    'passphrase': this.password,
-                    'timestamp': timestamp,
-                    'nonce': nonce,
-                    'sign': signature,
-                },
-            ],
-        };
         const marketType = 'swap'; // for now
         const typeUrls: Dict = this.safeDict (this.urls['api']['ws'], marketType, {});
         const url = this.safeString (typeUrls, 'private');
-        await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        const client = this.client (url);
+        const future = client.reusableFuture (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
+            const milliseconds = this.milliseconds ();
+            const timestamp = milliseconds.toString ();
+            const nonce = 'n_' + timestamp;
+            const auth = '/users/self/verify' + 'GET' + timestamp + '' + nonce;
+            const signature = this.stringToBase64 (this.hmac (this.encode (auth), this.encode (this.secret), sha256));
+            const request: Dict = {
+                'op': 'login',
+                'args': [
+                    {
+                        'apiKey': this.apiKey,
+                        'passphrase': this.password,
+                        'timestamp': timestamp,
+                        'nonce': nonce,
+                        'sign': signature,
+                    },
+                ],
+            };
+            this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        }
+        return await future;
     }
 }
