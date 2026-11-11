@@ -1381,7 +1381,7 @@ impl Mudrex {
                 m.insert("expired".to_string(), Value::Str("expired".into()));
             m
         });
-        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -1578,7 +1578,7 @@ impl Mudrex {
             response = self.private_get_futures_orders(&[request]).await.into_opt_dict();
         }
         let mut data: Value = self.safe_value_k(&response, "data", &[Value::from(vec![])]);
-        let mut rows: Value = self.to_array(data);
+        let mut rows: crate::value::List = self.to_array(data).into_list();
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1588,7 +1588,7 @@ impl Mudrex {
                         let mut i: i64 = 0;
             let mut __for_first_972: bool = true;
             while { if !__for_first_972 { i += 1; } __for_first_972 = false; i < (rows.len() as i64) } {
-            orders.push(self.parse_order(rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]));
+            orders.push(self.parse_order(rows.get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default()]));
         }
         }
         return self.filter_by_symbol_since_limit(Value::from(orders), &[symbol, since, limit]);
@@ -1717,13 +1717,13 @@ impl Mudrex {
         if (data == Value::Null) {
             return Value::from(vec![]);
         }
-        let mut rows: Value = self.to_array(data);
+        let mut rows: crate::value::List = self.to_array(data).into_list();
         let mut outPos: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_973: bool = true;
             while { if !__for_first_973 { i += 1; } __for_first_973 = false; i < (rows.len() as i64) } {
-            let mut p: Value = rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut p: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut symRaw: Option<String> = self.safe_string_k(p.clone(), "symbol", &[]).as_str().map(str::to_owned);
             let mut m: Value = self.safe_market(&[symRaw.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut pos: Value = self.parse_position(p, &[m]);

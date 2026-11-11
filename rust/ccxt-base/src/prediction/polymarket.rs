@@ -2014,8 +2014,8 @@ impl Polymarket {
                     m
                 });
                 let mut ticker: Value = self.parse_prediction_ticker(Value::Map(tickerInput), &[outcomeObj]);
-                let mut symbolKey: Value = self.safe_string_k(ticker.clone(), "outcome", &[tokenId.map(Value::from).unwrap_or(Value::Null)]);
-                result.insert(crate::runtime::stringify_param(&symbolKey), ticker);
+                let mut symbolKey: Option<String> = self.safe_string_k(ticker.clone(), "outcome", &[tokenId.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+                result.insert(symbolKey.as_deref().unwrap_or("null").to_string(), ticker);
             }
             }
             startIndex = self.sum(&[startIndex.clone(), Value::from(chunkSize)]);
@@ -2379,7 +2379,7 @@ impl Polymarket {
                 m.insert("serverTime".to_string(), response);
             m
         });
-        return self.safe_timestamp_k(Value::Map(result), "serverTime", &[]);
+        return self.safe_timestamp_k(&result, "serverTime", &[]);
         Value::Null
         }).await?))
     }
@@ -2805,12 +2805,12 @@ impl Polymarket {
 }));
         self.load_api_credentials().await;
         // the collateral balance is tied to the signature type / funder that holds the USDC
-        let mut signatureType: Value = self.safe_integer2(params.clone(), Value::Str("signatureType".into()), Value::Str("signature_type".into()), &[self.safe_integer_k(self.options.clone(), "signatureType", &[Value::Int(3)])]);
+        let mut signatureType: Option<i64> = self.safe_integer2(params.clone(), Value::Str("signatureType".into()), Value::Str("signature_type".into()), &[self.safe_integer_k(self.options.clone(), "signatureType", &[Value::Int(3)])]).as_i64();
         let mut rest: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("signatureType".into()), Value::Str("signature_type".into())]), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset_type".to_string(), Value::Str("COLLATERAL".into()));
-                m.insert("signature_type".to_string(), signatureType);
+                m.insert("signature_type".to_string(), Value::from(signatureType));
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[&rest]);
@@ -3185,7 +3185,7 @@ impl Polymarket {
         m.insert("status".to_string(), status);
     m
 }), Value::Str("status".into()), &[]).as_str().map(str::to_owned);
-        return self.safe_string(Value::Map(statuses), normalized.clone().map(Value::from).unwrap_or(Value::Null), &[normalized.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        return self.safe_string(&statuses, normalized.clone().map(Value::from).unwrap_or(Value::Null), &[normalized.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
 }
 
 /*
@@ -3393,11 +3393,11 @@ impl Polymarket {
     m
 })]).into_dict();
         let mut tickSize: Value = self.safe_string_k(params.clone(), "tickSize", &[self.number_to_string(self.safe_number_k(&outcomePrecision, "price", &[Value::Float(0.01)]))]);
-        let mut negRisk: Value = self.safe_bool_k(params.clone(), "negRisk", &[self.safe_bool(outcomeObj.clone(), Value::Str("negRisk".into()), &[Value::Bool(false)])]);
+        let mut negRisk: Option<bool> = self.safe_bool_k(params.clone(), "negRisk", &[self.safe_bool(outcomeObj.clone(), Value::Str("negRisk".into()), &[Value::Bool(false)])]).as_bool();
         // maker-only: the CLOB rejects the order if it would immediately take
         let mut postOnly: bool = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         // 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet, default); funder/maker holds the USDC
-        let mut signatureType: Value = self.safe_integer2(params.clone(), Value::Str("signatureType".into()), Value::Str("signature_type".into()), &[self.safe_integer_k(self.options.clone(), "signatureType", &[Value::Int(3)])]);
+        let mut signatureType: Option<i64> = self.safe_integer2(params.clone(), Value::Str("signatureType".into()), Value::Str("signature_type".into()), &[self.safe_integer_k(self.options.clone(), "signatureType", &[Value::Int(3)])]).as_i64();
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
         let mut eoa: Value = self.eth_checksum_address(self.eth_get_address_from_private_key(self.privateKey.clone(), &[])).map(Value::from).unwrap_or(Value::Null);
         let mut funder: Value = self.eth_checksum_address(self.safe_string2(params.clone(), Value::Str("funder".into()), Value::Str("maker".into()), &[self.safe_string_k(self.options.clone(), "funder", &[self.walletAddress.clone()])])).map(Value::from).unwrap_or(Value::Null);
@@ -3445,7 +3445,7 @@ impl Polymarket {
         // still produces the signature and is checked on-chain as the wallet owner). Otherwise signer = EOA.
         let mut maker: Value = funder.clone();
         let mut signer: Value = eoa;
-        if (signatureType.as_f64() == Some(3.0)) {
+        if (signatureType == Some(3)) {
             signer = funder;
         }
         let mut message: indexmap::IndexMap<String, Value> = ({
@@ -3457,7 +3457,7 @@ impl Polymarket {
                 m.insert("makerAmount".to_string(), makerAmount.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("takerAmount".to_string(), takerAmount.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("side".to_string(), sideInt);
-                m.insert("signatureType".to_string(), signatureType.clone());
+                m.insert("signatureType".to_string(), Value::from(signatureType));
                 m.insert("timestamp".to_string(), timestamp.clone());
                 m.insert("metadata".to_string(), Value::from(bytes32Zero.clone()));
                 m.insert("builder".to_string(), Value::from(builderBytes32.clone()));
@@ -3466,11 +3466,11 @@ impl Polymarket {
         let mut exchangeV2: Value = self.safe_string_k(self.options.clone(), "exchangeAddress", &[Value::Str("0xE111180000d2663C0091e4f400237545B87B996B".into())]);
         let mut negRiskExchangeV2: Value = self.safe_string_k(self.options.clone(), "negRiskExchangeAddress", &[Value::Str("0xe2222d279d744050d28e00520010520000310F59".into())]);
         let mut exchangeAddress: Value = exchangeV2;
-        if negRisk.as_bool() == Some(true) {
+        if (negRisk == Some(true)) {
             exchangeAddress = negRiskExchangeV2;
         }
         let mut domainVersion: String = self.safe_string_k(self.options.clone(), "ctfExchangeVersion", &[Value::Str("2".into())]).as_str().unwrap_or("2").to_string();
-        let mut signature: Value = self.sign_clob_order(Value::Map(message), exchangeAddress, Value::from(domainVersion), signatureType.clone()).map(Value::from).unwrap_or(Value::Null);
+        let mut signature: Value = self.sign_clob_order(Value::Map(message), exchangeAddress, Value::from(domainVersion), Value::from(signatureType)).map(Value::from).unwrap_or(Value::Null);
         let mut owner: Value = self.safe_string_k(self.options.clone(), "l2ApiKey", &[self.apiKey.clone()]);
         let mut orderBody: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3486,7 +3486,7 @@ impl Polymarket {
         m.insert("makerAmount".to_string(), makerAmount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("takerAmount".to_string(), takerAmount.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("side".to_string(), sideStr.clone());
-        m.insert("signatureType".to_string(), signatureType);
+        m.insert("signatureType".to_string(), Value::from(signatureType));
         m.insert("timestamp".to_string(), timestamp);
         m.insert("expiration".to_string(), Value::from(expiration));
         m.insert("metadata".to_string(), Value::from(bytes32Zero));
@@ -4892,7 +4892,7 @@ if _try_result.is_err() {
         }
         let mut stored: Value = self.safe_value(self.trades.clone(), outcome.clone(), &[]);
         if (stored == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             stored = ArrayCache::new(limit);
             if let Value::Dict(__d) = &mut self.trades { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&outcome), stored.clone()); }
         }
@@ -5212,7 +5212,7 @@ if _try_result.is_err() {
 
     pub fn handle_order(&mut self, mut client: Value, mut event: Value) {
         if (self.orders.clone() == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = ArrayCacheByOutcomeById::new(limit);
         }
         let mut stored: Value = self.orders.clone();
@@ -5227,7 +5227,7 @@ if _try_result.is_err() {
 
     pub fn handle_my_trade(&mut self, mut client: Value, mut event: Value) {
         if (self.myTrades.clone() == Value::Null) {
-            let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+            let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = ArrayCacheByOutcomeById::new(limit);
         }
         let mut stored: Value = self.myTrades.clone();

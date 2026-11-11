@@ -1228,7 +1228,7 @@ impl Luno {
                 m.insert("PENDING".to_string(), Value::Str("open".into()));
             m
         });
-        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -2173,7 +2173,7 @@ impl Luno {
         let mut firstWord: Option<String> = self.safe_string(words.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
         let mut thirdWord: Option<String> = self.safe_string(words.clone(), Value::Int(2), &[]).as_str().map(str::to_owned);
         let mut fourthWord: Option<String> = self.safe_string(words.clone(), Value::Int(3), &[]).as_str().map(str::to_owned);
-        let mut type_var: Option<String> = self.safe_string(Value::Map(types), firstWord.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+        let mut type_var: Option<String> = self.safe_string(&types, firstWord.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (type_var.is_none()) && (thirdWord.as_deref() == Some("fee")) {
             type_var = Some("fee".to_string());
         }

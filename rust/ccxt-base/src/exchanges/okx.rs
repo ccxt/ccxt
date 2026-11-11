@@ -5829,7 +5829,7 @@ impl Okx {
             request.insert("sz".into(), self.amount_to_precision(symbol.clone(), amount.clone()));
         }
         let mut spot: bool = self.safe_bool_k((market).raw.clone(), "spot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut contract: Option<bool> = self.safe_bool_k_opt((market).raw.clone(), "contract", &[]);
+        let mut contract: Option<bool> = self.safe_bool_k((market).raw.clone(), "contract", &[]).as_bool();
         let mut triggerPrice: Value = self.safe_value_n(params.clone(), Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), Value::Str("triggerPx".into())]), &[]);
         let mut timeInForce: Option<String> = self.safe_string_k(params.clone(), "timeInForce", &[Value::Str("GTC".into())]).as_str().map(str::to_owned);
         // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
@@ -6123,7 +6123,7 @@ impl Okx {
             if (selfTradePreventionUpper.as_str() == Some("NONE")) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support NONE for selfTradePrevention, okx enforces self trade prevention at the account level and it cannot be turned off per order".into()))));
             }
-            let mut stpMode: Value = self.safe_string(Value::Map(stpModes), selfTradePreventionUpper, &[(if let Some(__s) = selfTradePrevention.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })]);
+            let mut stpMode: Value = self.safe_string(&stpModes, selfTradePreventionUpper, &[(if let Some(__s) = selfTradePrevention.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })]);
             let mut algoOrderTypes: Value = self.safe_dict_k(self.options.clone(), "algoOrderTypes", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6624,7 +6624,7 @@ impl Okx {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" cancelOrder() requires a symbol argument".into()))));
         }
-        let mut trigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         let mut trailing: bool = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut isTrigger: bool = trigger == Some(true);
         if isTrigger || trailing {
@@ -6713,14 +6713,14 @@ impl Okx {
     m
 })]).into_dict();
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("privatePostTradeCancelBatchOrders".into())]).as_str().unwrap_or("privatePostTradeCancelBatchOrders").to_string();
-        let mut method: Value = self.safe_string_k(params.clone(), "method", &[Value::from(defaultMethod)]);
+        let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
         let mut clientOrderIds: Value = self.parse_ids(self.safe_value2(params.clone(), Value::Str("clOrdId".into()), Value::Str("clientOrderId".into()), &[]));
         let mut algoIds: Value = self.parse_ids(self.safe_value_k(params.clone(), "algoId", &[]));
-        let mut trigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         let mut trailing: bool = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut isTrigger: bool = trigger == Some(true);
         if isTrigger || trailing {
-            method = Value::Str("privatePostTradeCancelAlgos".into());
+            method = Some("privatePostTradeCancelAlgos".to_string());
         }
         if (clientOrderIds == Value::Null) {
             let mut orderIds: Value = self.parse_ids(ids);
@@ -6783,7 +6783,7 @@ impl Okx {
             }
         }
         let mut response: Option<crate::value::Dict> = None;
-        if (method.as_str() == Some("privatePostTradeCancelAlgos")) {
+        if (method.as_deref() == Some("privatePostTradeCancelAlgos")) {
             response = self.private_post_trade_cancel_algos(&[Value::from(request.clone())]).await.into_opt_dict(); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         }  else {
             response = self.private_post_trade_cancel_batch_orders(&[Value::from(request)]).await.into_opt_dict(); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
@@ -6858,12 +6858,12 @@ impl Okx {
     m
 })]).into_dict();
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("privatePostTradeCancelBatchOrders".into())]).as_str().unwrap_or("privatePostTradeCancelBatchOrders").to_string();
-        let mut method: Value = self.safe_string_k(params.clone(), "method", &[Value::from(defaultMethod)]);
-        let mut trigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
+        let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         let mut trailing: bool = self.safe_bool_k_opt(params.clone(), "trailing", &[Value::Bool(false)]).unwrap_or(false);
         let mut isStopOrTrailing: bool = (trigger == Some(true)) || trailing;
         if isStopOrTrailing {
-            method = Value::Str("privatePostTradeCancelAlgos".into());
+            method = Some("privatePostTradeCancelAlgos".to_string());
         }
         {
                         let mut i: i64 = 0;
@@ -6893,7 +6893,7 @@ impl Okx {
         }
         }
         let mut response: Option<crate::value::Dict> = None;
-        if (method.as_str() == Some("privatePostTradeCancelAlgos")) {
+        if (method.as_deref() == Some("privatePostTradeCancelAlgos")) {
             response = self.private_post_trade_cancel_algos(&[Value::from(request.clone())]).await.into_opt_dict(); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         }  else {
             response = self.private_post_trade_cancel_batch_orders(&[Value::from(request)]).await.into_opt_dict(); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
@@ -6982,7 +6982,7 @@ impl Okx {
         if (status == Value::Null) {
             return None;
         }
-        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
@@ -7338,11 +7338,11 @@ impl Okx {
     m
 })]).into_dict();
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("privateGetTradeOrder".into())]).as_str().unwrap_or("privateGetTradeOrder").to_string();
-        let mut method: Value = self.safe_string_k(params.clone(), "method", &[Value::from(defaultMethod)]);
+        let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
         let mut trigger: bool = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut trailing: bool = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if trigger || trailing {
-            method = Value::Str("privateGetTradeOrderAlgo".into());
+            method = Some("privateGetTradeOrderAlgo".to_string());
             if (clientOrderId.is_some()) {
                 request.insert("algoClOrdId".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
             }  else {
@@ -7357,7 +7357,7 @@ impl Okx {
         }
         let mut query: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("method".into()), Value::Str("clOrdId".into()), Value::Str("clientOrderId".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("trailing".into())]), &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
-        if (method.as_str() == Some("privateGetTradeOrderAlgo")) {
+        if (method.as_deref() == Some("privateGetTradeOrderAlgo")) {
             let __ws_arg_38 = self.extend(Value::Map(request.clone()), &[&query]);
             response = self.private_get_trade_order_algo(&[__ws_arg_38]).await.into_opt_dict();
         }  else {
@@ -7528,13 +7528,13 @@ impl Okx {
     m
 })]);
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("privateGetTradeOrdersPending".into())]).as_str().unwrap_or("privateGetTradeOrdersPending").to_string();
-        let mut method: Value = self.safe_string_k(paramsPaginate.clone(), "method", &[Value::from(defaultMethod)]);
+        let mut method: Option<String> = self.safe_string_k(paramsPaginate.clone(), "method", &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
         let mut ordType: Option<String> = self.safe_string_k_opt(paramsPaginate.clone(), "ordType", &[]);
-        let mut trigger: Option<bool> = self.safe_bool2_opt(paramsPaginate.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Option<bool> = self.safe_bool2(paramsPaginate.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         let mut trailing: bool = self.safe_bool_k(paramsPaginate.clone(), "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut isTrigger: bool = trigger == Some(true);
         if trailing || isTrigger || ((ordType.is_some()) && (matches!((&algoOrderTypes, &ordType.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) {
-            method = Value::Str("privateGetTradeOrdersAlgoPending".into());
+            method = Some("privateGetTradeOrdersAlgoPending".to_string());
         }
         if trailing {
             request.insert("ordType".into(), Value::Str("move_order_stop".into()));
@@ -7543,7 +7543,7 @@ impl Okx {
         }
         let mut query: crate::value::Dict = self.omit(paramsPaginate, Value::from(vec![Value::Str("method".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("trailing".into())]), &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
-        if (method.as_str() == Some("privateGetTradeOrdersAlgoPending")) {
+        if (method.as_deref() == Some("privateGetTradeOrdersAlgoPending")) {
             let __ws_arg_40 = self.extend(Value::Map(request.clone()), &[&query]);
             response = self.private_get_trade_orders_algo_pending(&[__ws_arg_40]).await.into_opt_dict();
         }  else {
@@ -7710,16 +7710,16 @@ impl Okx {
     m
 })]);
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("privateGetTradeOrdersHistory".into())]).as_str().unwrap_or("privateGetTradeOrdersHistory").to_string();
-        let mut method: Value = self.safe_string_k(params.clone(), "method", &[Value::from(defaultMethod)]);
+        let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
         let mut ordType: Option<String> = self.safe_string_k_opt(params.clone(), "ordType", &[]);
-        let mut trigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         let mut trailing: bool = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut isTrigger: bool = trigger == Some(true);
         if trailing {
-            method = Value::Str("privateGetTradeOrdersAlgoHistory".into());
+            method = Some("privateGetTradeOrdersAlgoHistory".to_string());
             request.insert("ordType".into(), Value::Str("move_order_stop".into()));
         }  else if isTrigger || ((ordType.is_some()) && (matches!((&algoOrderTypes, &ordType.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) {
-            method = Value::Str("privateGetTradeOrdersAlgoHistory".into());
+            method = Some("privateGetTradeOrdersAlgoHistory".to_string());
             let mut algoId: Option<String> = self.safe_string_k(params, "algoId", &[]).as_str().map(str::to_owned);
             if (algoId.is_some()) {
                 request.insert("algoId".into(), algoId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -7741,7 +7741,7 @@ impl Okx {
         }
         let mut send: crate::value::Dict = self.omit(query, Value::from(vec![Value::Str("method".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("trailing".into())]), &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
-        if (method.as_str() == Some("privateGetTradeOrdersAlgoHistory")) {
+        if (method.as_deref() == Some("privateGetTradeOrdersAlgoHistory")) {
             let __ws_arg_42 = self.extend(Value::Map(request.clone()), &[&send]);
             response = self.private_get_trade_orders_algo_history(&[__ws_arg_42]).await.into_opt_dict();
         }  else {
@@ -7921,17 +7921,17 @@ impl Okx {
     m
 })]);
         let mut defaultMethod: String = self.safe_string_k(&options, "method", &[Value::Str("privateGetTradeOrdersHistory".into())]).as_str().unwrap_or("privateGetTradeOrdersHistory").to_string();
-        let mut method: Value = self.safe_string_k(paramsPaginate.clone(), "method", &[Value::from(defaultMethod)]);
+        let mut method: Option<String> = self.safe_string_k(paramsPaginate.clone(), "method", &[Value::from(defaultMethod)]).as_str().map(str::to_owned);
         let mut ordType: Option<String> = self.safe_string_k_opt(paramsPaginate.clone(), "ordType", &[]);
-        let mut trigger: Value = self.safe_bool2(paramsPaginate.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut trigger: Option<bool> = self.safe_bool2(paramsPaginate.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         let mut trailing: bool = self.safe_bool_k(paramsPaginate, "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        if trailing || (trigger.as_bool() == Some(true)) || ((ordType.is_some()) && (matches!((&algoOrderTypes, &ordType.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) {
-            method = Value::Str("privateGetTradeOrdersAlgoHistory".into());
+        if trailing || (trigger == Some(true)) || ((ordType.is_some()) && (matches!((&algoOrderTypes, &ordType.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref())))) {
+            method = Some("privateGetTradeOrdersAlgoHistory".to_string());
             request.insert("state".into(), Value::Str("effective".into()));
         }
         if trailing {
             request.insert("ordType".into(), Value::Str("move_order_stop".into()));
-        }  else if (trigger.as_bool() == Some(true)) {
+        }  else if (trigger == Some(true)) {
             if (ordType.is_none()) {
                 request.insert("ordType".into(), Value::Str("trigger".into()));
             }
@@ -7948,10 +7948,10 @@ impl Okx {
         }
         let mut send: crate::value::Dict = self.omit(query, Value::from(vec![Value::Str("method".into()), Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("trailing".into())]), &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
-        if (method.as_str() == Some("privateGetTradeOrdersAlgoHistory")) {
+        if (method.as_deref() == Some("privateGetTradeOrdersAlgoHistory")) {
             let __ws_arg_44 = self.extend(Value::Map(request.clone()), &[&send]);
             response = self.private_get_trade_orders_algo_history(&[__ws_arg_44]).await.into_opt_dict();
-        }  else if (method.as_str() == Some("privateGetTradeOrdersHistoryArchive")) {
+        }  else if (method.as_deref() == Some("privateGetTradeOrdersHistoryArchive")) {
             let __ws_arg_45 = self.extend(Value::Map(request.clone()), &[&send]);
             response = self.private_get_trade_orders_history_archive(&[__ws_arg_45]).await.into_opt_dict();
         }  else {
@@ -8328,7 +8328,7 @@ impl Okx {
     }
 
     pub fn parse_ledger_entry_type(&self, mut type_var: Value) -> Option<String> {
-        let mut types: Value = Value::Map({
+        let mut types: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("1".to_string(), Value::Str("transfer".into()));
                 m.insert("2".to_string(), Value::Str("trade".into()));
@@ -8343,7 +8343,7 @@ impl Okx {
                 m.insert("11".to_string(), Value::Str("trade".into()));
             m
         });
-        return self.safe_string(types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_ledger_entry(&self, mut item: Value, optional_args: &[Value]) -> Value {
@@ -9061,7 +9061,7 @@ impl Okx {
         //         "5": "awaiting identity verification"
         //     }
         //
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("-3".to_string(), Value::Str("pending".into()));
                 m.insert("-2".to_string(), Value::Str("canceled".into()));
@@ -9085,7 +9085,7 @@ impl Okx {
         if (status == Value::Null) {
             return None;
         }
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
@@ -9904,7 +9904,7 @@ impl Okx {
         if (status == Value::Null) {
             return None;
         }
-        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -10210,7 +10210,7 @@ impl Okx {
 }
 
     pub fn parse_funding_interval(&self, mut interval: Value) -> Option<String> {
-        let mut intervals: Value = Value::Map({
+        let mut intervals: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("3600000".to_string(), Value::Str("1h".into()));
                 m.insert("7200000".to_string(), Value::Str("2h".into()));
@@ -10220,7 +10220,7 @@ impl Okx {
                 m.insert("86400000".to_string(), Value::Str("24h".into()));
             m
         });
-        return self.safe_string(intervals, interval.clone(), &[interval.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&intervals, interval.clone(), &[interval.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -11969,7 +11969,7 @@ impl Okx {
         let mut id: Option<String> = self.safe_string_k(interest.clone(), "instId", &[]).as_str().map(str::to_owned);
         let mut marketResolved: Value = self.safe_market(&[id.clone().map(Value::from).unwrap_or(Value::Null), market]);
         let mut time: Option<i64> = self.safe_integer_k(interest.clone(), "ts", &[]).as_i64();
-        let mut timestamp: Value = self.safe_integer(interest.clone(), Value::Int(0), &[Value::from(time)]);
+        let mut timestamp: Option<i64> = self.safe_integer(interest.clone(), Value::Int(0), &[Value::from(time)]).as_i64();
         let mut baseVolume: Value = Value::Null;
         let mut quoteVolume: Value = Value::Null;
         let mut openInterestAmount: Value = Value::Null;
@@ -12000,8 +12000,8 @@ impl Okx {
         m.insert("quoteVolume".to_string(), quoteVolume);
         m.insert("openInterestAmount".to_string(), openInterestAmount);
         m.insert("openInterestValue".to_string(), openInterestValue);
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("info".to_string(), interest);
     m
 }), &[marketResolved]);

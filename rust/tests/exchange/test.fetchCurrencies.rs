@@ -43,18 +43,18 @@ pub async fn testFetchCurrencies(mut exchange: Value, mut skippedProperties: Val
             let mut currency: Value = values.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             testCurrency(exchange.clone(), skippedProperties.clone(), method.clone(), currency.clone());
             // detailed check for deposit/withdraw
-            let mut active: Value = exchange.safe_bool(currency.clone(), Value::Str("active".into()), &[]);
-            if (active.as_bool() == Some(false)) {
+            let mut active: Option<bool> = exchange.safe_bool(currency.clone(), Value::Str("active".into()), &[]).as_bool();
+            if (active == Some(false)) {
                 numInactiveCurrencies = (match (&(numInactiveCurrencies), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
             }
             // ensure that major currencies are active and enabled for deposit and withdrawal
             let mut code: Value = exchange.safe_string(currency.clone(), Value::Str("code".into()), &[]);
-            let mut withdraw: Value = exchange.safe_bool(currency.clone(), Value::Str("withdraw".into()), &[]);
-            let mut deposit: Value = exchange.safe_bool(currency.clone(), Value::Str("deposit".into()), &[]);
+            let mut withdraw: Option<bool> = exchange.safe_bool(currency.clone(), Value::Str("withdraw".into()), &[]).as_bool();
+            let mut deposit: Option<bool> = exchange.safe_bool(currency.clone(), Value::Str("deposit".into()), &[]).as_bool();
             let mut isMicaCompliant: Value = exchange.safe_bool(get_value(&exchange, &Value::Str("options".into())), Value::Str("mica".into()), &[Value::Bool(false)]);
             let mut skipUsdtForMica: bool = is_true(&(isMicaCompliant)) && (code.as_str() == Some("USDT"));
             if is_true(&exchange.in_array(code.clone(), requiredActiveCurrencies.clone())) && !skipMajorCurrencyCheck && (!skipUsdtForMica) {
-                assert!(ccxt::runtime::is_true(&(((withdraw.as_bool() == Some(true)) && (deposit.as_bool() == Some(true))))));
+                assert!(ccxt::runtime::is_true(&(((withdraw == Some(true)) && (deposit == Some(true))))));
             }
         }
         }

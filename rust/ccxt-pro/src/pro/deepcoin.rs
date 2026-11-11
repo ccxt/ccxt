@@ -954,23 +954,23 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn parse_trade_side(&self, mut direction: Value) -> Option<String> {
-        let mut sides: Value = Value::Map({
+        let mut sides: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("0".to_string(), Value::Str("buy".into()));
                 m.insert("1".to_string(), Value::Str("sell".into()));
             m
         });
-        return self.safe_string(sides, direction.clone(), &[direction.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&sides, direction.clone(), &[direction.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn handle_taker_or_maker(&self, mut matchRole: Value) -> Option<String> {
-        let mut roles: Value = Value::Map({
+        let mut roles: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("0".to_string(), Value::Str("maker".into()));
                 m.insert("1".to_string(), Value::Str("taker".into()));
             m
         });
-        return self.safe_string(roles, matchRole.clone(), &[matchRole.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&roles, matchRole.clone(), &[matchRole.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -1500,7 +1500,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into());
         if (__ch.has_future(&messageHash)) || (__ch.has_future(&symbolMessageHash)) {
             if (self.myTrades.clone() == Value::Null) {
-                let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
+                let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 self.myTrades = ArrayCacheBySymbolById::new(limit);
             }
             let mut stored: Value = self.myTrades.clone();
@@ -1604,7 +1604,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbolMessageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, Value::Str("::".into())).into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into());
         if (__ch.has_future(&messageHash)) || (__ch.has_future(&symbolMessageHash)) {
             if (self.orders.clone() == Value::Null) {
-                let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
+                let mut limit: i64 = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 self.orders = ArrayCacheBySymbolById::new(limit);
             }
             let mut parsed: Value = self.parse_ws_order(data, &[market]);
@@ -1675,14 +1675,14 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }
 
     pub fn parse_ws_order_status(&self, mut status: Value) -> Option<String> {
-        let mut statuses: Value = Value::Map({
+        let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("1".to_string(), Value::Str("closed".into()));
                 m.insert("4".to_string(), Value::Str("open".into()));
                 m.insert("6".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
 /*
@@ -1851,13 +1851,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (direction == Value::Null) {
             return direction;
         }
-        let mut directions: Value = Value::Map({
+        let mut directions: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("0".to_string(), Value::Str("long".into()));
                 m.insert("1".to_string(), Value::Str("short".into()));
             m
         });
-        return self.safe_string(directions, direction.clone(), &[direction.clone()]);
+        return self.safe_string(&directions, direction.clone(), &[direction.clone()]);
 
     Value::Null
 }
@@ -1866,13 +1866,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if (marginMode == Value::Null) {
             return marginMode;
         }
-        let mut modes: Value = Value::Map({
+        let mut modes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("0".to_string(), Value::Str("isolated".into()));
                 m.insert("1".to_string(), Value::Str("cross".into()));
             m
         });
-        return self.safe_string(modes, marginMode.clone(), &[marginMode.clone()]);
+        return self.safe_string(&modes, marginMode.clone(), &[marginMode.clone()]);
 
     Value::Null
 }

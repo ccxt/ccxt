@@ -819,18 +819,18 @@ impl Upbit {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut canWithdraw: Option<bool> = self.safe_bool_k_opt(&withdrawLimits, "can_withdraw", &[]);
+        let mut canWithdraw: Option<bool> = self.safe_bool_k(&withdrawLimits, "can_withdraw", &[]).as_bool();
         let mut walletState: Option<String> = self.safe_string_k(&currencyInfo, "wallet_state", &[]).as_str().map(str::to_owned);
-        let mut walletLocked: Value = self.safe_bool_k(&memberInfo, "wallet_locked", &[]);
-        let mut locked: Value = self.safe_bool_k(&memberInfo, "locked", &[]);
+        let mut walletLocked: Option<bool> = self.safe_bool_k(&memberInfo, "wallet_locked", &[]).as_bool();
+        let mut locked: Option<bool> = self.safe_bool_k(&memberInfo, "locked", &[]).as_bool();
         let mut active: bool = true;
         if (canWithdraw.is_some()) && (!(canWithdraw == Some(true))) {
             active = false;
         }  else if (walletState.as_deref() != Some("working")) {
             active = false;
-        }  else if (walletLocked != Value::Null) && walletLocked.as_bool() == Some(true) {
+        }  else if (walletLocked.is_some()) && (walletLocked == Some(true)) {
             active = false;
-        }  else if (locked != Value::Null) && locked.as_bool() == Some(true) {
+        }  else if (locked.is_some()) && (locked == Some(true)) {
             active = false;
         }
         let mut maxOnetimeWithdrawal: Option<String> = self.safe_string_k(&withdrawLimits, "onetime", &[]).as_str().map(str::to_owned);
@@ -1262,12 +1262,12 @@ impl Upbit {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut orderbooks: Value = self.to_array(response);
+        let mut orderbooks: crate::value::List = self.to_array(response).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1138: bool = true;
             while { if !__for_first_1138 { i += 1; } __for_first_1138 = false; i < (orderbooks.len() as i64) } {
-            let mut orderbook: indexmap::IndexMap<String, Value> = self.safe_dict(orderbooks.clone(), Value::Int(i), &[Value::Map({
+            let mut orderbook: indexmap::IndexMap<String, Value> = self.safe_dict(Value::Arr(orderbooks.clone()), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
@@ -2421,7 +2421,7 @@ impl Upbit {
                 m.insert("canceled".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_transaction(&self, mut transaction: Value, optional_args: &[Value]) -> Value {
@@ -2507,7 +2507,7 @@ impl Upbit {
                 m.insert("cancel".to_string(), Value::Str("canceled".into()));
             m
         });
-        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {

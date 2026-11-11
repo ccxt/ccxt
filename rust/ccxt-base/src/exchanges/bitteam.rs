@@ -783,7 +783,7 @@ impl Bitteam {
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
-        let mut active: Option<bool> = self.safe_bool_k_opt(market.clone(), "active", &[]);
+        let mut active: Option<bool> = self.safe_bool_k(market.clone(), "active", &[]).as_bool();
         let mut timeStart: Option<String> = self.safe_string_k(market.clone(), "timeStart", &[]).as_str().map(str::to_owned);
         let mut created: Value = self.parse8601(timeStart.clone().map(Value::from).unwrap_or(Value::Null));
         let mut minCost: Value = Value::Null;
@@ -816,7 +816,7 @@ impl Bitteam {
         m.insert("swap".to_string(), Value::Bool(false));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), active.map(Value::Bool).unwrap_or(Value::Null));
+        m.insert("active".to_string(), active.map_or(Value::Null, Value::Bool));
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
         m.insert("inverse".to_string(), Value::Null);
@@ -1053,8 +1053,8 @@ impl Bitteam {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut deposit: Option<bool> = self.safe_bool_k_opt(&statuses, "depositStatus", &[]);
-        let mut withdraw: Option<bool> = self.safe_bool_k_opt(&statuses, "withdrawStatus", &[]);
+        let mut deposit: Option<bool> = self.safe_bool_k(&statuses, "depositStatus", &[]).as_bool();
+        let mut withdraw: Option<bool> = self.safe_bool_k(&statuses, "withdrawStatus", &[]).as_bool();
         let mut networkIds: Vec<Value> = Value::Array(feesByNetworkId.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1074,8 +1074,8 @@ impl Bitteam {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), networkId);
         m.insert("network".to_string(), networkCode.clone());
-        m.insert("deposit".to_string(), deposit.map(Value::Bool).unwrap_or(Value::Null));
-        m.insert("withdraw".to_string(), withdraw.map(Value::Bool).unwrap_or(Value::Null));
+        m.insert("deposit".to_string(), deposit.map_or(Value::Null, Value::Bool));
+        m.insert("withdraw".to_string(), withdraw.map_or(Value::Null, Value::Bool));
         m.insert("active".to_string(), Value::Bool(active));
         m.insert("fee".to_string(), Value::from(networkFee));
         m.insert("precision".to_string(), networkPrecision.clone());
@@ -1115,8 +1115,8 @@ impl Bitteam {
         m.insert("name".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), currency);
         m.insert("active".to_string(), Value::Bool(active));
-        m.insert("deposit".to_string(), deposit.map(Value::Bool).unwrap_or(Value::Null));
-        m.insert("withdraw".to_string(), withdraw.map(Value::Bool).unwrap_or(Value::Null));
+        m.insert("deposit".to_string(), deposit.map_or(Value::Null, Value::Bool));
+        m.insert("withdraw".to_string(), withdraw.map_or(Value::Null, Value::Bool));
         m.insert("fee".to_string(), fee);
         m.insert("precision".to_string(), precision);
         m.insert("limits".to_string(), Value::Map({
@@ -1976,7 +1976,7 @@ impl Bitteam {
                 m.insert("created".to_string(), Value::Str("open".into()));
             m
         });
-        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order_type(&self, mut status: Value) -> Option<String> {
@@ -1986,7 +1986,7 @@ impl Bitteam {
                 m.insert("limit".to_string(), Value::Str("limit".into()));
             m
         });
-        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_value_to_pricision(&self, mut valueObject: Value, mut valueKey: Value, mut preciseObject: Value, mut precisionKey: Value) -> Option<String> {
@@ -3136,7 +3136,7 @@ impl Bitteam {
                 m.insert("withdraw".to_string(), Value::Str("withdrawal".into()));
             m
         });
-        return self.safe_string(Value::Map(types), type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_transaction_status(&self, mut status: Value) -> Option<String> {
@@ -3146,7 +3146,7 @@ impl Bitteam {
                 m.insert("success".to_string(), Value::Str("ok".into()));
             m
         });
-        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {

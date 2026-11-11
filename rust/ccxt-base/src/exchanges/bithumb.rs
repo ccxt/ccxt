@@ -2034,7 +2034,7 @@ impl Bithumb {
                     m.insert("1M".to_string(), Value::Str("1mm".into()));
                 m
             });
-            request.insert("interval".into(), self.safe_string(Value::Map(legacyTimeframes), timeframe.clone(), &[timeframe.clone()]));
+            request.insert("interval".into(), self.safe_string(&legacyTimeframes, timeframe.clone(), &[timeframe.clone()]));
             request.insert("baseId".into(), Value::from((market).base_id.clone()));
             request.insert("quoteId".into(), Value::from((market).quote_id.clone()));
             let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsGeneration]);
@@ -2866,7 +2866,7 @@ impl Bithumb {
                 m.insert("progress".to_string(), Value::Str("open".into()));
             m
         });
-        return self.safe_string(Value::Map(statuses), status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order(&self, mut order: Value, optional_args: &[Value]) -> Value {
