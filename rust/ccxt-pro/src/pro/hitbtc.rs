@@ -409,7 +409,7 @@ impl Hitbtc {
         let mut future: Value = client.reusable_future(messageHash.as_str());
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
-            let mut timestamp: Option<i64> = self.milliseconds().as_i64();
+            let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
             let mut timestampString: Option<String> = self.number_to_string(Value::from(timestamp)).as_str().map(str::to_owned);
             let mut timestampEncoded: Option<String> = timestampString.clone();
             if (timestampString.is_none()) {
@@ -2375,7 +2375,7 @@ impl Hitbtc {
         //        id: 1700228604325
         //    }
         //
-        let mut error: Option<crate::value::Dict> = (match message.get("error") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null }).into_opt_dict();
+        let mut error: Option<crate::value::Dict> = message.get("error").cloned().unwrap_or_default().into_opt_dict();
         if (error.is_some()) {
             let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 let mut code: Option<String> = self.safe_string_k(&error, "code", &[]).as_str().map(str::to_owned);

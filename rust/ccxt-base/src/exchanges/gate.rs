@@ -4364,8 +4364,8 @@ if _try_result.is_err() {
     m
 }));
         // sandbox/testnet only supports future markets
-        let mut apiBackup: Value = self.safe_dict_k(self.urls.clone(), "apiBackup", &[]);
-        if (apiBackup != Value::Null) {
+        let mut apiBackup: Option<crate::value::Dict> = self.safe_dict_k(self.urls.clone(), "apiBackup", &[]).into_opt_dict();
+        if (apiBackup.is_some()) {
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

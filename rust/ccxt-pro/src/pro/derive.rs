@@ -438,7 +438,7 @@ impl Derive {
         //     }
         // }
         //
-        let mut params: crate::value::Dict = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null }).into_dict();
+        let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
         let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -667,7 +667,7 @@ impl Derive {
         //         }
         //     }
         //
-        let mut params: crate::value::Dict = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_dict();
+        let mut params: crate::value::Dict = __pro_message.get("params").cloned().unwrap_or_default().into_dict();
         let mut rawData: crate::value::Dict = self.safe_dict_k(&params, "data", &[]).into_dict();
         let mut data: Value = self.safe_dict_k(&rawData, "instrument_ticker", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -884,7 +884,7 @@ impl Derive {
         //         }
         //     }
         //
-        let mut result: crate::value::Dict = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_dict();
+        let mut result: crate::value::Dict = __pro_message.get("result").cloned().unwrap_or_default().into_dict();
         let mut status: Value = self.safe_dict_k(&result, "status", &[]);
         if (status != Value::Null) {
             let mut topics: Vec<Value> = Value::Array(status.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
@@ -976,7 +976,7 @@ impl Derive {
         let message = message.as_map().unwrap_or(&__message_empty);
         //
         //
-        let mut params: crate::value::Dict = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null }).into_dict();
+        let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
         let mut data: Value = self.safe_dict_k(&params, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1177,7 +1177,7 @@ impl Derive {
         //     }
         // }
         //
-        let mut params: crate::value::Dict = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null }).into_dict();
+        let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
         let mut topic: Option<String> = self.safe_string_k(&params, "channel", &[]).as_str().map(str::to_owned);
         let mut rawOrders: crate::value::List = self.safe_list_k(&params, "data", &[Value::from(vec![])]).into_list();
         {
@@ -1351,7 +1351,7 @@ impl Derive {
             myTrades = ArrayCacheBySymbolById::new(limit);
             self.myTrades = myTrades.clone();
         }
-        let mut params: crate::value::Dict = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null }).into_dict();
+        let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
         let mut topic: Option<String> = self.safe_string_k(&params, "channel", &[]).as_str().map(str::to_owned);
         let mut rawTrades: crate::value::List = self.safe_list_k(&params, "data", &[Value::from(vec![])]).into_list();
         {
@@ -1633,7 +1633,7 @@ impl Derive {
         let mut position: Value = self.safe_dict(symbolPositions, Value::from(side.clone()), &[]);
         if (position == Value::Null) {
             // the position is freshly opened by the current fill, so the local clock approximates the open time
-            let mut timestamp: Option<i64> = self.milliseconds().as_i64();
+            let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
             position = self.safe_position(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), Value::from(symbol));
@@ -1673,7 +1673,7 @@ impl Derive {
         //         }
         //     }
         //
-        let mut params: crate::value::Dict = (match message.get("params") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null }).into_dict();
+        let mut params: crate::value::Dict = message.get("params").cloned().unwrap_or_default().into_dict();
         let mut topic: String = self.safe_string_k(&params, "channel", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut topicParts: Value = Value::Array(topic.split(".").map(Value::from).collect());
         let mut subaccountIdKey: Value = self.safe_string(topicParts, Value::Int(0), &[]);
@@ -1747,7 +1747,7 @@ impl Derive {
         if !(matches!(&message, Value::Dict(__d) if __d.contains_key("error"))) {
             return Value::Bool(false);
         }
-        let mut errorMessage: crate::value::Dict = (match __pro_message.get("error").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_dict();
+        let mut errorMessage: crate::value::Dict = __pro_message.get("error").cloned().unwrap_or_default().into_dict();
         let mut errorCode: Option<String> = self.safe_string_k(&errorMessage, "code", &[]).as_str().map(str::to_owned);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             if (errorCode.is_some()) {
@@ -1792,7 +1792,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         let mut event: Option<String> = None;
-        let mut params: Option<crate::value::Dict> = (match __pro_message.get("params").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_opt_dict();
+        let mut params: Option<crate::value::Dict> = __pro_message.get("params").cloned().unwrap_or_default().into_opt_dict();
         if (params.is_some()) {
             let mut channel: Option<String> = self.safe_string_k(&params, "channel", &[]).as_str().map(str::to_owned);
             if (channel.is_some()) {
@@ -1861,7 +1861,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         // }
         //
         let mut messageHash: String = "authenticated".to_string();
-        let mut ids: crate::value::List = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).into_list();
+        let mut ids: crate::value::List = __pro_message.get("result").cloned().unwrap_or_default().into_list();
         let mut idsLength: f64 = ((ids.len() as i64) as f64);
         if idsLength > ((0i64) as f64) {
             // client.resolve (message, messageHash);

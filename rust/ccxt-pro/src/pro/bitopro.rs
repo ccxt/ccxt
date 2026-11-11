@@ -556,12 +556,9 @@ impl Bitopro {
         //         }
         //     }
         //
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut baseId: Option<String> = self.safe_string_k(data.clone(), "base", &[]).as_str().map(str::to_owned);
-        let mut quoteId: Option<String> = self.safe_string_k(data.clone(), "quote", &[]).as_str().map(str::to_owned);
+        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut baseId: Option<String> = self.safe_string_k(&data, "base", &[]).as_str().map(str::to_owned);
+        let mut quoteId: Option<String> = self.safe_string_k(&data, "quote", &[]).as_str().map(str::to_owned);
         let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (base.is_none()) || (quote.is_none()) {
@@ -574,7 +571,7 @@ impl Bitopro {
             self.myTrades = ArrayCacheBySymbolById::new(limit);
         }
         let mut trades: Value = self.myTrades.clone();
-        let mut parsed: Value = self.parse_ws_trade(data, &[]);
+        let mut parsed: Value = self.parse_ws_trade(Value::Dict(data), &[]);
         trades.append(parsed);
         client.resolve(trades.clone(), messageHash.as_deref());
         if (messageHash.is_some()) {
@@ -744,7 +741,7 @@ impl Bitopro {
             return;
         }
         self.check_required_credentials(&[]);
-        let mut nonce: Option<i64> = self.milliseconds().as_i64();
+        let mut nonce: i64 = self.milliseconds().as_i64().unwrap_or_default();
         let mut rawData: Value = self.json(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("nonce".to_string(), Value::from(nonce));

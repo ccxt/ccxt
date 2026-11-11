@@ -2610,8 +2610,8 @@ pub trait ExchangeBase:
         if !(matches!((&methodDict, &parentKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return defaultValue;
         }
-        let mut dictionary: Value = self.safe_dict(methodDict.clone(), parentKey.clone(), &[]);
-        if (dictionary == Value::Null) {
+        let mut dictionary: Option<crate::value::Dict> = self.safe_dict(methodDict.clone(), parentKey.clone(), &[]).into_opt_dict();
+        if (dictionary.is_none()) {
             return (if let (Some(__m), Some(__k)) = (methodDict.as_map(), parentKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         }  else {
             // return as is, when calling without subKey eg: featureValueByType('spot', undefined, 'createOrder', 'stopLoss')
@@ -4708,7 +4708,7 @@ pub trait ExchangeBase:
         let network = network.as_map().unwrap_or(&__network_empty);
         let mut withdrawEnabled: Option<bool> = (match network.get("withdraw") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Null }).as_bool();
         let mut depositEnabled: Option<bool> = (match network.get("deposit") { Some(Value::Bool(__b)) => Value::Bool(*__b), _ => Value::Null }).as_bool();
-        let mut limits: crate::value::Dict = (match network.get("limits") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null }).into_dict();
+        let mut limits: crate::value::Dict = network.get("limits").cloned().unwrap_or_default().into_dict();
         let mut withdraw: crate::value::Dict = self.safe_dict_k(&limits, "withdraw", &[]).into_dict();
         let mut deposit: crate::value::Dict = self.safe_dict_k(&limits, "deposit", &[]).into_dict();
         let mut isEnabled: Option<bool> = withdrawEnabled;
@@ -4778,9 +4778,9 @@ pub trait ExchangeBase:
                         let mut i: i64 = 0;
             let mut __for_first_117: bool = true;
             while { if !__for_first_117 { i += 1; } __for_first_117 = false; i < (aliasKeys.len() as i64) } {
-            let mut alias: Value = aliasKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-            if ((if let (Some(__m), Some(__k)) = (aliases.as_map(), alias.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_str() == unifiedCode.as_str()) && (matches!((&networkIdsByCodes, &alias), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                return (if let (Some(__m), Some(__k)) = (networkIdsByCodes.as_map(), alias.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut alias: Option<String> = aliasKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            if ((if let (Some(__m), Some(__k)) = (aliases.as_map(), alias.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_str() == unifiedCode.as_str()) && (matches!((&networkIdsByCodes, alias.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+                return (if let (Some(__m), Some(__k)) = (networkIdsByCodes.as_map(), alias.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             }
         }
         }
@@ -10406,10 +10406,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let __subscription_empty = indexmap::IndexMap::new();
         let subscription = subscription.as_map().unwrap_or(&__subscription_empty);
         let mut topic: Option<String> = (match subscription.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut symbols: crate::value::List = (match subscription.get("symbols") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut symbols: crate::value::List = subscription.get("symbols").cloned().unwrap_or_default().into_list();
         let mut symbolsLength: f64 = ((symbols.len() as i64) as f64);
         if (topic.as_deref() == Some("ohlcv")) {
-            let mut symbolsAndTimeframes: crate::value::List = (match subscription.get("symbolsAndTimeframes") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+            let mut symbolsAndTimeframes: crate::value::List = subscription.get("symbolsAndTimeframes").cloned().unwrap_or_default().into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_181: bool = true;

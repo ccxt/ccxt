@@ -1787,13 +1787,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (keysLength.as_f64() != Some(2.0)) {
                 continue;
             }
-            let mut key: Value = keyValue.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+            let mut key: Option<String> = keyValue.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
             let mut value: Value = keyValue.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
             if (value != Value::Null) && is_true(&((value.as_str().unwrap_or("").starts_with("[")) || (value.as_str().unwrap_or("").starts_with("{")))) {
                 // some exchanges might return something like this: timestamp=1699382693405&batchOrders=[{\"symbol\":\"LTCUSDT\",\"side\":\"BUY\",\"newClientOrderI
                 value = jsonParse(value.clone());
             }
-            result.insert(ccxt::runtime::stringify_param(&key), value.clone());
+            result.insert(key.as_deref().unwrap_or("null").to_string(), value.clone());
         }
         }
         return Value::Map(result);

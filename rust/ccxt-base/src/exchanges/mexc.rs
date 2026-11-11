@@ -5568,8 +5568,8 @@ impl Mexc {
             if (symbol.is_none()) {
                 let mut symbols: Option<crate::value::List> = self.safe_list_k(&paramsOmitted2, "symbols", &[]).into_opt_list();
                 if (symbols.is_some()) {
-                    let mut symbolIds: Value = self.market_ids(&[symbols.clone().map_or(Value::Null, Value::Arr)]);
-                    parsedSymbols = Value::Str(symbolIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into());
+                    let mut symbolIds: Option<crate::value::List> = self.market_ids(&[symbols.clone().map_or(Value::Null, Value::Arr)]).into_opt_list();
+                    parsedSymbols = Value::Str(symbolIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into());
                 }
             }  else {
                 let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -7749,7 +7749,7 @@ impl Mexc {
         //        ]
         //    }
         //
-        let mut networkList: crate::value::List = (match transaction.get("networkList") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut networkList: crate::value::List = transaction.get("networkList").cloned().unwrap_or_default().into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m

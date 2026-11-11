@@ -7089,7 +7089,7 @@ if _try_result.is_err() {
     pub fn parse_portfolio_details(&self, mut portfolioData: Value) -> Value {
         let __portfolioData_empty = indexmap::IndexMap::new();
         let portfolioData = portfolioData.as_map().unwrap_or(&__portfolioData_empty);
-        let mut breakdown: crate::value::Dict = (match portfolioData.get("breakdown") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null }).into_dict();
+        let mut breakdown: crate::value::Dict = portfolioData.get("breakdown").cloned().unwrap_or_default().into_dict();
         let mut portfolioInfo: crate::value::Dict = self.safe_dict_k(&breakdown, "portfolio", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

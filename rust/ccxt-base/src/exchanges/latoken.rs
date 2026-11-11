@@ -1068,12 +1068,12 @@ impl Latoken {
             while { if !__for_first_911 { i += 1; } __for_first_911 = false; i < (rawCurrencies.len() as i64) } {
             let mut rawCurrency: Value = self.safe_value(&rawCurrencies, Value::Int(i), &[]);
             let mut bindingEntry: crate::value::Dict = self.safe_dict(bindingsById.clone(), self.safe_string_k(rawCurrency.clone(), "id", &[]), &[]).into_dict();
-            let mut bindings: Value = self.safe_list_k(&bindingEntry, "bindings", &[]);
+            let mut bindings: Option<crate::value::List> = self.safe_list_k(&bindingEntry, "bindings", &[]).into_opt_list();
             let mut mergedCurrency: Value = rawCurrency.clone();
-            if (bindings != Value::Null) {
+            if (bindings.is_some()) {
                 mergedCurrency = self.extend(rawCurrency, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("bindings".to_string(), bindings);
+                        m.insert("bindings".to_string(), bindings.map_or(Value::Null, Value::Arr));
                     m
                 })]);
             }

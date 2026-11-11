@@ -2641,7 +2641,7 @@ if _try_result.is_err() {
     m
 }));
         let mut actions: Vec<Value> = Vec::new();
-        let mut timestamp: Option<i64> = self.milliseconds().as_i64(); // unified sequence
+        let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default(); // unified sequence
         {
                         let mut i: i64 = 0;
             let mut __for_first_1045: bool = true;

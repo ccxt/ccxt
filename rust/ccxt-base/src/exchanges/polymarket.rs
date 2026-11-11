@@ -3847,9 +3847,9 @@ impl Polymarket {
         let mut proxyPrivateKey: Value = self.hash(self.encode(seedSignature), Value::Str("keccak".into()), &[Value::Str("hex".into())]);
         let mut proxyAddress: Value = self.eth_get_address_from_private_key(proxyPrivateKey.clone(), &[]);
         let mut owner: Value = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]);
-        let mut ts: Option<i64> = self.milliseconds().as_i64();
+        let mut ts: i64 = self.milliseconds().as_i64().unwrap_or_default();
         let mut lifetime: i64 = self.safe_integer_k(self.options.clone(), "proxyExpiry", &[Value::Int(604800000)]).as_i64().unwrap_or(604800000);
-        let mut expiry: Value = self.sum(&[Value::from(ts), Value::from(lifetime)]);
+        let mut expiry: Value = Value::Int((ts + lifetime));
         let mut salt: Value = self.rand_number(Value::Int(9));
         let mut chainId: i64 = self.safe_integer_k(self.options.clone(), "chainId", &[Value::Int(137)]).as_i64().unwrap_or(137);
         let mut domain: indexmap::IndexMap<String, Value> = ({
@@ -3981,7 +3981,7 @@ impl Polymarket {
         let mut credentials: Value = self.load_proxy_credentials(&[]).await;
         let mut packed: Value = self.packb(signable, &[]);
         let mut dataHash: Value = self.hash_message(packed);
-        let mut ts: Option<i64> = self.milliseconds().as_i64();
+        let mut ts: i64 = self.milliseconds().as_i64().unwrap_or_default();
         let mut salt: Value = self.rand_number(Value::Int(9));
         let mut chainId: i64 = self.safe_integer_k(self.options.clone(), "chainId", &[Value::Int(137)]).as_i64().unwrap_or(137);
         let mut domain: indexmap::IndexMap<String, Value> = ({

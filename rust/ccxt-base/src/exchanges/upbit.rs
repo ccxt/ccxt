@@ -1217,8 +1217,8 @@ impl Upbit {
                 ids = Value::Str(self.ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into());
             }
         }  else {
-            let mut marketIds: Value = self.market_ids(&[symbols]);
-            ids = Value::Str(marketIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into());
+            let mut marketIds: Option<crate::value::List> = self.market_ids(&[symbols]).into_opt_list();
+            ids = Value::Str(marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into());
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

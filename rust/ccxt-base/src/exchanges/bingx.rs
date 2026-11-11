@@ -4393,8 +4393,8 @@ impl Bingx {
             m
         });
         let mut contractBalances: Vec<Value> = self.safe_list_k(response.clone(), "data", &[]).as_array().cloned().unwrap_or_default();
-        let mut firstContractBalances: Value = self.safe_dict(contractBalances.clone().into(), Value::Int(0), &[]);
-        let mut isContract: bool = firstContractBalances != Value::Null;
+        let mut firstContractBalances: Option<crate::value::Dict> = self.safe_dict(contractBalances.clone().into(), Value::Int(0), &[]).into_opt_dict();
+        let mut isContract: bool = firstContractBalances.is_some();
         let mut spotData: Value = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5324,11 +5324,11 @@ impl Bingx {
             result = data;
         }
         // when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
-        let mut stopLossDict: Value = self.safe_dict_k(result.clone(), "stopLoss", &[]);
+        let mut stopLossDict: Option<crate::value::Dict> = self.safe_dict_k(result.clone(), "stopLoss", &[]).into_opt_dict();
         let mut stopLoss: Option<String> = self.safe_string_k(result.clone(), "stopLoss", &[]).as_str().map(str::to_owned);
         // for py fix, the SL is already parsed as object (instead of stringified, as it's provided)
         // so we need trick to check if it's non-parsed string yet
-        if (stopLossDict == Value::Null) && (stopLoss.is_some()) && (((if let (Some(__h), Some(__n)) = (stopLoss.as_deref(), Some("{")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0) {
+        if (stopLossDict.is_none()) && (stopLoss.is_some()) && (((if let (Some(__h), Some(__n)) = (stopLoss.as_deref(), Some("{")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0) {
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("stopLoss".into(), self.parse_json_value(stopLoss.map(Value::from).unwrap_or(Value::Null))); }
         }
         let mut takeProfit: Option<String> = self.safe_string_k(result.clone(), "takeProfit", &[]).as_str().map(str::to_owned);
@@ -7959,7 +7959,7 @@ impl Bingx {
             fills = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         }  else {
             request.insert("symbol".into(), Value::from((market).id.clone()));
-            let mut now: Value = self.milliseconds();
+            let mut now: i64 = self.milliseconds().as_i64().unwrap_or_default();
             if (since != Value::Null) {
                 let mut startTimeReq: String = "startTs".to_string();
                 if (market).spot {
@@ -7967,11 +7967,7 @@ impl Bingx {
                 }
                 request.insert(startTimeReq, since.clone());
             }  else if (market).swap {
-                request.insert("startTs".into(), (match (&(now), &((match (&((match (&((match (&((match (&(Value::Int(30)), &(Value::Int(24))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                    Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
-                    _ => Value::Null })), &(Value::Int(60))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })),
-                    &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(x),
-                    Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })); // 30 days for swap
+                request.insert("startTs".into(), Value::Int((now - ((((((((30 * 24)) * 60)) * 60)) * 1000))))); // 30 days for swap
             }
             let mut until: Option<i64> = self.safe_integer_k(&paramsSubType, "until", &[]).as_i64();
             let mut paramsUntil: Value = self.omit(&paramsSubType, Value::Str("until".into()), &[]);
@@ -7982,7 +7978,7 @@ impl Bingx {
                 }
                 request.insert(endTimeReq, Value::from(until));
             }  else if (market).swap {
-                request.insert("endTs".into(), now);
+                request.insert("endTs".into(), Value::from(now));
             }
             if (market).spot {
                 if (limit != Value::Null) {

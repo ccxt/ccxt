@@ -967,7 +967,7 @@ impl Mexc {
         self.check_required_credentials(&[]);
         let mut channel: String = "login".to_string();
         let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "swap");
-        let mut timestamp: Value = Value::Str(format!("{}", self.milliseconds()).into());
+        let mut timestamp: String = format!("{}", self.milliseconds().as_i64().unwrap_or_default());
         let mut payload: String = format!("{}{}", self.apiKey.clone(), timestamp);
         let mut signature: Value = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -977,7 +977,7 @@ impl Mexc {
     let mut m = indexmap::IndexMap::new();
         m.insert("apiKey".to_string(), self.apiKey.clone());
         m.insert("signature".to_string(), signature);
-        m.insert("reqTime".to_string(), timestamp);
+        m.insert("reqTime".to_string(), Value::from(timestamp));
     m
 }));
             m
@@ -1122,13 +1122,10 @@ impl Mexc {
         let mut timeframe: Value = Value::Null;
         if (matches!(&message, Value::Dict(__d) if __d.contains_key("publicSpotKline"))) {
             symbol = self.symbol(self.safe_string_k(message.clone(), "symbol", &[]));
-            let mut data: Value = (match __pro_message.get("publicSpotKline").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-            let mut timeframeId: Option<String> = self.safe_string_k_opt(data.clone(), "interval", &[]);
+            let mut data: crate::value::Dict = __pro_message.get("publicSpotKline").cloned().unwrap_or_default().into_dict();
+            let mut timeframeId: Option<String> = self.safe_string_k_opt(&data, "interval", &[]);
             timeframe = self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[self.options.as_map().and_then(|__m| __m.get("timeframes")).cloned().unwrap_or(Value::Null)]);
-            parsed = self.parse_ws_ohlcv(data, &[self.safe_market(&[symbol.clone()])]);
+            parsed = self.parse_ws_ohlcv(Value::Dict(data), &[self.safe_market(&[symbol.clone()])]);
         }  else {
             let mut d: Value = self.safe_dict2(message.clone(), Value::Str("d".into()), Value::Str("data".into()), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();

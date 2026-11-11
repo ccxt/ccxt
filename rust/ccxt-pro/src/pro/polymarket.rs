@@ -683,11 +683,8 @@ impl Polymarket {
         //         }
         //     }
         //
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut marketId: Option<String> = self.safe_string_k(data.clone(), "iid", &[]).as_str().map(str::to_owned);
+        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut marketId: Option<String> = self.safe_string_k(&data, "iid", &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
         let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
@@ -696,11 +693,11 @@ impl Polymarket {
                 m.insert("symbol".to_string(), symbol.clone());
                 m.insert("timestamp".to_string(), Value::from(timestamp));
                 m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-                m.insert("close".to_string(), self.safe_string_k(data.clone(), "last", &[]));
-                m.insert("last".to_string(), self.safe_string_k(data.clone(), "last", &[]));
-                m.insert("markPrice".to_string(), self.safe_string_k(data.clone(), "mark", &[]));
-                m.insert("indexPrice".to_string(), self.safe_string_k(data.clone(), "idx", &[]));
-                m.insert("info".to_string(), data);
+                m.insert("close".to_string(), self.safe_string_k(&data, "last", &[]));
+                m.insert("last".to_string(), self.safe_string_k(&data, "last", &[]));
+                m.insert("markPrice".to_string(), self.safe_string_k(&data, "mark", &[]));
+                m.insert("indexPrice".to_string(), self.safe_string_k(&data, "idx", &[]));
+                m.insert("info".to_string(), Value::from(&data));
             m
         }), &[market]);
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
@@ -778,11 +775,8 @@ impl Polymarket {
         //         }
         //     }
         //
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut marketId: Option<String> = self.safe_string_k(data.clone(), "iid", &[]).as_str().map(str::to_owned);
+        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut marketId: Option<String> = self.safe_string_k(&data, "iid", &[]).as_str().map(str::to_owned);
         let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
         let mut symbol: Value = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]);
         let mut timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
@@ -791,11 +785,11 @@ impl Polymarket {
                 m.insert("symbol".to_string(), symbol.clone());
                 m.insert("timestamp".to_string(), Value::from(timestamp));
                 m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-                m.insert("bid".to_string(), self.safe_string_k(data.clone(), "bp", &[]));
-                m.insert("bidVolume".to_string(), self.safe_string_k(data.clone(), "bq", &[]));
-                m.insert("ask".to_string(), self.safe_string_k(data.clone(), "ap", &[]));
-                m.insert("askVolume".to_string(), self.safe_string_k(data.clone(), "aq", &[]));
-                m.insert("info".to_string(), data);
+                m.insert("bid".to_string(), self.safe_string_k(&data, "bp", &[]));
+                m.insert("bidVolume".to_string(), self.safe_string_k(&data, "bq", &[]));
+                m.insert("ask".to_string(), self.safe_string_k(&data, "ap", &[]));
+                m.insert("askVolume".to_string(), self.safe_string_k(&data, "aq", &[]));
+                m.insert("info".to_string(), Value::from(&data));
             m
         }), &[market]);
         if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
@@ -1117,7 +1111,7 @@ impl Polymarket {
         if (timeframe == Value::Null) {
             return;
         }
-        let mut rows: crate::value::List = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut rows: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
         let mut rowsLength: f64 = ((rows.len() as i64) as f64);
         if (rowsLength == 0.0) {
             return;
@@ -1656,16 +1650,13 @@ impl Polymarket {
         //         }
         //     }
         //
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "timestamp", &[]).as_i64();
+        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&data, "timestamp", &[]).as_i64();
         if (self.positions.clone() == Value::Null) {
             self.positions = ArrayCacheBySymbolBySide::new(Value::Null);
         }
         let mut cache: Value = self.positions.clone();
-        let mut rows: crate::value::List = self.safe_list_k(data.clone(), "positions", &[Value::from(vec![])]).into_list();
+        let mut rows: crate::value::List = self.safe_list_k(&data, "positions", &[Value::from(vec![])]).into_list();
         let mut newPositions: Vec<Value> = vec![];
         {
                         let mut i: i64 = 0;
@@ -1686,13 +1677,13 @@ impl Polymarket {
         }
         }
         client.resolve(Value::Array(newPositions), "positions");
-        let mut margin: crate::value::Dict = self.safe_dict_k(data.clone(), "margin", &[Value::Map({
+        let mut margin: crate::value::Dict = self.safe_dict_k(&data, "margin", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("info".to_string(), data);
+                m.insert("info".to_string(), Value::Dict(data));
                 m.insert("timestamp".to_string(), Value::from(timestamp));
                 m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
             m

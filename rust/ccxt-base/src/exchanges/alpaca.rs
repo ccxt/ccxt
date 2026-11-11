@@ -1687,10 +1687,10 @@ impl Alpaca {
         let mut symbolsSorted: Value = (if (symbols == Value::Null) { self.sort(self.symbols.clone(), &[]) } else { symbols });
         let mut symbolsNormalized: Value = self.market_symbols(&[symbolsSorted]);
         let mut loc: String = self.safe_string_k(params.clone(), "loc", &[Value::Str("us".into())]).as_str().unwrap_or("us").to_string();
-        let mut ids: Value = self.market_ids(&[symbolsNormalized.clone()]);
+        let mut ids: Option<crate::value::List> = self.market_ids(&[symbolsNormalized.clone()]).into_opt_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("symbols".to_string(), Value::Str(ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
+                m.insert("symbols".to_string(), Value::Str(ids.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
                 m.insert("loc".to_string(), Value::from(loc));
             m
         });

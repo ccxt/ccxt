@@ -3498,7 +3498,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let params = params.as_map().unwrap_or(&__params_empty);
         let mut collected: crate::value::List = std::sync::Arc::new(Vec::new());
         // tags / category -> documented /series listing
-        let mut tags: crate::value::List = (match params.get("tags") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut tags: crate::value::List = params.get("tags").cloned().unwrap_or_default().into_list();
         let mut tagsLength: f64 = ((tags.len() as i64) as f64);
         {
                         let mut ti: i64 = 0;
@@ -3918,7 +3918,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut bodyValue: Value = Value::Null;
         if (access.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut timestamp: Value = Value::Str(format!("{}", self.milliseconds()).into());
+            let mut timestamp: String = format!("{}", self.milliseconds().as_i64().unwrap_or_default());
             // Signing payload: {timestamp}{METHOD}{path}, where path is the full request path
             // INCLUDING the /trade-api/v2 prefix and any path params substituted in, but NOT
             // the query string (e.g. /trade-api/v2/portfolio/orders/{order_id})
@@ -3937,7 +3937,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut m = indexmap::IndexMap::new();
                     m.insert("KALSHI-ACCESS-KEY".to_string(), self.apiKey.clone());
                     m.insert("KALSHI-ACCESS-SIGNATURE".to_string(), signature);
-                    m.insert("KALSHI-ACCESS-TIMESTAMP".to_string(), timestamp);
+                    m.insert("KALSHI-ACCESS-TIMESTAMP".to_string(), Value::from(timestamp));
                 m
             })]);
             if (method.as_str() != Some("GET")) && (querystring.as_deref() != Some("")) {

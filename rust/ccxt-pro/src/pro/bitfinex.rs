@@ -941,7 +941,7 @@ impl Bitfinex {
         //       1655110144596
         //    ]
         //
-        let mut trade: crate::value::List = (match tradeResult.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut trade: crate::value::List = tradeResult.get("result").cloned().unwrap_or_default().into_list();
         let mut numFields: f64 = ((trade.len() as i64) as f64);
         let mut isPublic: bool = numFields <= ((8i64) as f64);
         let mut marketId: Value = Value::Null;

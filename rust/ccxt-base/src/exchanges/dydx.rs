@@ -1968,8 +1968,8 @@ impl Dydx {
     pub async fn fetch_dydx_account(&mut self) -> Value {
         // required in js
         self.load_dydx_protos().await;
-        let mut dydxAccount: Value = self.safe_dict_k(self.options.clone(), "dydxAccount", &[]);
-        if (dydxAccount != Value::Null) {
+        let mut dydxAccount: Option<crate::value::Dict> = self.safe_dict_k(self.options.clone(), "dydxAccount", &[]).into_opt_dict();
+        if (dydxAccount.is_some()) {
             return self.safe_dict_k(self.options.clone(), "dydxAccount", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2505,8 +2505,8 @@ impl Dydx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::value::Dict = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())).into_dict();
-        let mut clientOrderIds: Value = self.safe_list_k(params.clone(), "clientOrderIds", &[]);
-        if (clientOrderIds == Value::Null) {
+        let mut clientOrderIds: Option<crate::value::List> = self.safe_list_k(params.clone(), "clientOrderIds", &[]).into_opt_list();
+        if (clientOrderIds.is_none()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" cancelOrders only support clientOrderIds.".into()))));
         }
         let mut subAccountId: i64 = 0;
@@ -2526,7 +2526,7 @@ impl Dydx {
         })]).as_map().cloned().unwrap_or_default();
         let mut cancelOrders: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("clientIds".to_string(), clientOrderIds);
+                m.insert("clientIds".to_string(), clientOrderIds.map_or(Value::Null, Value::Arr));
                 m.insert("clobPairId".to_string(), marketInfo.get("clobPairId").cloned().unwrap_or(Value::Null));
             m
         });

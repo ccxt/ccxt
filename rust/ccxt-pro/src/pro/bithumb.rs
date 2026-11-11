@@ -818,7 +818,7 @@ impl Bithumb {
         //         "stream_type": "SNAPSHOT"
         //     }
         //
-        let mut content: Option<crate::value::Dict> = (match __pro_message.get("content").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_opt_dict();
+        let mut content: Option<crate::value::Dict> = __pro_message.get("content").cloned().unwrap_or_default().into_opt_dict();
         if (content.is_some()) {
             let mut list: Value = self.safe_list_k(&content, "list", &[Value::from(vec![])]);
             let mut first: crate::value::Dict = self.safe_dict(list.clone(), Value::Int(0), &[Value::Map({
@@ -865,7 +865,7 @@ impl Bithumb {
 }), obLimit]); if let Value::Dict(__d) = &mut self.orderbooks { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), __be_tmp); } }
         }
         let mut orderbook: Value = (if let (Some(__m), Some(__k)) = (self.orderbooks.as_map(), symbol.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-        let mut units: crate::value::List = (match __pro_message.get("orderbook_units").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).into_list();
+        let mut units: crate::value::List = __pro_message.get("orderbook_units").cloned().unwrap_or_default().into_list();
         let mut gen2TimestampStr: Option<String> = self.safe_string2_opt(message, Value::Str("timestamp".into()), Value::Str("datetime".into()), &[]);
         let mut timestamp: Value = self.milliseconds();
         if (gen2TimestampStr.is_some()) {
@@ -1038,7 +1038,7 @@ impl Bithumb {
         //         "stream_type": "REALTIME"
         //     }
         //
-        let mut content: crate::value::Dict = (match __pro_message.get("content").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_dict();
+        let mut content: crate::value::Dict = __pro_message.get("content").cloned().unwrap_or_default().into_dict();
         let mut rawTrades: Vec<Value> = self.safe_list_k(&content, "list", &[Value::from(vec![message])]).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
@@ -1156,7 +1156,7 @@ impl Bithumb {
         //        "resmsg" : "Invalid Filter Syntax"
         //    }
         //
-        let mut error: Option<crate::value::Dict> = (match message.get("error") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null }).into_opt_dict();
+        let mut error: Option<crate::value::Dict> = message.get("error").cloned().unwrap_or_default().into_opt_dict();
         if (error.is_some()) {
             let mut errorName: String = self.safe_string_k(&error, "name", &[Value::Str("Error".into())]).as_str().unwrap_or("Error").to_string();
             let mut errorMessage: String = self.safe_string_k(&error, "message", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1258,7 +1258,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //    }
         //
         let mut messageHash: String = "myAsset".to_string();
-        let mut assets: crate::value::List = (match __pro_message.get("assets").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).into_list();
+        let mut assets: crate::value::List = __pro_message.get("assets").cloned().unwrap_or_default().into_list();
         if (self.balance.clone() == Value::Null) {
             self.balance = Value::Map({
                 let mut m = indexmap::IndexMap::new();

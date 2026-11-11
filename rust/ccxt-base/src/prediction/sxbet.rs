@@ -1611,7 +1611,7 @@ impl Sxbet {
                 orderStatus = (if (reason.as_str() == Some("EXPIRED")) { Some("expired".to_string()) } else { Some("canceled".to_string()) });
             }
         }
-        let mut now: Option<i64> = self.milliseconds().as_i64();
+        let mut now: i64 = self.milliseconds().as_i64().unwrap_or_default();
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string2(&first, Value::Str("orderId".into()), Value::Str("orderHash".into()), &[]));
@@ -3027,8 +3027,8 @@ impl Sxbet {
         let mut bid: Value = (if (ownPercentage.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&ownPercentage.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom.clone())), &[]) } else { Value::Null });
         let mut ask: Value = (if (oppositePercentage.is_some()) { self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &crate::precise::Precise::stringDiv(&oppositePercentage.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(oneDenom))), &[]) } else { Value::Null });
         let mut updatedAt: Option<i64> = self.safe_integer_k(ownOdds, "updatedAt", &[]).as_i64();
-        let mut now: Option<i64> = self.milliseconds().as_i64();
-        let mut timestamp: Option<i64> = (if (updatedAt.is_some()) { updatedAt } else { now });
+        let mut now: i64 = self.milliseconds().as_i64().unwrap_or_default();
+        let mut timestamp: Option<i64> = (if (updatedAt.is_some()) { updatedAt } else { Some(now) });
         let mut average: Value = Value::Null;
         if (bid != Value::Null) && (ask != Value::Null) {
             average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&self.number_to_string(bid.clone()), &self.number_to_string(ask.clone())), &Value::Str("2".into())), &[]);
@@ -3113,7 +3113,7 @@ impl Sxbet {
                 sortedAsks = self.array_slice(sortedAsks.clone(), Value::Int(0), &[limit]);
             }
         }
-        let mut timestamp: Option<i64> = self.milliseconds().as_i64();
+        let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
         return self.safe_prediction_order_book(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("outcome".to_string(), self.safe_string_k(outcomeObj.clone(), "outcome", &[outcome]));
@@ -3355,8 +3355,8 @@ impl Sxbet {
     m
 })]);
         let mut pendingEntry: Option<crate::value::Dict> = self.safe_dict(pendingRequests.clone(), requestIdString.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
-        let mut errorReply: Value = (match __pro_message.get("error").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-        if (errorReply != Value::Null) {
+        let mut errorReply: Option<crate::value::Dict> = __pro_message.get("error").cloned().unwrap_or_default().into_opt_dict();
+        if (errorReply.is_some()) {
             // a rejected connect (bad or expired realtime token) or subscribe (unauthorized or
             // unknown channel) - fail the awaiting future and clear the subscription hash that
             // watch() registered at send time, so the next call re-sends the command instead
@@ -3383,14 +3383,14 @@ impl Sxbet {
             // a successful command ack - the tracked request has served its purpose
             { let __be_tmp = self.omit(pendingRequests, requestIdString.map(Value::from).unwrap_or(Value::Null), &[]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPendingRequests".into(), __be_tmp); } }
         }
-        let mut connectReply: Value = (match __pro_message.get("connect").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-        if (connectReply != Value::Null) {
+        let mut connectReply: Option<crate::value::Dict> = __pro_message.get("connect").cloned().unwrap_or_default().into_opt_dict();
+        if (connectReply.is_some()) {
             // connect acknowledged - unblock connectSxbetCentrifugo so channel subscribes can be sent
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsConnected".into(), Value::Bool(true)); }
             client.resolve(Value::Bool(true), "centrifugoConnected");
             return;
         }
-        let mut push: Option<crate::value::Dict> = (match __pro_message.get("push").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_opt_dict();
+        let mut push: Option<crate::value::Dict> = __pro_message.get("push").cloned().unwrap_or_default().into_opt_dict();
         if (push.is_none()) {
             return;
         }
@@ -3528,7 +3528,7 @@ impl Sxbet {
     m
 })]).into_dict();
         let mut watchedSyms: Vec<Value> = Value::Array(watchedBooks.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
-        let mut timestamp: Option<i64> = self.milliseconds().as_i64();
+        let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
         let mut watchedSymsLength: f64 = ((watchedSyms.len() as i64) as f64);
         {
                         let mut i: i64 = 0;

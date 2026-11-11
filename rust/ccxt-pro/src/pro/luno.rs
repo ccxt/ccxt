@@ -358,7 +358,7 @@ impl Luno {
         //         "timestamp": 1660598775360
         //     }
         //
-        let mut rawTrades: crate::value::List = (match message.get("trade_updates") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut rawTrades: crate::value::List = message.get("trade_updates").cloned().unwrap_or_default().into_list();
         let mut length: f64 = ((rawTrades.len() as i64) as f64);
         if (length == 0.0) {
             return;

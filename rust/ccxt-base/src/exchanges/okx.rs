@@ -12146,8 +12146,8 @@ impl Okx {
             let mut currencyId: Option<String> = self.safe_string_k_opt(feeInfo.clone(), "ccy", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if (code != Value::Null) && ((codesValue == Value::Null) || self.in_array(code.clone(), codesValue.clone()).as_bool() == Some(true)) {
-                let mut depositWithdrawFee: Value = self.safe_dict(depositWithdrawFees.clone(), code.clone(), &[]);
-                if (depositWithdrawFee == Value::Null) {
+                let mut depositWithdrawFee: Option<crate::value::Dict> = self.safe_dict(depositWithdrawFees.clone(), code.clone(), &[]).into_opt_dict();
+                if (depositWithdrawFee.is_none()) {
                     if let Value::Dict(__d) = &mut depositWithdrawFees { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), self.deposit_withdraw_fee(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -13567,13 +13567,13 @@ impl Okx {
             request.insert("endTime".into(), Value::from(until));
         }
         let mut response: Option<crate::value::Dict> = None;
-        let mut now: Value = self.milliseconds();
-        let mut oneWeekAgo: Value = (match (&(now), &(Value::Int(604800000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-        let mut threeMonthsAgo: Value = (match (&(now), &(Value::Int(7776000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-        if (since == Value::Null) || (since.as_f64().unwrap_or(f64::NAN) > oneWeekAgo.as_f64().unwrap_or(f64::NAN)) {
+        let mut now: i64 = self.milliseconds().as_i64().unwrap_or_default();
+        let mut oneWeekAgo: i64 = (now - 604800000);
+        let mut threeMonthsAgo: i64 = (now - 7776000000);
+        if (since == Value::Null) || (since.as_f64().unwrap_or(f64::NAN) > (oneWeekAgo as f64)) {
             let __ws_arg_100 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.private_get_account_bills(&[__ws_arg_100]).await.into_opt_dict();
-        }  else if since.as_f64().unwrap_or(f64::NAN) > threeMonthsAgo.as_f64().unwrap_or(f64::NAN) {
+        }  else if since.as_f64().unwrap_or(f64::NAN) > (threeMonthsAgo as f64) {
             let __ws_arg_101 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_get_account_bills_archive(&[__ws_arg_101]).await.into_opt_dict();
         }  else {

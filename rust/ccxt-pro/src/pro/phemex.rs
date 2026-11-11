@@ -594,7 +594,7 @@ impl Phemex {
 }) });
             tickers.push(self.parse_ticker(ticker.clone(), &[]));
         }  else if (matches!(&message, Value::Dict(__d) if __d.contains_key("data"))) {
-            let mut data: crate::value::List = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) }).into_list();
+            let mut data: crate::value::List = __pro_message.get("data").cloned().unwrap_or_default().into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_606: bool = true;
@@ -2280,7 +2280,7 @@ impl Phemex {
         //     }
         // }
         //
-        let mut result: crate::value::Dict = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null }).into_dict();
+        let mut result: crate::value::Dict = __pro_message.get("result").cloned().unwrap_or_default().into_dict();
         let mut status: Option<String> = self.safe_string_k(&result, "status", &[]).as_str().map(str::to_owned);
         let mut messageHash: String = "authenticated".to_string();
         if (status.as_deref() == Some("success")) {

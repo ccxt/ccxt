@@ -2447,7 +2447,7 @@ impl Bitopro {
                 if queryLength > ((0i64) as f64) {
                     url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
                 }
-                let mut nonce: Option<i64> = self.milliseconds().as_i64();
+                let mut nonce: i64 = self.milliseconds().as_i64().unwrap_or_default();
                 let mut rawData: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("nonce".to_string(), Value::from(nonce));

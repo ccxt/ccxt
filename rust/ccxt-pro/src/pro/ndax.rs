@@ -434,7 +434,7 @@ impl Ndax {
     pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
-        let mut payload: crate::value::List = (match message.get("o") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut payload: crate::value::List = message.get("o").cloned().unwrap_or_default().into_list();
         //
         // initial snapshot
         //
@@ -572,7 +572,7 @@ impl Ndax {
         //         "o": [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
         //     }
         //
-        let mut payload: crate::value::List = (match message.get("o") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut payload: crate::value::List = message.get("o").cloned().unwrap_or_default().into_list();
         //
         //     [
         //         [
@@ -781,7 +781,7 @@ impl Ndax {
         //         "o": [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
         //     }
         //
-        let mut payload: crate::value::List = (match message.get("o") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut payload: crate::value::List = message.get("o").cloned().unwrap_or_default().into_list();
         //
         //     [
         //         0,   // 0 MDUpdateId

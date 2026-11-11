@@ -4445,7 +4445,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             request.insert("startTime".into(), since.clone());
         }  else {
             let mut maxLimit: i64 = limit.as_i64().unwrap_or(500);
-            request.insert("startTime".into(), (match (&(self.milliseconds()), &(Value::Int((((((maxLimit * 60)) * 60)) * 1000)))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+            request.insert("startTime".into(), Value::Int(((self.milliseconds().as_i64().unwrap_or_default()) - ((((((maxLimit * 60)) * 60)) * 1000)))));
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();
@@ -6873,11 +6873,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //      baseId: 159
         //  }
         //
-        let mut interestValue: Value = (match interest.get("info") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut coin: Option<String> = self.safe_string_k(interestValue.clone(), "name", &[]).as_str().map(str::to_owned);
+        let mut interestValue: crate::value::Dict = interest.get("info").cloned().unwrap_or_default().into_dict();
+        let mut coin: Option<String> = self.safe_string_k(&interestValue, "name", &[]).as_str().map(str::to_owned);
         let mut marketId: Value = Value::Null;
         if (coin.is_some()) {
             marketId = self.coin_to_market_id(coin.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
@@ -6885,11 +6882,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), self.safe_symbol(marketId, &[]));
-        m.insert("openInterestAmount".to_string(), self.safe_number_k(interestValue.clone(), "openInterest", &[]));
+        m.insert("openInterestAmount".to_string(), self.safe_number_k(&interestValue, "openInterest", &[]));
         m.insert("openInterestValue".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("info".to_string(), interestValue);
+        m.insert("info".to_string(), Value::from(&interestValue));
     m
 }), &[market]);
 

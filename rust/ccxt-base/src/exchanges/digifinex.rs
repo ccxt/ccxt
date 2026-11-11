@@ -3085,8 +3085,8 @@ impl Digifinex {
 }));
         let __response_empty = indexmap::IndexMap::new();
         let response = response.as_map().unwrap_or(&__response_empty);
-        let mut success: crate::value::List = (match response.get("success") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
-        let mut error: crate::value::List = (match response.get("error") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut success: crate::value::List = response.get("success").cloned().unwrap_or_default().into_list();
+        let mut error: crate::value::List = response.get("error").cloned().unwrap_or_default().into_list();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -6441,9 +6441,9 @@ impl Digifinex {
         }
         if signed {
             let mut auth: Value = Value::Str("".into());
-            let mut nonce: Value = Value::Str("".into());
+            let mut nonce: String = "".to_string();
             if (pathPart == "/swap/v2") {
-                nonce = Value::Str(format!("{}", self.milliseconds()).into());
+                nonce = format!("{}", self.milliseconds().as_i64().unwrap_or_default());
                 auth = Value::Str(format!("{}{}", Value::Str(format!("{}{}", nonce, method).into()), payload).into());
                 if (method.as_str() == Some("GET")) {
                     if (urlencoded.as_str() != Some("")) {
@@ -6453,7 +6453,7 @@ impl Digifinex {
                     auth = Value::Str(format!("{}{}", auth, urlencoded).into());
                 }
             }  else {
-                nonce = Value::Str(format!("{}", self.seconds()).into());
+                nonce = format!("{}", self.seconds().as_i64().unwrap_or_default());
                 auth = urlencoded.clone();
             }
             let mut signature: Value = self.hmac(self.encode(auth), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
@@ -6471,7 +6471,7 @@ impl Digifinex {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("ACCESS-KEY".to_string(), self.apiKey.clone());
                     m.insert("ACCESS-SIGN".to_string(), signature);
-                    m.insert("ACCESS-TIMESTAMP".to_string(), nonce);
+                    m.insert("ACCESS-TIMESTAMP".to_string(), Value::from(nonce));
                 m
             });
             return Value::Map({

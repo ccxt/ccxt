@@ -3778,8 +3778,8 @@ if _try_result.is_err() {
         //
         let mut rows: Value = self.safe_list_k(&response, "transfers", &[Value::from(vec![])]);
         let mut cursor: Option<String> = self.safe_string_k_opt(&response, "cursor", &[]);
-        let mut first: Value = self.safe_dict(rows.clone(), Value::Int(0), &[]);
-        if (first != Value::Null) && (cursor.is_some()) {
+        let mut first: Option<crate::value::Dict> = self.safe_dict(rows.clone(), Value::Int(0), &[]).into_opt_dict();
+        if (first.is_some()) && (cursor.is_some()) {
             add_element_to_object(get_value_mut(&mut rows, &Value::Int(0)), &Value::Str("cursor".into()), cursor.map(Value::from).unwrap_or(Value::Null));
         }
         return self.parse_transfers(rows, &[currency, since, limit, paramsApiKeyIndex]);
@@ -3916,8 +3916,8 @@ if _try_result.is_err() {
         //
         let mut data: Value = self.safe_list_k(&response, "deposits", &[Value::from(vec![])]);
         let mut cursor: Option<String> = self.safe_string_k_opt(&response, "cursor", &[]);
-        let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
-        if (first != Value::Null) && (cursor.is_some()) {
+        let mut first: Option<crate::value::Dict> = self.safe_dict(data.clone(), Value::Int(0), &[]).into_opt_dict();
+        if (first.is_some()) && (cursor.is_some()) {
             add_element_to_object(get_value_mut(&mut data, &Value::Int(0)), &Value::Str("cursor".into()), cursor.map(Value::from).unwrap_or(Value::Null));
         }
         return self.parse_transactions(data, &[currency, since, limit]);
@@ -4000,8 +4000,8 @@ if _try_result.is_err() {
         //
         let mut data: Value = self.safe_list_k(&response, "withdraws", &[Value::from(vec![])]);
         let mut cursor: Option<String> = self.safe_string_k_opt(&response, "cursor", &[]);
-        let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
-        if (first != Value::Null) && (cursor.is_some()) {
+        let mut first: Option<crate::value::Dict> = self.safe_dict(data.clone(), Value::Int(0), &[]).into_opt_dict();
+        if (first.is_some()) && (cursor.is_some()) {
             add_element_to_object(get_value_mut(&mut data, &Value::Int(0)), &Value::Str("cursor".into()), cursor.map(Value::from).unwrap_or(Value::Null));
         }
         return self.parse_transactions(data, &[currency, since, limit]);
@@ -4329,8 +4329,8 @@ if _try_result.is_err() {
         }
         }
         let mut nextCursor: Option<String> = self.safe_string_k_opt(&response, "next_cursor", &[]);
-        let mut first: Value = self.safe_dict(data.clone(), Value::Int(0), &[]);
-        if (first != Value::Null) && (nextCursor.is_some()) {
+        let mut first: Option<crate::value::Dict> = self.safe_dict(data.clone(), Value::Int(0), &[]).into_opt_dict();
+        if (first.is_some()) && (nextCursor.is_some()) {
             add_element_to_object(get_value_mut(&mut data, &Value::Int(0)), &Value::Str("next_cursor".into()), nextCursor.map(Value::from).unwrap_or(Value::Null));
         }
         return self.parse_trades(data, &[market, since, limit, paramsUntil]);

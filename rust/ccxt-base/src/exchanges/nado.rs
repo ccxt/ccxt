@@ -4020,8 +4020,8 @@ impl Nado {
             }
             let mut triggerStatus: Option<crate::value::Dict> = self.safe_dict_k(order.clone(), "status", &[]).into_opt_dict();
             if (triggerStatus.is_some()) {
-                let mut triggered: Value = self.safe_dict_k(&triggerStatus, "triggered", &[]);
-                if (triggered != Value::Null) {
+                let mut triggered: Option<crate::value::Dict> = self.safe_dict_k(&triggerStatus, "triggered", &[]).into_opt_dict();
+                if (triggered.is_some()) {
                     status = Some("closed".to_string());
                 }  else {
                     status = Some("canceled".to_string());
@@ -4169,8 +4169,8 @@ impl Nado {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut gatewayContracts: Value = self.safe_dict_k(self.options.clone(), "gatewayContracts", &[]);
-        if (gatewayContracts == Value::Null) {
+        let mut gatewayContracts: Option<crate::value::Dict> = self.safe_dict_k(self.options.clone(), "gatewayContracts", &[]).into_opt_dict();
+        if (gatewayContracts.is_none()) {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("contracts".into()));

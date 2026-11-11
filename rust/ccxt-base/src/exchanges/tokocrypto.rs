@@ -1810,10 +1810,7 @@ impl Tokocrypto {
     pub fn is_native_market(&self, mut market: Value) -> Value {
         let __market_empty = indexmap::IndexMap::new();
         let market = market.as_map().unwrap_or(&__market_empty);
-        let mut marketInfo: crate::value::Dict = (match market.get("info") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) }).into_dict();
+        let mut marketInfo: crate::value::Dict = market.get("info").cloned().unwrap_or_default().into_dict();
         let mut symbolType: Option<String> = self.safe_string_k(&marketInfo, "type", &[]).as_str().map(str::to_owned);
         return Value::Bool((symbolType.is_some()) && (symbolType.as_deref() != Some("1")));
 
@@ -3618,7 +3615,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         }), &[params]).into_dict();
-        let mut byLimit: crate::value::List = (match config.get("byLimit") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut byLimit: crate::value::List = config.get("byLimit").cloned().unwrap_or_default().into_list();
         if (paramsDict.contains_key("noCoin")) && !(paramsDict.contains_key("coin")) {
             return (match config.get("noCoin") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });
         }  else if (paramsDict.contains_key("noSymbol")) && !(paramsDict.contains_key("symbol")) {

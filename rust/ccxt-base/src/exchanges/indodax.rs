@@ -1891,7 +1891,7 @@ impl Indodax {
         // Will be passed to callback URL (assigned via website to the API key)
         // so your system can identify the request and confirm it.
         // Alphanumeric, max length 255.
-        let mut requestId: Value = self.milliseconds();
+        let mut requestId: i64 = self.milliseconds().as_i64().unwrap_or_default();
         // Alternatively:
         // let requestId = this.uuid ();
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2080,14 +2080,14 @@ impl Indodax {
                         let mut i: i64 = 0;
             let mut __for_first_845: bool = true;
             while { if !__for_first_845 { i += 1; } __for_first_845 = false; i < (addressKeys.len() as i64) } {
-            let mut marketId: Value = addressKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut code: Option<String> = self.safe_currency_code(marketId.clone(), &[]).as_str().map(str::to_owned);
-            let mut address: Option<String> = self.safe_string(&addresses, marketId.clone(), &[]).as_str().map(str::to_owned);
+            let mut marketId: Option<String> = addressKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut code: Option<String> = self.safe_currency_code(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            let mut address: Option<String> = self.safe_string(&addresses, marketId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             if (address.is_some()) && ((codes == Value::Null) || self.in_array(code.clone().map(Value::from).unwrap_or(Value::Null), codes.clone()).as_bool() == Some(true)) {
                 self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
                 let mut network: Value = Value::Null;
-                if (matches!((&networks, &marketId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    let mut networkId: Option<String> = self.safe_string(networks.clone(), marketId.clone(), &[]).as_str().map(str::to_owned);
+                if (matches!((&networks, marketId.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+                    let mut networkId: Option<String> = self.safe_string(networks.clone(), marketId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                     if (networkId.is_none()) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" fetchDepositAddresses() missing networkId".into()))));
                     }

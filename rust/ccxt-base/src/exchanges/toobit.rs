@@ -4292,7 +4292,7 @@ impl Toobit {
             }
         }  else {
             self.check_required_credentials(&[]);
-            let mut timestamp: Value = self.milliseconds();
+            let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
             // Add timestamp to parameters for signed endpoints
             extraQuery.insert("recvWindow".into(), self.safe_string_k(self.options.clone(), "recvWindow", &[Value::Str("5000".into())]));
             extraQuery.insert("timestamp".into(), Value::Str(format!("{}", timestamp).into()));

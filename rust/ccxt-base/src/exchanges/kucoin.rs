@@ -13989,7 +13989,7 @@ if _try_result.is_err() {
             start = Value::Int(0);
         }
         if (until.is_none()) {
-            end = self.milliseconds().as_i64();
+            end = Some(self.milliseconds().as_i64().unwrap_or_default());
         }
         let mut response: Value = Value::Null;
         let mut resultKey: String = "data".to_string();
@@ -15531,14 +15531,14 @@ if _try_result.is_err() {
         if (marginMode.as_str() != Some("CROSS")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), Value::Str(" fetchLeverageTiers() supports cross margin only".into()))));
         }
-        let mut marketIds: Value = self.market_ids(&[symbolsNormalized]);
+        let mut marketIds: Option<crate::value::List> = self.market_ids(&[symbolsNormalized]).into_opt_list();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("tradeType".to_string(), Value::Str("FUTURES".into()));
                 m.insert("marginMode".to_string(), marginMode);
                 m.insert("data".to_string(), Value::Str("RISK_LIMIT".into()));
                 m.insert("accountType".to_string(), Value::Str("UNIFIED".into()));
-                m.insert("symbol".to_string(), Value::Str(marketIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
+                m.insert("symbol".to_string(), Value::Str(marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
             m
         });
         let __ws_arg_152 = self.extend(Value::Map(request), &[paramsRequest]);
@@ -15626,8 +15626,8 @@ if _try_result.is_err() {
             if length < ((11i64) as f64) {
                 // the endpoint does not accept more than 10 symbols at a time
                 // if user provided more than 10 symbols, we will fetch all symbols
-                let mut marketIds: Value = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
-                request.insert("symbol".into(), Value::Str(marketIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
+                let mut marketIds: Option<crate::value::List> = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_opt_list();
+                request.insert("symbol".into(), Value::Str(marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
             }
         }
         let __ws_arg_153 = self.extend(Value::Map(request), &[params]);

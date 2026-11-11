@@ -476,7 +476,7 @@ impl Revolutx {
         let mut bodyString: Value = Value::Str("".into());
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut timestamp: Value = Value::Str(format!("{}", self.milliseconds()).into());
+            let mut timestamp: String = format!("{}", self.milliseconds().as_i64().unwrap_or_default());
             if (method.as_str() == Some("GET")) {
                 queryString = self.urlencode(query.clone(), &[]);
                 if (queryString.as_str() != Some("")) {
@@ -496,7 +496,7 @@ impl Revolutx {
             requestHeaders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-Revx-API-Key".to_string(), self.apiKey.clone());
-                    m.insert("X-Revx-Timestamp".to_string(), timestamp);
+                    m.insert("X-Revx-Timestamp".to_string(), Value::from(timestamp));
                     m.insert("X-Revx-Signature".to_string(), signature);
                 m
             });
@@ -1931,17 +1931,17 @@ impl Revolutx {
         if (cursor.is_some()) {
             request.insert("cursor".into(), cursor.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut orderStates: Value = self.safe_list2(params.clone(), Value::Str("orderStates".into()), Value::Str("order_states".into()), &[]);
-        if (orderStates != Value::Null) {
-            request.insert("order_states".into(), Value::Str(orderStates.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
+        let mut orderStates: Option<crate::value::List> = self.safe_list2(params.clone(), Value::Str("orderStates".into()), Value::Str("order_states".into()), &[]).into_opt_list();
+        if (orderStates.is_some()) {
+            request.insert("order_states".into(), Value::Str(orderStates.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
         }
         let mut trigger: bool = self.safe_bool_k(params.clone(), "trigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut orderTypes: Value = self.safe_list2(params.clone(), Value::Str("orderTypes".into()), Value::Str("order_types".into()), &[]);
-        if (orderTypes == Value::Null) && trigger {
-            orderTypes = Value::from(vec![Value::Str("conditional".into()), Value::Str("tpsl".into())]);
+        let mut orderTypes: Option<crate::value::List> = self.safe_list2(params.clone(), Value::Str("orderTypes".into()), Value::Str("order_types".into()), &[]).into_opt_list();
+        if (orderTypes.is_none()) && trigger {
+            orderTypes = Value::from(vec![Value::Str("conditional".into()), Value::Str("tpsl".into())]).into_opt_list();
         }
-        if (orderTypes != Value::Null) {
-            request.insert("order_types".into(), Value::Str(orderTypes.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
+        if (orderTypes.is_some()) {
+            request.insert("order_types".into(), Value::Str(orderTypes.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
         }
         let mut side: Option<String> = self.safe_string_k(params.clone(), "side", &[]).as_str().map(str::to_owned);
         if (side.is_some()) {
@@ -2038,17 +2038,17 @@ impl Revolutx {
         if (cursor.is_some()) {
             request.insert("cursor".into(), cursor.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut orderStates: Value = self.safe_list2(params.clone(), Value::Str("orderStates".into()), Value::Str("order_states".into()), &[]);
-        if (orderStates != Value::Null) {
-            request.insert("order_states".into(), Value::Str(orderStates.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
+        let mut orderStates: Option<crate::value::List> = self.safe_list2(params.clone(), Value::Str("orderStates".into()), Value::Str("order_states".into()), &[]).into_opt_list();
+        if (orderStates.is_some()) {
+            request.insert("order_states".into(), Value::Str(orderStates.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
         }
         let mut trigger: bool = self.safe_bool_k(params.clone(), "trigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut orderTypes: Value = self.safe_list2(params.clone(), Value::Str("orderTypes".into()), Value::Str("order_types".into()), &[]);
-        if (orderTypes == Value::Null) && trigger {
-            orderTypes = Value::from(vec![Value::Str("conditional".into()), Value::Str("tpsl".into())]);
+        let mut orderTypes: Option<crate::value::List> = self.safe_list2(params.clone(), Value::Str("orderTypes".into()), Value::Str("order_types".into()), &[]).into_opt_list();
+        if (orderTypes.is_none()) && trigger {
+            orderTypes = Value::from(vec![Value::Str("conditional".into()), Value::Str("tpsl".into())]).into_opt_list();
         }
-        if (orderTypes != Value::Null) {
-            request.insert("order_types".into(), Value::Str(orderTypes.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
+        if (orderTypes.is_some()) {
+            request.insert("order_types".into(), Value::Str(orderTypes.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[self.omit(params, Value::from(vec![Value::Str("until".into()), Value::Str("cursor".into()), Value::Str("orderStates".into()), Value::Str("order_states".into()), Value::Str("orderTypes".into()), Value::Str("order_types".into()), Value::Str("trigger".into())]), &[])]);
         let mut response: crate::value::Dict = self.private_get10_orders_historical(&[__ws_arg_11]).await.into_dict();

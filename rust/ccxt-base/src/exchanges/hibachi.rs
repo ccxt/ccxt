@@ -3221,7 +3221,7 @@ impl Hibachi {
         //
         //   { "totalQuantity" : "2.3299770166" }
         //
-        let mut timestamp: Option<i64> = self.milliseconds().as_i64();
+        let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
@@ -3285,7 +3285,7 @@ impl Hibachi {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut timestamp: Option<i64> = self.milliseconds().as_i64();
+        let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
         let mut nextFundingTimestamp: Value = self.safe_integer_product_k(funding.clone(), "nextFundingTimestamp", Value::Int(1000), &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

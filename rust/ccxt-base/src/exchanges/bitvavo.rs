@@ -3364,7 +3364,7 @@ impl Bitvavo {
                     requestBody = payload.clone().map(Value::from).unwrap_or(Value::Null);
                 }
             }
-            let mut timestamp: Value = Value::Str(format!("{}", self.milliseconds()).into());
+            let mut timestamp: String = format!("{}", self.milliseconds().as_i64().unwrap_or_default());
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, method).into()), url).into()), payload.map(Value::from).unwrap_or(Value::Null));
             let mut signature: Value = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             let mut accessWindow: String = self.safe_string2(self.options.clone(), Value::Str("recvWindow".into()), Value::Str("BITVAVO-ACCESS-WINDOW".into()), &[Value::Str("10000".into())]).as_str().unwrap_or("10000").to_string();
@@ -3372,7 +3372,7 @@ impl Bitvavo {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("BITVAVO-ACCESS-KEY".to_string(), self.apiKey.clone());
                     m.insert("BITVAVO-ACCESS-SIGNATURE".to_string(), signature);
-                    m.insert("BITVAVO-ACCESS-TIMESTAMP".to_string(), timestamp);
+                    m.insert("BITVAVO-ACCESS-TIMESTAMP".to_string(), Value::from(timestamp));
                     m.insert("BITVAVO-ACCESS-WINDOW".to_string(), Value::from(accessWindow));
                 m
             });

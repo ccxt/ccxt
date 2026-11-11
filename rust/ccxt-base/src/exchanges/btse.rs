@@ -1512,12 +1512,12 @@ impl Btse {
         if (period.is_none()) {
             period = Some("7D".to_string());
             if (since != Value::Null) {
-                let mut now: Value = self.milliseconds();
-                let mut twoWeeksAgo: Value = (match (&(now), &(Value::Int(1209600000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }); // 14 days in ms
-                let mut oneWeekAgo: Value = (match (&(now), &(Value::Int(604800000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }); // 7 days in ms
-                if since.as_f64().unwrap_or(f64::NAN) < twoWeeksAgo.as_f64().unwrap_or(f64::NAN) {
+                let mut now: i64 = self.milliseconds().as_i64().unwrap_or_default();
+                let mut twoWeeksAgo: i64 = (now - 1209600000); // 14 days in ms
+                let mut oneWeekAgo: i64 = (now - 604800000); // 7 days in ms
+                if since.as_f64().unwrap_or(f64::NAN) < (twoWeeksAgo as f64) {
                     period = Some("1M".to_string());
-                }  else if since.as_f64().unwrap_or(f64::NAN) < oneWeekAgo.as_f64().unwrap_or(f64::NAN) {
+                }  else if since.as_f64().unwrap_or(f64::NAN) < (oneWeekAgo as f64) {
                     period = Some("2W".to_string());
                 }
             }
@@ -5144,10 +5144,7 @@ impl Btse {
         // the futures v3 trading api identifies contracts by the short trade-currency
         // form, for example RAVE-PERP instead of the RAVE-PERP-USDT market id, read
         // from the raw market info so that cached markets resolve it as well
-        let mut marketInfo: crate::value::Dict = (match market.get("info") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) }).into_dict();
+        let mut marketInfo: crate::value::Dict = market.get("info").cloned().unwrap_or_default().into_dict();
         return self.safe_string_k(&marketInfo, "tradeCurrency", &[(match market.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null })]);
 
     Value::Null

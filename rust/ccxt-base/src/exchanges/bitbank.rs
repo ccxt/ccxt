@@ -1694,7 +1694,7 @@ impl Bitbank {
             // since bitbank offers no server time endpoint to compensate against
             let mut authMethod: Option<String> = self.safe_string_k(self.options.clone(), "authMethod", &[Value::Str("timeWindow".into())]).as_str().map(str::to_owned);
             let mut isTimeWindow: bool = authMethod.as_deref() == Some("timeWindow");
-            let mut requestTime: Value = Value::Str(format!("{}", self.milliseconds()).into());
+            let mut requestTime: String = format!("{}", self.milliseconds().as_i64().unwrap_or_default());
             let mut timeWindow: String = self.safe_string_k(self.options.clone(), "timeWindow", &[Value::Str("5000".into())]).as_str().unwrap_or("5000").to_string();
             let mut nonce: Value = Value::Str(format!("{}", self.incrementing_nonce()).into());
             let mut auth: Value = nonce.clone();
@@ -1724,7 +1724,7 @@ impl Bitbank {
             if isTimeWindow {
                 requestHeaders = self.extend(requestHeaders.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("ACCESS-REQUEST-TIME".to_string(), requestTime);
+                        m.insert("ACCESS-REQUEST-TIME".to_string(), Value::from(requestTime));
                         m.insert("ACCESS-TIME-WINDOW".to_string(), Value::from(timeWindow));
                     m
                 })]);

@@ -2896,7 +2896,7 @@ impl Foxbit {
         }
         let mut url: String = format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), fullPath);
         let mut paramsOmitted: Value = self.omit(params, self.extract_params(path), &[]);
-        let mut timestamp: Value = self.milliseconds();
+        let mut timestamp: i64 = self.milliseconds().as_i64().unwrap_or_default();
         let mut query: Option<String> = Some("".to_string());
         let mut signatureQuery: String = "".to_string();
         if (method.as_str() == Some("GET")) {

@@ -552,7 +552,7 @@ impl Hollaex {
         // }
         //
         let mut channel: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut rawTrades: crate::value::List = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
+        let mut rawTrades: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
         // usually the first message is an empty array
         // when the user does not have any trades yet
         let mut dataLength: f64 = ((rawTrades.len() as i64) as f64);

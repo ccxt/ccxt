@@ -7030,15 +7030,14 @@ if _try_result.is_err() {
             }
             return self.fetch_paginated_call_cursor(Value::Str("fetchDeposits".into()), &[Value::Null, since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("idLessThan".into()), Value::Str("idLessThan".into()), Value::Null, Value::Int(100)]).await;
         }
-        let mut defaultWindow: Value = Value::Int(7776000000); // uta allows a window of 30 days at most, else 90 days
+        let mut defaultWindow: i64 = 7776000000; // uta allows a window of 30 days at most, else 90 days
         if (uta.as_bool() == Some(true)) {
-            defaultWindow = Value::Int(2592000000);
+            defaultWindow = 2592000000;
         }
-        let mut sinceResolved: Value = (if (since == Value::Null) { (match (&(self.milliseconds()), &(defaultWindow)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x - y), _ => Value::Null }) } else { since });
+        let mut sinceResolved: Option<i64> = (if (since == Value::Null) { Some(((self.milliseconds().as_i64().unwrap_or_default()) - defaultWindow)) } else { since.as_i64() });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("startTime".to_string(), sinceResolved.clone());
+                m.insert("startTime".to_string(), Value::from(sinceResolved));
                 m.insert("endTime".to_string(), self.milliseconds());
             m
         });
@@ -7110,7 +7109,7 @@ if _try_result.is_err() {
         //     }
         //
         let mut rawTransactions: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_transactions(rawTransactions, &[Value::Null, sinceResolved, limit]);
+        return self.parse_transactions(rawTransactions, &[Value::Null, Value::from(sinceResolved), limit]);
         Value::Null
         }).await?))
     }
@@ -7297,15 +7296,14 @@ if _try_result.is_err() {
         if (code != Value::Null) {
             currency = self.currency(code);
         }
-        let mut defaultWindow: Value = Value::Int(7776000000); // uta allows a window of 30 days at most, else 90 days
+        let mut defaultWindow: i64 = 7776000000; // uta allows a window of 30 days at most, else 90 days
         if (uta.as_bool() == Some(true)) {
-            defaultWindow = Value::Int(2592000000);
+            defaultWindow = 2592000000;
         }
-        let mut sinceResolved: Value = (if (since == Value::Null) { (match (&(self.milliseconds()), &(defaultWindow)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x - y), _ => Value::Null }) } else { since });
+        let mut sinceResolved: Option<i64> = (if (since == Value::Null) { Some(((self.milliseconds().as_i64().unwrap_or_default()) - defaultWindow)) } else { since.as_i64() });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("startTime".to_string(), sinceResolved.clone());
+                m.insert("startTime".to_string(), Value::from(sinceResolved));
                 m.insert("endTime".to_string(), self.milliseconds());
             m
         });
@@ -7380,7 +7378,7 @@ if _try_result.is_err() {
         //     }
         //
         let mut rawTransactions: Value = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
-        return self.parse_transactions(rawTransactions, &[currency, sinceResolved, limit]);
+        return self.parse_transactions(rawTransactions, &[currency, Value::from(sinceResolved), limit]);
         Value::Null
         }).await?))
     }
@@ -10077,16 +10075,16 @@ if _try_result.is_err() {
         let mut triggerPrice: Option<f64> = self.safe_number2(paramsStock.clone(), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]).as_f64();
         let mut stopLossTriggerPrice: Option<f64> = self.safe_number_k(paramsStock.clone(), "stopLossPrice", &[]).as_f64();
         let mut takeProfitTriggerPrice: Option<f64> = self.safe_number_k(paramsStock.clone(), "takeProfitPrice", &[]).as_f64();
-        let mut stopLoss: Value = self.safe_dict_k(paramsStock.clone(), "stopLoss", &[]);
-        let mut takeProfit: Value = self.safe_dict_k(paramsStock.clone(), "takeProfit", &[]);
+        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(paramsStock.clone(), "stopLoss", &[]).into_opt_dict();
+        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(paramsStock.clone(), "takeProfit", &[]).into_opt_dict();
         let mut trailingPercent: Option<String> = self.safe_string2(params, Value::Str("trailingPercent".into()), Value::Str("callbackRatio".into()), &[]).as_str().map(str::to_owned);
         let mut isTrailingPercentOrder: bool = trailingPercent.is_some();
         let mut isTriggerOrder: bool = triggerPrice.is_some();
         let mut isStopLossTriggerOrder: bool = stopLossTriggerPrice.is_some();
         let mut isTakeProfitTriggerOrder: bool = takeProfitTriggerPrice.is_some();
         let mut isStopLossOrTakeProfitTrigger: bool = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
-        let mut hasStopLoss: bool = stopLoss != Value::Null;
-        let mut hasTakeProfit: bool = takeProfit != Value::Null;
+        let mut hasStopLoss: bool = stopLoss.is_some();
+        let mut hasTakeProfit: bool = takeProfit.is_some();
         let mut response: Option<crate::value::Dict> = None;
         let utaparamsUTAVariable: Vec<Value> = self.handle_uta_and_params(paramsStock, Value::Str("createOrder".into()), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default();
         let mut uta: Value = utaparamsUTAVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -11821,7 +11819,7 @@ if _try_result.is_err() {
         if (since != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
         }
-        let mut sinceDefault: Value = Value::Null;
+        let mut sinceDefault: Option<i64> = None;
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
@@ -11854,8 +11852,8 @@ if _try_result.is_err() {
         }  else if (type_var.as_deref() == Some("spot")) {
             if (marginMode.is_some()) {
                 if (since == Value::Null) {
-                    sinceDefault = (match (&(self.milliseconds()), &(Value::Int(7776000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), sinceDefault.clone()); }
+                    sinceDefault = Some(((self.milliseconds().as_i64().unwrap_or_default()) - 7776000000));
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), Value::from(sinceDefault)); }
                 }
                 if (marginMode.as_deref() == Some("isolated")) {
                     let __ws_arg_81 = self.extend(request.clone(), &[paramsMarginMode.clone()]);
@@ -11890,7 +11888,7 @@ if _try_result.is_err() {
                 response = self.private_mix_get_v2_mix_order_orders_pending(&[__ws_arg_87]).await.into_opt_dict();
             }
         }
-        let mut sinceResolved: Value = (if (sinceDefault == Value::Null) { since } else { sinceDefault });
+        let mut sinceResolved: Option<i64> = (if (sinceDefault.is_none()) { since.as_i64() } else { sinceDefault });
         //
         // spot
         //
@@ -12151,17 +12149,17 @@ if _try_result.is_err() {
             }  else {
                 result = self.safe_list_k(data.clone(), "list", &[Value::from(vec![])]);
             }
-            return self.parse_orders(result.clone(), &[market.clone(), sinceResolved.clone(), limit.clone()]);
+            return self.parse_orders(result.clone(), &[market.clone(), Value::from(sinceResolved), limit.clone()]);
         }  else if (type_var.as_deref() == Some("spot")) {
             if (marginMode.is_some()) || (trigger == Some(true)) {
                 let mut resultList: Value = self.safe_list_k(data.clone(), "orderList", &[Value::from(vec![])]);
-                return self.parse_orders(resultList, &[market.clone(), sinceResolved.clone(), limit.clone()]);
+                return self.parse_orders(resultList, &[market.clone(), Value::from(sinceResolved), limit.clone()]);
             }
         }  else {
             let mut result: Value = self.safe_list_k(data.clone(), "entrustedList", &[Value::from(vec![])]);
-            return self.parse_orders(result, &[market.clone(), sinceResolved.clone(), limit.clone()]);
+            return self.parse_orders(result, &[market.clone(), Value::from(sinceResolved), limit.clone()]);
         }
-        return self.parse_orders(data, &[market, sinceResolved, limit]);
+        return self.parse_orders(data, &[market, Value::from(sinceResolved), limit]);
         Value::Null
         }).await?))
     }
@@ -12337,7 +12335,7 @@ if _try_result.is_err() {
         if (since != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), since.clone()); }
         }
-        let mut sinceDefault: Value = Value::Null;
+        let mut sinceDefault: Option<i64> = None;
         if (limit != Value::Null) {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("limit".into(), limit.clone()); }
         }
@@ -12348,12 +12346,12 @@ if _try_result.is_err() {
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("clientOid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null)); }
             }
         }
-        let mut now: Value = self.milliseconds();
+        let mut now: i64 = self.milliseconds().as_i64().unwrap_or_default();
         if (marketType.as_deref() == Some("spot")) {
             if (marginMode.is_some()) {
                 if (since == Value::Null) {
-                    sinceDefault = (match (&(now), &(Value::Int(7776000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), sinceDefault.clone()); }
+                    sinceDefault = Some((now - 7776000000));
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), Value::from(sinceDefault)); }
                 }
                 if (marginMode.as_deref() == Some("isolated")) {
                     let __ws_arg_88 = self.extend(request.clone(), &[paramsUTA.clone()]);
@@ -12369,11 +12367,11 @@ if _try_result.is_err() {
                 let mut endTime: Option<i64> = self.safe_integer2(paramsUTA.clone(), Value::Str("endTime".into()), Value::Str("until".into()), &[]).as_i64();
                 paramsUTA = self.omit(paramsUTA.clone(), Value::from(vec![Value::Str("until".into())]), &[]);
                 if (since == Value::Null) {
-                    sinceDefault = (match (&(now), &(Value::Int(7776000000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), sinceDefault.clone()); }
+                    sinceDefault = Some((now - 7776000000));
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("startTime".into(), Value::from(sinceDefault)); }
                 }
                 if (endTime.is_none()) {
-                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), now); }
+                    if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("endTime".into(), Value::from(now)); }
                 }
                 let __ws_arg_90 = self.extend(request.clone(), &[paramsUTA.clone()]);
                 response = self.private_spot_get_v2_spot_trade_history_plan_order(&[__ws_arg_90]).await;
@@ -12402,7 +12400,7 @@ if _try_result.is_err() {
                 response = self.private_mix_get_v2_mix_order_orders_history(&[__ws_arg_94]).await;
             }
         }
-        let mut sinceResolved: Value = (if (sinceDefault == Value::Null) { since } else { sinceDefault });
+        let mut sinceResolved: Option<i64> = (if (sinceDefault.is_none()) { since.as_i64() } else { sinceDefault });
         //
         // spot
         //
@@ -12588,17 +12586,17 @@ if _try_result.is_err() {
         if (marketType.as_deref() == Some("spot")) {
             if (marginMode.is_some()) || (trigger == Some(true)) {
                 let mut orderList: Value = self.safe_list_k(&data, "orderList", &[]);
-                return self.parse_orders(orderList, &[market.clone(), sinceResolved.clone(), limit.clone()]);
+                return self.parse_orders(orderList, &[market.clone(), Value::from(sinceResolved), limit.clone()]);
             }
         }  else {
             let mut entrustedList: Value = self.safe_list_k(&data, "entrustedList", &[]);
-            return self.parse_orders(entrustedList, &[market.clone(), sinceResolved.clone(), limit.clone()]);
+            return self.parse_orders(entrustedList, &[market.clone(), Value::from(sinceResolved), limit.clone()]);
         }
         if matches!(&response, Value::Str(_)) {
             response = json_parse(&response);
         }
         let mut orders: Value = self.safe_list_k(response, "data", &[Value::from(vec![])]);
-        return self.parse_orders(orders, &[market, sinceResolved, limit]);
+        return self.parse_orders(orders, &[market, Value::from(sinceResolved), limit]);
         Value::Null
         }).await?))
     }
@@ -17040,18 +17038,18 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut msInDay: Value = Value::Int(86400000);
-        let mut now: Value = self.milliseconds();
+        let mut msInDay: i64 = 86400000;
+        let mut now: i64 = self.milliseconds().as_i64().unwrap_or_default();
         if (since != Value::Null) {
             request.insert("startTime".into(), since.clone());
         }  else {
-            request.insert("startTime".into(), (match (&(now), &(msInDay)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+            request.insert("startTime".into(), Value::Int((now - msInDay)));
         }
         let mut endTime: Option<String> = self.safe_string2(params.clone(), Value::Str("endTime".into()), Value::Str("until".into()), &[]).as_str().map(str::to_owned);
         if (endTime.is_some()) {
             request.insert("endTime".into(), endTime.map(Value::from).unwrap_or(Value::Null));
         }  else {
-            request.insert("endTime".into(), now);
+            request.insert("endTime".into(), Value::from(now));
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());

@@ -3663,12 +3663,9 @@ impl Bybit {
     pub fn add_pagination_cursor_to_result(&self, mut response: Value) -> Value {
         let __response_empty = indexmap::IndexMap::new();
         let response = response.as_map().unwrap_or(&__response_empty);
-        let mut result: Value = (match response.get("result") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut data: Value = self.safe_list_n(result.clone(), Value::from(vec![Value::Str("list".into()), Value::Str("rows".into()), Value::Str("data".into()), Value::Str("dataList".into())]), &[Value::from(vec![])]);
-        let mut paginationCursor: Option<String> = self.safe_string2(result, Value::Str("nextPageCursor".into()), Value::Str("cursor".into()), &[]).as_str().map(str::to_owned);
+        let mut result: crate::value::Dict = response.get("result").cloned().unwrap_or_default().into_dict();
+        let mut data: Value = self.safe_list_n(Value::from(&result), Value::from(vec![Value::Str("list".into()), Value::Str("rows".into()), Value::Str("data".into()), Value::Str("dataList".into())]), &[Value::from(vec![])]);
+        let mut paginationCursor: Option<String> = self.safe_string2(&result, Value::Str("nextPageCursor".into()), Value::Str("cursor".into()), &[]).as_str().map(str::to_owned);
         let mut dataLength: f64 = ((data.len() as i64) as f64);
         if (paginationCursor.is_some()) && (dataLength > ((0i64) as f64)) {
             let mut first: Value = data.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
