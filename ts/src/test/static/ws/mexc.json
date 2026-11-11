@@ -85,7 +85,7 @@
                 "url": "wss://wbs-api.mexc.com/ws",
                 "options": {
                     "watchOrderBook": {
-                        "snapshotDelay": 0
+                        "snapshotDelay": 2
                     }
                 },
                 "httpResponse": {
@@ -117,6 +117,22 @@
                         "id": 0,
                         "code": 0,
                         "msg": "spot@public.aggre.depth.v3.api.pb@100ms@BTCUSDT"
+                    },
+                    {
+                        "c": "spot@public.increase.depth.v3.api@BTCUSDT",
+                        "d": {
+                            "fromVersion": 1008,
+                            "toVersion": 1010,
+                            "asks": [
+                                {
+                                    "p": "100.00",
+                                    "v": "6.000000"
+                                }
+                            ],
+                            "bids": []
+                        },
+                        "s": "BTCUSDT",
+                        "t": 1792786957235
                     },
                     {
                         "c": "spot@public.increase.depth.v3.api@BTCUSDT",

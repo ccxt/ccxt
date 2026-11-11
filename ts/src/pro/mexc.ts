@@ -952,7 +952,11 @@ export default class mexc extends mexcRest {
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
         let shouldReturn = false;
         if (nonce === undefined) {
-            const cacheLength = this.parseToInt (storedOrderBook.cache.length);
+            let cacheLength = this.parseToInt (0);
+            if (storedOrderBook !== undefined) {
+                const storedCacheLength = storedOrderBook.cache.length;
+                cacheLength = this.parseToInt (storedCacheLength);
+            }
             const snapshotDelay = this.parseToInt (this.handleOption ('watchOrderBook', 'snapshotDelay', 25));
             if (cacheLength === snapshotDelay) {
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, limit, {});
@@ -1011,6 +1015,12 @@ export default class mexc extends mexcRest {
         const bidsOrderSide = orderbook['bids'];
         this.handleBooksideDelta (asksOrderSide, asks);
         this.handleBooksideDelta (bidsOrderSide, bids);
+    }
+
+    override handleBookDeltas (orderbook: WsOrderBook, deltas: any[]) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleBookDelta (orderbook, this.safeValue (deltas, i));
+        }
     }
 
     /**
