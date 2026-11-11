@@ -435,7 +435,7 @@ public partial class hibachi : Exchange
         //     "underlyingDecimals": 9,
         //     "underlyingSymbol": "ETH"
         // },
-        List<object> rows = this.safeList(response, "futureContracts");
+        List<object> rows = this.safeList(response, "futureContracts", new List<object>() {});
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(rows));
     }
 

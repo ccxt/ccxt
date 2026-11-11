@@ -1718,7 +1718,7 @@ public partial class bitvavo : ccxt.bitvavo
         //    }
         //
         string? messageHash = this.safeString(message, "requestId");
-        List<object> response = this.safeList(message, "response");
+        List<object> response = this.safeList(message, "response", new List<object>() {});
         Dictionary<string, object> currencies = this.parseCurrencies(response);
         client.resolve(currencies, messageHash);
     }

@@ -8566,9 +8566,9 @@ public partial class gate : Exchange
                 requestUntil["currency_pair"] = (market.ContainsKey("id") ? market["id"] : null);
             }
             response = await this.privateMarginGetUniInterestRecords(this.extend(requestUntil, paramsMarginMode));
-        } else if ((marginMode == "cross"))
+        } else
         {
-            // deprecated and not present in the exchange's docs but still works
+            // cross: deprecated and not present in the exchange's docs but still works
             response = await this.privateMarginGetCrossInterestRecords(this.extend(requestUntil, paramsMarginMode));
         }
         List<object> interest = this.parseBorrowInterests(response, market);

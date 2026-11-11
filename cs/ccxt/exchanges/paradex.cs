@@ -812,7 +812,7 @@ public partial class paradex : Exchange
         //         ]
         //     }
         //
-        List<object> data = this.safeList(response, "results");
+        List<object> data = this.safeList(response, "results", new List<object>() {});
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(data));
     }
 

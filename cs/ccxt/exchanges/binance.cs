@@ -16756,7 +16756,7 @@ public partial class binance : Exchange
         //         ]
         //     }
         //
-        List<object> rows = this.safeList(response, "rows");
+        List<object> rows = this.safeList(response, "rows", new List<object>() {});
         List<object> interest = this.parseBorrowInterests(rows, market);
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,code, since, limit));
     }

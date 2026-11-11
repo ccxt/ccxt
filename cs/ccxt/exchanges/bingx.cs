@@ -5831,7 +5831,7 @@ public partial class bingx : Exchange
         //         }
         //     }
         //
-        List<object> data = this.safeList(this.safeDict(response, "data"), "data");
+        List<object> data = this.safeList(this.safeDict(response, "data"), "data", new List<object>() {});
         List<object> parsed = ((List<object>)this.parseDepositAddresses(data, new List<object>() {(currency.ContainsKey("code") ? currency["code"] : null)}, false));
         return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(parsed, "network"));
     }

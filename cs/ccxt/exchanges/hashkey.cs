@@ -1274,7 +1274,7 @@ public partial class hashkey : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.publicGetApiV1ExchangeInfo(parameters);
-        List<object> coins = this.safeList(response, "coins");
+        List<object> coins = this.safeList(response, "coins", new List<object>() {});
         //
         //     {
         //         ...

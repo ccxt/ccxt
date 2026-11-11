@@ -3914,7 +3914,7 @@ public partial class digifinex : Exchange
         //         "unrealized_pnl": "-0.049158102631998504"
         //     }
         //
-        List<object> rows = this.safeList(response, "positions");
+        List<object> rows = this.safeList(response, "positions", new List<object>() {});
         List<object> interest = this.parseBorrowInterests(rows, market);
         return ccxt.BaseExchange.ToBorrowInterestList(this.filterByCurrencySinceLimit(interest,code, since, limit));
     }
