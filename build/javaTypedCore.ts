@@ -174,8 +174,9 @@ export function typeCoreReturns(source: string, table: Map<string, MethodInfo>):
                 break;
             }
             if (lines[j].startsWith(supplyIndent) && lines[j].length === supplyIndent.length + trimmed.length
-                && isAsyncLambdaClose(trimmed) && trimmed.endsWith(');')) {
+                && (isAsyncLambdaClose(trimmed) || trimmed.startsWith(`return ${FUTURE}.failedFuture(`)) && trimmed.endsWith(');')) {
                 // `});` -> `}).thenApply(f);`  /  `}, EXECUTOR);` -> `}, EXECUTOR).thenApply(f);`
+                // a printed `return CompletableFuture.failedFuture(..);` takes the same `.thenApply(f)`
                 lines[j] = `${supplyIndent}${trimmed.slice(0, -1)}.thenApply(${coreConverter(m)});`;
                 converted = true;
                 break;

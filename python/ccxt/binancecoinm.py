@@ -10,7 +10,7 @@ from ccxt.base.types import TransferEntry
 
 class binancecoinm(binance, ImplicitAPI):
 
-    def describe(self) -> object:
+    def describe(self) -> dict:
         return self.deep_extend(super(binancecoinm, self).describe(), {
             'id': 'binancecoinm',
             'name': 'Binance COIN-M',

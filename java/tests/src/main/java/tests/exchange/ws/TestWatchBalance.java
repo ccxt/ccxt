@@ -14,7 +14,7 @@ import java.util.concurrent.CompletableFuture;
 
 
 public class TestWatchBalance extends BaseTest {
-    public CompletableFuture<Void> testWatchBalance(Exchange exchange, Object skippedProperties, Object code)
+    public CompletableFuture<Void> testWatchBalance(Exchange exchange, Object skippedProperties, String code)
     {
 
         return BaseExchange.supplyAsync(() -> {

@@ -84,7 +84,7 @@ func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any)
 			panic("headers must be a map[string]any")
 		}
 
-		headersOptions, ok := this.Options.Load("headers")
+		headersOptions, ok := this.Options["headers"]
 		if ok {
 			if headersOptions != nil {
 				for key, value := range headersOptions.(map[string]any) {
@@ -206,12 +206,9 @@ func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any)
 			panic(networkError)
 		}
 		respHeadersMap := HeaderToMap(resp.Header)
-		// guard the shared bookkeeping fields: concurrent requests on the same
-		// *Exchange would otherwise data-race on these writes
-		this.lastMu.Lock()
-		this.Last_response_headers = respHeadersMap
-		this.LastResponseHeaders = respHeadersMap
-		this.lastMu.Unlock()
+		// hand the response headers to the request book's owner; the request
+		// goroutine never writes the shared bookkeeping fields
+		this.handOffRequestBook(requestBookOp{kind: requestBookResponse, headers: respHeadersMap})
 		if err == nil {
 			defer resp.Body.Close()
 			if resp.Header.Get("Content-Encoding") == "gzip" {
@@ -260,7 +257,7 @@ func (this *BaseExchange) FetchAsync(url any, method any, headers any, body any)
 
 		statusText := http.StatusText(resp.StatusCode)
 		// handleErrorResult := <-this.callInternal("handleErrors", resp.StatusCode, statusText, urlStr, methodStr, headers, string(respBody), result, headersStrMap, body)
-		handleErrorResult := this.DerivedExchange.HandleErrors(resp.StatusCode, statusText, urlStr, methodStr, responseHeaders, string(respBody), result, headersStrMap, body)
+		handleErrorResult := this.DerivedExchange.HandleErrors(int64(resp.StatusCode), statusText, urlStr, methodStr, responseHeaders, string(respBody), result, headersStrMap, body)
 		PanicOnError(handleErrorResult)
 
 		if handleErrorResult == nil {

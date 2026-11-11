@@ -2,7 +2,7 @@ import bitrueRest from '../bitrue.js';
 import type { Balances, Dict, Int, Market, Num, OHLCV, Order, OrderBook, Str, Ticker, Trade, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitrue extends bitrueRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name bitrue#watchBalance

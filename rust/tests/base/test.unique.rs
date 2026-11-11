@@ -19,5 +19,6 @@ pub fn testUnique() {
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testUnique".into()).clone(), exchange.unique(Value::from(vec![])).clone(), Value::from(vec![]).clone()]);
     // testSharedMethods.assertDeepEqual (exchange, undefined, 'testUnique',  exchange.sort (exchange.unique ([ 1, 2, 3 ])), [ 1, 2, 3 ]);
     // testSharedMethods.assertDeepEqual (exchange, undefined, 'testUnique',  exchange.sort (exchange.unique ([ 1, 2, 3, 4, 1 ])), [ 1, 2, 3, 4 ]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testUnique".into()).clone(), exchange.sort(exchange.unique(Value::from(vec![Value::Str("a".into()), Value::Str("a".into()), Value::Str("b".into()), Value::Str("c".into()), Value::Str("a".into()), Value::Str("c".into())])), &[]).clone(), Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("c".into())]).clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testUnique".into()).clone(), exchange.sort(exchange.unique(Value::from(vec![Value::Str("a".into()), Value::Str("a".into()), Value::Str("b".into()), Value::Str("c".into()), Value::Str("a".into()), Value::Str("c".into())])), &[]).clone(),
+        Value::from(vec![Value::Str("a".into()), Value::Str("b".into()), Value::Str("c".into())]).clone()]);
 }

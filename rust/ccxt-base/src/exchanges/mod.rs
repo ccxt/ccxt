@@ -141,10 +141,6 @@ pub mod bybiteu_api;
 pub mod bybitid;
 #[cfg(feature = "bybitid")]
 pub mod bybitid_api;
-#[cfg(feature = "bydfi")]
-pub mod bydfi;
-#[cfg(feature = "bydfi")]
-pub mod bydfi_api;
 #[cfg(feature = "cex")]
 pub mod cex;
 #[cfg(feature = "cex")]

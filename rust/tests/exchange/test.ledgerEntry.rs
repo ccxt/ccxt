@@ -41,7 +41,8 @@ pub fn testLedgerEntry(mut exchange: Value, mut skippedProperties: Value, mut me
     crate::tests_support::shared::assert_currency_code(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), entry.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null).clone(), requestedCode.clone()]);
     //
     crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("direction".into()).clone(), Value::from(vec![Value::Str("in".into()), Value::Str("out".into())]).clone()]);
-    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("type".into()).clone(), Value::from(vec![Value::Str("trade".into()), Value::Str("transaction".into()), Value::Str("margin".into()), Value::Str("cashback".into()), Value::Str("referral".into()), Value::Str("transfer".into()), Value::Str("fee".into())]).clone()]);
+    crate::tests_support::shared::assert_in_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("type".into()).clone(), Value::from(vec![Value::Str("trade".into()), Value::Str("transaction".into()), Value::Str("margin".into()), Value::Str("cashback".into()), Value::Str("referral".into()),
+        Value::Str("transfer".into()), Value::Str("fee".into())]).clone()]);
     // testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'account', ['spot', 'swap', .. ]); // todo
     crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("amount".into()).clone(), Value::Str("0".into()).clone()]);
     crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Str("before".into()).clone(), Value::Str("0".into()).clone()]);

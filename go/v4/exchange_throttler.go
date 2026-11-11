@@ -1,7 +1,6 @@
 package ccxt
 
 import (
-	"sync"
 	"time"
 
 	u "github.com/google/uuid"
@@ -12,12 +11,19 @@ type TimestampedCost struct {
 	Cost      float64
 }
 
-type Throttler struct {
-	Queue      Queue
+// throttlerState is the mutable half of a Throttler; whoever holds it out of
+// the state channel is its only owner, so the draining loop alone touches the
+// running flag, the token count and the rolling-window history.
+type throttlerState struct {
 	Running    bool
-	Config     map[string]any
+	Tokens     float64
 	Timestamps []TimestampedCost
-	Mutex      sync.Mutex
+}
+
+type Throttler struct {
+	Queue  Queue
+	Config map[string]any // immutable after NewThrottler
+	state  chan throttlerState
 }
 
 func NewThrottler(config map[string]any) *Throttler {
@@ -37,19 +43,18 @@ func NewThrottler(config map[string]any) *Throttler {
 		config["maxWeight"] = derefScalar(config["windowSize"]).(float64) / derefScalar(config["rateLimit"]).(float64)
 	}
 
-	return &Throttler{
-		Queue:      NewQueue(),
-		Running:    false,
-		Config:     config,
-		Timestamps: []TimestampedCost{},
+	throttler := &Throttler{
+		Queue:  NewQueue(),
+		Config: config,
+		state:  make(chan throttlerState, 1),
 	}
+	throttler.state <- throttlerState{Tokens: ToFloat64(config["tokens"])}
+	return throttler
 }
 
 func (t *Throttler) Throttle(cost2 any) <-chan bool {
 	if cost2 == nil {
-		t.Mutex.Lock()
 		cost2 = t.Config["cost"]
-		t.Mutex.Unlock()
 	}
 	cost := ToFloat64(cost2)
 	task := make(chan bool)
@@ -61,45 +66,54 @@ func (t *Throttler) Throttle(cost2 any) <-chan bool {
 	}
 
 	t.Queue.Enqueue(queueElement)
-
-	t.Mutex.Lock()
-	if !t.Running {
-		t.Running = true
-		algorithm := t.Config["algorithm"]
-		t.Mutex.Unlock()
-
-		if algorithm == "leakyBucket" {
-			go t.leakyBucketLoop()
-		} else {
-			go t.rollingWindowLoop()
-		}
-	} else {
-		t.Mutex.Unlock()
-	}
+	t.startDrain()
 
 	return task
 }
 
-func (t *Throttler) leakyBucketLoop() {
+// startDrain hands the start decision to the state owner, so a loop that is
+// already draining the queue is never doubled and a loop that is exiting its
+// empty check under the same token cannot miss the element just enqueued.
+func (t *Throttler) startDrain() {
+	st := <-t.state
+	if st.Running {
+		t.state <- st
+		return
+	}
+	st.Running = true
+	t.state <- st
 
+	if t.Config["algorithm"] == "leakyBucket" {
+		go t.leakyBucketLoop()
+	} else {
+		go t.rollingWindowLoop()
+	}
+}
+
+// stopDrain is called by the draining loop while it still owns the state.
+func (t *Throttler) stopDrain(st throttlerState) {
+	st.Running = false
+	t.state <- st
+}
+
+func (t *Throttler) leakyBucketLoop() {
 	lastTimestamp := Milliseconds()
 	for {
+		st := <-t.state
 		if t.Queue.IsEmpty() {
-			t.Mutex.Lock()
-			t.Running = false
-			t.Mutex.Unlock()
+			t.stopDrain(st)
 			return
 		}
+		t.state <- st
 
 		first, _ := t.Queue.Peek()
 		task := first.Task
 		cost := first.Cost
 
-		t.Mutex.Lock()
-		tokens := ToFloat64(t.Config["tokens"])
-		if tokens >= 0 {
-			t.Config["tokens"] = tokens - cost
-			t.Mutex.Unlock()
+		st = <-t.state
+		if st.Tokens >= 0 {
+			st.Tokens -= cost
+			t.state <- st
 
 			if task != nil {
 				task <- true
@@ -108,50 +122,50 @@ func (t *Throttler) leakyBucketLoop() {
 			t.Queue.Dequeue()
 		} else {
 			sleepTime := ToFloat64(t.Config["delay"]) * 1000
-			t.Mutex.Unlock()
+			t.state <- st
 			time.Sleep(time.Duration(sleepTime) * time.Millisecond)
 
 			current := Milliseconds()
 			elapsed := current - lastTimestamp
 			lastTimestamp = current
 
-			t.Mutex.Lock()
+			st = <-t.state
 			sumTokens := ToFloat64(t.Config["refillRate"]) * ToFloat64(elapsed)
-			tokens = ToFloat64(t.Config["tokens"]) + sumTokens
+			tokens := st.Tokens + sumTokens
 			capacity := ToFloat64(t.Config["capacity"])
 			if tokens < capacity {
-				t.Config["tokens"] = tokens
+				st.Tokens = tokens
 			} else {
-				t.Config["tokens"] = capacity
+				st.Tokens = capacity
 			}
-			t.Mutex.Unlock()
+			t.state <- st
 		}
 	}
 }
 
 func (t *Throttler) rollingWindowLoop() {
 	for {
+		st := <-t.state
 		if t.Queue.IsEmpty() {
-			t.Mutex.Lock()
-			t.Running = false
-			t.Mutex.Unlock()
+			t.stopDrain(st)
 			return
 		}
+		t.state <- st
 
 		first, _ := t.Queue.Peek()
 		task := first.Task
 		cost := first.Cost
 		now := Milliseconds()
 
-		t.Mutex.Lock()
+		st = <-t.state
 		windowSize := ToFloat64(t.Config["windowSize"])
 		maxWeight := ToFloat64(t.Config["maxWeight"])
-		t.Timestamps = filterTimestamps(t.Timestamps, now, windowSize)
-		totalCost := sumCosts(t.Timestamps)
+		st.Timestamps = filterTimestamps(st.Timestamps, now, windowSize)
+		totalCost := sumCosts(st.Timestamps)
 
 		if totalCost+cost <= maxWeight {
-			t.Timestamps = append(t.Timestamps, TimestampedCost{Timestamp: now, Cost: cost})
-			t.Mutex.Unlock()
+			st.Timestamps = append(st.Timestamps, TimestampedCost{Timestamp: now, Cost: cost})
+			t.state <- st
 
 			if task != nil {
 				task <- true
@@ -159,8 +173,8 @@ func (t *Throttler) rollingWindowLoop() {
 			}
 			t.Queue.Dequeue()
 		} else {
-			waitTime := int64((t.Timestamps[0].Timestamp + int64(windowSize)) - now)
-			t.Mutex.Unlock()
+			waitTime := int64((st.Timestamps[0].Timestamp + int64(windowSize)) - now)
+			t.state <- st
 
 			if waitTime > 0 {
 				time.Sleep(time.Duration(waitTime) * time.Millisecond)

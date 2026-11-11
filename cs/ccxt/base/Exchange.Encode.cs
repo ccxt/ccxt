@@ -40,7 +40,7 @@ public partial class BaseExchange
         return bytes;
     }
 
-    // U33: both return paths hand back `str`, the `(string)str2` unbox taken at the top of the
+    // Both return paths hand back `str`, the `(string)str2` unbox taken at the top of the
     // body (a non-string argument throws there, before either return), so the signature names
     // the box the value already has.
     public virtual string remove0xPrefix(object str2)

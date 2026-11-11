@@ -410,6 +410,24 @@
                     "until": 1712016000000
                   }
                 ]
+            },
+            {
+                "description": "with since, limit and until 400h later: end stops at since + limit candles, coinbase rejects a range over 350 candles",
+                "method": "fetchOHLCV",
+                "url": "https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USDT/candles?granularity=ONE_HOUR&start=1711929600&end=1712289600",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1711929600000,
+                  100,
+                  {
+                    "until": 1713369600000
+                  }
+                ],
+                "forceCheckKeys": [
+                  "start",
+                  "end"
+                ]
             }
         ],
         "editOrder": [

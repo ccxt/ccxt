@@ -236,7 +236,8 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
         $median_price = Precise::string_div(Precise::string_add($bid_string, $ask_string), '2');
         $median_low = Precise::string_mul($median_price, Precise::string_sub('1', $allowed_percentage_variation));
         $median_high = Precise::string_mul($median_price, Precise::string_add('1', $allowed_percentage_variation));
-        assert(Precise::string_ge($last_string, $median_low) && Precise::string_le($last_string, $median_high), 'last price should be within 1% of the bid/ask median price' . $log_text);
+        $last_price_is_between = Precise::string_ge($last_string, $median_low) && Precise::string_le($last_string, $median_high);
+        assert($last_price_is_between, 'last price should be within 1% of the bid/ask median price' . $log_text);
     }
     $percentage = $exchange->safe_string($entry, 'percentage');
     $change = $exchange->safe_string($entry, 'change');

@@ -1,9 +1,10 @@
 import bitstampRest from '../bitstamp.js';
+import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Dict, NullableDict, Market, Bool, FundingRate } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class bitstamp extends bitstampRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @method
      * @name bitstamp#watchOrderBook
@@ -39,7 +40,7 @@ export default class bitstamp extends bitstampRest {
     handleOrderBook(client: Client, message: Dict): void;
     handleBookDelta(orderbook: WsOrderBook, delta: any): void;
     handleBidAsks(bookSide: any, bidAsks: any[]): void;
-    getCacheIndex(orderbook: any, deltas: any): number;
+    getCacheIndex(orderbook: NullableDict, deltas: any[]): number;
     /**
      * @method
      * @name bitstamp#watchTrades
@@ -133,7 +134,7 @@ export default class bitstamp extends bitstampRest {
      * @param {string[]} symbols the symbols to remove from the cache
      * @returns {object} the new cache holding the remaining entries
      */
-    pruneCachedBySymbols(newCache: any, cache: any, symbols: string[]): any;
+    pruneCachedBySymbols(newCache: ArrayCacheBySymbolById, cache: ArrayCache, symbols: string[]): ArrayCache;
     handleSubject(client: Client, message: Dict): void;
     handleErrorMessage(client: Client, message: Dict): Bool;
     handleMessage(client: Client, message: Dict): void;

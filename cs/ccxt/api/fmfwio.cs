@@ -222,10 +222,10 @@ public partial class fmfwio : hitbtc
     }
 
     /// <summary>Calls the privateGetSpotBalance endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privateGetSpotBalance (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetSpotBalance (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("privateGetSpotBalance",parameters);
+        return await this.callAsync<List<object>> ("privateGetSpotBalance",parameters);
     }
 
     /// <summary>Calls the privateGetSpotBalanceCurrency endpoint.</summary>
@@ -355,10 +355,10 @@ public partial class fmfwio : hitbtc
     }
 
     /// <summary>Calls the privateGetFuturesBalance endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privateGetFuturesBalance (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetFuturesBalance (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("privateGetFuturesBalance",parameters);
+        return await this.callAsync<List<object>> ("privateGetFuturesBalance",parameters);
     }
 
     /// <summary>Calls the privateGetFuturesBalanceCurrency endpoint.</summary>
@@ -453,10 +453,10 @@ public partial class fmfwio : hitbtc
     }
 
     /// <summary>Calls the privateGetWalletBalance endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privateGetWalletBalance (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetWalletBalance (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("privateGetWalletBalance",parameters);
+        return await this.callAsync<List<object>> ("privateGetWalletBalance",parameters);
     }
 
     /// <summary>Calls the privateGetWalletBalanceCurrency endpoint.</summary>
