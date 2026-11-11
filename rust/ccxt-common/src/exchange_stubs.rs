@@ -645,8 +645,8 @@ impl Exchange {
     // savings are several thousand allocations.
 
     #[inline]
-    pub fn safe_value_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
-        let v = crate::value::get_value_k(&obj, key);
+    pub fn safe_value_k(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Value {
+        let v = obj.key_read(key);
         let missing = matches!(&v, Value::Null) || matches!(&v, Value::Str(s) if s.is_empty());
         if missing {
             arg_default(optional_args)
@@ -656,7 +656,7 @@ impl Exchange {
     }
 
     #[inline]
-    pub fn safe_string_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+    pub fn safe_string_k(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Value {
         let v = self.safe_value_k(obj, key, &[]);
         match v {
             Value::Str(_) => v,
@@ -671,7 +671,7 @@ impl Exchange {
     /// `safe_string_k` without the box: same lookup, empty-string and default
     /// rules, `None` where the boxed helper yields `Value::Null`.
     #[inline]
-    pub fn safe_string_k_opt(&self, obj: Value, key: &str, optional_args: &[Value]) -> Option<String> {
+    pub fn safe_string_k_opt(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Option<String> {
         match self.safe_value_k(obj, key, &[]) {
             Value::Str(s) => Some(s.to_string()),
             Value::Int(n) => Some(n.to_string()),
@@ -698,7 +698,7 @@ impl Exchange {
     }
 
     #[inline]
-    pub fn safe_integer_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+    pub fn safe_integer_k(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Value {
         let v = self.safe_value_k(obj, key, &[]);
         match v {
             Value::Int(_) => v,
@@ -715,7 +715,7 @@ impl Exchange {
     }
 
     #[inline]
-    pub fn safe_float_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+    pub fn safe_float_k(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Value {
         let v = self.safe_value_k(obj, key, &[]);
         match v {
             Value::Float(_) => v,
@@ -729,13 +729,13 @@ impl Exchange {
     }
 
     #[inline]
-    pub fn safe_number_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+    pub fn safe_number_k(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Value {
         self.safe_float_k(obj, key, optional_args)
     }
 
     /// `safe_bool_k` without the box: `Some` only for an actual boolean, else `None`.
     #[inline]
-    pub fn safe_bool_k_opt(&self, obj: Value, key: &str, _optional_args: &[Value]) -> Option<bool> {
+    pub fn safe_bool_k_opt(&self, obj: impl crate::value::KeyRead, key: &str, _optional_args: &[Value]) -> Option<bool> {
         match self.safe_value_k(obj, key, &[]) {
             Value::Bool(b) => Some(b),
             _ => None,
@@ -810,7 +810,7 @@ impl Exchange {
     }
 
     #[inline]
-    pub fn safe_bool_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+    pub fn safe_bool_k(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Value {
         // Mirror CCXT `safeBool`: the value is returned ONLY when it is an
         // actual boolean (`typeof value === 'boolean'`). A string like
         // "true" or an integer is NOT a boolean, so it yields the default
@@ -825,7 +825,7 @@ impl Exchange {
     }
 
     #[inline]
-    pub fn safe_dict_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+    pub fn safe_dict_k(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Value {
         let v = self.safe_value_k(obj, key, &[]);
         if matches!(v, Value::Dict(_)) {
             v
@@ -835,7 +835,7 @@ impl Exchange {
     }
 
     #[inline]
-    pub fn safe_list_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+    pub fn safe_list_k(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Value {
         let v = self.safe_value_k(obj, key, &[]);
         if matches!(v, Value::Arr(_)) {
             v
@@ -941,7 +941,7 @@ impl Exchange {
 
     /// `safe_string_upper` with a `&str` key — the `safe_*_k` twin.
     #[inline]
-    pub fn safe_string_upper_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+    pub fn safe_string_upper_k(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Value {
         let v = self.safe_string_k(obj, key, &[]);
         if !v.is_null() {
             if let Value::Str(s) = v {
@@ -955,7 +955,7 @@ impl Exchange {
     /// `safe_string_upper_k` without the box: the found value is upper-cased, a
     /// default is returned verbatim (`None` where the boxed helper yields `Null`).
     #[inline]
-    pub fn safe_string_upper_k_opt(&self, obj: Value, key: &str, optional_args: &[Value]) -> Option<String> {
+    pub fn safe_string_upper_k_opt(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Option<String> {
         match self.safe_string_k_opt(obj, key, &[]) {
             Some(s) => Some(s.to_uppercase()),
             None => match arg_default(optional_args) {
@@ -1009,7 +1009,7 @@ impl Exchange {
     /// `safe_string_lower` with a `&str` key — the `safe_*_k` twin of the
     /// lookup above (same `get_value_k` path as the rest of the family).
     #[inline]
-    pub fn safe_string_lower_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+    pub fn safe_string_lower_k(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Value {
         let v = self.safe_string_k(obj, key, &[]);
         if !v.is_null() {
             if let Value::Str(s) = v {
@@ -1023,7 +1023,7 @@ impl Exchange {
     /// `safe_string_lower_k` without the box: the found value is lower-cased, a
     /// default is returned verbatim (`None` where the boxed helper yields `Null`).
     #[inline]
-    pub fn safe_string_lower_k_opt(&self, obj: Value, key: &str, optional_args: &[Value]) -> Option<String> {
+    pub fn safe_string_lower_k_opt(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Option<String> {
         match self.safe_string_k_opt(obj, key, &[]) {
             Some(s) => Some(s.to_lowercase()),
             None => match arg_default(optional_args) {
@@ -1913,7 +1913,7 @@ impl Exchange {
 
     /// `safe_timestamp` with a `&str` key — the `safe_*_k` twin.
     #[inline]
-    pub fn safe_timestamp_k(&self, obj: Value, key: &str, optional_args: &[Value]) -> Value {
+    pub fn safe_timestamp_k(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Value {
         match self.safe_float_k(obj, key, &[]) {
             Value::Float(f) => Value::Int((f * 1000.0) as i64),
             Value::Int(n) => Value::Int(n * 1000),

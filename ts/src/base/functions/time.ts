@@ -1,5 +1,6 @@
 
 // @ts-nocheck
+import type { Int } from '../types.js';
 const now = Date.now; // TODO: figure out how to utilize performance.now () properly – it's not as easy as it does not return a unix timestamp...
 const microseconds = () => now () * 1000; // TODO: utilize performance.now for that purpose
 const milliseconds = now;
@@ -116,7 +117,7 @@ const iso8601 = (timestamp): string | undefined => {
     const secondsOfMinute = minutesSeconds - (minutes * 60);
     return yearString + '-' + iso8601TwoDigits[month] + '-' + iso8601TwoDigits[dayOfMonth] + 'T' + iso8601TwoDigits[hours] + ':' + iso8601TwoDigits[minutes] + ':' + iso8601TwoDigits[secondsOfMinute] + '.' + iso8601ThreeDigits[milliseconds] + 'Z';
 };
-const parse8601 = (x) => {
+const parse8601 = (x): Int => {
     if (typeof x !== 'string' || !x) {
         return undefined;
     }

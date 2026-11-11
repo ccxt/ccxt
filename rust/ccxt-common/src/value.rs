@@ -228,6 +228,10 @@ impl Value {
     pub fn as_map(&self)   -> Option<&HashMap<String, Value>> {
         if let Value::Dict(m) = self { Some(&**m) } else { None }
     }
+    /// The map a dict-typed local holds, moved out of the box (an empty map for a non-dict).
+    pub fn into_dict(self) -> Dict {
+        if let Value::Dict(m) = self { m } else { Arc::new(HashMap::new()) }
+    }
     pub fn as_array(&self) -> Option<&Vec<Value>> {
         if let Value::Arr(a) = self { Some(&**a) } else { None }
     }
@@ -672,7 +676,26 @@ fn live_set_markets_get() -> Option<LiveSetMarketsFn> {
 /// fast-path readers the transpiler routes literal-key calls through.
 #[inline]
 pub fn get_value_k(obj: &Value, key: &str) -> Value {
-    if let Value::Dict(m) = obj {
+    if let Value::Dict(m) = obj { get_map_value_k(m, key) } else { Value::Null }
+}
+
+/// The shared map a dict-typed local holds; a non-dict value reads like an empty map.
+pub type Dict = Arc<HashMap<String, Value>>;
+
+/// A container the literal-key `safe_*_k` readers accept: a `Value` by value, a map or list by reference
+/// (a string key on a list reads nothing, as `get_value_k` does).
+pub trait KeyRead {
+    fn key_read(&self, key: &str) -> Value;
+}
+impl KeyRead for Value { fn key_read(&self, key: &str) -> Value { get_value_k(self, key) } }
+impl KeyRead for &Value { fn key_read(&self, key: &str) -> Value { get_value_k(self, key) } }
+impl KeyRead for &Dict { fn key_read(&self, key: &str) -> Value { get_map_value_k(self, key) } }
+impl KeyRead for &HashMap<String, Value> { fn key_read(&self, key: &str) -> Value { get_map_value_k(self, key) } }
+impl KeyRead for &Vec<Value> { fn key_read(&self, _key: &str) -> Value { Value::Null } }
+
+/// `get_value_k` on the map itself.
+pub fn get_map_value_k(m: &HashMap<String, Value>, key: &str) -> Value {
+    {
         // A shared order book keeps its scalar meta (nonce/timestamp/…) in the
         // book store; route those through it so the safe_* helpers (which go via
         // get_value_k) see the shared value, not the empty Dict slot.
