@@ -3666,7 +3666,7 @@ public partial class grvt : Exchange
         return this.convertToBigIntCustom("10000");  // multiply needed https://t.me/c/3396937126/88
     }
 
-    public virtual Dictionary<string, object> createSignedRequest(IDictionary<string, object> request, string? structureType, object currencyObj = null, string? signerAddress = null)
+    public virtual Dictionary<string, object> createSignedRequest(IDictionary<string, object> request, string? structureType, IDictionary<string, object>? currencyObj = null, string? signerAddress = null)
     {
         Dictionary<string, object> messageData = null;
         IDictionary<string, object> requestSignature = this.safeDict(request, "signature", new Dictionary<string, object>() {});
@@ -3683,7 +3683,7 @@ public partial class grvt : Exchange
                 { "fromSubAccount", (request != null && request.ContainsKey("from_sub_account_id") ? request["from_sub_account_id"] : null) },
                 { "toAccount", (request != null && request.ContainsKey("to_account_id") ? request["to_account_id"] : null) },
                 { "toSubAccount", (request != null && request.ContainsKey("to_sub_account_id") ? request["to_sub_account_id"] : null) },
-                { "tokenCurrency", getValue(currencyObj, "numericId") },
+                { "tokenCurrency", (currencyObj != null && currencyObj.ContainsKey("numericId") ? currencyObj["numericId"] : null) },
                 { "numTokens", this.parseToInt(amountInt) },
                 { "nonce", (requestSignature != null && requestSignature.ContainsKey("nonce") ? requestSignature["nonce"] : null) },
                 { "expiration", (requestSignature != null && requestSignature.ContainsKey("expiration") ? requestSignature["expiration"] : null) },
@@ -3698,7 +3698,7 @@ public partial class grvt : Exchange
             messageData = new Dictionary<string, object>() {
                 { "fromAccount", (request != null && request.ContainsKey("from_account_id") ? request["from_account_id"] : null) },
                 { "toEthAddress", (request != null && request.ContainsKey("to_eth_address") ? request["to_eth_address"] : null) },
-                { "tokenCurrency", getValue(currencyObj, "numericId") },
+                { "tokenCurrency", (currencyObj != null && currencyObj.ContainsKey("numericId") ? currencyObj["numericId"] : null) },
                 { "numTokens", this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))((request != null && request.ContainsKey("num_tokens") ? request["num_tokens"] : null), amountMultiplier)) },
                 { "nonce", (requestSignature != null && requestSignature.ContainsKey("nonce") ? requestSignature["nonce"] : null) },
                 { "expiration", (requestSignature != null && requestSignature.ContainsKey("expiration") ? requestSignature["expiration"] : null) },
