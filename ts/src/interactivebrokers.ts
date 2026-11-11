@@ -1760,7 +1760,7 @@ export default class interactivebrokers extends Exchange {
         const isStock = (assetClass === 'STK');
         const options = this.safeDict (this.options, 'fetchMarkets', {});
         const baseTickerId = this.safeString2 (market, 'ticker', 'symbol') as string;
-        const listingExchange = this.safeString2 (market, 'listingExchange', 'exchange');
+        const listingExchange = this.safeString2 (market, 'listingExchange', 'exchange', 'default');
         const name = this.safeString (market, 'name', '');
         const nameLower = name.toLowerCase ();
         // coinbase derivatives perp-style futures are listed as FUT with a far (2030) nominal expiry, they are rolled with a funding adjustment, so they are unified as swaps
