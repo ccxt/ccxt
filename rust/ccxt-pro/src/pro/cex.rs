@@ -422,10 +422,10 @@ impl Cex {
     let mut m = indexmap::IndexMap::new();
     m
 }) });
-        let mut freeBalance: Value = self.safe_dict_k(data.clone(), "balance", &[Value::Map({
+        let mut freeBalance: crate::value::Dict = self.safe_dict_k(data.clone(), "balance", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut usedBalance: crate::value::Dict = self.safe_dict_k(data.clone(), "obalance", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -437,14 +437,14 @@ impl Cex {
             });
         }
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), data); }
-        let mut currencyIds: Vec<Value> = Value::Array(freeBalance.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut currencyIds: Vec<Value> = Value::Array(freeBalance.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_216: bool = true;
             while { if !__for_first_216 { i += 1; } __for_first_216 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Value = currencyIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("free".into(), self.safe_string(freeBalance.clone(), currencyId.clone(), &[]));
+            account.insert("free".into(), self.safe_string(&freeBalance, currencyId.clone(), &[]));
             account.insert("used".into(), self.safe_string(&usedBalance, currencyId.clone(), &[]));
             let mut code: Option<String> = self.safe_currency_code(currencyId, &[]).as_str().map(str::to_owned);
             if (code.is_some()) {
@@ -2326,7 +2326,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
         if (authenticated == Value::Null) {
             self.check_required_credentials(&[]);
-            let mut nonce: Value = Value::Str(format!("{}", self.seconds()).into());
+            let mut nonce: String = format!("{}", self.seconds().as_i64().unwrap_or_default());
             let mut auth: String = format!("{}{}", nonce, self.apiKey.clone());
             let mut signature: Option<String> = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]).as_str().map(str::to_owned);
             let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2336,7 +2336,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
     let mut m = indexmap::IndexMap::new();
         m.insert("key".to_string(), self.apiKey.clone());
         m.insert("signature".to_string(), signature.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
-        m.insert("timestamp".to_string(), nonce);
+        m.insert("timestamp".to_string(), Value::from(nonce));
     m
 }));
                 m

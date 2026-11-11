@@ -381,17 +381,17 @@ impl Backpack {
     pub async fn prepare_ws_stock_params(&mut self, mut methodName: Value, params: impl Into<crate::Value>) -> Value {
         let mut params: Value = params.into();
         let stockqueryVariable: Vec<Value> = self.handle_option_bool_and_params(params, methodName, Value::Str("stock".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut stock: Value = stockqueryVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut stock: Option<bool> = stockqueryVariable.get(0).and_then(Value::as_bool);
         let mut query: Value = stockqueryVariable.get(1).cloned().unwrap_or(Value::Null);
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        if (stock == Value::Null) {
+        if (stock.is_none()) {
             return query;
         }
         return self.extend(query, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("stock".to_string(), stock);
+        m.insert("stock".to_string(), stock.map_or(Value::Null, Value::Bool));
     m
 })]);
 

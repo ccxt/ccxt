@@ -941,15 +941,15 @@ impl Bigone {
                         let mut j: i64 = 0;
             let mut __for_first_263: bool = true;
             while { if !__for_first_263 { j += 1; } __for_first_263 = false; j < (chains.len() as i64) } {
-            let mut chain: Value = chains.get(j as usize).cloned().unwrap_or(Value::Null);
-            let mut networkId: Option<String> = self.safe_string_k(chain.clone(), "gateway_name", &[]).as_str().map(str::to_owned);
+            let mut chain: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut networkId: Option<String> = self.safe_string_k(&chain, "gateway_name", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
-            let mut deposit: Option<bool> = self.safe_bool_k(chain.clone(), "is_deposit_enabled", &[]).as_bool();
-            let mut withdraw: Option<bool> = self.safe_bool_k(chain.clone(), "is_withdrawal_enabled", &[]).as_bool();
-            let mut minDepositAmount: Option<String> = self.safe_string_k(chain.clone(), "min_deposit_amount", &[]).as_str().map(str::to_owned);
-            let mut minWithdrawalAmount: Option<String> = self.safe_string_k(chain.clone(), "min_withdrawal_amount", &[]).as_str().map(str::to_owned);
-            let mut withdrawalFee: Option<String> = self.safe_string_k(chain.clone(), "withdrawal_fee", &[]).as_str().map(str::to_owned);
-            let mut precision: Value = self.parse_precision(&[self.safe_string2(chain.clone(), Value::Str("withdrawal_scale".into()), Value::Str("scale".into()), &[])]);
+            let mut deposit: Option<bool> = self.safe_bool_k(&chain, "is_deposit_enabled", &[]).as_bool();
+            let mut withdraw: Option<bool> = self.safe_bool_k(&chain, "is_withdrawal_enabled", &[]).as_bool();
+            let mut minDepositAmount: Option<String> = self.safe_string_k(&chain, "min_deposit_amount", &[]).as_str().map(str::to_owned);
+            let mut minWithdrawalAmount: Option<String> = self.safe_string_k(&chain, "min_withdrawal_amount", &[]).as_str().map(str::to_owned);
+            let mut withdrawalFee: Option<String> = self.safe_string_k(&chain, "withdrawal_fee", &[]).as_str().map(str::to_owned);
+            let mut precision: Value = self.parse_precision(&[self.safe_string2(&chain, Value::Str("withdrawal_scale".into()), Value::Str("scale".into()), &[])]);
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -977,7 +977,7 @@ impl Bigone {
 }));
     m
 }));
-        m.insert("info".to_string(), chain);
+        m.insert("info".to_string(), Value::Dict(chain));
     m
 }));
             }

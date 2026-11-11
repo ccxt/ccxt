@@ -1078,11 +1078,11 @@ impl Hyperliquid {
             // python transpiler collapses every for-loop bound to an exclusive
             // range(), so `<=` silently emits range(1, maxLimit) and loads one dex
             // too few (build/transpile.ts treats <, <=, > and >= identically)
-            let mut maxIteration: Value = self.sum(&[Value::from(maxLimit), Value::Int(1)]);
+            let mut maxIteration: i64 = (maxLimit + 1);
             {
                                 let mut i: Value = Value::Int(1);
                 let mut __for_first_800: bool = true;
-                while { if !__for_first_800 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_800 = false; i.as_f64().unwrap_or(f64::NAN) < maxIteration.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_800 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_800 = false; i.as_f64().unwrap_or(f64::NAN) < (maxIteration as f64) } {
                 if i.as_f64().unwrap_or(f64::NAN) >= fetchDexesLength.as_f64().unwrap_or(f64::NAN) {
                     break;
                 }
@@ -2422,8 +2422,8 @@ impl Hyperliquid {
         let mut priceStr: Value = self.number_to_string(price.clone());
         let mut priceStrParts: Vec<Value> = Value::Array(if let Some(__s) = priceStr.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         let mut integerPart: Option<String> = priceStrParts.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut significantDigits: Value = crate::runtime::Math::max(&Value::Int(5), &Value::Int((integerPart.as_deref().unwrap_or_default().chars().count() as i64)));
-        let mut result: Value = self.decimal_to_precision(price, Value::Int(crate::runtime::ROUND), significantDigits, &[Value::Int(crate::runtime::SIGNIFICANT_DIGITS), self.paddingMode.clone()]);
+        let mut significantDigits: i64 = i64::max(5, ((integerPart.as_deref().unwrap_or_default().chars().count() as i64)));
+        let mut result: Value = self.decimal_to_precision(price, Value::Int(crate::runtime::ROUND), Value::from(significantDigits), &[Value::Int(crate::runtime::SIGNIFICANT_DIGITS), self.paddingMode.clone()]);
         let mut maxDecimals: Value = Value::Int(6);
         if (market).spot {
             maxDecimals = Value::Int(8);
@@ -7179,11 +7179,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut data: Value = self.safe_dict_k(&responsePayload, "data", &[Value::Map({
+            let mut data: crate::value::Dict = self.safe_dict_k(&responsePayload, "data", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut statuses: crate::value::List = self.safe_list_k(data.clone(), "statuses", &[Value::from(vec![])]).into_list();
+            })]).into_dict();
+            let mut statuses: crate::value::List = self.safe_list_k(&data, "statuses", &[Value::from(vec![])]).into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_830: bool = true;
@@ -7194,8 +7194,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
             }
             }
-            if (matches!(&data, Value::Dict(__d) if __d.contains_key("status"))) {
-                let mut errorStatus: Option<crate::value::Dict> = self.safe_dict_k(data, "status", &[Value::Map({
+            if (data.contains_key("status")) {
+                let mut errorStatus: Option<crate::value::Dict> = self.safe_dict_k(&data, "status", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_opt_dict();

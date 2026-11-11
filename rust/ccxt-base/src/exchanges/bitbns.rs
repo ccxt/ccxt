@@ -917,11 +917,11 @@ impl Bitbns {
                 m.insert("datetime".to_string(), self.iso8601(timestamp));
             m
         });
-        let mut data: Value = self.safe_dict_k(response, "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-        let mut keys: Vec<Value> = Value::Array(data.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+})]).into_dict();
+        let mut keys: Vec<Value> = Value::Array(data.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_339: bool = true;
@@ -934,8 +934,8 @@ impl Bitbns {
                 let mut currencyId: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
                 // note that "Money" stands for INR - the only fiat in bitbns
                 let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-                account.insert("free".into(), self.safe_string(data.clone(), key.map(Value::from).unwrap_or(Value::Null), &[]));
-                account.insert("used".into(), self.safe_string(data.clone(), Value::Str(format!("{}{}", Value::Str("inorder".into()), usedCurrencyId).into()), &[]));
+                account.insert("free".into(), self.safe_string(&data, key.map(Value::from).unwrap_or(Value::Null), &[]));
+                account.insert("used".into(), self.safe_string(&data, Value::Str(format!("{}{}", Value::Str("inorder".into()), usedCurrencyId).into()), &[]));
                 if (currencyId.as_deref() == Some("Money")) {
                     currencyId = Some("INR".to_string());
                 }

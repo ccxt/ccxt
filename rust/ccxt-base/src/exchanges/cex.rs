@@ -1127,10 +1127,10 @@ impl Cex {
             request.insert("fromDateISO".into(), self.iso8601(since.clone()));
         }
         let untilparamsUntilVariable: Vec<Value> = self.handle_param_integer2(params, Value::Str("until".into()), Value::Str("till".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut until: Option<i64> = untilparamsUntilVariable.get(0).and_then(Value::as_i64);
         let mut paramsUntil: crate::value::Dict = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (until != Value::Null) {
-            request.insert("toDateISO".into(), self.iso8601(until));
+        if (until.is_some()) {
+            request.insert("toDateISO".into(), self.iso8601(Value::from(until)));
         }
         if (limit != Value::Null) {
             request.insert("pageSize".into(), crate::runtime::Math::min(&limit, &Value::Int(10000))); // has a bug, still returns more trades
@@ -1308,17 +1308,17 @@ impl Cex {
             request.insert("fromISO".into(), self.iso8601(since.clone()));
         }
         let untilparamsUntilVariable: Vec<Value> = self.handle_param_integer2(&paramsDataType, Value::Str("until".into()), Value::Str("till".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut until: Option<i64> = untilparamsUntilVariable.get(0).and_then(Value::as_i64);
         let mut paramsUntil: crate::value::Dict = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (until != Value::Null) {
-            request.insert("toISO".into(), self.iso8601(until.clone()));
+        if (until.is_some()) {
+            request.insert("toISO".into(), self.iso8601(Value::from(until)));
         }  else if (since == Value::Null) {
             // exchange still requires that we provide one of them
             request.insert("toISO".into(), self.iso8601(self.milliseconds()));
         }
-        if (since != Value::Null) && (until != Value::Null) && (limit != Value::Null) {
+        if (since != Value::Null) && (until.is_some()) && (limit != Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV does not support fetching candles with both a limit and since/until".into()))));
-        }  else if ((since != Value::Null) || (until != Value::Null)) && (limit == Value::Null) {
+        }  else if ((since != Value::Null) || (until.is_some())) && (limit == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV requires a limit parameter when fetching candles with since or until".into()))));
         }
         if (limit != Value::Null) {
@@ -1680,10 +1680,10 @@ impl Cex {
                 Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
         }
         let untilparamsUntilVariable: Vec<Value> = self.handle_param_integer2(params, Value::Str("until".into()), Value::Str("till".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut until: Option<i64> = untilparamsUntilVariable.get(0).and_then(Value::as_i64);
         let mut paramsUntil: crate::value::Dict = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (until != Value::Null) {
-            request.insert("serverCreateTimestampTo".into(), until);
+        if (until.is_some()) {
+            request.insert("serverCreateTimestampTo".into(), Value::from(until));
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_post_get_my_orders(&[__ws_arg_4]).await.into_dict();
@@ -2245,10 +2245,10 @@ impl Cex {
             request.insert("pageSize".into(), limit.clone());
         }
         let untilparamsUntilVariable: Vec<Value> = self.handle_param_integer2(params, Value::Str("until".into()), Value::Str("till".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut until: Option<i64> = untilparamsUntilVariable.get(0).and_then(Value::as_i64);
         let mut paramsUntil: crate::value::Dict = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (until != Value::Null) {
-            request.insert("dateTo".into(), until);
+        if (until.is_some()) {
+            request.insert("dateTo".into(), Value::from(until));
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_post_get_my_transaction_history(&[__ws_arg_9]).await.into_dict();
@@ -2365,10 +2365,10 @@ impl Cex {
             request.insert("pageSize".into(), limit.clone());
         }
         let untilparamsUntilVariable: Vec<Value> = self.handle_param_integer2(params, Value::Str("until".into()), Value::Str("till".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut until: Value = untilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut until: Option<i64> = untilparamsUntilVariable.get(0).and_then(Value::as_i64);
         let mut paramsUntil: crate::value::Dict = untilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (until != Value::Null) {
-            request.insert("dateTo".into(), until);
+        if (until.is_some()) {
+            request.insert("dateTo".into(), Value::from(until));
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsUntil]);
         let mut response: crate::value::Dict = self.private_post_get_my_funding_history(&[__ws_arg_10]).await.into_dict();
@@ -2750,7 +2750,7 @@ impl Cex {
             }
         }  else {
             self.check_required_credentials(&[]);
-            let mut seconds: Value = Value::Str(format!("{}", self.seconds()).into());
+            let mut seconds: String = format!("{}", self.seconds().as_i64().unwrap_or_default());
             let mut bodySigned: Value = json_stringify(&query);
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", path, seconds).into()), bodySigned);
             let mut signature: Value = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
@@ -2758,7 +2758,7 @@ impl Cex {
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("X-AGGR-KEY".to_string(), self.apiKey.clone());
-                    m.insert("X-AGGR-TIMESTAMP".to_string(), seconds);
+                    m.insert("X-AGGR-TIMESTAMP".to_string(), Value::from(seconds));
                     m.insert("X-AGGR-SIGNATURE".to_string(), signature);
                 m
             });

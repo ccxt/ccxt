@@ -1411,11 +1411,11 @@ impl Pacifica {
                         let mut i: i64 = 0;
             let mut __for_first_575: bool = true;
             while { if !__for_first_575 { i += 1; } __for_first_575 = false; i < (data.len() as i64) } {
-            let mut info: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut marketId: Option<String> = self.safe_string_k(info.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            let mut info: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut marketId: Option<String> = self.safe_string_k(&info, "symbol", &[]).as_str().map(str::to_owned);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
             let mut symbol: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
-            let mut ticker: Value = self.parse_ws_ticker(info, &[market]);
+            let mut ticker: Value = self.parse_ws_ticker(Value::Dict(info), &[market]);
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
             parsedTickers.push(ticker);
         }

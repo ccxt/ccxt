@@ -1312,9 +1312,9 @@ impl Krakenfutures {
                                         let mut i: i64 = 0;
                     let mut __for_first_435: bool = true;
                     while { if !__for_first_435 { i += 1; } __for_first_435 = false; i < (trades.len() as i64) } {
-                    let mut currentTrade: Value = trades.get(i as usize).cloned().unwrap_or(Value::Null);
-                    totalCost = crate::precise::Precise::stringAdd(&totalCost.clone().map(Value::from).unwrap_or(Value::Null), &self.number_to_string(currentTrade.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null))).as_str().map(str::to_owned);
-                    totalAmount = crate::precise::Precise::stringAdd(&totalAmount.clone().map(Value::from).unwrap_or(Value::Null), &self.number_to_string(currentTrade.as_map().and_then(|__m| __m.get("amount")).cloned().unwrap_or(Value::Null))).as_str().map(str::to_owned);
+                    let mut currentTrade: crate::value::Dict = trades.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                    totalCost = crate::precise::Precise::stringAdd(&totalCost.clone().map(Value::from).unwrap_or(Value::Null), &self.number_to_string(crate::value::KeyRead::key_read(&&currentTrade, "cost"))).as_str().map(str::to_owned);
+                    totalAmount = crate::precise::Precise::stringAdd(&totalAmount.clone().map(Value::from).unwrap_or(Value::Null), &self.number_to_string(crate::value::KeyRead::key_read(&&currentTrade, "amount"))).as_str().map(str::to_owned);
                 }
                 }
                 if crate::precise::Precise::stringGt(&totalAmount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {

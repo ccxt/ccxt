@@ -1347,26 +1347,26 @@ impl Bitrue {
                         let mut j: i64 = 0;
             let mut __for_first_413: bool = true;
             while { if !__for_first_413 { j += 1; } __for_first_413 = false; j < (networkDetails.len() as i64) } {
-            let mut entry: Value = networkDetails.get(j as usize).cloned().unwrap_or(Value::Null);
-            let mut networkId: Option<String> = self.safe_string_k(entry.clone(), "chain", &[]).as_str().map(str::to_owned);
+            let mut entry: crate::value::Dict = networkDetails.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut networkId: Option<String> = self.safe_string_k(&entry, "chain", &[]).as_str().map(str::to_owned);
             let mut network: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             if (network != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&network), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), entry.clone());
+        m.insert("info".to_string(), Value::from(&entry));
         m.insert("id".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), network.clone());
-        m.insert("deposit".to_string(), self.safe_bool_k(entry.clone(), "enableDeposit", &[]));
-        m.insert("withdraw".to_string(), self.safe_bool_k(entry.clone(), "enableWithdraw", &[]));
+        m.insert("deposit".to_string(), self.safe_bool_k(&entry, "enableDeposit", &[]));
+        m.insert("withdraw".to_string(), self.safe_bool_k(&entry, "enableWithdraw", &[]));
         m.insert("active".to_string(), Value::Null);
-        m.insert("fee".to_string(), self.safe_number_k(entry.clone(), "withdrawFee", &[]));
+        m.insert("fee".to_string(), self.safe_number_k(&entry, "withdrawFee", &[]));
         m.insert("precision".to_string(), Value::Null);
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(entry.clone(), "minWithdraw", &[]));
-        m.insert("max".to_string(), self.safe_number_k(entry, "maxWithdraw", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&entry, "minWithdraw", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&entry, "maxWithdraw", &[]));
     m
 }));
     m

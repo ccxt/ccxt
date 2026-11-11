@@ -1647,12 +1647,12 @@ impl Coinbase {
         //      }
         //
         let mut events: Value = (match __pro_message.get("events").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
-        let mut firstEvent: Value = self.safe_dict(events, Value::Int(0), &[Value::Map({
+        let mut firstEvent: crate::value::Dict = self.safe_dict(events, Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut isUnsub: bool = matches!(&firstEvent, Value::Dict(__d) if __d.contains_key("subscriptions"));
-        let mut subKeys: Vec<Value> = object_keys(&firstEvent.as_map().and_then(|__m| __m.get("subscriptions")).cloned().unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
+        })]).into_dict();
+        let mut isUnsub: bool = firstEvent.contains_key("subscriptions");
+        let mut subKeys: Vec<Value> = object_keys(&crate::value::KeyRead::key_read(&&firstEvent, "subscriptions")).as_array().cloned().unwrap_or_default();
         let mut subKeysLength: f64 = ((subKeys.len() as i64) as f64);
         if isUnsub && (subKeysLength == 0.0) {
             let mut unSubObject: Value = self.safe_dict_k(self.options.clone(), "unSubscription", &[Value::Map({

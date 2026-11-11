@@ -557,15 +557,15 @@ impl Bitvavo {
                         let mut i: i64 = 0;
             let mut __for_first_145: bool = true;
             while { if !__for_first_145 { i += 1; } __for_first_145 = false; i < (tickers.len() as i64) } {
-            let mut data: Value = tickers.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut marketId: Option<String> = self.safe_string_k(data.clone(), "market", &[]).as_str().map(str::to_owned);
+            let mut data: crate::value::Dict = tickers.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut marketId: Option<String> = self.safe_string_k(&data, "market", &[]).as_str().map(str::to_owned);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("-".into())]);
-            let mut ticker: Value = self.parse_ticker(data.clone(), &[market]);
+            let mut ticker: Value = self.parse_ticker(Value::from(&data), &[market]);
             let mut symbol: Value = ticker.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), ticker.clone()); }
             result.push(ticker.clone());
             if (event.is_some()) {
-                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("@".into())).into()), self.safe_string_k(data, "market", &[Value::Str("".into())]));
+                let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("@".into())).into()), self.safe_string_k(&data, "market", &[Value::Str("".into())]));
                 client.resolve(ticker, messageHash.as_str());
             }
         }
@@ -2804,16 +2804,16 @@ impl Bitvavo {
         //         }
         //     }
         //
-        let mut subscriptions: Value = self.safe_dict_k(message.clone(), "subscriptions", &[Value::Map({
+        let mut subscriptions: crate::value::Dict = self.safe_dict_k(message.clone(), "subscriptions", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("book".to_string(), Value::Str("handle_order_book_subscriptions".into()).clone());
             m
         });
-        let mut names: Vec<Value> = object_keys(&subscriptions).as_array().cloned().unwrap_or_default();
+        let mut names: Vec<Value> = Value::Array(subscriptions.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_161: bool = true;
@@ -2821,7 +2821,7 @@ impl Bitvavo {
             let mut name: Value = names.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut method: Value = self.safe_value(&methods, name.clone(), &[]);
             if (method != Value::Null) {
-                let mut subscription: Value = self.safe_value(subscriptions.clone(), name, &[]);
+                let mut subscription: Value = self.safe_value(&subscriptions, name, &[]);
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone(), subscription]);
             }
         }

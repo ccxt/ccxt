@@ -2704,7 +2704,7 @@ impl Predictfun {
             if isMarket {
                 expirationDelta = self.safe_integer_k(self.options.clone(), "marketOrderExpiration", &[Value::from(defaultExpiration)]).as_i64();
             }
-            let mut now: Option<i64> = self.seconds().as_i64();
+            let mut now: i64 = self.seconds().as_i64().unwrap_or_default();
             expiration = self.sum(&[Value::from(now), Value::from(expirationDelta)]);
         }
         let mut nonce: Value = self.incrementing_nonce();
@@ -2747,10 +2747,10 @@ impl Predictfun {
         });
         let mut postOnly: bool = self.safe_bool_k(&paramsTaker, "isPostOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let postOnlyOptionparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(isMarket), Value::Bool(postOnly), &[Value::from(&paramsTaker)]).as_array().cloned().unwrap_or_default();
-        let mut postOnlyOption: Value = postOnlyOptionparamsPostOnlyVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut postOnlyOption: Option<bool> = postOnlyOptionparamsPostOnlyVariable.get(0).and_then(Value::as_bool);
         let mut paramsPostOnly: crate::value::Dict = postOnlyOptionparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if postOnlyOption.as_bool() == Some(true) {
-            data.insert("isPostOnly".into(), postOnlyOption);
+        if (postOnlyOption == Some(true)) {
+            data.insert("isPostOnly".into(), postOnlyOption.map_or(Value::Null, Value::Bool));
         }
         let mut timeInForce: Option<String> = self.safe_string_upper_k(&paramsPostOnly, "timeInForce", &[]).as_str().map(str::to_owned);
         if (timeInForce.as_deref() == Some("FOK")) {
@@ -4435,7 +4435,7 @@ impl Predictfun {
     pub fn request_id(&self) -> Value {
         self.lock_id(&[]);
         let mut previous: i64 = self.safe_integer_k(self.options.clone(), "requestId", &[Value::Int(0)]).as_i64().unwrap_or(0);
-        let mut next: Value = self.sum(&[Value::from(previous), Value::Int(1)]);
+        let mut next: Value = Value::Int((previous + 1));
         if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("requestId".into(), next.clone()); }
         self.unlock_id(&[]);
         return next;

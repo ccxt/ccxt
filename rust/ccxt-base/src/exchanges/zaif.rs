@@ -663,18 +663,18 @@ impl Zaif {
                 m.insert("datetime".to_string(), Value::Null);
             m
         });
-        let mut funds: Value = self.safe_dict_k(&balances, "funds", &[Value::Map({
+        let mut funds: crate::value::Dict = self.safe_dict_k(&balances, "funds", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut currencyIds: Vec<Value> = Value::Array(funds.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        })]).into_dict();
+        let mut currencyIds: Vec<Value> = Value::Array(funds.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1200: bool = true;
             while { if !__for_first_1200 { i += 1; } __for_first_1200 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Value = currencyIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), &[]).as_str().map(str::to_owned);
-            let mut balance: Option<String> = self.safe_string(funds.clone(), currencyId.clone(), &[]).as_str().map(str::to_owned);
+            let mut balance: Option<String> = self.safe_string(&funds, currencyId.clone(), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), balance.clone().map(Value::from).unwrap_or(Value::Null));
             account.insert("total".into(), balance.map(Value::from).unwrap_or(Value::Null));

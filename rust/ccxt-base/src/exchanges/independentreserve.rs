@@ -1289,14 +1289,14 @@ impl Independentreserve {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut pageIndex: i64 = self.safe_integer_k(params.clone(), "pageIndex", &[Value::Int(1)]).as_i64().unwrap_or(1);
-        let mut limitResolved: Value = limit;
-        if (limitResolved == Value::Null) {
-            limitResolved = Value::Int(50);
+        let mut limitResolved: Option<i64> = limit.as_i64();
+        if (limitResolved.is_none()) {
+            limitResolved = Some(50);
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("pageIndex".to_string(), Value::from(pageIndex));
-                m.insert("pageSize".to_string(), limitResolved.clone());
+                m.insert("pageSize".to_string(), Value::from(limitResolved));
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
@@ -1306,7 +1306,7 @@ impl Independentreserve {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut data: Value = self.safe_list_k(&response, "Data", &[Value::from(vec![])]);
-        return self.parse_trades(data, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, limitResolved]);
+        return self.parse_trades(data, &[market.clone().map(crate::types::IntoRaw::into_raw).unwrap_or_default(), since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }

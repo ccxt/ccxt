@@ -1427,8 +1427,8 @@ impl Toobit {
                         let mut j: i64 = 0;
             let mut __for_first_1130: bool = true;
             while { if !__for_first_1130 { j += 1; } __for_first_1130 = false; j < (rawNetworks.len() as i64) } {
-            let mut rawNetwork: Value = rawNetworks.get(j as usize).cloned().unwrap_or(Value::Null);
-            let mut networkId: Option<String> = self.safe_string_k(rawNetwork.clone(), "chainType", &[]).as_str().map(str::to_owned);
+            let mut rawNetwork: crate::value::Dict = rawNetworks.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut networkId: Option<String> = self.safe_string_k(&rawNetwork, "chainType", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
@@ -1436,28 +1436,28 @@ impl Toobit {
         m.insert("id".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), networkCode.clone());
         m.insert("margin".to_string(), Value::Null);
-        m.insert("deposit".to_string(), self.safe_bool_k(rawNetwork.clone(), "allowDeposit", &[]));
-        m.insert("withdraw".to_string(), self.safe_bool_k(rawNetwork.clone(), "allowWithdraw", &[]));
+        m.insert("deposit".to_string(), self.safe_bool_k(&rawNetwork, "allowDeposit", &[]));
+        m.insert("withdraw".to_string(), self.safe_bool_k(&rawNetwork, "allowWithdraw", &[]));
         m.insert("active".to_string(), Value::Null);
-        m.insert("fee".to_string(), self.safe_number_k(rawNetwork.clone(), "withdrawFee", &[]));
+        m.insert("fee".to_string(), self.safe_number_k(&rawNetwork, "withdrawFee", &[]));
         m.insert("precision".to_string(), Value::Null);
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(rawNetwork.clone(), "minDepositQuantity", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&rawNetwork, "minDepositQuantity", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(rawNetwork.clone(), "minWithdrawQuantity", &[]));
-        m.insert("max".to_string(), self.safe_number_k(rawNetwork.clone(), "maxWithdrawQuantity", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&rawNetwork, "minWithdrawQuantity", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&rawNetwork, "maxWithdrawQuantity", &[]));
     m
 }));
     m
 }));
-        m.insert("info".to_string(), rawNetwork);
+        m.insert("info".to_string(), Value::from(&rawNetwork));
     m
 }));
             }
@@ -2699,12 +2699,12 @@ impl Toobit {
             m
         };
         let reduceOnlyparamsReduceOnlyVariable: Vec<Value> = self.handle_param_bool(params, Value::Str("reduceOnly".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut reduceOnly: Value = reduceOnlyparamsReduceOnlyVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut reduceOnly: Option<bool> = reduceOnlyparamsReduceOnlyVariable.get(0).and_then(Value::as_bool);
         let mut paramsReduceOnly: Value = reduceOnlyparamsReduceOnlyVariable.get(1).cloned().unwrap_or(Value::Null);
         if (side.as_str() == Some("buy")) {
-            request.insert("side".into(), (if (reduceOnly.as_bool() == Some(true)) { Value::Str("BUY_CLOSE".into()) } else { Value::Str("BUY_OPEN".into()) }));
+            request.insert("side".into(), (if (reduceOnly == Some(true)) { Value::Str("BUY_CLOSE".into()) } else { Value::Str("BUY_OPEN".into()) }));
         }  else if (side.as_str() == Some("sell")) {
-            request.insert("side".into(), (if (reduceOnly.as_bool() == Some(true)) { Value::Str("SELL_CLOSE".into()) } else { Value::Str("SELL_OPEN".into()) }));
+            request.insert("side".into(), (if (reduceOnly == Some(true)) { Value::Str("SELL_CLOSE".into()) } else { Value::Str("SELL_OPEN".into()) }));
         }  else {
             request.insert("side".into(), side);
         }

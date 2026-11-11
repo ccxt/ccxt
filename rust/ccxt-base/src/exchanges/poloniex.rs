@@ -4382,8 +4382,8 @@ impl Poloniex {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut year: i64 = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
-        let mut now: Value = self.seconds();
-        let mut start: Value = (match (&(now), &(Value::Int((10 * year)))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+        let mut now: i64 = self.seconds().as_i64().unwrap_or_default();
+        let mut start: Value = Value::Int((now - ((10 * year))));
         if (since != Value::Null) {
             let mut sinceMs: i64 = self.safe_integer(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4395,7 +4395,7 @@ impl Poloniex {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("start".to_string(), start);
-                m.insert("end".to_string(), now);
+                m.insert("end".to_string(), Value::from(now));
             m
         });
         let __ws_arg_39 = self.extend(Value::Map(request), &[params]);
@@ -4543,13 +4543,13 @@ impl Poloniex {
                         let mut i: i64 = 0;
             let mut __for_first_1094: bool = true;
             while { if !__for_first_1094 { i += 1; } __for_first_1094 = false; i < (entries.len() as i64) } {
-            let mut entry: Value = self.safe_dict(entries.clone(), Value::Int(i), &[Value::Map({
+            let mut entry: crate::value::Dict = self.safe_dict(entries.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut currencies: crate::value::List = Value::Array(entry.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).into_list();
+})]).into_dict();
+            let mut currencies: crate::value::List = Value::Array(entry.keys().cloned().map(Value::from).collect()).into_list();
             let mut currencyId: Option<String> = self.safe_string_opt(&currencies, Value::Int(0), &[]);
-            data.insert(currencyId.as_deref().unwrap_or("null").to_string(), self.safe_value(entry, currencyId.map(Value::from).unwrap_or(Value::Null), &[]));
+            data.insert(currencyId.as_deref().unwrap_or("null").to_string(), self.safe_value(&entry, currencyId.map(Value::from).unwrap_or(Value::Null), &[]));
         }
         }
         return self.parse_deposit_withdraw_fees(Value::Map(data), &[codes]);
@@ -4882,9 +4882,9 @@ impl Poloniex {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a marginMode parameter \"cross\" or \"isolated\"".into()))));
         }
         let hedgedparamsHedgedVariable: Vec<Value> = self.handle_param_bool(&paramsMarginMode, Value::Str("hedged".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut hedged: Value = hedgedparamsHedgedVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut hedged: Option<bool> = hedgedparamsHedgedVariable.get(0).and_then(Value::as_bool);
         let mut paramsHedged: crate::value::Dict = hedgedparamsHedgedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        if (hedged.as_bool() == Some(true)) {
+        if (hedged == Some(true)) {
             if (self.safe_string_k(&paramsHedged, "posSide", &[]) == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" setLeverage() requires a posSide parameter for hedged mode: \"LONG\" or \"SHORT\"".into()))));
             }

@@ -544,15 +544,15 @@ impl Mudrex {
                         let mut i: i64 = 0;
             let mut __for_first_502: bool = true;
             while { if !__for_first_502 { i += 1; } __for_first_502 = false; i < (data.len() as i64) } {
-            let mut t: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut s: Option<String> = self.safe_string_k(t.clone(), "s", &[]).as_str().map(str::to_owned);
+            let mut t: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut s: Option<String> = self.safe_string_k(&t, "s", &[]).as_str().map(str::to_owned);
             if (s.is_none()) {
                 continue;
             }
             let mut market: crate::value::Dict = self.safe_market(&[s.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null)]).into_dict();
             let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
             let mut timestamp: Option<i64> = self.milliseconds().as_i64();
-            let mut last: Option<f64> = self.safe_number_k(t.clone(), "p", &[]).as_f64();
+            let mut last: Option<f64> = self.safe_number_k(&t, "p", &[]).as_f64();
             let mut result: Value = self.safe_ticker(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), symbol.clone());
@@ -560,7 +560,7 @@ impl Mudrex {
                     m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
                     m.insert("last".to_string(), Value::from(last));
                     m.insert("close".to_string(), Value::from(last));
-                    m.insert("info".to_string(), t);
+                    m.insert("info".to_string(), Value::Dict(t));
                 m
             }), &[]);
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), result.clone()); }

@@ -7204,18 +7204,18 @@ impl Binance {
                         let mut j: i64 = 0;
             let mut __for_first_272: bool = true;
             while { if !__for_first_272 { j += 1; } __for_first_272 = false; j < (networkList.len() as i64) } {
-            let mut networkItem: Value = networkList.get(j as usize).cloned().unwrap_or(Value::Null);
-            let mut network: Option<String> = self.safe_string_k(networkItem.clone(), "network", &[]).as_str().map(str::to_owned);
+            let mut networkItem: crate::value::Dict = networkList.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut network: Option<String> = self.safe_string_k(&networkItem, "network", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[network.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             isETF = network.as_deref() == Some("ETF"); // ETF currencies (e.g. BTCUP, ETHDOWN) have only 1 "network" entry and are deterministic to set
             // const name = this.safeString (networkItem, 'name');
-            let mut withdrawFee: Option<f64> = self.safe_number_k(networkItem.clone(), "withdrawFee", &[]).as_f64();
-            let mut depositEnable: Option<bool> = self.safe_bool_k(networkItem.clone(), "depositEnable", &[]).as_bool();
-            let mut withdrawEnable: Option<bool> = self.safe_bool_k(networkItem.clone(), "withdrawEnable", &[]).as_bool();
+            let mut withdrawFee: Option<f64> = self.safe_number_k(&networkItem, "withdrawFee", &[]).as_f64();
+            let mut depositEnable: Option<bool> = self.safe_bool_k(&networkItem, "depositEnable", &[]).as_bool();
+            let mut withdrawEnable: Option<bool> = self.safe_bool_k(&networkItem, "withdrawEnable", &[]).as_bool();
             if (networkCode != Value::Null) {
                 fees.insert(crate::runtime::stringify_param(&networkCode), Value::from(withdrawFee));
             }
-            let mut isDefault: bool = self.safe_bool_k(networkItem.clone(), "isDefault", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut isDefault: bool = self.safe_bool_k(&networkItem, "isDefault", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if isDefault || (fee.is_none()) {
                 fee = withdrawFee.clone();
             }
@@ -7223,7 +7223,7 @@ impl Binance {
             // if (isDefault) {
             //     this.options['defaultNetworkCodesForCurrencies'][code] = networkCode;
             // }
-            let mut withdrawPrecision: Option<String> = self.omit_zero(self.safe_string2(networkItem.clone(), Value::Str("withdrawIntegerMultiple".into()), Value::Str("withdrawInternalMin".into()), &[])).as_str().map(str::to_owned);
+            let mut withdrawPrecision: Option<String> = self.omit_zero(self.safe_string2(&networkItem, Value::Str("withdrawIntegerMultiple".into()), Value::Str("withdrawInternalMin".into()), &[])).as_str().map(str::to_owned);
             // zero values happen only on fiat or leveraged(ETF) tokens: https://t.me/binance_api_english/393075
             if (withdrawPrecision.is_none()) && (isFiat == Some(true)) {
                 withdrawPrecision = self.safe_string_k(self.options.clone(), "defaultFiatWithdrawPrecision", &[]).as_str().map(str::to_owned);
@@ -7231,7 +7231,7 @@ impl Binance {
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), networkItem.clone());
+        m.insert("info".to_string(), Value::from(&networkItem));
         m.insert("id".to_string(), network.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), networkCode.clone());
         m.insert("active".to_string(), Value::Null);
@@ -7243,13 +7243,13 @@ impl Binance {
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(networkItem.clone(), "withdrawMin", &[]));
-        m.insert("max".to_string(), self.safe_number_k(networkItem.clone(), "withdrawMax", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&networkItem, "withdrawMin", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&networkItem, "withdrawMax", &[]));
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(networkItem, "depositDust", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&networkItem, "depositDust", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
@@ -14670,19 +14670,19 @@ impl Binance {
             }
             let mut toAccount: Option<String> = self.safe_string_k(paramsOmitted.clone(), "toAccount", &[Value::from(defaultTo)]).as_str().map(str::to_owned);
             let mut type_var: Option<String> = self.safe_string_k(paramsOmitted.clone(), "type", &[]).as_str().map(str::to_owned);
-            let mut accountsByType: Value = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
+            let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            let mut fromId: Option<String> = self.safe_string(accountsByType.clone(), fromAccount.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
-            let mut toId: Option<String> = self.safe_string(accountsByType.clone(), toAccount.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+})]).into_dict();
+            let mut fromId: Option<String> = self.safe_string(&accountsByType, fromAccount.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            let mut toId: Option<String> = self.safe_string(&accountsByType, toAccount.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             if (type_var.is_none()) {
                 if (fromId.is_none()) {
-                    let mut keys: Value = Value::Array(accountsByType.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+                    let mut keys: Value = Value::Array(accountsByType.keys().cloned().map(Value::from).collect());
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fromAccount parameter must be one of ".into())).into()), Value::Str(keys.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
                 }
                 if (toId.is_none()) {
-                    let mut keys: Value = Value::Array(accountsByType.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+                    let mut keys: Value = Value::Array(accountsByType.keys().cloned().map(Value::from).collect());
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" toAccount parameter must be one of ".into())).into()), Value::Str(keys.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
                 }
                 type_var = Some(format!("{}{}", Value::Str(format!("{}{}", fromId.map(Value::from).unwrap_or(Value::Null), Value::Str("_".into())).into()), toId.map(Value::from).unwrap_or(Value::Null)));
@@ -16530,17 +16530,17 @@ impl Binance {
                         let mut j: i64 = 0;
             let mut __for_first_307: bool = true;
             while { if !__for_first_307 { j += 1; } __for_first_307 = false; j < (brackets.len() as i64) } {
-            let mut bracket: Value = brackets.get(j as usize).cloned().unwrap_or(Value::Null);
+            let mut bracket: crate::value::Dict = brackets.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("tier".to_string(), self.safe_number_k(bracket.clone(), "bracket", &[]));
+                    m.insert("tier".to_string(), self.safe_number_k(&bracket, "bracket", &[]));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), &[marketResolved.clone()]));
                     m.insert("currency".to_string(), marketResolved.as_map().and_then(|__m| __m.get("quote")).cloned().unwrap_or(Value::Null));
-                    m.insert("minNotional".to_string(), self.safe_number2(bracket.clone(), Value::Str("notionalFloor".into()), Value::Str("qtyFloor".into()), &[]));
-                    m.insert("maxNotional".to_string(), self.safe_number2(bracket.clone(), Value::Str("notionalCap".into()), Value::Str("qtyCap".into()), &[]));
-                    m.insert("maintenanceMarginRate".to_string(), self.safe_number_k(bracket.clone(), "maintMarginRatio", &[]));
-                    m.insert("maxLeverage".to_string(), self.safe_number_k(bracket.clone(), "initialLeverage", &[]));
-                    m.insert("info".to_string(), bracket);
+                    m.insert("minNotional".to_string(), self.safe_number2(Value::from(&bracket), Value::Str("notionalFloor".into()), Value::Str("qtyFloor".into()), &[]));
+                    m.insert("maxNotional".to_string(), self.safe_number2(Value::from(&bracket), Value::Str("notionalCap".into()), Value::Str("qtyCap".into()), &[]));
+                    m.insert("maintenanceMarginRate".to_string(), self.safe_number_k(&bracket, "maintMarginRatio", &[]));
+                    m.insert("maxLeverage".to_string(), self.safe_number_k(&bracket, "initialLeverage", &[]));
+                    m.insert("info".to_string(), Value::from(&bracket));
                 m
             }));
         }

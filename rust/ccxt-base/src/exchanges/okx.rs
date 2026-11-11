@@ -5868,13 +5868,13 @@ impl Okx {
         }
         let mut usesHedged: bool = isSwapOrFuture && (positionSide.is_none());
         let hedgedparamsHedgedOptionVariable: Vec<Value> = self.handle_option_bool_and_params(paramsSwapOrFuture.clone(), Value::Str("createOrder".into()), Value::Str("hedged".into()), &[]).as_array().cloned().unwrap_or_default();
-        let mut hedged: Value = hedgedparamsHedgedOptionVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut hedged: Option<bool> = hedgedparamsHedgedOptionVariable.get(0).and_then(Value::as_bool);
         let mut paramsHedgedOption: Value = hedgedparamsHedgedOptionVariable.get(1).cloned().unwrap_or(Value::Null);
         let mut paramsHedged: Value = paramsSwapOrFuture;
         if usesHedged {
             paramsHedged = paramsHedgedOption;
         }
-        let mut omitReduceOnly: bool = usesHedged && (hedged.as_bool() == Some(true)) && isReduceOnly;
+        let mut omitReduceOnly: bool = usesHedged && (hedged == Some(true)) && isReduceOnly;
         let mut paramsReduceOnly: Value = paramsHedged.clone();
         if omitReduceOnly {
             paramsReduceOnly = self.omit(paramsHedged, Value::Str("reduceOnly".into()), &[]);
@@ -5892,7 +5892,7 @@ impl Okx {
                 if (positionSide.is_some()) {
                     request.insert("posSide".into(), positionSide.map(Value::from).unwrap_or(Value::Null));
                 }  else {
-                    if (hedged.as_bool() == Some(true)) {
+                    if (hedged == Some(true)) {
                         let mut isBuy: bool = side.as_str() == Some("buy");
                         let mut isProtective: bool = (takeProfitPrice != Value::Null) || (stopLossPrice != Value::Null) || isReduceOnly;
                         if isProtective {
@@ -10481,14 +10481,14 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_1022: bool = true;
             while { if !__for_first_1022 { i += 1; } __for_first_1022 = false; i < (data.len() as i64) } {
-            let mut entry: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "ts", &[]).as_i64();
-            let mut instId: Option<String> = self.safe_string_k(entry.clone(), "instId", &[]).as_str().map(str::to_owned);
+            let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut timestamp: Option<i64> = self.safe_integer_k(&entry, "ts", &[]).as_i64();
+            let mut instId: Option<String> = self.safe_string_k(&entry, "instId", &[]).as_str().map(str::to_owned);
             let mut marketInner: Value = self.safe_market(&[instId.map(Value::from).unwrap_or(Value::Null)]);
-            let mut currencyId: Option<String> = self.safe_string_k(entry.clone(), "ccy", &[]).as_str().map(str::to_owned);
+            let mut currencyId: Option<String> = self.safe_string_k(&entry, "ccy", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
-            let mut balanceChange: Option<String> = self.safe_string_k(entry.clone(), "balChg", &[]).as_str().map(str::to_owned);
-            let mut positionBalanceChange: Option<String> = self.safe_string_k(entry.clone(), "posBalChg", &[]).as_str().map(str::to_owned);
+            let mut balanceChange: Option<String> = self.safe_string_k(&entry, "balChg", &[]).as_str().map(str::to_owned);
+            let mut positionBalanceChange: Option<String> = self.safe_string_k(&entry, "posBalChg", &[]).as_str().map(str::to_owned);
             let mut amount: Option<String> = None;
             if (balanceChange.is_some()) && (!(crate::precise::Precise::stringEq(&balanceChange.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true))) {
                 amount = balanceChange.clone();
@@ -10497,12 +10497,12 @@ impl Okx {
             }
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("info".to_string(), entry.clone());
+                    m.insert("info".to_string(), Value::from(&entry));
                     m.insert("symbol".to_string(), marketInner.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
                     m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
                     m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
-                    m.insert("id".to_string(), self.safe_string_k(entry, "billId", &[]));
+                    m.insert("id".to_string(), self.safe_string_k(&entry, "billId", &[]));
                     m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
                 m
             }));
@@ -12558,10 +12558,10 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_1032: bool = true;
             while { if !__for_first_1032 { i += 1; } __for_first_1032 = false; i < (data.len() as i64) } {
-            let mut entry: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut entryMarketId: Option<String> = self.safe_string_k(entry.clone(), "instId", &[]).as_str().map(str::to_owned);
+            let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut entryMarketId: Option<String> = self.safe_string_k(&entry, "instId", &[]).as_str().map(str::to_owned);
             if (entryMarketId.as_deref() == Some(marketId.as_str())) {
-                return self.parse_greeks(entry, &[market.clone()]);
+                return self.parse_greeks(Value::Dict(entry), &[market.clone()]);
             }
         }
         }
@@ -13408,13 +13408,13 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_1033: bool = true;
             while { if !__for_first_1033 { i += 1; } __for_first_1033 = false; i < (data.len() as i64) } {
-            let mut entry: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut id: Option<String> = self.safe_string_k(entry.clone(), "ccy", &[]).as_str().map(str::to_owned);
+            let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut id: Option<String> = self.safe_string_k(&entry, "ccy", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if (code != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&code), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), entry.clone());
+        m.insert("info".to_string(), Value::from(&entry));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("code".to_string(), code.clone());
         m.insert("networks".to_string(), Value::Null);
@@ -13429,8 +13429,8 @@ impl Okx {
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(entry.clone(), "min", &[]));
-        m.insert("max".to_string(), self.safe_number_k(entry, "max", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&entry, "min", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&entry, "max", &[]));
     m
 }));
         m.insert("withdraw".to_string(), Value::Map({

@@ -1638,10 +1638,10 @@ impl Modetrade {
                         let mut j: i64 = 0;
             let mut __for_first_961: bool = true;
             while { if !__for_first_961 { j += 1; } __for_first_961 = false; j < (networks.len() as i64) } {
-            let mut network: Value = networks.get(j as usize).cloned().unwrap_or(Value::Null);
+            let mut network: crate::value::Dict = networks.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             // TODO: transform chain id to human readable name
-            let mut networkId: Value = self.safe_string_k(network.clone(), "chain_id", &[Value::Str("".into())]);
-            let mut precision: Option<String> = self.parse_precision(&[self.safe_string_k(network.clone(), "decimals", &[])]).as_str().map(str::to_owned);
+            let mut networkId: Value = self.safe_string_k(&network, "chain_id", &[Value::Str("".into())]);
+            let mut precision: Option<String> = self.parse_precision(&[self.safe_string_k(&network, "decimals", &[])]).as_str().map(str::to_owned);
             if (precision.is_some()) {
                 minPrecision = (if (minPrecision.is_none()) { precision.clone() } else { crate::precise::Precise::stringMin(&precision.clone().map(Value::from).unwrap_or(Value::Null), &minPrecision.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned) });
             }
@@ -1668,9 +1668,9 @@ impl Modetrade {
         m.insert("active".to_string(), Value::Null);
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);
-        m.insert("fee".to_string(), self.safe_number_k(network.clone(), "withdrawal_fee", &[]));
+        m.insert("fee".to_string(), self.safe_number_k(&network, "withdrawal_fee", &[]));
         m.insert("precision".to_string(), self.parse_number(precision.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("info".to_string(), network);
+        m.insert("info".to_string(), Value::from(&network));
     m
 }));
         }
@@ -2132,14 +2132,14 @@ impl Modetrade {
                         let mut i: i64 = 0;
             let mut __for_first_962: bool = true;
             while { if !__for_first_962 { i += 1; } __for_first_962 = false; i < (result.len() as i64) } {
-            let mut entry: Value = result.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut marketId: Option<String> = self.safe_string_k(entry.clone(), "symbol", &[]).as_str().map(str::to_owned);
-            let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "funding_rate_timestamp", &[]).as_i64();
+            let mut entry: crate::value::Dict = result.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut marketId: Option<String> = self.safe_string_k(&entry, "symbol", &[]).as_str().map(str::to_owned);
+            let mut timestamp: Option<i64> = self.safe_integer_k(&entry, "funding_rate_timestamp", &[]).as_i64();
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("info".to_string(), entry.clone());
+                    m.insert("info".to_string(), Value::from(&entry));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[]));
-                    m.insert("fundingRate".to_string(), self.safe_number_k(entry, "funding_rate", &[]));
+                    m.insert("fundingRate".to_string(), self.safe_number_k(&entry, "funding_rate", &[]));
                     m.insert("timestamp".to_string(), Value::from(timestamp));
                     m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
                 m

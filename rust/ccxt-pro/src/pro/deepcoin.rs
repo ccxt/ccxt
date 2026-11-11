@@ -398,7 +398,7 @@ impl Deepcoin {
     pub fn request_id(&mut self) -> Value {
         self.lock_id(&[]);
         let mut previousValue: i64 = self.safe_integer_k(self.options.clone(), "lastRequestId", &[Value::Int(0)]).as_i64().unwrap_or(0);
-        let mut newValue: Value = self.sum(&[Value::from(previousValue), Value::Int(1)]);
+        let mut newValue: Value = Value::Int((previousValue + 1));
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("lastRequestId".into(), newValue.clone()); }
         self.unlock_id(&[]);
         return newValue;

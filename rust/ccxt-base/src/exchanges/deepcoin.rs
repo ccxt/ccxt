@@ -4561,19 +4561,19 @@ impl Deepcoin {
 }
 
     pub fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut msg: Option<String> = self.safe_string_k(response.clone(), "msg", &[]).as_str().map(str::to_owned);
         let mut messageCode: Option<String> = self.safe_string_k(response, "code", &[]).as_str().map(str::to_owned);
-        let mut sCode: Option<String> = self.safe_string_k(data.clone(), "sCode", &[]).as_str().map(str::to_owned);
-        let mut sMsg: Option<String> = self.safe_string_k(data.clone(), "sMsg", &[]).as_str().map(str::to_owned);
-        let mut errorCode: Option<String> = self.safe_string_k(data.clone(), "errorCode", &[]).as_str().map(str::to_owned);
+        let mut sCode: Option<String> = self.safe_string_k(&data, "sCode", &[]).as_str().map(str::to_owned);
+        let mut sMsg: Option<String> = self.safe_string_k(&data, "sMsg", &[]).as_str().map(str::to_owned);
+        let mut errorCode: Option<String> = self.safe_string_k(&data, "errorCode", &[]).as_str().map(str::to_owned);
         if (msg.is_some()) && (msg.as_deref() == Some("")) && (sMsg.is_some()) {
             msg = sMsg;
         }
-        let mut errorList: Option<crate::value::List> = self.safe_list_k(data.clone(), "errorList", &[]).into_opt_list();
+        let mut errorList: Option<crate::value::List> = self.safe_list_k(&data, "errorList", &[]).into_opt_list();
         if (errorList.is_some()) {
             {
                                 let mut i: i64 = 0;
@@ -4591,7 +4591,7 @@ impl Deepcoin {
         if (sCode.is_none()) && (errorCode.is_some()) {
             sCode = errorCode;
         }
-        let mut retCode: Option<String> = self.safe_string_k(data.clone(), "retCode", &[]).as_str().map(str::to_owned);
+        let mut retCode: Option<String> = self.safe_string_k(&data, "retCode", &[]).as_str().map(str::to_owned);
         if (sCode.is_none()) && (retCode.is_some()) {
             sCode = retCode;
         }
@@ -4602,8 +4602,8 @@ impl Deepcoin {
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), msg.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
         }  else {
-            let mut list: Value = self.safe_list_k(data.clone(), "list", &[Value::from(vec![])]);
-            if (matches!(&data, Value::Dict(__d) if __d.contains_key("list"))) && (list == Value::Null) {
+            let mut list: Value = self.safe_list_k(&data, "list", &[Value::from(vec![])]);
+            if (data.contains_key("list")) && (list == Value::Null) {
                 panic!("{}", crate::exchange_errors::null_response(feedback));
             }
         }

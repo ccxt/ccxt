@@ -1157,11 +1157,10 @@ impl Lighter {
             Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) >= self.seconds().as_f64().unwrap_or(f64::NAN)) {
             return self.safe_string_k(&cachedAuth, "token", &[]).as_str().map(str::to_owned);
         }
-        let mut deadline: Value = (match (&(self.seconds()), &(self.safe_integer_k(self.options.clone(), "authDeadlineExpiry", &[Value::Int(28800)]))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x),
-            Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+        let mut deadline: i64 = ((self.seconds().as_i64().unwrap_or_default()) + (self.safe_integer_k(self.options.clone(), "authDeadlineExpiry", &[Value::Int(28800)]).as_i64().unwrap_or(28800)));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("deadline".to_string(), deadline.clone());
+                m.insert("deadline".to_string(), Value::from(deadline));
                 m.insert("api_key_index".to_string(), self.parse_to_int(apiKeyIndex.clone().map(Value::from).unwrap_or(Value::Null)));
                 m.insert("account_index".to_string(), self.parse_to_int(accountIndex.clone().map(Value::from).unwrap_or(Value::Null)));
             m
@@ -1169,7 +1168,7 @@ impl Lighter {
         let mut token: Value = self.lighter_create_auth_token(self.safe_value_k(&cachedAuth, "signer", &[]), Value::Map(request));
         self.set_auth_entry(accountIndex.map(Value::from).unwrap_or(Value::Null), apiKeyIndex.map(Value::from).unwrap_or(Value::Null), Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("deadline".to_string(), deadline);
+                m.insert("deadline".to_string(), Value::from(deadline));
                 m.insert("token".to_string(), token.clone());
             m
         }));
@@ -2611,13 +2610,13 @@ if _try_result.is_err() {
                 endTs = now.clone();
             }
         }  else {
-            let mut count: Value = self.safe_integer(Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("limit".to_string(), limit.clone());
-                m
-            }), Value::Str("limit".into()), &[Value::Int(100)]);
-            let mut timeframeMs: Value = (match (&(self.parse_timeframe(timeframe.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            let mut span: Value = (match (&(timeframeMs), &(count)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+            let mut count: i64 = self.safe_integer(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("limit".to_string(), limit.clone());
+    m
+}), Value::Str("limit".into()), &[Value::Int(100)]).as_i64().unwrap_or(100);
+            let mut timeframeMs: i64 = ((self.parse_timeframe(timeframe.clone()).as_i64().unwrap_or_default()) * 1000);
+            let mut span: Value = Value::Int((timeframeMs * count));
             if (until != Value::Null) {
                 endTs = until.clone();
                 startTs = (match (&(until), &(span)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });

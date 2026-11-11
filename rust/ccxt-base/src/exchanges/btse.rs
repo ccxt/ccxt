@@ -1819,20 +1819,20 @@ impl Btse {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_483: bool = true;
                     while { if !__for_first_483 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_483 = false; j.as_f64().unwrap_or(f64::NAN) < ((levels.len() as i64) as f64) } {
-                    let mut level: Value = levels.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
-                    let mut maxNotional: Option<f64> = self.safe_number_k(level.clone(), "value", &[]).as_f64();
+                    let mut level: crate::value::Dict = levels.get(j.as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null).into_dict();
+                    let mut maxNotional: Option<f64> = self.safe_number_k(&level, "value", &[]).as_f64();
                     // the endpoint only reports the notional ladder, the
                     // per-tier leverage and margin rates are not available
                     if let Value::Arr(__a) = &mut tiers { std::sync::Arc::make_mut(__a).push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("tier".to_string(), self.safe_integer_k(level.clone(), "level", &[]));
+                            m.insert("tier".to_string(), self.safe_integer_k(&level, "level", &[]));
                             m.insert("symbol".to_string(), symbol.clone());
                             m.insert("currency".to_string(), market.as_map().and_then(|__m| __m.get("settle")).cloned().unwrap_or(Value::Null));
                             m.insert("minNotional".to_string(), (if (j.as_f64() == Some(0.0)) { Value::Int(0) } else { minNotional.clone() }));
                             m.insert("maxNotional".to_string(), Value::from(maxNotional));
                             m.insert("maintenanceMarginRate".to_string(), Value::Null);
                             m.insert("maxLeverage".to_string(), Value::Null);
-                            m.insert("info".to_string(), level);
+                            m.insert("info".to_string(), Value::from(&level));
                         m
                     })); }
                     minNotional = Value::from(maxNotional);

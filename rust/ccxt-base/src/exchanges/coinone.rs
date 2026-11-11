@@ -1899,11 +1899,11 @@ impl Coinone {
         //         }
         //     }
         //
-        let mut walletAddress: Value = self.safe_dict_k(&response, "walletAddress", &[Value::Map({
+        let mut walletAddress: crate::value::Dict = self.safe_dict_k(&response, "walletAddress", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut keys: Vec<Value> = Value::Array(walletAddress.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        })]).into_dict();
+        let mut keys: Vec<Value> = Value::Array(walletAddress.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1913,7 +1913,7 @@ impl Coinone {
             let mut __for_first_572: bool = true;
             while { if !__for_first_572 { i += 1; } __for_first_572 = false; i < (keys.len() as i64) } {
             let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut value: Option<String> = self.safe_string(walletAddress.clone(), key.clone(), &[]).as_str().map(str::to_owned);
+            let mut value: Option<String> = self.safe_string(&walletAddress, key.clone(), &[]).as_str().map(str::to_owned);
             if (value.is_none()) || (value.is_none()) || (value.as_deref() == Some("")) || (value.as_deref() == Some("-1")) {
                 continue;
             }

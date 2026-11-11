@@ -1397,13 +1397,13 @@ impl Coinbase {
                         let mut i: i64 = 0;
             let mut __for_first_532: bool = true;
             while { if !__for_first_532 { i += 1; } __for_first_532 = false; i < (portfolios.len() as i64) } {
-            let mut portfolio: Value = portfolios.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut portfolio: crate::value::Dict = portfolios.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), self.safe_string_k(portfolio.clone(), "uuid", &[]));
-                    m.insert("type".to_string(), self.safe_string_k(portfolio.clone(), "type", &[]));
+                    m.insert("id".to_string(), self.safe_string_k(&portfolio, "uuid", &[]));
+                    m.insert("type".to_string(), self.safe_string_k(&portfolio, "type", &[]));
                     m.insert("code".to_string(), Value::Null);
-                    m.insert("info".to_string(), portfolio);
+                    m.insert("info".to_string(), Value::from(&portfolio));
                 m
             }));
         }
@@ -2278,8 +2278,8 @@ impl Coinbase {
                                         let mut j: i64 = 0;
                     let mut __for_first_534: bool = true;
                     while { if !__for_first_534 { j += 1; } __for_first_534 = false; j < (data.len() as i64) } {
-                    let mut quoteCurrency: Value = data.get(j as usize).cloned().unwrap_or(Value::Null);
-                    let mut quoteId: Option<String> = self.safe_string_k(quoteCurrency.clone(), "id", &[]).as_str().map(str::to_owned);
+                    let mut quoteCurrency: crate::value::Dict = data.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+                    let mut quoteId: Option<String> = self.safe_string_k(&quoteCurrency, "id", &[]).as_str().map(str::to_owned);
                     let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                     if (quote.is_none()) || (quoteId.is_none()) {
                         continue;
@@ -2337,13 +2337,13 @@ impl Coinbase {
 }));
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(quoteCurrency.clone(), "min_size", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&quoteCurrency, "min_size", &[]));
         m.insert("max".to_string(), Value::Null);
     m
 }));
     m
 }));
-        m.insert("info".to_string(), quoteCurrency);
+        m.insert("info".to_string(), Value::from(&quoteCurrency));
     m
 })]));
                 }
@@ -3350,11 +3350,11 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_543: bool = true;
             while { if !__for_first_543 { i += 1; } __for_first_543 = false; i < (data.len() as i64) } {
-            let mut entry: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut marketId: Option<String> = self.safe_string_k(entry.clone(), "product_id", &[]).as_str().map(str::to_owned);
+            let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut marketId: Option<String> = self.safe_string_k(&entry, "product_id", &[]).as_str().map(str::to_owned);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("-".into())]);
             let mut symbol: String = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            result.insert(symbol, self.parse_ticker(entry, &[market]));
+            result.insert(symbol, self.parse_ticker(Value::Dict(entry), &[market]));
         }
         }
         return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
@@ -7288,7 +7288,7 @@ if _try_result.is_err() {
                 authorizationString = Some(format!("{}{}", Value::Str("Bearer ".into()), self.token.clone()));
             }  else {
                 self.check_required_credentials(&[]);
-                let mut seconds: Option<i64> = self.seconds().as_i64();
+                let mut seconds: i64 = self.seconds().as_i64().unwrap_or_default();
                 let mut payload: Option<String> = Some("".to_string());
                 if (method.as_str() != Some("GET")) {
                     if queryLength > ((0i64) as f64) {

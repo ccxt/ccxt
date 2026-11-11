@@ -1112,26 +1112,26 @@ impl Coinsph {
                         let mut j: i64 = 0;
             let mut __for_first_573: bool = true;
             while { if !__for_first_573 { j += 1; } __for_first_573 = false; j < (networkList.len() as i64) } {
-            let mut networkItem: Value = networkList.get(j as usize).cloned().unwrap_or(Value::Null);
-            let mut network: Option<String> = self.safe_string_k(networkItem.clone(), "network", &[]).as_str().map(str::to_owned);
+            let mut networkItem: crate::value::Dict = networkList.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut network: Option<String> = self.safe_string_k(&networkItem, "network", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[network.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), networkItem.clone());
+        m.insert("info".to_string(), Value::from(&networkItem));
         m.insert("id".to_string(), network.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), networkCode.clone());
         m.insert("active".to_string(), Value::Null);
-        m.insert("deposit".to_string(), self.safe_bool_k(networkItem.clone(), "depositEnable", &[]));
-        m.insert("withdraw".to_string(), self.safe_bool_k(networkItem.clone(), "withdrawEnable", &[]));
-        m.insert("fee".to_string(), self.safe_number_k(networkItem.clone(), "withdrawFee", &[]));
-        m.insert("precision".to_string(), self.safe_number_k(networkItem.clone(), "withdrawIntegerMultiple", &[]));
+        m.insert("deposit".to_string(), self.safe_bool_k(&networkItem, "depositEnable", &[]));
+        m.insert("withdraw".to_string(), self.safe_bool_k(&networkItem, "withdrawEnable", &[]));
+        m.insert("fee".to_string(), self.safe_number_k(&networkItem, "withdrawFee", &[]));
+        m.insert("precision".to_string(), self.safe_number_k(&networkItem, "withdrawIntegerMultiple", &[]));
         m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(networkItem.clone(), "withdrawMin", &[]));
-        m.insert("max".to_string(), self.safe_number_k(networkItem, "withdrawMax", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&networkItem, "withdrawMin", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&networkItem, "withdrawMax", &[]));
     m
 }));
         m.insert("deposit".to_string(), Value::Map({
@@ -1359,16 +1359,16 @@ impl Coinsph {
                         let mut i: i64 = 0;
             let mut __for_first_576: bool = true;
             while { if !__for_first_576 { i += 1; } __for_first_576 = false; i < (markets.len() as i64) } {
-            let mut market: Value = markets.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut id: Option<String> = self.safe_string_k(market.clone(), "symbol", &[]).as_str().map(str::to_owned);
-            let mut baseId: Option<String> = self.safe_string_k(market.clone(), "baseAsset", &[]).as_str().map(str::to_owned);
-            let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "quoteAsset", &[]).as_str().map(str::to_owned);
+            let mut market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut id: Option<String> = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
+            let mut baseId: Option<String> = self.safe_string_k(&market, "baseAsset", &[]).as_str().map(str::to_owned);
+            let mut quoteId: Option<String> = self.safe_string_k(&market, "quoteAsset", &[]).as_str().map(str::to_owned);
             let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             if (base.is_none()) || (quote.is_none()) {
                 continue;
             }
-            let mut limits: crate::value::Dict = self.index_by(self.safe_list_k(market.clone(), "filters", &[Value::from(vec![])]), Value::Str("filterType".into())).into_dict();
+            let mut limits: crate::value::Dict = self.index_by(self.safe_list_k(&market, "filters", &[Value::from(vec![])]), Value::Str("filterType".into())).into_dict();
             let mut amountLimits: crate::value::Dict = self.safe_dict_k(&limits, "LOT_SIZE", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1397,7 +1397,7 @@ impl Coinsph {
                     m.insert("swap".to_string(), Value::Bool(false));
                     m.insert("future".to_string(), Value::Bool(false));
                     m.insert("option".to_string(), Value::Bool(false));
-                    m.insert("active".to_string(), Value::Bool(self.safe_string_lower_k(market.clone(), "status", &[]).as_str() == Some("trading")));
+                    m.insert("active".to_string(), Value::Bool(self.safe_string_lower_k(&market, "status", &[]).as_str() == Some("trading")));
                     m.insert("contract".to_string(), Value::Bool(false));
                     m.insert("linear".to_string(), Value::Null);
                     m.insert("inverse".to_string(), Value::Null);
@@ -1443,7 +1443,7 @@ impl Coinsph {
     m
 }));
                     m.insert("created".to_string(), Value::Null);
-                    m.insert("info".to_string(), market);
+                    m.insert("info".to_string(), Value::from(&market));
                 m
             })); }
         }
@@ -1760,18 +1760,15 @@ impl Coinsph {
             if (until != Value::Null) {
                 request.insert("endTime".into(), until.clone());
             }  else {
-                let mut endTimeByLimit: Value = self.sum(&[since.clone(), (match (&((match (&(self.parse_timeframe(timeframe.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
-                    (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &((Value::Int((limitResolved - 1))))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                    Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
+                let mut endTimeByLimit: Value = self.sum(&[since.clone(), Value::Int(((((self.parse_timeframe(timeframe.clone()).as_i64().unwrap_or_default()) * 1000)) * ((limitResolved - 1))))]);
                 let mut now: Value = self.milliseconds();
                 request.insert("endTime".into(), crate::runtime::Math::min(&endTimeByLimit, &now));
             }
         }  else if (until != Value::Null) {
             request.insert("endTime".into(), until.clone());
             // since work properly only when it is "younger" than last "limit" candle
-            request.insert("startTime".into(), (match (&(until), &(((match (&((match (&(self.parse_timeframe(timeframe.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x * y), _ => Value::Null })), &((Value::Int((limitResolved - 1))))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x * y), _ => Value::Null })))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
+            request.insert("startTime".into(), (match (&(until), &((Value::Int(((((self.parse_timeframe(timeframe.clone()).as_i64().unwrap_or_default()) * 1000)) * ((limitResolved - 1))))))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x),
+                Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }));
         }
         request.insert("limit".into(), Value::from(limitResolved));
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();

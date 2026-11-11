@@ -1123,16 +1123,16 @@ impl Coinbaseexchange {
                         let mut j: i64 = 0;
             let mut __for_first_550: bool = true;
             while { if !__for_first_550 { j += 1; } __for_first_550 = false; j < (supportedNetworks.len() as i64) } {
-            let mut network: Value = supportedNetworks.get(j as usize).cloned().unwrap_or(Value::Null);
-            let mut networkId: Option<String> = self.safe_string_k(network.clone(), "id", &[]).as_str().map(str::to_owned);
+            let mut network: crate::value::Dict = supportedNetworks.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut networkId: Option<String> = self.safe_string_k(&network, "id", &[]).as_str().map(str::to_owned);
             let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             if (networkCode != Value::Null) {
                 networks.insert(crate::runtime::stringify_param(&networkCode), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("name".to_string(), self.safe_string_k(network.clone(), "name", &[]));
+        m.insert("name".to_string(), self.safe_string_k(&network, "name", &[]));
         m.insert("network".to_string(), networkCode.clone());
-        m.insert("active".to_string(), Value::Bool(self.safe_string_k(network.clone(), "status", &[]).as_str() == Some("online")));
+        m.insert("active".to_string(), Value::Bool(self.safe_string_k(&network, "status", &[]).as_str() == Some("online")));
         m.insert("withdraw".to_string(), Value::Null);
         m.insert("deposit".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
@@ -1141,14 +1141,14 @@ impl Coinbaseexchange {
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(network.clone(), "min_withdrawal_amount", &[]));
-        m.insert("max".to_string(), self.safe_number_k(network.clone(), "max_withdrawal_amount", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&network, "min_withdrawal_amount", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&network, "max_withdrawal_amount", &[]));
     m
 }));
     m
 }));
-        m.insert("contract".to_string(), self.safe_string_k(network.clone(), "contract_address", &[]));
-        m.insert("info".to_string(), network);
+        m.insert("contract".to_string(), self.safe_string_k(&network, "contract_address", &[]));
+        m.insert("info".to_string(), Value::from(&network));
     m
 }));
             }

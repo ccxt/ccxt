@@ -745,10 +745,10 @@ impl Indodax {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut free: Value = self.safe_dict_k(&balances, "balance", &[Value::Map({
+        let mut free: crate::value::Dict = self.safe_dict_k(&balances, "balance", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut used: crate::value::Dict = self.safe_dict_k(&balances, "balance_hold", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -761,7 +761,7 @@ impl Indodax {
                 m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
             m
         });
-        let mut currencyIds: Vec<Value> = Value::Array(free.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut currencyIds: Vec<Value> = Value::Array(free.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_839: bool = true;
@@ -769,7 +769,7 @@ impl Indodax {
             let mut currencyId: Value = currencyIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut code: Option<String> = self.safe_currency_code(currencyId.clone(), &[]).as_str().map(str::to_owned);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("free".into(), self.safe_string(free.clone(), currencyId.clone(), &[]));
+            account.insert("free".into(), self.safe_string(&free, currencyId.clone(), &[]));
             account.insert("used".into(), self.safe_string(&used, currencyId, &[]));
             if (code.is_some()) {
                 result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
@@ -2066,15 +2066,15 @@ impl Indodax {
         //    }
         //
         let mut data: crate::value::Dict = self.safe_dict_k(&response, "return", &[]).into_dict();
-        let mut addresses: Value = self.safe_dict_k(&data, "address", &[Value::Map({
+        let mut addresses: crate::value::Dict = self.safe_dict_k(&data, "address", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
+        })]).into_dict();
         let mut networks: Value = self.safe_dict_k(&data, "network", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut addressKeys: Vec<Value> = Value::Array(addresses.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut addressKeys: Vec<Value> = Value::Array(addresses.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -2082,7 +2082,7 @@ impl Indodax {
             while { if !__for_first_845 { i += 1; } __for_first_845 = false; i < (addressKeys.len() as i64) } {
             let mut marketId: Value = addressKeys.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut code: Option<String> = self.safe_currency_code(marketId.clone(), &[]).as_str().map(str::to_owned);
-            let mut address: Option<String> = self.safe_string(addresses.clone(), marketId.clone(), &[]).as_str().map(str::to_owned);
+            let mut address: Option<String> = self.safe_string(&addresses, marketId.clone(), &[]).as_str().map(str::to_owned);
             if (address.is_some()) && ((codes == Value::Null) || self.in_array(code.clone().map(Value::from).unwrap_or(Value::Null), codes.clone()).as_bool() == Some(true)) {
                 self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
                 let mut network: Value = Value::Null;

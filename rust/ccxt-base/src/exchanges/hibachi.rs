@@ -1552,11 +1552,11 @@ impl Hibachi {
                         let mut i: i64 = 0;
             let mut __for_first_736: bool = true;
             while { if !__for_first_736 { i += 1; } __for_first_736 = false; i < (responseOrders.len() as i64) } {
-            let mut responseOrder: Value = responseOrders.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut responseOrder: crate::value::Dict = responseOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             ret.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), responseOrder.clone());
-        m.insert("id".to_string(), self.safe_string_k(responseOrder, "orderId", &[]));
+        m.insert("info".to_string(), Value::from(&responseOrder));
+        m.insert("id".to_string(), self.safe_string_k(&responseOrder, "orderId", &[]));
         m.insert("status".to_string(), Value::Str("pending".into()));
     m
 }), &[]));
@@ -1714,11 +1714,11 @@ impl Hibachi {
                         let mut i: i64 = 0;
             let mut __for_first_738: bool = true;
             while { if !__for_first_738 { i += 1; } __for_first_738 = false; i < (responseOrders.len() as i64) } {
-            let mut responseOrder: Value = responseOrders.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut responseOrder: crate::value::Dict = responseOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             ret.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), responseOrder.clone());
-        m.insert("id".to_string(), self.safe_string_k(responseOrder, "orderId", &[]));
+        m.insert("info".to_string(), Value::from(&responseOrder));
+        m.insert("id".to_string(), self.safe_string_k(&responseOrder, "orderId", &[]));
         m.insert("status".to_string(), Value::Str("pending".into()));
     m
 }), &[]));
@@ -1831,11 +1831,11 @@ impl Hibachi {
                         let mut i: i64 = 0;
             let mut __for_first_740: bool = true;
             while { if !__for_first_740 { i += 1; } __for_first_740 = false; i < (responseOrders.len() as i64) } {
-            let mut responseOrder: Value = responseOrders.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut responseOrder: crate::value::Dict = responseOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             ret.push(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), responseOrder.clone());
-        m.insert("id".to_string(), self.safe_string_k(responseOrder, "orderId", &[]));
+        m.insert("info".to_string(), Value::from(&responseOrder));
+        m.insert("id".to_string(), self.safe_string_k(&responseOrder, "orderId", &[]));
         m.insert("status".to_string(), Value::Str("canceled".into()));
     m
 }), &[]));
@@ -3366,13 +3366,13 @@ impl Hibachi {
                         let mut i: i64 = 0;
             let mut __for_first_742: bool = true;
             while { if !__for_first_742 { i += 1; } __for_first_742 = false; i < (data.len() as i64) } {
-            let mut entry: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut timestamp: Value = self.safe_integer_product_k(entry.clone(), "fundingTimestamp", Value::Int(1000), &[]);
+            let mut entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut timestamp: Value = self.safe_integer_product_k(&entry, "fundingTimestamp", Value::Int(1000), &[]);
             rates.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("info".to_string(), entry.clone());
+                    m.insert("info".to_string(), Value::from(&entry));
                     m.insert("symbol".to_string(), symbol.clone());
-                    m.insert("fundingRate".to_string(), self.safe_number_k(entry, "fundingRate", &[]));
+                    m.insert("fundingRate".to_string(), self.safe_number_k(&entry, "fundingRate", &[]));
                     m.insert("timestamp".to_string(), timestamp.clone());
                     m.insert("datetime".to_string(), self.iso8601(timestamp));
                 m

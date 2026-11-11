@@ -971,16 +971,16 @@ impl Bitbank {
                         let mut i: i64 = 0;
             let mut __for_first_336: bool = true;
             while { if !__for_first_336 { i += 1; } __for_first_336 = false; i < (pairs.len() as i64) } {
-            let mut pair: Value = pairs.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut marketId: Option<String> = self.safe_string_k(pair.clone(), "name", &[]).as_str().map(str::to_owned);
+            let mut pair: crate::value::Dict = pairs.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut marketId: Option<String> = self.safe_string_k(&pair, "name", &[]).as_str().map(str::to_owned);
             let mut market: crate::value::Dict = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]).into_dict();
             let mut symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
             result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), pair.clone());
+        m.insert("info".to_string(), Value::from(&pair));
         m.insert("symbol".to_string(), symbol.clone());
-        m.insert("maker".to_string(), self.safe_number_k(pair.clone(), "maker_fee_rate_quote", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(pair, "taker_fee_rate_quote", &[]));
+        m.insert("maker".to_string(), self.safe_number_k(&pair, "maker_fee_rate_quote", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(&pair, "taker_fee_rate_quote", &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(false));
     m

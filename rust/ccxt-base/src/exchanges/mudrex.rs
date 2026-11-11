@@ -799,8 +799,8 @@ impl Mudrex {
                         let mut i: i64 = 0;
             let mut __for_first_969: bool = true;
             while { if !__for_first_969 { i += 1; } __for_first_969 = false; i < (rows.len() as i64) } {
-            let mut t: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut sym: Option<String> = self.safe_string_k(t.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            let mut t: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut sym: Option<String> = self.safe_string_k(&t, "symbol", &[]).as_str().map(str::to_owned);
             if (sym.is_none()) {
                 continue;
             }
@@ -809,7 +809,7 @@ impl Mudrex {
             if (symbols != Value::Null) && !(self.in_array(symbol.clone(), symbols.clone()).as_bool() == Some(true)) {
                 continue;
             }
-            resultTickers.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(t, &[m]));
+            resultTickers.insert(crate::runtime::stringify_param(&symbol), self.parse_ticker(Value::Dict(t), &[m]));
         }
         }
         return self.filter_by_array_tickers(Value::Map(resultTickers), Value::Str("symbol".into()), &[symbols]);
@@ -1898,8 +1898,8 @@ impl Mudrex {
             }
             let mut numCandidates: f64 = ((candidates.len() as i64) as f64);
             if numCandidates > ((0i64) as f64) {
-                let mut found: Value = candidates.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-                positionId = self.safe_string_k(found, "id", &[]).as_str().map(str::to_owned);
+                let mut found: crate::value::Dict = candidates.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).into_dict();
+                positionId = self.safe_string_k(&found, "id", &[]).as_str().map(str::to_owned);
             }
         }
         if (positionId.is_none()) {
@@ -1965,8 +1965,8 @@ impl Mudrex {
             let mut matches: Value = self.filter_by(crate::types::IntoRaw::into_raw(positions), Value::Str("symbol".into()), symbol.clone(), &[]);
             let mut numMatches: f64 = ((matches.len() as i64) as f64);
             if numMatches > ((0i64) as f64) {
-                let mut found: Value = matches.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
-                positionId = self.safe_string_k(found, "id", &[]).as_str().map(str::to_owned);
+                let mut found: crate::value::Dict = matches.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).into_dict();
+                positionId = self.safe_string_k(&found, "id", &[]).as_str().map(str::to_owned);
             }
         }
         if (positionId.is_none()) {

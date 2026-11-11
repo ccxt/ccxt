@@ -905,8 +905,8 @@ impl Bitso {
                         let mut i: i64 = 0;
             let mut __for_first_420: bool = true;
             while { if !__for_first_420 { i += 1; } __for_first_420 = false; i < (markets.len() as i64) } {
-            let mut market: Value = markets.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "book", &[]);
+            let mut market: crate::value::Dict = markets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut id: Option<String> = self.safe_string_k_opt(&market, "book", &[]);
             let mut parts: Value = Value::Array(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() });
             let mut baseId: String = self.safe_string(parts.clone(), Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut quoteId: String = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -915,10 +915,10 @@ impl Bitso {
             if (base.is_none()) || (quote.is_none()) {
                 continue;
             }
-            let mut fees: crate::value::Dict = self.safe_dict_k(market.clone(), "fees", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut fees: crate::value::Dict = self.safe_dict_k(&market, "fees", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
             let mut flatRate: crate::value::Dict = self.safe_dict_k(&fees, "flat_rate", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -992,7 +992,7 @@ impl Bitso {
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), self.safe_number_k(&baseCurrency, "precision", &[]));
-        m.insert("price".to_string(), self.safe_number_k(market.clone(), "tick_size", &[]));
+        m.insert("price".to_string(), self.safe_number_k(&market, "tick_size", &[]));
     m
 }));
         m.insert("limits".to_string(), Value::Map({
@@ -1005,26 +1005,26 @@ impl Bitso {
 }));
         m.insert("amount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(market.clone(), "minimum_amount", &[]));
-        m.insert("max".to_string(), self.safe_number_k(market.clone(), "maximum_amount", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&market, "minimum_amount", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&market, "maximum_amount", &[]));
     m
 }));
         m.insert("price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(market.clone(), "minimum_price", &[]));
-        m.insert("max".to_string(), self.safe_number_k(market.clone(), "maximum_price", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&market, "minimum_price", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&market, "maximum_price", &[]));
     m
 }));
         m.insert("cost".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), self.safe_number_k(market.clone(), "minimum_value", &[]));
-        m.insert("max".to_string(), self.safe_number_k(market.clone(), "maximum_value", &[]));
+        m.insert("min".to_string(), self.safe_number_k(&market, "minimum_value", &[]));
+        m.insert("max".to_string(), self.safe_number_k(&market, "maximum_value", &[]));
     m
 }));
     m
 }));
         m.insert("created".to_string(), Value::Null);
-        m.insert("info".to_string(), market);
+        m.insert("info".to_string(), Value::from(&market));
     m
 }), &[Value::Map(fee)]);
             result.push(self.safe_market_structure(&[__ws_arg_1]));
@@ -1634,15 +1634,15 @@ impl Bitso {
                         let mut i: i64 = 0;
             let mut __for_first_422: bool = true;
             while { if !__for_first_422 { i += 1; } __for_first_422 = false; i < (fees.len() as i64) } {
-            let mut fee: Value = fees.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut marketId: Option<String> = self.safe_string_k(fee.clone(), "book", &[]).as_str().map(str::to_owned);
+            let mut fee: crate::value::Dict = fees.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut marketId: Option<String> = self.safe_string_k(&fee, "book", &[]).as_str().map(str::to_owned);
             let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[Value::Null, Value::Str("_".into())]);
             result.insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), fee.clone());
+        m.insert("info".to_string(), Value::from(&fee));
         m.insert("symbol".to_string(), symbol.clone());
-        m.insert("maker".to_string(), self.safe_number_k(fee.clone(), "maker_fee_decimal", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(fee, "taker_fee_decimal", &[]));
+        m.insert("maker".to_string(), self.safe_number_k(&fee, "maker_fee_decimal", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(&fee, "taker_fee_decimal", &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
@@ -2387,8 +2387,8 @@ impl Bitso {
                         let mut i: i64 = 0;
             let mut __for_first_425: bool = true;
             while { if !__for_first_425 { i += 1; } __for_first_425 = false; i < (depositFees.len() as i64) } {
-            let mut depositFee: Value = depositFees.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut currencyId: Option<String> = self.safe_string_k(depositFee.clone(), "currency", &[]).as_str().map(str::to_owned);
+            let mut depositFee: crate::value::Dict = depositFees.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut currencyId: Option<String> = self.safe_string_k(&depositFee, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             if (codes != Value::Null) && !(self.in_array(code.clone(), codes.clone()).as_bool() == Some(true)) {
                 continue;
@@ -2396,11 +2396,11 @@ impl Bitso {
             if (code != Value::Null) {
                 result.insert(crate::runtime::stringify_param(&code), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("deposit".to_string(), self.safe_number_k(depositFee.clone(), "fee", &[]));
+        m.insert("deposit".to_string(), self.safe_number_k(&depositFee, "fee", &[]));
         m.insert("withdraw".to_string(), Value::Null);
         m.insert("info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("deposit".to_string(), depositFee);
+        m.insert("deposit".to_string(), Value::from(&depositFee));
         m.insert("withdraw".to_string(), Value::Null);
     m
 }));
@@ -2573,8 +2573,8 @@ impl Bitso {
                         let mut i: i64 = 0;
             let mut __for_first_427: bool = true;
             while { if !__for_first_427 { i += 1; } __for_first_427 = false; i < (depositResponse.len() as i64) } {
-            let mut entry: Value = depositResponse.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut currencyId: Option<String> = self.safe_string_k(entry.clone(), "currency", &[]).as_str().map(str::to_owned);
+            let mut entry: crate::value::Dict = depositResponse.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut currencyId: Option<String> = self.safe_string_k(&entry, "currency", &[]).as_str().map(str::to_owned);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
             if (codes == Value::Null) || ((code != Value::Null) && self.in_array(code.clone(), codes.clone()).as_bool() == Some(true)) {
                 if (code != Value::Null) {
@@ -2582,8 +2582,8 @@ impl Bitso {
     let mut m = indexmap::IndexMap::new();
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("fee".to_string(), self.safe_number_k(entry.clone(), "fee", &[]));
-        m.insert("percentage".to_string(), Value::Bool((!(self.safe_bool_k(entry.clone(), "is_fixed", &[Value::Bool(false)]).as_bool() == Some(true)))));
+        m.insert("fee".to_string(), self.safe_number_k(&entry, "fee", &[]));
+        m.insert("percentage".to_string(), Value::Bool((!(self.safe_bool_k(&entry, "is_fixed", &[Value::Bool(false)]).as_bool() == Some(true)))));
     m
 }));
         m.insert("withdraw".to_string(), Value::Map({
@@ -2596,7 +2596,7 @@ impl Bitso {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        m.insert("info".to_string(), entry.clone());
+        m.insert("info".to_string(), Value::from(&entry));
     m
 }));
                 }

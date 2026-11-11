@@ -1444,14 +1444,14 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_403: bool = true;
             while { if !__for_first_403 { i += 1; } __for_first_403 = false; i < (fills.len() as i64) } {
-            let mut fill: Value = fills.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut liquidation: Value = self.safe_dict_k(fill.clone(), "liquidation", &[Value::Map({
+            let mut fill: crate::value::Dict = fills.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut liquidation: Value = self.safe_dict_k(&fill, "liquidation", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
             // liquidator fills carry the liquidated counterparty here
             if (self.safe_string_lower_k(liquidation.clone(), "liquidatedUser", &[]).as_str() == user.as_deref()) {
-                if let Value::Arr(__a) = &mut newLiquidations { std::sync::Arc::make_mut(__a).push(self.parse_liquidation(fill, &[])); }
+                if let Value::Arr(__a) = &mut newLiquidations { std::sync::Arc::make_mut(__a).push(self.parse_liquidation(Value::Dict(fill), &[])); }
             }
         }
         }

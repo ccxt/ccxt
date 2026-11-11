@@ -5189,12 +5189,12 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
                 // handleCreateOrdersErrors:
                 if (in_op(&response, &Value::Str("result".into()))) {
-                    let mut result: Value = self.safe_dict_k(response, "result", &[Value::Map({
+                    let mut result: crate::value::Dict = self.safe_dict_k(response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-                    if (matches!(&result, Value::Dict(__d) if __d.contains_key("orders"))) {
-                        let mut orders: crate::value::List = self.safe_list_k(result, "orders", &[Value::from(vec![])]).into_list();
+})]).into_dict();
+                    if (result.contains_key("orders")) {
+                        let mut orders: crate::value::List = self.safe_list_k(&result, "orders", &[Value::from(vec![])]).into_list();
                         {
                                                         let mut i: i64 = 0;
                             let mut __for_first_865: bool = true;

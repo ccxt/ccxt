@@ -790,10 +790,10 @@ impl Kalshi {
                                 let mut i: i64 = 0;
                 let mut __for_first_1261: bool = true;
                 while { if !__for_first_1261 { i += 1; } __for_first_1261 = false; i < (rawMarkets.len() as i64) } {
-                let mut raw: Value = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut parsed: Vec<Value> = self.parse_binary_market_to_outcomes(raw.clone()).as_array().cloned().unwrap_or_default();
-                let mut eventTicker: Option<String> = self.safe_string_k(raw.clone(), "event_ticker", &[]).as_str().map(str::to_owned);
-                let mut eventTitle: Value = self.safe_string_k(raw, "title", &[eventTicker.clone().map(Value::from).unwrap_or(Value::Null)]);
+                let mut raw: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let mut parsed: Vec<Value> = self.parse_binary_market_to_outcomes(Value::from(&raw)).as_array().cloned().unwrap_or_default();
+                let mut eventTicker: Option<String> = self.safe_string_k(&raw, "event_ticker", &[]).as_str().map(str::to_owned);
+                let mut eventTitle: Value = self.safe_string_k(&raw, "title", &[eventTicker.clone().map(Value::from).unwrap_or(Value::Null)]);
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_1260: bool = true;
@@ -1731,8 +1731,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                 let mut i: i64 = 0;
                 let mut __for_first_1269: bool = true;
                 while { if !__for_first_1269 { i += 1; } __for_first_1269 = false; i < (rawMarkets.len() as i64) } {
-                let mut raw: Value = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut marketTicker: Option<String> = self.safe_string_k_opt(raw.clone(), "ticker", &[]);
+                let mut raw: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let mut marketTicker: Option<String> = self.safe_string_k_opt(&raw, "ticker", &[]);
                 if (marketTicker.is_none()) || !(matches!((&outcomesByTicker, &marketTicker.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                     continue;
                 }
@@ -1741,7 +1741,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_1268: bool = true;
                     while { if !__for_first_1268 { if let Value::Int(n) = &mut j { *n += 1; } } __for_first_1268 = false; j.as_f64().unwrap_or(f64::NAN) < get_array_length(&grouped).as_f64().unwrap_or(f64::NAN) } {
-                    let mut ticker: Value = self.parse_prediction_ticker(raw.clone(), &[get_value(&grouped, &j)]);
+                    let mut ticker: Value = self.parse_prediction_ticker(Value::from(&raw), &[get_value(&grouped, &j)]);
                     let mut symbolKey: Option<String> = self.safe_string_k(ticker.clone(), "outcome", &[]).as_str().map(str::to_owned);
                     if (symbolKey.is_some()) {
                         result.insert(symbolKey.as_deref().unwrap_or("null").to_string(), ticker);
@@ -3235,8 +3235,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_1284: bool = true;
             while { if !__for_first_1284 { i += 1; } __for_first_1284 = false; (i as f64) < restingOrdersLength } {
-            let mut restingOrder: Value = restingOrders.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut orderId: Option<String> = self.safe_string_k(restingOrder.clone(), "order_id", &[]).as_str().map(str::to_owned);
+            let mut restingOrder: crate::value::Dict = restingOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut orderId: Option<String> = self.safe_string_k(&restingOrder, "order_id", &[]).as_str().map(str::to_owned);
             if (orderId.is_some()) {
                 let __ws_arg_14 = self.extend(Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -3246,7 +3246,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 self.kalshi_private_delete_portfolio_events_orders_order_id(&[__ws_arg_14]).await;
                 // the DELETE body is minimal — parse the already-fetched resting order instead, which
                 // carries the true side/outcome/price/count, then mark it canceled
-                let mut parsed: Value = self.parse_prediction_order(restingOrder, &[]);
+                let mut parsed: Value = self.parse_prediction_order(Value::Dict(restingOrder), &[]);
                 if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("status".to_string(), Value::Str("canceled".into())); }
                 canceledOrders.push(parsed);
             }
@@ -3789,25 +3789,25 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_1298: bool = true;
             while { if !__for_first_1298 { i += 1; } __for_first_1298 = false; i < (rawMarkets.len() as i64) } {
-            let mut rawMarket: Value = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut parsed: Value = self.parse_market(rawMarket.clone());
+            let mut rawMarket: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut parsed: Value = self.parse_market(Value::from(&rawMarket));
             marketsList.push(parsed);
-            totalVolume = self.sum(&[totalVolume.clone(), self.safe_number2(rawMarket.clone(), Value::Str("volume_fp".into()), Value::Str("volume".into()), &[Value::Int(0)])]);
-            totalLiquidity = self.sum(&[totalLiquidity.clone(), self.safe_number2(rawMarket.clone(), Value::Str("liquidity_dollars".into()), Value::Str("liquidity".into()), &[Value::Int(0)])]);
-            let mut marketCreated: Value = self.parse8601(self.safe_string_k(rawMarket.clone(), "open_time", &[]));
+            totalVolume = self.sum(&[totalVolume.clone(), self.safe_number2(Value::from(&rawMarket), Value::Str("volume_fp".into()), Value::Str("volume".into()), &[Value::Int(0)])]);
+            totalLiquidity = self.sum(&[totalLiquidity.clone(), self.safe_number2(Value::from(&rawMarket), Value::Str("liquidity_dollars".into()), Value::Str("liquidity".into()), &[Value::Int(0)])]);
+            let mut marketCreated: Value = self.parse8601(self.safe_string_k(&rawMarket, "open_time", &[]));
             if (marketCreated != Value::Null) && ((earliestCreated == Value::Null) || (marketCreated.as_f64().unwrap_or(f64::NAN) < earliestCreated.as_f64().unwrap_or(f64::NAN))) {
                 earliestCreated = marketCreated;
             }
-            let mut marketStatus: Option<String> = self.safe_string_k(rawMarket.clone(), "status", &[]).as_str().map(str::to_owned);
+            let mut marketStatus: Option<String> = self.safe_string_k(&rawMarket, "status", &[]).as_str().map(str::to_owned);
             if (marketStatus.as_deref() == Some("active")) {
                 anyActive = true;
             }
-            let mut marketResult: Option<String> = self.safe_string_k(rawMarket.clone(), "result", &[]).as_str().map(str::to_owned);
+            let mut marketResult: Option<String> = self.safe_string_k(&rawMarket, "result", &[]).as_str().map(str::to_owned);
             let mut marketResolved: bool = (marketStatus.as_deref() == Some("settled")) || ((marketResult.is_some()) && (marketResult.as_deref() != Some("")));
             if !marketResolved {
                 allResolved = false;
             }
-            let mut marketClose: Value = self.parse8601(self.safe_string_k(rawMarket, "close_time", &[]));
+            let mut marketClose: Value = self.parse8601(self.safe_string_k(&rawMarket, "close_time", &[]));
             if (marketClose != Value::Null) && ((latestClose == Value::Null) || (marketClose.as_f64().unwrap_or(f64::NAN) > latestClose.as_f64().unwrap_or(f64::NAN))) {
                 latestClose = marketClose;
             }

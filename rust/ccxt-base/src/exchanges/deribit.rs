@@ -1877,20 +1877,20 @@ impl Deribit {
                                 let mut k: i64 = 0;
                 let mut __for_first_620: bool = true;
                 while { if !__for_first_620 { k += 1; } __for_first_620 = false; k < (instrumentsResult.len() as i64) } {
-                let mut market: Value = instrumentsResult.get(k as usize).cloned().unwrap_or(Value::Null);
-                let mut kind: Option<String> = self.safe_string_k(market.clone(), "kind", &[]).as_str().map(str::to_owned);
+                let mut market: crate::value::Dict = instrumentsResult.get(k as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let mut kind: Option<String> = self.safe_string_k(&market, "kind", &[]).as_str().map(str::to_owned);
                 let mut isSpot: Value = (Value::Bool(kind.as_deref() == Some("spot")));
-                let mut id: Option<String> = self.safe_string_k(market.clone(), "instrument_name", &[]).as_str().map(str::to_owned);
-                let mut baseId: Option<String> = self.safe_string_k(market.clone(), "base_currency", &[]).as_str().map(str::to_owned);
-                let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "counter_currency", &[]).as_str().map(str::to_owned);
-                let mut settleId: Option<String> = self.safe_string_k(market.clone(), "settlement_currency", &[]).as_str().map(str::to_owned);
+                let mut id: Option<String> = self.safe_string_k(&market, "instrument_name", &[]).as_str().map(str::to_owned);
+                let mut baseId: Option<String> = self.safe_string_k(&market, "base_currency", &[]).as_str().map(str::to_owned);
+                let mut quoteId: Option<String> = self.safe_string_k(&market, "counter_currency", &[]).as_str().map(str::to_owned);
+                let mut settleId: Option<String> = self.safe_string_k(&market, "settlement_currency", &[]).as_str().map(str::to_owned);
                 let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                 let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
                 if (base.is_none()) || (quote.is_none()) {
                     continue;
                 }
                 let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
-                let mut settlementPeriod: Option<String> = self.safe_string_k(market.clone(), "settlement_period", &[]).as_str().map(str::to_owned);
+                let mut settlementPeriod: Option<String> = self.safe_string_k(&market, "settlement_period", &[]).as_str().map(str::to_owned);
                 let mut swap: Value = (Value::Bool(settlementPeriod.as_deref() == Some("perpetual")));
                 if (kind.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing kind".into()))));
@@ -1904,7 +1904,7 @@ impl Deribit {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" method() missing kind".into()))));
                 }
                 let mut isComboMarket: bool = kind.as_deref().unwrap_or_default().contains("combo");
-                let mut expiry: Option<i64> = self.safe_integer_k(market.clone(), "expiration_timestamp", &[]).as_i64();
+                let mut expiry: Option<i64> = self.safe_integer_k(&market, "expiration_timestamp", &[]).as_i64();
                 let mut strike: Value = Value::Null;
                 let mut optionType: Option<String> = None;
                 let mut symbol: Value = id.clone().map(Value::from).unwrap_or(Value::Null);
@@ -1925,8 +1925,8 @@ impl Deribit {
                     if option || matches!(&future, Value::Bool(true)) {
                         symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), self.yymmdd(Value::from(expiry), &[Value::Str("".into())])).into());
                         if option {
-                            strike = self.safe_number_k(market.clone(), "strike", &[]);
-                            optionType = self.safe_string_k(market.clone(), "option_type", &[]).as_str().map(str::to_owned);
+                            strike = self.safe_number_k(&market, "strike", &[]);
+                            optionType = self.safe_string_k(&market, "option_type", &[]).as_str().map(str::to_owned);
                             let mut letter: String = (if (optionType.as_deref() == Some("call")) { "C".to_string() } else { "P".to_string() });
                             symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str("-".into())).into()), self.number_to_string(strike.clone())).into()), Value::Str("-".into())).into()), letter).into());
                         }
@@ -1941,8 +1941,8 @@ impl Deribit {
                 if (symbol != Value::Null) {
                     if let Value::Dict(__d) = &mut parsedMarkets { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Bool(true)); }
                 }
-                let mut minTradeAmount: Option<f64> = self.safe_number_k(market.clone(), "min_trade_amount", &[]).as_f64();
-                let mut tickSize: Option<f64> = self.safe_number_k(market.clone(), "tick_size", &[]).as_f64();
+                let mut minTradeAmount: Option<f64> = self.safe_number_k(&market, "min_trade_amount", &[]).as_f64();
+                let mut tickSize: Option<f64> = self.safe_number_k(&market, "tick_size", &[]).as_f64();
                 result.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -1959,13 +1959,13 @@ impl Deribit {
                         m.insert("swap".to_string(), swap);
                         m.insert("future".to_string(), future);
                         m.insert("option".to_string(), Value::Bool(option));
-                        m.insert("active".to_string(), self.safe_bool_k(market.clone(), "is_active", &[]));
+                        m.insert("active".to_string(), self.safe_bool_k(&market, "is_active", &[]));
                         m.insert("contract".to_string(), Value::Bool(!(matches!(&isSpot, Value::Bool(true)))));
                         m.insert("linear".to_string(), linear.map(Value::from).unwrap_or(Value::Null));
                         m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
-                        m.insert("taker".to_string(), self.safe_number_k(market.clone(), "taker_commission", &[]));
-                        m.insert("maker".to_string(), self.safe_number_k(market.clone(), "maker_commission", &[]));
-                        m.insert("contractSize".to_string(), self.safe_number_k(market.clone(), "contract_size", &[]));
+                        m.insert("taker".to_string(), self.safe_number_k(&market, "taker_commission", &[]));
+                        m.insert("maker".to_string(), self.safe_number_k(&market, "maker_commission", &[]));
+                        m.insert("contractSize".to_string(), self.safe_number_k(&market, "contract_size", &[]));
                         m.insert("expiry".to_string(), Value::from(expiry));
                         m.insert("expiryDatetime".to_string(), self.iso8601(Value::from(expiry)));
                         m.insert("strike".to_string(), strike);
@@ -2004,8 +2004,8 @@ impl Deribit {
 }));
     m
 }));
-                        m.insert("created".to_string(), self.safe_integer_k(market.clone(), "creation_timestamp", &[]));
-                        m.insert("info".to_string(), market);
+                        m.insert("created".to_string(), self.safe_integer_k(&market, "creation_timestamp", &[]));
+                        m.insert("info".to_string(), Value::from(&market));
                     m
                 }));
             }

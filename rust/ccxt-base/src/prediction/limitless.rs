@@ -4190,11 +4190,11 @@ if _try_result.is_err() {
         let mut pageSize: Value = self.safe_integer_k(self.options.clone(), "marketsPageSize", &[Value::Int(25)]);
         let mut rest: crate::value::Dict = self.omit(params, Value::from(vec![Value::Str("query".into()), Value::Str("queries".into()), Value::Str("limit".into()), Value::Str("sort".into()), Value::Str("searchIn".into()), Value::Str("eventId".into()), Value::Str("slug".into()), Value::Str("status".into()), Value::Str("tags".into())]), &[]).into_dict();
         let mut allRaw: Vec<Value> = Vec::new();
-        let mut page: Value = Value::Int(1);
+        let mut page: i64 = 1;
         loop {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("page".to_string(), page.clone());
+                    m.insert("page".to_string(), Value::from(page));
                     m.insert("limit".to_string(), pageSize.clone());
                 m
             });
@@ -4222,7 +4222,7 @@ if _try_result.is_err() {
                 }
             }
             }
-            page = self.sum(&[page.clone(), Value::Int(1)]);
+            page = (page + 1);
             let mut collectedTotal: f64 = ((allRaw.len() as i64) as f64);
             if dataLength < pageSize.as_f64().unwrap_or(f64::NAN) || collectedTotal >= maxMarkets.as_f64().unwrap_or(f64::NAN) {
                 break;

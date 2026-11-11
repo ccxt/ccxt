@@ -1874,11 +1874,10 @@ impl Kraken {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let mut authenticated: Value = Value::Str("authenticated".into());
         let mut subscription: Value = self.safe_value(__ch.subscriptions.clone(), authenticated.clone(), &[]);
-        let mut now: Value = self.seconds();
-        let mut start: Value = self.safe_integer_k(subscription.clone(), "start", &[]);
-        let mut expires: Value = self.safe_integer_k(subscription.clone(), "expires", &[Value::Int(-1)]);
-        let mut expired: bool = (start != Value::Null) && (expires.as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) && (start.as_f64().unwrap_or(f64::NAN) <= ((match (&(now), &(expires)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x),
-            Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })).as_f64().unwrap_or(f64::NAN));
+        let mut now: i64 = self.seconds().as_i64().unwrap_or_default();
+        let mut start: Option<i64> = self.safe_integer_k(subscription.clone(), "start", &[]).as_i64();
+        let mut expires: i64 = self.safe_integer_k(subscription.clone(), "expires", &[Value::Int(-1)]).as_i64().unwrap_or(-1);
+        let mut expired: bool = (start.is_some()) && (expires >= 0) && ((start.is_some() && start <= Some(((now - expires)))));
         if (subscription == Value::Null) || expired {
             // single-flight leader election, see
             // https://github.com/ccxt/ccxt/issues/29393: the staleness gate
@@ -1914,7 +1913,7 @@ impl Kraken {
                 let __ws_arg_5 = self.safe_dict_k(&response, "result", &[]);
                 subscription = self.extend(__ws_arg_5, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("start".to_string(), now);
+                        m.insert("start".to_string(), Value::from(now));
                     m
                 })]);
                 let mut token: Option<String> = self.safe_string_k_opt(subscription.clone(), "token", &[]);
