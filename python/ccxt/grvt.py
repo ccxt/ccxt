@@ -3047,7 +3047,7 @@ class grvt(Exchange, ImplicitAPI):
     def fee_amount_multiplier(self) -> int:
         return self.convert_to_big_int_custom('10000')  # multiply needed https://t.me/c/3396937126/88
 
-    def create_signed_request(self, request: dict, structureType: str, currencyObj: dict | None = None, signerAddress: Str = None) -> dict:
+    def create_signed_request(self, request: dict, structureType: str, currencyObj: Currency = None, signerAddress: Str = None) -> dict:
         messageData = None
         requestSignature = self.safe_dict(request, 'signature', {})
         if structureType == 'EIP712_TRANSFER_TYPE':
