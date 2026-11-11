@@ -229,6 +229,11 @@ function testParseToInt () {
     assert (exchange.parseToInt ('1e5') === 100000);
     assert (exchange.parseToInt ('1E-5') === 0);
     assert (exchange.parseToInt ('2.5e3') === 2500);
+
+    // integers above 2^53 preserve exact precision in Python, PHP, C#, Go and Java
+    if (!exchange.isNode) {
+        assert (exchange.numberToString (exchange.parseToInt ('30000000000000002')) === '30000000000000002');
+    }
 }
 
 function testDatetime () {
