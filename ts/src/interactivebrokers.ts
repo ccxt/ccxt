@@ -446,6 +446,16 @@ export default class interactivebrokers extends Exchange {
                         'XLP': 'XLM', // Stellar Perp Style Futures, 5000 XLM
                         'ZEC': 'ZEC', // Zcash Perp Style Futures, 1 ZEC
                         // the coinbase derivatives dated (monthly) futures (BIT, ET, BTI, ...) are in cryptoFutureSymbols
+                        'BIT': 'BTC',
+                        'ET': 'ETH',
+                        'AVA': 'AVAX',
+                        'BTI': 'BTC',
+                        'DOG': 'DOGE',
+                        'SHB': 'SHIB',
+                        'HYF': 'HYPE',
+                        'LC': 'LTC',
+                        'SUI': 'SUI',
+                        'XRL': 'XRP',
                     },
                     // dated crypto futures (CME and coinbase derivatives), IBKR symbol -> unified base, resolved via trsrv/futures
                     // https://www.interactivebrokers.com/en/pricing/commissions-futures.php?region=americas
