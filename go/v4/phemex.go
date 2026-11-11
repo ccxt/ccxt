@@ -6120,7 +6120,7 @@ func (this *Phemex) transferBody(ch chan AsyncResult[TransferEntry], code string
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
-	var scaledAmmount any = this.ToEv(amount, currency)
+	var scaledAmmount any = this.ToEn(amount, this.SafeInteger(currency, "valueScale"))
 	var direction any = nil
 	var transfer map[string]any = nil
 	if (fromId != nil && *fromId == "spot") && (toId != nil && *toId == "future") {
